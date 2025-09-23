@@ -2,11 +2,17 @@
 // Contains all rendering and UI display logic
 
 class Display {
-    constructor(port, gameWidth, gameHeight, factory) {
-        this.port = port;
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
-        this.factory = factory;
+    static starRadius = 8;
+    static shipRadius = 5;
+    
+    constructor(game) {
+        this.port = game.port;
+        this.gameWidth = game.gameWidth;
+        this.gameHeight = game.gameHeight;
+        this.game = game;
+        this.factory = game.getFactory();
+        this.selectedObject = null;
+        game.setDisplay(this);
     }
     
     // Clear the screen
@@ -14,14 +20,32 @@ class Display {
         this.port.fillRect(new pdg.Rect(0, 0, this.gameWidth, this.gameHeight), 'black');
     }
     
+    setSelectedObject(object) {
+        console.log(`DisplaySetting selected object to ${object.type}`);
+        this.selectedObject = object;
+    }
+
+    getShipColor(ship) {
+        const colors = {
+            scout: 'cyan',
+            defense: 'green',
+            battleship: 'red',
+            colony: 'purple'
+        };
+        return colors[ship.type] || 'white';
+    }
+    
     // Draw a single star
     drawStar(star) {
-        this.port.fillCircle(new pdg.Point(star.x, star.y), star.radius, star.color);
+        let color = 'white';
+        if (star.population > 0) {
+            color = 'yellow';
+        }
+        this.port.fillCircle(new pdg.Point(star.x, star.y), Display.starRadius, color);
         
         // Draw selection indicator
-        if (star.selected) {
-            this.port.fillCircle(new pdg.Point(star.x, star.y), star.radius + 3, 'white');
-            this.port.fillCircle(new pdg.Point(star.x, star.y), star.radius, star.color);
+        if (star === this.selectedObject) {
+            this.port.frameCircle(new pdg.Point(star.x, star.y), Display.starRadius + 4, 'white');
         }
         
         // Draw shipbuilding progress
@@ -40,12 +64,12 @@ class Display {
     
     // Draw a single ship
     drawShip(ship) {
-        this.port.fillCircle(new pdg.Point(ship.x, ship.y), ship.radius, ship.color);
+        const shipColor = this.getShipColor(ship);
+        this.port.fillCircle(new pdg.Point(ship.x, ship.y), Display.shipRadius, shipColor);
         
         // Draw selection indicator
-        if (ship.selected) {
-            this.port.fillCircle(new pdg.Point(ship.x, ship.y), ship.radius + 2, 'white');
-            this.port.fillCircle(new pdg.Point(ship.x, ship.y), ship.radius, ship.color);
+        if (ship === this.selectedObject) {
+            this.port.frameCircle(new pdg.Point(ship.x, ship.y), Display.shipRadius + 2, 'white');
         }
         
         // Draw destination line
@@ -71,7 +95,7 @@ class Display {
     // Draw star details UI
     drawStarDetails(star) {
         this.port.drawText(`${star.name}`, new pdg.Point(10, 80), 14, pdg.textStyle_Plain, 'yellow');
-        this.port.drawText(`Pop: ${Math.floor(star.population)}`, new pdg.Point(10, 100), 12, pdg.textStyle_Plain, 'white');
+        this.port.drawText(`Pop: ${Math.floor(star.population * 1000.0)}`, new pdg.Point(10, 100), 12, pdg.textStyle_Plain, 'white');
         this.port.drawText(`Tech: ${star.techLevel.toFixed(1)}`, new pdg.Point(10, 120), 12, pdg.textStyle_Plain, 'white');
         this.port.drawText(`Building: ${star.currentShip || 'None'}`, new pdg.Point(10, 140), 12, pdg.textStyle_Plain, 'white');
         
@@ -100,9 +124,12 @@ class Display {
     }
     
     // Main draw function that orchestrates all drawing
-    drawGame(game) {
+    drawGame() {
         this.clear();
         
+        const game = this.game;
+        const factory = this.factory;
+
         // Draw game objects
         this.drawStars(game.stars);
         this.drawShips(game.allShips);
@@ -112,9 +139,9 @@ class Display {
         
         // Draw selected object details
         if (game.selectedObject) {
-            if (this.factory.isStar(game.selectedObject)) {
+            if (factory.isStar(game.selectedObject)) {
                 this.drawStarDetails(game.selectedObject);
-            } else if (this.factory.isShip(game.selectedObject)) {
+            } else if (factory.isShip(game.selectedObject)) {
                 this.drawShipDetails(game.selectedObject);
             }
         }

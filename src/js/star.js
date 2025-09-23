@@ -1,81 +1,124 @@
 // Star class definition for Galactica-4
 // Contains all star-related data and logic
 
+class Setting {
+    constructor(value, rate, benefit, locked) {
+        this.value = value;   // current effective value
+        this.desired = value; // desired effective value
+        this.rate = rate;    // rate of change of towards desired value per turn
+        this.benefit = benefit; // benefit derived from on unit of value
+        this.locked = locked; // if true, the setting is locked and cannot be changed
+    }
+    setDesired(desired) {
+        this.desired = desired;
+    }
+    setRate(rate) {
+        this.rate = rate;
+    }
+    setBenefit(benefit) {
+        this.benefit = benefit;
+    }
+    setLocked(locked) {
+        this.locked = locked;
+    }
+    getBenefit() {
+        return this.value * this.benefit;
+    }
+    getProjectedBenefit() {
+        return this.desired * this.benefit;
+    }
+    adjustValue() {
+        let changed = false;
+        if (this.value < this.desired) {
+            this.value += this.rate;
+            if (this.value > this.desired) {
+                this.value = this.desired;
+            }
+            changed = true;
+        } else if (this.value > this.desired) {
+            this.value -= (this.rate * 4.0); // rate of decrease is 4x the rate of increase
+            changed = true;
+            if (this.value < this.desired) {
+                this.value = this.desired;
+            }
+        }
+        return changed;
+    }
+}
+
 class Star {
-    constructor(x, y, name, factory) {
+    constructor(x, y, name, game) {
         this.x = x;
         this.y = y;
         this.name = name;
-        this.population = Math.floor(Math.random() * 1000) + 100;
-        this.techLevel = Math.floor(Math.random() * 5) + 1;
-        this.factory = factory;
+        this.population = 0;
+        this.techLevel = 0;
+        this.game = game;
 
         // Resource allocation (0.0 to 1.0 for each)
-        this.shipbuilding = 0.3;
-        this.growth = 0.4;
-        this.research = 0.3;
+        this.growth = new Setting(334.0, 60.0, 6.0, false);
+        this.shipBuilding = new Setting(333.0, 60.0, 6.0, false);
+        this.research = new Setting(333.0, 60.0, 6.0, false);
         
         // Current production
-        this.currentShip = null; // null, 'scout', 'defense', 'battleship', 'colony'
-        this.shipProgress = 0;
+        this.buildingShip = null; // null, or the ship object
+        this.paidTowardShipBuilding = 0;
+        this.paidTowardResearch = 0;
         
         // Ships at this star
         this.ships = [];
-        
-        this.radius = 8;
-        this.color = 'yellow';
-        this.selected = false;
-    }
-    
-    getEffectiveStats() {
-        return {
-            shipbuilding: this.shipbuilding * this.population,
-            growth: this.growth * this.population,
-            research: this.research * this.population
-        };
     }
     
     update() {
-        // Process shipbuilding
+        if (this.population <= 0) {
+            return; // do nothing with unpopulated stars
+        }
+
+        // Adjust all the settings
+        this.shipBuilding.adjustValue();
+        this.growth.adjustValue();
+        this.research.adjustValue();
+
+        // Adjust shipbuilding and research benefits based on the benefit of growth
+        const benefitAdjustment = this.growth.getBenefit() / 1665.0;
+        if (benefitAdjustment > 0) {
+            this.shipBuilding.setBenefit(this.shipBuilding.getBenefit() + benefitAdjustment);
+            this.research.setBenefit(this.research.getBenefit() + benefitAdjustment);
+        }
+
+        // apply research
+        let amount = this.game.rules.getStarResearchAmount(this);
+        console.log(`Paid ${amount} toward research at ${this.name}`);
+        this.paidTowardResearch += amount;
+        if (this.paidTowardResearch >= 1000) {
+            this.paidTowardResearch -= 1000;
+            this.techLevel++;
+            console.log(`Tech level increased to ${this.techLevel} at ${this.name}`);
+        }
+
+        // apply shipbuilding effort
         if (this.currentShip) {
-            const stats = this.getEffectiveStats();
-            const buildCost = this.getShipBuildCost(this.currentShip);
-            this.shipProgress += stats.shipbuilding / buildCost;
-            
-            if (this.shipProgress >= 1.0) {
-                this.completeShip();
-                this.shipProgress = 0;
-                this.currentShip = null;
+            amount = this.game.rules.getStarShipBuildingAmount(this);
+            console.log(`Paid ${amount} toward shipbuilding at ${this.name}`);
+            this.paidTowardShipBuilding += amount;
+            if (this.paidTowardShipBuilding >= this.game.rules.getShipBuildCost(this.currentShip, this)) {
+                this.completeShip(); // unlike Galactica-3, we only allow one ship per start built each turn
+                this.paidTowardShipBuilding -= this.game.rules.getShipBuildCost(this.currentShip, this);
+                console.log(`Ship built at ${this.name}`);
             }
         }
         
-        // Process growth
-        const stats = this.getEffectiveStats();
-        this.population += stats.growth * 0.01;
-        
-        // Process research
-        this.techLevel += stats.research * 0.001;
-    }
-    
-    getShipBuildCost(shipType) {
-        const baseCosts = {
-            scout: 100,
-            defense: 200,
-            battleship: 400,
-            colony: 1000
-        };
-        return baseCosts[shipType] || 100;
+        // apply growth
+        this.population += this.game.rules.getStarPopulationGrowth(this);
+        if (this.population > 99900) {
+            this.population = 99900;
+        }
     }
     
     completeShip() {
-        // Note: This will need to be set up properly when called
-        // The game instance needs to be accessible
-        if (typeof game !== 'undefined' && game.allShips) {
-            const ship = new this.factory.createShip(this.x, this.y, this.currentShip, this);
-            this.ships.push(ship);
-            game.allShips.push(ship);
-            console.log(`Built ${this.currentShip} at ${this.name}`);
-        }
+        const ship = this.game.getFactory().createShip(this.x + 4, this.y - 4, this.currentShip, this);
+        this.ships.push(ship);
+        console.log(`Built ${this.currentShip} at ${this.name}`);
     }
     
     startBuildingShip(shipType) {
@@ -84,6 +127,14 @@ class Star {
             this.shipProgress = 0;
             console.log(`Started building ${shipType} at ${this.name}`);
         }
+    }
+
+    shipDeparted(ship) {
+        this.ships.splice(this.ships.indexOf(ship), 1);
+    }
+
+    shipArrived(ship) {
+        this.ships.push(ship);
     }
 }
 

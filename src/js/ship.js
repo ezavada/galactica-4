@@ -2,19 +2,16 @@
 // Contains all ship-related data and logic
 
 class Ship {
-    constructor(x, y, type, factory) {
+    constructor(x, y, type, star,game) {
         this.x = x;
         this.y = y;
         this.type = type;
         this.star = star;
         this.destination = null;
         this.progress = 0;
-        this.selected = false;
-        this.factory = factory;
+        this.game = game;
         // Ship stats
         this.stats = this.getShipStats();
-        this.radius = 5;
-        this.color = this.getShipColor();
     }
     
     getShipStats() {
@@ -36,17 +33,7 @@ class Ship {
         };
     }
     
-    getShipColor() {
-        const colors = {
-            scout: 'cyan',
-            defense: 'green',
-            battleship: 'red',
-            colony: 'purple'
-        };
-        return colors[this.type] || 'white';
-    }
-    
-    update() {
+    move() {
         if (this.destination && this.type !== 'defense') {
             const dx = this.destination.x - this.x;
             const dy = this.destination.y - this.y;
@@ -56,6 +43,10 @@ class Ship {
                 // Arrived at destination
                 this.arriveAtDestination();
             } else {
+                if (this.star) {
+                    this.star.shipDeparted(this);
+                    this.star = null;
+                }
                 // Move towards destination
                 const moveDistance = this.stats.speed * 2; // pixels per turn
                 const moveX = (dx / distance) * moveDistance;
@@ -66,18 +57,23 @@ class Ship {
             }
         }
     }
+
+
+    combat() {
+        // TODO: implement combat
+    }
     
     arriveAtDestination() {
         if (this.destination) {
+            // handle arriving at star
             if (this.type === 'colony') {
-                // Create new colony
-                // Note: This will need to be set up properly when called
-                if (typeof game !== 'undefined' && game.stars) {
-                    const newStar = new this.factory.createStar(this.destination.x, this.destination.y, `Colony ${Date.now()}`);
-                    newStar.population = Math.floor(this.star.population * 0.1);
-                    newStar.techLevel = Math.floor(this.star.techLevel * 0.8);
-                    game.stars.push(newStar);
-                    console.log(`Colony established at ${newStar.name}`);
+                // find the star at the destination
+                const dstStar = this.game.stars.find(star => star.x === this.destination.x && star.y === this.destination.y);
+                if (newStar) {
+                    dstStar.population = 1;
+                    dstStar.techLevel = this.techLevel;
+                    console.log(`Colony established at ${dstStar.name}`);
+                    this.game.allShips.remove(this);
                 }
             }
             

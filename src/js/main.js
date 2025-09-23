@@ -1,24 +1,27 @@
 // Galactica-4 PDG Game - Main Entry Point
 // Run with: ./pdg src/js/main.js
 
+const pdg = require('pdg');
+
 console.log("=== Galactica-4 PDG Game Starting ===");
 
 // Load required modules
 const Factory = require('./src/js/factory.js');
 const Display = require('./src/js/display.js');
 const Game = require('./src/js/game.js');
+const Rules = require('./src/js/rules.js');
 
 const factory = new Factory();
+const rules = new Rules();
 
 // Create game instance
-let game = new Game(factory);
+let game = new Game(factory, rules);
 
 // Create window port
 game.port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), "Galactica-4");
 
 // Create display system
-const display = new Display(game.port, game.gameWidth, game.gameHeight, factory);
-game.setDisplay(display);
+const display = new Display(game);
 
 console.log("Game created and window opened");
 
@@ -54,3 +57,4 @@ console.log("Event handlers registered, starting PDG...");
 
 // Start PDG
 pdg.run();
+

@@ -1,9 +1,12 @@
 // Game class for Galactica-4
 // Contains main game logic and state management
 
+const Display = require('./display.js');
+
 class Game {
-    constructor(factory) {
+    constructor(factory, rules) {
         console.log("Game constructor starting...");
+        factory.setGame(this);
         this.stars = [];
         this.allShips = [];
         this.selectedObject = null;
@@ -13,18 +16,22 @@ class Game {
         this.port = null;
         this.display = null;
         this.factory = factory;
+        this.rules = rules;
         this.initializeGame();
         console.log("Game constructor completed");
     }
-    
     initializeGame() {
         // Create random stars
-        const starCount = 12;
+        const starCount = this.rules.getStarCount();
         for (let i = 0; i < starCount; i++) {
             const x = Math.random() * (this.gameWidth - 100) + 50;
             const y = Math.random() * (this.gameHeight - 100) + 50;
             const name = `Star ${i + 1}`;
-            this.stars.push(this.factory.createStar(x, y, name));
+            let star = this.factory.createStar(x, y, name);
+            if (i === 0) {
+                star.population = 1000000; // 1 billion initial population
+                star.techLevel = 1;
+            }
         }
         
         console.log(`Game initialized with ${this.stars.length} stars`);
@@ -33,33 +40,27 @@ class Game {
     setDisplay(display) {
         this.display = display;
     }
+    setRules(rules) {
+        this.rules = rules;
+    }
     
+    getFactory() {
+        return this.factory;
+    }
+    getRules() {
+        return this.rules;
+    }
+
+
     draw() {
         if (this.display) {
-            this.display.drawGame(this);
+            this.display.drawGame();
         }
     }
     
     handleMouseClick(x, y) {
         // Clear previous selection
-        if (this.selectedObject) {
-            this.selectedObject.selected = false;
-        }
-        this.selectedObject = null;
-        
-        // Check for star clicks
-        for (const star of this.stars) {
-            const dx = x - star.x;
-            const dy = y - star.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance <= star.radius) {
-                star.selected = true;
-                this.selectedObject = star;
-                console.log(`Selected star: ${star.name}`);
-                return;
-            }
-        }
+        var clickedObject = null;
         
         // Check for ship clicks
         for (const ship of this.allShips) {
@@ -67,17 +68,35 @@ class Game {
             const dy = y - ship.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            if (distance <= ship.radius) {
-                ship.selected = true;
-                this.selectedObject = ship;
-                console.log(`Selected ship: ${ship.type}`);
-                return;
+            if (distance <= Display.shipRadius) {
+                clickedObject = ship;
+                console.log(`Clicked on ship: ${ship.type}`);
+             }
+        }
+
+         // Check for star clicks
+        for (const star of this.stars) {
+            const dx = x - star.x;
+            const dy = y - star.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance <= Display.starRadius) {
+                clickedObject = star;
+                console.log(`Clicked on star: ${star.name}`);
             }
+        }
+        
+        // if ship is selected and we click on an object, set the destination of the ship to the object
+        if (clickedObject && this.factory.isShip(this.selectedObject)) {
+            this.selectedObject.setDestination(clickedObject.x, clickedObject.y);
+            console.log(`Set destination of ${this.selectedObject.type} to ${clickedObject.type}`);
+            return;
         }
         
         // If clicking on empty space and have a ship selected, give it a destination
         if (this.selectedObject && this.factory.isShip(this.selectedObject)) {
             this.selectedObject.setDestination(x, y);
+            return;
         }
         
         // If clicking on a star and have a ship selected, give it that destination
@@ -86,11 +105,15 @@ class Game {
             const dy = y - star.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            if (distance <= star.radius && this.selectedObject && this.factory.isShip(this.selectedObject)) {
+            if (distance <= Display.starRadius && this.selectedObject && this.factory.isShip(this.selectedObject)) {
                 this.selectedObject.setDestination(star.x, star.y);
                 return;
             }
         }
+
+        // set the selected object to the clicked object
+        this.selectedObject = clickedObject;
+        this.display.setSelectedObject(clickedObject);
     }
     
     handleKeyPress(key) {
@@ -100,16 +123,16 @@ class Game {
             // Handle ship building keys
             const star = this.selectedObject;
             switch (String.fromCharCode(key)) {
-                case '1':
+                case 's':
                     star.startBuildingShip('scout');
                     break;
-                case '2':
+                case 'd':
                     star.startBuildingShip('defense');
                     break;
-                case '3':
+                case 'b':
                     star.startBuildingShip('battleship');
                     break;
-                case '4':
+                case 'c':
                     star.startBuildingShip('colony');
                     break;
                 default:
@@ -122,16 +145,20 @@ class Game {
     endTurn() {
         console.log(`=== End of Turn ${this.turn} ===`);
         
+        // Update all ships
+        for (const ship of this.allShips) {
+            ship.move();
+        }
         // Update all stars
         for (const star of this.stars) {
             star.update();
         }
         
-        // Update all ships
+        // resolve combat
         for (const ship of this.allShips) {
-            ship.update();
+            ship.combat();
         }
-        
+
         this.turn++;
         console.log(`=== Start of Turn ${this.turn} ===`);
     }

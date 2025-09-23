@@ -2,17 +2,26 @@
 // Contains all factory-related data and logic
 
 class Factory {
-    constructor(starConstructor, shipConstructor) {
+    constructor() {
         this.starConstructor = require('./star.js');
         this.shipConstructor = require('./ship.js');
+        this.game = null;
+    }
+
+    setGame(game) {
+        this.game = game;
     }
 
     createStar(x, y, name) {
-        return new this.starConstructor(x, y, name, this);
+        const star = new this.starConstructor(x, y, name, this.game);
+        this.game.stars.push(star);
+        return star;
     }
 
     createShip(x, y, type, star) {
-        return new this.shipConstructor(x, y, type, star, this);
+        const ship = new this.shipConstructor(x, y, type, star, this.game);
+        this.game.allShips.push(ship);
+        return ship;
     }
 
     isStar(object) {
