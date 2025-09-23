@@ -11,35 +11,28 @@ class Ship {
         this.progress = 0;
         this.game = game;
         // Ship stats
-        this.stats = this.getShipStats();
+        this.techLevel = star.techLevel;
+        this.speed = this.game.rules.getShipInitialSpeed(this);
     }
-    
-    getShipStats() {
-        const baseStats = {
-            scout: { speed: 3.0, attack: 0.0, defense: 0.25, buildTime: 0.5 },
-            defense: { speed: 0.0, attack: 1.0, defense: 1.0, buildTime: 1.0 },
-            battleship: { speed: 1.0, attack: 1.0, defense: 1.0, buildTime: 2.0 },
-            colony: { speed: 1.0, attack: 1.0, defense: 2.0, buildTime: 5.0 }
-        };
-        
-        const base = baseStats[this.type];
-        const techMultiplier = this.star ? this.star.techLevel : 1;
-        
-        return {
-            speed: base.speed * techMultiplier,
-            attack: base.attack * techMultiplier,
-            defense: base.defense * techMultiplier,
-            buildTime: base.buildTime
-        };
+
+    complete() {
+        this.progress = 100;
     }
-    
+
+    underConstruction() {
+        return this.progress < 100;
+    }
+
     move() {
+        if (this.underConstruction()) {
+            return; // still under construction
+        }
         if (this.destination && this.type !== 'defense') {
             const dx = this.destination.x - this.x;
             const dy = this.destination.y - this.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            if (distance < 5) {
+            if (distance < 5 || distance < (this.speed + 5)) {
                 // Arrived at destination
                 this.arriveAtDestination();
             } else {
@@ -48,7 +41,7 @@ class Ship {
                     this.star = null;
                 }
                 // Move towards destination
-                const moveDistance = this.stats.speed * 2; // pixels per turn
+                const moveDistance = this.speed; // pixels per turn
                 const moveX = (dx / distance) * moveDistance;
                 const moveY = (dy / distance) * moveDistance;
                 
@@ -65,19 +58,19 @@ class Ship {
     
     arriveAtDestination() {
         if (this.destination) {
+            const arrivingDestination = this.destination;
+            this.destination = null;
             // handle arriving at star
             if (this.type === 'colony') {
                 // find the star at the destination
-                const dstStar = this.game.stars.find(star => star.x === this.destination.x && star.y === this.destination.y);
-                if (newStar) {
-                    dstStar.population = 1;
-                    dstStar.techLevel = this.techLevel;
-                    console.log(`Colony established at ${dstStar.name}`);
-                    this.game.allShips.remove(this);
+                const destinationStar = this.game.stars.find(star => star.x === arrivingDestination.x && star.y === arrivingDestination.y);
+                if (destinationStar) {
+                    destinationStar.population = 1;
+                    destinationStar.techLevel = this.techLevel;
+                    console.log(`Colony established at ${destinationStar.name}`);
+                    this.game.entityRemoved(this);
                 }
-            }
-            
-            this.destination = null;
+            }            
         }
     }
     

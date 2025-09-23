@@ -101,9 +101,10 @@ class Star {
             amount = this.game.rules.getStarShipBuildingAmount(this);
             console.log(`Paid ${amount} toward shipbuilding at ${this.name}`);
             this.paidTowardShipBuilding += amount;
-            if (this.paidTowardShipBuilding >= this.game.rules.getShipBuildCost(this.currentShip, this)) {
+            const cost = this.game.rules.getShipBuildCost(this.currentShip, this);
+            if (this.paidTowardShipBuilding >= cost) {
                 this.completeShip(); // unlike Galactica-3, we only allow one ship per start built each turn
-                this.paidTowardShipBuilding -= this.game.rules.getShipBuildCost(this.currentShip, this);
+                this.paidTowardShipBuilding -= cost;
                 console.log(`Ship built at ${this.name}`);
             }
         }
@@ -116,15 +117,15 @@ class Star {
     }
     
     completeShip() {
-        const ship = this.game.getFactory().createShip(this.x + 4, this.y - 4, this.currentShip, this);
-        this.ships.push(ship);
+        this.currentShip.complete();
+        this.currentShip = null;
         console.log(`Built ${this.currentShip} at ${this.name}`);
     }
     
     startBuildingShip(shipType) {
         if (!this.currentShip) {
-            this.currentShip = shipType;
-            this.shipProgress = 0;
+            this.currentShip = this.game.factory.createShip(this.x + 4, this.y - 4, shipType, this);
+            this.ships.push(this.currentShip);
             console.log(`Started building ${shipType} at ${this.name}`);
         }
     }

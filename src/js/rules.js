@@ -124,7 +124,7 @@ class Rules {
 
     getShipInitialSpeed(ship) {
         const speedIdx = Math.floor(ship.techLevel/5.0) + 1;
-        const speed = speedIdx * 10.0 + ship.techLevel % 5.0;
+        let speed = speedIdx * 10.0 + ship.techLevel % 5.0;
         switch (ship.type) {
             case 'colony':
                 speed *= 0.75;
@@ -182,10 +182,6 @@ class Rules {
             default:
                 return ship.techLevel;
         }
-    }
-
-    getShipDefense(ship) {
-        return ship.stats.defense;
     }
 }
 

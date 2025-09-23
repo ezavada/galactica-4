@@ -14,13 +14,13 @@ class Factory {
 
     createStar(x, y, name) {
         const star = new this.starConstructor(x, y, name, this.game);
-        this.game.stars.push(star);
+        this.game.entityAdded(star);
         return star;
     }
 
     createShip(x, y, type, star) {
         const ship = new this.shipConstructor(x, y, type, star, this.game);
-        this.game.allShips.push(ship);
+        this.game.entityAdded(ship);
         return ship;
     }
 

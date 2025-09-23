@@ -37,6 +37,26 @@ class Game {
         console.log(`Game initialized with ${this.stars.length} stars`);
     }
     
+    entityAdded(entity) {
+        if (this.factory.isStar(entity)) {
+            this.stars.push(entity);
+        } else if (this.factory.isShip(entity)) {
+            this.allShips.push(entity);
+        }
+    }
+
+    entityRemoved(entity) {
+        if (this.selectedObject === entity) {
+            this.selectedObject = null;
+            this.display.setSelectedObject(null);
+        }
+        if (this.factory.isStar(entity)) {
+            this.stars.splice(this.stars.indexOf(entity), 1);
+        } else if (this.factory.isShip(entity)) {
+            this.allShips.splice(this.allShips.indexOf(entity), 1);
+        }
+    }
+
     setDisplay(display) {
         this.display = display;
     }
@@ -117,8 +137,11 @@ class Game {
     }
     
     handleKeyPress(key) {
-        if (key === pdg.key_Escape) {
+        if (key === pdg.key_Tab) {
             this.endTurn();
+        } else if (key === pdg.key_Escape) {
+            this.selectedObject = null;
+            this.display.setSelectedObject(null);
         } else if (this.selectedObject && this.factory.isStar(this.selectedObject)) {
             // Handle ship building keys
             const star = this.selectedObject;
