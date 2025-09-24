@@ -1,6 +1,7 @@
 // Display functions for Galactica-4
 // Contains all rendering and UI display logic
 
+const pdg = require('pdg');
 const Common = require('./common.js');
 
 class Display {

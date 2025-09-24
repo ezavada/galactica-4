@@ -1,6 +1,7 @@
 // Game class for Galactica-4
 // Contains main game logic and state management
 
+const pdg = require('pdg');
 const Common = require('./common.js');
 
 class Game {

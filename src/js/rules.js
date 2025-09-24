@@ -4,7 +4,7 @@
 class Rules {
     constructor(isFast) {
         this.isFast = isFast;
-        this.shipClasses = ['frigate', 'destroyer', 'cruiser', 'battleship', 'colossus'];
+        this.shipClasses = ['frigate', 'destroyer', 'cruiser', 'battleship', 'colossus']; // TODO: need actual ship classes
         this.maxPopP = 16.0
         this.growthLimit = 4.0
         this.growthLimitSquared = this.growthLimit * this.growthLimit
