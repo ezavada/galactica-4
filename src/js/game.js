@@ -1,8 +1,8 @@
 // Game class for Galactica-4
 // Contains main game logic and state management
 
-const pdg = require('pdg');
 const Common = require('./common.js');
+const MapGenerator = require('./map-generator.js');
 
 class Game {
     constructor(factory, rules) {
@@ -22,21 +22,44 @@ class Game {
         console.log("Game constructor completed");
     }
     initializeGame() {
-        // Create random stars
-        const starCount = this.rules.getStarCount();
-        for (let i = 0; i < starCount; i++) {
-            const x = Math.random() * (this.gameWidth - 100) + 50;
-            const y = Math.random() * (this.gameHeight - 100) + 50;
-            const name = `Star ${i + 1}`;
-            let star = this.factory.createStar(x, y, name);
-            if (i < 2) {
-                star.population = 1000000; // 1 billion initial population
-                star.techLevel = 1;
-                star.owner = i + 1; // create 2 players
-            }
-        }
+        console.log("Initializing game with MapGenerator...");
         
-        console.log(`Game initialized with ${this.stars.length} stars`);
+        // Initialize MapGenerator
+        const mapGenerator = new MapGenerator(this);
+        
+        // Configuration for map generation
+        const mapConfig = {
+            sectorSize: this.rules.getSectorSize ? this.rules.getSectorSize() : 1,           // Map size multiplier
+            density: this.rules.getStarDensity ? this.rules.getStarDensity() : 1,            // Star density multiplier  
+            totalPlayers: this.rules.getTotalPlayers ? this.rules.getTotalPlayers() : 2,     // Number of players
+            numHumans: this.rules.getNumHumans ? this.rules.getNumHumans() : 1                // Number of human players
+        };
+        
+        // Create star callback function for MapGenerator
+        const createStarCallback = (x, y, z) => {
+            // Convert from galactic coordinates to screen coordinates
+            // TODO: move this to the Display class
+            const screenX = (x / 1024) * (this.gameWidth / 16);
+            const screenY = (y / 1024) * (this.gameHeight / 16);
+            
+            // Create star using factory (name will be set by MapGenerator)
+            const star = this.factory.createStar(screenX, screenY, "Unnamed");
+            return star;
+        };
+        
+        // Generate the map using the original Galactica algorithms
+        const homeStars = mapGenerator.generateMap(mapConfig, createStarCallback);
+        
+        // The MapGenerator has already set up the home stars with proper:
+        // - Owner assignment
+        // - Tech level (1)
+        // - Population (1 billion)
+        // - Build queue (colony ship at 99%)
+        // - Unique names
+        // - Scanner range
+        
+        console.log(`Game initialized with ${this.stars.length} stars using original Galactica algorithms`);
+        console.log(`Home stars assigned: ${homeStars.length}`);
     }
     
     entityAdded(entity) {
