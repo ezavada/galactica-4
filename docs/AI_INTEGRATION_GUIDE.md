@@ -102,7 +102,7 @@ The following properties need to be added to Ship and Star entities:
     maxHealth: 100,         // Required for damage calculation
     speed: shipSpeed,       // Required for movement decisions
     destination: null,      // Required for course tracking
-    currentStar: null,      // Required for location tracking
+    star: null,             // Required for location tracking
     needsDeletion: false,   // Required for AI eligibility
     isInFleet: false        // Required for fleet logic
 }
