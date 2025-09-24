@@ -19,7 +19,7 @@ class Factory {
     }
 
     createShip(x, y, type, star) {
-        const ship = new this.shipConstructor(x, y, type, star, this.game);
+        const ship = new this.shipConstructor(x, y, type, star, this.game, star.owner);
         this.game.entityAdded(ship);
         return ship;
     }

@@ -12,6 +12,9 @@ class Display {
         this.factory = game.getFactory();
         this.selectedObject = null;
         game.setDisplay(this);
+        const ownerColorNames = ['green', 'blue', 'red', 'yellow', 'purple', 'aqua', 'olive', 'lime'];
+        this.ownerColors = ownerColorNames.map(name => new pdg.Color(name));
+        this.ownerColors.forEach(color => color.alpha = 0.5);
     }
     
     // Clear the screen
@@ -49,12 +52,22 @@ class Display {
         if (star.population > 0) {
             color = 'yellow';
         }
+        if (star.owner) {
+            const ownerColor = this.ownerColors[star.owner];
+            this.port.fillCircle(new pdg.Point(star.x, star.y), Common.StarRadius * 5.0, ownerColor);
+        }
         this.port.fillCircle(new pdg.Point(star.x, star.y), Common.StarRadius, color);
         
         // Draw selection indicator
         if (star === this.selectedObject) {
-            this.port.frameCircle(new pdg.Point(star.x, star.y), Common.StarRadius + 4, 'white');
+            const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0
+            this.port.frameCircle(new pdg.Point(star.x, star.y), Common.StarRadius + 4 + pulse, 'white');
         }
+        color = 'gray';
+        if (star.population > 0) {
+            color = 'white';
+        }
+        this.port.drawText(`${star.name}`, new pdg.Point(star.x, star.y + Common.StarRadius + 12), 10, pdg.textStyle_Centered, color);
     }
     
     // Draw all stars
@@ -66,12 +79,18 @@ class Display {
     
     // Draw a single ship
     drawShip(ship) {
-        const shipColor = this.getShipColor(ship);
-        this.port.fillCircle(new pdg.Point(ship.x, ship.y), Common.ShipRadius, shipColor);
+        const ownerColor = this.ownerColors[ship.owner];
+        this.port.fillCircle(new pdg.Point(ship.x, ship.y), Common.ShipRadius, ownerColor);
+        this.port.drawLineEx(new pdg.Point(ship.x-5, ship.y-5), new pdg.Point(ship.x+5, ship.y), 2, 0xffffffff, 0, 'black');
+        this.port.drawLineEx(new pdg.Point(ship.x+5, ship.y), new pdg.Point(ship.x-5, ship.y+5), 2, 0xffffffff, 0, 'black');
+        this.port.drawLineEx(new pdg.Point(ship.x-5, ship.y+5), new pdg.Point(ship.x-5, ship.y-5), 2, 0xffffffff, 0, 'black');
+        this.port.drawLine(new pdg.Point(ship.x-6, ship.y-6), new pdg.Point(ship.x+6, ship.y), 'white');
+        this.port.drawLine(new pdg.Point(ship.x+6, ship.y), new pdg.Point(ship.x-6, ship.y+6), 'white');
+        this.port.drawLine(new pdg.Point(ship.x-6, ship.y+6), new pdg.Point(ship.x-6, ship.y-6), 'white');
         
         // Draw selection indicator
         if (ship === this.selectedObject) {
-            this.port.frameCircle(new pdg.Point(ship.x, ship.y), Common.ShipRadius + 2, 'white');
+            this.port.frameCircle(new pdg.Point(ship.x, ship.y), Common.ShipRadius + 5, 'white');
         }
         
         if (ship.underConstruction()) {
@@ -80,7 +99,7 @@ class Display {
             this.port.fillRect(statusRect, 'gray');
             if (progLen > 0) {
                 statusRect.right = statusRect.left + progLen;
-                this.port.fillRect(statusRect, 'cyan');
+                this.port.fillRect(statusRect, 'aqua');
             }
         }
 
