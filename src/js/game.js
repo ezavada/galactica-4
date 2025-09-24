@@ -120,8 +120,13 @@ class Game {
         // Check for ship clicks
         const shipRadiusSquared = Common.ShipRadius * Common.ShipRadius;
         for (const ship of this.allShips) {
-            const dx = x - ship.x;
-            const dy = y - ship.y;
+            let dx = x - ship.x;
+            let dy = y - ship.y;
+            if (ship.star) {
+                // adjust for parking orbit around star
+                dx -= 10;
+                dy += 6;
+            }
             const distSquared = dx * dx + dy * dy;
             
             if (distSquared <= shipRadiusSquared) {
@@ -238,7 +243,7 @@ class Game {
                 console.log(`${who.type} ship intercepted ${where.type} ship at (${where.x}, ${where.y})`); // who = Ship, where = Ship
                 break;
             case Common.EventType.SHIP_STOPPED:
-                console.log(`${who.type} ship stopped at (${where.x}, ${where.y})`); // who = Ship, where = coordinates
+                console.log(`${who.type} ship stopped at (${who.x}, ${who.y})`); // who = Ship
                 break;
             case Common.EventType.SHIP_DESTROYED:
                 // TODO: different message based on where, how, and why

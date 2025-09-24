@@ -132,7 +132,7 @@ class Star {
     
     startBuildingShip(shipType) {
         if (!this.currentShip) {
-            this.currentShip = this.game.factory.createShip(this.x + 4, this.y - 4, shipType, this);
+            this.currentShip = this.game.factory.createShip(this.x, this.y, shipType, this);
             this.ships.push(this.currentShip);
         }
     }
