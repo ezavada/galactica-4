@@ -68,7 +68,7 @@ class Rules {
     }
 
     getStarShipBuildingAmount(star) {
-        let amount = star.shipBuilding.getBenefit() / 16650.0;
+        let amount = star.shipBuilding.getBenefits() / 1665.0;
         if (this.isFast) {
             amount *= 2.0;
         }
@@ -76,7 +76,7 @@ class Rules {
     }
 
     getStarResearchAmount(star) {
-        let amount = star.research.getBenefit() / (9.0 * star.techLevel);
+        let amount = star.research.getBenefits() / (0.9 * star.techLevel);
         if (this.isFast) {
             amount *= 1.3333;  // 1.3333 ~= 4/3
         }
@@ -110,13 +110,13 @@ class Rules {
     getShipBuildCost(ship, star) {
         switch (ship.type) {
             case 'defense':
-                return 0.4 + ship.techLevel / 6.0;
+                return 0.4 + (ship.techLevel / 6.0);
             case 'scout':
-                return 0.1 + ship.techLevel / 8.0;
+                return 0.1 + (ship.techLevel / 8.0);
             case 'colony':
-                return 4.0 + ship.techLevel / 2.0;
+                return 4.0 + (ship.techLevel / 2.0);
             case 'battleship':
-                return 1.0 + ship.techLevel / 2.0;
+                return 1.0 + (ship.techLevel / 2.0);
             default:
                 return Infinity;
         }

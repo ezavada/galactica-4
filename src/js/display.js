@@ -1,10 +1,9 @@
 // Display functions for Galactica-4
 // Contains all rendering and UI display logic
 
+const Common = require('./common.js');
+
 class Display {
-    static starRadius = 8;
-    static shipRadius = 5;
-    
     constructor(game) {
         this.port = game.port;
         this.gameWidth = game.gameWidth;
@@ -21,8 +20,15 @@ class Display {
     }
     
     setSelectedObject(object) {
+        const objectType = this.game.getObjectType(object);
         if (object) {
-            console.log(`Display: Setting selected object to ${object.type}`);
+            if (objectType === Common.ObjectType.SHIP) {
+                console.log(`Display: selected ${object.type}`);
+            } else if (objectType === Common.ObjectType.STAR) {
+                console.log(`Display: selected ${object.name}`);
+            }
+        } else {
+            console.log(`Display: selected nothing`);
         }
         this.selectedObject = object;
     }
@@ -43,11 +49,11 @@ class Display {
         if (star.population > 0) {
             color = 'yellow';
         }
-        this.port.fillCircle(new pdg.Point(star.x, star.y), Display.starRadius, color);
+        this.port.fillCircle(new pdg.Point(star.x, star.y), Common.StarRadius, color);
         
         // Draw selection indicator
         if (star === this.selectedObject) {
-            this.port.frameCircle(new pdg.Point(star.x, star.y), Display.starRadius + 4, 'white');
+            this.port.frameCircle(new pdg.Point(star.x, star.y), Common.StarRadius + 4, 'white');
         }
     }
     
@@ -61,16 +67,16 @@ class Display {
     // Draw a single ship
     drawShip(ship) {
         const shipColor = this.getShipColor(ship);
-        this.port.fillCircle(new pdg.Point(ship.x, ship.y), Display.shipRadius, shipColor);
+        this.port.fillCircle(new pdg.Point(ship.x, ship.y), Common.ShipRadius, shipColor);
         
         // Draw selection indicator
         if (ship === this.selectedObject) {
-            this.port.frameCircle(new pdg.Point(ship.x, ship.y), Display.shipRadius + 2, 'white');
+            this.port.frameCircle(new pdg.Point(ship.x, ship.y), Common.ShipRadius + 2, 'white');
         }
         
         if (ship.underConstruction()) {
             const progLen = Math.floor(ship.progress / 5);
-            const statusRect = new pdg.Rect(new pdg.Point(ship.x - 10, ship.y - (Display.shipRadius + 2)), 20, 2);
+            const statusRect = new pdg.Rect(new pdg.Point(ship.x - 10, ship.y - (Common.ShipRadius + 2)), 20, 2);
             this.port.fillRect(statusRect, 'gray');
             if (progLen > 0) {
                 statusRect.right = statusRect.left + progLen;
@@ -119,11 +125,12 @@ class Display {
         if (ship.underConstruction()) {
             this.port.drawText(`${ship.type} Ship Hull`, new pdg.Point(10, 80), 14, pdg.textStyle_Plain, 'cyan');
             this.port.drawText(`Tech Level: ${ship.techLevel.toFixed(1)}`, new pdg.Point(10, 100), 12, pdg.textStyle_Plain, 'white');
-            this.port.drawText('Under Construction!', new pdg.Point(10, 120), 12, pdg.textStyle_Plain, 'yellow');
+            this.port.drawText(`Under Construction: ${ship.progress}%`, new pdg.Point(10, 120), 12, pdg.textStyle_Plain, 'yellow');
         } else {
+            const speed = ship.speed / 16380.0;
             this.port.drawText(`${ship.type} Ship`, new pdg.Point(10, 80), 14, pdg.textStyle_Plain, 'cyan');
             this.port.drawText(`Tech Level: ${ship.techLevel.toFixed(1)}`, new pdg.Point(10, 100), 12, pdg.textStyle_Plain, 'white');
-            this.port.drawText(`Speed: ${ship.speed.toFixed(1)}`, new pdg.Point(10, 120), 12, pdg.textStyle_Plain, 'white');
+            this.port.drawText(`Speed: ${speed.toFixed(1)}`, new pdg.Point(10, 120), 12, pdg.textStyle_Plain, 'white');
             this.port.drawText(`Power: ${this.game.rules.getShipPower(ship).toFixed(1)}`, new pdg.Point(10, 140), 12, pdg.textStyle_Plain, 'white');
             // this.port.drawText(`Defense: ${ship.stats.defense.toFixed(1)}`, new pdg.Point(10, 160), 12, pdg.textStyle_Plain, 'white');
         }
@@ -152,9 +159,10 @@ class Display {
         
         // Draw selected object details
         if (game.selectedObject) {
-            if (factory.isStar(game.selectedObject)) {
+            const objectType = game.getObjectType(game.selectedObject);
+            if (objectType === Common.ObjectType.STAR) {
                 this.drawStarDetails(game.selectedObject);
-            } else if (factory.isShip(game.selectedObject)) {
+            } else if (objectType === Common.ObjectType.SHIP) {
                 this.drawShipDetails(game.selectedObject);
             }
         }
