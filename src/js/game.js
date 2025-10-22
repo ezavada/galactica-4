@@ -5,6 +5,7 @@ const Common = require('./common.js');
 const MapGenerator = require('./map-generator.js');
 const GameConfig = require('./game-config.js');
 const PlayerInfo = require('./player-info.js');
+const { AIManager } = require('./ai-manager.js');
 
 class Game {
     constructor(factory, rules, config = null) {
@@ -41,6 +42,25 @@ class Game {
             this.players[i] = new PlayerInfo(i, isComputer);
             if (isComputer) {
                 this.players[i].setAISkill(this.config.compSkill, this.config.compAdvantage);
+            }
+        }
+        
+        // Initialize AI Manager
+        this.aiManager = new AIManager(this, rules);
+        
+        // Initialize AI players for computer-controlled players
+        for (let i = 1; i <= this.config.totalPlayers; i++) {
+            if (this.players[i] && this.players[i].isComputer) {
+                // Map compSkill to AI skill levels (1=Expert is best, but AI uses 2=Expert as best)
+                // Original: 1=Expert, 2=Good, 3=Average, 4=Passable, 5=Novice
+                // AI System: 0=Average, 1=Good, 2=Expert
+                let aiSkillLevel = 0; // Default to Average
+                if (this.config.compSkill === 1) aiSkillLevel = 2; // Expert
+                else if (this.config.compSkill === 2) aiSkillLevel = 1; // Good
+                else aiSkillLevel = 0; // Average or lower
+                
+                this.aiManager.initializeAIPlayer(i, aiSkillLevel);
+                console.log(`AI initialized for player ${i} (skill level ${aiSkillLevel})`);
             }
         }
         
@@ -132,6 +152,23 @@ class Game {
         }
         return Common.ObjectType.UNKNOWN;
     }
+    
+    // Check if a human player can control this entity
+    // Returns true if the entity is owned by a human player (player 1 to numHumans)
+    canHumanControl(entity) {
+        if (!entity || entity.owner === undefined) {
+            return false; // Unowned or invalid entity
+        }
+        
+        // Human players are numbered 1 to numHumans
+        return entity.owner > 0 && entity.owner <= this.config.numHumans;
+    }
+    
+    // Get the player number for the current human (for single player, this is 1)
+    // In multiplayer, this would need to be tracked differently
+    getCurrentHumanPlayer() {
+        return 1; // For now, assume player 1 is the human
+    }
 
     draw() {
         if (this.display) {
@@ -140,11 +177,52 @@ class Game {
     }
     
     handleMouseClick(x, y) {
-        // Convert screen coordinates to galactic coordinates for object selection
+        // Left click - select object to view information
+        var clickedObject = this.findObjectAtPosition(x, y);
+        
+        // Allow selecting any object to view information
+        this.selectedObject = clickedObject;
+        this.display.setSelectedObject(clickedObject);
+        return true;
+    }
+    
+    handleMouseRightClick(x, y) {
+        // Right click - give orders to selected ship
+        // Convert screen coordinates to galactic coordinates
         const galacticX = this.display.toGalacticX(x);
         const galacticY = this.display.toGalacticY(y);
         
-        // Clear previous selection
+        // Check if we have a ship selected
+        const selectedObjectType = this.getObjectType(this.selectedObject);
+        if (selectedObjectType !== Common.ObjectType.SHIP) {
+            return true; // Ignore right clicks if no ship selected
+        }
+        
+        // Only allow giving orders to ships we control
+        if (!this.canHumanControl(this.selectedObject)) {
+            console.log(`Cannot give orders to ship owned by player ${this.selectedObject.owner}`);
+            return true;
+        }
+        
+        // Find what was right-clicked on
+        var clickedObject = this.findObjectAtPosition(x, y);
+        
+        // Set destination - either to an object or to coordinates
+        if (clickedObject) {
+            this.selectedObject.setDestination(clickedObject);
+            const clickedObjectType = this.getObjectType(clickedObject);
+            const destinationName = (clickedObjectType === Common.ObjectType.STAR) ? clickedObject.name : clickedObject.type;
+            console.log(`Set destination of ${this.selectedObject.type} to ${destinationName}`);
+        } else {
+            // Right-clicking on empty space - give ship a destination (in galactic coordinates)
+            this.selectedObject.setDestination({x: galacticX, y: galacticY});
+            console.log(`Set destination of ${this.selectedObject.type} to galactic (${galacticX.toFixed(0)}, ${galacticY.toFixed(0)})`);
+        }
+        return true;
+    }
+    
+    findObjectAtPosition(x, y) {
+        // Helper method to find what object is at a given screen position
         var clickedObject = null;
         
         // Check for ship clicks (using screen-space radius for consistent UI feel)
@@ -186,27 +264,7 @@ class Game {
             }
         }
         
-        let selectedObjectType = this.getObjectType(this.selectedObject);
-
-        if (selectedObjectType === Common.ObjectType.SHIP) {
-            // if ship is selected and we click on an object, set the destination of the ship to the object
-            if (clickedObject) {
-                this.selectedObject.setDestination(clickedObject);
-                const clickedObjectType = this.getObjectType(clickedObject);
-                const destinationName = (clickedObjectType === Common.ObjectType.STAR) ? clickedObject.name : clickedObject.type;
-                console.log(`Set destination of ${this.selectedObject.type} to ${destinationName}`);
-            } else {
-                // If clicking on empty space and have a ship selected, give it a destination (in galactic coordinates)
-                this.selectedObject.setDestination({x: galacticX, y: galacticY});
-                console.log(`Set destination of ${this.selectedObject.type} to galactic (${galacticX.toFixed(0)}, ${galacticY.toFixed(0)})`);
-            }
-            return true;
-        }
-
-        // set the selected object to the clicked object
-        this.selectedObject = clickedObject;
-        this.display.setSelectedObject(clickedObject);
-        return true;
+        return clickedObject;
     }
     
     handleKeyPress(key) {
@@ -228,6 +286,12 @@ class Game {
     }
 
     handleStarKeyPress(star, key) {
+        // Verify the star can be controlled by human
+        if (!this.canHumanControl(star)) {
+            console.log(`Cannot build ships at ${star.name} - owned by player ${star.owner}`);
+            return;
+        }
+        
         switch (String.fromCharCode(key)) {
             case 's':
                 star.startBuildingShip('scout');
@@ -253,6 +317,11 @@ class Game {
     
     endTurn() {
         console.log(`=== End of Turn ${this.turn} ===`);
+        
+        // Process AI decisions before moving/updating
+        if (this.aiManager) {
+            this.aiManager.processAITurns();
+        }
         
         // Update all ships
         for (const ship of this.allShips) {

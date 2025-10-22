@@ -5,12 +5,15 @@ const pdg = require('pdg');
 
 console.log("=== Galactica-4 PDG Game Starting ===");
 
+// Initialize random seed
+pdg.srand(Date.now());
+
 // Load required modules
-const Factory = require('./src/js/factory.js');
-const Display = require('./src/js/display.js');
-const Game = require('./src/js/game.js');
-const Rules = require('./src/js/rules.js');
-const GameConfig = require('./src/js/game-config.js');
+const Factory = require('./factory.js');
+const Display = require('./display.js');
+const Game = require('./game.js');
+const Rules = require('./rules.js');
+const GameConfig = require('./game-config.js');
 
 const factory = new Factory();
 
@@ -40,7 +43,13 @@ const drawHandler = new pdg.IEventHandler(function(event) {
 const mouseHandler = new pdg.IEventHandler(function(event) {
     // Check if this is a mouse down event
     if (event && event.eventType === pdg.eventType_MouseDown) {
-        game.handleMouseClick(event.mousePos.x, event.mousePos.y);
+        // Check which button was pressed
+        // PDG uses 'button' property: 0=left, 1=right, 2=middle
+        if (event.buttonNumber === 0) {
+            game.handleMouseClick(event.mousePos.x, event.mousePos.y);
+        } else if (event.buttonNumber === 1) {
+            game.handleMouseRightClick(event.mousePos.x, event.mousePos.y);
+        }
     }
     return true;
 });

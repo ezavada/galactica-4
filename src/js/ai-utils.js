@@ -340,6 +340,84 @@ class AIUtils {
         const value = Math.floor(Math.random() * maxValue);
         return Math.random() < 0.5 ? value : -value;
     }
+    
+    // Get all entities within range of a given entity
+    // Returns array of {entity, distance} objects
+    getEntitiesInRange(fromEntity, entities, range) {
+        const entitiesInRange = [];
+        
+        for (const entity of entities) {
+            const distance = this.calculateDistance(fromEntity, entity);
+            if (distance <= range) {
+                entitiesInRange.push({
+                    entity: entity,
+                    distance: distance
+                });
+            }
+        }
+        
+        // Sort by distance (closest first)
+        entitiesInRange.sort((a, b) => a.distance - b.distance);
+        
+        return entitiesInRange;
+    }
+    
+    // Get all enemy entities (ships and stars) for a given owner
+    getEnemyEntities(ownerId) {
+        const enemies = [];
+        
+        // Add enemy ships
+        for (const ship of this.game.allShips) {
+            if (ship.owner !== 0 && ship.owner !== ownerId) {
+                enemies.push(ship);
+            }
+        }
+        
+        // Add enemy stars
+        for (const star of this.game.stars) {
+            if (star.owner !== 0 && star.owner !== ownerId) {
+                enemies.push(star);
+            }
+        }
+        
+        return enemies;
+    }
+    
+    // Get all enemy ships for a given owner
+    getEnemyShips(ownerId) {
+        return this.game.allShips.filter(ship => ship.owner !== 0 && ship.owner !== ownerId);
+    }
+    
+    // Get all enemy stars for a given owner
+    getEnemyStars(ownerId) {
+        return this.game.stars.filter(star => star.owner !== 0 && star.owner !== ownerId);
+    }
+    
+    // Get all unowned entities (stars with owner === 0)
+    getUnownedEntities() {
+        const unowned = [];
+        for (const star of this.game.stars) {
+            if (star.owner === 0) {
+                unowned.push(star);
+            }
+        }
+        return unowned;
+    }
+    
+    // Get all unowned stars
+    getUnownedStars() {
+        return this.game.stars.filter(star => star.owner === 0);
+    }
+    
+    // Check if a ship is currently at a star (orbiting/docked)
+    isAtStar(ship) {
+        return ship.star !== null && ship.star !== undefined;
+    }
+    
+    // Get the star that a ship is currently at (null if not at a star)
+    getCurrentStar(ship) {
+        return ship.star || null;
+    }
 }
 
 module.exports = AIUtils;

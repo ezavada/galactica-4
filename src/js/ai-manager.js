@@ -58,11 +58,16 @@ class AIManager {
     processAITurn(aiPlayer) {
         this.debugLog(`Processing AI turn for player ${aiPlayer.playerId}`);
         
+        const playerName = this.game.players[aiPlayer.playerId]?.name || `Player ${aiPlayer.playerId}`;
+        console.log(`\n=== AI Turn for ${playerName} ===`);
+        
         // Process star AI decisions
         aiPlayer.processStarDecisions();
         
         // Process ship AI decisions
         aiPlayer.processShipDecisions();
+        
+        console.log(`=== End AI Turn for ${playerName} ===\n`);
     }
 
     // Enable/disable AI debugging
@@ -154,6 +159,8 @@ class AIPlayer {
         }
 
         const decision = starAI.makeDecision();
+        console.log(`  Star ${star.name}: ${decision.action} - ${decision.reason}`);
+        
         if (decision.action !== AIActions.DO_NOTHING) {
             starAI.executeDecision(decision);
             this.debugLog(`Star ${star.name} executed decision: ${decision.action}`);
@@ -184,8 +191,18 @@ class AIPlayer {
         }
 
         const decision = shipAI.makeDecision();
+        
+        // Log ship decision with location info
+        const location = ship.star ? `at ${ship.star.name}` : `at (${Math.round(ship.x/1024)}, ${Math.round(ship.y/1024)})`;
+        const status = ship.underConstruction() ? `[${ship.progress}% built]` : '';
+        console.log(`  Ship ${ship.type} ${location} ${status}: ${decision.action} - ${decision.reason}`);
+        
         if (decision.action !== AIActions.DO_NOTHING) {
             shipAI.executeDecision(decision);
+            if (decision.target) {
+                const targetName = decision.target.name || `(${Math.round(decision.target.x/1024)}, ${Math.round(decision.target.y/1024)})`;
+                console.log(`    -> Going to ${targetName}`);
+            }
             this.debugLog(`Ship ${ship.type} executed decision: ${decision.action}`);
         }
     }

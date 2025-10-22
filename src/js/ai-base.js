@@ -168,6 +168,8 @@ const AIActions = {
     GO_TO_UNOWNED_STAR: 'goToUnownedStar',
     ATTACK_SHIP: 'attackShip',
     FORM_FLEET: 'formFleet',
+    BUILD_SHIP: 'buildShip',
+    DEFEND_STAR: 'defendStar',
     DO_NOTHING: 'doNothing'
 };
 

@@ -8,10 +8,11 @@ const test = require('./test-framework.js');
 const runMapGenerationTests = require('./map-generation.test.js');
 const runCoordinateMovementTests = require('./coordinate-movement.test.js');
 const runPlayerConfigTests = require('./player-config.test.js');
+const runAISystemTests = require('./ai-systems.test.js');
 
 console.log('╔═══════════════════════════════════════════════════════════╗');
 console.log('║          Galactica-4 Test Suite                          ║');
-console.log('║          Testing Map Generation & Movement                ║');
+console.log('║          Testing Map, Movement, Players & AI              ║');
 console.log('║          Using PDG Built-in Random (pdg.srand/rand)       ║');
 console.log('╚═══════════════════════════════════════════════════════════╝');
 
@@ -25,6 +26,9 @@ try {
 
     console.log('\n👥 Running Player & Config Tests...');
     runPlayerConfigTests();
+
+    console.log('\n🤖 Running AI System Tests...');
+    runAISystemTests();
 
     // Print summary
     const success = test.printSummary();

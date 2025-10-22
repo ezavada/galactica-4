@@ -204,11 +204,11 @@ class DecisionMatrix {
     // Get the best action based on current scores
     getBestAction() {
         const actions = [
-            { action: 'toFormFleet', score: this.scores.toFormFleet },
-            { action: 'toOurStar', score: this.scores.toOurStar },
-            { action: 'toEnemyStar', score: this.scores.toEnemyStar },
-            { action: 'toShip', score: this.scores.toShip },
-            { action: 'toOtherStar', score: this.scores.toOtherStar }
+            { action: 'toFormFleet', score: this.scores.toFormFleet, targetKey: null },
+            { action: 'toOurStar', score: this.scores.toOurStar, targetKey: 'ourStar' },
+            { action: 'toEnemyStar', score: this.scores.toEnemyStar, targetKey: 'enemyStar' },
+            { action: 'toShip', score: this.scores.toShip, targetKey: 'ship' },
+            { action: 'toOtherStar', score: this.scores.toOtherStar, targetKey: 'otherStar' }
         ];
 
         // Sort by score (highest first)
@@ -220,8 +220,7 @@ class DecisionMatrix {
                 return {
                     action: action.action,
                     score: action.score,
-                    target: this.targets[action.action.replace('to', '').toLowerCase() + 'Star'] || 
-                           this.targets[action.action.replace('to', '').toLowerCase()]
+                    target: action.targetKey ? this.targets[action.targetKey] : null
                 };
             }
         }

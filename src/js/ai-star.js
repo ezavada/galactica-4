@@ -56,7 +56,7 @@ class StarAI extends AIBase {
         let threatLevel = 0;
 
         // Check for nearby enemy ships
-        const nearbyEnemies = this.utils.getEntitiesInRange(this.star, this.utils.getEnemyEntities(), 100000);
+        const nearbyEnemies = this.utils.getEntitiesInRange(this.star, this.utils.getEnemyEntities(this.star.owner), 100000);
         threatLevel += nearbyEnemies.length * 10;
 
         // Check for nearby enemy stars
@@ -305,9 +305,13 @@ class StarAI extends AIBase {
     startBuildingShip(shipType) {
         this.debugLog(`Starting to build ${shipType} ship`);
         
-        // This would need to be implemented based on the ship building system
-        // For now, just log the action
-        // this.star.startBuildingShip(shipType);
+        // Call the star's ship building method
+        if (this.star && this.star.startBuildingShip) {
+            this.star.startBuildingShip(shipType);
+            console.log(`      [AI] ${this.star.name} started building ${shipType}`);
+        } else {
+            console.log(`      [AI] WARNING: Cannot build ship - star.startBuildingShip not available`);
+        }
     }
 
     // Activate defensive measures
