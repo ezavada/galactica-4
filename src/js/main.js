@@ -10,12 +10,18 @@ const Factory = require('./src/js/factory.js');
 const Display = require('./src/js/display.js');
 const Game = require('./src/js/game.js');
 const Rules = require('./src/js/rules.js');
+const GameConfig = require('./src/js/game-config.js');
 
 const factory = new Factory();
-const rules = new Rules();
 
-// Create game instance
-let game = new Game(factory, rules);
+// Create game configuration (can customize here)
+const config = GameConfig.createSinglePlayer(1, 2); // 1 computer, Good difficulty
+
+// Create rules with fastGame setting from config
+const rules = new Rules(config.fastGame);
+
+// Create game instance with config
+let game = new Game(factory, rules, config);
 
 // Create window port
 game.port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), "Galactica-4");

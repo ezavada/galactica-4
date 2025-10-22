@@ -54,6 +54,7 @@ class Allocation {
 
 class Star {
     constructor(x, y, name, game) {
+        this.id = Star.nextId++; // Unique ID for this star
         this.x = x;
         this.y = y;
         this.owner = 0;
@@ -68,7 +69,7 @@ class Star {
         this.research = new Allocation(33.0, 60.0, 6.0, false);
         
         // Current production
-        this.buildingShip = null; // null, or the ship object
+        this.currentShip = null; // Ship currently being built
         this.paidTowardShipBuilding = 0;
         this.paidTowardResearch = 0;
         
@@ -99,7 +100,16 @@ class Star {
         this.paidTowardResearch += amount;
         if (this.paidTowardResearch >= 1000) {
             this.paidTowardResearch -= 1000;
+            const oldTechLevel = this.techLevel;
             this.techLevel++;
+            
+            // Update player's highest tech level
+            const playerInfo = this.game.players ? this.game.players[this.owner] : null;
+            if (playerInfo && playerInfo.updateHighestStarTech(this.techLevel)) {
+                // This is a new tech milestone for this player
+                console.log(`${playerInfo.name} reached star tech level ${this.techLevel}!`);
+            }
+            
             this.game.noteworthyEvent(this, Common.EventType.TECH_LEVEL_UP); // who = Star. new tech level taken from star
         }
 
@@ -127,6 +137,21 @@ class Star {
         const ship = this.currentShip;
         this.currentShip.complete();
         this.currentShip = null;
+        
+        // Update player info for new ship type and tech level
+        const playerInfo = this.game.players ? this.game.players[this.owner] : null;
+        if (playerInfo) {
+            // Track if this is a new ship type for this player
+            if (playerInfo.markShipTypeBuilt(ship.type)) {
+                console.log(`${playerInfo.name} built their first ${ship.type} ship!`);
+            }
+            
+            // Track ship tech level milestone
+            if (playerInfo.updateHighestShipTech(ship.techLevel)) {
+                console.log(`${playerInfo.name} built a ship with tech level ${ship.techLevel}!`);
+            }
+        }
+        
         return ship;
     }
     
@@ -145,6 +170,9 @@ class Star {
         this.ships.push(ship);
     }
 }
+
+// Static counter for generating unique IDs
+Star.nextId = 1;
 
 // Export the class
 module.exports = Star;

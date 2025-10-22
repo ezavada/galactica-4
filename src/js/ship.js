@@ -5,6 +5,7 @@ const Common = require('./common.js');
 
 class Ship {
     constructor(x, y, type, star, game, owner) {
+        this.id = Ship.nextId++; // Unique ID for this ship
         this.x = x;
         this.y = y;
         this.type = type;
@@ -96,6 +97,9 @@ class Ship {
         }
     }
 }
+
+// Static counter for generating unique IDs
+Ship.nextId = 1;
 
 // Export the class
 module.exports = Ship;

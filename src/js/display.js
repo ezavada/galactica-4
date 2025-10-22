@@ -15,6 +15,29 @@ class Display {
         const ownerColorNames = ['green', 'blue', 'red', 'yellow', 'purple', 'aqua', 'olive', 'lime'];
         this.ownerColors = ownerColorNames.map(name => new pdg.Color(name));
         this.ownerColors.forEach(color => color.alpha = 0.5);
+        
+        // Coordinate system setup - maps use galactic coordinates, display uses screen coordinates
+        this.sectorSize = game.config ? game.config.sectorSize : 1;
+        this.mapWidth = 1024 * 1024 * this.sectorSize;  // Galactic coordinate space
+        this.mapHeight = 1024 * 1024 * this.sectorSize; // Galactic coordinate space
+    }
+    
+    // Convert galactic coordinates to screen coordinates
+    toScreenX(galacticX) {
+        return (galacticX / this.mapWidth) * this.gameWidth;
+    }
+    
+    toScreenY(galacticY) {
+        return (galacticY / this.mapHeight) * this.gameHeight;
+    }
+    
+    // Convert screen coordinates to galactic coordinates (for mouse input)
+    toGalacticX(screenX) {
+        return (screenX / this.gameWidth) * this.mapWidth;
+    }
+    
+    toGalacticY(screenY) {
+        return (screenY / this.gameHeight) * this.mapHeight;
     }
     
     // Clear the screen
@@ -50,6 +73,10 @@ class Display {
     
     // Draw a single star
     drawStar(star) {
+        // Convert galactic coordinates to screen coordinates
+        const screenX = this.toScreenX(star.x);
+        const screenY = this.toScreenY(star.y);
+        
         let color = 'white';
         if (star.population > 0) {
             color = 'yellow';
@@ -58,11 +85,25 @@ class Display {
             const ownerColor = this.ownerColors[star.owner];
             const attrs = new pdg.Attributes();
             attrs.fillColor(ownerColor);
-            this.port.drawCircle(new pdg.Point(star.x, star.y), Common.StarRadius * 5.0, attrs);
+            this.port.drawCircle(new pdg.Point(screenX, screenY), Common.StarRadius * 5.0, attrs);
         }
+        
+        // Create 4-pointed polygon (diamond shape)
+        const r = Common.StarRadius;
+        const diamond = new pdg.Polygon(
+            new pdg.Point(screenX, screenY - r * 1.25),      // Top
+            new pdg.Point(screenX + r, screenY),      // Right
+            new pdg.Point(screenX, screenY + r * 1.25),      // Bottom
+            new pdg.Point(screenX - r, screenY)       // Left
+        );
+        
         const attrs = new pdg.Attributes();
-        attrs.fillColor(new pdg.Color(color));
-        this.port.drawCircle(new pdg.Point(star.x, star.y), Common.StarRadius, attrs);
+        // Use radial gradient from center (bright) to edges (darker)
+        const centerColor = new pdg.Color(color);
+        const edgeColor = new pdg.Color(color);
+        edgeColor.alpha = 0.1;  // Make edges more transparent/darker
+        attrs.fillRadialGradient(new pdg.Point(screenX, screenY), centerColor, r, edgeColor);
+        this.port.drawPolygon(diamond, attrs);
         
         color = 'gray';
         if (star.population > 0) {
@@ -72,14 +113,14 @@ class Display {
         textAttrs.fillColor(new pdg.Color(color));
         textAttrs.textSize(10);
         textAttrs.textStyle(pdg.textStyle_Centered);
-        this.port.drawText(`${star.name}`, new pdg.Point(star.x, star.y + Common.StarRadius + 12), textAttrs);
+        this.port.drawText(`${star.name}`, new pdg.Point(screenX, screenY + Common.StarRadius + 12), textAttrs);
 
         // Draw selection indicator
         if (star === this.selectedObject) {
             const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0
             const frameAttrs = new pdg.Attributes();
             frameAttrs.lineColor(new pdg.Color('white'));
-            this.port.drawCircle(new pdg.Point(star.x, star.y), Common.StarRadius + 4 + pulse, frameAttrs);
+            this.port.drawCircle(new pdg.Point(screenX, screenY), Common.StarRadius + 4 + pulse, frameAttrs);
         }
     }
     
@@ -92,13 +133,16 @@ class Display {
     
     // Draw a single ship
     drawShip(ship) {
-            // Triangle (filled)
-        let x = ship.x;
-        let y = ship.y;
+        // Convert galactic coordinates to screen coordinates
+        let x = this.toScreenX(ship.x);
+        let y = this.toScreenY(ship.y);
+        
+        // Offset for ships parked at stars
         if (ship.star) {
             x += 10;
             y -= 6;
         }
+        
         var triangle = new pdg.Polygon(
             new pdg.Point(x-6, y-6),
             new pdg.Point(x+6, y),
@@ -126,11 +170,13 @@ class Display {
             }
         }
 
-        // Draw destination line
+        // Draw destination line (convert destination to screen coordinates)
         if (ship.destination) {
             const lineAttrs = new pdg.Attributes();
             lineAttrs.lineColor(new pdg.Color('gray'));
-            this.port.drawLine(new pdg.Point(x, y), new pdg.Point(ship.destination.x, ship.destination.y), lineAttrs);
+            const destX = this.toScreenX(ship.destination.x);
+            const destY = this.toScreenY(ship.destination.y);
+            this.port.drawLine(new pdg.Point(x, y), new pdg.Point(destX, destY), lineAttrs);
         }
 
         // Draw selection indicator

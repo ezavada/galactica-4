@@ -3,11 +3,15 @@
 
 const Common = require('./common.js');
 const MapGenerator = require('./map-generator.js');
+const GameConfig = require('./game-config.js');
+const PlayerInfo = require('./player-info.js');
 
 class Game {
-    constructor(factory, rules) {
+    constructor(factory, rules, config = null) {
         console.log("Game constructor starting...");
         factory.setGame(this);
+        
+        // Game state
         this.stars = [];
         this.allShips = [];
         this.selectedObject = null;
@@ -16,8 +20,32 @@ class Game {
         this.gameHeight = 600;
         this.port = null;
         this.display = null;
+        
+        // Core systems
         this.factory = factory;
         this.rules = rules;
+        
+        // Game configuration
+        this.config = config || GameConfig.createSinglePlayer();
+        const errors = this.config.validate();
+        if (errors.length > 0) {
+            console.error("Invalid game configuration:", errors);
+            throw new Error("Invalid game configuration: " + errors.join(", "));
+        }
+        
+        // Player info (index 0 unused, players 1-N)
+        this.players = [];
+        this.players[0] = null; // Reserve index 0
+        for (let i = 1; i <= this.config.totalPlayers; i++) {
+            const isComputer = (i > this.config.numHumans);
+            this.players[i] = new PlayerInfo(i, isComputer);
+            if (isComputer) {
+                this.players[i].setAISkill(this.config.compSkill, this.config.compAdvantage);
+            }
+        }
+        
+        console.log(`Game config: ${this.config.getDescription()}`);
+        
         this.initializeGame();
         console.log("Game constructor completed");
     }
@@ -27,23 +55,13 @@ class Game {
         // Initialize MapGenerator
         const mapGenerator = new MapGenerator(this);
         
-        // Configuration for map generation
-        const mapConfig = {
-            sectorSize: this.rules.getSectorSize ? this.rules.getSectorSize() : 1,           // Map size multiplier
-            density: this.rules.getStarDensity ? this.rules.getStarDensity() : 1,            // Star density multiplier  
-            totalPlayers: this.rules.getTotalPlayers ? this.rules.getTotalPlayers() : 2,     // Number of players
-            numHumans: this.rules.getNumHumans ? this.rules.getNumHumans() : 1                // Number of human players
-        };
+        // Get map configuration from game config
+        const mapConfig = this.config.toMapGeneratorConfig();
         
         // Create star callback function for MapGenerator
         const createStarCallback = (x, y, z) => {
-            // Convert from galactic coordinates to screen coordinates
-            // TODO: move this to the Display class
-            const screenX = (x / 1024) * (this.gameWidth / 16);
-            const screenY = (y / 1024) * (this.gameHeight / 16);
-            
-            // Create star using factory (name will be set by MapGenerator)
-            const star = this.factory.createStar(screenX, screenY, "Unnamed");
+            // Store stars in galactic coordinates (conversion to screen happens in Display)
+            const star = this.factory.createStar(x, y, "Unnamed");
             return star;
         };
         
@@ -57,9 +75,17 @@ class Game {
         // - Build queue (colony ship at 99%)
         // - Unique names
         // - Scanner range
+        // - Computer player names (for AI players)
+        // - PlayerInfo updates (home star references)
         
         console.log(`Game initialized with ${this.stars.length} stars using original Galactica algorithms`);
         console.log(`Home stars assigned: ${homeStars.length}`);
+        
+        // Log player names
+        for (let i = 1; i <= this.config.totalPlayers; i++) {
+            const player = this.players[i];
+            console.log(`Player ${i}: ${player.name || '(unnamed)'} - ${player.getPlayerType()}`);
+        }
     }
     
     entityAdded(entity) {
@@ -114,14 +140,22 @@ class Game {
     }
     
     handleMouseClick(x, y) {
+        // Convert screen coordinates to galactic coordinates for object selection
+        const galacticX = this.display.toGalacticX(x);
+        const galacticY = this.display.toGalacticY(y);
+        
         // Clear previous selection
         var clickedObject = null;
         
-        // Check for ship clicks
+        // Check for ship clicks (using screen-space radius for consistent UI feel)
         const shipRadiusSquared = Common.ShipRadius * Common.ShipRadius;
         for (const ship of this.allShips) {
-            let dx = x - ship.x;
-            let dy = y - ship.y;
+            // Convert ship position to screen for distance check
+            const shipScreenX = this.display.toScreenX(ship.x);
+            const shipScreenY = this.display.toScreenY(ship.y);
+            
+            let dx = x - shipScreenX;
+            let dy = y - shipScreenY;
             if (ship.star) {
                 // adjust for parking orbit around star
                 dx -= 10;
@@ -135,11 +169,15 @@ class Game {
              }
         }
 
-         // Check for star clicks
+        // Check for star clicks (using screen-space radius for consistent UI feel)
         const starRadiusSquared = Common.StarRadius * Common.StarRadius;
         for (const star of this.stars) {
-            const dx = x - star.x;
-            const dy = y - star.y;
+            // Convert star position to screen for distance check
+            const starScreenX = this.display.toScreenX(star.x);
+            const starScreenY = this.display.toScreenY(star.y);
+            
+            const dx = x - starScreenX;
+            const dy = y - starScreenY;
             const distSquared = dx * dx + dy * dy;
             
             if (distSquared <= starRadiusSquared) {
@@ -158,9 +196,9 @@ class Game {
                 const destinationName = (clickedObjectType === Common.ObjectType.STAR) ? clickedObject.name : clickedObject.type;
                 console.log(`Set destination of ${this.selectedObject.type} to ${destinationName}`);
             } else {
-                // If clicking on empty space and have a ship selected, give it a destination
-                this.selectedObject.setDestination({x, y});
-                console.log(`Set destination of ${this.selectedObject.type} to (${x}, ${y})`);
+                // If clicking on empty space and have a ship selected, give it a destination (in galactic coordinates)
+                this.selectedObject.setDestination({x: galacticX, y: galacticY});
+                console.log(`Set destination of ${this.selectedObject.type} to galactic (${galacticX.toFixed(0)}, ${galacticY.toFixed(0)})`);
             }
             return true;
         }
@@ -229,9 +267,34 @@ class Game {
         for (const ship of this.allShips) {
             ship.combat();
         }
+        
+        // Update player piece counts and check for defeats
+        this.updatePlayerPieceCounts();
 
         this.turn++;
         console.log(`=== Start of Turn ${this.turn} ===`);
+    }
+    
+    // Update piece counts for all players
+    updatePlayerPieceCounts() {
+        if (!this.players) return;
+        
+        for (let i = 1; i <= this.config.totalPlayers; i++) {
+            const player = this.players[i];
+            if (!player) continue;
+            
+            // Count stars owned by this player
+            const starCount = this.stars.filter(star => star.owner === i).length;
+            
+            // Count ships owned by this player
+            const shipCount = this.allShips.filter(ship => ship.owner === i).length;
+            
+            // Update piece count (returns true if player just died)
+            if (player.updatePieceCount(starCount, shipCount)) {
+                console.log(`${player.name} has been defeated!`);
+                this.noteworthyEvent(player, Common.EventType.PLAYER_DIED);
+            }
+        }
     }
 
     noteworthyEvent(who, what, where, how, why, other) {

@@ -2,6 +2,8 @@
 // Implements the exact same algorithms as the original C++ GalacticaProcessor
 // Based on GalacticaProcessor.cpp lines 350-520
 
+const Common = require('./common.js');
+
 class MapGenerator {
     constructor(game) {
         this.game = game;
@@ -21,8 +23,8 @@ class MapGenerator {
         this.ROMAN_NUMERALS = ["", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
         
         // Constants from original C++ code
-        this.PIXELS_PER_SECTOR = 16; // 16x16 light years per sector
-        this.COORDINATE_SCALE = 1024; // Coordinate scaling factor
+        this.PIXELS_PER_SECTOR = 1024; // Matches C++ PIXELS_PER_SECTOR at 1:1 zoom
+        this.COORDINATE_SCALE = 1024; // Coordinate scaling factor (1024L in original)
     }
 
     /**
@@ -222,13 +224,69 @@ class MapGenerator {
         star.owner = playerNum;
         star.techLevel = 1;
         star.population = 1000000; // 1 billion people
-        star.buildHullType = 'colony'; // Start with colony ship
-        star.percentPaidTowardNextShip = 0.99; // Nearly complete
         
-        // Set scanner range (would need to implement UThingyClassInfo equivalent)
+        // Set scanner range
         star.scannerRange = this.game.rules.getScanRangeForTechLevel(1);
         
-        console.log(`MapGenerator: Assigned ${star.name} to player ${playerNum}`);
+        // Start with colony ship at 99% completion (matches original)
+        // Create the ship but keep it under construction
+        const colonyShip = this.game.factory.createShip(star.x, star.y, 'colony', star);
+        colonyShip.progress = 99; // 99% complete
+        star.currentShip = colonyShip;
+        star.ships.push(colonyShip);
+        
+        // Set paid amount to 99% of build cost
+        const buildCost = this.game.rules.getShipBuildCost(colonyShip, star);
+        star.paidTowardShipBuilding = buildCost * 0.99;
+        
+        // Update PlayerInfo for this player
+        const playerInfo = this.game.players[playerNum];
+        if (playerInfo) {
+            // Store home star reference
+            playerInfo.setHomeStar(star.id || star.name); // Use ID if available, name as fallback
+            playerInfo.hiStarTech = 1; // Starting tech level
+            
+            // Generate computer player name (matches original C++ algorithm)
+            if (playerInfo.isComputer) {
+                const computerName = this.generateComputerName(star.name);
+                playerInfo.setName(computerName);
+                console.log(`MapGenerator: Computer player ${playerNum} named "${computerName}"`);
+            } else {
+                // Human player - set default name
+                playerInfo.setName(playerNum === 1 ? "You" : `Player ${playerNum}`);
+            }
+        }
+        
+        console.log(`MapGenerator: Assigned ${star.name} to player ${playerNum} (colony ship at 99%)`);
+    }
+    
+    /**
+     * Generate computer player name (matches original C++ algorithm)
+     * Original: Uses STRx_Names str_TitleSyntax and STRx_CompNames
+     * Template: "* %" where * = home star name, % = random group word
+     * Examples: "Alpha Pact", "Beta Alliance", "Gamma Empire"
+     */
+    generateComputerName(homeStarName) {
+        // Choose random name template
+        const template = Common.CompNameTemplates[this.random(Common.CompNameTemplates.length)];
+        
+        // Choose random group name if template uses it
+        let name = template;
+        if (template.includes('%')) {
+            const groupName = Common.CompGroupNames[this.random(Common.CompGroupNames.length)];
+            name = name.replace('%', groupName);
+        }
+        
+        // Replace * with home star name
+        name = name.replace('*', homeStarName);
+        
+        // Truncate if too long (original has MAX_PLAYER_NAME_LEN = 32)
+        const MAX_NAME_LENGTH = 32;
+        if (name.length > MAX_NAME_LENGTH) {
+            name = name.substring(0, MAX_NAME_LENGTH);
+        }
+        
+        return name;
     }
 
     /**
@@ -259,9 +317,10 @@ class MapGenerator {
 
     /**
      * Random number generator (0 to max-1)
+     * Uses PDG's built-in random function for consistency
      */
     random(max) {
-        return Math.floor(Math.random() * max);
+        return pdg.rand() % max;
     }
 }
 

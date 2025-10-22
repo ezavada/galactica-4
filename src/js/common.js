@@ -21,6 +21,7 @@ const EventType = {
     TECH_LEVEL_UP: 10,  // A star reached a new tech level
     STAR_COLONIZED: 11, // A star was colonized
     STAR_CAPTURED: 12,  // A star was captured from another player
+    PLAYER_DIED: 13,    // A player has been defeated
 }
 
 const EventWhy = {
@@ -29,10 +30,35 @@ const EventWhy = {
     NEW_DESTINATION: 2,
 }
 
+// Computer player name generation (matches original STRx_CompNames and STRx_Names resources)
+const CompNameTemplates = [
+    "* %",              // "Alpha Pact"
+    "The * %",          // "The Beta Alliance"
+    "* Empire",         // "Gamma Empire"
+    "* Confederation",  // "Delta Confederation"
+    "The * Republic",   // "The Epsilon Republic"
+    "* Federation",     // "Zeta Federation"
+    "* Coalition",      // "Eta Coalition"
+    "The * League",     // "The Theta League"
+    "* Dominion",       // "Iota Dominion"
+    "The * Union"       // "The Kappa Union"
+];
+
+// Group names used in computer player names (matches original STRx_CompNames)
+const CompGroupNames = [
+    "Pact", "Alliance", "Federation", "Confederation",
+    "Coalition", "League", "Union", "Collective",
+    "Consortium", "Dominion", "Commonwealth", "Hegemony",
+    "Concord", "Accord", "Compact", "Entente",
+    "Assembly", "Council", "Directorate", "Protectorate"
+];
+
 module.exports = {
     StarRadius,
     ShipRadius,
     ObjectType,
     EventType,
-    EventWhy
+    EventWhy,
+    CompNameTemplates,
+    CompGroupNames
 }

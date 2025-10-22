@@ -2,7 +2,7 @@
 // Contains all game rules and logic
 
 class Rules {
-    constructor(isFast) {
+    constructor(isFast = false) {
         this.isFast = isFast;
         this.shipClasses = ['frigate', 'destroyer', 'cruiser', 'battleship', 'colossus']; // TODO: need actual ship classes
         this.maxPopP = 16.0
