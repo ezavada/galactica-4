@@ -1,0 +1,90 @@
+# Galactica-4 Spanish Strings Resource File
+# Archivo de Recursos de Cadenas en Español para Galactica-4
+# Format: ID<tab>string or ID<tab>string1|string2|string3 for lists
+# UTF-8 encoding
+
+# General UI Strings (1-99)
+1	Turno
+2	Estrellas:
+3	Naves:
+4	Población:
+5	Tecnología:
+6	Construcción:
+7	Ninguno
+8	Haz clic en las estrellas para gestionarlas
+9	Haz clic en las naves para dar órdenes
+10	TAB para terminar turno
+11	Casco de Nave
+12	Nave
+13	Nivel Tecnológico:
+14	En Construcción:
+15	Velocidad:
+16	Poder:
+17	Tú
+18	Jugador
+
+# Ship type display strings (20-29)
+20	explorador
+21	defensa
+22	acorazado
+23	colonia
+
+# Ship build menu items (30-39)
+30	[s] explorador
+31	[d] defensa
+32	[b] acorazado
+33	[c] colonia
+
+# Star Names (100-199) - Kept in original as they are proper astronomical names
+100	Alpha|Beta|Gamma|Delta|Epsilon|Zeta|Eta|Theta|Iota|Kappa|Lambda|Mu|Nu|Xi|Omicron|Pi|Rho|Sigma|Tau|Upsilon|Phi|Chi|Psi|Omega|Centauri|Vega|Sirius|Procyon|Altair|Fomalhaut|Rigel|Betelgeuse|Antares|Aldebaran|Pollux|Castor|Spica|Regulus|Deneb|Arcturus|Capella|Vega|Polaris|Canopus|Achernar|Hadar|Acrux|Gacrux|Mimosa|Ginan|Imai|Kappa Crucis|Gamma Crucis|Delta Crucis
+
+# Roman Numerals (200-249) - Universal, no translation needed
+200	|II|III|IV|V|VI|VII|VIII|IX|X
+
+# Computer Player Name Templates (250-269)
+250	* %|El * %|Imperio *|Confederación *|La República *|Federación *|Coalición *|La Liga *|Dominio *|La Unión *
+
+# Computer Player Group Names (270-289)
+270	Pacto|Alianza|Federación|Confederación|Coalición|Liga|Unión|Colectivo|Consorcio|Dominio|Commonwealth|Hegemonía|Concordia|Acuerdo|Pacto|Entente|Asamblea|Consejo|Directorio|Protectorado
+
+# Skill Level Names (300-349)
+300	Humano
+301	Experto
+302	Bueno
+303	Promedio
+304	Pasable
+305	Novato
+306	Desconocido
+
+# Map Size Descriptions (350-399)
+350	Pequeño
+351	Mediano
+352	Grande
+353	Enorme
+354	Gigantesco
+355	Desconocido
+
+# Density Descriptions (400-449)
+400	Escaso
+401	Normal
+402	Denso
+403	Muy Denso
+404	Abarrotado
+405	Desconocido
+
+# Ship type names (for display) (450-459)
+450	Explorador
+451	Defensa
+452	Acorazado
+453	Colonia
+
+# Game configuration messages (500-549)
+500	Juego Galactica
+501	jugadores
+502	Computadora
+503	humano
+504	IA
+505	Juego Rápido
+506	Todo Visible
+507	mapa
+

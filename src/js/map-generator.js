@@ -7,20 +7,14 @@ const Common = require('./common.js');
 class MapGenerator {
     constructor(game) {
         this.game = game;
-        // Star names array - matches the original game's string resources
-        this.STAR_NAMES = [
-            "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta",
-            "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron", "Pi",
-            "Rho", "Sigma", "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega",
-            "Centauri", "Vega", "Sirius", "Procyon", "Altair", "Fomalhaut",
-            "Rigel", "Betelgeuse", "Antares", "Aldebaran", "Pollux", "Castor",
-            "Spica", "Regulus", "Deneb", "Arcturus", "Capella", "Vega",
-            "Polaris", "Canopus", "Achernar", "Hadar", "Acrux", "Gacrux",
-            "Mimosa", "Ginan", "Imai", "Kappa Crucis", "Gamma Crucis", "Delta Crucis"
-        ];
         
-        // Roman numerals for duplicate names (matches original STRx_StarNumbers)
-        this.ROMAN_NUMERALS = ["", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+        // Load star names from resources (string ID 100, pipe-separated list)
+        const starNamesStr = pdg.res.getString(100);
+        this.STAR_NAMES = starNamesStr ? starNamesStr.split('|') : ["Star"];
+        
+        // Load roman numerals from resources (string ID 200, pipe-separated list)
+        const romanNumeralsStr = pdg.res.getString(200);
+        this.ROMAN_NUMERALS = romanNumeralsStr ? romanNumeralsStr.split('|') : ["", "II", "III", "IV", "V"];
         
         // Constants from original C++ code
         this.PIXELS_PER_SECTOR = 1024; // Matches C++ PIXELS_PER_SECTOR at 1:1 zoom
@@ -252,8 +246,10 @@ class MapGenerator {
                 playerInfo.setName(computerName);
                 console.log(`MapGenerator: Computer player ${playerNum} named "${computerName}"`);
             } else {
-                // Human player - set default name
-                playerInfo.setName(playerNum === 1 ? "You" : `Player ${playerNum}`);
+                // Human player - set default name from resources
+                const youStr = pdg.res.getString(17) || "You";
+                const playerStr = pdg.res.getString(18) || "Player";
+                playerInfo.setName(playerNum === 1 ? youStr : `${playerStr} ${playerNum}`);
             }
         }
         
@@ -267,13 +263,21 @@ class MapGenerator {
      * Examples: "Alpha Pact", "Beta Alliance", "Gamma Empire"
      */
     generateComputerName(homeStarName) {
+        // Load name templates from resources (string ID 250, pipe-separated list)
+        const templatesStr = pdg.res.getString(250);
+        const templates = templatesStr ? templatesStr.split('|') : ["* %"];
+        
+        // Load group names from resources (string ID 270, pipe-separated list)
+        const groupNamesStr = pdg.res.getString(270);
+        const groupNames = groupNamesStr ? groupNamesStr.split('|') : ["Empire"];
+        
         // Choose random name template
-        const template = Common.CompNameTemplates[this.random(Common.CompNameTemplates.length)];
+        const template = templates[this.random(templates.length)];
         
         // Choose random group name if template uses it
         let name = template;
         if (template.includes('%')) {
-            const groupName = Common.CompGroupNames[this.random(Common.CompGroupNames.length)];
+            const groupName = groupNames[this.random(groupNames.length)];
             name = name.replace('%', groupName);
         }
         

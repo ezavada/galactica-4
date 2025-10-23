@@ -1,9 +1,42 @@
 // Galactica-4 PDG Game - Main Entry Point
 // Run with: ./pdg src/js/main.js
+// Optional: ./pdg src/js/main.js --lang=es (for Spanish)
 
 const pdg = require('pdg');
 
 console.log("=== Galactica-4 PDG Game Starting ===");
+
+// Open the root directory as a resource path (for strings.txt and strings-*.txt files)
+// This tells the ResourceManager where to look for localized string files
+const path = require('path');
+const projectRoot = path.join(__dirname, '../..');
+pdg.res.openResourceFile(projectRoot);
+console.log(`Resource path set to: ${projectRoot}`);
+
+// Parse command-line arguments for language setting
+// Format: --lang=xx (e.g., --lang=es for Spanish, --lang=fr for French)
+const args = process.argv.slice(2); // Skip 'node' and script path
+for (const arg of args) {
+    if (arg.startsWith('--lang=')) {
+        const langCode = arg.substring(7); // Extract language code after '--lang='
+        if (langCode.length >= 2) {
+            pdg.res.setLanguage(langCode);
+            console.log(`Language set to: ${langCode}`);
+            
+            // Verify string loading with a test string
+            const testStr = pdg.res.getString(1); // Should be "Turn" in English, "Turno" in Spanish
+            console.log(`Test string (ID 1): "${testStr}"`);
+        } else {
+            console.warn(`Invalid language code: ${langCode} (must be at least 2 characters)`);
+        }
+    }
+}
+
+// If no language set, verify default English strings are loading
+if (args.every(arg => !arg.startsWith('--lang='))) {
+    const testStr = pdg.res.getString(1);
+    console.log(`Using default language. Test string (ID 1): "${testStr}"`);
+}
 
 // Initialize random seed
 pdg.srand(Date.now());

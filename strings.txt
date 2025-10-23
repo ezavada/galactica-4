@@ -1,0 +1,89 @@
+# Galactica-4 Strings Resource File
+# Format: ID<tab>string or ID<tab>string1|string2|string3 for lists
+# UTF-8 encoding
+
+# General UI Strings (1-99)
+1	Turn
+2	Stars:
+3	Ships:
+4	Pop:
+5	Tech:
+6	Building:
+7	None
+8	Click stars to manage them
+9	Click ships to give orders
+10	TAB to end turn
+11	Ship Hull
+12	Ship
+13	Tech Level:
+14	Under Construction:
+15	Speed:
+16	Power:
+17	You
+18	Player
+
+# Ship type display strings (20-29)
+20	scout
+21	defense
+22	battleship
+23	colony
+
+# Ship build menu items (30-39)
+30	[s] scout
+31	[d] defense
+32	[b] battleship
+33	[c] colony
+
+# Star Names (100-199)
+100	Alpha|Beta|Gamma|Delta|Epsilon|Zeta|Eta|Theta|Iota|Kappa|Lambda|Mu|Nu|Xi|Omicron|Pi|Rho|Sigma|Tau|Upsilon|Phi|Chi|Psi|Omega|Centauri|Vega|Sirius|Procyon|Altair|Fomalhaut|Rigel|Betelgeuse|Antares|Aldebaran|Pollux|Castor|Spica|Regulus|Deneb|Arcturus|Capella|Vega|Polaris|Canopus|Achernar|Hadar|Acrux|Gacrux|Mimosa|Ginan|Imai|Kappa Crucis|Gamma Crucis|Delta Crucis
+
+# Roman Numerals (200-249)
+200	|II|III|IV|V|VI|VII|VIII|IX|X
+
+# Computer Player Name Templates (250-269)
+250	* %|The * %|* Empire|* Confederation|The * Republic|* Federation|* Coalition|The * League|* Dominion|The * Union
+
+# Computer Player Group Names (270-289)
+270	Pact|Alliance|Federation|Confederation|Coalition|League|Union|Collective|Consortium|Dominion|Commonwealth|Hegemony|Concord|Accord|Compact|Entente|Assembly|Council|Directorate|Protectorate
+
+# Skill Level Names (300-349)
+300	Human
+301	Expert
+302	Good
+303	Average
+304	Passable
+305	Novice
+306	Unknown
+
+# Map Size Descriptions (350-399)
+350	Small
+351	Medium
+352	Large
+353	Huge
+354	Gigantic
+355	Unknown
+
+# Density Descriptions (400-449)
+400	Sparse
+401	Normal
+402	Dense
+403	Very Dense
+404	Crowded
+405	Unknown
+
+# Ship type names (for display) (450-459)
+450	Scout
+451	Defense
+452	Battleship
+453	Colony
+
+# Game configuration messages (500-549)
+500	Galactica Game
+501	players
+502	Computer
+503	human
+504	AI
+505	Fast Game
+506	All Visible
+507	map
+

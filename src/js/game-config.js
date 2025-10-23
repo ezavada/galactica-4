@@ -122,38 +122,53 @@ class GameConfig {
     
     // Get human-readable difficulty name
     getDifficultyName() {
-        const names = {
-            1: "Expert",
-            2: "Good",
-            3: "Average",
-            4: "Passable",
-            5: "Novice"
+        // Load difficulty names from resources (IDs 301-306)
+        const skillIds = {
+            1: 301,  // Expert
+            2: 302,  // Good
+            3: 303,  // Average
+            4: 304,  // Passable
+            5: 305   // Novice
         };
-        return names[this.compSkill] || "Unknown";
+        const stringId = skillIds[this.compSkill];
+        if (stringId !== undefined) {
+            return pdg.res.getString(stringId) || "Unknown";
+        }
+        return pdg.res.getString(306) || "Unknown";  // Unknown fallback
     }
     
     // Get map size description
     getMapSizeDescription() {
-        const sizes = {
-            1: "Small",
-            2: "Medium",
-            3: "Large",
-            4: "Huge",
-            5: "Gigantic"
+        // Load map size descriptions from resources (IDs 350-355)
+        const sizeIds = {
+            1: 350,  // Small
+            2: 351,  // Medium
+            3: 352,  // Large
+            4: 353,  // Huge
+            5: 354   // Gigantic
         };
-        return sizes[this.sectorSize] || "Unknown";
+        const stringId = sizeIds[this.sectorSize];
+        if (stringId !== undefined) {
+            return pdg.res.getString(stringId) || "Unknown";
+        }
+        return pdg.res.getString(355) || "Unknown";  // Unknown fallback
     }
     
     // Get star density description
     getDensityDescription() {
-        const densities = {
-            1: "Sparse",
-            2: "Normal",
-            3: "Dense",
-            4: "Very Dense",
-            5: "Crowded"
+        // Load density descriptions from resources (IDs 400-405)
+        const densityIds = {
+            1: 400,  // Sparse
+            2: 401,  // Normal
+            3: 402,  // Dense
+            4: 403,  // Very Dense
+            5: 404   // Crowded
         };
-        return densities[this.density] || "Unknown";
+        const stringId = densityIds[this.density];
+        if (stringId !== undefined) {
+            return pdg.res.getString(stringId) || "Unknown";
+        }
+        return pdg.res.getString(405) || "Unknown";  // Unknown fallback
     }
     
     // Convert to simple object for MapGenerator
@@ -168,12 +183,20 @@ class GameConfig {
     
     // Get description of game setup
     getDescription() {
+        // Load strings from resources
+        const playersStr = pdg.res.getString(501) || "players";
+        const humanStr = pdg.res.getString(503) || "human";
+        const aiStr = pdg.res.getString(504) || "AI";
+        const mapStr = pdg.res.getString(507) || "map";
+        const fastGameStr = pdg.res.getString(505) || "Fast Game";
+        const allVisibleStr = pdg.res.getString(506) || "All Visible";
+        
         const parts = [];
-        parts.push(`${this.totalPlayers} players (${this.numHumans} human, ${this.numComputers} AI)`);
-        parts.push(`${this.getMapSizeDescription()} ${this.getDensityDescription()} map`);
-        parts.push(`AI: ${this.getDifficultyName()}`);
-        if (this.fastGame) parts.push("Fast Game");
-        if (this.omniscient) parts.push("All Visible");
+        parts.push(`${this.totalPlayers} ${playersStr} (${this.numHumans} ${humanStr}, ${this.numComputers} ${aiStr})`);
+        parts.push(`${this.getMapSizeDescription()} ${this.getDensityDescription()} ${mapStr}`);
+        parts.push(`${aiStr}: ${this.getDifficultyName()}`);
+        if (this.fastGame) parts.push(fastGameStr);
+        if (this.omniscient) parts.push(allVisibleStr);
         return parts.join(", ");
     }
 }

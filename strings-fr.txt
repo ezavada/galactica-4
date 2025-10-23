@@ -1,0 +1,90 @@
+# Galactica-4 French Strings Resource File
+# Fichier de Ressources de Chaînes en Français pour Galactica-4
+# Format: ID<tab>string or ID<tab>string1|string2|string3 for lists
+# UTF-8 encoding
+
+# General UI Strings (1-99)
+1	Tour
+2	Étoiles:
+3	Vaisseaux:
+4	Population:
+5	Technologie:
+6	Construction:
+7	Aucun
+8	Cliquez sur les étoiles pour les gérer
+9	Cliquez sur les vaisseaux pour donner des ordres
+10	TAB pour terminer le tour
+11	Coque de Vaisseau
+12	Vaisseau
+13	Niveau Technologique:
+14	En Construction:
+15	Vitesse:
+16	Puissance:
+17	Vous
+18	Joueur
+
+# Ship type display strings (20-29)
+20	éclaireur
+21	défense
+22	cuirassé
+23	colonie
+
+# Ship build menu items (30-39)
+30	[s] éclaireur
+31	[d] défense
+32	[b] cuirassé
+33	[c] colonie
+
+# Star Names (100-199) - Kept in original as they are proper astronomical names
+100	Alpha|Beta|Gamma|Delta|Epsilon|Zeta|Eta|Theta|Iota|Kappa|Lambda|Mu|Nu|Xi|Omicron|Pi|Rho|Sigma|Tau|Upsilon|Phi|Chi|Psi|Omega|Centauri|Vega|Sirius|Procyon|Altair|Fomalhaut|Rigel|Bételgeuse|Antarès|Aldébaran|Pollux|Castor|Spica|Régulus|Deneb|Arcturus|Capella|Vega|Polaris|Canopus|Achernar|Hadar|Acrux|Gacrux|Mimosa|Ginan|Imai|Kappa Crucis|Gamma Crucis|Delta Crucis
+
+# Roman Numerals (200-249) - Universal, no translation needed
+200	|II|III|IV|V|VI|VII|VIII|IX|X
+
+# Computer Player Name Templates (250-269)
+250	* %|Le * %|Empire *|Confédération *|La République *|Fédération *|Coalition *|La Ligue *|Domination *|L'Union *
+
+# Computer Player Group Names (270-289)
+270	Pacte|Alliance|Fédération|Confédération|Coalition|Ligue|Union|Collectif|Consortium|Domination|Commonwealth|Hégémonie|Concorde|Accord|Pacte|Entente|Assemblée|Conseil|Directorat|Protectorat
+
+# Skill Level Names (300-349)
+300	Humain
+301	Expert
+302	Bon
+303	Moyen
+304	Passable
+305	Novice
+306	Inconnu
+
+# Map Size Descriptions (350-399)
+350	Petit
+351	Moyen
+352	Grand
+353	Énorme
+354	Gigantesque
+355	Inconnu
+
+# Density Descriptions (400-449)
+400	Clairsemé
+401	Normal
+402	Dense
+403	Très Dense
+404	Bondé
+405	Inconnu
+
+# Ship type names (for display) (450-459)
+450	Éclaireur
+451	Défense
+452	Cuirassé
+453	Colonie
+
+# Game configuration messages (500-549)
+500	Jeu Galactica
+501	joueurs
+502	Ordinateur
+503	humain
+504	IA
+505	Jeu Rapide
+506	Tout Visible
+507	carte
+

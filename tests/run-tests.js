@@ -5,6 +5,7 @@
 // Uses PDG's built-in pdg.srand() and pdg.rand() for deterministic testing
 
 const test = require('./test-framework.js');
+const runStringResourceTests = require('./string-resources.test.js');
 const runMapGenerationTests = require('./map-generation.test.js');
 const runCoordinateMovementTests = require('./coordinate-movement.test.js');
 const runPlayerConfigTests = require('./player-config.test.js');
@@ -18,6 +19,9 @@ console.log('╚═════════════════════�
 
 // Run all test suites
 try {
+    console.log('\n📝 Running String Resource Tests...');
+    runStringResourceTests();
+
     console.log('\n📋 Running Map Generation Tests...');
     runMapGenerationTests();
 

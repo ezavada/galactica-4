@@ -20,6 +20,36 @@ class Display {
         this.sectorSize = game.config ? game.config.sectorSize : 1;
         this.mapWidth = 1024 * 1024 * this.sectorSize;  // Galactic coordinate space
         this.mapHeight = 1024 * 1024 * this.sectorSize; // Galactic coordinate space
+        
+        // Load UI strings from resources (cache for performance)
+        this.STR = {
+            turn: pdg.res.getString(1) || "Turn",
+            stars: pdg.res.getString(2) || "Stars:",
+            ships: pdg.res.getString(3) || "Ships:",
+            pop: pdg.res.getString(4) || "Pop:",
+            tech: pdg.res.getString(5) || "Tech:",
+            building: pdg.res.getString(6) || "Building:",
+            none: pdg.res.getString(7) || "None",
+            clickStars: pdg.res.getString(8) || "Click stars to manage them",
+            clickShips: pdg.res.getString(9) || "Click ships to give orders",
+            tabEndTurn: pdg.res.getString(10) || "TAB to end turn",
+            shipHull: pdg.res.getString(11) || "Ship Hull",
+            ship: pdg.res.getString(12) || "Ship",
+            techLevel: pdg.res.getString(13) || "Tech Level:",
+            underConstruction: pdg.res.getString(14) || "Under Construction:",
+            speed: pdg.res.getString(15) || "Speed:",
+            power: pdg.res.getString(16) || "Power:",
+            // Ship types
+            scout: pdg.res.getString(20) || "scout",
+            defense: pdg.res.getString(21) || "defense",
+            battleship: pdg.res.getString(22) || "battleship",
+            colony: pdg.res.getString(23) || "colony",
+            // Build menu items
+            buildScout: pdg.res.getString(30) || "[s] scout",
+            buildDefense: pdg.res.getString(31) || "[d] defense",
+            buildBattleship: pdg.res.getString(32) || "[b] battleship",
+            buildColony: pdg.res.getString(33) || "[c] colony"
+        };
     }
     
     // Convert galactic coordinates to screen coordinates
@@ -69,6 +99,17 @@ class Display {
             colony: 'purple'
         };
         return colors[ship.type] || 'white';
+    }
+    
+    // Get localized ship type name
+    getShipTypeName(shipType) {
+        const typeMap = {
+            scout: this.STR.scout,
+            defense: this.STR.defense,
+            battleship: this.STR.battleship,
+            colony: this.STR.colony
+        };
+        return typeMap[shipType] || shipType;
     }
     
     // Draw a single star
@@ -201,13 +242,13 @@ class Display {
         attrs1.fillColor(new pdg.Color('white'));
         attrs1.textSize(16);
         attrs1.textStyle(pdg.textStyle_Plain);
-        this.port.drawText(`Turn ${turn}`, new pdg.Point(10, 20), attrs1);
+        this.port.drawText(`${this.STR.turn} ${turn}`, new pdg.Point(10, 20), attrs1);
         
         const attrs2 = new pdg.Attributes();
         attrs2.fillColor(new pdg.Color('grey'));
         attrs2.textSize(14);
         attrs2.textStyle(pdg.textStyle_Plain);
-        this.port.drawText(`Stars: ${starCount} Ships: ${shipCount}`, new pdg.Point(10, 40), attrs2);
+        this.port.drawText(`${this.STR.stars} ${starCount} ${this.STR.ships} ${shipCount}`, new pdg.Point(10, 40), attrs2);
     }
     
     // Draw star details UI
@@ -222,12 +263,13 @@ class Display {
         whiteAttrs.fillColor(new pdg.Color('white'));
         whiteAttrs.textSize(12);
         whiteAttrs.textStyle(pdg.textStyle_Plain);
-        this.port.drawText(`Pop: ${Math.floor(star.population * 1000.0)}`, new pdg.Point(10, 100), whiteAttrs);
-        this.port.drawText(`Tech: ${star.techLevel.toFixed(1)}`, new pdg.Point(10, 120), whiteAttrs);
-        this.port.drawText(`Building: ${star.currentShip ? star.currentShip.type : 'None'}`, new pdg.Point(10, 140), whiteAttrs);
+        this.port.drawText(`${this.STR.pop} ${Math.floor(star.population * 1000.0)}`, new pdg.Point(10, 100), whiteAttrs);
+        this.port.drawText(`${this.STR.tech} ${star.techLevel.toFixed(1)}`, new pdg.Point(10, 120), whiteAttrs);
+        const buildingType = star.currentShip ? this.getShipTypeName(star.currentShip.type) : this.STR.none;
+        this.port.drawText(`${this.STR.building} ${buildingType}`, new pdg.Point(10, 140), whiteAttrs);
         
         // Draw ship building buttons
-        const shipTypes = ['[s] scout', '[d] defense', '[b] battleship', '[c] colony'];
+        const shipTypes = [this.STR.buildScout, this.STR.buildDefense, this.STR.buildBattleship, this.STR.buildColony];
         const frameAttrs = new pdg.Attributes();
         frameAttrs.lineColor(new pdg.Color('cyan'));
         this.port.drawRect(new pdg.Rect(new pdg.Point(10, 145), 100, 5 + shipTypes.length * 20), frameAttrs);
@@ -260,16 +302,18 @@ class Display {
         yellowAttrs.textSize(12);
         yellowAttrs.textStyle(pdg.textStyle_Plain);
         
+        const shipTypeName = this.getShipTypeName(ship.type);
+        
         if (ship.underConstruction()) {
-            this.port.drawText(`${ship.type} Ship Hull`, new pdg.Point(10, 80), cyanAttrs);
-            this.port.drawText(`Tech Level: ${ship.techLevel.toFixed(1)}`, new pdg.Point(10, 100), whiteAttrs);
-            this.port.drawText(`Under Construction: ${ship.progress}%`, new pdg.Point(10, 120), yellowAttrs);
+            this.port.drawText(`${shipTypeName} ${this.STR.shipHull}`, new pdg.Point(10, 80), cyanAttrs);
+            this.port.drawText(`${this.STR.techLevel} ${ship.techLevel.toFixed(1)}`, new pdg.Point(10, 100), whiteAttrs);
+            this.port.drawText(`${this.STR.underConstruction} ${ship.progress}%`, new pdg.Point(10, 120), yellowAttrs);
         } else {
             const speed = ship.speed / 16380.0;
-            this.port.drawText(`${ship.type} Ship`, new pdg.Point(10, 80), cyanAttrs);
-            this.port.drawText(`Tech Level: ${ship.techLevel.toFixed(1)}`, new pdg.Point(10, 100), whiteAttrs);
-            this.port.drawText(`Speed: ${speed.toFixed(1)}`, new pdg.Point(10, 120), whiteAttrs);
-            this.port.drawText(`Power: ${this.game.rules.getShipPower(ship).toFixed(1)}`, new pdg.Point(10, 140), whiteAttrs);
+            this.port.drawText(`${shipTypeName} ${this.STR.ship}`, new pdg.Point(10, 80), cyanAttrs);
+            this.port.drawText(`${this.STR.techLevel} ${ship.techLevel.toFixed(1)}`, new pdg.Point(10, 100), whiteAttrs);
+            this.port.drawText(`${this.STR.speed} ${speed.toFixed(1)}`, new pdg.Point(10, 120), whiteAttrs);
+            this.port.drawText(`${this.STR.power} ${this.game.rules.getShipPower(ship).toFixed(1)}`, new pdg.Point(10, 140), whiteAttrs);
             // this.port.drawText(`Defense: ${ship.stats.defense.toFixed(1)}`, new pdg.Point(10, 160), 12, pdg.textStyle_Plain, 'white');
         }
     }
@@ -281,9 +325,9 @@ class Display {
         grayAttrs.textSize(12);
         grayAttrs.textStyle(pdg.textStyle_Plain);
         
-        this.port.drawText(`Click stars to manage them`, new pdg.Point(10, this.gameHeight - 60), grayAttrs);
-        this.port.drawText(`Click ships to give orders`, new pdg.Point(10, this.gameHeight - 40), grayAttrs);
-        this.port.drawText(`TAB to end turn`, new pdg.Point(10, this.gameHeight - 20), grayAttrs);
+        this.port.drawText(this.STR.clickStars, new pdg.Point(10, this.gameHeight - 60), grayAttrs);
+        this.port.drawText(this.STR.clickShips, new pdg.Point(10, this.gameHeight - 40), grayAttrs);
+        this.port.drawText(this.STR.tabEndTurn, new pdg.Point(10, this.gameHeight - 20), grayAttrs);
     }
     
     // Main draw function that orchestrates all drawing

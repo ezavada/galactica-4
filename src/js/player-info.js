@@ -138,23 +138,29 @@ class PlayerInfo {
     
     // Get skill level name
     getSkillName() {
-        const names = {
-            0: 'Human',
-            1: 'Expert',
-            2: 'Good',
-            3: 'Average',
-            4: 'Passable',
-            5: 'Novice'
+        // Load skill names from resources (IDs 300-306)
+        const skillIds = {
+            0: 300,  // Human
+            1: 301,  // Expert
+            2: 302,  // Good
+            3: 303,  // Average
+            4: 304,  // Passable
+            5: 305   // Novice
         };
-        return names[this.compSkill] || 'Unknown';
+        const stringId = skillIds[this.compSkill];
+        if (stringId !== undefined) {
+            return pdg.res.getString(stringId) || 'Unknown';
+        }
+        return pdg.res.getString(306) || 'Unknown';  // Unknown fallback
     }
     
     // Get player type description
     getPlayerType() {
         if (this.isHuman) {
-            return 'Human';
+            return pdg.res.getString(300) || 'Human';
         } else {
-            return `Computer (${this.getSkillName()})`;
+            const computerStr = pdg.res.getString(502) || 'Computer';
+            return `${computerStr} (${this.getSkillName()})`;
         }
     }
     

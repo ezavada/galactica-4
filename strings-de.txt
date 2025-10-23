@@ -1,0 +1,90 @@
+# Galactica-4 German Strings Resource File
+# Deutsche Zeichenketten-Ressourcendatei für Galactica-4
+# Format: ID<tab>string or ID<tab>string1|string2|string3 for lists
+# UTF-8 encoding
+
+# General UI Strings (1-99)
+1	Runde
+2	Sterne:
+3	Schiffe:
+4	Bevölkerung:
+5	Technologie:
+6	Bau:
+7	Keine
+8	Klicken Sie auf Sterne, um sie zu verwalten
+9	Klicken Sie auf Schiffe, um Befehle zu erteilen
+10	TAB um Runde zu beenden
+11	Schiffsrumpf
+12	Schiff
+13	Technologiestufe:
+14	Im Bau:
+15	Geschwindigkeit:
+16	Stärke:
+17	Sie
+18	Spieler
+
+# Ship type display strings (20-29)
+20	aufklärer
+21	verteidigung
+22	schlachtschiff
+23	kolonie
+
+# Ship build menu items (30-39)
+30	[s] aufklärer
+31	[d] verteidigung
+32	[b] schlachtschiff
+33	[c] kolonie
+
+# Star Names (100-199) - Kept in original as they are proper astronomical names
+100	Alpha|Beta|Gamma|Delta|Epsilon|Zeta|Eta|Theta|Iota|Kappa|Lambda|Mu|Nu|Xi|Omicron|Pi|Rho|Sigma|Tau|Upsilon|Phi|Chi|Psi|Omega|Centauri|Vega|Sirius|Procyon|Altair|Fomalhaut|Rigel|Beteigeuze|Antares|Aldebaran|Pollux|Castor|Spica|Regulus|Deneb|Arktur|Capella|Vega|Polaris|Canopus|Achernar|Hadar|Acrux|Gacrux|Mimosa|Ginan|Imai|Kappa Crucis|Gamma Crucis|Delta Crucis
+
+# Roman Numerals (200-249) - Universal, no translation needed
+200	|II|III|IV|V|VI|VII|VIII|IX|X
+
+# Computer Player Name Templates (250-269)
+250	* %|Das * %|* Imperium|* Konföderation|Die * Republik|* Föderation|* Koalition|Die * Liga|* Herrschaft|Die * Union
+
+# Computer Player Group Names (270-289)
+270	Pakt|Allianz|Föderation|Konföderation|Koalition|Liga|Union|Kollektiv|Konsortium|Herrschaft|Commonwealth|Hegemonie|Eintracht|Abkommen|Pakt|Entente|Versammlung|Rat|Direktorat|Protektorat
+
+# Skill Level Names (300-349)
+300	Mensch
+301	Experte
+302	Gut
+303	Durchschnitt
+304	Passabel
+305	Anfänger
+306	Unbekannt
+
+# Map Size Descriptions (350-399)
+350	Klein
+351	Mittel
+352	Groß
+353	Riesig
+354	Gigantisch
+355	Unbekannt
+
+# Density Descriptions (400-449)
+400	Spärlich
+401	Normal
+402	Dicht
+403	Sehr Dicht
+404	Überfüllt
+405	Unbekannt
+
+# Ship type names (for display) (450-459)
+450	Aufklärer
+451	Verteidigung
+452	Schlachtschiff
+453	Kolonie
+
+# Game configuration messages (500-549)
+500	Galactica Spiel
+501	spieler
+502	Computer
+503	mensch
+504	KI
+505	Schnelles Spiel
+506	Alles Sichtbar
+507	karte
+
