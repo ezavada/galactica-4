@@ -6,12 +6,12 @@ const pdg = require('pdg');
 
 console.log("=== Galactica-4 PDG Game Starting ===");
 
-// Open the root directory as a resource path (for strings.txt and strings-*.txt files)
+// Open the data directory as a resource path (for strings.txt and strings-*.txt files)
 // This tells the ResourceManager where to look for localized string files
 const path = require('path');
-const projectRoot = path.join(__dirname, '../..');
-pdg.res.openResourceFile(projectRoot);
-console.log(`Resource path set to: ${projectRoot}`);
+const dataPath = path.join(__dirname, '../../data');
+pdg.res.openResourceFile(dataPath);
+console.log(`Resource path set to: ${dataPath}`);
 
 // Parse command-line arguments for language setting
 // Format: --lang=xx (e.g., --lang=es for Spanish, --lang=fr for French)

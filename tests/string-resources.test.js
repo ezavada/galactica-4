@@ -1,5 +1,5 @@
 // String Resources Test
-// Tests that all string resources are properly loaded from strings.txt
+// Tests that all string resources are properly loaded from data/strings.txt
 
 const test = require('./test-framework.js');
 

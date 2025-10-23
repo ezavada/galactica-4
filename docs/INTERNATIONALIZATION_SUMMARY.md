@@ -6,18 +6,18 @@ Successfully implemented a comprehensive internationalization system for Galacti
 
 ## Files Created
 
-### 1. `/strings.txt` (Main English Resource File)
+### 1. `/data/strings.txt` (Main English Resource File)
 - Contains all default English strings
 - Organized by category with clear ID ranges
 - UTF-8 encoded with tab-separated format
 - **Total String IDs**: ~90 unique string resources
 
-### 2. Localized String Files
-- **`/strings-es.txt`** - Spanish (Español)
-- **`/strings-fr.txt`** - French (Français)
-- **`/strings-de.txt`** - German (Deutsch)
-- **`/strings-ja.txt`** - Japanese (日本語)
-- **`/strings-ru.txt`** - Russian (Русский)
+### 2. Localized String Files in `/data/` Directory
+- **`/data/strings-es.txt`** - Spanish (Español)
+- **`/data/strings-fr.txt`** - French (Français)
+- **`/data/strings-de.txt`** - German (Deutsch)
+- **`/data/strings-ja.txt`** - Japanese (日本語)
+- **`/data/strings-ru.txt`** - Russian (Русский)
 - Complete translations for all game text
 - Culturally adapted where appropriate
 - Preserves proper names (star names, roman numerals)
@@ -238,6 +238,24 @@ For questions or issues:
 2. Review example Spanish translation in `strings-es.txt`
 3. Run tests to verify resource loading
 4. Check PDG documentation for ResourceManager API
+
+---
+
+## Directory Structure
+
+All string resources are now organized in the `/data/` directory:
+
+```
+data/
+├── strings.txt      # Default English strings
+├── strings-es.txt   # Spanish
+├── strings-fr.txt   # French
+├── strings-de.txt   # German
+├── strings-ja.txt   # Japanese
+└── strings-ru.txt   # Russian
+```
+
+The ResourceManager opens the `/data/` directory as the resource path, making it easy to add new language files or other game resources.
 
 ---
 

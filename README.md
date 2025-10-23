@@ -24,7 +24,7 @@ gad4 src/js/main.js --lang=ru   # Russian
 
 ## Features
 
-- **Internationalization**: Full support for multiple languages via resource files
+- **Internationalization**: Full support for 6 languages via resource files in `/data/` directory
 - **AI Players**: Computer opponents with configurable difficulty levels
 - **Map Generation**: Procedurally generated star maps using original Galactica algorithms
 - **Turn-Based Strategy**: Build ships, colonize stars, and expand your empire
