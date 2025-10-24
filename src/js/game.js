@@ -170,6 +170,15 @@ class Game {
         return 1; // For now, assume player 1 is the human
     }
 
+    // Get the home star ID for a specific player
+    getPlayerHomeSystem(playerNum) {
+        if (playerNum < 1 || playerNum > this.config.totalPlayers) {
+            return null;
+        }
+        const player = this.players[playerNum];
+        return player ? player.homeStarId : null;
+    }
+
     draw() {
         if (this.display) {
             this.display.drawGame();

@@ -263,11 +263,65 @@ class Display {
         return typeMap[shipType] || shipType;
     }
     
+    // Calculate scaled star radius based on zoom level
+    getScaledStarRadius() {
+        const zoom = this.camera.zoom;
+        
+        // Start scaling down at zoom 0.5, reach 1/4 size at zoom 0.1
+        if (zoom >= 0.5) {
+            return Common.StarRadius; // Full size
+        } else if (zoom <= 0.1) {
+            return Common.StarRadius * 0.25; // 1/4 size
+        } else {
+            // Linear interpolation between 0.5 and 0.1
+            const t = (0.5 - zoom) / (0.5 - 0.1); // t goes from 0 to 1
+            const scale = 1.0 - (t * 0.75); // Scale goes from 1.0 to 0.25
+            return Common.StarRadius * scale;
+        }
+    }
+
+    // Calculate star name opacity based on star size
+    getStarNameOpacity() {
+        
+        const scaledRadius = this.getScaledStarRadius();
+        const sizeRatio = scaledRadius / Common.StarRadius;
+        
+        // Start fading at 50% size, completely invisible at 25% size
+        if (sizeRatio >= 0.5) {
+            return 1.0; // Fully visible
+        } else if (sizeRatio <= 0.25) {
+            return 0.0; // Completely invisible
+        } else {
+            // Linear interpolation between 50% and 25% size
+            const t = (0.5 - sizeRatio) / (0.5 - 0.25); // t goes from 0 to 1
+            return 1.0 - t; // Opacity goes from 1.0 to 0.0
+        }
+    }
+
+    // Check if a star is a home system for any player
+    isHomeSystem(star) {
+        if (!this.game || !star) {
+            return false;
+        }
+        
+        // Check if this star is a home system for any player
+        for (let playerNum = 1; playerNum <= this.game.config.totalPlayers; playerNum++) {
+            const homeStarId = this.game.getPlayerHomeSystem(playerNum);
+            if (homeStarId && star.id === homeStarId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Draw a single star
     drawStar(star) {
         // Convert galactic coordinates to screen coordinates
         const screenX = this.toScreenX(star.x);
         const screenY = this.toScreenY(star.y);
+        
+        // Get scaled star radius based on zoom level
+        const scaledRadius = this.getScaledStarRadius();
         
         let color = 'white';
         if (star.population > 0) {
@@ -278,11 +332,11 @@ class Display {
             const attrs = new pdg.Attributes();
             attrs.fillColor(ownerColor);
             attrs.fillOpacity(0.25);
-            this.port.drawCircle(new pdg.Point(screenX, screenY), Common.StarRadius * 5.0, attrs);
+            this.port.drawCircle(new pdg.Point(screenX, screenY), scaledRadius * 5.0, attrs);
         }
         
         // Create 4-pointed polygon (diamond shape)
-        const r = Common.StarRadius;
+        const r = scaledRadius;
         const diamond = new pdg.Polygon(
             new pdg.Point(screenX, screenY - r * 1.25),      // Top
             new pdg.Point(screenX + r, screenY),      // Right
@@ -298,22 +352,30 @@ class Display {
         attrs.fillRadialGradient(new pdg.Point(screenX, screenY), centerColor, r, edgeColor);
         this.port.drawPolygon(diamond, attrs);
         
-        color = 'gray';
-        if (star.population > 0) {
-            color = 'white';
+        const isHomeSystem = this.isHomeSystem(star);
+
+        // Draw star name with fading based on star size, but never dim home system names
+        const nameOpacity = isHomeSystem ? 1.0 : this.getStarNameOpacity();
+        if (nameOpacity > 0) {
+            color = 'gray';
+            if (star.population > 0) {
+                color = 'white';
+            }
+            const textAttrs = new pdg.Attributes();
+            const textColor = new pdg.Color(color);
+            textColor.alpha = nameOpacity; // Apply fading
+            textAttrs.fillColor(textColor);
+            textAttrs.textSize(isHomeSystem ? 11 : 10);
+            textAttrs.textStyle(pdg.textStyle_Centered);
+            this.port.drawText(`${star.name}`, new pdg.Point(screenX, screenY + scaledRadius + 12), textAttrs);
         }
-        const textAttrs = new pdg.Attributes();
-        textAttrs.fillColor(new pdg.Color(color));
-        textAttrs.textSize(10);
-        textAttrs.textStyle(pdg.textStyle_Centered);
-        this.port.drawText(`${star.name}`, new pdg.Point(screenX, screenY + Common.StarRadius + 12), textAttrs);
 
         // Draw selection indicator
         if (star === this.selectedObject) {
             const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0
             const frameAttrs = new pdg.Attributes();
             frameAttrs.lineColor(new pdg.Color('white'));
-            this.port.drawCircle(new pdg.Point(screenX, screenY), Common.StarRadius + 4 + pulse, frameAttrs);
+            this.port.drawCircle(new pdg.Point(screenX, screenY), scaledRadius + 4 + pulse, frameAttrs);
         }
     }
     
