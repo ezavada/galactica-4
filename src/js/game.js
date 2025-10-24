@@ -132,6 +132,11 @@ class Game {
 
     setDisplay(display) {
         this.display = display;
+        // Select the player's home star after display is set
+        // Use setTimeout to ensure the display is fully constructed
+        setTimeout(() => {
+            this.selectHomeStar();
+        }, 0);
     }
     setRules(rules) {
         this.rules = rules;
@@ -299,6 +304,9 @@ class Game {
         } else if (key === 102 || key === 70) { // f or F key
             // Zoom to fit entire map with F key
             this.display.zoomToFit();
+        } else if (key === 104 || key === 72) { // h or H key
+            // Select player's home star with H key
+            this.selectHomeStar();
         } else if (this.selectedObject) {
             const objectType = this.getObjectType(this.selectedObject);
             if (objectType === Common.ObjectType.STAR) {
@@ -309,6 +317,35 @@ class Game {
             }
         }
         return true;
+    }
+
+    selectHomeStar() {
+        // Check if display is available
+        if (!this.display) {
+            // console.log('Display not available yet, skipping home star selection');
+            return;
+        }
+        
+        // Get the player's home star ID
+        const homeStarId = this.getPlayerHomeSystem(1); // Player 1 is the human player
+        if (!homeStarId) {
+            console.log('No home star found for player 1');
+            return;
+        }
+        
+        // Find the home star object
+        const homeStar = this.stars.find(star => star.id === homeStarId);
+        if (!homeStar) {
+            console.log(`Home star with ID ${homeStarId} not found`);
+            return;
+        }
+        
+        // Select the home star
+        this.selectedObject = homeStar;
+        this.display.setSelectedObject(homeStar);
+        
+        // Center the view on the home star
+        this.display.centerOn(homeStar.x, homeStar.y);
     }
 
     handleStarKeyPress(star, key) {

@@ -102,6 +102,10 @@ class Display {
     }
     
     centerOn(galacticX, galacticY) {
+        if (!this.camera) {
+            // console.log('Camera not available yet, skipping centerOn');
+            return;
+        }
         this.camera.centerOn(galacticX, galacticY);
     }
     
@@ -368,7 +372,7 @@ class Display {
         if (star === this.selectedObject) {
             const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0
             const frameAttrs = new pdg.Attributes();
-            frameAttrs.lineColor(new pdg.Color('white'));
+            frameAttrs.lineColor(new pdg.Color(1,1,1,0.75));
             this.port.drawCircle(new pdg.Point(screenX, screenY), scaledRadius + 4 + pulse, frameAttrs);
         }
     }
@@ -432,7 +436,7 @@ class Display {
         if (ship === this.selectedObject) {
             const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0
             const selAttrs = new pdg.Attributes();
-            selAttrs.lineColor(new pdg.Color('white'));
+            selAttrs.lineColor(new pdg.Color(1,1,1,0.75));
             this.port.drawCircle(new pdg.Point(x - 1.5, y), Common.ShipRadius + 4 + pulse, selAttrs);
         }
     }
