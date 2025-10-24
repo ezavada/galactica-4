@@ -282,11 +282,11 @@ class Game {
         } else if (key === 48) { // 0 key
             // Reset view with 0 key
             this.display.resetView();
-        } else if (key === 99 || key === 67) { // c or C key
-            // Center on selected object with C key
-            if (this.selectedObject) {
-                this.display.centerOn(this.selectedObject.x, this.selectedObject.y);
-            }
+        //} else if (key === 99 || key === 67) { // c or C key
+        //    // Center on selected object with C key
+        //    if (this.selectedObject) {
+        //        this.display.centerOn(this.selectedObject.x, this.selectedObject.y);
+        //    }
         } else if (key === 102 || key === 70) { // f or F key
             // Zoom to fit entire map with F key
             this.display.zoomToFit();

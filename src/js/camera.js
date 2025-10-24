@@ -11,10 +11,16 @@ class Camera {
         this.zoom = 1.0;           // Zoom level (1.0 = normal, >1.0 = zoomed in)
         this.panX = 0;             // Pan offset in galactic coordinates
         this.panY = 0;             // Pan offset in galactic coordinates
+        this.offsetX = 0;          // Screen offset for centering
+        this.offsetY = 0;          // Screen offset for centering
+        this.scale = 1.0;          // Base scale factor for aspect ratio
         
         // Zoom limits
         this.minZoom = 0.1;        // Can zoom out to see entire map
         this.maxZoom = 10.0;       // Can zoom in for detail
+        
+        // Initialize scale and offsets
+        this.updateScaleAndOffsets();
         
         // Pan limits (prevent panning beyond map bounds)
         this.updatePanLimits();
@@ -25,47 +31,44 @@ class Camera {
         return this.port.getDrawingArea();
     }
     
+    // Update scale and centering offsets based on current screen size
+    updateScaleAndOffsets() {
+        const drawingArea = this.getDrawingArea();
+        // Calculate uniform scale to maintain aspect ratio
+        this.scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
+        // Calculate centering offsets
+        this.offsetX = (drawingArea.width() - this.mapWidth * this.scale) / 2;
+        this.offsetY = (drawingArea.height() - this.mapHeight * this.scale) / 2;
+    }
+    
+    // Call this when the screen size changes (e.g., window resize)
+    onScreenSizeChanged() {
+        this.updateScaleAndOffsets();
+        this.updatePanLimits();
+    }
+    
     // Convert galactic coordinates to screen coordinates with camera transform
     toScreenX(galacticX) {
-        const drawingArea = this.getDrawingArea();
-        // Use uniform scaling to maintain aspect ratio
-        const scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
-        // Center the map in the screen
-        const offsetX = (drawingArea.width() - this.mapWidth * scale) / 2;
-        return ((galacticX - this.panX) * this.zoom * scale) + offsetX;
+        return ((galacticX - this.panX) * this.zoom * this.scale) + this.offsetX;
     }
     
     toScreenY(galacticY) {
-        const drawingArea = this.getDrawingArea();
-        // Use uniform scaling to maintain aspect ratio
-        const scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
-        // Center the map in the screen
-        const offsetY = (drawingArea.height() - this.mapHeight * scale) / 2;
-        return ((galacticY - this.panY) * this.zoom * scale) + offsetY;
+        return ((galacticY - this.panY) * this.zoom * this.scale) + this.offsetY;
     }
     
     // Convert screen coordinates to galactic coordinates with camera transform
     toGalacticX(screenX) {
-        const drawingArea = this.getDrawingArea();
-        // Use uniform scaling to maintain aspect ratio
-        const scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
-        // Center the map in the screen
-        const offsetX = (drawingArea.width() - this.mapWidth * scale) / 2;
-        return ((screenX - offsetX) / (this.zoom * scale)) + this.panX;
+        return ((screenX - this.offsetX) / (this.zoom * this.scale)) + this.panX;
     }
     
     toGalacticY(screenY) {
-        const drawingArea = this.getDrawingArea();
-        // Use uniform scaling to maintain aspect ratio
-        const scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
-        // Center the map in the screen
-        const offsetY = (drawingArea.height() - this.mapHeight * scale) / 2;
-        return ((screenY - offsetY) / (this.zoom * scale)) + this.panY;
+        return ((screenY - this.offsetY) / (this.zoom * this.scale)) + this.panY;
     }
     
     // Zoom functions
     setZoom(newZoom) {
         this.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, newZoom));
+        this.updateScaleAndOffsets();
         this.updatePanLimits();
     }
     

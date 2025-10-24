@@ -109,6 +109,11 @@ class Display {
         this.camera.resetView();
     }
     
+    // Handle screen size changes
+    onScreenSizeChanged() {
+        this.camera.onScreenSizeChanged();
+    }
+    
     zoomToFit() {
         // Calculate the actual bounds of all game content
         const bounds = this.calculateContentBounds();
@@ -272,6 +277,7 @@ class Display {
             const ownerColor = this.ownerColors[star.owner];
             const attrs = new pdg.Attributes();
             attrs.fillColor(ownerColor);
+            attrs.fillOpacity(0.25);
             this.port.drawCircle(new pdg.Point(screenX, screenY), Common.StarRadius * 5.0, attrs);
         }
         

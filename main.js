@@ -131,11 +131,11 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
 const mouseWheelHandler = new pdg.IEventHandler(function(event) {
     if (event && event.eventType === pdg.eventType_ScrollWheel) {
         const delta = event.vertDelta || 0;
-        if (delta > 0) {
+        if (delta < 0) {
             // Get current mouse position for zoom target
             const mousePos = pdg.gfx.getMouse();
             game.display.zoomIn(1.2, mousePos.x, mousePos.y);
-        } else if (delta < 0) {
+        } else if (delta > 0) {
             // Get current mouse position for zoom target
             const mousePos = pdg.gfx.getMouse();
             game.display.zoomOut(1.2, mousePos.x, mousePos.y);
@@ -187,6 +187,17 @@ const keyHandler = new pdg.IEventHandler(function(event) {
     return true;
 });
 
+// Port resize handler to update camera scale and offsets immediately
+const portResizeHandler = new pdg.IEventHandler(function(event) {
+    if (event && event.eventType === pdg.eventType_PortResized) {
+        // Update camera scale and offsets immediately when port is resized
+        if (game && game.display) {
+            game.display.onScreenSizeChanged();
+        }
+    }
+    return true;
+});
+
 // Register event handlers
 pdg.evt.addHandler(drawHandler, pdg.eventType_PortDraw);
 pdg.evt.addHandler(mouseHandler, pdg.eventType_MouseDown);
@@ -194,6 +205,7 @@ pdg.evt.addHandler(mouseHandler, pdg.eventType_MouseUp);
 pdg.evt.addHandler(mouseWheelHandler, pdg.eventType_ScrollWheel);
 pdg.evt.addHandler(mouseMoveHandler, pdg.eventType_MouseMove);
 pdg.evt.addHandler(keyHandler, pdg.eventType_KeyPress);
+pdg.evt.addHandler(portResizeHandler, pdg.eventType_PortResized);
 
 console.log("Event handlers registered, starting PDG...");
 
