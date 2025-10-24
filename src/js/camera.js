@@ -147,7 +147,13 @@ class Camera {
     }
     
     zoomIn(factor = 1.2, selectedObject = null, mouseX = undefined, mouseY = undefined) {
-        const newZoom = this.zoom * factor;
+        if (this.zoom >= this.maxZoom) {
+            return;
+        }
+        let newZoom = this.zoom * factor;
+        if (newZoom > this.maxZoom) {
+            newZoom = this.maxZoom;
+        }
         
         if (selectedObject) {
             // Selected object zoom - use object coordinates
@@ -177,7 +183,13 @@ class Camera {
     }
     
     zoomOut(factor = 1.2, selectedObject = null, mouseX = undefined, mouseY = undefined) {
-        const newZoom = this.zoom / factor;
+        if (this.zoom <= this.minZoom) {
+            return;
+        }
+        let newZoom = this.zoom / factor;
+        if (newZoom < this.minZoom) {
+            newZoom = this.minZoom;
+        }
         
         if (selectedObject) {
             // Selected object zoom - use object coordinates

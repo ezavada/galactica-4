@@ -271,28 +271,31 @@ class Display {
     updateMapRenderingCalculations() {
         const zoom = this.camera.zoom;
         
-        // Calculate scaled star radius based on zoom level
+        // Calculate scaled star and ship radius values based on zoom level
         if (zoom >= 0.5) {
-            this.cachedScaledRadius = Common.StarRadius; // Full size
+            this.scaledStarRadius = Common.StarRadius; // Full size
+            this.scaledShipRadius = Common.ShipRadius; // Full size
         } else if (zoom <= 0.1) {
-            this.cachedScaledRadius = Common.StarRadius * 0.25; // 1/4 size
+            this.scaledStarRadius = Common.StarRadius * 0.25; // 1/4 size
+            this.scaledShipRadius = Common.ShipRadius * 0.25; // 1/4 size
         } else {
             // Linear interpolation between 0.5 and 0.1
             const t = (0.5 - zoom) / (0.5 - 0.1); // t goes from 0 to 1
             const scale = 1.0 - (t * 0.75); // Scale goes from 1.0 to 0.25
-            this.cachedScaledRadius = Common.StarRadius * scale;
+            this.scaledStarRadius = Common.StarRadius * scale;
+            this.scaledShipRadius = Common.ShipRadius * scale;
         }
         
         // Calculate default star name opacity based on star size
-        const sizeRatio = this.cachedScaledRadius / Common.StarRadius;
+        const sizeRatio = this.scaledStarRadius / Common.StarRadius;
         if (sizeRatio >= 0.5) {
-            this.cachedDefaultNameOpacity = 1.0; // Fully visible
+            this.mapEntityNameOpacity = 1.0; // Fully visible
         } else if (sizeRatio <= 0.25) {
-            this.cachedDefaultNameOpacity = 0.0; // Completely invisible
+            this.mapEntityNameOpacity = 0.0; // Completely invisible
         } else {
             // Linear interpolation between 50% and 25% size
             const t = (0.5 - sizeRatio) / (0.5 - 0.25); // t goes from 0 to 1
-            this.cachedDefaultNameOpacity = 1.0 - t; // Opacity goes from 1.0 to 0.0
+            this.mapEntityNameOpacity = 1.0 - t; // Opacity goes from 1.0 to 0.0
         }
     }
 
@@ -319,7 +322,7 @@ class Display {
         const screenY = this.toScreenY(star.y);
         
         // Use cached scaled star radius (calculated once per frame)
-        const scaledRadius = this.cachedScaledRadius;
+        const scaledRadius = this.scaledStarRadius;
         
         let color = 'white';
         if (star.population > 0) {
@@ -353,7 +356,7 @@ class Display {
         const isHomeSystem = this.isHomeSystem(star);
 
         // Draw star name with fading based on star size, but never dim home system names
-        const nameOpacity = isHomeSystem ? 1.0 : this.cachedDefaultNameOpacity;
+        const nameOpacity = isHomeSystem ? 1.0 : this.mapEntityNameOpacity;
         if (nameOpacity > 0) {
             color = 'gray';
             if (star.population > 0) {
@@ -389,36 +392,42 @@ class Display {
         // Convert galactic coordinates to screen coordinates
         let x = this.toScreenX(ship.x);
         let y = this.toScreenY(ship.y);
+
+        const zoom = this.camera.zoom;
+        const selected = (ship === this.selectedObject);
+        if (zoom < 0.20 && !selected) {
+            // too small to draw, skip
+            return;
+        }
+        const shipOpacity = selected ? 1.0 : this.mapEntityNameOpacity;
         
         // Offset for ships parked at stars
         if (ship.star) {
-            x += 10;
-            y -= 6;
+            x += this.scaledStarRadius * 1.25;
+            y -= this.scaledStarRadius * 0.75;
         }
         
+        const frameRadius = this.scaledShipRadius + 1;
         var triangle = new pdg.Polygon(
-            new pdg.Point(x-6, y-6),
-            new pdg.Point(x+6, y),
-            new pdg.Point(x-6, y+6)
+            new pdg.Point(x-frameRadius, y-frameRadius),
+            new pdg.Point(x+frameRadius, y),
+            new pdg.Point(x-frameRadius, y+frameRadius)
         );
-        const fillAttrs = new pdg.Attributes();
-        fillAttrs.fillColor(this.ownerColors[ship.owner]);
-        this.port.drawPolygon(triangle, fillAttrs);
-        
-        const frameAttrs = new pdg.Attributes();
-        frameAttrs.lineColor(new pdg.Color('white'));
-        this.port.drawPolygon(triangle, frameAttrs);
+        const shipAttrs = new pdg.Attributes();
+        shipAttrs.fillColor(this.ownerColors[ship.owner]).fillOpacity(shipOpacity);
+        shipAttrs.lineStyle(pdg.lineStyle_Solid).lineColor(new pdg.Color(1,1,1,shipOpacity));
+        this.port.drawPolygon(triangle, shipAttrs);
         
         if (ship.underConstruction()) {
             const progLen = Math.floor(ship.progress / 5);
-            const statusRect = new pdg.Rect(new pdg.Point(x - 10, y - (Common.ShipRadius + 2)), 20, 2);
+            const statusRect = new pdg.Rect(new pdg.Point(x - 10, y - (this.scaledShipRadius + 2)), 20, 2);
             const grayAttrs = new pdg.Attributes();
-            grayAttrs.fillColor(new pdg.Color('gray'));
+            grayAttrs.fillOpacity(shipOpacity).fillColor(new pdg.Color('gray'));
             this.port.drawRect(statusRect, grayAttrs);
             if (progLen > 0) {
                 statusRect.right = statusRect.left + progLen;
                 const aquaAttrs = new pdg.Attributes();
-                aquaAttrs.fillColor(new pdg.Color('aqua'));
+                aquaAttrs.fillOpacity(shipOpacity).fillColor(new pdg.Color('aqua'));
                 this.port.drawRect(statusRect, aquaAttrs);
             }
         }
@@ -426,7 +435,8 @@ class Display {
         // Draw destination line (convert destination to screen coordinates)
         if (ship.destination) {
             const lineAttrs = new pdg.Attributes();
-            lineAttrs.lineColor(new pdg.Color('gray'));
+            lineAttrs.lineColor(new pdg.Color('cyan'));
+            lineAttrs.lineOpacity(0.75);
             const destX = this.toScreenX(ship.destination.x);
             const destY = this.toScreenY(ship.destination.y);
             this.port.drawLine(new pdg.Point(x, y), new pdg.Point(destX, destY), lineAttrs);
