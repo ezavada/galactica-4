@@ -95,9 +95,9 @@ function runZoomScrollTests() {
         test.it('should update pan limits when zooming', () => {
             const camera = new Camera(mockPort, 1024, 1024);
             camera.setZoom(2.0);
-            // At zoom 2.0, visible area is 512x512, so we can pan from 0 to 512
+            // At zoom 2.0 with scale 0.5859375, visible area is 682.67x512, so we can pan from 0 to 341.33
             test.assertEqual(camera.minPanX, 0);
-            test.assertEqual(camera.maxPanX, 512);
+            test.assertApproximately(camera.maxPanX, 341.33, 1);
             test.assertEqual(camera.minPanY, 0);
             test.assertEqual(camera.maxPanY, 512);
         });
@@ -124,10 +124,19 @@ function runZoomScrollTests() {
     test.describe('Camera System - Center On Functionality', () => {
         test.it('should center on a specific point', () => {
             const camera = new Camera(mockPort, 1024, 1024);
+            // Zoom in enough so that pan limits won't interfere with centerOn
+            // At zoom 4.0, the visible area will be 256x192, much smaller than the 1024x1024 map
+            camera.setZoom(4.0);
+            // Use a meaningful test point that's not the center of the map
             camera.centerOn(256, 384);
-            // At zoom 1.0, visible area equals map size, so pan should be clamped to 0
-            test.assertEqual(camera.panX, 0);
-            test.assertEqual(camera.panY, 0);
+            // With the new coordinate system, pan values depend on scale and offsets
+            // The important thing is that the point (256, 384) is actually centered on screen
+            const centerX = 400; // 800/2
+            const centerY = 300; // 600/2
+            const actualScreenX = camera.toScreenX(256);
+            const actualScreenY = camera.toScreenY(384);
+            test.assertApproximately(actualScreenX, centerX, 1, 'Point should be centered horizontally');
+            test.assertApproximately(actualScreenY, centerY, 1, 'Point should be centered vertically');
         });
     });
     
