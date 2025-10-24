@@ -30,14 +30,18 @@ class Camera {
         const drawingArea = this.getDrawingArea();
         // Use uniform scaling to maintain aspect ratio
         const scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
-        return ((galacticX - this.panX) * this.zoom * scale);
+        // Center the map in the screen
+        const offsetX = (drawingArea.width() - this.mapWidth * scale) / 2;
+        return ((galacticX - this.panX) * this.zoom * scale) + offsetX;
     }
     
     toScreenY(galacticY) {
         const drawingArea = this.getDrawingArea();
         // Use uniform scaling to maintain aspect ratio
         const scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
-        return ((galacticY - this.panY) * this.zoom * scale);
+        // Center the map in the screen
+        const offsetY = (drawingArea.height() - this.mapHeight * scale) / 2;
+        return ((galacticY - this.panY) * this.zoom * scale) + offsetY;
     }
     
     // Convert screen coordinates to galactic coordinates with camera transform
@@ -45,14 +49,18 @@ class Camera {
         const drawingArea = this.getDrawingArea();
         // Use uniform scaling to maintain aspect ratio
         const scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
-        return (screenX / (this.zoom * scale)) + this.panX;
+        // Center the map in the screen
+        const offsetX = (drawingArea.width() - this.mapWidth * scale) / 2;
+        return ((screenX - offsetX) / (this.zoom * scale)) + this.panX;
     }
     
     toGalacticY(screenY) {
         const drawingArea = this.getDrawingArea();
         // Use uniform scaling to maintain aspect ratio
         const scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
-        return (screenY / (this.zoom * scale)) + this.panY;
+        // Center the map in the screen
+        const offsetY = (drawingArea.height() - this.mapHeight * scale) / 2;
+        return ((screenY - offsetY) / (this.zoom * scale)) + this.panY;
     }
     
     // Zoom functions
