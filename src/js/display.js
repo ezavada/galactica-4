@@ -264,7 +264,7 @@ class Display {
     }
     
     // Calculate and cache star rendering parameters once per frame
-    updateStarRenderingCache() {
+    updateMapRenderingCalculations() {
         const zoom = this.camera.zoom;
         
         // Calculate scaled star radius based on zoom level
@@ -601,7 +601,7 @@ class Display {
     // Main draw function that orchestrates all drawing
     drawGame() {
         // Update star rendering cache once per frame
-        this.updateStarRenderingCache();
+        this.updateMapRenderingCalculations();
         
         // Draw fixed background first (behind everything else)
         this.drawBackground();

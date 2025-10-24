@@ -34,8 +34,10 @@ class Camera {
     // Update scale and centering offsets based on current screen size
     updateScaleAndOffsets() {
         const drawingArea = this.getDrawingArea();
-        // Calculate uniform scale to maintain aspect ratio
-        this.scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
+        // Calculate scale so that at 1:1 zoom, each sector (1024*1024 galactic units) = 1024 pixels
+        // So: 1024 galactic units = 1 pixel at zoom 1.0
+        // Therefore: scale = 1 / 1024
+        this.scale = 1 / 1024;
         // Calculate centering offsets
         this.offsetX = (drawingArea.width() - this.mapWidth * this.scale) / 2;
         this.offsetY = (drawingArea.height() - this.mapHeight * this.scale) / 2;
@@ -236,8 +238,12 @@ class Camera {
     
     // Pan functions
     pan(deltaX, deltaY) {
-        this.panX += deltaX;
-        this.panY += deltaY;
+        // Convert screen coordinate delta to galactic coordinate delta
+        // deltaX and deltaY are in screen coordinates, but panX/panY are in galactic coordinates
+        const galacticDeltaX = deltaX / (this.zoom * this.scale);
+        const galacticDeltaY = deltaY / (this.zoom * this.scale);
+        this.panX += galacticDeltaX;
+        this.panY += galacticDeltaY;
         this.clampPan();
     }
     
@@ -354,8 +360,8 @@ class Camera {
     }
     
     clampPan() {
-        this.panX = Math.max(this.minPanX, Math.min(this.maxPanX, this.panX));
-        this.panY = Math.max(this.minPanY, Math.min(this.maxPanY, this.panY));
+        //this.panX = Math.max(this.minPanX, Math.min(this.maxPanX, this.panX));
+        //this.panY = Math.max(this.minPanY, Math.min(this.maxPanY, this.panY));
     }
     
     // Update map dimensions (called when map size changes)

@@ -51,7 +51,8 @@ const GameConfig = require('./src/js/game-config.js');
 const factory = new Factory();
 
 // Create game configuration (can customize here)
-const config = GameConfig.createSinglePlayer(1, 2); // 1 computer, Good difficulty
+const config = GameConfig.createSinglePlayer(2, 2); // 1 computer, Good difficulty
+config.sectorSize = 5;
 
 // Create rules with fastGame setting from config
 const rules = new Rules(config.fastGame);
@@ -164,12 +165,9 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
             
             // Only pan if we've actually dragged
             if (hasDragged || isDragging) {
-                // Convert screen delta to galactic delta
-                const drawingArea = game.port.getDrawingArea();
-                const galacticDeltaX = (deltaX / drawingArea.width()) * (game.display.mapWidth / game.display.camera.zoom);
-                const galacticDeltaY = (deltaY / drawingArea.height()) * (game.display.mapHeight / game.display.camera.zoom);
-                
-                game.display.pan(-galacticDeltaX, -galacticDeltaY);
+                // Pass screen coordinate deltas directly to the camera
+                // The camera will handle the conversion to galactic coordinates
+                game.display.pan(-deltaX, -deltaY);
             }
         }
         
