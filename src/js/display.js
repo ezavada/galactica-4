@@ -442,12 +442,59 @@ class Display {
         this.port.drawText(`[Left Drag] Pan  [Middle Drag] Pan  [Mouse Wheel] Zoom`, new pdg.Point(10, drawingArea.height() - 20), controlAttrs);
     }
     
+    // Draw grid lines based on sector boundaries
+    drawGrid() {
+        const drawingArea = this.port.getDrawingArea();
+        const gridAttrs = new pdg.Attributes();
+        gridAttrs.lineColor(new pdg.Color(0.25, 0.25, 0.5, 0.5));
+        
+        // Use original C++ grid spacing - full sectors only (no subgrid)
+        const sectorSize = 1024 * 1024; // PIXELS_PER_SECTOR * COORDINATE_SCALE
+        const gridSpacing = sectorSize; // Full sector spacing (matches original C++)
+        
+        // Get visible bounds in galactic coordinates
+        const visibleBounds = this.camera.getVisibleBounds();
+        
+        // Calculate grid spacing - only draw grid lines that are visible
+        const minX = Math.floor(visibleBounds.left / gridSpacing) * gridSpacing;
+        const maxX = Math.ceil(visibleBounds.right / gridSpacing) * gridSpacing;
+        const minY = Math.floor(visibleBounds.top / gridSpacing) * gridSpacing;
+        const maxY = Math.ceil(visibleBounds.bottom / gridSpacing) * gridSpacing;
+        
+        // Draw vertical grid lines
+        for (let x = minX; x <= maxX; x += gridSpacing) {
+            const screenX = this.toScreenX(x);
+            if (screenX >= 0 && screenX <= drawingArea.width()) {
+                this.port.drawLine(
+                    new pdg.Point(screenX, 0),
+                    new pdg.Point(screenX, drawingArea.height()),
+                    gridAttrs
+                );
+            }
+        }
+        
+        // Draw horizontal grid lines
+        for (let y = minY; y <= maxY; y += gridSpacing) {
+            const screenY = this.toScreenY(y);
+            if (screenY >= 0 && screenY <= drawingArea.height()) {
+                this.port.drawLine(
+                    new pdg.Point(0, screenY),
+                    new pdg.Point(drawingArea.width(), screenY),
+                    gridAttrs
+                );
+            }
+        }
+    }
+
     // Main draw function that orchestrates all drawing
     drawGame() {
         this.clear();
         
         const game = this.game;
         const factory = this.factory;
+
+        // Draw grid first (behind everything else)
+        this.drawGrid();
 
         // Draw game objects
         this.drawStars(game.stars);
