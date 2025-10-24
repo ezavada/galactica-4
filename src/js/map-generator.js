@@ -77,13 +77,17 @@ class MapGenerator {
      */
     createRandomStars(numStars, sectorSize, createStarCallback) {
         const unused = [];
-        const sectorSizePixels = this.PIXELS_PER_SECTOR * sectorSize;
+        const sectorSizePixels = this.PIXELS_PER_SECTOR * this.COORDINATE_SCALE * sectorSize;
+        
         const nameUsage = new Array(this.STAR_NAMES.length).fill(0);
         
         for (let i = 0; i < numStars; i++) {
             // Generate random coordinates (matches original: Rnd(PIXELS_PER_SECTOR * sectorSize) * 1024L)
-            const x = this.random(sectorSizePixels) * this.COORDINATE_SCALE;
-            const y = this.random(sectorSizePixels) * this.COORDINATE_SCALE;
+            // Original: p.x = Rnd(PIXELS_PER_SECTOR * inSectorSize) * 1024L;
+            // So: random(1024 * sectorSize) * 1024
+            const x = this.random(this.PIXELS_PER_SECTOR * sectorSize) * this.COORDINATE_SCALE;
+            const y = this.random(this.PIXELS_PER_SECTOR * sectorSize) * this.COORDINATE_SCALE;
+            
             const z = 0; // Original uses 2D coordinates
             
             // Create star using the provided callback

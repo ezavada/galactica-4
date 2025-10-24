@@ -28,23 +28,31 @@ class Camera {
     // Convert galactic coordinates to screen coordinates with camera transform
     toScreenX(galacticX) {
         const drawingArea = this.getDrawingArea();
-        return ((galacticX - this.panX) * this.zoom / this.mapWidth) * drawingArea.width();
+        // Use uniform scaling to maintain aspect ratio
+        const scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
+        return ((galacticX - this.panX) * this.zoom * scale);
     }
     
     toScreenY(galacticY) {
         const drawingArea = this.getDrawingArea();
-        return ((galacticY - this.panY) * this.zoom / this.mapHeight) * drawingArea.height();
+        // Use uniform scaling to maintain aspect ratio
+        const scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
+        return ((galacticY - this.panY) * this.zoom * scale);
     }
     
     // Convert screen coordinates to galactic coordinates with camera transform
     toGalacticX(screenX) {
         const drawingArea = this.getDrawingArea();
-        return (screenX / drawingArea.width()) * (this.mapWidth / this.zoom) + this.panX;
+        // Use uniform scaling to maintain aspect ratio
+        const scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
+        return (screenX / (this.zoom * scale)) + this.panX;
     }
     
     toGalacticY(screenY) {
         const drawingArea = this.getDrawingArea();
-        return (screenY / drawingArea.height()) * (this.mapHeight / this.zoom) + this.panY;
+        // Use uniform scaling to maintain aspect ratio
+        const scale = Math.min(drawingArea.width() / this.mapWidth, drawingArea.height() / this.mapHeight);
+        return (screenY / (this.zoom * scale)) + this.panY;
     }
     
     // Zoom functions
@@ -154,7 +162,8 @@ class Camera {
         const drawingArea = this.getDrawingArea();
         const scaleX = drawingArea.width() / this.mapWidth;
         const scaleY = drawingArea.height() / this.mapHeight;
-        this.setZoom(Math.min(scaleX, scaleY));
+        const zoom = Math.min(scaleX, scaleY);
+        this.setZoom(zoom);
         
         // Center on the middle of the coordinate space
         this.centerOn(this.mapWidth / 2, this.mapHeight / 2);
@@ -164,18 +173,24 @@ class Camera {
     zoomToFitBounds(minX, minY, maxX, maxY, padding = 50) {
         const drawingArea = this.getDrawingArea();
         
-        // Calculate the content dimensions
+        // Calculate the content dimensions in galactic coordinates
         const contentWidth = maxX - minX;
         const contentHeight = maxY - minY;
         
-        // Add padding around the content
+        // Add padding around the content (in galactic coordinates)
         const paddedWidth = contentWidth + (padding * 2);
         const paddedHeight = contentHeight + (padding * 2);
         
         // Calculate zoom level to fit content in viewport
-        const scaleX = drawingArea.width() / paddedWidth;
-        const scaleY = drawingArea.height() / paddedHeight;
+        // The content spans a certain percentage of the map, so we need to zoom in accordingly
+        const contentRatioX = paddedWidth / this.mapWidth;
+        const contentRatioY = paddedHeight / this.mapHeight;
+        
+        // Calculate the zoom needed to fit this content ratio in the screen
+        const scaleX = 1.0 / contentRatioX;
+        const scaleY = 1.0 / contentRatioY;
         const zoom = Math.min(scaleX, scaleY);
+        
         
         // Set the zoom level
         this.setZoom(zoom);

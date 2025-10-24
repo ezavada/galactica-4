@@ -20,6 +20,14 @@ class Display {
         this.mapWidth = 1024 * 1024 * this.sectorSize;  // Galactic coordinate space
         this.mapHeight = 1024 * 1024 * this.sectorSize; // Galactic coordinate space
         
+        // Load background image once in constructor
+        this.backgroundImage = null;
+        try {
+            this.backgroundImage = pdg.res.getImage('background.png');
+        } catch (error) {
+            console.log('Failed to load background image:', error);
+        }
+        
         // Create camera system for zoom and pan
         this.camera = new Camera(
             this.port,
@@ -147,6 +155,8 @@ class Display {
             return null;
         }
         
+        
+        
         // Add some margin around the content
         const margin = 100;
         return {
@@ -171,6 +181,46 @@ class Display {
         attrs.fillColor(new pdg.Color('black'));
         const drawingArea = this.port.getDrawingArea();
         this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), attrs);
+    }
+    
+    // Draw fixed background image that maintains aspect ratio
+    drawBackground() {
+        const drawingArea = this.port.getDrawingArea();
+        const screenWidth = drawingArea.width();
+        const screenHeight = drawingArea.height();
+        
+        if (this.backgroundImage) {
+            // Get the original image dimensions
+            const imageWidth = this.backgroundImage.getWidth();
+            const imageHeight = this.backgroundImage.getHeight();
+            
+            // Calculate scaling to maintain aspect ratio while covering the screen
+            const scaleX = screenWidth / imageWidth;
+            const scaleY = screenHeight / imageHeight;
+            const scale = Math.max(scaleX, scaleY); // Use max to ensure image covers entire screen
+            
+            // Calculate the scaled dimensions
+            const scaledWidth = imageWidth * scale;
+            const scaledHeight = imageHeight * scale;
+            
+            // Center the image on the screen
+            const offsetX = (screenWidth - scaledWidth) / 2;
+            const offsetY = (screenHeight - scaledHeight) / 2;
+            
+            // Create rectangle for the background image (may extend beyond screen bounds)
+            const backgroundRect = new pdg.Rect(offsetX, offsetY, scaledWidth, scaledHeight);
+            
+            const attrs = new pdg.Attributes();
+            this.port.drawImage(this.backgroundImage, backgroundRect, attrs);
+        } else {
+            // Fallback to a gradient background if image not loaded
+            const backgroundRect = new pdg.Rect(0, 0, screenWidth, screenHeight);
+            const attrs = new pdg.Attributes();
+            const startColor = new pdg.Color(0.1, 0.1, 0.3); // Dark blue
+            const endColor = new pdg.Color(0.0, 0.0, 0.1);   // Very dark blue
+            attrs.fillLinearGradient(new pdg.Point(0, 0), startColor, new pdg.Point(0, screenHeight), endColor);
+            this.port.drawRect(backgroundRect, attrs);
+        }
     }
     
     setSelectedObject(object) {
@@ -488,12 +538,13 @@ class Display {
 
     // Main draw function that orchestrates all drawing
     drawGame() {
-        this.clear();
+        // Draw fixed background first (behind everything else)
+        this.drawBackground();
         
         const game = this.game;
         const factory = this.factory;
 
-        // Draw grid first (behind everything else)
+        // Draw grid (behind game objects but above background)
         this.drawGrid();
 
         // Draw game objects
