@@ -273,12 +273,29 @@ class Game {
         } else if (key === pdg.key_Escape) {
             this.selectedObject = null;
             this.display.setSelectedObject(null);
+        } else if (key === 61 || key === 43) { // = or + key
+            // Zoom in with + or = key (zoom to center of screen)
+            this.display.zoomIn();
+        } else if (key === 45) { // - key
+            // Zoom out with - key (zoom to center of screen)
+            this.display.zoomOut();
+        } else if (key === 48) { // 0 key
+            // Reset view with 0 key
+            this.display.resetView();
+        } else if (key === 99 || key === 67) { // c or C key
+            // Center on selected object with C key
+            if (this.selectedObject) {
+                this.display.centerOn(this.selectedObject.x, this.selectedObject.y);
+            }
+        } else if (key === 102 || key === 70) { // f or F key
+            // Zoom to fit entire map with F key
+            this.display.zoomToFit();
         } else if (this.selectedObject) {
             const objectType = this.getObjectType(this.selectedObject);
             if (objectType === Common.ObjectType.STAR) {
                 // Handle ship building keys
                 this.handleStarKeyPress(this.selectedObject, key);
-            } else if (objectType === Game.ObjectType.SHIP) {
+            } else if (objectType === Common.ObjectType.SHIP) {
                 this.handleShipKeyPress(this.selectedObject, key);
             }
         }

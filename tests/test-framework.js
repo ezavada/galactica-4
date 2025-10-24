@@ -148,6 +148,13 @@ class TestFramework {
         }
     }
 
+    assertGreaterThanOrEqual(actual, expected, message) {
+        if (actual < expected) {
+            const msg = message || `Expected ${actual} >= ${expected}`;
+            throw new Error(msg);
+        }
+    }
+
     // Print test results summary
     printSummary() {
         console.log('\n' + '='.repeat(60));

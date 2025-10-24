@@ -10,6 +10,7 @@ const runMapGenerationTests = require('./map-generation.test.js');
 const runCoordinateMovementTests = require('./coordinate-movement.test.js');
 const runPlayerConfigTests = require('./player-config.test.js');
 const runAISystemTests = require('./ai-systems.test.js');
+const runZoomScrollTests = require('./zoom-scroll.test.js');
 
 console.log('╔═══════════════════════════════════════════════════════════╗');
 console.log('║          Galactica-4 Test Suite                          ║');
@@ -33,6 +34,9 @@ try {
 
     console.log('\n🤖 Running AI System Tests...');
     runAISystemTests();
+
+    console.log('\n🔍 Running Zoom & Scroll Tests...');
+    runZoomScrollTests();
 
     // Print summary
     const success = test.printSummary();

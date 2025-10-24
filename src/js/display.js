@@ -2,12 +2,11 @@
 // Contains all rendering and UI display logic
 
 const Common = require('./common.js');
+const Camera = require('./camera.js');
 
 class Display {
     constructor(game) {
         this.port = game.port;
-        this.gameWidth = game.gameWidth;
-        this.gameHeight = game.gameHeight;
         this.game = game;
         this.factory = game.getFactory();
         this.selectedObject = null;
@@ -20,6 +19,13 @@ class Display {
         this.sectorSize = game.config ? game.config.sectorSize : 1;
         this.mapWidth = 1024 * 1024 * this.sectorSize;  // Galactic coordinate space
         this.mapHeight = 1024 * 1024 * this.sectorSize; // Galactic coordinate space
+        
+        // Create camera system for zoom and pan
+        this.camera = new Camera(
+            this.port,
+            this.mapWidth, 
+            this.mapHeight
+        );
         
         // Load UI strings from resources (cache for performance)
         this.STR = {
@@ -52,29 +58,119 @@ class Display {
         };
     }
     
-    // Convert galactic coordinates to screen coordinates
+    // Convert galactic coordinates to screen coordinates (now using camera)
     toScreenX(galacticX) {
-        return (galacticX / this.mapWidth) * this.gameWidth;
+        return this.camera.toScreenX(galacticX);
     }
     
     toScreenY(galacticY) {
-        return (galacticY / this.mapHeight) * this.gameHeight;
+        return this.camera.toScreenY(galacticY);
     }
     
-    // Convert screen coordinates to galactic coordinates (for mouse input)
+    // Convert screen coordinates to galactic coordinates (for mouse input, now using camera)
     toGalacticX(screenX) {
-        return (screenX / this.gameWidth) * this.mapWidth;
+        return this.camera.toGalacticX(screenX);
     }
     
     toGalacticY(screenY) {
-        return (screenY / this.gameHeight) * this.mapHeight;
+        return this.camera.toGalacticY(screenY);
+    }
+    
+    // Camera control methods
+    zoomIn(factor = 1.2, mouseX = undefined, mouseY = undefined) {
+        this.camera.zoomIn(factor, this.selectedObject, mouseX, mouseY);
+    }
+    
+    zoomOut(factor = 1.2, mouseX = undefined, mouseY = undefined) {
+        this.camera.zoomOut(factor, this.selectedObject, mouseX, mouseY);
+    }
+    
+    setZoom(zoom) {
+        this.camera.setZoom(zoom);
+    }
+    
+    pan(deltaX, deltaY) {
+        this.camera.pan(deltaX, deltaY);
+    }
+    
+    centerOn(galacticX, galacticY) {
+        this.camera.centerOn(galacticX, galacticY);
+    }
+    
+    resetView() {
+        this.camera.resetView();
+    }
+    
+    zoomToFit() {
+        // Calculate the actual bounds of all game content
+        const bounds = this.calculateContentBounds();
+        if (bounds) {
+            this.camera.zoomToFitBounds(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+        } else {
+            // Fallback to default zoom to fit
+            this.camera.zoomToFit();
+        }
+    }
+    
+    // Calculate the bounds of all visible game content
+    calculateContentBounds() {
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        let hasContent = false;
+        
+        // Check all stars
+        if (this.game && this.game.stars) {
+            for (const star of this.game.stars) {
+                minX = Math.min(minX, star.x);
+                minY = Math.min(minY, star.y);
+                maxX = Math.max(maxX, star.x);
+                maxY = Math.max(maxY, star.y);
+                hasContent = true;
+            }
+        }
+        
+        // Check all ships
+        if (this.game && this.game.allShips) {
+            for (const ship of this.game.allShips) {
+                minX = Math.min(minX, ship.x);
+                minY = Math.min(minY, ship.y);
+                maxX = Math.max(maxX, ship.x);
+                maxY = Math.max(maxY, ship.y);
+                hasContent = true;
+            }
+        }
+        
+        // If no content found, return null
+        if (!hasContent) {
+            return null;
+        }
+        
+        // Add some margin around the content
+        const margin = 100;
+        return {
+            minX: minX - margin,
+            minY: minY - margin,
+            maxX: maxX + margin,
+            maxY: maxY + margin
+        };
+    }
+    
+    getZoomLevel() {
+        return this.camera.zoom;
+    }
+    
+    getZoomPercentage() {
+        return this.camera.getZoomPercentage();
     }
     
     // Clear the screen
     clear() {
         const attrs = new pdg.Attributes();
         attrs.fillColor(new pdg.Color('black'));
-        this.port.drawRect(new pdg.Rect(0, 0, this.gameWidth, this.gameHeight), attrs);
+        const drawingArea = this.port.getDrawingArea();
+        this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), attrs);
     }
     
     setSelectedObject(object) {
@@ -249,6 +345,13 @@ class Display {
         attrs2.textSize(14);
         attrs2.textStyle(pdg.textStyle_Plain);
         this.port.drawText(`${this.STR.stars} ${starCount} ${this.STR.ships} ${shipCount}`, new pdg.Point(10, 40), attrs2);
+        
+        // Add zoom information
+        const zoomAttrs = new pdg.Attributes();
+        zoomAttrs.fillColor(new pdg.Color('cyan'));
+        zoomAttrs.textSize(12);
+        zoomAttrs.textStyle(pdg.textStyle_Plain);
+        this.port.drawText(`Zoom: ${this.getZoomPercentage()}%`, new pdg.Point(10, 60), zoomAttrs);
     }
     
     // Draw star details UI
@@ -320,14 +423,23 @@ class Display {
     
     // Draw instructions
     drawInstructions() {
+        const drawingArea = this.port.getDrawingArea();
         const grayAttrs = new pdg.Attributes();
         grayAttrs.fillColor(new pdg.Color('gray'));
         grayAttrs.textSize(12);
         grayAttrs.textStyle(pdg.textStyle_Plain);
         
-        this.port.drawText(this.STR.clickStars, new pdg.Point(10, this.gameHeight - 60), grayAttrs);
-        this.port.drawText(this.STR.clickShips, new pdg.Point(10, this.gameHeight - 40), grayAttrs);
-        this.port.drawText(this.STR.tabEndTurn, new pdg.Point(10, this.gameHeight - 20), grayAttrs);
+        this.port.drawText(this.STR.clickStars, new pdg.Point(10, drawingArea.height() - 100), grayAttrs);
+        this.port.drawText(this.STR.clickShips, new pdg.Point(10, drawingArea.height() - 80), grayAttrs);
+        this.port.drawText(this.STR.tabEndTurn, new pdg.Point(10, drawingArea.height() - 60), grayAttrs);
+        
+        // Add zoom and pan controls
+        const controlAttrs = new pdg.Attributes();
+        controlAttrs.fillColor(new pdg.Color('yellow'));
+        controlAttrs.textSize(11);
+        controlAttrs.textStyle(pdg.textStyle_Plain);
+        this.port.drawText(`[+/-] Zoom  [0] Reset  [C] Center  [F] Fit`, new pdg.Point(10, drawingArea.height() - 40), controlAttrs);
+        this.port.drawText(`[Left Drag] Pan  [Middle Drag] Pan  [Mouse Wheel] Zoom`, new pdg.Point(10, drawingArea.height() - 20), controlAttrs);
     }
     
     // Main draw function that orchestrates all drawing

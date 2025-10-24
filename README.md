@@ -12,14 +12,14 @@ Ported from original C++ code for Galactica, in ../galactica-anno-dominari-3/Cla
 
 ```bash
 # Run with default settings (English)
-gad4 src/js/main.js
+./gad4
 
 # Run in a different language
-gad4 src/js/main.js --lang=es   # Spanish
-gad4 src/js/main.js --lang=fr   # French
-gad4 src/js/main.js --lang=de   # German
-gad4 src/js/main.js --lang=ja   # Japanese
-gad4 src/js/main.js --lang=ru   # Russian
+./gad4 --lang=es   # Spanish
+./gad4 --lang=fr   # French
+./gad4 --lang=de   # German
+./gad4 --lang=ja   # Japanese
+./gad4 --lang=ru   # Russian
 ```
 
 ## Features
