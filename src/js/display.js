@@ -263,38 +263,32 @@ class Display {
         return typeMap[shipType] || shipType;
     }
     
-    // Calculate scaled star radius based on zoom level
-    getScaledStarRadius() {
+    // Calculate and cache star rendering parameters once per frame
+    updateStarRenderingCache() {
         const zoom = this.camera.zoom;
         
-        // Start scaling down at zoom 0.5, reach 1/4 size at zoom 0.1
+        // Calculate scaled star radius based on zoom level
         if (zoom >= 0.5) {
-            return Common.StarRadius; // Full size
+            this.cachedScaledRadius = Common.StarRadius; // Full size
         } else if (zoom <= 0.1) {
-            return Common.StarRadius * 0.25; // 1/4 size
+            this.cachedScaledRadius = Common.StarRadius * 0.25; // 1/4 size
         } else {
             // Linear interpolation between 0.5 and 0.1
             const t = (0.5 - zoom) / (0.5 - 0.1); // t goes from 0 to 1
             const scale = 1.0 - (t * 0.75); // Scale goes from 1.0 to 0.25
-            return Common.StarRadius * scale;
+            this.cachedScaledRadius = Common.StarRadius * scale;
         }
-    }
-
-    // Calculate star name opacity based on star size
-    getStarNameOpacity() {
         
-        const scaledRadius = this.getScaledStarRadius();
-        const sizeRatio = scaledRadius / Common.StarRadius;
-        
-        // Start fading at 50% size, completely invisible at 25% size
+        // Calculate default star name opacity based on star size
+        const sizeRatio = this.cachedScaledRadius / Common.StarRadius;
         if (sizeRatio >= 0.5) {
-            return 1.0; // Fully visible
+            this.cachedDefaultNameOpacity = 1.0; // Fully visible
         } else if (sizeRatio <= 0.25) {
-            return 0.0; // Completely invisible
+            this.cachedDefaultNameOpacity = 0.0; // Completely invisible
         } else {
             // Linear interpolation between 50% and 25% size
             const t = (0.5 - sizeRatio) / (0.5 - 0.25); // t goes from 0 to 1
-            return 1.0 - t; // Opacity goes from 1.0 to 0.0
+            this.cachedDefaultNameOpacity = 1.0 - t; // Opacity goes from 1.0 to 0.0
         }
     }
 
@@ -320,8 +314,8 @@ class Display {
         const screenX = this.toScreenX(star.x);
         const screenY = this.toScreenY(star.y);
         
-        // Get scaled star radius based on zoom level
-        const scaledRadius = this.getScaledStarRadius();
+        // Use cached scaled star radius (calculated once per frame)
+        const scaledRadius = this.cachedScaledRadius;
         
         let color = 'white';
         if (star.population > 0) {
@@ -355,7 +349,7 @@ class Display {
         const isHomeSystem = this.isHomeSystem(star);
 
         // Draw star name with fading based on star size, but never dim home system names
-        const nameOpacity = isHomeSystem ? 1.0 : this.getStarNameOpacity();
+        const nameOpacity = isHomeSystem ? 1.0 : this.cachedDefaultNameOpacity;
         if (nameOpacity > 0) {
             color = 'gray';
             if (star.population > 0) {
@@ -606,6 +600,9 @@ class Display {
 
     // Main draw function that orchestrates all drawing
     drawGame() {
+        // Update star rendering cache once per frame
+        this.updateStarRenderingCache();
+        
         // Draw fixed background first (behind everything else)
         this.drawBackground();
         
