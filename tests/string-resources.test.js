@@ -2,8 +2,23 @@
 // Tests that all string resources are properly loaded from data/strings.txt
 
 const test = require('./test-framework.js');
+const path = require('path');
 
 function runStringResourceTests() {
+    // Initialize ResourceManager with data directory path
+    const dataPath = path.join(__dirname, '../data');
+    pdg.res.openResourceFile(dataPath);
+    console.log(`  Resource path set to: ${dataPath}`);
+    
+    test.describe('String Resources - Resource Path Setup', () => {
+        test.it('can load basic strings from data directory', () => {
+            const testStr = pdg.res.getString(1);
+            test.assertDefined(testStr, 'String ID 1 should be defined');
+            test.assertGreaterThan(testStr.length, 0, 'String ID 1 should not be empty');
+            console.log(`    Test string loaded: "${testStr}"`);
+        });
+    });
+    
     test.describe('String Resources - General UI Strings', () => {
         test.it('loads basic UI strings', () => {
             const turn = pdg.res.getString(1);

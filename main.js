@@ -9,7 +9,7 @@ console.log("=== Galactica-4 PDG Game Starting ===");
 // Open the data directory as a resource path (for strings.txt and strings-*.txt files)
 // This tells the ResourceManager where to look for localized string files
 const path = require('path');
-const dataPath = path.join(__dirname, '../../data');
+const dataPath = path.join(__dirname, 'data');
 pdg.res.openResourceFile(dataPath);
 console.log(`Resource path set to: ${dataPath}`);
 
@@ -42,11 +42,11 @@ if (args.every(arg => !arg.startsWith('--lang='))) {
 pdg.srand(Date.now());
 
 // Load required modules
-const Factory = require('./factory.js');
-const Display = require('./display.js');
-const Game = require('./game.js');
-const Rules = require('./rules.js');
-const GameConfig = require('./game-config.js');
+const Factory = require('./src/js/factory.js');
+const Display = require('./src/js/display.js');
+const Game = require('./src/js/game.js');
+const Rules = require('./src/js/rules.js');
+const GameConfig = require('./src/js/game-config.js');
 
 const factory = new Factory();
 
