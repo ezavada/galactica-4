@@ -12,10 +12,15 @@ const runPlayerConfigTests = require('./player-config.test.js');
 const runAISystemTests = require('./ai-systems.test.js');
 const runZoomScrollTests = require('./zoom-scroll.test.js');
 const runZoomToPointBugTests = require('./zoom-to-point-bug.test.js');
+const runEntityFogOfWarTests = require('./entity-fog-of-war.test.js');
+const runVisibilityCalculatorTests = require('./visibility-calculator.test.js');
+const runSpatialPartitionTests = require('./spatial-partition.test.js');
+const runFogOfWarIntegrationTests = require('./fog-of-war-integration.test.js');
+const runSpatialPartitioningPerformanceTests = require('./spatial-partitioning-performance.test.js');
 
 console.log('╔═══════════════════════════════════════════════════════════╗');
-console.log('║          Galactica-4 Test Suite                          ║');
-console.log('║          Testing Map, Movement, Players & AI              ║');
+console.log('║          Galactica-4 Test Suite                           ║');
+console.log('║          Testing Map, Movement, Players, AI & Fog of War  ║');
 console.log('║          Using PDG Built-in Random (pdg.srand/rand)       ║');
 console.log('╚═══════════════════════════════════════════════════════════╝');
 
@@ -41,6 +46,21 @@ try {
     
     console.log('\n🐛 Running Zoom-to-Point Bug Tests...');
     runZoomToPointBugTests();
+
+    console.log('\n🌟 Running Entity Fog of War Tests...');
+    runEntityFogOfWarTests();
+
+    console.log('\n👁️ Running Visibility Calculator Tests...');
+    runVisibilityCalculatorTests();
+
+    console.log('\n🗺️ Running Spatial Partition Tests...');
+    runSpatialPartitionTests();
+
+    console.log('\n🔗 Running Fog of War Integration Tests...');
+    runFogOfWarIntegrationTests();
+
+    console.log('\n⚡ Running Spatial Partitioning Performance Tests...');
+    runSpatialPartitioningPerformanceTests();
 
     // Print summary
     const success = test.printSummary();

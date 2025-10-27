@@ -84,6 +84,26 @@ class GameConfig {
             fastGame: false
         });
     }
+
+    // Create game with fog of war disabled (omniscient mode)
+    static createOmniscientGame(numComputers = 1) {
+        return new GameConfig({
+            numHumans: 1,
+            numComputers: numComputers,
+            omniscient: true,
+            compSkill: 2
+        });
+    }
+
+    // Create game with fog of war enabled (default behavior)
+    static createFogOfWarGame(numComputers = 1) {
+        return new GameConfig({
+            numHumans: 1,
+            numComputers: numComputers,
+            omniscient: false,
+            compSkill: 2
+        });
+    }
     
     // Validate configuration
     validate() {
@@ -198,6 +218,16 @@ class GameConfig {
         if (this.fastGame) parts.push(fastGameStr);
         if (this.omniscient) parts.push(allVisibleStr);
         return parts.join(", ");
+    }
+
+    // Check if fog of war is enabled
+    isFogOfWarEnabled() {
+        return !this.omniscient;
+    }
+
+    // Get fog of war status description
+    getFogOfWarDescription() {
+        return this.isFogOfWarEnabled() ? "Fog of War" : "All Visible";
     }
 }
 

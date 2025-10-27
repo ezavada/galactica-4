@@ -75,6 +75,18 @@ class Star {
         
         // Ships at this star
         this.ships = [];
+        
+        // Fog of War properties
+        this.scannerRange = 0;
+        this.stealth = 1;
+        this.apparentSize = 5000000; // 5 million meters (matches C++)
+        this.visibilityTo = []; // Array indexed by player number
+        this.lastSeen = []; // Array indexed by player number
+        this.lastSeenBy = []; // Array indexed by player number
+        this._spatialLocation = null; // Track current spatial location
+        
+        // Defense satellites at this star (part of star system)
+        this.defenseSatellites = [];
     }
 
     update() {
@@ -168,6 +180,152 @@ class Star {
 
     shipArrived(ship) {
         this.ships.push(ship);
+    }
+    
+    // Fog of War Methods
+    
+    /**
+     * Get scanner range
+     */
+    getScannerRange() { 
+        return this.scannerRange; 
+    }
+    
+    /**
+     * Set scanner range
+     */
+    setScannerRange(range) { 
+        this.scannerRange = range; 
+    }
+    
+    /**
+     * Get stealth value
+     */
+    getStealth() { 
+        return this.stealth; 
+    }
+    
+    /**
+     * Set stealth value
+     */
+    setStealth(stealth) { 
+        this.stealth = stealth; 
+    }
+    
+    /**
+     * Get apparent size
+     */
+    getApparentSize() { 
+        return this.apparentSize; 
+    }
+    
+    /**
+     * Set apparent size
+     */
+    setApparentSize(size) { 
+        this.apparentSize = size; 
+    }
+    
+    /**
+     * Get visibility level to a specific player
+     */
+    getVisibilityTo(playerNum) { 
+        return this.visibilityTo[playerNum] || Common.VisibilityLevel.NONE; 
+    }
+    
+    /**
+     * Set visibility level to a specific player
+     */
+    setVisibilityTo(playerNum, visibility) { 
+        this.visibilityTo[playerNum] = visibility; 
+    }
+    
+    /**
+     * Get last turn this star was seen by a player
+     */
+    getLastSeen(playerNum) { 
+        return this.lastSeen[playerNum] || 0; 
+    }
+    
+    /**
+     * Set last turn this star was seen by a player
+     */
+    setLastSeen(playerNum, turn) { 
+        this.lastSeen[playerNum] = turn; 
+    }
+    
+    /**
+     * Check if this star is visible to a player
+     */
+    isVisibleTo(playerNum) { 
+        return this.getVisibilityTo(playerNum) > Common.VisibilityLevel.NONE; 
+    }
+    
+    /**
+     * Update spatial location when star moves (rare, but possible)
+     */
+    updateSpatialLocation(game) {
+        if (game && game.spatialPartition) {
+            game.spatialPartition.updateEntityPosition(
+                this, 
+                Common.SpatialConstants.ENTITY_TYPE_STAR, 
+                this.x, 
+                this.y
+            );
+        }
+    }
+    
+    /**
+     * Add defense satellite to this star system
+     */
+    addDefenseSatellite(satellite) {
+        if (!this.defenseSatellites.includes(satellite)) {
+            this.defenseSatellites.push(satellite);
+            // Defense satellites are tracked as part of the star system
+            // They don't need separate spatial tracking
+        }
+    }
+    
+    /**
+     * Remove defense satellite from this star system
+     */
+    removeDefenseSatellite(satellite) {
+        const index = this.defenseSatellites.indexOf(satellite);
+        if (index !== -1) {
+            this.defenseSatellites.splice(index, 1);
+        }
+    }
+    
+    /**
+     * Get all defense satellites at this star
+     */
+    getDefenseSatellites() {
+        return [...this.defenseSatellites];
+    }
+    
+    /**
+     * Get defense strength of the star itself
+     */
+    getDefenseStrength() {
+        // Stars have base defense strength based on tech level and population
+        return this.techLevel * 1000; // Base defense per tech level
+    }
+    
+    /**
+     * Get total defense strength including satellites
+     */
+    getTotalDefenseStrength() {
+        let totalDefense = this.getDefenseStrength();
+        for (const satellite of this.defenseSatellites) {
+            // Defense satellites should have a getDefenseStrength method
+            if (satellite.getDefenseStrength) {
+                totalDefense += satellite.getDefenseStrength();
+            } else {
+                // Fallback: assume satellites have a strength property
+                totalDefense += satellite.strength || 0;
+            }
+        }
+        return totalDefense;
     }
 }
 

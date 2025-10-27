@@ -317,6 +317,8 @@ class Display {
 
     // Draw a single star
     drawStar(star) {
+        const humanPlayer = 1; // Player 1 is the human player
+        
         // Convert galactic coordinates to screen coordinates
         const screenX = this.toScreenX(star.x);
         const screenY = this.toScreenY(star.y);
@@ -324,11 +326,24 @@ class Display {
         // Use cached scaled star radius (calculated once per frame)
         const scaledRadius = this.scaledStarRadius;
         
+        // Determine visibility level for this star
+        let visibilityLevel = Common.VisibilityLevel.NONE;
+        if (star.owner === humanPlayer) {
+            // Own stars are always fully visible
+            visibilityLevel = Common.VisibilityLevel.DETAILS;
+        } else if (star.isVisibleTo(humanPlayer)) {
+            // Get the actual visibility level from the star
+            const visibilityToPlayer = star.getVisibilityTo(humanPlayer);
+            visibilityLevel = visibilityToPlayer ? visibilityToPlayer.level : Common.VisibilityLevel.NONE;
+        }
+        
         let color = 'white';
-        if (star.population > 0) {
+        if (star.population > 0 && visibilityLevel >= Common.VisibilityLevel.SPEED) {
             color = 'yellow';
         }
-        if (star.owner) {
+        
+        // Only show ownership color if we can see ownership details
+        if (star.owner && visibilityLevel >= Common.VisibilityLevel.CLASS) {
             const ownerColor = this.ownerColors[star.owner];
             const attrs = new pdg.Attributes();
             attrs.fillColor(ownerColor);
@@ -359,7 +374,7 @@ class Display {
         const nameOpacity = isHomeSystem ? 1.0 : this.mapEntityNameOpacity;
         if (nameOpacity > 0) {
             color = 'gray';
-            if (star.population > 0) {
+            if (star.population > 0 && visibilityLevel >= Common.VisibilityLevel.SPEED) {
                 color = 'white';
             }
             const textAttrs = new pdg.Attributes();
@@ -382,7 +397,10 @@ class Display {
     
     // Draw all stars
     drawStars(stars) {
+        const humanPlayer = 1; // Player 1 is the human player
+        
         for (const star of stars) {
+            // Always show all stars, but with different visibility levels
             this.drawStar(star);
         }
     }
@@ -453,8 +471,13 @@ class Display {
     
     // Draw all ships
     drawShips(ships) {
+        const humanPlayer = 1; // Player 1 is the human player
+        
         for (const ship of ships) {
-            this.drawShip(ship);
+            // Always show own ships, only show enemy ships if visible
+            if (ship.owner === humanPlayer || ship.isVisibleTo(humanPlayer)) {
+                this.drawShip(ship);
+            }
         }
     }
     

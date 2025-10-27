@@ -6,6 +6,8 @@ const MapGenerator = require('./map-generator.js');
 const GameConfig = require('./game-config.js');
 const PlayerInfo = require('./player-info.js');
 const { AIManager } = require('./ai-manager.js');
+const { SpatialPartition } = require('./spatial-partition.js');
+const VisibilityCalculator = require('./visibility-calculator.js');
 
 class Game {
     constructor(factory, rules, config = null) {
@@ -48,6 +50,10 @@ class Game {
         // Initialize AI Manager
         this.aiManager = new AIManager(this, rules);
         
+        // Initialize spatial partition and visibility calculator
+        this.spatialPartition = new SpatialPartition();
+        this.visibilityCalculator = new VisibilityCalculator(this);
+        
         // Initialize AI players for computer-controlled players
         for (let i = 1; i <= this.config.totalPlayers; i++) {
             if (this.players[i] && this.players[i].isComputer) {
@@ -66,7 +72,9 @@ class Game {
         
         console.log(`Game config: ${this.config.getDescription()}`);
         
-        this.initializeGame();
+        if (!this.config.skipMapGeneration) {
+            this.initializeGame();
+        }
         console.log("Game constructor completed");
     }
     initializeGame() {
@@ -101,6 +109,9 @@ class Game {
         console.log(`Game initialized with ${this.stars.length} stars using original Galactica algorithms`);
         console.log(`Home stars assigned: ${homeStars.length}`);
         
+        // Initialize fog of war for all entities
+        this.initializeFogOfWar();
+        
         // Log player names
         for (let i = 1; i <= this.config.totalPlayers; i++) {
             const player = this.players[i];
@@ -108,12 +119,61 @@ class Game {
         }
     }
     
+    /**
+     * Initialize fog of war properties for all entities
+     */
+    initializeFogOfWar() {
+        // Initialize fog of war properties for all entities
+        for (const star of this.stars) {
+            this.initializeEntityFogOfWar(star);
+        }
+        for (const ship of this.allShips) {
+            this.initializeEntityFogOfWar(ship);
+        }
+    }
+    
+    /**
+     * Initialize fog of war properties for a single entity
+     */
+    initializeEntityFogOfWar(entity) {
+        // Initialize visibility arrays
+        entity.visibilityTo = [];
+        entity.lastSeen = [];
+        entity.lastSeenBy = [];
+        
+        // Set default values
+        if (this.factory.isStar(entity)) {
+            entity.setScannerRange(this.rules.getScanRangeForTechLevel(entity.techLevel));
+            entity.setStealth(1); // Stars have minimal stealth
+            entity.setApparentSize(5000000); // 5 million meters
+        } else if (this.factory.isShip(entity)) {
+            entity.setScannerRange(this.rules.getShipScanRange(entity));
+            entity.setStealth(this.calculateShipStealth(entity));
+            entity.setApparentSize(entity.calculateApparentSize());
+        }
+    }
+    
+    /**
+     * Calculate ship stealth based on tech level
+     */
+    calculateShipStealth(ship) {
+        // Stealth = (tech level * 0.75) + 1 (matches C++ formula)
+        return Math.floor((ship.techLevel * 0.75) + 1);
+    }
+    
     entityAdded(entity) {
         const objectType = this.getObjectType(entity);
         if (objectType === Common.ObjectType.STAR) {
             this.stars.push(entity);
+            // Add to spatial partition
+            this.spatialPartition.addEntity(entity, Common.SpatialConstants.ENTITY_TYPE_STAR);
         } else if (objectType === Common.ObjectType.SHIP) {
             this.allShips.push(entity);
+            // Add to spatial partition
+            const entityType = (entity.type === 'defense') ? 
+                Common.SpatialConstants.ENTITY_TYPE_DEFENSE : 
+                Common.SpatialConstants.ENTITY_TYPE_SHIP;
+            this.spatialPartition.addEntity(entity, entityType);
         }
     }
 
@@ -121,12 +181,20 @@ class Game {
         if (this.selectedObject === entity) {
             this.selectedObject = null;
             this.display.setSelectedObject(null);
-        }   
+        }
+        
         const objectType = this.getObjectType(entity);
         if (objectType === Common.ObjectType.STAR) {
             this.stars.splice(this.stars.indexOf(entity), 1);
+            // Remove from spatial partition
+            this.spatialPartition.removeEntity(entity, Common.SpatialConstants.ENTITY_TYPE_STAR);
         } else if (objectType === Common.ObjectType.SHIP) {
             this.allShips.splice(this.allShips.indexOf(entity), 1);
+            // Remove from spatial partition
+            const entityType = (entity.type === 'defense') ? 
+                Common.SpatialConstants.ENTITY_TYPE_DEFENSE : 
+                Common.SpatialConstants.ENTITY_TYPE_SHIP;
+            this.spatialPartition.removeEntity(entity, entityType);
         }
     }
 
@@ -400,6 +468,9 @@ class Game {
             ship.combat();
         }
         
+        // Update visibility after all movements and changes
+        this.visibilityCalculator.updateAllVisibility();
+        
         // Update player piece counts and check for defeats
         this.updatePlayerPieceCounts();
 
@@ -470,6 +541,20 @@ class Game {
                 console.log(`=== Noteworthy Event: ${who} ${what} ${where} ${how} ${why} ${other} ===`);
                 break;
         }
+    }
+    
+    /**
+     * Get spatial partition statistics for debugging
+     */
+    getSpatialStats() {
+        return this.spatialPartition.getStats();
+    }
+    
+    /**
+     * Get visibility statistics for debugging
+     */
+    getVisibilityStats() {
+        return this.visibilityCalculator.getVisibilityStats();
     }
 }
 
