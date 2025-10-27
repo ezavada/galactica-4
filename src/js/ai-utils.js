@@ -22,7 +22,10 @@ class AIUtils {
         let minOwnedDist = Infinity;
         let minEnemyDist = Infinity;
 
-        for (const star of this.game.stars) {
+        // Get visible stars for the AI player
+        const visibleStars = this.getVisibleStarsForPlayer(entity.owner);
+
+        for (const star of visibleStars) {
             const distance = this.calculateDistance(entity, star);
             
             if (distance > maxDistance) continue;
@@ -59,7 +62,10 @@ class AIUtils {
         let closestShip = null;
         let closestDistance = maxDistance;
 
-        for (const ship of this.game.allShips) {
+        // Get visible ships for the AI player
+        const visibleShips = this.getVisibleShipsForPlayer(entity.owner);
+
+        for (const ship of visibleShips) {
             if (ship.owner === entity.owner || ship.owner === 0) continue;
             
             const distance = this.calculateDistance(entity, ship);
@@ -77,7 +83,10 @@ class AIUtils {
         let weakestStar = null;
         let weakestStrength = Infinity;
 
-        for (const star of this.game.stars) {
+        // Get visible stars for the AI player
+        const visibleStars = this.getVisibleStarsForPlayer(entity.owner);
+
+        for (const star of visibleStars) {
             if (star.owner === entity.owner || star.owner === 0) continue;
             
             const distance = this.calculateDistance(entity, star);
@@ -99,7 +108,10 @@ class AIUtils {
         let bestDistance = Infinity;
         let bestTechSpending = 0;
 
-        for (const star of this.game.stars) {
+        // Get visible stars for the AI player
+        const visibleStars = this.getVisibleStarsForPlayer(entity.owner);
+
+        for (const star of visibleStars) {
             if (star.owner === entity.owner || star.owner === 0) continue;
             
             const distance = this.calculateDistance(entity, star);
@@ -124,7 +136,10 @@ class AIUtils {
         let bestStar = null;
         let bestDistance = Infinity;
 
-        for (const star of this.game.stars) {
+        // Get visible stars for the AI player (own stars are always visible)
+        const visibleStars = this.getVisibleStarsForPlayer(entity.owner);
+
+        for (const star of visibleStars) {
             if (star.owner !== entity.owner) continue;
             
             const distance = this.calculateDistance(entity, star);
@@ -267,12 +282,12 @@ class AIUtils {
     calculatePlayerStrength(playerId) {
         let totalStrength = 0;
         
-        // Add star strength
+        // Add star strength (own stars are always visible)
         for (const star of this.getPlayerStars(playerId)) {
             totalStrength += this.getEntityStrength(star);
         }
         
-        // Add ship strength
+        // Add ship strength (own ships are always visible)
         for (const ship of this.getPlayerShips(playerId)) {
             totalStrength += this.getEntityStrength(ship);
         }
@@ -284,8 +299,9 @@ class AIUtils {
     findStrongestEnemyPlayer(playerId) {
         const enemyPlayers = new Set();
         
-        // Find all enemy players
-        for (const star of this.game.stars) {
+        // Find all enemy players from visible stars
+        const visibleStars = this.getVisibleStarsForPlayer(playerId);
+        for (const star of visibleStars) {
             if (star.owner !== 0 && star.owner !== playerId) {
                 enemyPlayers.add(star.owner);
             }
@@ -366,15 +382,17 @@ class AIUtils {
     getEnemyEntities(ownerId) {
         const enemies = [];
         
-        // Add enemy ships
-        for (const ship of this.game.allShips) {
+        // Add visible enemy ships
+        const visibleShips = this.getVisibleShipsForPlayer(ownerId);
+        for (const ship of visibleShips) {
             if (ship.owner !== 0 && ship.owner !== ownerId) {
                 enemies.push(ship);
             }
         }
         
-        // Add enemy stars
-        for (const star of this.game.stars) {
+        // Add visible enemy stars
+        const visibleStars = this.getVisibleStarsForPlayer(ownerId);
+        for (const star of visibleStars) {
             if (star.owner !== 0 && star.owner !== ownerId) {
                 enemies.push(star);
             }
@@ -385,18 +403,21 @@ class AIUtils {
     
     // Get all enemy ships for a given owner
     getEnemyShips(ownerId) {
-        return this.game.allShips.filter(ship => ship.owner !== 0 && ship.owner !== ownerId);
+        const visibleShips = this.getVisibleShipsForPlayer(ownerId);
+        return visibleShips.filter(ship => ship.owner !== 0 && ship.owner !== ownerId);
     }
     
     // Get all enemy stars for a given owner
     getEnemyStars(ownerId) {
-        return this.game.stars.filter(star => star.owner !== 0 && star.owner !== ownerId);
+        const visibleStars = this.getVisibleStarsForPlayer(ownerId);
+        return visibleStars.filter(star => star.owner !== 0 && star.owner !== ownerId);
     }
     
     // Get all unowned entities (stars with owner === 0)
     getUnownedEntities() {
         const unowned = [];
-        for (const star of this.game.stars) {
+        const visibleStars = this.getVisibleStarsForPlayer(1); // Use player 1 as reference for unowned stars
+        for (const star of visibleStars) {
             if (star.owner === 0) {
                 unowned.push(star);
             }
@@ -406,7 +427,8 @@ class AIUtils {
     
     // Get all unowned stars
     getUnownedStars() {
-        return this.game.stars.filter(star => star.owner === 0);
+        const visibleStars = this.getVisibleStarsForPlayer(1); // Use player 1 as reference for unowned stars
+        return visibleStars.filter(star => star.owner === 0);
     }
     
     // Check if a ship is currently at a star (orbiting/docked)
@@ -417,6 +439,36 @@ class AIUtils {
     // Get the star that a ship is currently at (null if not at a star)
     getCurrentStar(ship) {
         return ship.star || null;
+    }
+
+    // Get visible stars for a specific player (respects fog of war)
+    getVisibleStarsForPlayer(playerId) {
+        if (!this.game.visibilityCalculator) {
+            // Fallback to all stars if visibility calculator not available
+            return this.game.stars;
+        }
+        
+        return this.game.visibilityCalculator.getVisibleEntitiesByTypeForPlayer(playerId, Common.SpatialConstants.ENTITY_TYPE_STAR);
+    }
+
+    // Get visible ships for a specific player (respects fog of war)
+    getVisibleShipsForPlayer(playerId) {
+        if (!this.game.visibilityCalculator) {
+            // Fallback to all ships if visibility calculator not available
+            return this.game.allShips;
+        }
+        
+        return this.game.visibilityCalculator.getVisibleEntitiesByTypeForPlayer(playerId, Common.SpatialConstants.ENTITY_TYPE_SHIP);
+    }
+
+    // Get all visible entities (stars and ships) for a specific player
+    getVisibleEntitiesForPlayer(playerId) {
+        if (!this.game.visibilityCalculator) {
+            // Fallback to all entities if visibility calculator not available
+            return [...this.game.stars, ...this.game.allShips];
+        }
+        
+        return this.game.visibilityCalculator.getVisibleEntitiesForPlayer(playerId);
     }
 }
 
