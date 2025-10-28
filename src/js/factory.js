@@ -23,6 +23,13 @@ class Factory {
         this.game.entityAdded(ship);
         return ship;
     }
+    
+    createFleet(x, y, owner) {
+        const Fleet = require('./fleet.js');
+        const fleet = new Fleet(x, y, this.game, owner);
+        this.game.entityAdded(fleet);
+        return fleet;
+    }
 
     isStar(object) {
         return object instanceof this.starConstructor;
@@ -30,6 +37,11 @@ class Factory {
 
     isShip(object) {
         return object instanceof this.shipConstructor;
+    }
+    
+    isFleet(object) {
+        const Fleet = require('./fleet.js');
+        return object instanceof Fleet;
     }
 }
 

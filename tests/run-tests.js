@@ -17,11 +17,14 @@ const runVisibilityCalculatorTests = require('./visibility-calculator.test.js');
 const runSpatialPartitionTests = require('./spatial-partition.test.js');
 const runFogOfWarIntegrationTests = require('./fog-of-war-integration.test.js');
 const runSpatialPartitioningPerformanceTests = require('./spatial-partitioning-performance.test.js');
+const runFleetTests = require('./fleet.test.js');
+const runCombatTests = require('./combat.test.js');
+const runFleetFormationTests = require('./fleet-formation.test.js');
 
 console.log('╔═══════════════════════════════════════════════════════════╗');
 console.log('║          Galactica-4 Test Suite                           ║');
-console.log('║          Testing Map, Movement, Players, AI & Fog of War  ║');
-console.log('║          Using PDG Built-in Random (pdg.srand/rand)       ║');
+console.log('║          Testing Map, Movement, Players, AI, Fleet,       ║');
+console.log('║          Fog of War, and Combat System                    ║');
 console.log('╚═══════════════════════════════════════════════════════════╝');
 
 // Run all test suites
@@ -61,6 +64,15 @@ try {
 
     console.log('\n⚡ Running Spatial Partitioning Performance Tests...');
     runSpatialPartitioningPerformanceTests();
+
+    console.log('\n🚢 Running Fleet Mechanics Tests...');
+    runFleetTests();
+
+    console.log('\n⚔️ Running Combat System Tests...');
+    runCombatTests();
+
+    console.log('\n🔗 Running Fleet Formation Tests...');
+    runFleetFormationTests();
 
     // Print summary
     const success = test.printSummary();

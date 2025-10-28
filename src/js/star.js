@@ -87,6 +87,9 @@ class Star {
         
         // Defense satellites at this star (part of star system)
         this.defenseSatellites = [];
+        
+        // Combat properties
+        this.damage = 0; // Population damage from combat
     }
 
     update() {
@@ -176,6 +179,10 @@ class Star {
 
     shipDeparted(ship) {
         this.ships.splice(this.ships.indexOf(ship), 1);
+    }
+
+    removeShip(ship) {
+        this.shipDeparted(ship);
     }
 
     shipArrived(ship) {
@@ -326,6 +333,69 @@ class Star {
             }
         }
         return totalDefense;
+    }
+    
+    // Combat methods - ported from CStar.cpp
+    getAttackStrength() {
+        // Population provides attack strength
+        return this.population * 10;
+    }
+    
+    getDefenseStrength() {
+        // Population provides defense strength
+        return this.population * 100;
+    }
+    
+    getOneAttackAgainst(defender) {
+        // Use PDG random function for damage variance
+        const attackDamage = Math.floor((this.getAttackStrength() * (pdg.rand() + pdg.rand() + pdg.rand() + 3)) / 300);
+        return Math.max(0, attackDamage);
+    }
+    
+    takeDamage(amount) {
+        // Population takes damage
+        const populationDamage = Math.floor(amount / 100); // 1 population per 100 damage
+        const actualPopulationKilled = Math.min(populationDamage, this.population);
+        this.population = Math.max(0, this.population - populationDamage);
+        
+        // Return excess damage if population is wiped out
+        if (this.population <= 0) {
+            return amount - (actualPopulationKilled * 100);
+        }
+        
+        return 0;
+    }
+    
+    isDead() {
+        return this.population <= 0;
+    }
+    
+    isOwned() {
+        return this.owner !== 0;
+    }
+    
+    isAllyOf(playerId) {
+        return this.game.players[this.owner] && 
+               this.game.players[this.owner].isAllyOf(playerId);
+    }
+    
+    isStar() {
+        return true;
+    }
+    
+    destroyedInCombat(attackerOwner) {
+        console.log(`Star ${this.name} population wiped out in combat by player ${attackerOwner}`);
+        this.owner = 0; // Star becomes unowned
+        this.population = 0;
+    }
+    
+    // Fleet formation support
+    supportsShips() {
+        return true; // Stars can hold ships
+    }
+    
+    isFleet() {
+        return false; // Stars are not fleets
     }
 }
 

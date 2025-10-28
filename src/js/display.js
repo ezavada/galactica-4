@@ -474,9 +474,91 @@ class Display {
         const humanPlayer = 1; // Player 1 is the human player
         
         for (const ship of ships) {
+            // Skip ships that are in fleets - they will be drawn as part of the fleet
+            if (ship.isInFleet()) {
+                continue;
+            }
+            
             // Always show own ships, only show enemy ships if visible
             if (ship.owner === humanPlayer || ship.isVisibleTo(humanPlayer)) {
                 this.drawShip(ship);
+            }
+        }
+    }
+    
+    // Draw a single fleet
+    drawFleet(fleet) {
+        // Convert galactic coordinates to screen coordinates
+        let x = this.toScreenX(fleet.x);
+        let y = this.toScreenY(fleet.y);
+
+        const zoom = this.camera.zoom;
+        const selected = (fleet === this.selectedObject);
+        if (zoom < 0.15 && !selected) {
+            // too small to draw, skip
+            return;
+        }
+        
+        const fleetOpacity = selected ? 1.0 : this.mapEntityNameOpacity;
+        
+        // Fleet size determines hexagon size
+        const fleetSize = fleet.getSize();
+        const baseRadius = this.scaledShipRadius * 1.5; // Larger than ships
+        const hexRadius = baseRadius + (fleetSize * 0.5); // Scale with ship count
+        
+        // Create hexagon points
+        const hexPoints = [];
+        for (let i = 0; i < 6; i++) {
+            const angle = (i * Math.PI) / 3; // 60 degrees per point
+            const hexX = x + hexRadius * Math.cos(angle);
+            const hexY = y + hexRadius * Math.sin(angle);
+            hexPoints.push(new pdg.Point(hexX, hexY));
+        }
+        
+        const hexagon = new pdg.Polygon(...hexPoints);
+        
+        // Fleet appearance
+        const fleetAttrs = new pdg.Attributes();
+        fleetAttrs.fillColor(this.ownerColors[fleet.owner]).fillOpacity(fleetOpacity * 0.7); // Slightly transparent
+        fleetAttrs.lineStyle(pdg.lineStyle_Solid).lineColor(new pdg.Color(1,1,1,fleetOpacity));
+        this.port.drawPolygon(hexagon, fleetAttrs);
+        
+        // Draw ship count in center
+        if (fleetSize > 0) {
+            const textAttrs = new pdg.Attributes();
+            textAttrs.fillColor(new pdg.Color(1,1,1,fleetOpacity));
+            textAttrs.textSize(Math.max(8, hexRadius * 0.8));
+            textAttrs.textStyle(pdg.textStyle_Centered);
+            this.port.drawText(fleetSize.toString(), new pdg.Point(x, y + 2), textAttrs);
+        }
+        
+        // Draw destination line (convert destination to screen coordinates)
+        if (fleet.destination) {
+            const lineAttrs = new pdg.Attributes();
+            lineAttrs.lineColor(new pdg.Color('orange')); // Different color from ships
+            lineAttrs.lineOpacity(0.75);
+            const destX = this.toScreenX(fleet.destination.x);
+            const destY = this.toScreenY(fleet.destination.y);
+            this.port.drawLine(new pdg.Point(x, y), new pdg.Point(destX, destY), lineAttrs);
+        }
+
+        // Draw selection indicator
+        if (fleet === this.selectedObject) {
+            const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0;
+            const selAttrs = new pdg.Attributes();
+            selAttrs.lineColor(new pdg.Color(1,1,1,0.75));
+            this.port.drawCircle(new pdg.Point(x, y), hexRadius + 6 + pulse, selAttrs);
+        }
+    }
+    
+    // Draw all fleets
+    drawFleets(fleets) {
+        const humanPlayer = 1; // Player 1 is the human player
+        
+        for (const fleet of fleets) {
+            // Always show own fleets, only show enemy fleets if visible
+            if (fleet.owner === humanPlayer || fleet.isVisibleTo(humanPlayer)) {
+                this.drawFleet(fleet);
             }
         }
     }
@@ -570,6 +652,50 @@ class Display {
         }
     }
     
+    // Draw fleet details UI
+    drawFleetDetails(fleet) {
+        const cyanAttrs = new pdg.Attributes();
+        cyanAttrs.fillColor(new pdg.Color('cyan'));
+        cyanAttrs.textSize(14);
+        cyanAttrs.textStyle(pdg.textStyle_Plain);
+        
+        const whiteAttrs = new pdg.Attributes();
+        whiteAttrs.fillColor(new pdg.Color('white'));
+        whiteAttrs.textSize(12);
+        whiteAttrs.textStyle(pdg.textStyle_Plain);
+        
+        const orangeAttrs = new pdg.Attributes();
+        orangeAttrs.fillColor(new pdg.Color('orange'));
+        orangeAttrs.textSize(12);
+        orangeAttrs.textStyle(pdg.textStyle_Plain);
+        
+        this.port.drawText(`Fleet ${fleet.id}`, new pdg.Point(10, 80), cyanAttrs);
+        this.port.drawText(`Ships: ${fleet.getSize()}`, new pdg.Point(10, 100), whiteAttrs);
+        this.port.drawText(`Total Power: ${fleet.totalPower}`, new pdg.Point(10, 120), whiteAttrs);
+        this.port.drawText(`Speed: ${fleet.totalSpeed}`, new pdg.Point(10, 140), whiteAttrs);
+        this.port.drawText(`Tech Level: ${fleet.techLevel}`, new pdg.Point(10, 160), whiteAttrs);
+        
+        // Show ship composition
+        if (fleet.ships.length > 0) {
+            const shipTypes = {};
+            for (const ship of fleet.ships) {
+                shipTypes[ship.type] = (shipTypes[ship.type] || 0) + 1;
+            }
+            
+            let yOffset = 180;
+            for (const [shipType, count] of Object.entries(shipTypes)) {
+                this.port.drawText(`${shipType}: ${count}`, new pdg.Point(10, yOffset), orangeAttrs);
+                yOffset += 15;
+            }
+        }
+        
+        // Show destination if moving
+        if (fleet.destination) {
+            this.port.drawText(`Moving to: (${Math.round(fleet.destination.x/1024)}, ${Math.round(fleet.destination.y/1024)})`, 
+                             new pdg.Point(10, 200), orangeAttrs);
+        }
+    }
+    
     // Draw instructions
     drawInstructions() {
         const drawingArea = this.port.getDrawingArea();
@@ -652,6 +778,7 @@ class Display {
         // Draw game objects
         this.drawStars(game.stars);
         this.drawShips(game.allShips);
+        this.drawFleets(game.allFleets);
         
         // Draw UI
         this.drawMainUI(game.turn, game.stars.length, game.allShips.length);
@@ -663,6 +790,8 @@ class Display {
                 this.drawStarDetails(game.selectedObject);
             } else if (objectType === Common.ObjectType.SHIP) {
                 this.drawShipDetails(game.selectedObject);
+            } else if (objectType === Common.ObjectType.FLEET) {
+                this.drawFleetDetails(game.selectedObject);
             }
         }
         

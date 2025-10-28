@@ -6,7 +6,8 @@ const ShipRadius = 5;
 const ObjectType = {
     UNKNOWN: 0,
     STAR: 1,
-    SHIP: 2
+    SHIP: 2,
+    FLEET: 3
 }
 
 const EventType = {
@@ -59,7 +60,8 @@ const SpatialConstants = {
     // Entity types for spatial tracking
     ENTITY_TYPE_STAR: 'star',
     ENTITY_TYPE_SHIP: 'ship',
-    ENTITY_TYPE_DEFENSE: 'defense' // Defense satellites (part of star system)
+    ENTITY_TYPE_DEFENSE: 'defense', // Defense satellites (part of star system)
+    ENTITY_TYPE_FLEET: 'fleet'
 };
 
 

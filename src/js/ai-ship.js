@@ -32,7 +32,7 @@ class ShipAI extends AIBase {
         }
 
         // Check if ship is in a fleet (fleets make decisions for their ships)
-        if (this.ship.isInFleet) {
+        if (this.ship.isInFleet()) {
             this.debugLog('Ship is in fleet, fleet will make decision');
             return new AIDecision(AIActions.DO_NOTHING, null, 0, 'Ship in fleet');
         }

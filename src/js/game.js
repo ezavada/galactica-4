@@ -17,6 +17,7 @@ class Game {
         // Game state
         this.stars = [];
         this.allShips = [];
+        this.allFleets = [];
         this.selectedObject = null;
         this.turn = 1;
         this.gameWidth = 800;
@@ -174,6 +175,10 @@ class Game {
                 Common.SpatialConstants.ENTITY_TYPE_DEFENSE : 
                 Common.SpatialConstants.ENTITY_TYPE_SHIP;
             this.spatialPartition.addEntity(entity, entityType);
+        } else if (objectType === Common.ObjectType.FLEET) {
+            this.allFleets.push(entity);
+            // Add to spatial partition
+            this.spatialPartition.addEntity(entity, Common.SpatialConstants.ENTITY_TYPE_FLEET);
         }
     }
 
@@ -195,6 +200,10 @@ class Game {
                 Common.SpatialConstants.ENTITY_TYPE_DEFENSE : 
                 Common.SpatialConstants.ENTITY_TYPE_SHIP;
             this.spatialPartition.removeEntity(entity, entityType);
+        } else if (objectType === Common.ObjectType.FLEET) {
+            this.allFleets.splice(this.allFleets.indexOf(entity), 1);
+            // Remove from spatial partition
+            this.spatialPartition.removeEntity(entity, Common.SpatialConstants.ENTITY_TYPE_FLEET);
         }
     }
 
@@ -222,6 +231,8 @@ class Game {
             return Common.ObjectType.STAR;
         } else if (this.factory.isShip(object)) {
             return Common.ObjectType.SHIP;
+        } else if (this.factory.isFleet(object)) {
+            return Common.ObjectType.FLEET;
         }
         return Common.ObjectType.UNKNOWN;
     }
@@ -274,10 +285,10 @@ class Game {
         const galacticX = this.display.toGalacticX(x);
         const galacticY = this.display.toGalacticY(y);
         
-        // Check if we have a ship selected
+        // Check if we have a ship or fleet selected
         const selectedObjectType = this.getObjectType(this.selectedObject);
-        if (selectedObjectType !== Common.ObjectType.SHIP) {
-            return true; // Ignore right clicks if no ship selected
+        if (selectedObjectType !== Common.ObjectType.SHIP && selectedObjectType !== Common.ObjectType.FLEET) {
+            return true; // Ignore right clicks if no ship or fleet selected
         }
         
         // Only allow giving orders to ships we control
@@ -293,12 +304,21 @@ class Game {
         if (clickedObject) {
             this.selectedObject.setDestination(clickedObject);
             const clickedObjectType = this.getObjectType(clickedObject);
-            const destinationName = (clickedObjectType === Common.ObjectType.STAR) ? clickedObject.name : clickedObject.type;
-            console.log(`Set destination of ${this.selectedObject.type} to ${destinationName}`);
+            let destinationName;
+            if (clickedObjectType === Common.ObjectType.STAR) {
+                destinationName = clickedObject.name;
+            } else if (clickedObjectType === Common.ObjectType.FLEET) {
+                destinationName = `fleet (${clickedObject.getSize()} ships)`;
+            } else {
+                destinationName = clickedObject.type;
+            }
+            const selectedObjectName = (selectedObjectType === Common.ObjectType.FLEET) ? `fleet (${this.selectedObject.getSize()} ships)` : this.selectedObject.type;
+            console.log(`Set destination of ${selectedObjectName} to ${destinationName}`);
         } else {
-            // Right-clicking on empty space - give ship a destination (in galactic coordinates)
+            // Right-clicking on empty space - give ship/fleet a destination (in galactic coordinates)
             this.selectedObject.setDestination({x: galacticX, y: galacticY});
-            console.log(`Set destination of ${this.selectedObject.type} to galactic (${galacticX.toFixed(0)}, ${galacticY.toFixed(0)})`);
+            const selectedObjectName = (selectedObjectType === Common.ObjectType.FLEET) ? `fleet (${this.selectedObject.getSize()} ships)` : this.selectedObject.type;
+            console.log(`Set destination of ${selectedObjectName} to galactic (${galacticX.toFixed(0)}, ${galacticY.toFixed(0)})`);
         }
         return true;
     }
@@ -327,6 +347,24 @@ class Game {
                 clickedObject = ship;
                 console.log(`Clicked on ship: ${ship.type}`);
              }
+        }
+
+        // Check for fleet clicks (using screen-space radius for consistent UI feel)
+        const fleetRadiusSquared = Common.ShipRadius * Common.ShipRadius * 2.25; // Fleet hexagons are larger than ships
+        for (const fleet of this.allFleets) {
+            // Convert fleet position to screen for distance check
+            const fleetScreenX = this.display.toScreenX(fleet.x);
+            const fleetScreenY = this.display.toScreenY(fleet.y);
+            
+            const dx = x - fleetScreenX;
+            const dy = y - fleetScreenY;
+            const distSquared = dx * dx + dy * dy;
+            
+            if (distSquared <= fleetRadiusSquared) {
+                clickedObject = fleet;
+                console.log(`Clicked on fleet: ${fleet.getSize()} ships`);
+                break; // Fleet takes priority over ships/stars
+            }
         }
 
         // Check for star clicks (using screen-space radius for consistent UI feel)
@@ -458,6 +496,10 @@ class Game {
         for (const ship of this.allShips) {
             ship.move();
         }
+        // Update all fleets
+        for (const fleet of this.allFleets) {
+            fleet.move();
+        }
         // Update all stars
         for (const star of this.stars) {
             star.update();
@@ -507,6 +549,10 @@ class Game {
                 break;
             case Common.EventType.SHIP_INTERCEPT:
                 console.log(`${who.type} ship intercepted ${where.type} ship at (${where.x}, ${where.y})`); // who = Ship, where = Ship
+                // Check if ships are friendly and can form a fleet
+                if (who.owner === where.owner && who.canFormFleet() && where.canFormFleet()) {
+                    this.handleFleetFormation(who, where);
+                }
                 break;
             case Common.EventType.SHIP_STOPPED:
                 console.log(`${who.type} ship stopped at (${who.x}, ${who.y})`); // who = Ship
@@ -555,6 +601,65 @@ class Game {
      */
     getVisibilityStats() {
         return this.visibilityCalculator.getVisibilityStats();
+    }
+    
+    /**
+     * Handle automatic fleet formation when friendly ships intercept
+     */
+    handleFleetFormation(entity1, entity2) {
+        // Check if either entity is already a fleet
+        const entity1Type = this.getObjectType(entity1);
+        const entity2Type = this.getObjectType(entity2);
+        
+        if (entity1Type === Common.ObjectType.FLEET && entity2Type === Common.ObjectType.FLEET) {
+            // Both entities are fleets - merge them
+            if (entity1 !== entity2) {
+                this.mergeFleets(entity1, entity2);
+            }
+        } else if (entity1Type === Common.ObjectType.FLEET) {
+            // Entity1 is a fleet, add entity2 to it if it can form a fleet
+            if (entity2.canFormFleet()) {
+                entity1.addShip(entity2);
+            }
+        } else if (entity2Type === Common.ObjectType.FLEET) {
+            // Entity2 is a fleet, add entity1 to it if it can form a fleet
+            if (entity1.canFormFleet()) {
+                entity2.addShip(entity1);
+            }
+        } else {
+            // Both entities are ships - check if either ship is already in a fleet
+            if (entity1.isInFleet() && entity2.isInFleet()) {
+                // Both ships are in fleets - merge the fleets
+                if (entity1.fleet !== entity2.fleet) {
+                    this.mergeFleets(entity1.fleet, entity2.fleet);
+                }
+            } else if (entity1.isInFleet()) {
+                // Ship1 is in a fleet, add ship2 to it
+                entity1.fleet.addShip(entity2);
+            } else if (entity2.isInFleet()) {
+                // Ship2 is in a fleet, add ship1 to it
+                entity2.fleet.addShip(entity1);
+            } else {
+                // Neither ship is in a fleet, create a new fleet
+                const fleet = this.factory.createFleet(entity1.x, entity1.y, entity1.owner);
+                fleet.addShip(entity1);
+                fleet.addShip(entity2);
+            }
+        }
+    }
+    
+    /**
+     * Merge two fleets into one
+     */
+    mergeFleets(fleet1, fleet2) {
+        // Add all ships from fleet2 to fleet1
+        const shipsToMove = [...fleet2.ships]; // Create a copy to avoid modification during iteration
+        for (const ship of shipsToMove) {
+            fleet1.addShip(ship);
+        }
+        
+        // Remove the empty fleet2
+        this.entityRemoved(fleet2);
     }
 }
 

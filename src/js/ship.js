@@ -17,6 +17,9 @@ class Ship {
         // Ship stats
         this.techLevel = star.techLevel;
         this.speed = this.game.rules.getShipInitialSpeed(this);
+        this.power = this.calculatePower();
+        this.damage = 0;
+        this.fleet = null; // Reference to fleet if ship is in one
         
         // Fog of War properties
         this.scannerRange = 0;
@@ -77,6 +80,134 @@ class Ship {
         // TODO: implement combat
     }
     
+    calculatePower() {
+        // Calculate ship power based on type and tech level
+        let basePower = 1;
+        switch (this.type) {
+            case 'scout':
+                basePower = 1;
+                break;
+            case 'colony':
+                basePower = 2;
+                break;
+            case 'battleship':
+                basePower = 5;
+                break;
+            case 'defense':
+                basePower = 3;
+                break;
+            default:
+                basePower = 1;
+        }
+        return basePower + Math.floor(this.techLevel / 2);
+    }
+    
+    // Combat methods - ported from CShip.cpp
+    getAttackStrength() {
+        return (this.power * 50) - Math.floor(this.damage / 8);
+    }
+    
+    getDefenseStrength() {
+        let power = this.power;
+        if (power < 1) {
+            power = 1;
+        }
+        return (power * 100) - this.damage;
+    }
+    
+    getOneAttackAgainst(defender) {
+        // Use PDG random function for damage variance
+        const attackDamage = Math.floor((this.getAttackStrength() * (pdg.rand() + pdg.rand() + pdg.rand() + 3)) / 300);
+        
+        // Apply patrol bonus if docked and on patrol
+        if (this.isDocked() && this.isOnPatrol()) {
+            return Math.floor((attackDamage * 125) / 100); // 25% bonus for patrolling ships
+        }
+        
+        return Math.max(0, attackDamage);
+    }
+    
+    takeDamage(amount) {
+        // Apply patrol bonus to damage reduction if docked and on patrol
+        if (this.isDocked() && this.isOnPatrol()) {
+            amount = Math.floor((amount * 75) / 100); // 25% damage reduction for patrolling ships
+        }
+        
+        this.damage += amount;
+        
+        // Return excess damage if ship is destroyed
+        const defenseStrength = this.getDefenseStrength();
+        if (defenseStrength < 0) {
+            return Math.abs(defenseStrength);
+        }
+        
+        return 0;
+    }
+    
+    repairDamage(amount) {
+        if (amount < 0) {
+            console.log(`Negative damage (${amount}) being repaired for ship ${this.id}`);
+            amount = 0;
+        }
+        
+        if (this.damage > 0) {
+            console.log(`Repairing ship ${this.id}, which has ${this.damage} damage`);
+            if (amount < this.damage) {
+                this.damage -= amount;
+            } else {
+                amount = this.damage;
+                this.damage = 0;
+            }
+            console.log(`Repaired ${amount} damage to ship ${this.id}; now has ${this.damage} damage`);
+        } else {
+            amount = 0; // No damage repaired
+        }
+        
+        return amount; // Return amount repaired
+    }
+    
+    isDead() {
+        return this.getDefenseStrength() < 0;
+    }
+    
+    isDocked() {
+        return this.star !== null;
+    }
+    
+    isOnPatrol() {
+        // TODO: Implement patrol logic
+        return false;
+    }
+    
+    destroyedInCombat(attackerOwner) {
+        console.log(`Ship ${this.id} destroyed in combat by player ${attackerOwner}`);
+        // TODO: Handle ship destruction
+    }
+    
+    // Fleet formation methods
+    canFormFleet() {
+        return this.type !== 'defense' && !this.underConstruction();
+    }
+    
+    isInFleet() {
+        return this.fleet !== null;
+    }
+    
+    joinFleet(fleet) {
+        if (this.canFormFleet() && fleet) {
+            return fleet.addShip(this);
+        }
+        return false;
+    }
+    
+    leaveFleet() {
+        if (this.fleet) {
+            this.fleet.removeShip(this);
+            return true;
+        }
+        return false;
+    }
+    
     arriveAtDestination() {
         if (this.destination) {
             const arrivingObjectType = this.game.getObjectType(this.destination);
@@ -111,9 +242,16 @@ class Ship {
                     destinationStar.game.entityRemoved(this); // it's been converted to a colony
                 }
             } else if (arrivingObjectType === Common.ObjectType.SHIP) {
-                this.game.noteworthyEvent(this, Common.EventType.SHIP_INTERCEPT, this.destination);
+                this.game.noteworthyEvent(this, Common.EventType.SHIP_INTERCEPT, arrivingDestination);
+            } else if (arrivingObjectType === Common.ObjectType.FLEET) {
+                // Ship arrived at a fleet - check if they can form a fleet
+                if (this.owner === arrivingDestination.owner && this.canFormFleet()) {
+                    this.game.handleFleetFormation(this, arrivingDestination);
+                } else {
+                    this.game.noteworthyEvent(this, Common.EventType.SHIP_STOPPED, arrivingDestination);
+                }
             } else {
-                this.game.noteworthyEvent(this, Common.EventType.SHIP_STOPPED, this.destination);
+                this.game.noteworthyEvent(this, Common.EventType.SHIP_STOPPED, arrivingDestination);
             }
         }
     }
