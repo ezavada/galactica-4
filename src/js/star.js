@@ -134,6 +134,10 @@ class Star {
             //console.log(`Paid ${amount} toward shipbuilding at ${this.name}`);
             this.paidTowardShipBuilding += amount;
             const cost = this.game.rules.getShipBuildCost(this.currentShip, this);
+            
+            // Update ship construction progress
+            this.currentShip.progress = Math.min(100, (this.paidTowardShipBuilding / cost) * 100);
+            
             if (this.paidTowardShipBuilding >= cost) {
                 const newShip = this.completeShip(); // unlike Galactica-3, we only allow one ship per start built each turn
                 this.paidTowardShipBuilding -= cost;
@@ -165,6 +169,11 @@ class Star {
             if (playerInfo.updateHighestShipTech(ship.techLevel)) {
                 console.log(`${playerInfo.name} built a ship with tech level ${ship.techLevel}!`);
             }
+        }
+        
+        // If ship has a destination, move it immediately
+        if (ship.destination && ship.type !== 'defense') {
+            ship.move();
         }
         
         return ship;

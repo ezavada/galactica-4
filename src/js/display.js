@@ -338,7 +338,7 @@ class Display {
         }
         
         let color = 'white';
-        if (star.population > 0 && visibilityLevel >= Common.VisibilityLevel.SPEED) {
+        if (star.namedStar) {
             color = 'yellow';
         }
         
@@ -371,17 +371,17 @@ class Display {
         const isHomeSystem = this.isHomeSystem(star);
 
         // Draw star name with fading based on star size, but never dim home system names
-        const nameOpacity = isHomeSystem ? 1.0 : this.mapEntityNameOpacity;
+        const nameOpacity = isHomeSystem || star.namedStar ? 1.0 : this.mapEntityNameOpacity;
         if (nameOpacity > 0) {
             color = 'gray';
-            if (star.population > 0 && visibilityLevel >= Common.VisibilityLevel.SPEED) {
+            if (star.population > 0 && visibilityLevel > Common.VisibilityLevel.NONE) {
                 color = 'white';
             }
             const textAttrs = new pdg.Attributes();
             const textColor = new pdg.Color(color);
             textColor.alpha = nameOpacity; // Apply fading
             textAttrs.fillColor(textColor);
-            textAttrs.textSize(isHomeSystem ? 11 : 10);
+            textAttrs.textSize(star.namedStar ? 11 : 10);
             textAttrs.textStyle(pdg.textStyle_Centered);
             this.port.drawText(`${star.name}`, new pdg.Point(screenX, screenY + scaledRadius + 12), textAttrs);
         }
@@ -500,6 +500,16 @@ class Display {
         }
         
         const fleetOpacity = selected ? 1.0 : this.mapEntityNameOpacity;
+        
+        // Offset for fleets parked at stars (same as ships)
+        // Check if fleet is at a star by comparing positions
+        const fleetAtStar = this.game.stars.find(star => 
+            Math.abs(star.x - fleet.x) < 5 && Math.abs(star.y - fleet.y) < 5
+        );
+        if (fleetAtStar) {
+            x += this.scaledStarRadius * 1.25;
+            y -= this.scaledStarRadius * 0.75;
+        }
         
         // Fleet size determines hexagon size
         const fleetSize = fleet.getSize();
@@ -641,7 +651,7 @@ class Display {
         if (ship.underConstruction()) {
             this.port.drawText(`${shipTypeName} ${this.STR.shipHull}`, new pdg.Point(10, 80), cyanAttrs);
             this.port.drawText(`${this.STR.techLevel} ${ship.techLevel.toFixed(1)}`, new pdg.Point(10, 100), whiteAttrs);
-            this.port.drawText(`${this.STR.underConstruction} ${ship.progress}%`, new pdg.Point(10, 120), yellowAttrs);
+            this.port.drawText(`${this.STR.underConstruction} ${Math.round(ship.progress)}%`, new pdg.Point(10, 120), yellowAttrs);
         } else {
             const speed = ship.speed / 16380.0;
             this.port.drawText(`${shipTypeName} ${this.STR.ship}`, new pdg.Point(10, 80), cyanAttrs);

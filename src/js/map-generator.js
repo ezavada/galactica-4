@@ -19,6 +19,8 @@ class MapGenerator {
         // Constants from original C++ code
         this.PIXELS_PER_SECTOR = 1024; // Matches C++ PIXELS_PER_SECTOR at 1:1 zoom
         this.COORDINATE_SCALE = 1024; // Coordinate scaling factor (1024L in original)
+
+        this.nextStarNum = 11;
     }
 
     /**
@@ -41,6 +43,9 @@ class MapGenerator {
 
         console.log(`MapGenerator: Creating map for ${totalPlayers} players (${numHumans} human, ${totalPlayers - numHumans} computer)`);
 
+        // Reserve random star names for each player
+        const playerReservedNames = this.reservePlayerNames(totalPlayers);
+
         // Calculate number of stars (matches original algorithm)
         let numStars = this.calculateStarCount(density, sectorSize, totalPlayers);
         
@@ -48,10 +53,33 @@ class MapGenerator {
         const unused = this.createRandomStars(numStars, sectorSize, createStarCallback);
         
         // Assign player home stars
-        const taken = this.assignPlayerHomeStars(unused, totalPlayers, numHumans, sectorSize);
+        const taken = this.assignPlayerHomeStars(unused, totalPlayers, numHumans, sectorSize, playerReservedNames);
         
         console.log(`MapGenerator: Created ${numStars} stars, assigned ${taken.length} home stars`);
         return taken;
+    }
+
+    /**
+     * Reserve random star names for each player
+     */
+    reservePlayerNames(totalPlayers) {
+        const playerReservedNames = [];
+        const availableNames = [...this.STAR_NAMES]; // Create a copy to avoid modifying original
+        
+        for (let playerNum = 1; playerNum <= totalPlayers; playerNum++) {
+            if (availableNames.length > 0) {
+                const randomIndex = this.random(availableNames.length);
+                const reservedName = availableNames.splice(randomIndex, 1)[0]; // Remove and get the name
+                playerReservedNames[playerNum] = reservedName;
+                console.log(`MapGenerator: Reserved name "${reservedName}" for player ${playerNum}`);
+            } else {
+                // Fallback if we run out of names
+                playerReservedNames[playerNum] = `Player${playerNum}Star`;
+                console.log(`MapGenerator: Using fallback name for player ${playerNum}`);
+            }
+        }
+        
+        return playerReservedNames;
     }
 
     /**
@@ -94,8 +122,9 @@ class MapGenerator {
             const star = createStarCallback(x, y, z);
             
             // Assign a unique name to every star (matches original behavior)
-            const starName = this.generateStarName(nameUsage);
-            star.name = starName;
+            const nameResult = this.generateStarName(nameUsage);
+            star.name = nameResult.name;
+            star.namedStar = nameResult.namedStar;
             
             unused.push(star);
         }
@@ -106,7 +135,7 @@ class MapGenerator {
     /**
      * Assign player home stars with distance constraints (matches original algorithm)
      */
-    assignPlayerHomeStars(unused, totalPlayers, numHumans, sectorSize) {
+    assignPlayerHomeStars(unused, totalPlayers, numHumans, sectorSize, playerReservedNames) {
         const taken = [];
         const sectorSizePixels = this.PIXELS_PER_SECTOR * this.COORDINATE_SCALE * sectorSize;
         
@@ -130,7 +159,7 @@ class MapGenerator {
             }
             
             // Initialize star as player home (matches original algorithm)
-            this.initializeHomeStar(currentStar, playerNum);
+            this.initializeHomeStar(currentStar, playerNum, playerReservedNames[playerNum]);
             
             // Add to taken list and remove from unused
             taken.push(currentStar);
@@ -217,11 +246,15 @@ class MapGenerator {
     /**
      * Initialize a star as a player's home world - matches original algorithm
      */
-    initializeHomeStar(star, playerNum) {
+    initializeHomeStar(star, playerNum, reservedName) {
         // Set basic properties (matches original)
         star.owner = playerNum;
         star.techLevel = 1;
         star.population = 1000000; // 1 billion people
+        
+        // Update star name to use the reserved name for this player
+        star.name = reservedName;
+        star.namedStar = true; // Home stars always get names from the original list
         
         // Set scanner range
         star.scannerRange = this.game.rules.getScanRangeForTechLevel(1);
@@ -298,20 +331,19 @@ class MapGenerator {
     }
 
     /**
-     * Generate a unique star name - matches original algorithm
+     * Generate a unique star name - uses S- prefix instead of roman numerals
      */
     generateStarName(nameUsage) {
         const nameIndex = this.random(this.STAR_NAMES.length);
         const baseName = this.STAR_NAMES[nameIndex];
         nameUsage[nameIndex]++;
         
-        // Add roman numeral if name is reused
+        // Add S- prefix and sequence number if name is reused
         if (nameUsage[nameIndex] > 1) {
-            const romanIndex = Math.min(nameUsage[nameIndex] - 1, this.ROMAN_NUMERALS.length - 1);
-            return baseName + " " + this.ROMAN_NUMERALS[romanIndex];
+            return { name: `S-${this.nextStarNum++}`, namedStar: false };
         }
         
-        return baseName;
+        return { name: baseName, namedStar: true };
     }
 
     /**

@@ -353,8 +353,17 @@ class Game {
         const fleetRadiusSquared = Common.ShipRadius * Common.ShipRadius * 2.25; // Fleet hexagons are larger than ships
         for (const fleet of this.allFleets) {
             // Convert fleet position to screen for distance check
-            const fleetScreenX = this.display.toScreenX(fleet.x);
-            const fleetScreenY = this.display.toScreenY(fleet.y);
+            let fleetScreenX = this.display.toScreenX(fleet.x);
+            let fleetScreenY = this.display.toScreenY(fleet.y);
+            
+            // Adjust for fleet offset when at star (same as ships)
+            const fleetAtStar = this.stars.find(star => 
+                Math.abs(star.x - fleet.x) < 5 && Math.abs(star.y - fleet.y) < 5
+            );
+            if (fleetAtStar) {
+                fleetScreenX += this.display.scaledStarRadius * 1.25;
+                fleetScreenY -= this.display.scaledStarRadius * 0.75;
+            }
             
             const dx = x - fleetScreenX;
             const dy = y - fleetScreenY;

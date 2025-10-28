@@ -87,7 +87,7 @@ function runMapGenerationTests() {
     });
 
     test.describe('MapGenerator - Star Name Generation', () => {
-        test.it('generates unique star names with Roman numerals', () => {
+        test.it('generates unique star names with S- prefix for duplicates', () => {
             pdg.srand(TEST_SEED);
 
             const factory = new Factory();
@@ -101,8 +101,8 @@ function runMapGenerationTests() {
 
             // Generate several names
             for (let i = 0; i < 10; i++) {
-                const name = mapGen.generateStarName(nameUsage);
-                names.push(name);
+                const nameResult = mapGen.generateStarName(nameUsage);
+                names.push(nameResult.name);
             }
 
             // All names should be non-empty
@@ -110,12 +110,11 @@ function runMapGenerationTests() {
                 test.assert(name.length > 0, 'Star name should not be empty');
             });
 
-            // Check that names come from STAR_NAMES list
+            // Check that names are either from STAR_NAMES list or use S- prefix
             names.forEach(name => {
-                // Remove Roman numerals to get base name
-                const baseName = name.replace(/ (II|III|IV|V|VI|VII|VIII|IX|X)$/, '');
-                const isValid = mapGen.STAR_NAMES.includes(baseName);
-                test.assert(isValid, `Star name "${name}" (base: "${baseName}") should be from STAR_NAMES`);
+                const isFromList = mapGen.STAR_NAMES.includes(name);
+                const isSPrefix = name.startsWith('S-');
+                test.assert(isFromList || isSPrefix, `Star name "${name}" should be from STAR_NAMES or use S- prefix`);
             });
 
         });
@@ -130,11 +129,14 @@ function runMapGenerationTests() {
             const mapGen = new MapGenerator(game);
 
             const nameUsage = new Array(mapGen.STAR_NAMES.length).fill(0);
-            const name = mapGen.generateStarName(nameUsage);
+            const nameResult = mapGen.generateStarName(nameUsage);
 
-            // Name should be from the STAR_NAMES list (possibly with Roman numeral)
-            const baseName = name.split(' ')[0];
-            test.assertContains(mapGen.STAR_NAMES, baseName, `${baseName} should be in STAR_NAMES`);
+            // Name should be from the STAR_NAMES list (or S- prefix for duplicates)
+            if (nameResult.namedStar) {
+                test.assertContains(mapGen.STAR_NAMES, nameResult.name, `${nameResult.name} should be in STAR_NAMES`);
+            } else {
+                test.assert(nameResult.name.startsWith('S-'), 'Non-named stars should use S- prefix');
+            }
 
         });
     });
