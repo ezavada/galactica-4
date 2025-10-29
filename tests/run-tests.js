@@ -20,6 +20,7 @@ const runSpatialPartitioningPerformanceTests = require('./spatial-partitioning-p
 const runFleetTests = require('./fleet.test.js');
 const runCombatTests = require('./combat.test.js');
 const runFleetFormationTests = require('./fleet-formation.test.js');
+const runShipNamingEventsTests = require('./ship-naming-events.test.js');
 
 console.log('╔═══════════════════════════════════════════════════════════╗');
 console.log('║          Galactica-4 Test Suite                           ║');
@@ -73,6 +74,9 @@ try {
 
     console.log('\n🔗 Running Fleet Formation Tests...');
     runFleetFormationTests();
+
+    console.log('\n🚢 Running Ship Naming & Events Tests...');
+    runShipNamingEventsTests();
 
     // Print summary
     const success = test.printSummary();

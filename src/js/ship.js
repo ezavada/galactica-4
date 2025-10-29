@@ -20,6 +20,8 @@ class Ship {
         this.power = this.calculatePower();
         this.damage = 0;
         this.fleet = null; // Reference to fleet if ship is in one
+        this.name = '';
+        this.classIndex = 0; // 1-based class index for battleships per 5 tech levels
         
         // Fog of War properties
         this.scannerRange = 0;
@@ -59,6 +61,7 @@ class Ship {
             
             if (distance < 5 || distance < (this.speed + 5)) {
                 // Arrived at destination
+                console.log(`🎯 SHIP ARRIVED: ${this.type} (ID: ${this.id}) at destination`);
                 this.arriveAtDestination();
             } else {
                 // Move towards destination
@@ -69,9 +72,13 @@ class Ship {
                 this.x += moveX;
                 this.y += moveY;
                 
+                console.log(`📍 SHIP MOVED: ${this.type} (ID: ${this.id}) from (${oldX.toFixed(0)}, ${oldY.toFixed(0)}) to (${this.x.toFixed(0)}, ${this.y.toFixed(0)}) - Moved ${moveDistance.toFixed(0)} pixels`);
+                
                 // Update spatial location after movement
                 this.updateSpatialLocation();
             }
+        } else if (this.type !== 'defense') {
+            console.log(`⏸️ SHIP NOT MOVING: ${this.type} (ID: ${this.id}) - Destination: ${this.destination ? 'set' : 'none'}, Type: ${this.type}, Under Construction: ${this.underConstruction()}`);
         }
     }
 
@@ -259,7 +266,10 @@ class Ship {
     setDestination(obj) {
         if (this.type !== 'defense') {
             this.destination = obj;
+            console.log(`🎯 DESTINATION SET: ${this.type} (ID: ${this.id}) - Destination: ${obj.name || obj.type || `(${obj.x.toFixed(0)}, ${obj.y.toFixed(0)})`}`);
             this.game.noteworthyEvent(this, Common.EventType.SHIP_TASKED, obj, null, Common.EventWhy.NEW_DESTINATION);
+        } else {
+            console.log(`❌ CANNOT SET DESTINATION: ${this.type} (ID: ${this.id}) - Defense ships cannot move`);
         }
     }
     

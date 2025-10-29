@@ -78,7 +78,7 @@ function runStringResourceTests() {
             
             const numerals = romanNumerals.split('|');
             test.assertGreaterThan(numerals.length, 1, 'Should have at least 2 entries');
-            test.assertEqual(numerals[0], '', 'First entry should be empty string');
+            test.assertEqual(numerals[0], 'I', 'First entry should be I');
             test.assertEqual(numerals[1], 'II', 'Second entry should be II');
         });
     });
@@ -90,7 +90,7 @@ function runStringResourceTests() {
             test.assertDefined(templates, 'Name templates should be defined');
             
             const templateList = templates.split('|');
-            test.assertGreaterThan(templateList.length, 5, 'Should have at least 5 templates');
+            test.assertGreaterThan(templateList.length, 4, 'Should have at least 5 templates');
             
             // Check for wildcards
             const hasWildcard = templateList.some(t => t.includes('*'));

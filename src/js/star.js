@@ -90,6 +90,9 @@ class Star {
         
         // Combat properties
         this.damage = 0; // Population damage from combat
+        
+        // Default destination for ships built at this star
+        this.defaultDestination = null;
     }
 
     update() {
@@ -113,7 +116,7 @@ class Star {
         let amount = this.game.rules.getStarResearchAmount(this);
         //console.log(`Paid ${amount} toward research at ${this.name}`);
         this.paidTowardResearch += amount;
-        if (this.paidTowardResearch >= 1000) {
+            if (this.paidTowardResearch >= 1000) {
             this.paidTowardResearch -= 1000;
             const oldTechLevel = this.techLevel;
             this.techLevel++;
@@ -125,7 +128,12 @@ class Star {
                 console.log(`${playerInfo.name} reached star tech level ${this.techLevel}!`);
             }
             
-            this.game.noteworthyEvent(this, Common.EventType.TECH_LEVEL_UP); // who = Star. new tech level taken from star
+                this.game.noteworthyEvent(this, Common.EventType.TECH_LEVEL_UP); // who = Star. new tech level taken from star
+                // Lab event for new drive class (every 5 levels like original)
+                const driveClassIndex = Math.floor(this.techLevel / 5);
+                if (driveClassIndex !== Math.floor(oldTechLevel / 5)) {
+                    this.game.noteworthyEvent(this, Common.EventType.NEW_TECH_DISCOVERY, driveClassIndex);
+                }
         }
 
         // apply shipbuilding effort
@@ -136,9 +144,13 @@ class Star {
             const cost = this.game.rules.getShipBuildCost(this.currentShip, this);
             
             // Update ship construction progress
+            const oldProgress = this.currentShip.progress;
             this.currentShip.progress = Math.min(100, (this.paidTowardShipBuilding / cost) * 100);
             
+            console.log(`🔨 SHIP CONSTRUCTION UPDATE: ${this.currentShip.type} at ${this.name} - Progress: ${oldProgress.toFixed(1)}% → ${this.currentShip.progress.toFixed(1)}% (Paid: ${this.paidTowardShipBuilding.toFixed(0)}/${cost.toFixed(0)})`);
+            
             if (this.paidTowardShipBuilding >= cost) {
+                console.log(`✅ SHIP CONSTRUCTION COMPLETED: ${this.currentShip.type} at ${this.name} - Ship ID: ${this.currentShip.id}`);
                 const newShip = this.completeShip(); // unlike Galactica-3, we only allow one ship per start built each turn
                 this.paidTowardShipBuilding -= cost;
                 this.game.noteworthyEvent(newShip, Common.EventType.SHIP_BUILT, this);
@@ -170,6 +182,32 @@ class Star {
                 console.log(`${playerInfo.name} built a ship with tech level ${ship.techLevel}!`);
             }
         }
+
+        // Assign ship name and battleship class index based on tech
+        try {
+            const shipNamesStr = pdg.res.getString(800) || '';
+            const classNames = shipNamesStr ? shipNamesStr.split('|') : [];
+            if (ship.type === 'battleship') {
+                const classIndex = Math.max(1, Math.min(classNames.length || 1, Math.floor(ship.techLevel / 5) + 1));
+                ship.classIndex = classIndex;
+                const className = classNames[(classIndex - 1)] || 'Traveler';
+                const serial = `S${this.id}T${this.game.turn}-${ship.id}`;
+                ship.name = `${className}\t${serial}`;
+                if (playerInfo && playerInfo.markFighterClassBuilt(classIndex)) {
+                    // First-of-class stardock event
+                    this.game.noteworthyEvent(ship, Common.EventType.NEW_SHIP_CLASS, classIndex);
+                }
+            } else {
+                ship.name = `${ship.type} S${this.id}T${this.game.turn}-${ship.id}`;
+            }
+        } catch (err) {
+            ship.name = `${ship.type} S${this.id}T${this.game.turn}-${ship.id}`;
+        }
+        
+        // Set default destination if the star has one and ship doesn't already have a destination
+        if (!ship.destination && this.getDefaultDestination() && ship.type !== 'defense') {
+            ship.destination = this.getDefaultDestination();
+        }
         
         // If ship has a destination, move it immediately
         if (ship.destination && ship.type !== 'defense') {
@@ -183,6 +221,9 @@ class Star {
         if (!this.currentShip) {
             this.currentShip = this.game.factory.createShip(this.x, this.y, shipType, this);
             this.ships.push(this.currentShip);
+            console.log(`🚀 SHIP CONSTRUCTION STARTED: ${shipType} at ${this.name} (owner: ${this.owner}) - Ship ID: ${this.currentShip.id}, Progress: ${this.currentShip.progress}%`);
+        } else {
+            console.log(`⚠️  SHIP CONSTRUCTION ALREADY IN PROGRESS: ${this.currentShip.type} at ${this.name} - Progress: ${this.currentShip.progress}%`);
         }
     }
 
@@ -405,6 +446,29 @@ class Star {
     
     isFleet() {
         return false; // Stars are not fleets
+    }
+    
+    /**
+     * Set the default destination for ships built at this star
+     * @param {Object} destination - The destination object (star, fleet, or coordinates)
+     */
+    setDefaultDestination(destination) {
+        this.defaultDestination = destination;
+    }
+    
+    /**
+     * Get the default destination for ships built at this star
+     * @returns {Object|null} The default destination or null if not set
+     */
+    getDefaultDestination() {
+        return this.defaultDestination;
+    }
+    
+    /**
+     * Clear the default destination for ships built at this star
+     */
+    clearDefaultDestination() {
+        this.defaultDestination = null;
     }
 }
 

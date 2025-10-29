@@ -115,6 +115,47 @@ class Fleet {
             this.totalSpeed = Math.min(...this.ships.map(ship => ship.speed || 0));
         }
     }
+
+    // Fog of War: accessors to match Star/Ship interface
+    getScannerRange() {
+        return this.scannerRange;
+    }
+
+    setScannerRange(range) {
+        this.scannerRange = range;
+    }
+
+    getStealth() {
+        return this.stealth;
+    }
+
+    setStealth(stealth) {
+        this.stealth = stealth;
+    }
+
+    getApparentSize() {
+        return this.apparentSize;
+    }
+
+    setApparentSize(size) {
+        this.apparentSize = size;
+    }
+
+    getVisibilityTo(playerNum) {
+        return this.visibilityTo[playerNum] || Common.VisibilityLevel.NONE;
+    }
+
+    setVisibilityTo(playerNum, visibility) {
+        this.visibilityTo[playerNum] = visibility;
+    }
+
+    getLastSeen(playerNum) {
+        return this.lastSeen[playerNum] || 0;
+    }
+
+    setLastSeen(playerNum, turn) {
+        this.lastSeen[playerNum] = turn;
+    }
     
     // Get fleet attack strength (sum of ship attack strengths)
     getAttackStrength() {
@@ -174,6 +215,15 @@ class Fleet {
     setDestination(destination) {
         this.destination = destination;
         this.progress = 0;
+        if (destination) {
+            const dx = destination.x - this.x;
+            const dy = destination.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const destLabel = (this.game && this.game.getObjectType) ? this.game.getObjectType(destination) : null;
+            console.log(`🎯 FLEET DESTINATION SET: fleet (ID: ${this.id}, ships: ${this.ships.length}) -> ${destLabel !== null ? 'object type ' + destLabel : 'point'} (${destination.x.toFixed(0)}, ${destination.y.toFixed(0)}), Distance: ${distance.toFixed(1)}`);
+        } else {
+            console.log(`🎯 FLEET DESTINATION CLEARED: fleet (ID: ${this.id}, ships: ${this.ships.length})`);
+        }
         this.calculateMovement();
     }
     
@@ -210,6 +260,7 @@ class Fleet {
     // Move the fleet one turn
     move() {
         if (!this.destination || this.remainingDistance <= 0) {
+            console.log(`⏸️ FLEET NOT MOVING: fleet (ID: ${this.id}, ships: ${this.ships.length}) - Destination: ${this.destination ? 'set' : 'none'}`);
             return false;
         }
         
@@ -220,13 +271,17 @@ class Fleet {
             this.x = this.destination.x;
             this.y = this.destination.y;
             this.remainingDistance = 0;
+            console.log(`🎯 FLEET ARRIVED: fleet (ID: ${this.id}, ships: ${this.ships.length}) at (${this.x.toFixed(0)}, ${this.y.toFixed(0)})`);
             this.arriveAtDestination();
             return true;
         } else {
             // Continue moving
+            const oldX = this.x;
+            const oldY = this.y;
             this.x += this.moveDelta.x;
             this.y += this.moveDelta.y;
             this.remainingDistance -= moveDistance;
+            console.log(`📍 FLEET MOVED: fleet (ID: ${this.id}, ships: ${this.ships.length}) from (${oldX.toFixed(0)}, ${oldY.toFixed(0)}) to (${this.x.toFixed(0)}, ${this.y.toFixed(0)}) - Moved ${moveDistance.toFixed(0)} pixels`);
             return false;
         }
     }
@@ -234,6 +289,12 @@ class Fleet {
     // Handle fleet arrival at destination
     arriveAtDestination() {
         if (!this.destination) return;
+        if (!this.game || typeof this.game.getObjectType !== 'function') {
+            // Minimal behavior for tests/mocks: just clear destination
+            this.destination = null;
+            this.progress = 0;
+            return;
+        }
         
         const arrivingObjectType = this.game.getObjectType(this.destination);
         const arrivingDestination = this.destination;
@@ -321,46 +382,7 @@ class Fleet {
         return false;
     }
     
-    // Fleet movement methods
-    setDestination(destination) {
-        this.destination = destination;
-        if (destination) {
-            const dx = destination.x - this.x;
-            const dy = destination.y - this.y;
-            this.remainingDistance = Math.sqrt(dx * dx + dy * dy);
-        } else {
-            this.remainingDistance = 0;
-        }
-    }
-    
-    move() {
-        if (!this.destination || this.totalSpeed <= 0) {
-            return true; // Arrived or can't move
-        }
-        
-        const dx = this.destination.x - this.x;
-        const dy = this.destination.y - this.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance <= this.totalSpeed) {
-            // Arrived at destination
-            this.x = this.destination.x;
-            this.y = this.destination.y;
-            this.destination = null;
-            this.remainingDistance = 0;
-            return true;
-        } else {
-            // Move towards destination
-            const moveDistance = this.totalSpeed;
-            const moveX = (dx / distance) * moveDistance;
-            const moveY = (dy / distance) * moveDistance;
-            
-            this.x += moveX;
-            this.y += moveY;
-            this.remainingDistance = distance - moveDistance;
-            return false;
-        }
-    }
+    // (Removed duplicate setDestination/move implementations below)
 }
 
 module.exports = Fleet;

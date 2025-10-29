@@ -24,6 +24,7 @@ class Game {
         this.gameHeight = 600;
         this.port = null;
         this.display = null;
+        this.overlay = null; // UI overlay for lab/stardock events
         
         // Core systems
         this.factory = factory;
@@ -137,10 +138,16 @@ class Game {
      * Initialize fog of war properties for a single entity
      */
     initializeEntityFogOfWar(entity) {
-        // Initialize visibility arrays
-        entity.visibilityTo = [];
-        entity.lastSeen = [];
-        entity.lastSeenBy = [];
+        // Initialize visibility arrays only if not already initialized
+        if (!entity.visibilityTo) {
+            entity.visibilityTo = [];
+        }
+        if (!entity.lastSeen) {
+            entity.lastSeen = [];
+        }
+        if (!entity.lastSeenBy) {
+            entity.lastSeenBy = [];
+        }
         
         // Set default values
         if (this.factory.isStar(entity)) {
@@ -151,6 +158,12 @@ class Game {
             entity.setScannerRange(this.rules.getShipScanRange(entity));
             entity.setStealth(this.calculateShipStealth(entity));
             entity.setApparentSize(entity.calculateApparentSize());
+        }
+        
+        // Make entity visible to its owner (only if not already visible)
+        if (entity.owner > 0 && !entity.getVisibilityTo(entity.owner)) {
+            entity.setVisibilityTo(entity.owner, Common.VisibilityLevel.DETAILS);
+            entity.setLastSeen(entity.owner, this.turn);
         }
     }
     
@@ -170,6 +183,7 @@ class Game {
             this.spatialPartition.addEntity(entity, Common.SpatialConstants.ENTITY_TYPE_STAR);
         } else if (objectType === Common.ObjectType.SHIP) {
             this.allShips.push(entity);
+            console.log(`➕ SHIP ADDED TO GAME: ${entity.type} (ID: ${entity.id}) - Owner: ${entity.owner}, Under Construction: ${entity.underConstruction()}, Total Ships: ${this.allShips.length}`);
             // Add to spatial partition
             const entityType = (entity.type === 'defense') ? 
                 Common.SpatialConstants.ENTITY_TYPE_DEFENSE : 
@@ -180,6 +194,9 @@ class Game {
             // Add to spatial partition
             this.spatialPartition.addEntity(entity, Common.SpatialConstants.ENTITY_TYPE_FLEET);
         }
+        
+        // Initialize fog of war properties for all entities
+        this.initializeEntityFogOfWar(entity);
     }
 
     entityRemoved(entity) {
@@ -195,6 +212,7 @@ class Game {
             this.spatialPartition.removeEntity(entity, Common.SpatialConstants.ENTITY_TYPE_STAR);
         } else if (objectType === Common.ObjectType.SHIP) {
             this.allShips.splice(this.allShips.indexOf(entity), 1);
+            console.log(`➖ SHIP REMOVED FROM GAME: ${entity.type} (ID: ${entity.id}) - Owner: ${entity.owner}, Under Construction: ${entity.underConstruction()}, Total Ships: ${this.allShips.length}`);
             // Remove from spatial partition
             const entityType = (entity.type === 'defense') ? 
                 Common.SpatialConstants.ENTITY_TYPE_DEFENSE : 
@@ -280,46 +298,81 @@ class Game {
     }
     
     handleMouseRightClick(x, y) {
-        // Right click - give orders to selected ship
+        // Right click - give orders to selected ship or set default destination for selected star
         // Convert screen coordinates to galactic coordinates
         const galacticX = this.display.toGalacticX(x);
         const galacticY = this.display.toGalacticY(y);
         
-        // Check if we have a ship or fleet selected
+        // Check what type of object is selected
         const selectedObjectType = this.getObjectType(this.selectedObject);
-        if (selectedObjectType !== Common.ObjectType.SHIP && selectedObjectType !== Common.ObjectType.FLEET) {
-            return true; // Ignore right clicks if no ship or fleet selected
-        }
         
-        // Only allow giving orders to ships we control
-        if (!this.canHumanControl(this.selectedObject)) {
-            console.log(`Cannot give orders to ship owned by player ${this.selectedObject.owner}`);
+        // If a star is selected, handle setting default destination
+        if (selectedObjectType === Common.ObjectType.STAR) {
+            // Only allow setting default destination for stars we own
+            if (!this.canHumanControl(this.selectedObject)) {
+                console.log(`Cannot set default destination for star owned by player ${this.selectedObject.owner}`);
+                return true;
+            }
+            
+            // Find what was right-clicked on
+            var clickedObject = this.findObjectAtPosition(x, y);
+            
+            // Set default destination - either to an object or to coordinates
+            if (clickedObject) {
+                this.selectedObject.setDefaultDestination(clickedObject);
+                const clickedObjectType = this.getObjectType(clickedObject);
+                let destinationName;
+                if (clickedObjectType === Common.ObjectType.STAR) {
+                    destinationName = clickedObject.name;
+                } else if (clickedObjectType === Common.ObjectType.FLEET) {
+                    destinationName = `fleet (${clickedObject.getSize()} ships)`;
+                } else {
+                    destinationName = clickedObject.type;
+                }
+                console.log(`Set default destination for star ${this.selectedObject.name} to ${destinationName}`);
+            } else {
+                // Right-clicking on empty space - set default destination to coordinates
+                this.selectedObject.setDefaultDestination({x: galacticX, y: galacticY});
+                console.log(`Set default destination for star ${this.selectedObject.name} to galactic (${galacticX.toFixed(0)}, ${galacticY.toFixed(0)})`);
+            }
             return true;
         }
         
-        // Find what was right-clicked on
-        var clickedObject = this.findObjectAtPosition(x, y);
-        
-        // Set destination - either to an object or to coordinates
-        if (clickedObject) {
-            this.selectedObject.setDestination(clickedObject);
-            const clickedObjectType = this.getObjectType(clickedObject);
-            let destinationName;
-            if (clickedObjectType === Common.ObjectType.STAR) {
-                destinationName = clickedObject.name;
-            } else if (clickedObjectType === Common.ObjectType.FLEET) {
-                destinationName = `fleet (${clickedObject.getSize()} ships)`;
-            } else {
-                destinationName = clickedObject.type;
+        // If a ship or fleet is selected, handle giving orders
+        if (selectedObjectType === Common.ObjectType.SHIP || selectedObjectType === Common.ObjectType.FLEET) {
+            // Only allow giving orders to ships we control
+            if (!this.canHumanControl(this.selectedObject)) {
+                console.log(`Cannot give orders to ship owned by player ${this.selectedObject.owner}`);
+                return true;
             }
-            const selectedObjectName = (selectedObjectType === Common.ObjectType.FLEET) ? `fleet (${this.selectedObject.getSize()} ships)` : this.selectedObject.type;
-            console.log(`Set destination of ${selectedObjectName} to ${destinationName}`);
-        } else {
-            // Right-clicking on empty space - give ship/fleet a destination (in galactic coordinates)
-            this.selectedObject.setDestination({x: galacticX, y: galacticY});
-            const selectedObjectName = (selectedObjectType === Common.ObjectType.FLEET) ? `fleet (${this.selectedObject.getSize()} ships)` : this.selectedObject.type;
-            console.log(`Set destination of ${selectedObjectName} to galactic (${galacticX.toFixed(0)}, ${galacticY.toFixed(0)})`);
+            
+            // Find what was right-clicked on
+            var clickedObject = this.findObjectAtPosition(x, y);
+            
+            // Set destination - either to an object or to coordinates
+            if (clickedObject) {
+                this.selectedObject.setDestination(clickedObject);
+                const clickedObjectType = this.getObjectType(clickedObject);
+                let destinationName;
+                if (clickedObjectType === Common.ObjectType.STAR) {
+                    destinationName = clickedObject.name;
+                } else if (clickedObjectType === Common.ObjectType.FLEET) {
+                    destinationName = `fleet (${clickedObject.getSize()} ships)`;
+                } else {
+                    destinationName = clickedObject.type;
+                }
+                const selectedObjectName = (selectedObjectType === Common.ObjectType.FLEET) ? `fleet (${this.selectedObject.getSize()} ships)` : this.selectedObject.type;
+                console.log(`Set destination of ${selectedObjectName} to ${destinationName}`);
+            } else {
+                // Right-clicking on empty space - give ship/fleet a destination (in galactic coordinates)
+                this.selectedObject.setDestination({x: galacticX, y: galacticY});
+                const selectedObjectName = (selectedObjectType === Common.ObjectType.FLEET) ? `fleet (${this.selectedObject.getSize()} ships)` : this.selectedObject.type;
+                console.log(`Set destination of ${selectedObjectName} to galactic (${galacticX.toFixed(0)}, ${galacticY.toFixed(0)})`);
+            }
+            return true;
         }
+        
+        // If no valid object is selected, ignore the right click
         return true;
     }
     
@@ -397,6 +450,11 @@ class Game {
     }
     
     handleKeyPress(key) {
+        // Dismiss overlay on any key press
+        if (this.overlay) {
+            this.overlay = null;
+            return true;
+        }
         if (key === pdg.key_Tab) {
             this.endTurn();
         } else if (key === pdg.key_Escape) {
@@ -496,6 +554,18 @@ class Game {
     endTurn() {
         console.log(`=== End of Turn ${this.turn} ===`);
         
+        // Log ships under construction status
+        const shipsUnderConstruction = this.allShips.filter(ship => ship.underConstruction());
+        if (shipsUnderConstruction.length > 0) {
+            console.log(`🔍 SHIPS UNDER CONSTRUCTION (${shipsUnderConstruction.length}):`);
+            for (const ship of shipsUnderConstruction) {
+                const starName = ship.star ? ship.star.name : 'UNKNOWN';
+                console.log(`  - ${ship.type} (ID: ${ship.id}) at ${starName} - Owner: ${ship.owner}, Progress: ${ship.progress.toFixed(1)}%, Visible: ${ship.isVisibleTo(1)}`);
+            }
+        } else {
+            console.log(`🔍 NO SHIPS UNDER CONSTRUCTION`);
+        }
+        
         // Process AI decisions before moving/updating
         if (this.aiManager) {
             this.aiManager.processAITurns();
@@ -586,6 +656,18 @@ class Game {
             case Common.EventType.TECH_LEVEL_UP:
                 console.log(`${who.name} reached tech level ${who.techLevel}`); // who = Star, where = Tech Level
                 break;
+            case Common.EventType.NEW_TECH_DISCOVERY: {
+                const classIndex = where || Math.floor(who.techLevel / 5);
+                this.overlay = { type: 'lab', classIndex, createdAt: pdg.tm.getMilliseconds() };
+                console.log(`🧪 New Drive Class discovered: ${classIndex}`);
+                break;
+            }
+            case Common.EventType.NEW_SHIP_CLASS: {
+                const classIndex = where || (who.classIndex || 1);
+                this.overlay = { type: 'stardock', classIndex, createdAt: pdg.tm.getMilliseconds(), ship: who };
+                console.log(`🏭 New Ship Class built: ${classIndex}`);
+                break;
+            }
             case Common.EventType.STAR_COLONIZED:
                 console.log(`Player ${where.owner} colonized ${where.name}`); // who = Star, where = Star
                 break;

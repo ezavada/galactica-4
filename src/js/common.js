@@ -23,6 +23,8 @@ const EventType = {
     STAR_COLONIZED: 11, // A star was colonized
     STAR_CAPTURED: 12,  // A star was captured from another player
     PLAYER_DIED: 13,    // A player has been defeated
+    NEW_TECH_DISCOVERY: 20, // Lab event: reached a new drive class (tech/5)
+    NEW_SHIP_CLASS: 21      // Stardock event: first battleship class built for player
 }
 
 const EventWhy = {

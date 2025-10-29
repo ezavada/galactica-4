@@ -34,17 +34,17 @@
 32	[b] battleship
 33	[c] colony
 
-# Star Names (100-199)
-100	Alpha|Beta|Gamma|Delta|Epsilon|Zeta|Eta|Theta|Iota|Kappa|Lambda|Mu|Nu|Xi|Omicron|Pi|Rho|Sigma|Tau|Upsilon|Phi|Chi|Psi|Omega|Centauri|Vega|Sirius|Procyon|Altair|Fomalhaut|Rigel|Betelgeuse|Antares|Aldebaran|Pollux|Castor|Spica|Regulus|Deneb|Arcturus|Capella|Vega|Polaris|Canopus|Achernar|Hadar|Acrux|Gacrux|Mimosa|Ginan|Imai|Kappa Crucis|Gamma Crucis|Delta Crucis
+# Star Names
+100	Alpha|Beta|Gamma|Delta|Epsilon|Zeta|Eta|Theta|Iota|Kappa|Lambda|Mu|Nu|Xi|Omicron|Pi|Rho|Sigma|Tau|Upsilon|Phi|Chi|Psi|Omega|Centauri|Altair|Fomalhaut|Rigel|Betelgeuse|Antares|Aldebaran|Pollux|Castor|Spica|Regulus|Deneb|Arcturus|Capella|Polaris|Canopus|Achernar|Hadar|Acrux|Gacrux|Mimosa|Ginan|Imai|Kappa Crucis|Gamma Crucis|Delta Crucis|Zavada|Sol|Alpha Centuri|Vega|Praxis|James|Zasteva|Snowdon|Bengali|Andromeda|Degoba|Endor|Arakis|Tau Ceti|Wolf|Barnard's Star|Epsilon Indi|Epsilon Eridani|Procyon|Cygni|Sirius|Lacaille|Luyten|Groombridge|Ross|Tibur|Heron|Dark|Cazador|Cairn|Kylarn|Pantera|Obama|Viador|Mirlynn|Terrabon|Abaron|Hope|Eden|Mythrial|Doma|Atlantis|Europa|Camelot|Normal|Inferno|Holodnya|Teplo|Merjia|Nadyeshda|Konichua|Recife|Kisha|Hobie|Tolkien|Hobbit|Madre|Zaphod|Pfhor|Sagan|Negroponte|Samura|Edmund|Esperanza|Remco|Vishnu|Adhara|Portia|Berni|Catambay|Poteet|Zeus|Clotho|Mir|Romulus|Krypton|Vulcan|Nemesis|Paz|Cambia|Pacifica|Watuke|Ursula|Salvaje|Hermosa|Forest|Spring|Summer|Winter|Primavera|Nocturn|Verano|Oceana|Bosque|Krasnya|Gassé|Lenin|Grøn|Caldonia|Alderan|Otrivin|Adaidan|Shakur
 
-# Roman Numerals (200-249)
-200	|II|III|IV|V|VI|VII|VIII|IX|X
+# Roman Numerals
+200	I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII|XIII|XIV|XV|XVI|XVII|XVII|XIX|XX
 
 # Computer Player Name Templates (250-269)
-250	* %|The * %|* Empire|* Confederation|The * Republic|* Federation|* Coalition|The * League|* Dominion|The * Union
+250	* %|The * %|United % of *|% of *|Imperial *
 
 # Computer Player Group Names (270-289)
-270	Pact|Alliance|Federation|Confederation|Coalition|League|Union|Collective|Consortium|Dominion|Commonwealth|Hegemony|Concord|Accord|Compact|Entente|Assembly|Council|Directorate|Protectorate
+270	Pact|Alliance|Republic|Federation|Confederation|Coalition|League|Union|Collective|Kingdom|Empire|Consortium|Dominion|Commonwealth|Hegemony|Concord|Accord|Compact|Entente|Assembly|Council|Directorate|Protectorate
 
 # Skill Level Names (300-349)
 300	Human
@@ -87,3 +87,6 @@
 506	All Visible
 507	map
 
+# Ship class names for battleships (STRx_ShipNames equivalent) (800)
+# Order maps to class index floor(tech/5):
+800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion

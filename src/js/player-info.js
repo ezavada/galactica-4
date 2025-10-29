@@ -25,6 +25,8 @@ class PlayerInfo {
         this.builtColony = false;
         this.builtScout = false;
         this.builtSatellite = false;
+        // Track first-built battleship classes by class index (1-based like C++)
+        this.builtFighterClasses = new Set();
         
         // Game state
         this.numPiecesRemaining = 0;  // Stars + ships owned
@@ -101,6 +103,18 @@ class PlayerInfo {
                 break;
         }
         return false; // Already built this type before
+    }
+
+    // Mark first-built battleship class by index; returns true if first time
+    markFighterClassBuilt(classIndex) {
+        if (!classIndex || classIndex < 1) {
+            return false;
+        }
+        if (!this.builtFighterClasses.has(classIndex)) {
+            this.builtFighterClasses.add(classIndex);
+            return true;
+        }
+        return false;
     }
     
     // Update piece count

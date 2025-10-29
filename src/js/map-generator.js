@@ -334,15 +334,17 @@ class MapGenerator {
      * Generate a unique star name - uses S- prefix instead of roman numerals
      */
     generateStarName(nameUsage) {
-        const nameIndex = this.random(this.STAR_NAMES.length);
-        const baseName = this.STAR_NAMES[nameIndex];
-        nameUsage[nameIndex]++;
-        
-        // Add S- prefix and sequence number if name is reused
-        if (nameUsage[nameIndex] > 1) {
+        // 10% chance to use a random name from the STAR_NAMES array
+        if (pdg.rand() % 100 > 10) {
             return { name: `S-${this.nextStarNum++}`, namedStar: false };
         }
-        
+        const nameIndex = this.random(this.STAR_NAMES.length);
+        const baseName = this.STAR_NAMES[nameIndex];
+        // add roman numeral if the name is used more than once
+        nameUsage[nameIndex]++;
+        if (nameUsage[nameIndex] > 1) {
+            return { name: `${baseName} ${this.ROMAN_NUMERALS[nameUsage[nameIndex]]}`, namedStar: true };
+        }
         return { name: baseName, namedStar: true };
     }
 

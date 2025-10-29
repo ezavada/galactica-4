@@ -4,6 +4,8 @@
 const Common = require('./common.js');
 const Camera = require('./camera.js');
 
+const debugSelectedObject = true;
+
 class Display {
     constructor(game) {
         this.port = game.port;
@@ -14,6 +16,14 @@ class Display {
         const ownerColorNames = ['green', 'blue', 'red', 'yellow', 'purple', 'aqua', 'olive', 'lime'];
         this.ownerColors = ownerColorNames.map(name => new pdg.Color(name));
         this.ownerColors.forEach(color => color.alpha = 0.5);
+        
+        // Overlay images (loaded lazily)
+        this.images = {
+            labback: null,
+            labtop: null,
+            stardock: null,
+            stardockfront: null
+        };
         
         // Coordinate system setup - maps use galactic coordinates, display uses screen coordinates
         this.sectorSize = game.config ? game.config.sectorSize : 1;
@@ -236,7 +246,7 @@ class Display {
         const objectType = this.game.getObjectType(object);
         if (object) {
             if (objectType === Common.ObjectType.SHIP) {
-                console.log(`Display: selected ${object.type}`);
+                console.log(`Display: selected ${object.type} (ID: ${object.id})`);
             } else if (objectType === Common.ObjectType.STAR) {
                 console.log(`Display: selected ${object.name}`);
             }
@@ -244,6 +254,24 @@ class Display {
             console.log(`Display: selected nothing`);
         }
         this.selectedObject = object;
+        if (debugSelectedObject) {
+            // Log a concise summary to avoid dumping large/circular structures
+            const t = object ? this.game.getObjectType(object) : Common.ObjectType.UNKNOWN;
+            let summary = 'none';
+            if (object) {
+                if (t === Common.ObjectType.SHIP) {
+                    summary = `ship ${object.type} id=${object.id} owner=${object.owner} @(${Math.round(object.x/1024)},${Math.round(object.y/1024)})`;
+                } else if (t === Common.ObjectType.STAR) {
+                    summary = `star ${object.name} id=${object.id} owner=${object.owner} @(${Math.round(object.x/1024)},${Math.round(object.y/1024)})`;
+                } else if (t === Common.ObjectType.FLEET) {
+                    const size = object.getSize ? object.getSize() : (object.ships ? object.ships.length : 0);
+                    summary = `fleet id=${object.id} owner=${object.owner} size=${size} @(${Math.round(object.x/1024)},${Math.round(object.y/1024)})`;
+                } else {
+                    summary = 'unknown';
+                }
+            }
+            console.log(`Display selectedObject set to: ${summary}`);
+        }
     }
 
     getShipColor(ship) {
@@ -393,6 +421,15 @@ class Display {
             frameAttrs.lineColor(new pdg.Color(1,1,1,0.75));
             this.port.drawCircle(new pdg.Point(screenX, screenY), scaledRadius + 4 + pulse, frameAttrs);
         }
+        
+        // Draw default destination indicator (only for owned stars)
+        const defaultDestination = star.getDefaultDestination();
+        if (star.owner === humanPlayer && defaultDestination) {
+            const destAttrs = new pdg.Attributes();
+            destAttrs.lineColor(new pdg.Color(0, 1, 0, 0.8)); // Green color
+            // Draw a small circle to indicate default destination is set
+            this.port.drawLine(new pdg.Point(screenX, screenY), new pdg.Point(defaultDestination.x, defaultDestination.y), destAttrs);
+        }
     }
     
     // Draw all stars
@@ -462,6 +499,7 @@ class Display {
 
         // Draw selection indicator
         if (ship === this.selectedObject) {
+            //console.log(`🎯 DRAWING SELECTION CIRCLE for ship ${ship.type} (ID: ${ship.id}) at (${x}, ${y})`);
             const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0
             const selAttrs = new pdg.Attributes();
             selAttrs.lineColor(new pdg.Color(1,1,1,0.75));
@@ -472,6 +510,10 @@ class Display {
     // Draw all ships
     drawShips(ships) {
         const humanPlayer = 1; // Player 1 is the human player
+        let shipsUnderConstructionDrawn = 0;
+        let shipsUnderConstructionSkipped = 0;
+        
+        //console.log(`🎨 DRAWING SHIPS: ${ships.length} total, selectedObject:`, this.selectedObject);
         
         for (const ship of ships) {
             // Skip ships that are in fleets - they will be drawn as part of the fleet
@@ -479,10 +521,25 @@ class Display {
                 continue;
             }
             
+            // Debug logging for ships under construction
+            if (ship.underConstruction()) {
+                const willDraw = (ship.owner === humanPlayer || ship.isVisibleTo(humanPlayer));
+                //console.log(`🎨 DRAWING SHIP UNDER CONSTRUCTION: ${ship.type} (ID: ${ship.id}) - Owner: ${ship.owner}, Visible: ${ship.isVisibleTo(humanPlayer)}, Will Draw: ${willDraw}`);
+                if (willDraw) {
+                    shipsUnderConstructionDrawn++;
+                } else {
+                    shipsUnderConstructionSkipped++;
+                }
+            }
+            
             // Always show own ships, only show enemy ships if visible
             if (ship.owner === humanPlayer || ship.isVisibleTo(humanPlayer)) {
                 this.drawShip(ship);
             }
+        }
+        
+        if (shipsUnderConstructionDrawn > 0 || shipsUnderConstructionSkipped > 0) {
+            //console.log(`🎨 DRAWING SUMMARY: ${shipsUnderConstructionDrawn} ships under construction drawn, ${shipsUnderConstructionSkipped} skipped`);
         }
     }
     
@@ -807,6 +864,89 @@ class Display {
         
         // Draw instructions
         this.drawInstructions();
+        
+        // Draw event overlay last
+        if (game.overlay) {
+            this.drawOverlay(game.overlay);
+        }
+    }
+
+    // Helper to load an image once
+    getImageCached(key, filename) {
+        if (!this.images[key]) {
+            try {
+                this.images[key] = pdg.res.getImage(filename);
+            } catch (e) {
+                console.log(`Failed to load image ${filename}:`, e);
+            }
+        }
+        return this.images[key];
+    }
+
+    // Map class index to ship art filename base
+    getShipArtNameForClass(classIndex) {
+        try {
+            const namesStr = pdg.res.getString(800) || 'Traveller';
+            const list = namesStr.split('|');
+            const name = list[Math.max(0, Math.min(list.length - 1, classIndex - 1))];
+            return name.toLowerCase();
+        } catch (e) {
+            return 'unknown';
+        }
+    }
+
+    drawOverlay(overlay) {
+        const drawingArea = this.port.getDrawingArea();
+        // Dim the scene
+        const dimAttrs = new pdg.Attributes();
+        dimAttrs.fillColor(new pdg.Color(0, 0, 0, 0.65));
+        this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), dimAttrs);
+        
+        if (overlay.type === 'lab') {
+            const back = this.getImageCached('labback', 'events/labback.png');
+            const top = this.getImageCached('labtop', 'events/labtop.png');
+            const blueprintIdx = Math.max(1, Math.min(12, overlay.classIndex + 1));
+            const blueprintName = `tech/blue-0${blueprintIdx}.png`;
+            let blueprint = null;
+            try { blueprint = pdg.res.getImage(blueprintName); } catch (e) { }
+            const centerRect = new pdg.Rect(
+                drawingArea.width()*0.1,
+                drawingArea.height()*0.05,
+                drawingArea.width()*0.8,
+                drawingArea.height()*0.9
+            );
+            const attrs = new pdg.Attributes();
+            if (back) this.port.drawImage(back, centerRect, attrs);
+            if (blueprint) this.port.drawImage(blueprint, centerRect, attrs);
+            if (top) this.port.drawImage(top, centerRect, attrs);
+            const text = new pdg.Attributes();
+            text.fillColor(new pdg.Color('yellow')).textSize(16).textStyle(pdg.textStyle_Centered);
+            this.port.drawText(`New Drive Technology`, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.1), text);
+        } else if (overlay.type === 'stardock') {
+            const back = this.getImageCached('stardock', 'events/newstardock.png');
+            const front = this.getImageCached('stardockfront', 'events/newstardockfront.png');
+            const base = this.getShipArtNameForClass(overlay.classIndex);
+            let shipImg = null;
+            try { shipImg = pdg.res.getImage(`ships/${base}.png`); } catch (e) {}
+            const centerRect = new pdg.Rect(
+                drawingArea.width()*0.05,
+                drawingArea.height()*0.15,
+                drawingArea.width()*0.9,
+                drawingArea.height()*0.75
+            );
+            const attrs = new pdg.Attributes();
+            if (back) this.port.drawImage(back, centerRect, attrs);
+            if (shipImg) this.port.drawImage(shipImg, centerRect, attrs);
+            if (front) this.port.drawImage(front, centerRect, attrs);
+            const text = new pdg.Attributes();
+            text.fillColor(new pdg.Color('cyan')).textSize(16).textStyle(pdg.textStyle_Centered);
+            const name = overlay.ship && overlay.ship.name ? overlay.ship.name.split('\t')[0] : this.getShipArtNameForClass(overlay.classIndex);
+            this.port.drawText(`New ${name} Class Commissioned`, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.2), text);
+        }
+        // Footer hint
+        const hint = new pdg.Attributes();
+        hint.fillColor(new pdg.Color('white')).textSize(12).textStyle(pdg.textStyle_Centered);
+        this.port.drawText(`Press any key to continue`, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.95), hint);
     }
 }
 
