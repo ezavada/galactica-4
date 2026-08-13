@@ -84,7 +84,10 @@ class Ship {
 
 
     combat() {
-        // TODO: implement combat
+        if (this.game && typeof this.game.resolveCombatForShip === 'function') {
+            return this.game.resolveCombatForShip(this);
+        }
+        return null;
     }
     
     calculatePower() {
@@ -185,10 +188,20 @@ class Ship {
         // TODO: Implement patrol logic
         return false;
     }
+
+    isAllyOf(playerId) {
+        if (this.owner === playerId) {
+            return true;
+        }
+        const player = this.game && this.game.players ? this.game.players[this.owner] : null;
+        return !!(player && typeof player.isAllyOf === 'function' && player.isAllyOf(playerId));
+    }
     
     destroyedInCombat(attackerOwner) {
         console.log(`Ship ${this.id} destroyed in combat by player ${attackerOwner}`);
-        // TODO: Handle ship destruction
+        if (this.game && typeof this.game.removeDestroyedShip === 'function') {
+            this.game.removeDestroyedShip(this, attackerOwner);
+        }
     }
     
     // Fleet formation methods
@@ -240,20 +253,27 @@ class Ship {
                 }
                 
                 this.game.noteworthyEvent(this, Common.EventType.SHIP_ARRIVED, destinationStar);
-                if (this.type === 'colony' && destinationStar.owner === 0) {
-                    destinationStar.population = 1;
-                    destinationStar.techLevel = this.techLevel;
-                    destinationStar.owner = this.owner;
-                    this.game.noteworthyEvent(this, Common.EventType.SHIP_ARRIVED, destinationStar);
-                    this.game.entityRemoved(this);
-                    destinationStar.game.entityRemoved(this); // it's been converted to a colony
+
+                if (this.game.shouldResolveCombat && this.game.shouldResolveCombat(this, destinationStar)) {
+                    this.game.resolveCombat(this, destinationStar);
+                    if (this.isDead() || !this.game.allShips.includes(this)) {
+                        return;
+                    }
+                } else if (this.type === 'colony' && destinationStar.owner === 0) {
+                    this.game.colonizeStar(destinationStar, this, 0);
                 }
             } else if (arrivingObjectType === Common.ObjectType.SHIP) {
-                this.game.noteworthyEvent(this, Common.EventType.SHIP_INTERCEPT, arrivingDestination);
+                if (this.game.shouldResolveCombat && this.game.shouldResolveCombat(this, arrivingDestination)) {
+                    this.game.resolveCombat(this, arrivingDestination);
+                } else {
+                    this.game.noteworthyEvent(this, Common.EventType.SHIP_INTERCEPT, arrivingDestination);
+                }
             } else if (arrivingObjectType === Common.ObjectType.FLEET) {
                 // Ship arrived at a fleet - check if they can form a fleet
                 if (this.owner === arrivingDestination.owner && this.canFormFleet()) {
                     this.game.handleFleetFormation(this, arrivingDestination);
+                } else if (this.game.shouldResolveCombat && this.game.shouldResolveCombat(this, arrivingDestination)) {
+                    this.game.resolveCombat(this, arrivingDestination);
                 } else {
                     this.game.noteworthyEvent(this, Common.EventType.SHIP_STOPPED, arrivingDestination);
                 }

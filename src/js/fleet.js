@@ -303,16 +303,23 @@ class Fleet {
             // Fleet arrived at a ship - check if they can form a fleet
             if (this.owner === arrivingDestination.owner && arrivingDestination.canFormFleet()) {
                 this.game.handleFleetFormation(this, arrivingDestination);
+            } else if (this.game.shouldResolveCombat && this.game.shouldResolveCombat(this, arrivingDestination)) {
+                this.game.resolveCombat(this, arrivingDestination);
             }
         } else if (arrivingObjectType === Common.ObjectType.FLEET) {
             // Fleet arrived at another fleet - merge them if same owner
             if (this.owner === arrivingDestination.owner) {
                 this.game.mergeFleets(this, arrivingDestination);
+            } else if (this.game.shouldResolveCombat && this.game.shouldResolveCombat(this, arrivingDestination)) {
+                this.game.resolveCombat(this, arrivingDestination);
             } else {
                 console.log(`Fleet ${this.id} arrived at enemy fleet`);
             }
         } else if (arrivingObjectType === Common.ObjectType.STAR) {
             console.log(`Fleet ${this.id} arrived at star ${arrivingDestination.name}`);
+            if (this.game.shouldResolveCombat && this.game.shouldResolveCombat(this, arrivingDestination)) {
+                this.game.resolveCombat(this, arrivingDestination);
+            }
         } else {
             console.log(`Fleet ${this.id} arrived at destination`);
         }
@@ -328,11 +335,25 @@ class Fleet {
         
         if (removedCount > 0) {
             this.ships = aliveShips;
+            for (const ship of this.ships) {
+                ship.fleet = this;
+            }
             this.calculateFleetStats();
             console.log(`Removed ${removedCount} dead ships from fleet ${this.id}`);
         }
         
         return removedCount;
+    }
+
+    removeDead() {
+        return this.removeDeadShips();
+    }
+
+    destroyedInCombat(attackerOwner) {
+        console.log(`Fleet ${this.id} destroyed in combat by player ${attackerOwner}`);
+        if (this.game && typeof this.game.removeDestroyedFleet === 'function') {
+            this.game.removeDestroyedFleet(this, attackerOwner);
+        }
     }
     
     // Get fleet information for display

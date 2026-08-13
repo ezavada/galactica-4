@@ -8,6 +8,7 @@ const PlayerInfo = require('./player-info.js');
 const { AIManager } = require('./ai-manager.js');
 const { SpatialPartition } = require('./spatial-partition.js');
 const VisibilityCalculator = require('./visibility-calculator.js');
+const CombatSystem = require('./combat.js');
 
 class Game {
     constructor(factory, rules, config = null) {
@@ -55,6 +56,7 @@ class Game {
         // Initialize spatial partition and visibility calculator
         this.spatialPartition = new SpatialPartition();
         this.visibilityCalculator = new VisibilityCalculator(this);
+        this.combatSystem = new CombatSystem(this);
         
         // Initialize AI players for computer-controlled players
         for (let i = 1; i <= this.config.totalPlayers; i++) {
@@ -202,16 +204,24 @@ class Game {
     entityRemoved(entity) {
         if (this.selectedObject === entity) {
             this.selectedObject = null;
-            this.display.setSelectedObject(null);
+            if (this.display) {
+                this.display.setSelectedObject(null);
+            }
         }
         
         const objectType = this.getObjectType(entity);
         if (objectType === Common.ObjectType.STAR) {
-            this.stars.splice(this.stars.indexOf(entity), 1);
+            const index = this.stars.indexOf(entity);
+            if (index !== -1) {
+                this.stars.splice(index, 1);
+            }
             // Remove from spatial partition
             this.spatialPartition.removeEntity(entity, Common.SpatialConstants.ENTITY_TYPE_STAR);
         } else if (objectType === Common.ObjectType.SHIP) {
-            this.allShips.splice(this.allShips.indexOf(entity), 1);
+            const index = this.allShips.indexOf(entity);
+            if (index !== -1) {
+                this.allShips.splice(index, 1);
+            }
             console.log(`➖ SHIP REMOVED FROM GAME: ${entity.type} (ID: ${entity.id}) - Owner: ${entity.owner}, Under Construction: ${entity.underConstruction()}, Total Ships: ${this.allShips.length}`);
             // Remove from spatial partition
             const entityType = (entity.type === 'defense') ? 
@@ -219,7 +229,10 @@ class Game {
                 Common.SpatialConstants.ENTITY_TYPE_SHIP;
             this.spatialPartition.removeEntity(entity, entityType);
         } else if (objectType === Common.ObjectType.FLEET) {
-            this.allFleets.splice(this.allFleets.indexOf(entity), 1);
+            const index = this.allFleets.indexOf(entity);
+            if (index !== -1) {
+                this.allFleets.splice(index, 1);
+            }
             // Remove from spatial partition
             this.spatialPartition.removeEntity(entity, Common.SpatialConstants.ENTITY_TYPE_FLEET);
         }
@@ -572,21 +585,22 @@ class Game {
         }
         
         // Update all ships
-        for (const ship of this.allShips) {
-            ship.move();
+        for (const ship of [...this.allShips]) {
+            if (this.allShips.includes(ship)) {
+                ship.move();
+            }
         }
         // Update all fleets
-        for (const fleet of this.allFleets) {
-            fleet.move();
+        for (const fleet of [...this.allFleets]) {
+            if (this.allFleets.includes(fleet)) {
+                fleet.move();
+            }
         }
         // Update all stars
-        for (const star of this.stars) {
-            star.update();
-        }
-        
-        // resolve combat
-        for (const ship of this.allShips) {
-            ship.combat();
+        for (const star of [...this.stars]) {
+            if (this.stars.includes(star)) {
+                star.update();
+            }
         }
         
         // Update visibility after all movements and changes
@@ -619,6 +633,127 @@ class Game {
                 this.noteworthyEvent(player, Common.EventType.PLAYER_DIED);
             }
         }
+    }
+
+    isOwnerAlliedWith(ownerId, otherOwnerId) {
+        if (!ownerId || !otherOwnerId) {
+            return false;
+        }
+        if (ownerId === otherOwnerId) {
+            return true;
+        }
+        const player = this.players ? this.players[otherOwnerId] : null;
+        return !!(player && typeof player.isAllyOf === 'function' && player.isAllyOf(ownerId));
+    }
+
+    shouldResolveCombat(attacker, destination) {
+        return !!(this.combatSystem && this.combatSystem.shouldResolveCombat(attacker, destination));
+    }
+
+    resolveCombat(attacker, destination) {
+        if (!this.combatSystem) {
+            return null;
+        }
+        return this.combatSystem.resolveCombat(attacker, destination);
+    }
+
+    resolveCombatForShip(ship) {
+        if (!ship || ship.underConstruction() || ship.isDead()) {
+            return null;
+        }
+        if (ship.star && this.shouldResolveCombat(ship, ship.star)) {
+            return this.resolveCombat(ship, ship.star);
+        }
+        return null;
+    }
+
+    detachShipFromContainers(ship) {
+        if (!ship) {
+            return;
+        }
+
+        if (ship.fleet && typeof ship.fleet.removeShip === 'function') {
+            ship.fleet.removeShip(ship);
+        }
+        ship.fleet = null;
+
+        if (ship.star && typeof ship.star.removeShip === 'function') {
+            ship.star.removeShip(ship);
+        }
+
+        for (const star of this.stars) {
+            if (star.ships) {
+                const index = star.ships.indexOf(ship);
+                if (index !== -1) {
+                    star.ships.splice(index, 1);
+                }
+            }
+            if (star.defenseSatellites) {
+                const index = star.defenseSatellites.indexOf(ship);
+                if (index !== -1) {
+                    star.defenseSatellites.splice(index, 1);
+                }
+            }
+            if (star.currentShip === ship) {
+                star.currentShip = null;
+            }
+        }
+
+        ship.star = null;
+    }
+
+    removeDestroyedShip(ship, attackerOwner, sendEvent = true) {
+        if (!ship) {
+            return false;
+        }
+
+        const wasTracked = this.allShips.includes(ship);
+        const where = { x: ship.x, y: ship.y };
+        this.detachShipFromContainers(ship);
+
+        if (wasTracked) {
+            this.entityRemoved(ship);
+            if (sendEvent) {
+                this.noteworthyEvent(ship, Common.EventType.SHIP_DESTROYED, where, null, Common.EventWhy.COMBAT, attackerOwner);
+            }
+        }
+
+        return wasTracked;
+    }
+
+    removeDestroyedFleet(fleet, attackerOwner) {
+        if (!fleet) {
+            return false;
+        }
+        if (typeof fleet.removeDeadShips === 'function') {
+            fleet.removeDeadShips();
+        }
+        if (typeof fleet.isEmpty !== 'function' || !fleet.isEmpty()) {
+            return false;
+        }
+
+        const wasTracked = this.allFleets.includes(fleet);
+        if (wasTracked) {
+            this.entityRemoved(fleet);
+            console.log(`Fleet ${fleet.id} destroyed in combat by player ${attackerOwner}`);
+        }
+        return wasTracked;
+    }
+
+    colonizeStar(star, colonyShip, previousOwner = 0) {
+        if (!star || !colonyShip || colonyShip.isDead() || star.owner !== 0) {
+            return false;
+        }
+
+        star.population = Math.max(1, star.population || 0);
+        star.techLevel = Math.max(star.techLevel || 0, colonyShip.techLevel || 0);
+        star.owner = colonyShip.owner;
+        star.setScannerRange(this.rules.getScanRangeForTechLevel(star.techLevel));
+
+        const eventType = previousOwner ? Common.EventType.STAR_CAPTURED : Common.EventType.STAR_COLONIZED;
+        this.noteworthyEvent(colonyShip, eventType, star);
+        this.removeDestroyedShip(colonyShip, colonyShip.owner, false);
+        return true;
     }
 
     noteworthyEvent(who, what, where, how, why, other) {

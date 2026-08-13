@@ -2,6 +2,43 @@
 // Tests combat mechanics, damage calculations, and multi-target combat
 
 const test = require('./test-framework.js');
+const Factory = require('../src/js/factory.js');
+const Game = require('../src/js/game.js');
+const GameConfig = require('../src/js/game-config.js');
+const Rules = require('../src/js/rules.js');
+
+function createRuntimeCombatGame() {
+    const factory = new Factory();
+    const rules = new Rules(false);
+    const config = GameConfig.createSinglePlayer(1, 2);
+    config.skipMapGeneration = true;
+    return new Game(factory, rules, config);
+}
+
+function createOwnedStar(game, x, y, name, owner, techLevel = 1, population = 0) {
+    const star = game.factory.createStar(x, y, name);
+    star.owner = owner;
+    star.techLevel = techLevel;
+    star.population = population;
+    star.setScannerRange(game.rules.getScanRangeForTechLevel(star.techLevel));
+    return star;
+}
+
+function createCompletedShip(game, star, type, techLevel = star.techLevel) {
+    const originalTech = star.techLevel;
+    star.techLevel = techLevel;
+    const ship = game.factory.createShip(star.x, star.y, type, star);
+    star.techLevel = originalTech;
+    ship.techLevel = techLevel;
+    ship.power = ship.calculatePower();
+    ship.speed = game.rules.getShipInitialSpeed(ship);
+    ship.complete();
+    ship.star = star;
+    if (!star.ships.includes(ship)) {
+        star.ships.push(ship);
+    }
+    return ship;
+}
 
 function runCombatTests() {
     test.describe('Combat System', () => {
@@ -367,6 +404,94 @@ function runCombatTests() {
             test.assertEqual(typeof result.defendersWon, 'boolean');
             test.assertEqual(typeof result.hasColony, 'boolean');
             test.assertEqual(typeof result.canColonize, 'boolean');
+        });
+
+        test.it('removes enemy docked ships when an arriving ship wins space combat', () => {
+            const game = createRuntimeCombatGame();
+            const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 20, 100);
+            const target = createOwnedStar(game, 1000, 0, 'Target', 2, 1, 100);
+            const attacker = createCompletedShip(game, origin, 'battleship', 20);
+            const defender = createCompletedShip(game, target, 'scout', 1);
+
+            attacker.getOneAttackAgainst = () => 10000;
+            defender.getOneAttackAgainst = () => 0;
+
+            attacker.setDestination(target);
+            attacker.move();
+
+            test.assertContains(game.allShips, attacker, 'Attacker should still be tracked');
+            test.assertFalse(game.allShips.includes(defender), 'Destroyed defender should be removed from game ships');
+            test.assertFalse(target.ships.includes(defender), 'Destroyed defender should be removed from the star');
+            test.assertContains(target.ships, attacker, 'Attacker should be docked at the target star');
+        });
+
+        test.it('resolves enemy ship interception as combat instead of fleet formation', () => {
+            const game = createRuntimeCombatGame();
+            const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 20, 100);
+            const enemyBase = createOwnedStar(game, 1000, 0, 'Enemy Base', 2, 1, 100);
+            const attacker = createCompletedShip(game, origin, 'battleship', 20);
+            const defender = createCompletedShip(game, enemyBase, 'scout', 1);
+
+            attacker.getOneAttackAgainst = () => 10000;
+            defender.getOneAttackAgainst = () => 0;
+
+            attacker.setDestination(defender);
+            attacker.move();
+
+            test.assertFalse(game.allShips.includes(defender), 'Intercepted enemy ship should be destroyed');
+            test.assertEqual(game.allFleets.length, 0, 'Enemy interception should not create a fleet');
+            test.assertFalse(attacker.isInFleet(), 'Attacker should remain an individual ship');
+        });
+
+        test.it('lets a surviving colony ship capture a defeated enemy star', () => {
+            const game = createRuntimeCombatGame();
+            const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 20, 100);
+            const target = createOwnedStar(game, 1000, 0, 'Enemy Colony', 2, 1, 5);
+            const colony = createCompletedShip(game, origin, 'colony', 20);
+
+            colony.getOneAttackAgainst = () => 100000;
+            target.getOneAttackAgainst = () => 0;
+
+            colony.setDestination(target);
+            colony.move();
+
+            test.assertEqual(target.owner, 1, 'Target star should be captured by the colony owner');
+            test.assertGreaterThan(target.population, 0, 'Captured star should retain colonized population');
+            test.assertFalse(game.allShips.includes(colony), 'Colony ship should be converted into the colony');
+            test.assertFalse(target.ships.includes(colony), 'Converted colony ship should be removed from the star ship list');
+        });
+
+        test.it('removes an attacker that loses arrival combat and leaves defenders intact', () => {
+            const game = createRuntimeCombatGame();
+            const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 1, 100);
+            const target = createOwnedStar(game, 1000, 0, 'Defended Target', 2, 20, 100);
+            const attacker = createCompletedShip(game, origin, 'scout', 1);
+            const defender = createCompletedShip(game, target, 'battleship', 20);
+
+            attacker.getOneAttackAgainst = () => 0;
+            defender.getOneAttackAgainst = () => 10000;
+
+            attacker.setDestination(target);
+            attacker.move();
+
+            test.assertFalse(game.allShips.includes(attacker), 'Destroyed attacker should be removed from game ships');
+            test.assertContains(game.allShips, defender, 'Winning defender should remain in game ships');
+            test.assertContains(target.ships, defender, 'Winning defender should remain docked at the target star');
+            test.assertEqual(target.owner, 2, 'Defended target should keep its owner');
+        });
+
+        test.it('treats same-owner ships as allies even without entity-specific ally methods', () => {
+            const CombatSystem = require('../src/js/combat.js');
+            const combatSystem = new CombatSystem({ players: [] });
+            const ownShip = { type: 'battleship', owner: 1 };
+            const enemyShip = { type: 'scout', owner: 2 };
+            const forces = [ownShip, enemyShip];
+
+            const defenderOwner = combatSystem.removeAllies(forces, 1);
+
+            test.assertEqual(forces.length, 1);
+            test.assertEqual(forces[0], enemyShip);
+            test.assertEqual(defenderOwner, 2);
         });
     });
 }

@@ -228,7 +228,10 @@ class Star {
     }
 
     shipDeparted(ship) {
-        this.ships.splice(this.ships.indexOf(ship), 1);
+        const index = this.ships.indexOf(ship);
+        if (index !== -1) {
+            this.ships.splice(index, 1);
+        }
     }
 
     removeShip(ship) {
@@ -236,7 +239,9 @@ class Star {
     }
 
     shipArrived(ship) {
-        this.ships.push(ship);
+        if (!this.ships.includes(ship)) {
+            this.ships.push(ship);
+        }
     }
     
     // Fog of War Methods

@@ -8,7 +8,138 @@ class CombatSystem {
     constructor(game) {
         this.game = game;
     }
-    
+
+    isStar(entity) {
+        if (!entity) return false;
+        if (typeof entity.isStar === 'function') {
+            return entity.isStar();
+        }
+        return !!(this.game && this.game.factory && this.game.factory.isStar(entity));
+    }
+
+    isShip(entity) {
+        return !!(entity && this.game && this.game.factory && this.game.factory.isShip(entity));
+    }
+
+    isFleet(entity) {
+        if (!entity) return false;
+        if (typeof entity.isFleet === 'function' && entity.isFleet()) {
+            return true;
+        }
+        return !!(this.game && this.game.factory && this.game.factory.isFleet(entity));
+    }
+
+    isAliveCombatant(entity) {
+        if (!entity) return false;
+        if (entity.underConstruction && entity.underConstruction()) return false;
+        if (entity.isDead && entity.isDead()) return false;
+        return true;
+    }
+
+    isFriendlyTo(ownerId, entity) {
+        if (!entity || !ownerId) return true;
+        if (!entity.owner) return true;
+        if (entity.owner === ownerId) return true;
+        if (entity.isAllyOf && entity.isAllyOf(ownerId)) return true;
+        if (this.game && this.game.isOwnerAlliedWith) {
+            return this.game.isOwnerAlliedWith(ownerId, entity.owner);
+        }
+        return false;
+    }
+
+    isEnemyOf(ownerId, entity) {
+        return !!(entity && entity.owner > 0 && !this.isFriendlyTo(ownerId, entity));
+    }
+
+    uniqueEntities(entities) {
+        const unique = [];
+        for (const entity of entities || []) {
+            if (entity && !unique.includes(entity)) {
+                unique.push(entity);
+            }
+        }
+        return unique;
+    }
+
+    getCombatants(entity) {
+        if (!entity) return [];
+
+        if (this.isFleet(entity)) {
+            return this.uniqueEntities(entity.ships || []).filter(ship => this.isAliveCombatant(ship));
+        }
+
+        if (entity.fleet && this.isFleet(entity.fleet)) {
+            return this.uniqueEntities(entity.fleet.ships || []).filter(ship => this.isAliveCombatant(ship));
+        }
+
+        return this.isAliveCombatant(entity) ? [entity] : [];
+    }
+
+    collectSpaceDefenders(destination, attackerOwner, attackerCombatants) {
+        const attackers = new Set(attackerCombatants);
+        const defenders = [];
+        const addDefender = (entity) => {
+            if (!entity || attackers.has(entity) || !this.isAliveCombatant(entity)) {
+                return;
+            }
+            if (this.isEnemyOf(attackerOwner, entity)) {
+                defenders.push(entity);
+            }
+        };
+
+        if (this.isStar(destination)) {
+            for (const ship of destination.ships || []) {
+                addDefender(ship);
+            }
+            for (const satellite of destination.defenseSatellites || []) {
+                addDefender(satellite);
+            }
+        } else if (this.isFleet(destination)) {
+            for (const ship of destination.ships || []) {
+                addDefender(ship);
+            }
+        } else {
+            const destinationFleet = destination && destination.fleet;
+            if (destinationFleet && this.isFleet(destinationFleet)) {
+                for (const ship of destinationFleet.ships || []) {
+                    addDefender(ship);
+                }
+            } else {
+                addDefender(destination);
+            }
+        }
+
+        return this.uniqueEntities(defenders);
+    }
+
+    isEnemyOwnedStar(destination, attackerOwner) {
+        if (!this.isStar(destination)) {
+            return false;
+        }
+        if (destination.owner > 0) {
+            return this.isEnemyOf(attackerOwner, destination);
+        }
+        return !!(destination.isOwned && destination.isOwned() &&
+            (!destination.isAllyOf || !destination.isAllyOf(attackerOwner)));
+    }
+
+    shouldResolveCombat(attacker, destination) {
+        if (!attacker || !destination || !attacker.owner) {
+            return false;
+        }
+
+        const attackerCombatants = this.getCombatants(attacker);
+        if (attackerCombatants.length === 0) {
+            return false;
+        }
+
+        if (this.collectSpaceDefenders(destination, attacker.owner, attackerCombatants).length > 0) {
+            return true;
+        }
+
+        return this.isEnemyOwnedStar(destination, attacker.owner);
+    }
+
     // Main combat resolution loop - ported from UShipUtils.cpp:205-275
     attackLoop(attackers, attackersReserves, defenders, defendersReserves) {
         let done = false;
@@ -48,9 +179,9 @@ class CombatSystem {
             if (!done) {
                 let extraDamage = 0;
                 // Ships can hit number of targets equal to 1/2 their tech level
-                let targets = Math.floor(attacker.techLevel / 2);
+                let targets = Math.floor((attacker.techLevel || 1) / 2);
                 // If targets is zero, ship still gets 1 attack
-                if (targets === 0) targets = 1;
+                if (!Number.isFinite(targets) || targets < 1) targets = 1;
                 
                 console.log(`${attacker.type} attacking up to ${targets} targets`);
                 
@@ -108,7 +239,7 @@ class CombatSystem {
         console.log("Finished Combat");
         return haveWinner;
     }
-    
+
     // Damage calculation and application - ported from AGalacticThingy.cpp:818-845
     defendAgainst(attacker, defender, weighting = 100, rolloverDamage = 0) {
         if (!attacker || !defender) {
@@ -199,7 +330,7 @@ class CombatSystem {
         let defender = 0;
         
         const enemyForces = forces.filter(entity => {
-            if (entity.owner === 0 || (entity.isAllyOf && entity.isAllyOf(ownerId))) {
+            if (this.isFriendlyTo(ownerId, entity)) {
                 console.log(`${entity.type} is an ally of player ${ownerId}, removed from forces`);
                 numAllies++;
                 return false;
@@ -262,81 +393,187 @@ class CombatSystem {
         
         return numDead;
     }
-    
-    // Resolve combat between attackers and defenders
-    resolveCombat(attacker, destination) {
-        console.log(`Resolving combat for ${attacker.type} at ${destination.name || 'location'}`);
-        
-        // Create combat participant lists
-        const attackers = [];
-        const defenders = [];
+
+    runBattle(attackingForces, defendingForces, options = {}) {
+        const attackers = this.uniqueEntities(attackingForces).filter(entity => this.isAliveCombatant(entity));
+        const defenders = this.uniqueEntities(defendingForces).filter(entity => this.isAliveCombatant(entity));
+        const initialAttackers = [...attackers];
+        const initialDefenders = [...defenders, ...(options.extraDefenderReserves || [])];
         const attackersReserves = [];
         const defendersReserves = [];
         const attackersFleets = [];
         const defendersFleets = [];
-        
-        // Add attacker to attackers list
-        attackers.push(attacker);
-        
-        // Add defenders from destination
-        if (destination.ships) {
-            defenders.push(...destination.ships);
-        }
-        
-        // Remove allies from defenders
-        const defenderOwner = this.removeAllies(defenders, attacker.owner);
-        
-        // Sort out reserves and fleets
+
         this.sortOutReserves(attackers, attackersReserves, attackersFleets);
         this.sortOutReserves(defenders, defendersReserves, defendersFleets);
-        
-        const defendersCount = defenders.length + defendersReserves.length;
-        
-        // Resolve space combat
+
+        for (const reserve of options.extraDefenderReserves || []) {
+            if (this.isAliveCombatant(reserve) && !defendersReserves.includes(reserve)) {
+                defendersReserves.push(reserve);
+            }
+        }
+
         let done = false;
-        let count = 100; // Prevent infinite loops
-        
+        let count = 100;
+        const defendersCount = defenders.length + defendersReserves.length;
+
         if (defendersCount > 0) {
             while (!done && count-- > 0) {
                 console.log(`Start Battle Loop, Iteration ${100 - count}`);
                 const done1 = this.attackLoop(attackers, attackersReserves, defenders, defendersReserves);
                 const done2 = this.attackLoop(defenders, defendersReserves, attackers, attackersReserves);
                 done = (done1 || done2);
-                
+
                 this.removeDead(attackers);
                 this.removeDead(defenders);
                 this.removeDead(attackersReserves);
                 this.removeDead(defendersReserves);
             }
+        }
+
+        const attackerSurvivors = initialAttackers.filter(entity => this.isAliveCombatant(entity));
+        const defenderSurvivors = initialDefenders.filter(entity => this.isAliveCombatant(entity));
+
+        return {
+            attackerSurvivors,
+            defenderSurvivors,
+            attackersLost: initialAttackers.length - attackerSurvivors.length,
+            defendersLost: initialDefenders.length - defenderSurvivors.length,
+            attackerFleets: attackersFleets,
+            defenderFleets: defendersFleets
+        };
+    }
+
+    cleanupDeadEntities(entities, opponentOwner) {
+        let removed = 0;
+        for (const entity of this.uniqueEntities(entities)) {
+            if (!entity || !entity.isDead || !entity.isDead()) {
+                continue;
+            }
+
+            if (this.isShip(entity)) {
+                if (this.game && this.game.removeDestroyedShip) {
+                    if (this.game.removeDestroyedShip(entity, opponentOwner)) {
+                        removed++;
+                    }
+                } else if (entity.destroyedInCombat) {
+                    entity.destroyedInCombat(opponentOwner);
+                    removed++;
+                }
+            } else if (this.isFleet(entity)) {
+                if (this.game && this.game.removeDestroyedFleet && this.game.removeDestroyedFleet(entity, opponentOwner)) {
+                    removed++;
+                }
+            }
+        }
+        return removed;
+    }
+
+    cleanupEmptyFleets(opponentOwner) {
+        if (!this.game || !this.game.allFleets) {
+            return;
+        }
+
+        for (const fleet of [...this.game.allFleets]) {
+            if (fleet.removeDeadShips) {
+                fleet.removeDeadShips();
+            }
+            if (fleet.isEmpty && fleet.isEmpty()) {
+                this.game.removeDestroyedFleet(fleet, opponentOwner);
+            } else if (fleet.calculateFleetStats) {
+                fleet.calculateFleetStats();
+            }
+        }
+    }
+    // Resolve combat between attackers and defenders
+    resolveCombat(attacker, destination) {
+        if (!attacker || !destination) {
+            return null;
+        }
+
+        console.log(`Resolving combat for ${attacker.type || 'fleet'} at ${destination.name || 'location'}`);
+
+        const attackerOwner = attacker.owner;
+        const originalDestinationOwner = destination.owner || 0;
+        const attackerCombatants = this.getCombatants(attacker);
+        const spaceDefenders = this.collectSpaceDefenders(destination, attackerOwner, attackerCombatants);
+
+        if (attackerCombatants.length === 0) {
+            return {
+                attackersWon: false,
+                defendersWon: spaceDefenders.length > 0,
+                attackersLost: 0,
+                defendersLost: 0,
+                hasColony: false,
+                canColonize: false
+            };
+        }
+
+        let spaceResult;
+        if (spaceDefenders.length > 0) {
+            spaceResult = this.runBattle(attackerCombatants, spaceDefenders);
+            this.cleanupDeadEntities(attackerCombatants, spaceDefenders[0] ? spaceDefenders[0].owner : 0);
+            this.cleanupDeadEntities(spaceDefenders, attackerOwner);
         } else {
             console.log(`${destination.name || 'Destination'} is undefended, skipping space battle`);
+            spaceResult = {
+                attackerSurvivors: attackerCombatants.filter(entity => this.isAliveCombatant(entity)),
+                defenderSurvivors: [],
+                attackersLost: 0,
+                defendersLost: 0
+            };
         }
-        
-        // Handle ground combat if attacking a star
-        let hasColony = false;
-        if ((attackers.length + attackersReserves.length) > 0 && 
-            destination.isStar && destination.isStar() && 
-            destination.isOwned && destination.isOwned() && 
-            !destination.isAllyOf(attacker.owner)) {
-            
-            hasColony = this.hasShipClass(attackersReserves, 'colony');
-            // TODO: Implement ground combat vs population
+
+        let attackerSurvivors = spaceResult.attackerSurvivors.filter(entity => this.isAliveCombatant(entity));
+        let defenderSurvivors = spaceResult.defenderSurvivors.filter(entity => this.isAliveCombatant(entity));
+        let groundResult = null;
+
+        if (attackerSurvivors.length > 0 &&
+                defenderSurvivors.length === 0 &&
+                this.isEnemyOwnedStar(destination, attackerOwner)) {
+            const startingPopulation = destination.population || 0;
+            console.log(`Resolving ground combat at ${destination.name}`);
+            groundResult = this.runBattle(attackerSurvivors, [], { extraDefenderReserves: [destination] });
+            this.cleanupDeadEntities(attackerSurvivors, destination.owner || originalDestinationOwner);
+
+            const defeatedPopulation = Math.max(0, startingPopulation - Math.max(0, destination.population || 0));
+            if (defeatedPopulation > 0) {
+                const casualties = Math.floor(defeatedPopulation / 10) + 1;
+                destination.population = Math.max(0, startingPopulation - casualties);
+            }
+
+            if (groundResult.defenderSurvivors.length === 0 || destination.owner === 0) {
+                destination.owner = 0;
+                if (destination.clearDefaultDestination) {
+                    destination.clearDefaultDestination();
+                }
+            }
+
+            attackerSurvivors = groundResult.attackerSurvivors.filter(entity => this.isAliveCombatant(entity));
+            defenderSurvivors = groundResult.defenderSurvivors.filter(entity => this.isAliveCombatant(entity));
         }
-        
-        // Finalize fleet losses
-        const attackersInFleetLosses = this.finalizeLosses(attackersFleets, defenderOwner);
-        const defendersInFleetLosses = this.finalizeLosses(defendersFleets, attacker.owner);
-        
+
+        const survivingColony = attackerSurvivors.find(entity => entity.type === 'colony');
+        const canColonize = !!(survivingColony && this.isStar(destination) && destination.owner === 0);
+        if (canColonize && this.game && this.game.colonizeStar) {
+            this.game.colonizeStar(destination, survivingColony, originalDestinationOwner);
+        }
+
+        this.cleanupEmptyFleets(attackerOwner);
+
+        const attackersLost = spaceResult.attackersLost + (groundResult ? groundResult.attackersLost : 0);
+        const defendersLost = spaceResult.defendersLost + (groundResult ? groundResult.defendersLost : 0);
+
         console.log("Finished Combat");
-        
-        // Return combat result
+
         return {
-            attackersWon: (attackers.length + attackersReserves.length) > 0,
-            defendersWon: (defenders.length + defendersReserves.length) > 0,
-            attackersLost: attackersInFleetLosses,
-            defendersLost: defendersInFleetLosses,
-            hasColony: hasColony,
-            canColonize: hasColony && !destination.isOwned()
+            attackersWon: attackerSurvivors.length > 0,
+            defendersWon: defenderSurvivors.length > 0 || this.isEnemyOwnedStar(destination, attackerOwner),
+            attackersLost,
+            defendersLost,
+            hasColony: !!survivingColony,
+            canColonize,
+            destinationOwner: destination.owner
         };
     }
 }

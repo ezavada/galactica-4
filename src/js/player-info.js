@@ -131,6 +131,10 @@ class PlayerInfo {
     isDefeated() {
         return !this.isAlive || this.numPiecesRemaining === 0;
     }
+
+    isAllyOf(playerNum) {
+        return this.playerNum === playerNum;
+    }
     
     // Set AI skill level
     setAISkill(skillLevel, advantage = 0) {
@@ -226,4 +230,3 @@ class PlayerInfo {
 }
 
 module.exports = PlayerInfo;
-
