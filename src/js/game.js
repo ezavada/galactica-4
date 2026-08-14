@@ -26,6 +26,8 @@ class Game {
         this.port = null;
         this.display = null;
         this.overlay = null; // UI overlay for lab/stardock events
+        this.uiWindow = null; // command UI window: menu, production, events, comparison
+        this.eventLog = [];
         
         // Core systems
         this.factory = factory;
@@ -75,6 +77,7 @@ class Game {
         }
         
         console.log(`Game config: ${this.config.getDescription()}`);
+        this.recordEvent('Startup', `Game created: ${this.config.getDescription()}`, { type: 'system' });
         
         if (!this.config.skipMapGeneration) {
             this.initializeGame();
@@ -299,6 +302,358 @@ class Game {
             this.display.drawGame();
         }
     }
+
+    getKeyChar(key) {
+        if (typeof key !== 'number' || key < 0) {
+            return '';
+        }
+        return String.fromCharCode(key);
+    }
+
+    getSelectedStar() {
+        if (this.selectedObject && this.getObjectType(this.selectedObject) === Common.ObjectType.STAR) {
+            return this.selectedObject;
+        }
+        return null;
+    }
+
+    openUIWindow(windowName) {
+        this.uiWindow = windowName;
+        return true;
+    }
+
+    toggleUIWindow(windowName) {
+        this.uiWindow = (this.uiWindow === windowName) ? null : windowName;
+        return true;
+    }
+
+    toggleProductionWindow() {
+        const star = this.getSelectedStar();
+        if (!star || !this.canHumanControl(star)) {
+            this.recordEvent('Command', 'Select one of your stars before opening production controls.', { type: 'ui' });
+            this.uiWindow = 'menu';
+            return true;
+        }
+        return this.toggleUIWindow('production');
+    }
+
+    recordEvent(title, message, options = {}) {
+        if (!this.eventLog) {
+            this.eventLog = [];
+        }
+        this.eventLog.push({
+            turn: options.turn || this.turn,
+            title,
+            message,
+            type: options.type || 'game',
+            createdAt: (typeof pdg !== 'undefined' && pdg.tm && pdg.tm.getMilliseconds) ? pdg.tm.getMilliseconds() : Date.now()
+        });
+        if (this.eventLog.length > 80) {
+            this.eventLog.splice(0, this.eventLog.length - 80);
+        }
+    }
+
+    getRecentEvents(limit = 12) {
+        if (!this.eventLog) {
+            return [];
+        }
+        return this.eventLog.slice(-limit).reverse();
+    }
+
+    clampAllocationValue(value) {
+        return Math.max(0, Math.min(100, value));
+    }
+
+    getAllocationDesired(allocation) {
+        if (!allocation) {
+            return 0;
+        }
+        return allocation.desired !== undefined ? allocation.desired : allocation.value || 0;
+    }
+
+    setAllocationDesired(allocation, value) {
+        const desired = this.clampAllocationValue(Math.round(value));
+        if (allocation && typeof allocation.setDesired === 'function') {
+            allocation.setDesired(desired);
+        } else if (allocation) {
+            allocation.desired = desired;
+        }
+    }
+
+    getStarAllocationEntries(star) {
+        return [
+            { key: 'growth', label: 'Growth', allocation: star.growth },
+            { key: 'shipBuilding', label: 'Ships', allocation: star.shipBuilding },
+            { key: 'research', label: 'Research', allocation: star.research }
+        ];
+    }
+
+    normalizeStarAllocations(star) {
+        const entries = this.getStarAllocationEntries(star).filter(entry => entry.allocation && !entry.allocation.locked);
+        if (entries.length === 0) {
+            return;
+        }
+
+        for (const entry of entries) {
+            this.setAllocationDesired(entry.allocation, this.getAllocationDesired(entry.allocation));
+        }
+
+        let total = entries.reduce((sum, entry) => sum + this.getAllocationDesired(entry.allocation), 0);
+        let diff = Math.round(100 - total);
+        let guard = 0;
+
+        while (diff !== 0 && guard < 300) {
+            guard++;
+            const direction = diff > 0 ? 1 : -1;
+            let changed = false;
+
+            const orderedEntries = [...entries].sort((a, b) => {
+                const aDesired = this.getAllocationDesired(a.allocation);
+                const bDesired = this.getAllocationDesired(b.allocation);
+                return direction > 0 ? aDesired - bDesired : bDesired - aDesired;
+            });
+
+            for (const entry of orderedEntries) {
+                const current = this.getAllocationDesired(entry.allocation);
+                const next = this.clampAllocationValue(current + direction);
+                if (next !== current) {
+                    this.setAllocationDesired(entry.allocation, next);
+                    diff -= direction;
+                    changed = true;
+                    break;
+                }
+            }
+
+            if (!changed) {
+                break;
+            }
+        }
+    }
+
+    adjustStarAllocation(star, allocationKey, delta) {
+        if (!star || !this.canHumanControl(star)) {
+            return false;
+        }
+
+        const entries = this.getStarAllocationEntries(star);
+        const targetEntry = entries.find(entry => entry.key === allocationKey);
+        if (!targetEntry || targetEntry.allocation.locked) {
+            return false;
+        }
+
+        const oldDesired = this.getAllocationDesired(targetEntry.allocation);
+        const requestedDesired = this.clampAllocationValue(oldDesired + delta);
+        let appliedDelta = requestedDesired - oldDesired;
+
+        if (appliedDelta === 0) {
+            return false;
+        }
+
+        const otherEntries = entries
+            .filter(entry => entry !== targetEntry && entry.allocation && !entry.allocation.locked);
+
+        if (otherEntries.length === 0) {
+            return false;
+        }
+
+        if (appliedDelta > 0) {
+            let remaining = appliedDelta;
+            const donors = [...otherEntries].sort((a, b) =>
+                this.getAllocationDesired(b.allocation) - this.getAllocationDesired(a.allocation)
+            );
+            for (const donor of donors) {
+                if (remaining <= 0) {
+                    break;
+                }
+                const current = this.getAllocationDesired(donor.allocation);
+                const take = Math.min(current, remaining);
+                this.setAllocationDesired(donor.allocation, current - take);
+                remaining -= take;
+            }
+            appliedDelta -= remaining;
+        } else {
+            let remaining = -appliedDelta;
+            const receivers = [...otherEntries].sort((a, b) =>
+                this.getAllocationDesired(a.allocation) - this.getAllocationDesired(b.allocation)
+            );
+            for (const receiver of receivers) {
+                if (remaining <= 0) {
+                    break;
+                }
+                const current = this.getAllocationDesired(receiver.allocation);
+                const room = 100 - current;
+                const add = Math.min(room, remaining);
+                this.setAllocationDesired(receiver.allocation, current + add);
+                remaining -= add;
+            }
+            appliedDelta += remaining;
+        }
+
+        if (appliedDelta === 0) {
+            return false;
+        }
+
+        this.setAllocationDesired(targetEntry.allocation, oldDesired + appliedDelta);
+        this.normalizeStarAllocations(star);
+        this.recordProductionChange(star);
+        return true;
+    }
+
+    adjustSelectedStarAllocation(allocationKey, delta) {
+        return this.adjustStarAllocation(this.getSelectedStar(), allocationKey, delta);
+    }
+
+    resetSelectedStarAllocations() {
+        const star = this.getSelectedStar();
+        if (!star || !this.canHumanControl(star)) {
+            return false;
+        }
+        this.setAllocationDesired(star.growth, 34);
+        this.setAllocationDesired(star.shipBuilding, 33);
+        this.setAllocationDesired(star.research, 33);
+        this.recordProductionChange(star);
+        return true;
+    }
+
+    recordProductionChange(star) {
+        const growth = this.getAllocationDesired(star.growth);
+        const ships = this.getAllocationDesired(star.shipBuilding);
+        const research = this.getAllocationDesired(star.research);
+        this.recordEvent('Production', `${star.name}: Growth ${growth}% / Ships ${ships}% / Research ${research}%`, { type: 'ui' });
+    }
+
+    handleCommandWindowKey(key, char) {
+        if (!this.uiWindow) {
+            return false;
+        }
+
+        const lower = char.toLowerCase();
+
+        if (key === pdg.key_Escape) {
+            this.uiWindow = null;
+            return true;
+        }
+
+        if (this.uiWindow === 'production') {
+            switch (lower) {
+                case 'q':
+                    this.adjustSelectedStarAllocation('growth', 5);
+                    return true;
+                case 'a':
+                    this.adjustSelectedStarAllocation('growth', -5);
+                    return true;
+                case 'w':
+                    this.adjustSelectedStarAllocation('shipBuilding', 5);
+                    return true;
+                case 's':
+                    this.adjustSelectedStarAllocation('shipBuilding', -5);
+                    return true;
+                case 'e':
+                    this.adjustSelectedStarAllocation('research', 5);
+                    return true;
+                case 'd':
+                    this.adjustSelectedStarAllocation('research', -5);
+                    return true;
+                case 'r':
+                    this.resetSelectedStarAllocations();
+                    return true;
+                case 'p':
+                    this.uiWindow = null;
+                    return true;
+                default:
+                    break;
+            }
+        }
+
+        switch (lower) {
+            case 'm':
+                return this.toggleUIWindow('menu');
+            case 'e':
+                return this.toggleUIWindow('events');
+            case 'p':
+                return this.toggleProductionWindow();
+            case 'v':
+                return this.toggleUIWindow('comparison');
+            case 'h':
+                this.selectHomeStar();
+                return true;
+            case 'f':
+                if (this.display) {
+                    this.display.zoomToFit();
+                }
+                return true;
+            case '0':
+                if (this.display) {
+                    this.display.resetView();
+                }
+                return true;
+            case '+':
+            case '=':
+                if (this.display) {
+                    this.display.zoomIn();
+                }
+                return true;
+            case '-':
+                if (this.display) {
+                    this.display.zoomOut();
+                }
+                return true;
+            default:
+                return true;
+        }
+    }
+
+    handleTopLevelCommandKey(key, char) {
+        const lower = char.toLowerCase();
+        switch (lower) {
+            case 'm':
+                return this.toggleUIWindow('menu');
+            case 'e':
+                return this.toggleUIWindow('events');
+            case 'p':
+                return this.toggleProductionWindow();
+            case 'v':
+                return this.toggleUIWindow('comparison');
+            default:
+                return false;
+        }
+    }
+
+    getPlayerComparisonRows() {
+        const rows = [];
+        if (!this.players || !this.config) {
+            return rows;
+        }
+
+        for (let i = 1; i <= this.config.totalPlayers; i++) {
+            const player = this.players[i];
+            if (!player) {
+                continue;
+            }
+            const ownedStars = this.stars.filter(star => star.owner === i);
+            const ownedShips = this.allShips.filter(ship => ship.owner === i);
+            const completedShips = ownedShips.filter(ship => !ship.underConstruction || !ship.underConstruction());
+            const population = ownedStars.reduce((sum, star) => sum + Math.floor(star.population * 1000.0), 0);
+            const techSum = ownedStars.reduce((sum, star) => sum + (star.techLevel || 0), 0);
+            const maxTech = ownedStars.reduce((max, star) => Math.max(max, star.techLevel || 0), 0);
+
+            rows.push({
+                playerNum: i,
+                name: player.name || `Player ${i}`,
+                type: player.isComputer ? 'AI' : 'Human',
+                isAlive: player.isAlive,
+                stars: ownedStars.length,
+                ships: completedShips.length,
+                shipsBuilding: ownedShips.length - completedShips.length,
+                population,
+                averageTech: ownedStars.length > 0 ? techSum / ownedStars.length : 0,
+                maxTech,
+                pieces: ownedStars.length + ownedShips.length
+            });
+        }
+
+        return rows;
+    }
     
     handleMouseClick(x, y) {
         // Left click - select object to view information
@@ -468,6 +823,10 @@ class Game {
             this.overlay = null;
             return true;
         }
+        const char = this.getKeyChar(key);
+        if (this.handleCommandWindowKey(key, char)) {
+            return true;
+        }
         if (key === pdg.key_Tab) {
             this.endTurn();
         } else if (key === pdg.key_Escape) {
@@ -487,12 +846,18 @@ class Game {
         //    if (this.selectedObject) {
         //        this.display.centerOn(this.selectedObject.x, this.selectedObject.y);
         //    }
+        } else if (key === 99 || key === 67) { // c or C key
+            if (this.selectedObject) {
+                this.display.centerOn(this.selectedObject.x, this.selectedObject.y);
+            }
         } else if (key === 102 || key === 70) { // f or F key
             // Zoom to fit entire map with F key
             this.display.zoomToFit();
         } else if (key === 104 || key === 72) { // h or H key
             // Select player's home star with H key
             this.selectHomeStar();
+        } else if (this.handleTopLevelCommandKey(key, char)) {
+            return true;
         } else if (this.selectedObject) {
             const objectType = this.getObjectType(this.selectedObject);
             if (objectType === Common.ObjectType.STAR) {
@@ -757,61 +1122,99 @@ class Game {
     }
 
     noteworthyEvent(who, what, where, how, why, other) {
+        let eventTitle = 'Event';
+        let eventMessage = null;
+
         switch (what) {
             case Common.EventType.SHIP_ARRIVED:
-                console.log(`${who.type} ship arrived at ${where.name}`); // who = Ship, where = Star
+                eventTitle = 'Arrival';
+                eventMessage = `${who.type} ship arrived at ${where.name}`;
+                console.log(eventMessage); // who = Ship, where = Star
                 break;
             case Common.EventType.SHIP_INTERCEPT:
-                console.log(`${who.type} ship intercepted ${where.type} ship at (${where.x}, ${where.y})`); // who = Ship, where = Ship
+                eventTitle = 'Intercept';
+                eventMessage = `${who.type} ship intercepted ${where.type || 'target'} at (${Math.round(where.x)}, ${Math.round(where.y)})`;
+                console.log(eventMessage); // who = Ship, where = Ship
                 // Check if ships are friendly and can form a fleet
                 if (who.owner === where.owner && who.canFormFleet() && where.canFormFleet()) {
                     this.handleFleetFormation(who, where);
                 }
                 break;
             case Common.EventType.SHIP_STOPPED:
-                console.log(`${who.type} ship stopped at (${who.x}, ${who.y})`); // who = Ship
+                eventTitle = 'Orders';
+                eventMessage = `${who.type} ship stopped at (${Math.round(who.x)}, ${Math.round(who.y)})`;
+                console.log(eventMessage); // who = Ship
                 break;
             case Common.EventType.SHIP_DESTROYED:
                 // TODO: different message based on where, how, and why
-                console.log(`${who.type} ship destroyed at (${where.x}, ${where.y})`); // who = Ship, where = position or Star or Ship
+                eventTitle = 'Combat';
+                eventMessage = `${who.type} ship destroyed at (${Math.round(where.x)}, ${Math.round(where.y)})`;
+                console.log(eventMessage); // who = Ship, where = position or Star or Ship
                 break;
             case Common.EventType.SHIP_BUILT:
-                console.log(`${where.name} built a ${who.type} ship`); // who = Ship, where = Star
+                eventTitle = 'Build';
+                eventMessage = `${where.name} built a ${who.type} ship`;
+                console.log(eventMessage); // who = Ship, where = Star
                 break;
             case Common.EventType.SHIP_DEPARTED:
-                console.log(`${who.type} ship departed from ${where.name}`); // who = Ship, where = Star
+                eventTitle = 'Departure';
+                eventMessage = `${who.type} ship departed from ${where.name}`;
+                console.log(eventMessage); // who = Ship, where = Star
                 break;
             case Common.EventType.SHIP_TASKED:
+                eventTitle = 'Orders';
                 if (why === Common.EventWhy.NEW_DESTINATION) {
-                    console.log(`${who.type} ship moving to (${where.x}, ${where.y})`); // who = Ship, where = coordinates, why = reason for tasking
+                    eventMessage = `${who.type} ship moving to (${Math.round(where.x)}, ${Math.round(where.y)})`;
+                    console.log(eventMessage); // who = Ship, where = coordinates, why = reason for tasking
                 } else {
-                    console.log(`${who.type} ship tasked to (${where.x}, ${where.y}) for ${why}`); // who = Ship, where = coordinates, why = reason for tasking
+                    eventMessage = `${who.type} ship tasked to (${Math.round(where.x)}, ${Math.round(where.y)}) for ${why}`;
+                    console.log(eventMessage); // who = Ship, where = coordinates, why = reason for tasking
                 }
                 break;
             case Common.EventType.TECH_LEVEL_UP:
-                console.log(`${who.name} reached tech level ${who.techLevel}`); // who = Star, where = Tech Level
+                eventTitle = 'Research';
+                eventMessage = `${who.name} reached tech level ${who.techLevel}`;
+                console.log(eventMessage); // who = Star, where = Tech Level
                 break;
             case Common.EventType.NEW_TECH_DISCOVERY: {
                 const classIndex = where || Math.floor(who.techLevel / 5);
                 this.overlay = { type: 'lab', classIndex, createdAt: pdg.tm.getMilliseconds() };
-                console.log(`🧪 New Drive Class discovered: ${classIndex}`);
+                eventTitle = 'Research';
+                eventMessage = `New drive class discovered: ${classIndex}`;
+                console.log(`🧪 ${eventMessage}`);
                 break;
             }
             case Common.EventType.NEW_SHIP_CLASS: {
                 const classIndex = where || (who.classIndex || 1);
                 this.overlay = { type: 'stardock', classIndex, createdAt: pdg.tm.getMilliseconds(), ship: who };
-                console.log(`🏭 New Ship Class built: ${classIndex}`);
+                eventTitle = 'Stardock';
+                eventMessage = `New ship class commissioned: ${classIndex}`;
+                console.log(`🏭 ${eventMessage}`);
                 break;
             }
             case Common.EventType.STAR_COLONIZED:
-                console.log(`Player ${where.owner} colonized ${where.name}`); // who = Star, where = Star
+                eventTitle = 'Colonization';
+                eventMessage = `Player ${where.owner} colonized ${where.name}`;
+                console.log(eventMessage); // who = Star, where = Star
                 break;
             case Common.EventType.STAR_CAPTURED:
-                console.log(`Player ${where.owner} captured ${where.name}`); // who = Star, where = Star
+                eventTitle = 'Combat';
+                eventMessage = `Player ${where.owner} captured ${where.name}`;
+                console.log(eventMessage); // who = Star, where = Star
+                break;
+            case Common.EventType.PLAYER_DIED:
+                eventTitle = 'Defeat';
+                eventMessage = `${who.name || `Player ${who.playerNum}`} has been defeated`;
+                console.log(eventMessage);
                 break;
             default:
-                console.log(`=== Noteworthy Event: ${who} ${what} ${where} ${how} ${why} ${other} ===`);
+                eventMessage = `Noteworthy Event: ${who} ${what} ${where} ${how} ${why} ${other}`;
+                console.log(`=== ${eventMessage} ===`);
                 break;
+        }
+
+        if (eventMessage) {
+            this.recordEvent(eventTitle, eventMessage, { type: what });
         }
     }
     

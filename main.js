@@ -48,29 +48,175 @@ const Game = require('./src/js/game.js');
 const Rules = require('./src/js/rules.js');
 const GameConfig = require('./src/js/game-config.js');
 
-const factory = new Factory();
-
-// Create game configuration (can customize here)
-const config = GameConfig.createSinglePlayer(2, 2); // 1 computer, Good difficulty
-config.sectorSize = 5;
-
-// Create rules with fastGame setting from config
-const rules = new Rules(config.fastGame);
-
-// Create game instance with config
-let game = new Game(factory, rules, config);
-
 // Create window port
-game.port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), "Galactica-4");
+const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), "Galactica-4");
 
-// Create display system
-const display = new Display(game);
+function createDefaultConfig() {
+    const config = GameConfig.createSinglePlayer(2, 2); // 2 computers, Good difficulty
+    config.sectorSize = 5;
+    return config;
+}
 
-console.log("Game created and window opened");
+function refreshTotalPlayers(config) {
+    config.totalPlayers = config.numHumans + config.numComputers;
+}
+
+let pendingConfig = createDefaultConfig();
+let game = null;
+let display = null;
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function drawStartupDialog() {
+    const drawingArea = port.getDrawingArea();
+    const screenWidth = drawingArea.width();
+    const screenHeight = drawingArea.height();
+
+    const backgroundAttrs = new pdg.Attributes();
+    backgroundAttrs.fillColor(new pdg.Color(0.02, 0.02, 0.08));
+    port.drawRect(new pdg.Rect(0, 0, screenWidth, screenHeight), backgroundAttrs);
+
+    const panelWidth = Math.min(560, screenWidth - 40);
+    const panelHeight = 390;
+    const panelX = (screenWidth - panelWidth) / 2;
+    const panelY = Math.max(30, (screenHeight - panelHeight) / 2);
+    const panelRect = new pdg.Rect(new pdg.Point(panelX, panelY), panelWidth, panelHeight);
+
+    const panelAttrs = new pdg.Attributes();
+    panelAttrs.fillColor(new pdg.Color(0, 0, 0, 0.78));
+    port.drawRect(panelRect, panelAttrs);
+
+    const frameAttrs = new pdg.Attributes();
+    frameAttrs.lineColor(new pdg.Color('cyan'));
+    port.drawRect(panelRect, frameAttrs);
+
+    const titleAttrs = new pdg.Attributes();
+    titleAttrs.fillColor(new pdg.Color('yellow'));
+    titleAttrs.textSize(24);
+    titleAttrs.textStyle(pdg.textStyle_Centered);
+    port.drawText('Galactica-4', new pdg.Point(screenWidth / 2, panelY + 44), titleAttrs);
+
+    const subAttrs = new pdg.Attributes();
+    subAttrs.fillColor(new pdg.Color('white'));
+    subAttrs.textSize(13);
+    subAttrs.textStyle(pdg.textStyle_Centered);
+    port.drawText('New Game Setup', new pdg.Point(screenWidth / 2, panelY + 72), subAttrs);
+
+    const lineAttrs = new pdg.Attributes();
+    lineAttrs.fillColor(new pdg.Color('white'));
+    lineAttrs.textSize(13);
+    lineAttrs.textStyle(pdg.textStyle_Plain);
+
+    const hintAttrs = new pdg.Attributes();
+    hintAttrs.fillColor(new pdg.Color('cyan'));
+    hintAttrs.textSize(12);
+    hintAttrs.textStyle(pdg.textStyle_Plain);
+
+    const x = panelX + 34;
+    let y = panelY + 112;
+    port.drawText(`Players: ${pendingConfig.numHumans} human, ${pendingConfig.numComputers} AI`, new pdg.Point(x, y), lineAttrs);
+    y += 24;
+    port.drawText(`AI skill: ${pendingConfig.getDifficultyName()} (${pendingConfig.compSkill})`, new pdg.Point(x, y), lineAttrs);
+    y += 24;
+    port.drawText(`Map: ${pendingConfig.getMapSizeDescription()} / ${pendingConfig.getDensityDescription()}`, new pdg.Point(x, y), lineAttrs);
+    y += 24;
+    port.drawText(`Options: ${pendingConfig.fastGame ? 'Fast game' : 'Normal speed'}, ${pendingConfig.getFogOfWarDescription()}`, new pdg.Point(x, y), lineAttrs);
+    y += 36;
+    port.drawText('[C] cycle AI players   [1-5] AI skill', new pdg.Point(x, y), hintAttrs);
+    y += 22;
+    port.drawText('[S] map size   [D] star density', new pdg.Point(x, y), hintAttrs);
+    y += 22;
+    port.drawText('[F] fast game   [O] fog/all visible   [R] defaults', new pdg.Point(x, y), hintAttrs);
+    y += 42;
+
+    const startAttrs = new pdg.Attributes();
+    startAttrs.fillColor(new pdg.Color('yellow'));
+    startAttrs.textSize(14);
+    startAttrs.textStyle(pdg.textStyle_Centered);
+    port.drawText('Press Enter to start', new pdg.Point(screenWidth / 2, y), startAttrs);
+}
+
+function handleStartupKey(key) {
+    const char = typeof key === 'number' ? String.fromCharCode(key) : '';
+    const lower = char.toLowerCase();
+
+    if (key === 13 || key === 10 || key === pdg.key_Tab) {
+        startGame();
+        return true;
+    }
+
+    if (char >= '1' && char <= '5') {
+        pendingConfig.compSkill = Number(char);
+        return true;
+    }
+
+    switch (lower) {
+        case 'c':
+            pendingConfig.numComputers = (pendingConfig.numComputers % 5) + 1;
+            refreshTotalPlayers(pendingConfig);
+            return true;
+        case 's':
+            pendingConfig.sectorSize = (pendingConfig.sectorSize % 5) + 1;
+            return true;
+        case 'd':
+            pendingConfig.density = (pendingConfig.density % 5) + 1;
+            return true;
+        case 'f':
+            pendingConfig.fastGame = !pendingConfig.fastGame;
+            return true;
+        case 'o':
+            pendingConfig.omniscient = !pendingConfig.omniscient;
+            return true;
+        case 'r':
+            pendingConfig = createDefaultConfig();
+            return true;
+        case '+':
+        case '=':
+            pendingConfig.numComputers = clamp(pendingConfig.numComputers + 1, 1, 5);
+            refreshTotalPlayers(pendingConfig);
+            return true;
+        case '-':
+            pendingConfig.numComputers = clamp(pendingConfig.numComputers - 1, 1, 5);
+            refreshTotalPlayers(pendingConfig);
+            return true;
+        default:
+            return true;
+    }
+}
+
+function startGame() {
+    if (game) {
+        return;
+    }
+    refreshTotalPlayers(pendingConfig);
+
+    const errors = pendingConfig.validate();
+    if (errors.length > 0) {
+        console.error("Invalid startup configuration:", errors);
+        pendingConfig = createDefaultConfig();
+        return;
+    }
+
+    const factory = new Factory();
+    const rules = new Rules(pendingConfig.fastGame);
+    game = new Game(factory, rules, pendingConfig);
+    game.port = port;
+    display = new Display(game);
+    game.recordEvent('Startup', `Game started: ${pendingConfig.getDescription()}`, { type: 'system' });
+    console.log("Game created and window opened");
+}
+
+console.log("Window opened; showing startup dialog");
 
 // Create event handlers using the correct PDG syntax
 const drawHandler = new pdg.IEventHandler(function(event) {
-    game.draw();
+    if (game) {
+        game.draw();
+    } else {
+        drawStartupDialog();
+    }
     return true;
 });
 
@@ -84,6 +230,9 @@ let leftClickStartY = 0;
 let hasDragged = false; // Track if user has dragged during left click
 
 const mouseHandler = new pdg.IEventHandler(function(event) {
+    if (!game) {
+        return true;
+    }
     // Check if this is a mouse down event
     if (event && event.eventType === pdg.eventType_MouseDown) {
         // Check which button was pressed
@@ -130,6 +279,9 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse wheel handler for zooming
 const mouseWheelHandler = new pdg.IEventHandler(function(event) {
+    if (!game) {
+        return true;
+    }
     if (event && event.eventType === pdg.eventType_ScrollWheel) {
         const delta = event.vertDelta || 0;
         if (delta < 0) {
@@ -147,6 +299,9 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse move handler for drag scrolling
 const mouseMoveHandler = new pdg.IEventHandler(function(event) {
+    if (!game) {
+        return true;
+    }
     if (event && event.eventType === pdg.eventType_MouseMove) {
         if (isDragging || isLeftClickDragging) {
             const deltaX = event.mousePos.x - lastMouseX;
@@ -180,7 +335,11 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
 const keyHandler = new pdg.IEventHandler(function(event) {
     // Check if this is a key press event
     if (event && event.eventType === pdg.eventType_KeyPress) {
-        game.handleKeyPress(event.unicode);
+        if (game) {
+            game.handleKeyPress(event.unicode);
+        } else {
+            handleStartupKey(event.unicode);
+        }
     }
     return true;
 });
@@ -209,4 +368,3 @@ console.log("Event handlers registered, starting PDG...");
 
 // Start PDG
 pdg.run();
-

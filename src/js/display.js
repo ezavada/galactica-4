@@ -630,158 +630,415 @@ class Display {
         }
     }
     
+    getScreenSize() {
+        const drawingArea = this.port.getDrawingArea();
+        return {
+            width: drawingArea.width(),
+            height: drawingArea.height()
+        };
+    }
+
+    clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    makeTextAttributes(color = 'white', size = 12, style = pdg.textStyle_Plain) {
+        const attrs = new pdg.Attributes();
+        attrs.fillColor(new pdg.Color(color));
+        attrs.textSize(size);
+        attrs.textStyle(style);
+        return attrs;
+    }
+
+    drawTextLine(text, x, y, color = 'white', size = 12, style = pdg.textStyle_Plain) {
+        this.port.drawText(text, new pdg.Point(x, y), this.makeTextAttributes(color, size, style));
+    }
+
+    drawPanel(rect, title = null, borderColor = 'cyan') {
+        const panelRect = new pdg.Rect(new pdg.Point(rect.x, rect.y), rect.width, rect.height);
+
+        const fillAttrs = new pdg.Attributes();
+        fillAttrs.fillColor(new pdg.Color(0, 0, 0, 0.78));
+        this.port.drawRect(panelRect, fillAttrs);
+
+        const frameAttrs = new pdg.Attributes();
+        frameAttrs.lineColor(new pdg.Color(borderColor));
+        this.port.drawRect(panelRect, frameAttrs);
+
+        if (title) {
+            this.drawTextLine(title, rect.x + 12, rect.y + 20, 'yellow', 14);
+        }
+    }
+
+    fitPanelToScreen(rect) {
+        const screen = this.getScreenSize();
+        const maxX = Math.max(10, screen.width - rect.width - 10);
+        const maxY = Math.max(10, screen.height - rect.height - 10);
+        return {
+            x: this.clamp(rect.x, 10, maxX),
+            y: this.clamp(rect.y, 10, maxY),
+            width: rect.width,
+            height: rect.height
+        };
+    }
+
+    getObjectScreenPosition(object) {
+        let x = this.toScreenX(object.x);
+        let y = this.toScreenY(object.y);
+        const objectType = this.game.getObjectType(object);
+
+        if (objectType === Common.ObjectType.SHIP && object.star) {
+            x += this.scaledStarRadius * 1.25;
+            y -= this.scaledStarRadius * 0.75;
+        } else if (objectType === Common.ObjectType.FLEET) {
+            const fleetAtStar = this.game.stars.find(star =>
+                Math.abs(star.x - object.x) < 5 && Math.abs(star.y - object.y) < 5
+            );
+            if (fleetAtStar) {
+                x += this.scaledStarRadius * 1.25;
+                y -= this.scaledStarRadius * 0.75;
+            }
+        }
+
+        return { x, y };
+    }
+
+    getAnchoredPanelRect(object, width, height) {
+        const position = this.getObjectScreenPosition(object);
+        const preferredGap = 18;
+        let x = position.x - width - preferredGap;
+
+        if (x < 10) {
+            x = position.x + preferredGap;
+        }
+
+        const y = position.y - (height / 2);
+        return this.fitPanelToScreen({ x, y, width, height });
+    }
+
+    formatPopulation(star) {
+        return Math.floor((star.population || 0) * 1000.0).toString();
+    }
+
+    trimText(text, maxLength) {
+        if (!text || text.length <= maxLength) {
+            return text || '';
+        }
+        return `${text.substring(0, maxLength - 1)}…`;
+    }
+
+    drawBar(x, y, width, height, ratio, color) {
+        const trackAttrs = new pdg.Attributes();
+        trackAttrs.fillColor(new pdg.Color(0.18, 0.18, 0.22, 0.85));
+        this.port.drawRect(new pdg.Rect(new pdg.Point(x, y), width, height), trackAttrs);
+
+        const fillWidth = Math.max(0, Math.min(width, Math.round(width * ratio)));
+        if (fillWidth > 0) {
+            const fillAttrs = new pdg.Attributes();
+            fillAttrs.fillColor(new pdg.Color(color));
+            this.port.drawRect(new pdg.Rect(new pdg.Point(x, y), fillWidth, height), fillAttrs);
+        }
+
+        const frameAttrs = new pdg.Attributes();
+        frameAttrs.lineColor(new pdg.Color('gray'));
+        this.port.drawRect(new pdg.Rect(new pdg.Point(x, y), width, height), frameAttrs);
+    }
+
+    drawAllocationSlider(label, allocation, x, y, width, color) {
+        const desired = this.game.getAllocationDesired(allocation);
+        const current = allocation && allocation.value !== undefined ? allocation.value : desired;
+        this.drawTextLine(`${label}: ${Math.round(current)}% → ${Math.round(desired)}%`, x, y, 'white', 11);
+        this.drawBar(x + 84, y - 9, width, 8, desired / 100.0, color);
+
+        const currentMarkerX = x + 84 + this.clamp(Math.round(width * current / 100.0), 0, width);
+        const markerAttrs = new pdg.Attributes();
+        markerAttrs.lineColor(new pdg.Color('white'));
+        this.port.drawLine(new pdg.Point(currentMarkerX, y - 11), new pdg.Point(currentMarkerX, y + 1), markerAttrs);
+    }
+
+    drawStarAllocationSummary(star, x, y, width = 150) {
+        this.drawAllocationSlider('Growth', star.growth, x, y, width, 'green');
+        this.drawAllocationSlider('Ships', star.shipBuilding, x, y + 18, width, 'cyan');
+        this.drawAllocationSlider('Research', star.research, x, y + 36, width, 'purple');
+        return y + 54;
+    }
+
     // Draw main UI elements
     drawMainUI(turn, starCount, shipCount) {
-        const attrs1 = new pdg.Attributes();
-        attrs1.fillColor(new pdg.Color('white'));
-        attrs1.textSize(16);
-        attrs1.textStyle(pdg.textStyle_Plain);
-        this.port.drawText(`${this.STR.turn} ${turn}`, new pdg.Point(10, 20), attrs1);
-        
-        const attrs2 = new pdg.Attributes();
-        attrs2.fillColor(new pdg.Color('grey'));
-        attrs2.textSize(14);
-        attrs2.textStyle(pdg.textStyle_Plain);
-        this.port.drawText(`${this.STR.stars} ${starCount} ${this.STR.ships} ${shipCount}`, new pdg.Point(10, 40), attrs2);
-        
-        // Add zoom information
-        const zoomAttrs = new pdg.Attributes();
-        zoomAttrs.fillColor(new pdg.Color('cyan'));
-        zoomAttrs.textSize(12);
-        zoomAttrs.textStyle(pdg.textStyle_Plain);
-        this.port.drawText(`Zoom: ${this.getZoomPercentage()}%`, new pdg.Point(10, 60), zoomAttrs);
+        this.drawTextLine(`${this.STR.turn} ${turn}`, 10, 20, 'white', 16);
+        this.drawTextLine(`${this.STR.stars} ${starCount} ${this.STR.ships} ${shipCount}`, 10, 40, 'grey', 14);
+        this.drawTextLine(`Zoom: ${this.getZoomPercentage()}%`, 10, 60, 'cyan', 12);
+        this.drawMenuBar();
+    }
+
+    drawMenuBar() {
+        const screen = this.getScreenSize();
+        const x = Math.max(250, screen.width - 430);
+        const active = this.game.uiWindow ? ` (${this.game.uiWindow})` : '';
+        this.drawTextLine(`[M] Menu  [E] Events  [P] Production  [V] Compare${active}`, x, 22, 'yellow', 11);
     }
     
     // Draw star details UI
     drawStarDetails(star) {
-        const yellowAttrs = new pdg.Attributes();
-        yellowAttrs.fillColor(new pdg.Color('yellow'));
-        yellowAttrs.textSize(14);
-        yellowAttrs.textStyle(pdg.textStyle_Plain);
-        this.port.drawText(`${star.name}`, new pdg.Point(10, 80), yellowAttrs);
-        
-        const whiteAttrs = new pdg.Attributes();
-        whiteAttrs.fillColor(new pdg.Color('white'));
-        whiteAttrs.textSize(12);
-        whiteAttrs.textStyle(pdg.textStyle_Plain);
-        this.port.drawText(`${this.STR.pop} ${Math.floor(star.population * 1000.0)}`, new pdg.Point(10, 100), whiteAttrs);
-        this.port.drawText(`${this.STR.tech} ${star.techLevel.toFixed(1)}`, new pdg.Point(10, 120), whiteAttrs);
+        const owned = this.game.canHumanControl(star);
+        const height = owned ? 300 : 145;
+        const rect = this.getAnchoredPanelRect(star, 290, height);
+        this.drawPanel(rect, star.name, owned ? 'cyan' : 'gray');
+
+        let y = rect.y + 42;
+        const x = rect.x + 12;
+        this.drawTextLine(`Owner: ${star.owner || 'Unclaimed'}`, x, y, 'gray', 11);
+        y += 18;
+        this.drawTextLine(`${this.STR.pop} ${this.formatPopulation(star)}`, x, y, 'white', 12);
+        y += 18;
+        this.drawTextLine(`${this.STR.tech} ${star.techLevel.toFixed(1)}`, x, y, 'white', 12);
+        y += 18;
+
         const buildingType = star.currentShip ? this.getShipTypeName(star.currentShip.type) : this.STR.none;
-        this.port.drawText(`${this.STR.building} ${buildingType}`, new pdg.Point(10, 140), whiteAttrs);
-        
-        // Draw ship building buttons
-        const shipTypes = [this.STR.buildScout, this.STR.buildDefense, this.STR.buildBattleship, this.STR.buildColony];
-        const frameAttrs = new pdg.Attributes();
-        frameAttrs.lineColor(new pdg.Color('cyan'));
-        this.port.drawRect(new pdg.Rect(new pdg.Point(10, 145), 100, 5 + shipTypes.length * 20), frameAttrs);
-        
-        const cyanAttrs = new pdg.Attributes();
-        cyanAttrs.fillColor(new pdg.Color('cyan'));
-        cyanAttrs.textSize(12);
-        cyanAttrs.textStyle(pdg.textStyle_Plain);
-        for (let i = 0; i < shipTypes.length; i++) {
-            const shipType = shipTypes[i];
-            const y = 160 + i * 20;
-            this.port.drawText(`${shipType}`, new pdg.Point(20, y), cyanAttrs);
+        this.drawTextLine(`${this.STR.building} ${buildingType}`, x, y, 'white', 12);
+        y += 18;
+
+        if (star.currentShip) {
+            this.drawTextLine(`Progress: ${Math.round(star.currentShip.progress)}%`, x, y, 'yellow', 11);
+            this.drawBar(x + 74, y - 9, 120, 8, star.currentShip.progress / 100.0, 'yellow');
+            y += 20;
         }
+
+        if (!owned) {
+            return;
+        }
+
+        y += 4;
+        this.drawTextLine('Production', x, y, 'cyan', 12);
+        y = this.drawStarAllocationSummary(star, x, y + 18, 150);
+
+        y += 8;
+        this.drawTextLine('Build keys:', x, y, 'yellow', 11);
+        y += 18;
+        this.drawTextLine(`${this.STR.buildScout}   ${this.STR.buildDefense}`, x, y, 'cyan', 11);
+        y += 18;
+        this.drawTextLine(`${this.STR.buildBattleship}   ${this.STR.buildColony}`, x, y, 'cyan', 11);
+        y += 20;
+        this.drawTextLine('[P] production sliders   [Right click] destination', x, y, 'gray', 10);
     }
     
     // Draw ship details UI
     drawShipDetails(ship) {
-        const cyanAttrs = new pdg.Attributes();
-        cyanAttrs.fillColor(new pdg.Color('cyan'));
-        cyanAttrs.textSize(14);
-        cyanAttrs.textStyle(pdg.textStyle_Plain);
-        
-        const whiteAttrs = new pdg.Attributes();
-        whiteAttrs.fillColor(new pdg.Color('white'));
-        whiteAttrs.textSize(12);
-        whiteAttrs.textStyle(pdg.textStyle_Plain);
-        
-        const yellowAttrs = new pdg.Attributes();
-        yellowAttrs.fillColor(new pdg.Color('yellow'));
-        yellowAttrs.textSize(12);
-        yellowAttrs.textStyle(pdg.textStyle_Plain);
-        
         const shipTypeName = this.getShipTypeName(ship.type);
-        
+        const rect = this.getAnchoredPanelRect(ship, 240, ship.underConstruction() ? 120 : 150);
+        this.drawPanel(rect, `${shipTypeName} ${ship.underConstruction() ? this.STR.shipHull : this.STR.ship}`, 'cyan');
+
+        const x = rect.x + 12;
+        let y = rect.y + 42;
+        this.drawTextLine(`Owner: ${ship.owner}`, x, y, 'gray', 11);
+        y += 18;
+        this.drawTextLine(`${this.STR.techLevel} ${ship.techLevel.toFixed(1)}`, x, y, 'white', 12);
+        y += 18;
+
         if (ship.underConstruction()) {
-            this.port.drawText(`${shipTypeName} ${this.STR.shipHull}`, new pdg.Point(10, 80), cyanAttrs);
-            this.port.drawText(`${this.STR.techLevel} ${ship.techLevel.toFixed(1)}`, new pdg.Point(10, 100), whiteAttrs);
-            this.port.drawText(`${this.STR.underConstruction} ${Math.round(ship.progress)}%`, new pdg.Point(10, 120), yellowAttrs);
+            this.drawTextLine(`${this.STR.underConstruction} ${Math.round(ship.progress)}%`, x, y, 'yellow', 12);
+            this.drawBar(x + 145, y - 9, 70, 8, ship.progress / 100.0, 'yellow');
         } else {
             const speed = ship.speed / 16380.0;
-            this.port.drawText(`${shipTypeName} ${this.STR.ship}`, new pdg.Point(10, 80), cyanAttrs);
-            this.port.drawText(`${this.STR.techLevel} ${ship.techLevel.toFixed(1)}`, new pdg.Point(10, 100), whiteAttrs);
-            this.port.drawText(`${this.STR.speed} ${speed.toFixed(1)}`, new pdg.Point(10, 120), whiteAttrs);
-            this.port.drawText(`${this.STR.power} ${this.game.rules.getShipPower(ship).toFixed(1)}`, new pdg.Point(10, 140), whiteAttrs);
-            // this.port.drawText(`Defense: ${ship.stats.defense.toFixed(1)}`, new pdg.Point(10, 160), 12, pdg.textStyle_Plain, 'white');
+            this.drawTextLine(`${this.STR.speed} ${speed.toFixed(1)}`, x, y, 'white', 12);
+            y += 18;
+            this.drawTextLine(`${this.STR.power} ${this.game.rules.getShipPower(ship).toFixed(1)}`, x, y, 'white', 12);
+            y += 18;
+            const damage = ship.damage ? `Damage: ${ship.damage}` : 'Damage: none';
+            this.drawTextLine(damage, x, y, 'gray', 11);
         }
     }
     
     // Draw fleet details UI
     drawFleetDetails(fleet) {
-        const cyanAttrs = new pdg.Attributes();
-        cyanAttrs.fillColor(new pdg.Color('cyan'));
-        cyanAttrs.textSize(14);
-        cyanAttrs.textStyle(pdg.textStyle_Plain);
-        
-        const whiteAttrs = new pdg.Attributes();
-        whiteAttrs.fillColor(new pdg.Color('white'));
-        whiteAttrs.textSize(12);
-        whiteAttrs.textStyle(pdg.textStyle_Plain);
-        
-        const orangeAttrs = new pdg.Attributes();
-        orangeAttrs.fillColor(new pdg.Color('orange'));
-        orangeAttrs.textSize(12);
-        orangeAttrs.textStyle(pdg.textStyle_Plain);
-        
-        this.port.drawText(`Fleet ${fleet.id}`, new pdg.Point(10, 80), cyanAttrs);
-        this.port.drawText(`Ships: ${fleet.getSize()}`, new pdg.Point(10, 100), whiteAttrs);
-        this.port.drawText(`Total Power: ${fleet.totalPower}`, new pdg.Point(10, 120), whiteAttrs);
-        this.port.drawText(`Speed: ${fleet.totalSpeed}`, new pdg.Point(10, 140), whiteAttrs);
-        this.port.drawText(`Tech Level: ${fleet.techLevel}`, new pdg.Point(10, 160), whiteAttrs);
-        
-        // Show ship composition
-        if (fleet.ships.length > 0) {
-            const shipTypes = {};
-            for (const ship of fleet.ships) {
-                shipTypes[ship.type] = (shipTypes[ship.type] || 0) + 1;
-            }
-            
-            let yOffset = 180;
-            for (const [shipType, count] of Object.entries(shipTypes)) {
-                this.port.drawText(`${shipType}: ${count}`, new pdg.Point(10, yOffset), orangeAttrs);
-                yOffset += 15;
-            }
+        const shipTypes = {};
+        for (const ship of fleet.ships) {
+            shipTypes[ship.type] = (shipTypes[ship.type] || 0) + 1;
         }
-        
-        // Show destination if moving
+        const compositionRows = Object.entries(shipTypes);
+        const rect = this.getAnchoredPanelRect(fleet, 260, 150 + compositionRows.length * 16 + (fleet.destination ? 18 : 0));
+        this.drawPanel(rect, `Fleet ${fleet.id}`, 'orange');
+
+        const x = rect.x + 12;
+        let y = rect.y + 42;
+        this.drawTextLine(`Ships: ${fleet.getSize()}`, x, y, 'white', 12);
+        y += 18;
+        this.drawTextLine(`Total Power: ${fleet.totalPower}`, x, y, 'white', 12);
+        y += 18;
+        this.drawTextLine(`Speed: ${fleet.totalSpeed}`, x, y, 'white', 12);
+        y += 18;
+        this.drawTextLine(`Tech Level: ${fleet.techLevel}`, x, y, 'white', 12);
+        y += 22;
+
+        for (const [shipType, count] of compositionRows) {
+            this.drawTextLine(`${shipType}: ${count}`, x, y, 'orange', 11);
+            y += 16;
+        }
+
         if (fleet.destination) {
-            this.port.drawText(`Moving to: (${Math.round(fleet.destination.x/1024)}, ${Math.round(fleet.destination.y/1024)})`, 
-                             new pdg.Point(10, 200), orangeAttrs);
+            this.drawTextLine(`Moving to: (${Math.round(fleet.destination.x/1024)}, ${Math.round(fleet.destination.y/1024)})`, x, y, 'orange', 11);
+        }
+    }
+
+    drawCommandWindow() {
+        const screen = this.getScreenSize();
+        const rect = this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 230 });
+        this.drawPanel(rect, 'Command Menu', 'yellow');
+
+        const x = rect.x + 14;
+        let y = rect.y + 46;
+        this.drawTextLine('[E] Event List', x, y, 'white', 12);
+        y += 24;
+        this.drawTextLine('[P] Production Sliders', x, y, 'white', 12);
+        y += 24;
+        this.drawTextLine('[V] Empire Comparison', x, y, 'white', 12);
+        y += 24;
+        this.drawTextLine('[H] Home Star', x, y, 'white', 12);
+        y += 24;
+        this.drawTextLine('[F] Fit Map   [+/-] Zoom   [0] Reset', x, y, 'cyan', 11);
+        y += 34;
+        this.drawTextLine('Command buttons stay keyboard-only for now.', x, y, 'gray', 10);
+        y += 18;
+        this.drawTextLine('[Esc] Close', x, y, 'gray', 10);
+    }
+
+    drawProductionWindow() {
+        const screen = this.getScreenSize();
+        const rect = this.fitPanelToScreen({ x: screen.width - 370, y: 84, width: 350, height: 275 });
+        this.drawPanel(rect, 'Production Sliders', 'cyan');
+
+        const star = this.game.getSelectedStar();
+        const x = rect.x + 14;
+        let y = rect.y + 46;
+
+        if (!star || !this.game.canHumanControl(star)) {
+            this.drawTextLine('Select one of your stars to tune production.', x, y, 'white', 12);
+            y += 24;
+            this.drawTextLine('[H] home star, then [P] production.', x, y, 'gray', 11);
+            return;
+        }
+
+        this.drawTextLine(star.name, x, y, 'yellow', 13);
+        y += 28;
+        this.drawStarAllocationSummary(star, x, y, 185);
+        y += 76;
+        this.drawTextLine('[Q/A] Growth +/- 5%', x, y, 'green', 11);
+        y += 18;
+        this.drawTextLine('[W/S] Shipbuilding +/- 5%', x, y, 'cyan', 11);
+        y += 18;
+        this.drawTextLine('[E/D] Research +/- 5%', x, y, 'purple', 11);
+        y += 24;
+        this.drawTextLine('[R] Reset even split   [P/Esc] Close', x, y, 'gray', 10);
+        y += 18;
+        this.drawTextLine('Current values ease toward desired each turn.', x, y, 'gray', 10);
+    }
+
+    drawEventWindow() {
+        const events = this.game.getRecentEvents(10);
+        const screen = this.getScreenSize();
+        const rect = this.fitPanelToScreen({
+            x: screen.width - 430,
+            y: 84,
+            width: 410,
+            height: Math.max(150, 62 + Math.max(events.length, 1) * 36)
+        });
+        this.drawPanel(rect, 'Event List', 'cyan');
+
+        let y = rect.y + 44;
+        const x = rect.x + 14;
+        if (events.length === 0) {
+            this.drawTextLine('No events yet.', x, y, 'gray', 12);
+            return;
+        }
+
+        for (const event of events) {
+            this.drawTextLine(`[T${event.turn}] ${event.title}`, x, y, 'yellow', 11);
+            y += 15;
+            this.drawTextLine(this.trimText(event.message, 56), x + 8, y, 'white', 10);
+            y += 21;
+        }
+    }
+
+    drawComparisonWindow() {
+        const rows = this.game.getPlayerComparisonRows();
+        const screen = this.getScreenSize();
+        const width = Math.min(650, screen.width - 40);
+        const rect = this.fitPanelToScreen({
+            x: (screen.width - width) / 2,
+            y: 82,
+            width,
+            height: 120 + rows.length * 22 + (this.game.selectedObject ? 44 : 0)
+        });
+        this.drawPanel(rect, 'Empire Comparison', 'yellow');
+
+        const x = rect.x + 14;
+        let y = rect.y + 44;
+        this.drawTextLine('Player', x, y, 'cyan', 11);
+        this.drawTextLine('Type', x + 170, y, 'cyan', 11);
+        this.drawTextLine('Stars', x + 245, y, 'cyan', 11);
+        this.drawTextLine('Ships', x + 300, y, 'cyan', 11);
+        this.drawTextLine('Pop', x + 355, y, 'cyan', 11);
+        this.drawTextLine('Avg Tech', x + 445, y, 'cyan', 11);
+        this.drawTextLine('Max', x + 535, y, 'cyan', 11);
+        y += 22;
+
+        for (const row of rows) {
+            const color = row.playerNum === this.game.getCurrentHumanPlayer() ? 'white' : 'gray';
+            this.drawTextLine(this.trimText(row.name, 22), x, y, color, 11);
+            this.drawTextLine(row.type, x + 170, y, color, 11);
+            this.drawTextLine(row.stars.toString(), x + 245, y, color, 11);
+            const shipText = row.shipsBuilding > 0 ? `${row.ships}+${row.shipsBuilding}` : row.ships.toString();
+            this.drawTextLine(shipText, x + 300, y, color, 11);
+            this.drawTextLine(row.population.toString(), x + 355, y, color, 11);
+            this.drawTextLine(row.averageTech.toFixed(1), x + 445, y, color, 11);
+            this.drawTextLine(row.maxTech.toFixed(1), x + 535, y, color, 11);
+            y += 22;
+        }
+
+        if (this.game.selectedObject) {
+            y += 12;
+            const selectedType = this.game.getObjectType(this.game.selectedObject);
+            let label = 'Selected object';
+            if (selectedType === Common.ObjectType.STAR) {
+                label = `Selected star: ${this.game.selectedObject.name}`;
+            } else if (selectedType === Common.ObjectType.SHIP) {
+                label = `Selected ship: ${this.getShipTypeName(this.game.selectedObject.type)}`;
+            } else if (selectedType === Common.ObjectType.FLEET) {
+                label = `Selected fleet: ${this.game.selectedObject.getSize()} ships`;
+            }
+            this.drawTextLine(label, x, y, 'yellow', 11);
+            y += 18;
+            this.drawTextLine('[V/Esc] Close comparison', x, y, 'gray', 10);
+        }
+    }
+
+    drawActiveWindow() {
+        switch (this.game.uiWindow) {
+            case 'menu':
+                this.drawCommandWindow();
+                break;
+            case 'production':
+                this.drawProductionWindow();
+                break;
+            case 'events':
+                this.drawEventWindow();
+                break;
+            case 'comparison':
+                this.drawComparisonWindow();
+                break;
+            default:
+                break;
         }
     }
     
     // Draw instructions
     drawInstructions() {
         const drawingArea = this.port.getDrawingArea();
-        const grayAttrs = new pdg.Attributes();
-        grayAttrs.fillColor(new pdg.Color('gray'));
-        grayAttrs.textSize(12);
-        grayAttrs.textStyle(pdg.textStyle_Plain);
-        
-        this.port.drawText(this.STR.clickStars, new pdg.Point(10, drawingArea.height() - 100), grayAttrs);
-        this.port.drawText(this.STR.clickShips, new pdg.Point(10, drawingArea.height() - 80), grayAttrs);
-        this.port.drawText(this.STR.tabEndTurn, new pdg.Point(10, drawingArea.height() - 60), grayAttrs);
-        
-        // Add zoom and pan controls
-        const controlAttrs = new pdg.Attributes();
-        controlAttrs.fillColor(new pdg.Color('yellow'));
-        controlAttrs.textSize(11);
-        controlAttrs.textStyle(pdg.textStyle_Plain);
-        this.port.drawText(`[+/-] Zoom  [0] Reset  [C] Center  [F] Fit`, new pdg.Point(10, drawingArea.height() - 40), controlAttrs);
-        this.port.drawText(`[Left Drag] Pan  [Middle Drag] Pan  [Mouse Wheel] Zoom`, new pdg.Point(10, drawingArea.height() - 20), controlAttrs);
+        this.drawTextLine(`${this.STR.clickStars}   ${this.STR.clickShips}`, 10, drawingArea.height() - 104, 'gray', 12);
+        this.drawTextLine(`[M] Menu  [E] Events  [P] Production  [V] Compare  ${this.STR.tabEndTurn}`, 10, drawingArea.height() - 82, 'yellow', 11);
+        this.drawTextLine(`[s/d/b/c] Build at selected star  [Right Click] Orders`, 10, drawingArea.height() - 60, 'cyan', 11);
+        this.drawTextLine(`[+/-] Zoom  [0] Reset  [C] Center  [F] Fit`, 10, drawingArea.height() - 38, 'yellow', 11);
+        this.drawTextLine(`[Left Drag] Pan  [Middle Drag] Pan  [Mouse Wheel] Zoom`, 10, drawingArea.height() - 18, 'gray', 11);
     }
     
     // Draw grid lines based on sector boundaries
@@ -864,6 +1121,9 @@ class Display {
         
         // Draw instructions
         this.drawInstructions();
+
+        // Draw command UI windows above the map/help layer
+        this.drawActiveWindow();
         
         // Draw event overlay last
         if (game.overlay) {
