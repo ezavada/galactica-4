@@ -69,6 +69,56 @@ function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
 
+function startupUIColor(name) {
+    const colors = {
+        panelFill: [0.13, 0.13, 0.14, 0.92],
+        panelBorder: [0.42, 0.42, 0.44, 0.95],
+        divider: [0.34, 0.34, 0.36, 0.85],
+        textLight: [0.78, 0.78, 0.80, 1.0],
+        textMuted: [0.56, 0.56, 0.58, 1.0]
+    };
+    const color = colors[name];
+    return color ? new pdg.Color(color[0], color[1], color[2], color[3]) : new pdg.Color(name);
+}
+
+function toStartupPDGRect(rect) {
+    if (rect && rect.x !== undefined && rect.y !== undefined && rect.width !== undefined && rect.height !== undefined) {
+        return {
+            left: rect.x,
+            top: rect.y,
+            right: rect.x + rect.width,
+            bottom: rect.y + rect.height
+        };
+    }
+    return rect;
+}
+
+function drawStartupRoundedRect(rect, radius = 14, fillColor = null, lineColor = null) {
+    const pdgRect = toStartupPDGRect(rect);
+    const attrs = new pdg.Attributes();
+    if (fillColor) {
+        attrs.fillColor(fillColor);
+    }
+    if (lineColor) {
+        attrs.lineColor(lineColor);
+    }
+
+    if (typeof port.drawRoundedRect === 'function') {
+        port.drawRoundedRect(pdgRect, radius, attrs);
+    } else if (typeof attrs.roundedCorners === 'function') {
+        attrs.roundedCorners(radius);
+        port.drawRect(pdgRect, attrs);
+    } else {
+        port.drawRect(pdgRect, attrs);
+    }
+}
+
+function drawStartupDivider(x, y, width) {
+    const dividerAttrs = new pdg.Attributes();
+    dividerAttrs.lineColor(startupUIColor('divider'));
+    port.drawLine(new pdg.Point(x, y), new pdg.Point(x + width, y), dividerAttrs);
+}
+
 function drawStartupDialog() {
     const drawingArea = port.getDrawingArea();
     const screenWidth = drawingArea.width();
@@ -82,35 +132,29 @@ function drawStartupDialog() {
     const panelHeight = 390;
     const panelX = (screenWidth - panelWidth) / 2;
     const panelY = Math.max(30, (screenHeight - panelHeight) / 2);
-    const panelRect = new pdg.Rect(new pdg.Point(panelX, panelY), panelWidth, panelHeight);
-
-    const panelAttrs = new pdg.Attributes();
-    panelAttrs.fillColor(new pdg.Color(0, 0, 0, 0.78));
-    port.drawRect(panelRect, panelAttrs);
-
-    const frameAttrs = new pdg.Attributes();
-    frameAttrs.lineColor(new pdg.Color('cyan'));
-    port.drawRect(panelRect, frameAttrs);
+    const panelRect = { x: panelX, y: panelY, width: panelWidth, height: panelHeight };
+    drawStartupRoundedRect(panelRect, 16, startupUIColor('panelFill'), startupUIColor('panelBorder'));
 
     const titleAttrs = new pdg.Attributes();
-    titleAttrs.fillColor(new pdg.Color('yellow'));
+    titleAttrs.fillColor(startupUIColor('textLight'));
     titleAttrs.textSize(24);
     titleAttrs.textStyle(pdg.textStyle_Centered);
     port.drawText('Galactica-4', new pdg.Point(screenWidth / 2, panelY + 44), titleAttrs);
 
     const subAttrs = new pdg.Attributes();
-    subAttrs.fillColor(new pdg.Color('white'));
+    subAttrs.fillColor(startupUIColor('textMuted'));
     subAttrs.textSize(13);
     subAttrs.textStyle(pdg.textStyle_Centered);
     port.drawText('New Game Setup', new pdg.Point(screenWidth / 2, panelY + 72), subAttrs);
+    drawStartupDivider(panelX + 28, panelY + 88, panelWidth - 56);
 
     const lineAttrs = new pdg.Attributes();
-    lineAttrs.fillColor(new pdg.Color('white'));
+    lineAttrs.fillColor(startupUIColor('textLight'));
     lineAttrs.textSize(13);
     lineAttrs.textStyle(pdg.textStyle_Plain);
 
     const hintAttrs = new pdg.Attributes();
-    hintAttrs.fillColor(new pdg.Color('cyan'));
+    hintAttrs.fillColor(startupUIColor('textLight'));
     hintAttrs.textSize(12);
     hintAttrs.textStyle(pdg.textStyle_Plain);
 
@@ -124,18 +168,18 @@ function drawStartupDialog() {
     y += 24;
     port.drawText(`Options: ${pendingConfig.fastGame ? 'Fast game' : 'Normal speed'}, ${pendingConfig.getFogOfWarDescription()}`, new pdg.Point(x, y), lineAttrs);
     y += 36;
-    port.drawText('[C] cycle AI players   [1-5] AI skill', new pdg.Point(x, y), hintAttrs);
+    port.drawText('<C> cycle AI players   <1-5> AI skill', new pdg.Point(x, y), hintAttrs);
     y += 22;
-    port.drawText('[S] map size   [D] star density', new pdg.Point(x, y), hintAttrs);
+    port.drawText('<S> map size   <D> star density', new pdg.Point(x, y), hintAttrs);
     y += 22;
-    port.drawText('[F] fast game   [O] fog/all visible   [R] defaults', new pdg.Point(x, y), hintAttrs);
+    port.drawText('<F> fast game   <O> fog/all visible   <R> defaults', new pdg.Point(x, y), hintAttrs);
     y += 42;
 
     const startAttrs = new pdg.Attributes();
-    startAttrs.fillColor(new pdg.Color('yellow'));
+    startAttrs.fillColor(startupUIColor('textLight'));
     startAttrs.textSize(14);
     startAttrs.textStyle(pdg.textStyle_Centered);
-    port.drawText('Press Enter to start', new pdg.Point(screenWidth / 2, y), startAttrs);
+    port.drawText('<Enter> Start', new pdg.Point(screenWidth / 2, y), startAttrs);
 }
 
 function handleStartupKey(key) {
@@ -238,6 +282,16 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
         // Check which button was pressed
         // PDG uses 'button' property: 0=left, 1=right, 2=middle
         if (event.buttonNumber === 0) {
+            game.display.setHoverPoint(event.mousePos.x, event.mousePos.y);
+            if (game.handleUIClick(event.mousePos.x, event.mousePos.y)) {
+                return true;
+            }
+
+            if (game.isAwaitingMapTarget && game.isAwaitingMapTarget()) {
+                game.handleMouseClick(event.mousePos.x, event.mousePos.y);
+                return true;
+            }
+
             // Left click - check if it's on an entity or empty space
             const clickedObject = game.findObjectAtPosition(event.mousePos.x, event.mousePos.y);
             if (clickedObject) {
@@ -303,6 +357,7 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
         return true;
     }
     if (event && event.eventType === pdg.eventType_MouseMove) {
+        game.display.setHoverPoint(event.mousePos.x, event.mousePos.y);
         if (isDragging || isLeftClickDragging) {
             const deltaX = event.mousePos.x - lastMouseX;
             const deltaY = event.mousePos.y - lastMouseY;

@@ -503,6 +503,17 @@ class Game {
         return this.adjustStarAllocation(this.getSelectedStar(), allocationKey, delta);
     }
 
+    setStarAllocation(star, allocationKey, desired) {
+        const entries = this.getStarAllocationEntries(star);
+        const targetEntry = entries.find(entry => entry.key === allocationKey);
+        if (!targetEntry) {
+            return false;
+        }
+
+        const current = this.getAllocationDesired(targetEntry.allocation);
+        return this.adjustStarAllocation(star, allocationKey, desired - current);
+    }
+
     resetSelectedStarAllocations() {
         const star = this.getSelectedStar();
         if (!star || !this.canHumanControl(star)) {
@@ -619,6 +630,90 @@ class Game {
         }
     }
 
+    setSelectedObject(object) {
+        this.selectedObject = object;
+        if (this.display) {
+            this.display.setSelectedObject(object);
+        }
+    }
+
+    isAwaitingMapTarget() {
+        return !!this.pendingMapOrderObject;
+    }
+
+    beginMapOrder(object) {
+        const objectType = this.getObjectType(object);
+        if (objectType !== Common.ObjectType.SHIP && objectType !== Common.ObjectType.FLEET) {
+            return true;
+        }
+        if (!this.canHumanControl(object)) {
+            this.recordEvent('Orders', 'You can only give orders to your own ships and fleets.', { type: 'ui' });
+            return true;
+        }
+
+        this.pendingMapOrderObject = object;
+        this.setSelectedObject(object);
+        this.recordEvent('Orders', 'Click a star, fleet, ship, or empty map location to set a destination.', { type: 'ui' });
+        return true;
+    }
+
+    executeUIAction(action) {
+        if (!action) {
+            return false;
+        }
+
+        switch (action.type) {
+            case 'consume':
+                return true;
+            case 'toggleWindow':
+                return this.toggleUIWindow(action.window);
+            case 'toggleProduction':
+                if (action.object) {
+                    this.setSelectedObject(action.object);
+                }
+                return this.toggleProductionWindow();
+            case 'setAllocation':
+                if (action.star) {
+                    this.setSelectedObject(action.star);
+                    this.setStarAllocation(action.star, action.allocationKey, action.desired);
+                }
+                return true;
+            case 'selectHomeStar':
+                this.selectHomeStar();
+                return true;
+            case 'zoomToFit':
+                if (this.display) {
+                    this.display.zoomToFit();
+                }
+                return true;
+            case 'buildShip':
+                if (action.object && this.getObjectType(action.object) === Common.ObjectType.STAR) {
+                    this.setSelectedObject(action.object);
+                    if (this.canHumanControl(action.object)) {
+                        action.object.startBuildingShip(action.shipType);
+                    }
+                }
+                return true;
+            case 'centerObject':
+                if (action.object && this.display) {
+                    this.setSelectedObject(action.object);
+                    this.display.centerOn(action.object.x, action.object.y);
+                }
+                return true;
+            case 'beginOrders':
+                return this.beginMapOrder(action.object);
+            default:
+                return false;
+        }
+    }
+
+    handleUIClick(x, y) {
+        if (!this.display || typeof this.display.getUIActionAt !== 'function') {
+            return false;
+        }
+        return this.executeUIAction(this.display.getUIActionAt(x, y));
+    }
+
     getPlayerComparisonRows() {
         const rows = [];
         if (!this.players || !this.config) {
@@ -656,16 +751,24 @@ class Game {
     }
     
     handleMouseClick(x, y) {
+        if (this.pendingMapOrderObject) {
+            const orderObject = this.pendingMapOrderObject;
+            this.pendingMapOrderObject = null;
+            this.setSelectedObject(orderObject);
+            return this.handleMouseRightClick(x, y);
+        }
+
         // Left click - select object to view information
         var clickedObject = this.findObjectAtPosition(x, y);
         
         // Allow selecting any object to view information
-        this.selectedObject = clickedObject;
-        this.display.setSelectedObject(clickedObject);
+        this.setSelectedObject(clickedObject);
         return true;
     }
     
     handleMouseRightClick(x, y) {
+        this.pendingMapOrderObject = null;
+
         // Right click - give orders to selected ship or set default destination for selected star
         // Convert screen coordinates to galactic coordinates
         const galacticX = this.display.toGalacticX(x);
@@ -846,7 +949,7 @@ class Game {
         //    if (this.selectedObject) {
         //        this.display.centerOn(this.selectedObject.x, this.selectedObject.y);
         //    }
-        } else if (key === 99 || key === 67) { // c or C key
+        } else if (key === 67) { // Shift+C centers on selected object; lowercase c remains colony build
             if (this.selectedObject) {
                 this.display.centerOn(this.selectedObject.x, this.selectedObject.y);
             }

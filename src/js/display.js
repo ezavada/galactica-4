@@ -12,6 +12,7 @@ class Display {
         this.game = game;
         this.factory = game.getFactory();
         this.selectedObject = null;
+        this.hoverPoint = null;
         game.setDisplay(this);
         const ownerColorNames = ['green', 'blue', 'red', 'yellow', 'purple', 'aqua', 'olive', 'lime'];
         this.ownerColors = ownerColorNames.map(name => new pdg.Color(name));
@@ -642,32 +643,179 @@ class Display {
         return Math.max(min, Math.min(max, value));
     }
 
-    makeTextAttributes(color = 'white', size = 12, style = pdg.textStyle_Plain) {
+    getUIColor(name) {
+        const colors = {
+            panelFill: [0.13, 0.13, 0.14, 0.92],
+            panelBorder: [0.42, 0.42, 0.44, 0.95],
+            buttonFill: [0.18, 0.18, 0.19, 0.92],
+            buttonFillHover: [0.14, 0.14, 0.15, 0.96],
+            buttonFillActive: [0.24, 0.24, 0.25, 0.95],
+            buttonFillActiveHover: [0.20, 0.20, 0.21, 0.98],
+            buttonBorder: [0.50, 0.50, 0.52, 0.95],
+            divider: [0.34, 0.34, 0.36, 0.85],
+            connector: [0.56, 0.56, 0.58, 0.50],
+            barTrack: [0.22, 0.22, 0.23, 0.95],
+            topInfoFill: [0.11, 0.11, 0.12, 0.86],
+            textLight: [0.78, 0.78, 0.80, 1.0],
+            textLabel: [0.64, 0.64, 0.66, 1.0],
+            textHover: [0.96, 0.96, 0.98, 1.0],
+            textMuted: [0.56, 0.56, 0.58, 1.0]
+        };
+
+        const color = colors[name];
+        if (color) {
+            return new pdg.Color(color[0], color[1], color[2], color[3]);
+        }
+        return new pdg.Color(name);
+    }
+
+    resolveColor(color) {
+        if (typeof color !== 'string') {
+            return color;
+        }
+        if (color === 'lightgray' || color === 'lightgrey') {
+            return this.getUIColor('textLight');
+        }
+        if (color === 'mediumgray' || color === 'mediumgrey') {
+            return this.getUIColor('divider');
+        }
+        if (color === 'mutedgray' || color === 'mutedgrey') {
+            return this.getUIColor('textMuted');
+        }
+        if (color === 'labelgray' || color === 'labelgrey') {
+            return this.getUIColor('textLabel');
+        }
+        if (color === 'hovergray' || color === 'hovergrey') {
+            return this.getUIColor('textHover');
+        }
+        return new pdg.Color(color);
+    }
+
+    setHoverPoint(x, y) {
+        this.hoverPoint = (x === null || y === null) ? null : { x, y };
+    }
+
+    isHovered(rect) {
+        return !!this.hoverPoint && this.containsPoint(rect, this.hoverPoint.x, this.hoverPoint.y);
+    }
+
+    makeTextAttributes(color = 'lightgray', size = 12, style = pdg.textStyle_Plain) {
         const attrs = new pdg.Attributes();
-        attrs.fillColor(new pdg.Color(color));
+        attrs.fillColor(this.resolveColor(color));
         attrs.textSize(size);
         attrs.textStyle(style);
         return attrs;
     }
 
-    drawTextLine(text, x, y, color = 'white', size = 12, style = pdg.textStyle_Plain) {
+    getPanelContentStartY(rect) {
+        return rect.y + 47;
+    }
+
+    drawTextLine(text, x, y, color = 'lightgray', size = 12, style = pdg.textStyle_Plain) {
         this.port.drawText(text, new pdg.Point(x, y), this.makeTextAttributes(color, size, style));
     }
 
-    drawPanel(rect, title = null, borderColor = 'cyan') {
-        const panelRect = new pdg.Rect(new pdg.Point(rect.x, rect.y), rect.width, rect.height);
+    drawRightTextLine(text, rightX, y, color = 'lightgray', size = 12) {
+        this.drawTextLine(text, rightX, y, color, size, pdg.textStyle_RightJustified);
+    }
 
-        const fillAttrs = new pdg.Attributes();
-        fillAttrs.fillColor(new pdg.Color(0, 0, 0, 0.78));
-        this.port.drawRect(panelRect, fillAttrs);
+    drawLabelValue(label, value, x, y, options = {}) {
+        const labelWidth = options.labelWidth || 72;
+        const size = options.size || 12;
+        const labelColor = options.labelColor || 'labelgray';
+        const valueColor = options.valueColor || 'lightgray';
+        const labelStyle = options.labelStyle || pdg.textStyle_RightJustified;
+        this.drawTextLine(label, x + labelWidth - 5, y, labelColor, size, labelStyle);
+        this.drawTextLine(value, x + labelWidth, y, valueColor, size);
+    }
 
-        const frameAttrs = new pdg.Attributes();
-        frameAttrs.lineColor(new pdg.Color(borderColor));
-        this.port.drawRect(panelRect, frameAttrs);
+    toPDGRect(rect) {
+        if (rect && rect.x !== undefined && rect.y !== undefined && rect.width !== undefined && rect.height !== undefined) {
+            return {
+                left: rect.x,
+                top: rect.y,
+                right: rect.x + rect.width,
+                bottom: rect.y + rect.height
+            };
+        }
+        return rect;
+    }
+
+    drawRoundedRect(rect, radius = 12, fillColor = null, lineColor = null) {
+        const pdgRect = this.toPDGRect(rect);
+        const attrs = new pdg.Attributes();
+        if (fillColor) {
+            attrs.fillColor(fillColor);
+        }
+        if (lineColor) {
+            attrs.lineColor(lineColor);
+        }
+
+        if (typeof this.port.drawRoundedRect === 'function') {
+            this.port.drawRoundedRect(pdgRect, radius, attrs);
+        } else if (typeof attrs.roundedCorners === 'function') {
+            attrs.roundedCorners(radius);
+            this.port.drawRect(pdgRect, attrs);
+        } else {
+            this.port.drawRect(pdgRect, attrs);
+        }
+    }
+
+    drawDivider(x, y, width) {
+        const dividerAttrs = new pdg.Attributes();
+        dividerAttrs.lineColor(this.getUIColor('divider'));
+        this.port.drawLine(new pdg.Point(x, y), new pdg.Point(x + width, y), dividerAttrs);
+    }
+
+    drawPanel(rect, title = null, borderColor = null) {
+        this.drawRoundedRect(rect, 14, this.getUIColor('panelFill'), borderColor ? new pdg.Color(borderColor) : this.getUIColor('panelBorder'));
 
         if (title) {
-            this.drawTextLine(title, rect.x + 12, rect.y + 20, 'yellow', 14);
+            this.drawTextLine(title, rect.x + 16, rect.y + 22, 'lightgray', 14);
+            this.drawDivider(rect.x + 14, rect.y + 28, rect.width - 28);
         }
+    }
+
+    getPanelPointer(object, rect) {
+        if (!object || !rect) {
+            return null;
+        }
+
+        const position = this.getObjectScreenPosition(object);
+        const pointerSize = 20;
+        const halfBase = pointerSize / 2;
+        const depth = Math.sqrt((pointerSize * pointerSize) - (halfBase * halfBase));
+        const side = position.x < (rect.x + rect.width / 2) ? 'left' : 'right';
+        const sideX = side === 'left' ? rect.x : rect.x + rect.width;
+        const apexX = side === 'left' ? sideX - depth : sideX + depth;
+        const centerY = this.clamp(position.y, rect.y + 24, rect.y + rect.height - 24);
+
+        return {
+            side,
+            centerY,
+            points: [
+                new pdg.Point(sideX, centerY - halfBase),
+                new pdg.Point(apexX, centerY),
+                new pdg.Point(sideX, centerY + halfBase)
+            ]
+        };
+    }
+
+    drawPanelPointer(object, rect, borderColor = null) {
+        const pointer = this.getPanelPointer(object, rect);
+        if (!pointer || typeof this.port.drawPolygon !== 'function') {
+            return;
+        }
+
+        const attrs = new pdg.Attributes();
+        attrs.fillColor(this.getUIColor('panelFill'));
+        attrs.lineColor(borderColor ? new pdg.Color(borderColor) : this.getUIColor('panelBorder'));
+        this.port.drawPolygon(new pdg.Polygon(...pointer.points), attrs);
+    }
+
+    drawAnchoredPanel(object, rect, title = null, borderColor = null) {
+        this.drawPanelPointer(object, rect, borderColor);
+        this.drawPanel(rect, title, borderColor);
     }
 
     fitPanelToScreen(rect) {
@@ -705,7 +853,7 @@ class Display {
 
     getAnchoredPanelRect(object, width, height) {
         const position = this.getObjectScreenPosition(object);
-        const preferredGap = 18;
+        const preferredGap = 44;
         let x = position.x - width - preferredGap;
 
         if (x < 10) {
@@ -729,30 +877,411 @@ class Display {
 
     drawBar(x, y, width, height, ratio, color) {
         const trackAttrs = new pdg.Attributes();
-        trackAttrs.fillColor(new pdg.Color(0.18, 0.18, 0.22, 0.85));
+        trackAttrs.fillColor(this.getUIColor('barTrack'));
         this.port.drawRect(new pdg.Rect(new pdg.Point(x, y), width, height), trackAttrs);
 
         const fillWidth = Math.max(0, Math.min(width, Math.round(width * ratio)));
         if (fillWidth > 0) {
             const fillAttrs = new pdg.Attributes();
-            fillAttrs.fillColor(new pdg.Color(color));
+            fillAttrs.fillColor(this.resolveColor(color));
             this.port.drawRect(new pdg.Rect(new pdg.Point(x, y), fillWidth, height), fillAttrs);
         }
 
         const frameAttrs = new pdg.Attributes();
-        frameAttrs.lineColor(new pdg.Color('gray'));
+        frameAttrs.lineColor(this.getUIColor('divider'));
         this.port.drawRect(new pdg.Rect(new pdg.Point(x, y), width, height), frameAttrs);
+    }
+
+    snapRectToPixels(rect) {
+        return {
+            x: Math.round(rect.x),
+            y: Math.round(rect.y),
+            width: Math.round(rect.width),
+            height: Math.round(rect.height)
+        };
+    }
+
+    drawUIButton(rect, label, hotkey = null, options = {}) {
+        const drawRect = this.snapRectToPixels(rect);
+        const active = !!options.active;
+        const hovered = this.isHovered(drawRect);
+        let fillColorName = active ? 'buttonFillActive' : 'buttonFill';
+        if (hovered) {
+            fillColorName = active ? 'buttonFillActiveHover' : 'buttonFillHover';
+        }
+        this.drawRoundedRect(
+            drawRect,
+            options.radius || 10,
+            this.getUIColor(fillColorName),
+            this.getUIColor('buttonBorder')
+        );
+
+        const buttonText = hotkey ? `${label} <${hotkey}>` : label;
+        const size = options.size || 11;
+        this.drawTextLine(
+            buttonText,
+            Math.round(drawRect.x + drawRect.width / 2),
+            Math.round(drawRect.y + drawRect.height / 2 + 4),
+            hovered ? 'hovergray' : 'lightgray',
+            size,
+            pdg.textStyle_Centered
+        );
+    }
+
+    containsPoint(rect, x, y) {
+        return rect &&
+            x >= rect.x &&
+            y >= rect.y &&
+            x <= rect.x + rect.width &&
+            y <= rect.y + rect.height;
+    }
+
+    getMapButtonDefinitions() {
+        return [
+            { key: 'M', label: 'Menu', window: 'menu', action: { type: 'toggleWindow', window: 'menu' } },
+            { key: 'E', label: 'Events', window: 'events', action: { type: 'toggleWindow', window: 'events' } },
+            { key: 'V', label: 'Compare', window: 'comparison', action: { type: 'toggleWindow', window: 'comparison' } },
+            { key: 'H', label: 'Home', action: { type: 'selectHomeStar' } },
+            { key: 'F', label: 'Fit', action: { type: 'zoomToFit' } }
+        ];
+    }
+
+    getMapButtonRegions() {
+        const screen = this.getScreenSize();
+        const buttons = this.getMapButtonDefinitions();
+
+        const cols = 2;
+        const buttonWidth = 98;
+        const buttonHeight = 30;
+        const gap = 8;
+        const rows = Math.ceil(buttons.length / cols);
+        const startX = Math.round(screen.width - (cols * buttonWidth) - ((cols - 1) * gap) - 16);
+        const startY = Math.round(screen.height - (rows * buttonHeight) - ((rows - 1) * gap) - 16);
+
+        return buttons.map((button, i) => {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            const rect = {
+                x: startX + col * (buttonWidth + gap),
+                y: startY + row * (buttonHeight + gap),
+                width: buttonWidth,
+                height: buttonHeight
+            };
+            return { ...button, rect };
+        });
+    }
+
+    drawMapButtons() {
+        const buttons = this.getMapButtonRegions();
+        for (const button of buttons) {
+            this.drawUIButton(button.rect, button.label, button.key, { active: button.window && this.game.uiWindow === button.window });
+        }
+    }
+
+    getContextActions(object) {
+        const objectType = this.game.getObjectType(object);
+        const actions = [];
+
+        if (objectType === Common.ObjectType.STAR && this.game.canHumanControl(object)) {
+            actions.push(
+                { key: 'S', label: 'Scout', action: { type: 'buildShip', shipType: 'scout' } },
+                { key: 'D', label: 'Defense', action: { type: 'buildShip', shipType: 'defense' } },
+                { key: 'B', label: 'Battleship', action: { type: 'buildShip', shipType: 'battleship' } },
+                { key: 'c', label: 'Colony', action: { type: 'buildShip', shipType: 'colony' } }
+            );
+        } else if (objectType === Common.ObjectType.SHIP || objectType === Common.ObjectType.FLEET) {
+            if (this.game.canHumanControl(object)) {
+                actions.push({ key: 'RMB', label: 'Orders', action: { type: 'beginOrders' } });
+            }
+            actions.push(
+                { key: 'C', label: 'Center', action: { type: 'centerObject' } },
+                { key: 'V', label: 'Compare', action: { type: 'toggleWindow', window: 'comparison' } }
+            );
+        } else {
+            actions.push(
+                { key: 'C', label: 'Center', action: { type: 'centerObject' } },
+                { key: 'V', label: 'Compare', action: { type: 'toggleWindow', window: 'comparison' } }
+            );
+        }
+
+        return actions;
+    }
+
+    getContextButtonArc(object, panelRect) {
+        const actions = this.getContextActions(object);
+        const position = this.getObjectScreenPosition(object);
+        const panelIsLeftOfObject = (panelRect.x + panelRect.width / 2) < position.x;
+        const direction = panelIsLeftOfObject ? 1 : -1;
+        const baseDistance = 116;
+        const buttonWidth = 96;
+        const buttonHeight = 28;
+        const verticalSpacing = 36;
+        const curveDepth = 3;
+        const middle = (actions.length - 1) / 2;
+
+        return actions.map((action, index) => {
+            const offsetIndex = index - middle;
+            const centerX = Math.round(position.x + direction * (baseDistance - Math.abs(offsetIndex) * curveDepth));
+            const centerY = Math.round(position.y + offsetIndex * verticalSpacing);
+            const rect = this.snapRectToPixels({
+                x: centerX - buttonWidth / 2,
+                y: centerY - buttonHeight / 2,
+                width: buttonWidth,
+                height: buttonHeight
+            });
+            return {
+                ...action,
+                action: { ...action.action, object },
+                side: direction > 0 ? 'right' : 'left',
+                centerX,
+                centerY,
+                rect
+            };
+        });
+    }
+
+    getObjectSelectionRadius(object) {
+        const objectType = this.game.getObjectType(object);
+        if (objectType === Common.ObjectType.STAR) {
+            return (this.scaledStarRadius || Common.StarRadius) + 6;
+        }
+        if (objectType === Common.ObjectType.SHIP) {
+            return Common.ShipRadius + 6;
+        }
+        if (objectType === Common.ObjectType.FLEET) {
+            const fleetSize = object.getSize ? object.getSize() : 1;
+            return ((this.scaledShipRadius || Common.ShipRadius) * 1.5) + (fleetSize * 0.5) + 8;
+        }
+        return 12;
+    }
+
+    getConnectorStartPoint(object, targetX, targetY) {
+        const position = this.getObjectScreenPosition(object);
+        const dx = targetX - position.x;
+        const dy = targetY - position.y;
+        const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+        const stopRadius = this.getObjectSelectionRadius(object) + 5;
+        return {
+            x: position.x + (dx / distance) * stopRadius,
+            y: position.y + (dy / distance) * stopRadius
+        };
+    }
+
+    getButtonConnectorPoint(object, button) {
+        const position = this.getObjectScreenPosition(object);
+        const buttonIsRightOfObject = button.centerX >= position.x;
+        return {
+            x: buttonIsRightOfObject ? button.rect.x : button.rect.x + button.rect.width,
+            y: button.rect.y + button.rect.height / 2
+        };
+    }
+
+    drawContextButtonArc(object, panelRect) {
+        const connectorAttrs = new pdg.Attributes();
+        connectorAttrs.lineColor(this.getUIColor('connector'));
+
+        const buttons = this.getContextButtonArc(object, panelRect);
+        for (const button of buttons) {
+            const end = this.getButtonConnectorPoint(object, button);
+            const start = this.getConnectorStartPoint(object, end.x, end.y);
+            this.port.drawLine(new pdg.Point(start.x, start.y), new pdg.Point(end.x, end.y), connectorAttrs);
+        }
+        for (const button of buttons) {
+            this.drawUIButton(button.rect, button.label, button.key, { size: 10, radius: 14 });
+        }
+    }
+
+    getSelectedObjectPanelRect(object) {
+        const objectType = this.game.getObjectType(object);
+        if (objectType === Common.ObjectType.STAR) {
+            return this.getStarDetailsLayout(object).rect;
+        }
+        if (objectType === Common.ObjectType.SHIP) {
+            return this.getAnchoredPanelRect(object, 240, object.underConstruction() ? 120 : 150);
+        }
+        if (objectType === Common.ObjectType.FLEET) {
+            const shipTypes = {};
+            for (const ship of object.ships) {
+                shipTypes[ship.type] = (shipTypes[ship.type] || 0) + 1;
+            }
+            const compositionRows = Object.entries(shipTypes);
+            return this.getAnchoredPanelRect(object, 260, 150 + compositionRows.length * 16 + (object.destination ? 18 : 0));
+        }
+        return null;
+    }
+
+    getContextButtonRegions(object = this.game.selectedObject) {
+        if (!object) {
+            return [];
+        }
+        const panelRect = this.getSelectedObjectPanelRect(object);
+        return panelRect ? this.getContextButtonArc(object, panelRect) : [];
+    }
+
+    getCommandWindowRect() {
+        const screen = this.getScreenSize();
+        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 120 });
+    }
+
+    getProductionWindowRect() {
+        const screen = this.getScreenSize();
+        return this.fitPanelToScreen({ x: screen.width - 370, y: 84, width: 350, height: 155 });
+    }
+
+    getEventWindowRect() {
+        const events = this.game.getRecentEvents(10);
+        const screen = this.getScreenSize();
+        return this.fitPanelToScreen({
+            x: screen.width - 430,
+            y: 84,
+            width: 410,
+            height: Math.max(150, 62 + Math.max(events.length, 1) * 36)
+        });
+    }
+
+    getComparisonWindowRect() {
+        const rows = this.game.getPlayerComparisonRows();
+        const screen = this.getScreenSize();
+        const width = Math.min(650, screen.width - 40);
+        return this.fitPanelToScreen({
+            x: (screen.width - width) / 2,
+            y: 82,
+            width,
+            height: 120 + rows.length * 22 + (this.game.selectedObject ? 44 : 0)
+        });
+    }
+
+    getActiveWindowRect() {
+        switch (this.game.uiWindow) {
+            case 'menu':
+                return this.getCommandWindowRect();
+            case 'production':
+                return this.getProductionWindowRect();
+            case 'events':
+                return this.getEventWindowRect();
+            case 'comparison':
+                return this.getComparisonWindowRect();
+            default:
+                return null;
+        }
+    }
+
+    getProductionWindowSliderRegions() {
+        if (this.game.uiWindow !== 'production') {
+            return [];
+        }
+
+        const star = this.game.getSelectedStar();
+        if (!star || !this.game.canHumanControl(star)) {
+            return [];
+        }
+
+        const rect = this.getProductionWindowRect();
+        const x = rect.x + 14;
+        const y = rect.y + 74;
+        const width = 185;
+        return this.game.getStarAllocationEntries(star).map((entry, index) => {
+            const sliderY = y + index * 18;
+            const rects = this.getAllocationSliderRects(x, sliderY, width);
+            return {
+                ...entry,
+                star,
+                rect: rects.control,
+                trackRect: rects.track,
+                actionType: 'setAllocation'
+            };
+        });
+    }
+
+    getAllocationSliderRegions() {
+        const regions = [];
+        const selectedStar = this.game.getSelectedStar();
+        if (selectedStar) {
+            regions.push(...this.getStarAllocationSliderRegions(selectedStar));
+        }
+        regions.push(...this.getProductionWindowSliderRegions());
+        return regions;
+    }
+
+    getSliderActionAt(x, y) {
+        const slider = this.getAllocationSliderRegions().find(region => this.containsPoint(region.rect, x, y));
+        if (!slider) {
+            return null;
+        }
+
+        const desired = this.clamp(Math.round(((x - slider.trackRect.x) / slider.trackRect.width) * 100), 0, 100);
+        return {
+            type: 'setAllocation',
+            star: slider.star,
+            allocationKey: slider.key,
+            desired
+        };
+    }
+
+    getUIPanelRegions() {
+        const regions = [];
+        if (this.game.selectedObject) {
+            const selectedPanel = this.getSelectedObjectPanelRect(this.game.selectedObject);
+            if (selectedPanel) {
+                regions.push(selectedPanel);
+            }
+        }
+
+        const activeWindowRect = this.getActiveWindowRect();
+        if (activeWindowRect) {
+            regions.push(activeWindowRect);
+        }
+
+        return regions;
+    }
+
+    getUIActionAt(x, y) {
+        const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
+        if (contextButton) {
+            return contextButton.action;
+        }
+
+        const sliderAction = this.getSliderActionAt(x, y);
+        if (sliderAction) {
+            return sliderAction;
+        }
+
+        const mapButton = this.getMapButtonRegions().find(button => this.containsPoint(button.rect, x, y));
+        if (mapButton) {
+            return mapButton.action;
+        }
+
+        const panel = this.getUIPanelRegions().find(rect => this.containsPoint(rect, x, y));
+        return panel ? { type: 'consume' } : null;
+    }
+
+    getAllocationSliderRects(x, y, width) {
+        const labelWidth = 64;
+        const gap = 8;
+        const percentWidth = 36;
+        const trackX = x + labelWidth + gap;
+        return {
+            control: { x, y: y - 14, width: labelWidth + gap + width + gap + percentWidth, height: 22 },
+            label: { x, y: y - 14, width: labelWidth, height: 22 },
+            track: { x: trackX, y: y - 8, width, height: 8 },
+            percent: { x: trackX + width + gap, y: y - 14, width: percentWidth, height: 22 }
+        };
     }
 
     drawAllocationSlider(label, allocation, x, y, width, color) {
         const desired = this.game.getAllocationDesired(allocation);
         const current = allocation && allocation.value !== undefined ? allocation.value : desired;
-        this.drawTextLine(`${label}: ${Math.round(current)}% → ${Math.round(desired)}%`, x, y, 'white', 11);
-        this.drawBar(x + 84, y - 9, width, 8, desired / 100.0, color);
+        const rects = this.getAllocationSliderRects(x, y, width);
+        const hovered = this.isHovered(rects.control);
+        const labelColor = hovered ? 'hovergray' : 'labelgray';
+        const valueColor = hovered ? 'hovergray' : 'lightgray';
+        this.drawRightTextLine(`${label}:`, rects.track.x - 8, y, labelColor, 11);
+        this.drawBar(rects.track.x, rects.track.y, rects.track.width, rects.track.height, desired / 100.0, color);
+        this.drawTextLine(`${Math.round(desired)}%`, rects.percent.x, y, valueColor, 11);
 
-        const currentMarkerX = x + 84 + this.clamp(Math.round(width * current / 100.0), 0, width);
+        const currentMarkerX = rects.track.x + this.clamp(Math.round(width * current / 100.0), 0, width);
         const markerAttrs = new pdg.Attributes();
-        markerAttrs.lineColor(new pdg.Color('white'));
+        markerAttrs.lineColor(this.resolveColor(valueColor));
         this.port.drawLine(new pdg.Point(currentMarkerX, y - 11), new pdg.Point(currentMarkerX, y + 1), markerAttrs);
     }
 
@@ -763,90 +1292,148 @@ class Display {
         return y + 54;
     }
 
+    getStarDetailsPanelHeight(star) {
+        if (!this.game.canHumanControl(star)) {
+            return 130;
+        }
+        return 216;
+    }
+
+    getStarDetailsLayout(star) {
+        const rect = this.getAnchoredPanelRect(star, 290, this.getStarDetailsPanelHeight(star));
+        const x = rect.x + 12;
+        let y = this.getPanelContentStartY(rect);
+
+        y += 18; // owner
+        y += 18; // population
+        y += 18; // tech
+        y += 18; // current build
+
+        const dividerY = y - 1;
+        const productionTitleY = dividerY + 19;
+        const sliderStartY = productionTitleY + 18;
+        return {
+            rect,
+            x,
+            basicStartY: this.getPanelContentStartY(rect),
+            dividerY,
+            productionTitleY,
+            sliderStartY,
+            sliderWidth: 150
+        };
+    }
+
+    getStarAllocationSliderRegions(star) {
+        if (!star || !this.game.canHumanControl(star)) {
+            return [];
+        }
+        const layout = this.getStarDetailsLayout(star);
+        const entries = this.game.getStarAllocationEntries(star);
+        return entries.map((entry, index) => {
+            const y = layout.sliderStartY + index * 18;
+            const rects = this.getAllocationSliderRects(layout.x, y, layout.sliderWidth);
+            return {
+                ...entry,
+                star,
+                rect: rects.control,
+                trackRect: rects.track,
+                actionType: 'setAllocation'
+            };
+        });
+    }
+
     // Draw main UI elements
     drawMainUI(turn, starCount, shipCount) {
-        this.drawTextLine(`${this.STR.turn} ${turn}`, 10, 20, 'white', 16);
-        this.drawTextLine(`${this.STR.stars} ${starCount} ${this.STR.ships} ${shipCount}`, 10, 40, 'grey', 14);
-        this.drawTextLine(`Zoom: ${this.getZoomPercentage()}%`, 10, 60, 'cyan', 12);
-        this.drawMenuBar();
+        const screen = this.getScreenSize();
+        const player = this.game.players ? this.game.players[this.game.getCurrentHumanPlayer()] : null;
+        const gameName = (this.game.config && this.game.config.gameTitle) ? this.game.config.gameTitle : (player && player.name) || 'Galactica-4';
+        const headerWidth = Math.min(420, screen.width - 40);
+        const rect = {
+            x: (screen.width - headerWidth) / 2,
+            y: 12,
+            width: headerWidth,
+            height: 56
+        };
+
+        this.drawRoundedRect(rect, 16, this.getUIColor('topInfoFill'), this.getUIColor('panelBorder'));
+        this.drawTextLine(`${gameName}  •  ${this.STR.turn} ${turn}`, screen.width / 2, rect.y + 24, 'lightgray', 15, pdg.textStyle_Centered);
+        this.drawTextLine(`${this.STR.stars} ${starCount}   ${this.STR.ships} ${shipCount}   Zoom ${this.getZoomPercentage()}%`, screen.width / 2, rect.y + 44, 'gray', 11, pdg.textStyle_Centered);
+        this.drawMapButtons();
     }
 
     drawMenuBar() {
-        const screen = this.getScreenSize();
-        const x = Math.max(250, screen.width - 430);
-        const active = this.game.uiWindow ? ` (${this.game.uiWindow})` : '';
-        this.drawTextLine(`[M] Menu  [E] Events  [P] Production  [V] Compare${active}`, x, 22, 'yellow', 11);
+        this.drawMapButtons();
     }
     
     // Draw star details UI
     drawStarDetails(star) {
         const owned = this.game.canHumanControl(star);
-        const height = owned ? 300 : 145;
-        const rect = this.getAnchoredPanelRect(star, 290, height);
-        this.drawPanel(rect, star.name, owned ? 'cyan' : 'gray');
+        const layout = this.getStarDetailsLayout(star);
+        const rect = layout.rect;
+        this.drawAnchoredPanel(star, rect, star.name);
 
-        let y = rect.y + 42;
-        const x = rect.x + 12;
-        this.drawTextLine(`Owner: ${star.owner || 'Unclaimed'}`, x, y, 'gray', 11);
+        let y = layout.basicStartY;
+        const x = layout.x;
+        this.drawLabelValue('Owner:', `${star.owner || 'Unclaimed'}`, x, y, { labelWidth: 70, valueColor: star.owner ? 'lightgray' : 'gray' });
         y += 18;
-        this.drawTextLine(`${this.STR.pop} ${this.formatPopulation(star)}`, x, y, 'white', 12);
+        this.drawLabelValue(this.STR.pop, this.formatPopulation(star), x, y, { labelWidth: 70 });
         y += 18;
-        this.drawTextLine(`${this.STR.tech} ${star.techLevel.toFixed(1)}`, x, y, 'white', 12);
+        this.drawLabelValue(this.STR.tech, star.techLevel.toFixed(1), x, y, { labelWidth: 70 });
         y += 18;
 
         const buildingType = star.currentShip ? this.getShipTypeName(star.currentShip.type) : this.STR.none;
-        this.drawTextLine(`${this.STR.building} ${buildingType}`, x, y, 'white', 12);
+        this.drawLabelValue(this.STR.building, buildingType, x, y, { labelWidth: 70 });
+        if (star.currentShip) {
+            const progressTextRight = rect.x + rect.width - 25;
+            const progressTextWidth = 40;
+            const progressBarWidth = 72;
+            const progressBarX = progressTextRight - progressTextWidth + 11 - progressBarWidth;
+            this.drawBar(progressBarX, y - 8, progressBarWidth, 8, star.currentShip.progress / 100.0, 'lightgray');
+            this.drawRightTextLine(`${Math.round(star.currentShip.progress)}%`, progressTextRight, y, 'lightgray', 11);
+        }
         y += 18;
 
-        if (star.currentShip) {
-            this.drawTextLine(`Progress: ${Math.round(star.currentShip.progress)}%`, x, y, 'yellow', 11);
-            this.drawBar(x + 74, y - 9, 120, 8, star.currentShip.progress / 100.0, 'yellow');
-            y += 20;
-        }
-
         if (!owned) {
+            this.drawContextButtonArc(star, rect);
             return;
         }
 
-        y += 4;
-        this.drawTextLine('Production', x, y, 'cyan', 12);
-        y = this.drawStarAllocationSummary(star, x, y + 18, 150);
-
-        y += 8;
-        this.drawTextLine('Build keys:', x, y, 'yellow', 11);
-        y += 18;
-        this.drawTextLine(`${this.STR.buildScout}   ${this.STR.buildDefense}`, x, y, 'cyan', 11);
-        y += 18;
-        this.drawTextLine(`${this.STR.buildBattleship}   ${this.STR.buildColony}`, x, y, 'cyan', 11);
-        y += 20;
-        this.drawTextLine('[P] production sliders   [Right click] destination', x, y, 'gray', 10);
+        this.drawDivider(x, layout.dividerY, rect.width - 24);
+        this.drawTextLine('Production', x, layout.productionTitleY, 'lightgray', 12);
+        this.drawStarAllocationSummary(star, x, layout.sliderStartY, layout.sliderWidth);
+        this.drawContextButtonArc(star, rect);
     }
     
     // Draw ship details UI
     drawShipDetails(ship) {
         const shipTypeName = this.getShipTypeName(ship.type);
         const rect = this.getAnchoredPanelRect(ship, 240, ship.underConstruction() ? 120 : 150);
-        this.drawPanel(rect, `${shipTypeName} ${ship.underConstruction() ? this.STR.shipHull : this.STR.ship}`, 'cyan');
+        this.drawAnchoredPanel(ship, rect, `${shipTypeName} ${ship.underConstruction() ? this.STR.shipHull : this.STR.ship}`);
 
         const x = rect.x + 12;
-        let y = rect.y + 42;
-        this.drawTextLine(`Owner: ${ship.owner}`, x, y, 'gray', 11);
+        let y = this.getPanelContentStartY(rect);
+        this.drawLabelValue('Owner:', `${ship.owner}`, x, y, { labelWidth: 110, size: 11 });
         y += 18;
-        this.drawTextLine(`${this.STR.techLevel} ${ship.techLevel.toFixed(1)}`, x, y, 'white', 12);
+        this.drawLabelValue(this.STR.techLevel, ship.techLevel.toFixed(1), x, y, { labelWidth: 110 });
         y += 18;
 
         if (ship.underConstruction()) {
-            this.drawTextLine(`${this.STR.underConstruction} ${Math.round(ship.progress)}%`, x, y, 'yellow', 12);
-            this.drawBar(x + 145, y - 9, 70, 8, ship.progress / 100.0, 'yellow');
+            const progressTextRight = rect.x + rect.width - 14;
+            const progressTextWidth = 40;
+            const progressBarWidth = 70;
+            const progressBarX = progressTextRight - progressTextWidth - 6 - progressBarWidth;
+            this.drawTextLine(this.STR.underConstruction, x, y, 'labelgray', 12);
+            this.drawBar(progressBarX, y - 8, progressBarWidth, 8, ship.progress / 100.0, 'lightgray');
+            this.drawRightTextLine(`${Math.round(ship.progress)}%`, progressTextRight, y, 'lightgray', 11);
         } else {
             const speed = ship.speed / 16380.0;
-            this.drawTextLine(`${this.STR.speed} ${speed.toFixed(1)}`, x, y, 'white', 12);
+            this.drawLabelValue(this.STR.speed, speed.toFixed(1), x, y, { labelWidth: 110 });
             y += 18;
-            this.drawTextLine(`${this.STR.power} ${this.game.rules.getShipPower(ship).toFixed(1)}`, x, y, 'white', 12);
+            this.drawLabelValue(this.STR.power, this.game.rules.getShipPower(ship).toFixed(1), x, y, { labelWidth: 110 });
             y += 18;
-            const damage = ship.damage ? `Damage: ${ship.damage}` : 'Damage: none';
-            this.drawTextLine(damage, x, y, 'gray', 11);
+            this.drawLabelValue('Damage:', ship.damage ? ship.damage.toString() : 'none', x, y, { labelWidth: 110, size: 11, valueColor: 'gray' });
         }
+        this.drawContextButtonArc(ship, rect);
     }
     
     // Draw fleet details UI
@@ -857,94 +1444,69 @@ class Display {
         }
         const compositionRows = Object.entries(shipTypes);
         const rect = this.getAnchoredPanelRect(fleet, 260, 150 + compositionRows.length * 16 + (fleet.destination ? 18 : 0));
-        this.drawPanel(rect, `Fleet ${fleet.id}`, 'orange');
+        this.drawAnchoredPanel(fleet, rect, `Fleet ${fleet.id}`);
 
         const x = rect.x + 12;
-        let y = rect.y + 42;
-        this.drawTextLine(`Ships: ${fleet.getSize()}`, x, y, 'white', 12);
+        let y = this.getPanelContentStartY(rect);
+        this.drawLabelValue('Ships:', fleet.getSize().toString(), x, y, { labelWidth: 92 });
         y += 18;
-        this.drawTextLine(`Total Power: ${fleet.totalPower}`, x, y, 'white', 12);
+        this.drawLabelValue('Total Power:', fleet.totalPower.toString(), x, y, { labelWidth: 92 });
         y += 18;
-        this.drawTextLine(`Speed: ${fleet.totalSpeed}`, x, y, 'white', 12);
+        this.drawLabelValue('Speed:', fleet.totalSpeed.toString(), x, y, { labelWidth: 92 });
         y += 18;
-        this.drawTextLine(`Tech Level: ${fleet.techLevel}`, x, y, 'white', 12);
+        this.drawLabelValue('Tech Level:', fleet.techLevel.toString(), x, y, { labelWidth: 92 });
         y += 22;
 
         for (const [shipType, count] of compositionRows) {
-            this.drawTextLine(`${shipType}: ${count}`, x, y, 'orange', 11);
+            this.drawLabelValue(`${shipType}:`, count.toString(), x, y, { labelWidth: 92, size: 11, valueColor: 'gray' });
             y += 16;
         }
 
         if (fleet.destination) {
-            this.drawTextLine(`Moving to: (${Math.round(fleet.destination.x/1024)}, ${Math.round(fleet.destination.y/1024)})`, x, y, 'orange', 11);
+            this.drawLabelValue('Moving to:', `(${Math.round(fleet.destination.x/1024)}, ${Math.round(fleet.destination.y/1024)})`, x, y, { labelWidth: 92, size: 11, valueColor: 'gray' });
         }
+        this.drawContextButtonArc(fleet, rect);
     }
 
     drawCommandWindow() {
-        const screen = this.getScreenSize();
-        const rect = this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 230 });
-        this.drawPanel(rect, 'Command Menu', 'yellow');
+        const rect = this.getCommandWindowRect();
+        this.drawPanel(rect, 'Command Menu');
 
         const x = rect.x + 14;
-        let y = rect.y + 46;
-        this.drawTextLine('[E] Event List', x, y, 'white', 12);
+        let y = this.getPanelContentStartY(rect);
+        this.drawTextLine('Keyboard shortcuts remain active.', x, y, 'gray', 11);
         y += 24;
-        this.drawTextLine('[P] Production Sliders', x, y, 'white', 12);
-        y += 24;
-        this.drawTextLine('[V] Empire Comparison', x, y, 'white', 12);
-        y += 24;
-        this.drawTextLine('[H] Home Star', x, y, 'white', 12);
-        y += 24;
-        this.drawTextLine('[F] Fit Map   [+/-] Zoom   [0] Reset', x, y, 'cyan', 11);
-        y += 34;
-        this.drawTextLine('Command buttons stay keyboard-only for now.', x, y, 'gray', 10);
-        y += 18;
-        this.drawTextLine('[Esc] Close', x, y, 'gray', 10);
+        this.drawTextLine('<Esc> Close', x, y, 'gray', 10);
     }
 
     drawProductionWindow() {
-        const screen = this.getScreenSize();
-        const rect = this.fitPanelToScreen({ x: screen.width - 370, y: 84, width: 350, height: 275 });
-        this.drawPanel(rect, 'Production Sliders', 'cyan');
+        const rect = this.getProductionWindowRect();
+        this.drawPanel(rect, 'Production Sliders');
 
         const star = this.game.getSelectedStar();
         const x = rect.x + 14;
-        let y = rect.y + 46;
+        let y = this.getPanelContentStartY(rect);
 
         if (!star || !this.game.canHumanControl(star)) {
-            this.drawTextLine('Select one of your stars to tune production.', x, y, 'white', 12);
+            this.drawTextLine('Select one of your stars to tune production.', x, y, 'lightgray', 12);
             y += 24;
-            this.drawTextLine('[H] home star, then [P] production.', x, y, 'gray', 11);
+            this.drawTextLine('<Esc> Close', x, y, 'gray', 10);
             return;
         }
 
-        this.drawTextLine(star.name, x, y, 'yellow', 13);
+        this.drawTextLine(star.name, x, y, 'lightgray', 13);
         y += 28;
         this.drawStarAllocationSummary(star, x, y, 185);
-        y += 76;
-        this.drawTextLine('[Q/A] Growth +/- 5%', x, y, 'green', 11);
-        y += 18;
-        this.drawTextLine('[W/S] Shipbuilding +/- 5%', x, y, 'cyan', 11);
-        y += 18;
-        this.drawTextLine('[E/D] Research +/- 5%', x, y, 'purple', 11);
-        y += 24;
-        this.drawTextLine('[R] Reset even split   [P/Esc] Close', x, y, 'gray', 10);
-        y += 18;
-        this.drawTextLine('Current values ease toward desired each turn.', x, y, 'gray', 10);
+        y += 68;
+        this.drawTextLine('<Esc> Close', x, y, 'gray', 10);
     }
 
     drawEventWindow() {
         const events = this.game.getRecentEvents(10);
-        const screen = this.getScreenSize();
-        const rect = this.fitPanelToScreen({
-            x: screen.width - 430,
-            y: 84,
-            width: 410,
-            height: Math.max(150, 62 + Math.max(events.length, 1) * 36)
-        });
-        this.drawPanel(rect, 'Event List', 'cyan');
+        const rect = this.getEventWindowRect();
+        this.drawPanel(rect, 'Event List');
 
-        let y = rect.y + 44;
+        let y = this.getPanelContentStartY(rect);
         const x = rect.x + 14;
         if (events.length === 0) {
             this.drawTextLine('No events yet.', x, y, 'gray', 12);
@@ -952,38 +1514,33 @@ class Display {
         }
 
         for (const event of events) {
-            this.drawTextLine(`[T${event.turn}] ${event.title}`, x, y, 'yellow', 11);
+            this.drawTextLine(`T${event.turn}  ${event.title}`, x, y, 'lightgray', 11);
             y += 15;
-            this.drawTextLine(this.trimText(event.message, 56), x + 8, y, 'white', 10);
+            this.drawTextLine(this.trimText(event.message, 56), x + 8, y, 'gray', 10);
             y += 21;
+            this.drawDivider(x, y - 8, rect.width - 28);
         }
     }
 
     drawComparisonWindow() {
         const rows = this.game.getPlayerComparisonRows();
-        const screen = this.getScreenSize();
-        const width = Math.min(650, screen.width - 40);
-        const rect = this.fitPanelToScreen({
-            x: (screen.width - width) / 2,
-            y: 82,
-            width,
-            height: 120 + rows.length * 22 + (this.game.selectedObject ? 44 : 0)
-        });
-        this.drawPanel(rect, 'Empire Comparison', 'yellow');
+        const rect = this.getComparisonWindowRect();
+        this.drawPanel(rect, 'Empire Comparison');
 
         const x = rect.x + 14;
-        let y = rect.y + 44;
-        this.drawTextLine('Player', x, y, 'cyan', 11);
-        this.drawTextLine('Type', x + 170, y, 'cyan', 11);
-        this.drawTextLine('Stars', x + 245, y, 'cyan', 11);
-        this.drawTextLine('Ships', x + 300, y, 'cyan', 11);
-        this.drawTextLine('Pop', x + 355, y, 'cyan', 11);
-        this.drawTextLine('Avg Tech', x + 445, y, 'cyan', 11);
-        this.drawTextLine('Max', x + 535, y, 'cyan', 11);
+        let y = this.getPanelContentStartY(rect);
+        this.drawTextLine('Player', x, y, 'lightgray', 11);
+        this.drawTextLine('Type', x + 170, y, 'lightgray', 11);
+        this.drawTextLine('Stars', x + 245, y, 'lightgray', 11);
+        this.drawTextLine('Ships', x + 300, y, 'lightgray', 11);
+        this.drawTextLine('Pop', x + 355, y, 'lightgray', 11);
+        this.drawTextLine('Avg Tech', x + 445, y, 'lightgray', 11);
+        this.drawTextLine('Max', x + 535, y, 'lightgray', 11);
+        this.drawDivider(x, y + 8, rect.width - 28);
         y += 22;
 
         for (const row of rows) {
-            const color = row.playerNum === this.game.getCurrentHumanPlayer() ? 'white' : 'gray';
+            const color = row.playerNum === this.game.getCurrentHumanPlayer() ? 'lightgray' : 'gray';
             this.drawTextLine(this.trimText(row.name, 22), x, y, color, 11);
             this.drawTextLine(row.type, x + 170, y, color, 11);
             this.drawTextLine(row.stars.toString(), x + 245, y, color, 11);
@@ -1006,9 +1563,9 @@ class Display {
             } else if (selectedType === Common.ObjectType.FLEET) {
                 label = `Selected fleet: ${this.game.selectedObject.getSize()} ships`;
             }
-            this.drawTextLine(label, x, y, 'yellow', 11);
+            this.drawTextLine(label, x, y, 'lightgray', 11);
             y += 18;
-            this.drawTextLine('[V/Esc] Close comparison', x, y, 'gray', 10);
+            this.drawTextLine('<V>/<Esc> Close comparison', x, y, 'gray', 10);
         }
     }
 
@@ -1034,11 +1591,9 @@ class Display {
     // Draw instructions
     drawInstructions() {
         const drawingArea = this.port.getDrawingArea();
-        this.drawTextLine(`${this.STR.clickStars}   ${this.STR.clickShips}`, 10, drawingArea.height() - 104, 'gray', 12);
-        this.drawTextLine(`[M] Menu  [E] Events  [P] Production  [V] Compare  ${this.STR.tabEndTurn}`, 10, drawingArea.height() - 82, 'yellow', 11);
-        this.drawTextLine(`[s/d/b/c] Build at selected star  [Right Click] Orders`, 10, drawingArea.height() - 60, 'cyan', 11);
-        this.drawTextLine(`[+/-] Zoom  [0] Reset  [C] Center  [F] Fit`, 10, drawingArea.height() - 38, 'yellow', 11);
-        this.drawTextLine(`[Left Drag] Pan  [Middle Drag] Pan  [Mouse Wheel] Zoom`, 10, drawingArea.height() - 18, 'gray', 11);
+        this.drawTextLine(`${this.STR.clickStars}   ${this.STR.clickShips}`, 10, drawingArea.height() - 60, 'gray', 12);
+        this.drawTextLine(`${this.STR.tabEndTurn}   <+/-> Zoom   <0> Reset   <Shift+C> Center`, 10, drawingArea.height() - 38, 'lightgray', 11);
+        this.drawTextLine(`<Left Drag> Pan   <Middle Drag> Pan   <Mouse Wheel> Zoom`, 10, drawingArea.height() - 18, 'gray', 11);
     }
     
     // Draw grid lines based on sector boundaries
