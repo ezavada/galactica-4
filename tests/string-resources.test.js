@@ -3,6 +3,79 @@
 
 const test = require('./test-framework.js');
 const path = require('path');
+const fs = require('fs');
+
+const REQUIRED_RUNTIME_STRING_IDS = [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    11, 12, 13, 14, 15, 16, 17, 18,
+    20, 21, 22, 23,
+    30, 31, 32, 33,
+    100, 200, 250, 270,
+    300, 301, 302, 303, 304, 305, 306,
+    350, 351, 352, 353, 354, 355,
+    400, 401, 402, 403, 404, 405,
+    450, 451, 452, 453,
+    500, 501, 502, 503, 504, 505, 506, 507, 508, 509,
+    510, 511,
+    520, 521, 522, 523, 524, 525, 526, 527, 528, 529,
+    530, 531, 532, 533, 534, 535, 536, 537, 538, 539,
+    540, 541, 542, 543, 544, 545, 546, 547, 548, 549,
+    550, 551, 552, 553, 554, 555, 556, 557, 558, 559,
+    560, 561, 562, 564, 565, 568, 570, 571, 572,
+    600, 601, 602, 603, 604, 605, 606, 607, 608, 609,
+    610, 611, 612, 613,
+    620, 621, 622, 623, 624, 625, 626, 627, 628, 629,
+    630, 631, 632, 633, 634, 635, 636, 637, 638, 639,
+    640, 641,
+    800
+];
+
+function parseStringResourceFile(filePath) {
+    const entries = new Map();
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split(/\r?\n/);
+
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) {
+            continue;
+        }
+
+        const tabIndex = line.indexOf('\t');
+        if (tabIndex < 0) {
+            continue;
+        }
+
+        const id = Number(line.substring(0, tabIndex));
+        if (Number.isInteger(id)) {
+            entries.set(id, line.substring(tabIndex + 1));
+        }
+    }
+
+    return entries;
+}
+
+function sortedIds(entries) {
+    return Array.from(entries.keys()).sort((a, b) => a - b);
+}
+
+function getLocalizedResourceFiles(dataPath) {
+    return fs.readdirSync(dataPath)
+        .filter(file => /^strings-[a-z]{2}\.txt$/.test(file))
+        .sort()
+        .map(file => path.join(dataPath, file));
+}
+
+function getPlaceholderIds(value) {
+    const placeholders = new Set();
+    const regex = /\{(\d+)\}/g;
+    let match = regex.exec(value);
+    while (match) {
+        placeholders.add(Number(match[1]));
+        match = regex.exec(value);
+    }
+    return Array.from(placeholders).sort((a, b) => a - b);
+}
 
 function runStringResourceTests() {
     // Initialize ResourceManager with data directory path
@@ -172,7 +245,60 @@ function runStringResourceTests() {
             test.assertDefined(ai, 'AI should be defined');
         });
     });
+
+    test.describe('String Resources - Current Runtime UI Coverage', () => {
+        test.it('loads every current user-visible runtime string', () => {
+            for (const stringId of REQUIRED_RUNTIME_STRING_IDS) {
+                const value = pdg.res.getString(stringId);
+                test.assertDefined(value, `String ID ${stringId} should be defined`);
+                test.assertGreaterThan(value.length, 0, `String ID ${stringId} should not be empty`);
+            }
+        });
+    });
+
+    test.describe('String Resources - Localized File Parity', () => {
+        const englishPath = path.join(dataPath, 'strings.txt');
+        const englishEntries = parseStringResourceFile(englishPath);
+        const englishIds = sortedIds(englishEntries);
+        const localizedFiles = getLocalizedResourceFiles(dataPath);
+
+        test.it('has at least one localized resource file', () => {
+            test.assertGreaterThan(localizedFiles.length, 0, 'Should have localized string resource files');
+        });
+
+        test.it('keeps every localized file in ID parity with English', () => {
+            for (const localizedPath of localizedFiles) {
+                const localizedEntries = parseStringResourceFile(localizedPath);
+                const localizedIds = sortedIds(localizedEntries);
+                const missing = englishIds.filter(id => !localizedEntries.has(id));
+                const extra = localizedIds.filter(id => !englishEntries.has(id));
+                const file = path.basename(localizedPath);
+
+                test.assertEqual(missing.length, 0, `${file} missing string IDs: ${missing.join(', ')}`);
+                test.assertEqual(extra.length, 0, `${file} has extra string IDs: ${extra.join(', ')}`);
+            }
+        });
+
+        test.it('keeps format placeholders compatible in every localized file', () => {
+            for (const localizedPath of localizedFiles) {
+                const localizedEntries = parseStringResourceFile(localizedPath);
+                const file = path.basename(localizedPath);
+
+                for (const [id, englishValue] of englishEntries) {
+                    const englishPlaceholders = getPlaceholderIds(englishValue);
+                    const localizedPlaceholders = getPlaceholderIds(localizedEntries.get(id) || '');
+
+                    if (englishPlaceholders.length > 0 || localizedPlaceholders.length > 0) {
+                        test.assertDeepEqual(
+                            localizedPlaceholders,
+                            englishPlaceholders,
+                            `${file} ID ${id} placeholders should match English`
+                        );
+                    }
+                }
+            }
+        });
+    });
 }
 
 module.exports = runStringResourceTests;
-

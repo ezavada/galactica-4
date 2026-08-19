@@ -2,7 +2,7 @@
 
 Last reviewed: 2026-08-19
 
-Galactica-4 uses the PDG `ResourceManager` for localized string resources. The system is active and useful, but it is not yet a guarantee that every visible runtime string is localized.
+Galactica-4 uses the PDG `ResourceManager` for localized string resources. Current user-visible runtime strings are routed through resources and covered by tests for required IDs, localized file parity, and formatted placeholder compatibility.
 
 ## Resource files
 
@@ -20,22 +20,24 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 62 IDs
-- localized files: 61 IDs each
+- `strings.txt`: 151 IDs
+- localized files: 151 IDs each
 
-The localized files currently omit ID `800`, the battleship class/art-name list. The default English resource contains that list, and runtime code has a fallback path for class/art lookup.
+Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
 ## Runtime loading
 
-`main.js` opens the `data/` directory with `pdg.res.openResourceFile()` before game setup. Language can be selected on the command line:
+`main.js` opens the `data/` directory with `pdg.res.openResourceFile()` before game setup. Language can be selected on the command line by passing app arguments after the `gad4` launcher separator:
 
 ```bash
-./gad4 --lang=es
-./gad4 --lang=fr
-./gad4 --lang=de
-./gad4 --lang=ja
-./gad4 --lang=ru
+./gad4 -- --lang=es
+./gad4 -- --lang=fr
+./gad4 -- --lang=de
+./gad4 -- --lang=ja
+./gad4 -- --lang=ru
 ```
+
+Directly running `./gad4 --lang=es` does not work because `gad4` treats `--lang=es` as a launcher option and exits with `bad option: --lang=es`.
 
 The code then calls `pdg.res.setLanguage(languageCode)`.
 
@@ -44,19 +46,25 @@ The code then calls `pdg.res.setLanguage(languageCode)`.
 The current resources cover:
 
 - core map/system/ship labels used by `Display`;
+- startup setup dialog text and option labels;
+- command, production, event-list, and empire-comparison windows;
+- permanent map buttons and selected-object popup action labels;
+- event titles/messages currently emitted by the runtime;
+- lab/stardock overlay titles and dismissal text;
 - star names and roman numerals;
 - computer player name templates and faction group names;
 - player type and skill labels;
 - map size/density labels;
 - setup/config description fragments;
-- basic ship type/build labels.
+- basic ship type/build labels;
+- battleship class/art names.
 
 ## Known gaps
 
 - There is no in-game language switcher.
-- Several visible strings are still hard-coded in English, including parts of the startup dialog, event messages, overlay titles, some button labels, and fog/all-visible description text.
 - Debug and diagnostic console output remains English by design for now.
-- `tests/string-resources.test.js` validates the default resource file, not full parity across every localized file.
+- Future v3 systems that have not been ported yet, such as tutorial/help text, save/load dialogs, multiplayer chat, and richer event/result windows, will need new resource IDs when implemented.
+- Generated proper names and ship class/art names currently remain English-style names in every language.
 
 ## Adding or changing strings
 
@@ -64,20 +72,18 @@ When adding user-visible strings:
 
 1. Add the ID to `data/strings.txt`.
 2. Add corresponding entries to every supported localized file.
-3. Use `pdg.res.getString(id) || "Fallback"` in code.
-4. Add or update tests when the string is required for runtime behavior.
+3. Use `I18n.getString(id, "Fallback")` or `I18n.formatString(id, "Fallback {0}", value)` in code.
+4. Add the ID to the required runtime string list in `tests/string-resources.test.js` when the string is required for runtime behavior.
 5. Run:
 
    ```bash
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 280 passed, 0 failed.
+Current expected full-suite result: 284 passed, 0 failed.
 
 ## Future work
 
-- Localize remaining hard-coded UI/event strings.
-- Add a small resource-parity test for all localized files.
 - Add an in-game language selector.
-- Decide whether battleship class names should be localizable or remain stable asset identifiers.
-- Add tutorial/help text resources when those v3 systems are ported.
+- Decide whether battleship class names should stay stable asset identifiers or become fully translated display names separate from artwork.
+- Add tutorial/help, save/load, multiplayer, and richer event/result text resources when those v3 systems are ported.

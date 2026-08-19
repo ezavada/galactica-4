@@ -86,6 +86,99 @@
 505	Fast Game
 506	All Visible
 507	map
+508	Fog of War
+509	Normal speed
+510	Game created: {0}
+511	Game started: {0}
+520	New Game Setup
+521	Players: {0} {1}, {2} {3}
+522	AI skill: {0} ({1})
+523	Map: {0} / {1}
+524	Options: {0}, {1}
+525	<C> cycle AI players   <1-5> AI skill
+526	<S> map size   <D> star density
+527	<F> fast game   <O> fog/all visible   <R> defaults
+528	<Enter> Start
+529	Command Menu
+530	Keyboard shortcuts remain active.
+531	<Esc> Close
+532	Production Sliders
+533	Select one of your stars to tune production.
+534	Event List
+535	No events yet.
+536	Empire Comparison
+537	Player
+538	Type
+539	Avg Tech
+540	Max
+541	Selected object
+542	Selected star: {0}
+543	Selected ship: {0}
+544	Selected fleet: {0} ships
+545	<V>/<Esc> Close comparison
+546	Zoom
+547	<+/-> Zoom   <0> Reset   <Shift+C> Center
+548	<Left Drag> Pan   <Middle Drag> Pan   <Mouse Wheel> Zoom
+549	Production
+
+# Command button and panel labels (550-599)
+550	Menu
+551	Events
+552	Compare
+553	Home
+554	Fit
+555	Orders
+556	Center
+557	Owner:
+558	Unclaimed
+559	Damage:
+560	Fleet {0}
+561	Total Power:
+562	Moving to:
+564	Growth
+565	Research
+568	Galactica-4
+570	New Drive Technology
+571	New {0} Class Commissioned
+572	Press any key to continue
+
+# Event titles and messages (600-699)
+600	Event
+601	Startup
+602	Command
+603	Production
+604	Orders
+605	Arrival
+606	Intercept
+607	Combat
+608	Build
+609	Departure
+610	Research
+611	Stardock
+612	Colonization
+613	Defeat
+620	Select one of your stars before opening production controls.
+621	{0}: Growth {1}% / Ships {2}% / Research {3}%
+622	You can only give orders to your own ships and fleets.
+623	Click a star, fleet, ship, or empty map location to set a destination.
+624	{0} ship arrived at {1}
+625	{0} ship intercepted {1} at ({2}, {3})
+626	{0} ship stopped at ({1}, {2})
+627	{0} ship destroyed at ({1}, {2})
+628	{0} built a {1} ship
+629	{0} ship departed from {1}
+630	{0} ship moving to ({1}, {2})
+631	{0} ship tasked to ({1}, {2}) for {3}
+632	{0} reached tech level {1}
+633	New drive class discovered: {0}
+634	New ship class commissioned: {0}
+635	Player {0} colonized {1}
+636	Player {0} captured {1}
+637	{0} has been defeated
+638	Noteworthy Event: {0} {1} {2} {3} {4} {5}
+639	target
+640	combat
+641	new destination
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
 # Order maps to class index floor(tech/5):

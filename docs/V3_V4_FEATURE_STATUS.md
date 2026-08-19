@@ -13,7 +13,7 @@ The comparison is based on:
 - the published [Galactica v3 User's Manual](http://annodominari.com/);
 - all JavaScript source, tests, and documentation currently in `galactica-4`.
 
-The comparison started as a static code review. After `pdg-devel/gad4` and its `pdg` target became available, the v4 automated suite was verified on 2026-08-19 with `./gad4 tests/run-tests.js`: 280 passed, 0 failed. Passing tests prove the covered classes and helpers behave as tested, but do not prove that the playable runtime invokes every scaffolded system.
+The comparison started as a static code review. After `pdg-devel/gad4` and its `pdg` target became available, the v4 automated suite was verified on 2026-08-19 with `./gad4 tests/run-tests.js`: 284 passed, 0 failed. Passing tests prove the covered classes and helpers behave as tested, but do not prove that the playable runtime invokes every scaffolded system.
 
 ### Status key
 
@@ -178,11 +178,11 @@ The largest blockers to a complete game are:
 | Main information/navigation panels | Context-sensitive system, ship, fleet, and list panels with command buttons. | 🟡 Partial | v4 draws anchored context panels for selected systems, ships, and fleets plus simple menu/event/comparison windows. Permanent map buttons and popup arc buttons are clickable, and panel clicks are consumed so they do not dismiss selection. The v3 contextual button architecture, list panels, and richer command workflows are still absent. |
 | Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | 🟡 Partial | v4 now uses charcoal rounded panels, light-gray text, medium dividers, hover brightening/darkening, a top-center game/turn header, bottom-right permanent map buttons, and pointer triangles on anchored panels. It is intentionally simple and still needs final visual direction, more responsive layout polish, and v3-level window variety. |
 | Keyboard shortcuts and hover help | Buttons advertise shortcuts; balloon/flyby help describes controls. | 🟡 Partial | More keys are wired (`M/E/P/V`, production controls, `C`, `H`, zoom keys), clickable buttons show `<key>` notation after the label, and hover brightens text/darkens button backgrounds. There is still no hover/balloon help. |
-| Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | 🟡 Partial | `Game` now retains recent noteworthy events and `[E]` or the Events map button opens a simple event list. It is not selectable, localized, filtered by last turn, or as narratively complete as v3. |
+| Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | 🟡 Partial | `Game` now retains recent noteworthy events and `[E]` or the Events map button opens a simple localized event list. It is not selectable, filtered by last turn, or as narratively complete as v3. |
 | Attention queue | New ships, idle ships, colonies, messages, and other important events select themselves in sequence. | ❌ Missing | No `needy` queue; Tab is repurposed to end the turn. |
 | New technology lab presentation | Illustrated new-drive event. | ✅ Implemented | Dimming lab overlay with blueprint art; dismissed with any key. |
 | New battleship class/stardock presentation | Illustrated first-of-class event. | ✅ Implemented | Stardock overlay and ship art in `display.js:920-944`. |
-| Colonization/capture/battle event text | Player-relative narrative messages for 45 event types. | 🟡 Partial | A small subset of event text is retained and displayed in the event list. It is still not localized, not player-relative in the v3 style, and far short of v3's event coverage. |
+| Colonization/capture/battle event text | Player-relative narrative messages for 45 event types. | 🟡 Partial | A small localized subset of event text is retained and displayed in the event list. It is still not player-relative in the v3 style and remains far short of v3's event coverage. |
 | Compare players | Sortable comparison with best values blue and worst red. | 🟡 Partial | `[V]` or the Compare map button opens a simple player comparison table for stars, ships, population, average tech, and max tech. It is not sortable and does not color best/worst values or compute v3 scores. |
 | Send/show/hold player messages | Multiplayer chat to one/all/admin, with message history and repeat settings. | ❌ Missing | No chat or message model. |
 | Rename ship/fleet/colony/rendezvous | Edit menu rename workflow. | ❌ Missing | No rename UI. |
@@ -190,7 +190,7 @@ The largest blockers to a complete game are:
 | Preferences | Persistent drawing, sound, language, and game preferences. | ❌ Missing | No preferences UI or persistence. |
 | User's Manual | In-app menu opens the manual. | ❌ Missing | The current v4 UI has no Help/manual command. The public v3 manual remains available online. |
 | Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | ❌ Missing | v3 tutorial resources and controller have no v4 equivalent. |
-| Internationalization | v3 language plug-ins; menu can switch languages. | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian string files and a `--lang` option. There is no in-game switcher, and some visible strings remain hard-coded in English. |
+| Internationalization | v3 language plug-ins; menu can switch languages. | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian string files and a `--lang` runtime argument when passed after the `gad4` launcher separator, such as `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven and tested for localized ID/placeholder parity, but there is still no in-game language switcher and future unported v3 dialogs/help will need new resources. |
 | Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | v4 uses background and lab/stardock/ship assets, while most UI buttons, panels, animations, and states are drawn as styled primitives/text. |
 
 ## 9. Save/load, multiplayer, and host administration
@@ -214,11 +214,11 @@ The largest blockers to a complete game are:
 
 The project documentation was refreshed on 2026-08-19 so the docs now agree on current runtime status rather than mixing old plans with newer implementation summaries.
 
-- `MAP_GENERATION_PORT_PLAN.md` now records current map-generation status instead of listing already-completed work as future tasks.
-- `AI_INTEGRATION_GUIDE.md` and `AI_INTEGRATION_SUMMARY.md` now both describe AI as active but partial: AI turns run, stars can start builds, and ships can set destinations, while economy allocation, defenses, fleet formation, advantage, and finer skill behavior remain incomplete.
+- `MAP_GENERATION_PORT_STATUS.md` records current map-generation status instead of listing already-completed work as future tasks.
+- `AI_INTEGRATION_STATUS.md` and `AI_INTEGRATION_TODO.md` describe AI as active but partial: AI turns run, stars can start builds, and ships can set destinations, while economy allocation, defenses, fleet formation, advantage, and finer skill behavior remain incomplete.
 - `README.md` now links only to files that exist and no longer describes the port as a complete 4X game.
-- `INTERNATIONALIZATION_SUMMARY.md` now serves as the current i18n reference and notes the remaining hard-coded English strings and resource-parity caveats.
-- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command and 280-test expected result.
+- `INTERNATIONALIZATION_STATUS.md` now serves as the current i18n reference and records that current runtime UI/event strings are localized with parity tests across supported languages.
+- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command and 284-test expected result.
 
 This file remains the main parity source of truth. More focused docs may describe implementation details for an area, but their status claims should stay consistent with the tables above.
 

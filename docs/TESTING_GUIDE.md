@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 280
-Passed: 280 ✓
+Total: 284
+Passed: 284 ✓
 Failed: 0 ✗
 ```
 
@@ -47,7 +47,7 @@ Do not use plain `node tests/run-tests.js` for the full suite. The tests and run
 
 ## What the tests cover
 
-- String resource loading for the default resource file.
+- String resource loading for the default resource file, plus localized ID parity and placeholder compatibility across all supported language files.
 - v3-style map generation, star naming, homeworld assignment, and seeded reproducibility.
 - Coordinate conversion, camera zoom/pan, and ship movement.
 - Player info, game configuration, ownership, and serialization helpers.

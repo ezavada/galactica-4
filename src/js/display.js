@@ -3,6 +3,7 @@
 
 const Common = require('./common.js');
 const Camera = require('./camera.js');
+const I18n = require('./i18n.js');
 
 const debugSelectedObject = true;
 
@@ -53,32 +54,69 @@ class Display {
         
         // Load UI strings from resources (cache for performance)
         this.STR = {
-            turn: pdg.res.getString(1) || "Turn",
-            stars: pdg.res.getString(2) || "Stars:",
-            ships: pdg.res.getString(3) || "Ships:",
-            pop: pdg.res.getString(4) || "Pop:",
-            tech: pdg.res.getString(5) || "Tech:",
-            building: pdg.res.getString(6) || "Building:",
-            none: pdg.res.getString(7) || "None",
-            clickStars: pdg.res.getString(8) || "Click stars to manage them",
-            clickShips: pdg.res.getString(9) || "Click ships to give orders",
-            tabEndTurn: pdg.res.getString(10) || "TAB to end turn",
-            shipHull: pdg.res.getString(11) || "Ship Hull",
-            ship: pdg.res.getString(12) || "Ship",
-            techLevel: pdg.res.getString(13) || "Tech Level:",
-            underConstruction: pdg.res.getString(14) || "Under Construction:",
-            speed: pdg.res.getString(15) || "Speed:",
-            power: pdg.res.getString(16) || "Power:",
+            turn: I18n.getString(1, "Turn"),
+            stars: I18n.getString(2, "Stars:"),
+            ships: I18n.getString(3, "Ships:"),
+            pop: I18n.getString(4, "Pop:"),
+            tech: I18n.getString(5, "Tech:"),
+            building: I18n.getString(6, "Building:"),
+            none: I18n.getString(7, "None"),
+            clickStars: I18n.getString(8, "Click stars to manage them"),
+            clickShips: I18n.getString(9, "Click ships to give orders"),
+            tabEndTurn: I18n.getString(10, "TAB to end turn"),
+            shipHull: I18n.getString(11, "Ship Hull"),
+            ship: I18n.getString(12, "Ship"),
+            techLevel: I18n.getString(13, "Tech Level:"),
+            underConstruction: I18n.getString(14, "Under Construction:"),
+            speed: I18n.getString(15, "Speed:"),
+            power: I18n.getString(16, "Power:"),
             // Ship types
-            scout: pdg.res.getString(20) || "scout",
-            defense: pdg.res.getString(21) || "defense",
-            battleship: pdg.res.getString(22) || "battleship",
-            colony: pdg.res.getString(23) || "colony",
+            scout: I18n.getString(20, "scout"),
+            defense: I18n.getString(21, "defense"),
+            battleship: I18n.getString(22, "battleship"),
+            colony: I18n.getString(23, "colony"),
+            scoutName: I18n.getString(450, "Scout"),
+            defenseName: I18n.getString(451, "Defense"),
+            battleshipName: I18n.getString(452, "Battleship"),
+            colonyName: I18n.getString(453, "Colony"),
             // Build menu items
-            buildScout: pdg.res.getString(30) || "[s] scout",
-            buildDefense: pdg.res.getString(31) || "[d] defense",
-            buildBattleship: pdg.res.getString(32) || "[b] battleship",
-            buildColony: pdg.res.getString(33) || "[c] colony"
+            buildScout: I18n.getString(30, "[s] scout"),
+            buildDefense: I18n.getString(31, "[d] defense"),
+            buildBattleship: I18n.getString(32, "[b] battleship"),
+            buildColony: I18n.getString(33, "[c] colony"),
+            zoom: I18n.getString(546, "Zoom"),
+            zoomResetCenterHelp: I18n.getString(547, "<+/-> Zoom   <0> Reset   <Shift+C> Center"),
+            dragZoomHelp: I18n.getString(548, "<Left Drag> Pan   <Middle Drag> Pan   <Mouse Wheel> Zoom"),
+            production: I18n.getString(549, "Production"),
+            menu: I18n.getString(550, "Menu"),
+            events: I18n.getString(551, "Events"),
+            compare: I18n.getString(552, "Compare"),
+            home: I18n.getString(553, "Home"),
+            fit: I18n.getString(554, "Fit"),
+            orders: I18n.getString(555, "Orders"),
+            center: I18n.getString(556, "Center"),
+            owner: I18n.getString(557, "Owner:"),
+            unclaimed: I18n.getString(558, "Unclaimed"),
+            damage: I18n.getString(559, "Damage:"),
+            totalPower: I18n.getString(561, "Total Power:"),
+            movingTo: I18n.getString(562, "Moving to:"),
+            growth: I18n.getString(564, "Growth"),
+            research: I18n.getString(565, "Research"),
+            commandMenu: I18n.getString(529, "Command Menu"),
+            keyboardShortcutsActive: I18n.getString(530, "Keyboard shortcuts remain active."),
+            escClose: I18n.getString(531, "<Esc> Close"),
+            productionSliders: I18n.getString(532, "Production Sliders"),
+            selectStarForProduction: I18n.getString(533, "Select one of your stars to tune production."),
+            eventList: I18n.getString(534, "Event List"),
+            noEventsYet: I18n.getString(535, "No events yet."),
+            empireComparison: I18n.getString(536, "Empire Comparison"),
+            player: I18n.getString(537, "Player"),
+            type: I18n.getString(538, "Type"),
+            avgTech: I18n.getString(539, "Avg Tech"),
+            max: I18n.getString(540, "Max"),
+            closeComparison: I18n.getString(545, "<V>/<Esc> Close comparison"),
+            newDriveTechnology: I18n.getString(570, "New Drive Technology"),
+            pressAnyKey: I18n.getString(572, "Press any key to continue")
         };
     }
 
@@ -414,8 +452,13 @@ class Display {
     }
     
     // Get localized ship type name
-    getShipTypeName(shipType) {
-        const typeMap = {
+    getShipTypeName(shipType, options = {}) {
+        const typeMap = options.capitalized ? {
+            scout: this.STR.scoutName,
+            defense: this.STR.defenseName,
+            battleship: this.STR.battleshipName,
+            colony: this.STR.colonyName
+        } : {
             scout: this.STR.scout,
             defense: this.STR.defense,
             battleship: this.STR.battleship,
@@ -1053,11 +1096,11 @@ class Display {
 
     getMapButtonDefinitions() {
         return [
-            { key: 'M', label: 'Menu', window: 'menu', action: { type: 'toggleWindow', window: 'menu' } },
-            { key: 'E', label: 'Events', window: 'events', action: { type: 'toggleWindow', window: 'events' } },
-            { key: 'V', label: 'Compare', window: 'comparison', action: { type: 'toggleWindow', window: 'comparison' } },
-            { key: 'H', label: 'Home', action: { type: 'selectHomeStar' } },
-            { key: 'F', label: 'Fit', action: { type: 'zoomToFit' } }
+            { key: 'M', label: this.STR.menu, window: 'menu', action: { type: 'toggleWindow', window: 'menu' } },
+            { key: 'E', label: this.STR.events, window: 'events', action: { type: 'toggleWindow', window: 'events' } },
+            { key: 'V', label: this.STR.compare, window: 'comparison', action: { type: 'toggleWindow', window: 'comparison' } },
+            { key: 'H', label: this.STR.home, action: { type: 'selectHomeStar' } },
+            { key: 'F', label: this.STR.fit, action: { type: 'zoomToFit' } }
         ];
     }
 
@@ -1099,23 +1142,23 @@ class Display {
 
         if (objectType === Common.ObjectType.STAR && this.game.canHumanControl(object)) {
             actions.push(
-                { key: 'S', label: 'Scout', action: { type: 'buildShip', shipType: 'scout' } },
-                { key: 'D', label: 'Defense', action: { type: 'buildShip', shipType: 'defense' } },
-                { key: 'B', label: 'Battleship', action: { type: 'buildShip', shipType: 'battleship' } },
-                { key: 'c', label: 'Colony', action: { type: 'buildShip', shipType: 'colony' } }
+                { key: 'S', label: this.STR.scoutName, action: { type: 'buildShip', shipType: 'scout' } },
+                { key: 'D', label: this.STR.defenseName, action: { type: 'buildShip', shipType: 'defense' } },
+                { key: 'B', label: this.STR.battleshipName, action: { type: 'buildShip', shipType: 'battleship' } },
+                { key: 'c', label: this.STR.colonyName, action: { type: 'buildShip', shipType: 'colony' } }
             );
         } else if (objectType === Common.ObjectType.SHIP || objectType === Common.ObjectType.FLEET) {
             if (this.game.canHumanControl(object)) {
-                actions.push({ key: 'RMB', label: 'Orders', action: { type: 'beginOrders' } });
+                actions.push({ key: 'RMB', label: this.STR.orders, action: { type: 'beginOrders' } });
             }
             actions.push(
-                { key: 'C', label: 'Center', action: { type: 'centerObject' } },
-                { key: 'V', label: 'Compare', action: { type: 'toggleWindow', window: 'comparison' } }
+                { key: 'C', label: this.STR.center, action: { type: 'centerObject' } },
+                { key: 'V', label: this.STR.compare, action: { type: 'toggleWindow', window: 'comparison' } }
             );
         } else {
             actions.push(
-                { key: 'C', label: 'Center', action: { type: 'centerObject' } },
-                { key: 'V', label: 'Compare', action: { type: 'toggleWindow', window: 'comparison' } }
+                { key: 'C', label: this.STR.center, action: { type: 'centerObject' } },
+                { key: 'V', label: this.STR.compare, action: { type: 'toggleWindow', window: 'comparison' } }
             );
         }
 
@@ -1396,9 +1439,9 @@ class Display {
     }
 
     drawStarAllocationSummary(star, x, y, width = 150) {
-        this.drawAllocationSlider('Growth', star.growth, x, y, width, 'green');
-        this.drawAllocationSlider('Ships', star.shipBuilding, x, y + 18, width, 'cyan');
-        this.drawAllocationSlider('Research', star.research, x, y + 36, width, 'purple');
+        this.drawAllocationSlider(this.STR.growth, star.growth, x, y, width, 'green');
+        this.drawAllocationSlider(this.STR.ships.replace(/:$/, ''), star.shipBuilding, x, y + 18, width, 'cyan');
+        this.drawAllocationSlider(this.STR.research, star.research, x, y + 36, width, 'purple');
         return y + 54;
     }
 
@@ -1456,7 +1499,7 @@ class Display {
     drawMainUI(turn, starCount, shipCount) {
         const screen = this.getScreenSize();
         const player = this.game.players ? this.game.players[this.game.getCurrentHumanPlayer()] : null;
-        const gameName = (this.game.config && this.game.config.gameTitle) ? this.game.config.gameTitle : (player && player.name) || 'Galactica-4';
+        const gameName = (this.game.config && this.game.config.gameTitle) ? this.game.config.gameTitle : (player && player.name) || I18n.getString(568, 'Galactica-4');
         const headerWidth = Math.min(420, screen.width - 40);
         const rect = {
             x: (screen.width - headerWidth) / 2,
@@ -1467,7 +1510,7 @@ class Display {
 
         this.drawRoundedRect(rect, 16, this.styles.topInfoPanel);
         this.drawTextLine(`${gameName}  •  ${this.STR.turn} ${turn}`, screen.width / 2, rect.y + 24, 'lightgray', 15, pdg.textStyle_Centered);
-        this.drawTextLine(`${this.STR.stars} ${starCount}   ${this.STR.ships} ${shipCount}   Zoom ${this.getZoomPercentage()}%`, screen.width / 2, rect.y + 44, 'gray', 11, pdg.textStyle_Centered);
+        this.drawTextLine(`${this.STR.stars} ${starCount}   ${this.STR.ships} ${shipCount}   ${this.STR.zoom} ${this.getZoomPercentage()}%`, screen.width / 2, rect.y + 44, 'gray', 11, pdg.textStyle_Centered);
         this.drawMapButtons();
     }
 
@@ -1484,7 +1527,7 @@ class Display {
 
         let y = layout.basicStartY;
         const x = layout.x;
-        this.drawLabelValue('Owner:', `${star.owner || 'Unclaimed'}`, x, y, { labelWidth: 70, valueColor: star.owner ? 'lightgray' : 'gray' });
+        this.drawLabelValue(this.STR.owner, `${star.owner || this.STR.unclaimed}`, x, y, { labelWidth: 70, valueColor: star.owner ? 'lightgray' : 'gray' });
         y += 18;
         this.drawLabelValue(this.STR.pop, this.formatPopulation(star), x, y, { labelWidth: 70 });
         y += 18;
@@ -1509,7 +1552,7 @@ class Display {
         }
 
         this.drawDivider(x, layout.dividerY, rect.width - 24);
-        this.drawTextLine('Production', x, layout.productionTitleY, 'lightgray', 12);
+        this.drawTextLine(this.STR.production, x, layout.productionTitleY, 'lightgray', 12);
         this.drawStarAllocationSummary(star, x, layout.sliderStartY, layout.sliderWidth);
         this.drawContextButtonArc(star, rect);
     }
@@ -1522,7 +1565,7 @@ class Display {
 
         const x = rect.x + 12;
         let y = this.getPanelContentStartY(rect);
-        this.drawLabelValue('Owner:', `${ship.owner}`, x, y, { labelWidth: 110, size: 11 });
+        this.drawLabelValue(this.STR.owner, `${ship.owner}`, x, y, { labelWidth: 110, size: 11 });
         y += 18;
         this.drawLabelValue(this.STR.techLevel, ship.techLevel.toFixed(1), x, y, { labelWidth: 110 });
         y += 18;
@@ -1541,7 +1584,7 @@ class Display {
             y += 18;
             this.drawLabelValue(this.STR.power, this.game.rules.getShipPower(ship).toFixed(1), x, y, { labelWidth: 110 });
             y += 18;
-            this.drawLabelValue('Damage:', ship.damage ? ship.damage.toString() : 'none', x, y, { labelWidth: 110, size: 11, valueColor: 'gray' });
+            this.drawLabelValue(this.STR.damage, ship.damage ? ship.damage.toString() : this.STR.none, x, y, { labelWidth: 110, size: 11, valueColor: 'gray' });
         }
         this.drawContextButtonArc(ship, rect);
     }
@@ -1554,53 +1597,53 @@ class Display {
         }
         const compositionRows = Object.entries(shipTypes);
         const rect = this.getAnchoredPanelRect(fleet, 260, 150 + compositionRows.length * 16 + (fleet.destination ? 18 : 0));
-        this.drawAnchoredPanel(fleet, rect, `Fleet ${fleet.id}`);
+        this.drawAnchoredPanel(fleet, rect, I18n.formatString(560, 'Fleet {0}', fleet.id));
 
         const x = rect.x + 12;
         let y = this.getPanelContentStartY(rect);
-        this.drawLabelValue('Ships:', fleet.getSize().toString(), x, y, { labelWidth: 92 });
+        this.drawLabelValue(this.STR.ships, fleet.getSize().toString(), x, y, { labelWidth: 92 });
         y += 18;
-        this.drawLabelValue('Total Power:', fleet.totalPower.toString(), x, y, { labelWidth: 92 });
+        this.drawLabelValue(this.STR.totalPower, fleet.totalPower.toString(), x, y, { labelWidth: 92 });
         y += 18;
-        this.drawLabelValue('Speed:', fleet.totalSpeed.toString(), x, y, { labelWidth: 92 });
+        this.drawLabelValue(this.STR.speed, fleet.totalSpeed.toString(), x, y, { labelWidth: 92 });
         y += 18;
-        this.drawLabelValue('Tech Level:', fleet.techLevel.toString(), x, y, { labelWidth: 92 });
+        this.drawLabelValue(this.STR.techLevel, fleet.techLevel.toString(), x, y, { labelWidth: 92 });
         y += 22;
 
         for (const [shipType, count] of compositionRows) {
-            this.drawLabelValue(`${shipType}:`, count.toString(), x, y, { labelWidth: 92, size: 11, valueColor: 'gray' });
+            this.drawLabelValue(`${this.getShipTypeName(shipType, { capitalized: true })}:`, count.toString(), x, y, { labelWidth: 92, size: 11, valueColor: 'gray' });
             y += 16;
         }
 
         if (fleet.destination) {
-            this.drawLabelValue('Moving to:', `(${Math.round(fleet.destination.x/1024)}, ${Math.round(fleet.destination.y/1024)})`, x, y, { labelWidth: 92, size: 11, valueColor: 'gray' });
+            this.drawLabelValue(this.STR.movingTo, `(${Math.round(fleet.destination.x/1024)}, ${Math.round(fleet.destination.y/1024)})`, x, y, { labelWidth: 92, size: 11, valueColor: 'gray' });
         }
         this.drawContextButtonArc(fleet, rect);
     }
 
     drawCommandWindow() {
         const rect = this.getCommandWindowRect();
-        this.drawPanel(rect, 'Command Menu');
+        this.drawPanel(rect, this.STR.commandMenu);
 
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
-        this.drawTextLine('Keyboard shortcuts remain active.', x, y, 'gray', 11);
+        this.drawTextLine(this.STR.keyboardShortcutsActive, x, y, 'gray', 11);
         y += 24;
-        this.drawTextLine('<Esc> Close', x, y, 'gray', 10);
+        this.drawTextLine(this.STR.escClose, x, y, 'gray', 10);
     }
 
     drawProductionWindow() {
         const rect = this.getProductionWindowRect();
-        this.drawPanel(rect, 'Production Sliders');
+        this.drawPanel(rect, this.STR.productionSliders);
 
         const star = this.game.getSelectedStar();
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
 
         if (!star || !this.game.canHumanControl(star)) {
-            this.drawTextLine('Select one of your stars to tune production.', x, y, 'lightgray', 12);
+            this.drawTextLine(this.STR.selectStarForProduction, x, y, 'lightgray', 12);
             y += 24;
-            this.drawTextLine('<Esc> Close', x, y, 'gray', 10);
+            this.drawTextLine(this.STR.escClose, x, y, 'gray', 10);
             return;
         }
 
@@ -1608,18 +1651,18 @@ class Display {
         y += 28;
         this.drawStarAllocationSummary(star, x, y, 185);
         y += 68;
-        this.drawTextLine('<Esc> Close', x, y, 'gray', 10);
+        this.drawTextLine(this.STR.escClose, x, y, 'gray', 10);
     }
 
     drawEventWindow() {
         const events = this.game.getRecentEvents(10);
         const rect = this.getEventWindowRect();
-        this.drawPanel(rect, 'Event List');
+        this.drawPanel(rect, this.STR.eventList);
 
         let y = this.getPanelContentStartY(rect);
         const x = rect.x + 14;
         if (events.length === 0) {
-            this.drawTextLine('No events yet.', x, y, 'gray', 12);
+            this.drawTextLine(this.STR.noEventsYet, x, y, 'gray', 12);
             return;
         }
 
@@ -1635,17 +1678,17 @@ class Display {
     drawComparisonWindow() {
         const rows = this.game.getPlayerComparisonRows();
         const rect = this.getComparisonWindowRect();
-        this.drawPanel(rect, 'Empire Comparison');
+        this.drawPanel(rect, this.STR.empireComparison);
 
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
-        this.drawTextLine('Player', x, y, 'lightgray', 11);
-        this.drawTextLine('Type', x + 170, y, 'lightgray', 11);
-        this.drawTextLine('Stars', x + 245, y, 'lightgray', 11);
-        this.drawTextLine('Ships', x + 300, y, 'lightgray', 11);
-        this.drawTextLine('Pop', x + 355, y, 'lightgray', 11);
-        this.drawTextLine('Avg Tech', x + 445, y, 'lightgray', 11);
-        this.drawTextLine('Max', x + 535, y, 'lightgray', 11);
+        this.drawTextLine(this.STR.player, x, y, 'lightgray', 11);
+        this.drawTextLine(this.STR.type, x + 170, y, 'lightgray', 11);
+        this.drawTextLine(this.STR.stars.replace(/:$/, ''), x + 245, y, 'lightgray', 11);
+        this.drawTextLine(this.STR.ships.replace(/:$/, ''), x + 300, y, 'lightgray', 11);
+        this.drawTextLine(this.STR.pop.replace(/:$/, ''), x + 355, y, 'lightgray', 11);
+        this.drawTextLine(this.STR.avgTech, x + 445, y, 'lightgray', 11);
+        this.drawTextLine(this.STR.max, x + 535, y, 'lightgray', 11);
         this.drawDivider(x, y + 8, rect.width - 28);
         y += 22;
 
@@ -1665,17 +1708,17 @@ class Display {
         if (this.game.selectedObject) {
             y += 12;
             const selectedType = this.game.getObjectType(this.game.selectedObject);
-            let label = 'Selected object';
+            let label = I18n.getString(541, 'Selected object');
             if (selectedType === Common.ObjectType.STAR) {
-                label = `Selected star: ${this.game.selectedObject.name}`;
+                label = I18n.formatString(542, 'Selected star: {0}', this.game.selectedObject.name);
             } else if (selectedType === Common.ObjectType.SHIP) {
-                label = `Selected ship: ${this.getShipTypeName(this.game.selectedObject.type)}`;
+                label = I18n.formatString(543, 'Selected ship: {0}', this.getShipTypeName(this.game.selectedObject.type));
             } else if (selectedType === Common.ObjectType.FLEET) {
-                label = `Selected fleet: ${this.game.selectedObject.getSize()} ships`;
+                label = I18n.formatString(544, 'Selected fleet: {0} ships', this.game.selectedObject.getSize());
             }
             this.drawTextLine(label, x, y, 'lightgray', 11);
             y += 18;
-            this.drawTextLine('<V>/<Esc> Close comparison', x, y, 'gray', 10);
+            this.drawTextLine(this.STR.closeComparison, x, y, 'gray', 10);
         }
     }
 
@@ -1702,8 +1745,8 @@ class Display {
     drawInstructions() {
         const drawingArea = this.port.getDrawingArea();
         this.drawTextLine(`${this.STR.clickStars}   ${this.STR.clickShips}`, 10, drawingArea.height() - 60, 'gray', 12);
-        this.drawTextLine(`${this.STR.tabEndTurn}   <+/-> Zoom   <0> Reset   <Shift+C> Center`, 10, drawingArea.height() - 38, 'lightgray', 11);
-        this.drawTextLine(`<Left Drag> Pan   <Middle Drag> Pan   <Mouse Wheel> Zoom`, 10, drawingArea.height() - 18, 'gray', 11);
+        this.drawTextLine(`${this.STR.tabEndTurn}   ${this.STR.zoomResetCenterHelp}`, 10, drawingArea.height() - 38, 'lightgray', 11);
+        this.drawTextLine(this.STR.dragZoomHelp, 10, drawingArea.height() - 18, 'gray', 11);
     }
     
     // Draw grid lines based on sector boundaries
@@ -1808,7 +1851,7 @@ class Display {
     // Map class index to ship art filename base
     getShipArtNameForClass(classIndex) {
         try {
-            const namesStr = pdg.res.getString(800) || 'Traveller';
+            const namesStr = I18n.getString(800, 'Traveller');
             const list = namesStr.split('|');
             const name = list[Math.max(0, Math.min(list.length - 1, classIndex - 1))];
             return name.toLowerCase();
@@ -1838,7 +1881,7 @@ class Display {
             if (back) this.port.drawImage(back, centerRect, this.styles.image);
             if (blueprint) this.port.drawImage(blueprint, centerRect, this.styles.image);
             if (top) this.port.drawImage(top, centerRect, this.styles.image);
-            this.port.drawText(`New Drive Technology`, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.1), this.getTextAttributes('yellow', 16, pdg.textStyle_Centered));
+            this.port.drawText(this.STR.newDriveTechnology, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.1), this.getTextAttributes('yellow', 16, pdg.textStyle_Centered));
         } else if (overlay.type === 'stardock') {
             const back = this.getImageCached('stardock', 'events/newstardock.png');
             const front = this.getImageCached('stardockfront', 'events/newstardockfront.png');
@@ -1855,10 +1898,10 @@ class Display {
             if (shipImg) this.port.drawImage(shipImg, centerRect, this.styles.image);
             if (front) this.port.drawImage(front, centerRect, this.styles.image);
             const name = overlay.ship && overlay.ship.name ? overlay.ship.name.split('\t')[0] : this.getShipArtNameForClass(overlay.classIndex);
-            this.port.drawText(`New ${name} Class Commissioned`, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.2), this.getTextAttributes('cyan', 16, pdg.textStyle_Centered));
+            this.port.drawText(I18n.formatString(571, 'New {0} Class Commissioned', name), new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.2), this.getTextAttributes('cyan', 16, pdg.textStyle_Centered));
         }
         // Footer hint
-        this.port.drawText(`Press any key to continue`, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.95), this.getTextAttributes('white', 12, pdg.textStyle_Centered));
+        this.port.drawText(this.STR.pressAnyKey, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.95), this.getTextAttributes('white', 12, pdg.textStyle_Centered));
     }
 }
 

@@ -2,6 +2,8 @@
 // Tracks player state and statistics
 // Based on PrivatePlayerInfoT and PublicPlayerInfoT from original C++
 
+const I18n = require('./i18n.js');
+
 class PlayerInfo {
     constructor(playerNum, isComputer = false) {
         // Player identification
@@ -167,17 +169,17 @@ class PlayerInfo {
         };
         const stringId = skillIds[this.compSkill];
         if (stringId !== undefined) {
-            return pdg.res.getString(stringId) || 'Unknown';
+            return I18n.getString(stringId, 'Unknown');
         }
-        return pdg.res.getString(306) || 'Unknown';  // Unknown fallback
+        return I18n.getString(306, 'Unknown');  // Unknown fallback
     }
     
     // Get player type description
     getPlayerType() {
         if (this.isHuman) {
-            return pdg.res.getString(300) || 'Human';
+            return I18n.getString(300, 'Human');
         } else {
-            const computerStr = pdg.res.getString(502) || 'Computer';
+            const computerStr = I18n.getString(502, 'Computer');
             return `${computerStr} (${this.getSkillName()})`;
         }
     }

@@ -3,17 +3,18 @@
 // Based on GalacticaProcessor.cpp lines 350-520
 
 const Common = require('./common.js');
+const I18n = require('./i18n.js');
 
 class MapGenerator {
     constructor(game) {
         this.game = game;
         
         // Load star names from resources (string ID 100, pipe-separated list)
-        const starNamesStr = pdg.res.getString(100);
+        const starNamesStr = I18n.getString(100, "Star");
         this.STAR_NAMES = starNamesStr ? starNamesStr.split('|') : ["Star"];
         
         // Load roman numerals from resources (string ID 200, pipe-separated list)
-        const romanNumeralsStr = pdg.res.getString(200);
+        const romanNumeralsStr = I18n.getString(200, "|II|III|IV|V");
         this.ROMAN_NUMERALS = romanNumeralsStr ? romanNumeralsStr.split('|') : ["", "II", "III", "IV", "V"];
         
         // Constants from original C++ code
@@ -284,8 +285,8 @@ class MapGenerator {
                 console.log(`MapGenerator: Computer player ${playerNum} named "${computerName}"`);
             } else {
                 // Human player - set default name from resources
-                const youStr = pdg.res.getString(17) || "You";
-                const playerStr = pdg.res.getString(18) || "Player";
+                const youStr = I18n.getString(17, "You");
+                const playerStr = I18n.getString(18, "Player");
                 playerInfo.setName(playerNum === 1 ? youStr : `${playerStr} ${playerNum}`);
             }
         }
@@ -301,11 +302,11 @@ class MapGenerator {
      */
     generateComputerName(homeStarName) {
         // Load name templates from resources (string ID 250, pipe-separated list)
-        const templatesStr = pdg.res.getString(250);
+        const templatesStr = I18n.getString(250, "* %");
         const templates = templatesStr ? templatesStr.split('|') : ["* %"];
         
         // Load group names from resources (string ID 270, pipe-separated list)
-        const groupNamesStr = pdg.res.getString(270);
+        const groupNamesStr = I18n.getString(270, "Empire");
         const groupNames = groupNamesStr ? groupNamesStr.split('|') : ["Empire"];
         
         // Choose random name template

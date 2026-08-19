@@ -1,8 +1,9 @@
 // Galactica-4 PDG Game - Main Entry Point
 // Run with: ./pdg src/js/main.js
-// Optional: ./pdg src/js/main.js --lang=es (for Spanish)
+// Optional: ./gad4 -- --lang=es (for Spanish)
 
 const pdg = require('pdg');
+globalThis.pdg = pdg;
 
 console.log("=== Galactica-4 PDG Game Starting ===");
 
@@ -17,8 +18,8 @@ if (resourceRef) {
     console.warn(`Failed to open resource path: ${dataPath}`);
 }
 
-// Parse command-line arguments for language setting
-// Format: --lang=xx (e.g., --lang=es for Spanish, --lang=fr for French)
+// Parse command-line arguments for language setting.
+// With the gad4 launcher, pass app arguments after `--`, e.g. `./gad4 -- --lang=es`.
 const args = process.argv.slice(2); // Skip 'node' and script path
 for (const arg of args) {
     if (arg.startsWith('--lang=')) {
@@ -51,9 +52,10 @@ const Display = require('./src/js/display.js');
 const Game = require('./src/js/game.js');
 const Rules = require('./src/js/rules.js');
 const GameConfig = require('./src/js/game-config.js');
+const I18n = require('./src/js/i18n.js');
 
 // Create window port
-const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), "Galactica-4");
+const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), I18n.getString(568, 'Galactica-4'));
 
 function createDefaultConfig() {
     const config = GameConfig.createSinglePlayer(2, 2); // 2 computers, Good difficulty
@@ -167,28 +169,40 @@ function drawStartupDialog() {
     const panelRect = { x: panelX, y: panelY, width: panelWidth, height: panelHeight };
     drawStartupRoundedRect(panelRect, 16, startupStyles.panel);
 
-    port.drawText('Galactica-4', new pdg.Point(screenWidth / 2, panelY + 44), startupStyles.titleText);
-    port.drawText('New Game Setup', new pdg.Point(screenWidth / 2, panelY + 72), startupStyles.subtitleText);
+    port.drawText(I18n.getString(568, 'Galactica-4'), new pdg.Point(screenWidth / 2, panelY + 44), startupStyles.titleText);
+    port.drawText(I18n.getString(520, 'New Game Setup'), new pdg.Point(screenWidth / 2, panelY + 72), startupStyles.subtitleText);
     drawStartupDivider(panelX + 28, panelY + 88, panelWidth - 56);
 
     const x = panelX + 34;
     let y = panelY + 112;
-    port.drawText(`Players: ${pendingConfig.numHumans} human, ${pendingConfig.numComputers} AI`, new pdg.Point(x, y), startupStyles.lineText);
+    port.drawText(I18n.formatString(
+        521,
+        'Players: {0} {1}, {2} {3}',
+        pendingConfig.numHumans,
+        I18n.getString(503, 'human'),
+        pendingConfig.numComputers,
+        I18n.getString(504, 'AI')
+    ), new pdg.Point(x, y), startupStyles.lineText);
     y += 24;
-    port.drawText(`AI skill: ${pendingConfig.getDifficultyName()} (${pendingConfig.compSkill})`, new pdg.Point(x, y), startupStyles.lineText);
+    port.drawText(I18n.formatString(522, 'AI skill: {0} ({1})', pendingConfig.getDifficultyName(), pendingConfig.compSkill), new pdg.Point(x, y), startupStyles.lineText);
     y += 24;
-    port.drawText(`Map: ${pendingConfig.getMapSizeDescription()} / ${pendingConfig.getDensityDescription()}`, new pdg.Point(x, y), startupStyles.lineText);
+    port.drawText(I18n.formatString(523, 'Map: {0} / {1}', pendingConfig.getMapSizeDescription(), pendingConfig.getDensityDescription()), new pdg.Point(x, y), startupStyles.lineText);
     y += 24;
-    port.drawText(`Options: ${pendingConfig.fastGame ? 'Fast game' : 'Normal speed'}, ${pendingConfig.getFogOfWarDescription()}`, new pdg.Point(x, y), startupStyles.lineText);
+    port.drawText(I18n.formatString(
+        524,
+        'Options: {0}, {1}',
+        pendingConfig.fastGame ? I18n.getString(505, 'Fast Game') : I18n.getString(509, 'Normal speed'),
+        pendingConfig.getFogOfWarDescription()
+    ), new pdg.Point(x, y), startupStyles.lineText);
     y += 36;
-    port.drawText('<C> cycle AI players   <1-5> AI skill', new pdg.Point(x, y), startupStyles.hintText);
+    port.drawText(I18n.getString(525, '<C> cycle AI players   <1-5> AI skill'), new pdg.Point(x, y), startupStyles.hintText);
     y += 22;
-    port.drawText('<S> map size   <D> star density', new pdg.Point(x, y), startupStyles.hintText);
+    port.drawText(I18n.getString(526, '<S> map size   <D> star density'), new pdg.Point(x, y), startupStyles.hintText);
     y += 22;
-    port.drawText('<F> fast game   <O> fog/all visible   <R> defaults', new pdg.Point(x, y), startupStyles.hintText);
+    port.drawText(I18n.getString(527, '<F> fast game   <O> fog/all visible   <R> defaults'), new pdg.Point(x, y), startupStyles.hintText);
     y += 42;
 
-    port.drawText('<Enter> Start', new pdg.Point(screenWidth / 2, y), startupStyles.startText);
+    port.drawText(I18n.getString(528, '<Enter> Start'), new pdg.Point(screenWidth / 2, y), startupStyles.startText);
 }
 
 function handleStartupKey(key) {
@@ -257,7 +271,11 @@ function startGame() {
     game = new Game(factory, rules, pendingConfig);
     game.port = port;
     display = new Display(game);
-    game.recordEvent('Startup', `Game started: ${pendingConfig.getDescription()}`, { type: 'system' });
+    game.recordEvent(
+        I18n.getString(601, 'Startup'),
+        I18n.formatString(511, 'Game started: {0}', pendingConfig.getDescription()),
+        { type: 'system' }
+    );
     console.log("Game created and window opened");
 }
 

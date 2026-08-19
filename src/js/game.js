@@ -9,6 +9,7 @@ const { AIManager } = require('./ai-manager.js');
 const { SpatialPartition } = require('./spatial-partition.js');
 const VisibilityCalculator = require('./visibility-calculator.js');
 const CombatSystem = require('./combat.js');
+const I18n = require('./i18n.js');
 
 class Game {
     constructor(factory, rules, config = null) {
@@ -77,7 +78,11 @@ class Game {
         }
         
         console.log(`Game config: ${this.config.getDescription()}`);
-        this.recordEvent('Startup', `Game created: ${this.config.getDescription()}`, { type: 'system' });
+        this.recordEvent(
+            I18n.getString(601, 'Startup'),
+            I18n.formatString(510, 'Game created: {0}', this.config.getDescription()),
+            { type: 'system' }
+        );
         
         if (!this.config.skipMapGeneration) {
             this.initializeGame();
@@ -330,7 +335,11 @@ class Game {
     toggleProductionWindow() {
         const star = this.getSelectedStar();
         if (!star || !this.canHumanControl(star)) {
-            this.recordEvent('Command', 'Select one of your stars before opening production controls.', { type: 'ui' });
+            this.recordEvent(
+                I18n.getString(602, 'Command'),
+                I18n.getString(620, 'Select one of your stars before opening production controls.'),
+                { type: 'ui' }
+            );
             this.uiWindow = 'menu';
             return true;
         }
@@ -382,9 +391,9 @@ class Game {
 
     getStarAllocationEntries(star) {
         return [
-            { key: 'growth', label: 'Growth', allocation: star.growth },
-            { key: 'shipBuilding', label: 'Ships', allocation: star.shipBuilding },
-            { key: 'research', label: 'Research', allocation: star.research }
+            { key: 'growth', label: I18n.getString(564, 'Growth'), allocation: star.growth },
+            { key: 'shipBuilding', label: I18n.getString(3, 'Ships:').replace(/:$/, ''), allocation: star.shipBuilding },
+            { key: 'research', label: I18n.getString(565, 'Research'), allocation: star.research }
         ];
     }
 
@@ -530,7 +539,11 @@ class Game {
         const growth = this.getAllocationDesired(star.growth);
         const ships = this.getAllocationDesired(star.shipBuilding);
         const research = this.getAllocationDesired(star.research);
-        this.recordEvent('Production', `${star.name}: Growth ${growth}% / Ships ${ships}% / Research ${research}%`, { type: 'ui' });
+        this.recordEvent(
+            I18n.getString(603, 'Production'),
+            I18n.formatString(621, '{0}: Growth {1}% / Ships {2}% / Research {3}%', star.name, growth, ships, research),
+            { type: 'ui' }
+        );
     }
 
     handleCommandWindowKey(key, char) {
@@ -647,13 +660,21 @@ class Game {
             return true;
         }
         if (!this.canHumanControl(object)) {
-            this.recordEvent('Orders', 'You can only give orders to your own ships and fleets.', { type: 'ui' });
+            this.recordEvent(
+                I18n.getString(604, 'Orders'),
+                I18n.getString(622, 'You can only give orders to your own ships and fleets.'),
+                { type: 'ui' }
+            );
             return true;
         }
 
         this.pendingMapOrderObject = object;
         this.setSelectedObject(object);
-        this.recordEvent('Orders', 'Click a star, fleet, ship, or empty map location to set a destination.', { type: 'ui' });
+        this.recordEvent(
+            I18n.getString(604, 'Orders'),
+            I18n.getString(623, 'Click a star, fleet, ship, or empty map location to set a destination.'),
+            { type: 'ui' }
+        );
         return true;
     }
 
@@ -734,8 +755,8 @@ class Game {
 
             rows.push({
                 playerNum: i,
-                name: player.name || `Player ${i}`,
-                type: player.isComputer ? 'AI' : 'Human',
+                name: player.name || `${I18n.getString(18, 'Player')} ${i}`,
+                type: player.isComputer ? I18n.getString(504, 'AI') : I18n.getString(300, 'Human'),
                 isAlive: player.isAlive,
                 stars: ownedStars.length,
                 ships: completedShips.length,
@@ -1225,18 +1246,26 @@ class Game {
     }
 
     noteworthyEvent(who, what, where, how, why, other) {
-        let eventTitle = 'Event';
+        let eventTitle = I18n.getString(600, 'Event');
         let eventMessage = null;
+        const shipTypeName = who && who.type ? I18n.getShipTypeName(who.type) : '';
 
         switch (what) {
             case Common.EventType.SHIP_ARRIVED:
-                eventTitle = 'Arrival';
-                eventMessage = `${who.type} ship arrived at ${where.name}`;
+                eventTitle = I18n.getString(605, 'Arrival');
+                eventMessage = I18n.formatString(624, '{0} ship arrived at {1}', shipTypeName, where.name);
                 console.log(eventMessage); // who = Ship, where = Star
                 break;
             case Common.EventType.SHIP_INTERCEPT:
-                eventTitle = 'Intercept';
-                eventMessage = `${who.type} ship intercepted ${where.type || 'target'} at (${Math.round(where.x)}, ${Math.round(where.y)})`;
+                eventTitle = I18n.getString(606, 'Intercept');
+                eventMessage = I18n.formatString(
+                    625,
+                    '{0} ship intercepted {1} at ({2}, {3})',
+                    shipTypeName,
+                    where.type ? I18n.getShipTypeName(where.type) : I18n.getString(639, 'target'),
+                    Math.round(where.x),
+                    Math.round(where.y)
+                );
                 console.log(eventMessage); // who = Ship, where = Ship
                 // Check if ships are friendly and can form a fleet
                 if (who.owner === where.owner && who.canFormFleet() && where.canFormFleet()) {
@@ -1244,74 +1273,81 @@ class Game {
                 }
                 break;
             case Common.EventType.SHIP_STOPPED:
-                eventTitle = 'Orders';
-                eventMessage = `${who.type} ship stopped at (${Math.round(who.x)}, ${Math.round(who.y)})`;
+                eventTitle = I18n.getString(604, 'Orders');
+                eventMessage = I18n.formatString(626, '{0} ship stopped at ({1}, {2})', shipTypeName, Math.round(who.x), Math.round(who.y));
                 console.log(eventMessage); // who = Ship
                 break;
             case Common.EventType.SHIP_DESTROYED:
                 // TODO: different message based on where, how, and why
-                eventTitle = 'Combat';
-                eventMessage = `${who.type} ship destroyed at (${Math.round(where.x)}, ${Math.round(where.y)})`;
+                eventTitle = I18n.getString(607, 'Combat');
+                eventMessage = I18n.formatString(627, '{0} ship destroyed at ({1}, {2})', shipTypeName, Math.round(where.x), Math.round(where.y));
                 console.log(eventMessage); // who = Ship, where = position or Star or Ship
                 break;
             case Common.EventType.SHIP_BUILT:
-                eventTitle = 'Build';
-                eventMessage = `${where.name} built a ${who.type} ship`;
+                eventTitle = I18n.getString(608, 'Build');
+                eventMessage = I18n.formatString(628, '{0} built a {1} ship', where.name, shipTypeName);
                 console.log(eventMessage); // who = Ship, where = Star
                 break;
             case Common.EventType.SHIP_DEPARTED:
-                eventTitle = 'Departure';
-                eventMessage = `${who.type} ship departed from ${where.name}`;
+                eventTitle = I18n.getString(609, 'Departure');
+                eventMessage = I18n.formatString(629, '{0} ship departed from {1}', shipTypeName, where.name);
                 console.log(eventMessage); // who = Ship, where = Star
                 break;
             case Common.EventType.SHIP_TASKED:
-                eventTitle = 'Orders';
+                eventTitle = I18n.getString(604, 'Orders');
                 if (why === Common.EventWhy.NEW_DESTINATION) {
-                    eventMessage = `${who.type} ship moving to (${Math.round(where.x)}, ${Math.round(where.y)})`;
+                    eventMessage = I18n.formatString(630, '{0} ship moving to ({1}, {2})', shipTypeName, Math.round(where.x), Math.round(where.y));
                     console.log(eventMessage); // who = Ship, where = coordinates, why = reason for tasking
                 } else {
-                    eventMessage = `${who.type} ship tasked to (${Math.round(where.x)}, ${Math.round(where.y)}) for ${why}`;
+                    eventMessage = I18n.formatString(
+                        631,
+                        '{0} ship tasked to ({1}, {2}) for {3}',
+                        shipTypeName,
+                        Math.round(where.x),
+                        Math.round(where.y),
+                        I18n.getEventWhyName(why)
+                    );
                     console.log(eventMessage); // who = Ship, where = coordinates, why = reason for tasking
                 }
                 break;
             case Common.EventType.TECH_LEVEL_UP:
-                eventTitle = 'Research';
-                eventMessage = `${who.name} reached tech level ${who.techLevel}`;
+                eventTitle = I18n.getString(610, 'Research');
+                eventMessage = I18n.formatString(632, '{0} reached tech level {1}', who.name, who.techLevel);
                 console.log(eventMessage); // who = Star, where = Tech Level
                 break;
             case Common.EventType.NEW_TECH_DISCOVERY: {
                 const classIndex = where || Math.floor(who.techLevel / 5);
                 this.overlay = { type: 'lab', classIndex, createdAt: pdg.tm.getMilliseconds() };
-                eventTitle = 'Research';
-                eventMessage = `New drive class discovered: ${classIndex}`;
+                eventTitle = I18n.getString(610, 'Research');
+                eventMessage = I18n.formatString(633, 'New drive class discovered: {0}', classIndex);
                 console.log(`🧪 ${eventMessage}`);
                 break;
             }
             case Common.EventType.NEW_SHIP_CLASS: {
                 const classIndex = where || (who.classIndex || 1);
                 this.overlay = { type: 'stardock', classIndex, createdAt: pdg.tm.getMilliseconds(), ship: who };
-                eventTitle = 'Stardock';
-                eventMessage = `New ship class commissioned: ${classIndex}`;
+                eventTitle = I18n.getString(611, 'Stardock');
+                eventMessage = I18n.formatString(634, 'New ship class commissioned: {0}', classIndex);
                 console.log(`🏭 ${eventMessage}`);
                 break;
             }
             case Common.EventType.STAR_COLONIZED:
-                eventTitle = 'Colonization';
-                eventMessage = `Player ${where.owner} colonized ${where.name}`;
+                eventTitle = I18n.getString(612, 'Colonization');
+                eventMessage = I18n.formatString(635, 'Player {0} colonized {1}', where.owner, where.name);
                 console.log(eventMessage); // who = Star, where = Star
                 break;
             case Common.EventType.STAR_CAPTURED:
-                eventTitle = 'Combat';
-                eventMessage = `Player ${where.owner} captured ${where.name}`;
+                eventTitle = I18n.getString(607, 'Combat');
+                eventMessage = I18n.formatString(636, 'Player {0} captured {1}', where.owner, where.name);
                 console.log(eventMessage); // who = Star, where = Star
                 break;
             case Common.EventType.PLAYER_DIED:
-                eventTitle = 'Defeat';
-                eventMessage = `${who.name || `Player ${who.playerNum}`} has been defeated`;
+                eventTitle = I18n.getString(613, 'Defeat');
+                eventMessage = I18n.formatString(637, '{0} has been defeated', who.name || `${I18n.getString(18, 'Player')} ${who.playerNum}`);
                 console.log(eventMessage);
                 break;
             default:
-                eventMessage = `Noteworthy Event: ${who} ${what} ${where} ${how} ${why} ${other}`;
+                eventMessage = I18n.formatString(638, 'Noteworthy Event: {0} {1} {2} {3} {4} {5}', who, what, where, how, why, other);
                 console.log(`=== ${eventMessage} ===`);
                 break;
         }

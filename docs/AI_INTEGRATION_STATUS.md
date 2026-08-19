@@ -111,6 +111,6 @@ Run the full suite with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 280 passed, 0 failed.
+Current expected result: 284 passed, 0 failed.
 
 Do not use plain Node for the full suite; the project relies on PDG globals such as `pdg.res`, `pdg.srand()`, and `pdg.rand()`.

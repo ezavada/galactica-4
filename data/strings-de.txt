@@ -87,4 +87,99 @@
 505	Schnelles Spiel
 506	Alles Sichtbar
 507	karte
+508	Nebel des Krieges
+509	Normale Geschwindigkeit
+510	Spiel erstellt: {0}
+511	Spiel gestartet: {0}
+520	Neues Spiel einrichten
+521	Spieler: {0} {1}, {2} {3}
+522	KI-Fähigkeit: {0} ({1})
+523	Karte: {0} / {1}
+524	Optionen: {0}, {1}
+525	<C> KI-Spieler wechseln   <1-5> KI-Fähigkeit
+526	<S> Kartengröße   <D> Sterndichte
+527	<F> schnelles Spiel   <O> Nebel/alles sichtbar   <R> Standardwerte
+528	<Enter> Starten
+529	Befehlsmenü
+530	Tastenkürzel bleiben aktiv.
+531	<Esc> Schließen
+532	Produktionsregler
+533	Wählen Sie einen Ihrer Sterne, um die Produktion anzupassen.
+534	Ereignisliste
+535	Noch keine Ereignisse.
+536	Imperiumsvergleich
+537	Spieler
+538	Typ
+539	Ø Tech
+540	Max.
+541	Ausgewähltes Objekt
+542	Ausgewählter Stern: {0}
+543	Ausgewähltes Schiff: {0}
+544	Ausgewählte Flotte: {0} Schiffe
+545	<V>/<Esc> Vergleich schließen
+546	Zoom
+547	<+/-> Zoom   <0> Zurücksetzen   <Shift+C> Zentrieren
+548	<Linke Maustaste ziehen> Verschieben   <Mittlere Maustaste ziehen> Verschieben   <Mausrad> Zoom
+549	Produktion
 
+# Command button and panel labels (550-599)
+550	Menü
+551	Ereignisse
+552	Vergleich
+553	Heimat
+554	Einpassen
+555	Befehle
+556	Zentrieren
+557	Besitzer:
+558	Nicht beansprucht
+559	Schaden:
+560	Flotte {0}
+561	Gesamtstärke:
+562	Unterwegs nach:
+564	Wachstum
+565	Forschung
+568	Galactica-4
+570	Neue Antriebstechnologie
+571	Neue Klasse {0} in Dienst gestellt
+572	Drücken Sie eine Taste zum Fortfahren
+
+# Event titles and messages (600-699)
+600	Ereignis
+601	Start
+602	Befehl
+603	Produktion
+604	Befehle
+605	Ankunft
+606	Abfangen
+607	Kampf
+608	Bau
+609	Abflug
+610	Forschung
+611	Raumdock
+612	Kolonisierung
+613	Niederlage
+620	Wählen Sie einen Ihrer Sterne, bevor Sie die Produktionssteuerung öffnen.
+621	{0}: Wachstum {1}% / Schiffe {2}% / Forschung {3}%
+622	Sie können nur Ihren eigenen Schiffen und Flotten Befehle geben.
+623	Klicken Sie auf einen Stern, eine Flotte, ein Schiff oder eine freie Kartenposition, um ein Ziel festzulegen.
+624	{0}-Schiff ist bei {1} angekommen
+625	{0}-Schiff hat {1} bei ({2}, {3}) abgefangen
+626	{0}-Schiff hielt bei ({1}, {2}) an
+627	{0}-Schiff wurde bei ({1}, {2}) zerstört
+628	{0} baute ein {1}-Schiff
+629	{0}-Schiff ist von {1} abgeflogen
+630	{0}-Schiff bewegt sich nach ({1}, {2})
+631	{0}-Schiff wurde wegen {3} nach ({1}, {2}) beordert
+632	{0} erreichte Technologiestufe {1}
+633	Neue Antriebsklasse entdeckt: {0}
+634	Neue Schiffsklasse in Dienst gestellt: {0}
+635	Spieler {0} kolonisierte {1}
+636	Spieler {0} eroberte {1}
+637	{0} wurde besiegt
+638	Bemerkenswertes Ereignis: {0} {1} {2} {3} {4} {5}
+639	Ziel
+640	Kampf
+641	neues Ziel
+
+# Ship class names for battleships (STRx_ShipNames equivalent) (800)
+800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion

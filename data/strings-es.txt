@@ -87,4 +87,99 @@
 505	Juego Rápido
 506	Todo Visible
 507	mapa
+508	Niebla de guerra
+509	Velocidad normal
+510	Juego creado: {0}
+511	Juego iniciado: {0}
+520	Configuración de nueva partida
+521	Jugadores: {0} {1}, {2} {3}
+522	Habilidad de IA: {0} ({1})
+523	Mapa: {0} / {1}
+524	Opciones: {0}, {1}
+525	<C> cambiar jugadores IA   <1-5> habilidad IA
+526	<S> tamaño del mapa   <D> densidad estelar
+527	<F> juego rápido   <O> niebla/todo visible   <R> valores iniciales
+528	<Enter> Iniciar
+529	Menú de comandos
+530	Los atajos de teclado siguen activos.
+531	<Esc> Cerrar
+532	Deslizadores de producción
+533	Selecciona una de tus estrellas para ajustar la producción.
+534	Lista de eventos
+535	Aún no hay eventos.
+536	Comparación de imperios
+537	Jugador
+538	Tipo
+539	Tec. media
+540	Máx.
+541	Objeto seleccionado
+542	Estrella seleccionada: {0}
+543	Nave seleccionada: {0}
+544	Flota seleccionada: {0} naves
+545	<V>/<Esc> Cerrar comparación
+546	Zoom
+547	<+/-> Zoom   <0> Restablecer   <Shift+C> Centrar
+548	<Arrastrar izq.> Panorámica   <Arrastrar medio> Panorámica   <Rueda> Zoom
+549	Producción
 
+# Command button and panel labels (550-599)
+550	Menú
+551	Eventos
+552	Comparar
+553	Inicio
+554	Ajustar
+555	Órdenes
+556	Centrar
+557	Propietario:
+558	Sin reclamar
+559	Daño:
+560	Flota {0}
+561	Poder total:
+562	Moviéndose a:
+564	Crecimiento
+565	Investigación
+568	Galactica-4
+570	Nueva tecnología de impulso
+571	Nueva clase {0} comisionada
+572	Pulsa cualquier tecla para continuar
+
+# Event titles and messages (600-699)
+600	Evento
+601	Inicio
+602	Comando
+603	Producción
+604	Órdenes
+605	Llegada
+606	Intercepción
+607	Combate
+608	Construcción
+609	Salida
+610	Investigación
+611	Astillero
+612	Colonización
+613	Derrota
+620	Selecciona una de tus estrellas antes de abrir los controles de producción.
+621	{0}: Crecimiento {1}% / Naves {2}% / Investigación {3}%
+622	Solo puedes dar órdenes a tus propias naves y flotas.
+623	Haz clic en una estrella, flota, nave o punto vacío del mapa para fijar un destino.
+624	La nave {0} llegó a {1}
+625	La nave {0} interceptó {1} en ({2}, {3})
+626	La nave {0} se detuvo en ({1}, {2})
+627	La nave {0} fue destruida en ({1}, {2})
+628	{0} construyó una nave {1}
+629	La nave {0} salió de {1}
+630	La nave {0} se dirige a ({1}, {2})
+631	La nave {0} recibió la tarea de ir a ({1}, {2}) por {3}
+632	{0} alcanzó el nivel tecnológico {1}
+633	Nueva clase de impulso descubierta: {0}
+634	Nueva clase de nave comisionada: {0}
+635	El jugador {0} colonizó {1}
+636	El jugador {0} capturó {1}
+637	{0} ha sido derrotado
+638	Evento notable: {0} {1} {2} {3} {4} {5}
+639	objetivo
+640	combate
+641	nuevo destino
+
+# Ship class names for battleships (STRx_ShipNames equivalent) (800)
+800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion

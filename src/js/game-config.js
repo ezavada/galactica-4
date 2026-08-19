@@ -1,10 +1,12 @@
 // Game Configuration for Galactica-4
 // Defines game setup options matching original C++ NewGameInfoT structure
 
+const I18n = require('./i18n.js');
+
 class GameConfig {
     constructor(options = {}) {
         // Game title
-        this.gameTitle = options.gameTitle || "Galactica Game";
+        this.gameTitle = options.gameTitle || I18n.getString(500, "Galactica Game");
         
         // Player configuration
         this.numHumans = options.numHumans !== undefined ? options.numHumans : 1;
@@ -152,9 +154,9 @@ class GameConfig {
         };
         const stringId = skillIds[this.compSkill];
         if (stringId !== undefined) {
-            return pdg.res.getString(stringId) || "Unknown";
+            return I18n.getString(stringId, "Unknown");
         }
-        return pdg.res.getString(306) || "Unknown";  // Unknown fallback
+        return I18n.getString(306, "Unknown");  // Unknown fallback
     }
     
     // Get map size description
@@ -169,9 +171,9 @@ class GameConfig {
         };
         const stringId = sizeIds[this.sectorSize];
         if (stringId !== undefined) {
-            return pdg.res.getString(stringId) || "Unknown";
+            return I18n.getString(stringId, "Unknown");
         }
-        return pdg.res.getString(355) || "Unknown";  // Unknown fallback
+        return I18n.getString(355, "Unknown");  // Unknown fallback
     }
     
     // Get star density description
@@ -186,9 +188,9 @@ class GameConfig {
         };
         const stringId = densityIds[this.density];
         if (stringId !== undefined) {
-            return pdg.res.getString(stringId) || "Unknown";
+            return I18n.getString(stringId, "Unknown");
         }
-        return pdg.res.getString(405) || "Unknown";  // Unknown fallback
+        return I18n.getString(405, "Unknown");  // Unknown fallback
     }
     
     // Convert to simple object for MapGenerator
@@ -204,12 +206,12 @@ class GameConfig {
     // Get description of game setup
     getDescription() {
         // Load strings from resources
-        const playersStr = pdg.res.getString(501) || "players";
-        const humanStr = pdg.res.getString(503) || "human";
-        const aiStr = pdg.res.getString(504) || "AI";
-        const mapStr = pdg.res.getString(507) || "map";
-        const fastGameStr = pdg.res.getString(505) || "Fast Game";
-        const allVisibleStr = pdg.res.getString(506) || "All Visible";
+        const playersStr = I18n.getString(501, "players");
+        const humanStr = I18n.getString(503, "human");
+        const aiStr = I18n.getString(504, "AI");
+        const mapStr = I18n.getString(507, "map");
+        const fastGameStr = I18n.getString(505, "Fast Game");
+        const allVisibleStr = I18n.getString(506, "All Visible");
         
         const parts = [];
         parts.push(`${this.totalPlayers} ${playersStr} (${this.numHumans} ${humanStr}, ${this.numComputers} ${aiStr})`);
@@ -227,9 +229,8 @@ class GameConfig {
 
     // Get fog of war status description
     getFogOfWarDescription() {
-        return this.isFogOfWarEnabled() ? "Fog of War" : "All Visible";
+        return this.isFogOfWarEnabled() ? I18n.getString(508, "Fog of War") : I18n.getString(506, "All Visible");
     }
 }
 
 module.exports = GameConfig;
-

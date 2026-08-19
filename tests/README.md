@@ -6,7 +6,7 @@ Run the full suite from the project root with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 280 passed, 0 failed.
+Current expected result: 284 passed, 0 failed.
 
 ## Runner
 

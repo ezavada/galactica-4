@@ -2,6 +2,7 @@
 // Contains all star-related data and logic
 
 const Common = require('./common.js');
+const I18n = require('./i18n.js');
 
 // how much of the star's resources are allocated to a particular effort
 class Allocation {
@@ -185,7 +186,7 @@ class Star {
 
         // Assign ship name and battleship class index based on tech
         try {
-            const shipNamesStr = pdg.res.getString(800) || '';
+            const shipNamesStr = I18n.getString(800, '');
             const classNames = shipNamesStr ? shipNamesStr.split('|') : [];
             if (ship.type === 'battleship') {
                 const classIndex = Math.max(1, Math.min(classNames.length || 1, Math.floor(ship.techLevel / 5) + 1));

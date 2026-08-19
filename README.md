@@ -15,12 +15,14 @@ The original C++ Galactica v3 source is in `../galactica-anno-dominari-3/Classes
 ./gad4
 
 # Run in a different language
-./gad4 --lang=es   # Spanish
-./gad4 --lang=fr   # French
-./gad4 --lang=de   # German
-./gad4 --lang=ja   # Japanese
-./gad4 --lang=ru   # Russian
+./gad4 -- --lang=es   # Spanish
+./gad4 -- --lang=fr   # French
+./gad4 -- --lang=de   # German
+./gad4 -- --lang=ja   # Japanese
+./gad4 -- --lang=ru   # Russian
 ```
+
+The extra `--` separates app arguments from `gad4` launcher options. Directly running `./gad4 --lang=es` will fail with `bad option: --lang=es`.
 
 ## Features
 
@@ -29,16 +31,16 @@ The original C++ Galactica v3 source is in `../galactica-anno-dominari-3/Classes
 - **Turn-based core**: Build ships, colonize stars, move ships/fleets, and resolve a first pass of combat/capture.
 - **AI players**: Computer opponents participate in turns, build ships, and send ships to destinations; several v3 AI behaviors remain partial.
 - **Command UI**: Simple runtime windows, event list, comparison window, permanent map buttons, popup action buttons, and production sliders.
-- **Internationalization**: Resource files exist for English, German, Spanish, French, Japanese, and Russian; some visible strings remain hard-coded in English.
+- **Internationalization**: Current runtime UI/event strings are resource-driven for English, German, Spanish, French, Japanese, and Russian.
 
 ## Documentation
 
 - [V3 to V4 Feature Status](docs/V3_V4_FEATURE_STATUS.md) - Current feature/UI parity inventory
-- [Map Generation Port Status](docs/MAP_GENERATION_PORT_PLAN.md) - Current map generation implementation status
+- [Map Generation Port Status](docs/MAP_GENERATION_PORT_STATUS.md) - Current map generation implementation status
 - [Testing Guide](docs/TESTING_GUIDE.md) - Running and writing tests
-- [AI Integration Guide](docs/AI_INTEGRATION_GUIDE.md) - Current AI architecture and gaps
-- [AI Integration Summary](docs/AI_INTEGRATION_SUMMARY.md) - Short AI status overview
-- [Internationalization Status](docs/INTERNATIONALIZATION_SUMMARY.md) - Resource localization status
+- [AI Integration Status](docs/AI_INTEGRATION_STATUS.md) - Current AI architecture and gaps
+- [AI Integration TODO](docs/AI_INTEGRATION_TODO.md) - Recommended next AI work
+- [Internationalization Status](docs/INTERNATIONALIZATION_STATUS.md) - Resource localization status
 - [Future Improvements](docs/FUTURE_IMPROVEMENTS.md) - Non-parity enhancement ideas
 
 ## Testing
@@ -48,4 +50,4 @@ The original C++ Galactica v3 source is in `../galactica-anno-dominari-3/Classes
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 280 passed, 0 failed.
+Current expected result: 284 passed, 0 failed.

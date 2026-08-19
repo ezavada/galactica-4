@@ -87,4 +87,99 @@
 505	Jeu Rapide
 506	Tout Visible
 507	carte
+508	Brouillard de guerre
+509	Vitesse normale
+510	Partie créée : {0}
+511	Partie lancée : {0}
+520	Configuration d'une nouvelle partie
+521	Joueurs : {0} {1}, {2} {3}
+522	Niveau IA : {0} ({1})
+523	Carte : {0} / {1}
+524	Options : {0}, {1}
+525	<C> changer joueurs IA   <1-5> niveau IA
+526	<S> taille de carte   <D> densité stellaire
+527	<F> jeu rapide   <O> brouillard/tout visible   <R> valeurs par défaut
+528	<Enter> Commencer
+529	Menu des commandes
+530	Les raccourcis clavier restent actifs.
+531	<Esc> Fermer
+532	Curseurs de production
+533	Sélectionnez une de vos étoiles pour régler la production.
+534	Liste des événements
+535	Aucun événement pour l'instant.
+536	Comparaison des empires
+537	Joueur
+538	Type
+539	Tech moy.
+540	Max
+541	Objet sélectionné
+542	Étoile sélectionnée : {0}
+543	Vaisseau sélectionné : {0}
+544	Flotte sélectionnée : {0} vaisseaux
+545	<V>/<Esc> Fermer la comparaison
+546	Zoom
+547	<+/-> Zoom   <0> Réinitialiser   <Shift+C> Centrer
+548	<Glisser gauche> Déplacer   <Glisser milieu> Déplacer   <Molette> Zoom
+549	Production
 
+# Command button and panel labels (550-599)
+550	Menu
+551	Événements
+552	Comparer
+553	Accueil
+554	Ajuster
+555	Ordres
+556	Centrer
+557	Propriétaire :
+558	Non revendiqué
+559	Dégâts :
+560	Flotte {0}
+561	Puissance totale :
+562	En route vers :
+564	Croissance
+565	Recherche
+568	Galactica-4
+570	Nouvelle technologie de propulsion
+571	Nouvelle classe {0} mise en service
+572	Appuyez sur une touche pour continuer
+
+# Event titles and messages (600-699)
+600	Événement
+601	Démarrage
+602	Commande
+603	Production
+604	Ordres
+605	Arrivée
+606	Interception
+607	Combat
+608	Construction
+609	Départ
+610	Recherche
+611	Spatiodock
+612	Colonisation
+613	Défaite
+620	Sélectionnez une de vos étoiles avant d'ouvrir les contrôles de production.
+621	{0} : Croissance {1}% / Vaisseaux {2}% / Recherche {3}%
+622	Vous ne pouvez donner des ordres qu'à vos propres vaisseaux et flottes.
+623	Cliquez sur une étoile, une flotte, un vaisseau ou une zone vide de la carte pour définir une destination.
+624	Le vaisseau {0} est arrivé à {1}
+625	Le vaisseau {0} a intercepté {1} en ({2}, {3})
+626	Le vaisseau {0} s'est arrêté en ({1}, {2})
+627	Le vaisseau {0} a été détruit en ({1}, {2})
+628	{0} a construit un vaisseau {1}
+629	Le vaisseau {0} a quitté {1}
+630	Le vaisseau {0} se dirige vers ({1}, {2})
+631	Le vaisseau {0} a été envoyé vers ({1}, {2}) pour {3}
+632	{0} a atteint le niveau technologique {1}
+633	Nouvelle classe de propulsion découverte : {0}
+634	Nouvelle classe de vaisseau mise en service : {0}
+635	Le joueur {0} a colonisé {1}
+636	Le joueur {0} a capturé {1}
+637	{0} a été vaincu
+638	Événement notable : {0} {1} {2} {3} {4} {5}
+639	cible
+640	combat
+641	nouvelle destination
+
+# Ship class names for battleships (STRx_ShipNames equivalent) (800)
+800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion
