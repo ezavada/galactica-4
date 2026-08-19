@@ -7,7 +7,7 @@ This document outlines potential enhancements and improvements that could be mad
 ### Combat Odds Estimation
 **Priority: Medium**
 
-Currently, the AI system only makes movement decisions and does not evaluate combat odds before attacking. This could be enhanced to provide:
+Currently, the AI system can start ship construction and send ships toward destinations, but it does not deeply evaluate combat odds before attacking. This could be enhanced to provide:
 
 - **Pre-combat Analysis**: AI could evaluate attack/defense ratios before moving ships
 - **Risk Assessment**: Calculate probability of success based on ship types and tech levels

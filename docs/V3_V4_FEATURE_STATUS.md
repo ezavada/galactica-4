@@ -1,6 +1,6 @@
 # Galactica v3 to v4 Feature and UI Port Status
 
-Audit date: 2026-08-18
+Audit date: 2026-08-19
 
 ## Purpose and method
 
@@ -13,7 +13,7 @@ The comparison is based on:
 - the published [Galactica v3 User's Manual](http://annodominari.com/);
 - all JavaScript source, tests, and documentation currently in `galactica-4`.
 
-The comparison started as a static code review. After `pdg-devel/gad4` and its `pdg` target became available, the v4 automated suite was verified on 2026-08-18 with `./gad4 tests/run-tests.js`: 279 passed, 0 failed. Passing tests prove the covered classes and helpers behave as tested, but do not prove that the playable runtime invokes every scaffolded system.
+The comparison started as a static code review. After `pdg-devel/gad4` and its `pdg` target became available, the v4 automated suite was verified on 2026-08-19 with `./gad4 tests/run-tests.js`: 280 passed, 0 failed. Passing tests prove the covered classes and helpers behave as tested, but do not prove that the playable runtime invokes every scaffolded system.
 
 ### Status key
 
@@ -97,7 +97,7 @@ The largest blockers to a complete game are:
 | Continuous ship production | A system continues producing the selected hull class. | 🟡 Partial | v4 builds one ship, clears `currentShip`, and requires another key press. v3's selected build type remains active and continues production. |
 | Per-hull accumulated production | v3 preserves paid progress separately for each hull type when switching. | ❌ Missing | v4 has one `paidTowardShipBuilding` value and one current hull. |
 | Ship build progress/ETA | Panel displays percent complete and v3 can estimate turns. | 🟡 Partial | Construction percentage is shown in selected-star and ship-detail panels. ETA is still absent and the under-construction hull is still represented as a selectable ship. |
-| Default new-ship destination | System “Send to” automatically dispatches new ships. | 🟡 Partial | Right-click while a star is selected sets an object/coordinate destination and completed mobile ships inherit it (`game.js:300-376`, `star.js:204-215`). There is no rendezvous picker or clear/edit UI, and the map indicator uses unconverted galactic coordinates in `display.js:426-431`. |
+| Default new-ship destination | System “Send to” automatically dispatches new ships. | 🟡 Partial | Right-click while a star is selected sets an object/coordinate destination and completed mobile ships inherit it (`game.js:300-376`, `star.js:204-215`). The map indicator now converts the destination to screen coordinates before drawing. There is no rendezvous picker or clear/edit UI. |
 | Ships in system | Dedicated list/panel for inspecting and selecting docked ships/fleets. | ❌ Missing | `star.ships` exists, but no list or panel is exposed. |
 | Rename colony/system | Edit menu rename dialog; new colony asks for name. | ❌ Missing | No rename command or colony naming prompt. |
 | System comparison window | Sortable “Your Star Systems” table. | ❌ Missing | No equivalent UI. |
@@ -210,16 +210,17 @@ The largest blockers to a complete game are:
 | Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | ❌ Missing | No host/admin mode. |
 | Multiplayer chat | Player-to-player/all/admin messages. | ❌ Missing | No networking or chat. |
 
-## Documentation review findings
+## Documentation status
 
-The v4 documentation describes useful design intent, but it should not be treated as the source of truth for current runtime status.
+The project documentation was refreshed on 2026-08-19 so the docs now agree on current runtime status rather than mixing old plans with newer implementation summaries.
 
-1. `MAP_GENERATION_PORT_PLAN.md` is stale. It says the coordinate system, computer naming, `PlayerInfo`, and home-star properties still need implementation, but those now exist in `map-generator.js`, `player-info.js`, and related tests.
-2. `AI_INTEGRATION_GUIDE.md` says its integration phase is not implemented, while `AI_INTEGRATION_SUMMARY.md` says integration is complete. Current code is between those descriptions: the manager is in the turn loop, but economy, defenses, fleet formation, and combat-dependent goals remain incomplete.
-3. `README.md` and `INTERNATIONALIZATION_SUMMARY.md` link to `docs/INTERNATIONALIZATION.md`, which is not present in this checkout.
-4. The README's feature bullets still overstate playability. Combat and capture now have a first runtime path and the command/event UI has an initial clickable pass, but there is no complete victory/game-over loop or mature v3-equivalent control surface, so it is not yet a complete 4X game.
-5. `TESTING_GUIDE.md` is stale relative to `tests/run-tests.js`, which now loads substantially more suites (fog of war, spatial partitioning, fleets, combat, command UI, formation, and naming/events). The suite was verified on 2026-08-18 with `./gad4 tests/run-tests.js`: 279 passed, 0 failed. Test presence should also be separated from runtime integration.
-6. Several code comments claim exact or complete v3 parity where placeholder behavior remains. The most consequential examples are AI economic allocation, fleet formation decisions, fleet fog of war, patrol, repair, and combat presentation.
+- `MAP_GENERATION_PORT_PLAN.md` now records current map-generation status instead of listing already-completed work as future tasks.
+- `AI_INTEGRATION_GUIDE.md` and `AI_INTEGRATION_SUMMARY.md` now both describe AI as active but partial: AI turns run, stars can start builds, and ships can set destinations, while economy allocation, defenses, fleet formation, advantage, and finer skill behavior remain incomplete.
+- `README.md` now links only to files that exist and no longer describes the port as a complete 4X game.
+- `INTERNATIONALIZATION_SUMMARY.md` now serves as the current i18n reference and notes the remaining hard-coded English strings and resource-parity caveats.
+- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command and 280-test expected result.
+
+This file remains the main parity source of truth. More focused docs may describe implementation details for an area, but their status claims should stay consistent with the tables above.
 
 ## Recommended parity sequence
 
