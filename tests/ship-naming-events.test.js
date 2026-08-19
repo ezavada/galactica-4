@@ -14,10 +14,14 @@ if (typeof global.pdg === 'undefined') {
         },
         tm: { getMilliseconds: () => Date.now() },
         Color: function(){},
-        Attributes: function(){ this.fillColor=()=>this; this.textSize=()=>this; this.textStyle=()=>this; this.fillOpacity=()=>this; this.lineColor=()=>this; this.lineOpacity=()=>this; this.fillLinearGradient=()=>this; this.fillRadialGradient=()=>this; this.lineStyle=()=>this; },
+        Attributes: function(){ this.fillColor=()=>this; this.textSize=()=>this; this.textStyle=()=>this; this.fillOpacity=()=>this; this.lineColor=()=>this; this.lineOpacity=()=>this; this.fillGradient=()=>this; this.fillRadialGradient=()=>this; this.lineStyle=()=>this; },
         Point: function(){},
         Rect: function(){},
         Polygon: function(){},
+        textStyle_Plain: 0,
+        textStyle_Centered: 16,
+        textStyle_RightJustified: 32,
+        lineStyle_Solid: 2,
         key_Tab: 9,
         key_Escape: 27,
         srand: ()=>{}, rand: ()=>0
@@ -84,5 +88,4 @@ module.exports = function runShipNamingEventsTests() {
         });
     });
 }
-
 

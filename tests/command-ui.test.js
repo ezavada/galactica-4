@@ -15,10 +15,9 @@ if (typeof global.pdg === 'undefined') {
             this.fillOpacity = () => this;
             this.lineColor = () => this;
             this.lineOpacity = () => this;
-            this.fillLinearGradient = () => this;
+            this.fillGradient = () => this;
             this.fillRadialGradient = () => this;
             this.lineStyle = () => this;
-            this.roundedCorners = () => this;
         },
         Point: function(x = 0, y = 0){
             this.x = x;
@@ -39,21 +38,23 @@ if (typeof global.pdg === 'undefined') {
         },
         Polygon: function(){},
         textStyle_Plain: 0,
-        textStyle_Centered: 1,
-        textStyle_Right: 2,
+        textStyle_Centered: 16,
         textStyle_RightJustified: 32,
-        lineStyle_Solid: 0,
+        lineStyle_Solid: 2,
         key_Tab: 9,
         key_Escape: 27,
         srand: () => {},
         rand: () => 0
     };
 }
-if (global.pdg.textStyle_Right === undefined) {
-    global.pdg.textStyle_Right = 2;
-}
 if (global.pdg.textStyle_RightJustified === undefined) {
     global.pdg.textStyle_RightJustified = 32;
+}
+if (global.pdg.textStyle_Centered === undefined) {
+    global.pdg.textStyle_Centered = 16;
+}
+if (global.pdg.lineStyle_Solid === undefined) {
+    global.pdg.lineStyle_Solid = 2;
 }
 
 const Common = require('../src/js/common.js');
@@ -248,20 +249,22 @@ module.exports = function runCommandUITests() {
             let roundedCall = null;
             game.port = {
                 ...createFakePort(800, 600),
-                drawRoundedRect: (rect, radius) => {
-                    roundedCall = { rect, radius };
+                drawRoundedRect: (rect, radius, attrs) => {
+                    roundedCall = { rect, radius, attrs };
                 }
             };
             const display = new Display(game);
+            const attrs = new pdg.Attributes();
 
-            display.drawRoundedRect({ x: 42, y: 73, width: 120, height: 44 }, 11, new pdg.Color());
+            display.drawRoundedRect({ x: 42, y: 73, width: 120, height: 44 }, 11, attrs);
 
             test.assertNotNull(roundedCall, 'Display should use port.drawRoundedRect when available');
             test.assertEqual(roundedCall.radius, 11);
-            test.assertEqual(roundedCall.rect.left, 42);
-            test.assertEqual(roundedCall.rect.top, 73);
-            test.assertEqual(roundedCall.rect.right, 162);
-            test.assertEqual(roundedCall.rect.bottom, 117);
+            test.assertEqual(roundedCall.rect.left !== undefined ? roundedCall.rect.left : roundedCall.rect.x, 42);
+            test.assertEqual(roundedCall.rect.top !== undefined ? roundedCall.rect.top : roundedCall.rect.y, 73);
+            test.assertEqual(roundedCall.rect.right !== undefined ? roundedCall.rect.right : roundedCall.rect.x + roundedCall.rect.width, 162);
+            test.assertEqual(roundedCall.rect.bottom !== undefined ? roundedCall.rect.bottom : roundedCall.rect.y + roundedCall.rect.height, 117);
+            test.assertTrue(roundedCall.attrs === attrs, 'Display should pass the supplied Attributes object through directly');
         });
 
         test.it('draws panel title dividers near the title text', () => {
@@ -359,10 +362,9 @@ module.exports = function runCommandUITests() {
             const button = display.getMapButtonRegions()[0];
             let drawnColor = null;
             let drawnText = null;
-            let fillColorName = null;
-            display.getUIColor = (name) => name;
-            display.drawRoundedRect = (_rect, _radius, fillColor) => {
-                fillColorName = fillColor;
+            let roundedAttrs = null;
+            display.drawRoundedRect = (_rect, _radius, attrs) => {
+                roundedAttrs = attrs;
             };
             display.drawTextLine = (text, _x, _y, color) => {
                 drawnText = text;
@@ -374,7 +376,7 @@ module.exports = function runCommandUITests() {
 
             test.assertEqual(drawnText, `${button.label} <${button.key}>`);
             test.assertEqual(drawnColor, 'hovergray');
-            test.assertEqual(fillColorName, 'buttonFillHover');
+            test.assertTrue(roundedAttrs === display.styles.buttonFillHover, 'Hovered buttons should use the hover Attributes class');
         });
 
         test.it('draws production sliders with right-justified labels and baseline bars', () => {

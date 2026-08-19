@@ -17,6 +17,11 @@ class Display {
         const ownerColorNames = ['green', 'blue', 'red', 'yellow', 'purple', 'aqua', 'olive', 'lime'];
         this.ownerColors = ownerColorNames.map(name => new pdg.Color(name));
         this.ownerColors.forEach(color => color.alpha = 0.5);
+        this.uiColors = this.createUIColorPalette();
+        this.textAttributes = {};
+        this.fillAttributes = {};
+        this.lineAttributes = {};
+        this.styles = this.createDrawingStyles();
         
         // Overlay images (loaded lazily)
         this.images = {
@@ -74,6 +79,126 @@ class Display {
             buildDefense: pdg.res.getString(31) || "[d] defense",
             buildBattleship: pdg.res.getString(32) || "[b] battleship",
             buildColony: pdg.res.getString(33) || "[c] colony"
+        };
+    }
+
+    createUIColorPalette() {
+        const colors = {
+            panelFill: [0.13, 0.13, 0.14, 0.92],
+            panelBorder: [0.42, 0.42, 0.44, 0.95],
+            buttonFill: [0.18, 0.18, 0.19, 0.92],
+            buttonFillHover: [0.14, 0.14, 0.15, 0.96],
+            buttonFillActive: [0.24, 0.24, 0.25, 0.95],
+            buttonFillActiveHover: [0.20, 0.20, 0.21, 0.98],
+            buttonBorder: [0.50, 0.50, 0.52, 0.95],
+            divider: [0.34, 0.34, 0.36, 0.85],
+            connector: [0.56, 0.56, 0.58, 0.50],
+            barTrack: [0.22, 0.22, 0.23, 0.95],
+            topInfoFill: [0.11, 0.11, 0.12, 0.86],
+            textLight: [0.78, 0.78, 0.80, 1.0],
+            textLabel: [0.64, 0.64, 0.66, 1.0],
+            textHover: [0.96, 0.96, 0.98, 1.0],
+            textMuted: [0.56, 0.56, 0.58, 1.0],
+            gridLine: [0.25, 0.25, 0.5, 0.5],
+            overlayDim: [0, 0, 0, 0.65],
+            selectionFrame: [1, 1, 1, 0.75],
+            defaultDestination: [0, 1, 0, 0.8]
+        };
+
+        const palette = {};
+        for (const [name, rgba] of Object.entries(colors)) {
+            palette[name] = new pdg.Color(rgba[0], rgba[1], rgba[2], rgba[3]);
+        }
+        return palette;
+    }
+
+    createAttributes(definition = {}) {
+        const attrs = new pdg.Attributes();
+        if (definition.fillColor) {
+            attrs.fillColor(definition.fillColor);
+        }
+        if (definition.fillOpacity !== undefined) {
+            attrs.fillOpacity(definition.fillOpacity);
+        }
+        if (definition.lineColor) {
+            attrs.lineColor(definition.lineColor);
+        }
+        if (definition.lineOpacity !== undefined) {
+            attrs.lineOpacity(definition.lineOpacity);
+        }
+        if (definition.lineStyle !== undefined) {
+            attrs.lineStyle(definition.lineStyle);
+        }
+        if (definition.fillGradient) {
+            const gradient = definition.fillGradient;
+            attrs.fillGradient(gradient.start, gradient.startColor, gradient.end, gradient.endColor);
+        }
+        if (definition.fillRadialGradient) {
+            const gradient = definition.fillRadialGradient;
+            attrs.fillRadialGradient(gradient.center, gradient.centerColor, gradient.radius, gradient.endColor);
+        }
+        if (definition.textSize !== undefined) {
+            attrs.textSize(definition.textSize);
+        }
+        if (definition.textStyle !== undefined) {
+            attrs.textStyle(definition.textStyle);
+        }
+        if (definition.fitType !== undefined) {
+            attrs.fitType(definition.fitType);
+        }
+        return attrs;
+    }
+
+    createDrawingStyles() {
+        // Treat these Attributes objects like CSS classes: define once, reuse at draw sites,
+        // and allow later UI passes to tune a style in one place.
+        return {
+            clear: this.createAttributes({ fillColor: new pdg.Color('black') }),
+            image: this.createAttributes(),
+            panel: this.createAttributes({
+                fillColor: this.getUIColor('panelFill'),
+                lineColor: this.getUIColor('panelBorder')
+            }),
+            topInfoPanel: this.createAttributes({
+                fillColor: this.getUIColor('topInfoFill'),
+                lineColor: this.getUIColor('panelBorder')
+            }),
+            panelPointer: this.createAttributes({
+                fillColor: this.getUIColor('panelFill'),
+                lineColor: this.getUIColor('panelBorder')
+            }),
+            divider: this.createAttributes({ lineColor: this.getUIColor('divider') }),
+            connector: this.createAttributes({ lineColor: this.getUIColor('connector') }),
+            barTrack: this.createAttributes({ fillColor: this.getUIColor('barTrack') }),
+            barFrame: this.createAttributes({ lineColor: this.getUIColor('divider') }),
+            buttonFill: this.createAttributes({
+                fillColor: this.getUIColor('buttonFill'),
+                lineColor: this.getUIColor('buttonBorder')
+            }),
+            buttonFillHover: this.createAttributes({
+                fillColor: this.getUIColor('buttonFillHover'),
+                lineColor: this.getUIColor('buttonBorder')
+            }),
+            buttonFillActive: this.createAttributes({
+                fillColor: this.getUIColor('buttonFillActive'),
+                lineColor: this.getUIColor('buttonBorder')
+            }),
+            buttonFillActiveHover: this.createAttributes({
+                fillColor: this.getUIColor('buttonFillActiveHover'),
+                lineColor: this.getUIColor('buttonBorder')
+            }),
+            gridLine: this.createAttributes({ lineColor: this.getUIColor('gridLine') }),
+            overlayDim: this.createAttributes({ fillColor: this.getUIColor('overlayDim') }),
+            selectionFrame: this.createAttributes({ lineColor: this.getUIColor('selectionFrame') }),
+            defaultDestinationLine: this.createAttributes({ lineColor: this.getUIColor('defaultDestination') }),
+            shipDestinationLine: this.createAttributes({
+                lineColor: new pdg.Color('cyan'),
+                lineOpacity: 0.75
+            }),
+            fleetDestinationLine: this.createAttributes({
+                lineColor: new pdg.Color('orange'),
+                lineOpacity: 0.75
+            })
         };
     }
     
@@ -197,10 +322,8 @@ class Display {
     
     // Clear the screen
     clear() {
-        const attrs = new pdg.Attributes();
-        attrs.fillColor(new pdg.Color('black'));
         const drawingArea = this.port.getDrawingArea();
-        this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), attrs);
+        this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), this.styles.clear);
     }
     
     // Draw fixed background image that maintains aspect ratio
@@ -228,17 +351,22 @@ class Display {
             const offsetY = (screenHeight - scaledHeight) / 2;
             
             // Create rectangle for the background image (may extend beyond screen bounds)
-            const backgroundRect = new pdg.Rect(offsetX, offsetY, scaledWidth, scaledHeight);
+            const backgroundRect = this.toPDGRect({ x: offsetX, y: offsetY, width: scaledWidth, height: scaledHeight });
             
-            const attrs = new pdg.Attributes();
-            this.port.drawImage(this.backgroundImage, backgroundRect, attrs);
+            this.port.drawImage(this.backgroundImage, backgroundRect, this.styles.image);
         } else {
             // Fallback to a gradient background if image not loaded
             const backgroundRect = new pdg.Rect(0, 0, screenWidth, screenHeight);
-            const attrs = new pdg.Attributes();
             const startColor = new pdg.Color(0.1, 0.1, 0.3); // Dark blue
             const endColor = new pdg.Color(0.0, 0.0, 0.1);   // Very dark blue
-            attrs.fillLinearGradient(new pdg.Point(0, 0), startColor, new pdg.Point(0, screenHeight), endColor);
+            const attrs = this.createAttributes({
+                fillGradient: {
+                    start: new pdg.Point(0, 0),
+                    startColor,
+                    end: new pdg.Point(0, screenHeight),
+                    endColor
+                }
+            });
             this.port.drawRect(backgroundRect, attrs);
         }
     }
@@ -374,9 +502,10 @@ class Display {
         // Only show ownership color if we can see ownership details
         if (star.owner && visibilityLevel >= Common.VisibilityLevel.CLASS) {
             const ownerColor = this.ownerColors[star.owner];
-            const attrs = new pdg.Attributes();
-            attrs.fillColor(ownerColor);
-            attrs.fillOpacity(0.25);
+            const attrs = this.createAttributes({
+                fillColor: ownerColor,
+                fillOpacity: 0.25
+            });
             this.port.drawCircle(new pdg.Point(screenX, screenY), scaledRadius * 5.0, attrs);
         }
         
@@ -389,12 +518,18 @@ class Display {
             new pdg.Point(screenX - r, screenY)       // Left
         );
         
-        const attrs = new pdg.Attributes();
         // Use radial gradient from center (bright) to edges (darker)
         const centerColor = new pdg.Color(color);
         const edgeColor = new pdg.Color(color);
         edgeColor.alpha = 0.1;  // Make edges more transparent/darker
-        attrs.fillRadialGradient(new pdg.Point(screenX, screenY), centerColor, r, edgeColor);
+        const attrs = this.createAttributes({
+            fillRadialGradient: {
+                center: new pdg.Point(screenX, screenY),
+                centerColor,
+                radius: r,
+                endColor: edgeColor
+            }
+        });
         this.port.drawPolygon(diamond, attrs);
         
         const isHomeSystem = this.isHomeSystem(star);
@@ -406,30 +541,27 @@ class Display {
             if (star.population > 0 && visibilityLevel > Common.VisibilityLevel.NONE) {
                 color = 'white';
             }
-            const textAttrs = new pdg.Attributes();
             const textColor = new pdg.Color(color);
             textColor.alpha = nameOpacity; // Apply fading
-            textAttrs.fillColor(textColor);
-            textAttrs.textSize(star.namedStar ? 11 : 10);
-            textAttrs.textStyle(pdg.textStyle_Centered);
+            const textAttrs = this.createAttributes({
+                fillColor: textColor,
+                textSize: star.namedStar ? 11 : 10,
+                textStyle: pdg.textStyle_Centered
+            });
             this.port.drawText(`${star.name}`, new pdg.Point(screenX, screenY + scaledRadius + 12), textAttrs);
         }
 
         // Draw selection indicator
         if (star === this.selectedObject) {
             const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0
-            const frameAttrs = new pdg.Attributes();
-            frameAttrs.lineColor(new pdg.Color(1,1,1,0.75));
-            this.port.drawCircle(new pdg.Point(screenX, screenY), scaledRadius + 4 + pulse, frameAttrs);
+            this.port.drawCircle(new pdg.Point(screenX, screenY), scaledRadius + 4 + pulse, this.styles.selectionFrame);
         }
         
         // Draw default destination indicator (only for owned stars)
         const defaultDestination = star.getDefaultDestination();
         if (star.owner === humanPlayer && defaultDestination) {
-            const destAttrs = new pdg.Attributes();
-            destAttrs.lineColor(new pdg.Color(0, 1, 0, 0.8)); // Green color
             // Draw a small circle to indicate default destination is set
-            this.port.drawLine(new pdg.Point(screenX, screenY), new pdg.Point(defaultDestination.x, defaultDestination.y), destAttrs);
+            this.port.drawLine(new pdg.Point(screenX, screenY), new pdg.Point(defaultDestination.x, defaultDestination.y), this.styles.defaultDestinationLine);
         }
     }
     
@@ -469,42 +601,44 @@ class Display {
             new pdg.Point(x+frameRadius, y),
             new pdg.Point(x-frameRadius, y+frameRadius)
         );
-        const shipAttrs = new pdg.Attributes();
-        shipAttrs.fillColor(this.ownerColors[ship.owner]).fillOpacity(shipOpacity);
-        shipAttrs.lineStyle(pdg.lineStyle_Solid).lineColor(new pdg.Color(1,1,1,shipOpacity));
+        const shipAttrs = this.createAttributes({
+            fillColor: this.ownerColors[ship.owner],
+            fillOpacity: shipOpacity,
+            lineStyle: pdg.lineStyle_Solid,
+            lineColor: new pdg.Color(1, 1, 1, shipOpacity)
+        });
         this.port.drawPolygon(triangle, shipAttrs);
         
         if (ship.underConstruction()) {
             const progLen = Math.floor(ship.progress / 5);
             const statusRect = new pdg.Rect(new pdg.Point(x - 10, y - (this.scaledShipRadius + 2)), 20, 2);
-            const grayAttrs = new pdg.Attributes();
-            grayAttrs.fillOpacity(shipOpacity).fillColor(new pdg.Color('gray'));
+            const grayAttrs = this.createAttributes({
+                fillColor: new pdg.Color('gray'),
+                fillOpacity: shipOpacity
+            });
             this.port.drawRect(statusRect, grayAttrs);
             if (progLen > 0) {
                 statusRect.right = statusRect.left + progLen;
-                const aquaAttrs = new pdg.Attributes();
-                aquaAttrs.fillOpacity(shipOpacity).fillColor(new pdg.Color('aqua'));
+                const aquaAttrs = this.createAttributes({
+                    fillColor: new pdg.Color('aqua'),
+                    fillOpacity: shipOpacity
+                });
                 this.port.drawRect(statusRect, aquaAttrs);
             }
         }
 
         // Draw destination line (convert destination to screen coordinates)
         if (ship.destination) {
-            const lineAttrs = new pdg.Attributes();
-            lineAttrs.lineColor(new pdg.Color('cyan'));
-            lineAttrs.lineOpacity(0.75);
             const destX = this.toScreenX(ship.destination.x);
             const destY = this.toScreenY(ship.destination.y);
-            this.port.drawLine(new pdg.Point(x, y), new pdg.Point(destX, destY), lineAttrs);
+            this.port.drawLine(new pdg.Point(x, y), new pdg.Point(destX, destY), this.styles.shipDestinationLine);
         }
 
         // Draw selection indicator
         if (ship === this.selectedObject) {
             //console.log(`🎯 DRAWING SELECTION CIRCLE for ship ${ship.type} (ID: ${ship.id}) at (${x}, ${y})`);
             const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0
-            const selAttrs = new pdg.Attributes();
-            selAttrs.lineColor(new pdg.Color(1,1,1,0.75));
-            this.port.drawCircle(new pdg.Point(x - 1.5, y), Common.ShipRadius + 4 + pulse, selAttrs);
+            this.port.drawCircle(new pdg.Point(x - 1.5, y), Common.ShipRadius + 4 + pulse, this.styles.selectionFrame);
         }
     }
     
@@ -586,36 +720,35 @@ class Display {
         const hexagon = new pdg.Polygon(...hexPoints);
         
         // Fleet appearance
-        const fleetAttrs = new pdg.Attributes();
-        fleetAttrs.fillColor(this.ownerColors[fleet.owner]).fillOpacity(fleetOpacity * 0.7); // Slightly transparent
-        fleetAttrs.lineStyle(pdg.lineStyle_Solid).lineColor(new pdg.Color(1,1,1,fleetOpacity));
+        const fleetAttrs = this.createAttributes({
+            fillColor: this.ownerColors[fleet.owner],
+            fillOpacity: fleetOpacity * 0.7,
+            lineStyle: pdg.lineStyle_Solid,
+            lineColor: new pdg.Color(1, 1, 1, fleetOpacity)
+        });
         this.port.drawPolygon(hexagon, fleetAttrs);
         
         // Draw ship count in center
         if (fleetSize > 0) {
-            const textAttrs = new pdg.Attributes();
-            textAttrs.fillColor(new pdg.Color(1,1,1,fleetOpacity));
-            textAttrs.textSize(Math.max(8, hexRadius * 0.8));
-            textAttrs.textStyle(pdg.textStyle_Centered);
+            const textAttrs = this.createAttributes({
+                fillColor: new pdg.Color(1, 1, 1, fleetOpacity),
+                textSize: Math.max(8, hexRadius * 0.8),
+                textStyle: pdg.textStyle_Centered
+            });
             this.port.drawText(fleetSize.toString(), new pdg.Point(x, y + 2), textAttrs);
         }
         
         // Draw destination line (convert destination to screen coordinates)
         if (fleet.destination) {
-            const lineAttrs = new pdg.Attributes();
-            lineAttrs.lineColor(new pdg.Color('orange')); // Different color from ships
-            lineAttrs.lineOpacity(0.75);
             const destX = this.toScreenX(fleet.destination.x);
             const destY = this.toScreenY(fleet.destination.y);
-            this.port.drawLine(new pdg.Point(x, y), new pdg.Point(destX, destY), lineAttrs);
+            this.port.drawLine(new pdg.Point(x, y), new pdg.Point(destX, destY), this.styles.fleetDestinationLine);
         }
 
         // Draw selection indicator
         if (fleet === this.selectedObject) {
             const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0;
-            const selAttrs = new pdg.Attributes();
-            selAttrs.lineColor(new pdg.Color(1,1,1,0.75));
-            this.port.drawCircle(new pdg.Point(x, y), hexRadius + 6 + pulse, selAttrs);
+            this.port.drawCircle(new pdg.Point(x, y), hexRadius + 6 + pulse, this.styles.selectionFrame);
         }
     }
     
@@ -644,29 +777,7 @@ class Display {
     }
 
     getUIColor(name) {
-        const colors = {
-            panelFill: [0.13, 0.13, 0.14, 0.92],
-            panelBorder: [0.42, 0.42, 0.44, 0.95],
-            buttonFill: [0.18, 0.18, 0.19, 0.92],
-            buttonFillHover: [0.14, 0.14, 0.15, 0.96],
-            buttonFillActive: [0.24, 0.24, 0.25, 0.95],
-            buttonFillActiveHover: [0.20, 0.20, 0.21, 0.98],
-            buttonBorder: [0.50, 0.50, 0.52, 0.95],
-            divider: [0.34, 0.34, 0.36, 0.85],
-            connector: [0.56, 0.56, 0.58, 0.50],
-            barTrack: [0.22, 0.22, 0.23, 0.95],
-            topInfoFill: [0.11, 0.11, 0.12, 0.86],
-            textLight: [0.78, 0.78, 0.80, 1.0],
-            textLabel: [0.64, 0.64, 0.66, 1.0],
-            textHover: [0.96, 0.96, 0.98, 1.0],
-            textMuted: [0.56, 0.56, 0.58, 1.0]
-        };
-
-        const color = colors[name];
-        if (color) {
-            return new pdg.Color(color[0], color[1], color[2], color[3]);
-        }
-        return new pdg.Color(name);
+        return this.uiColors[name] || new pdg.Color(name);
     }
 
     resolveColor(color) {
@@ -699,12 +810,46 @@ class Display {
         return !!this.hoverPoint && this.containsPoint(rect, this.hoverPoint.x, this.hoverPoint.y);
     }
 
-    makeTextAttributes(color = 'lightgray', size = 12, style = pdg.textStyle_Plain) {
-        const attrs = new pdg.Attributes();
-        attrs.fillColor(this.resolveColor(color));
-        attrs.textSize(size);
-        attrs.textStyle(style);
-        return attrs;
+    getTextAttributes(color = 'lightgray', size = 12, style = pdg.textStyle_Plain) {
+        if (typeof color !== 'string') {
+            return this.createAttributes({
+                fillColor: color,
+                textSize: size,
+                textStyle: style
+            });
+        }
+
+        const key = `${color}:${size}:${style}`;
+        if (!this.textAttributes[key]) {
+            this.textAttributes[key] = this.createAttributes({
+                fillColor: this.resolveColor(color),
+                textSize: size,
+                textStyle: style
+            });
+        }
+        return this.textAttributes[key];
+    }
+
+    getFillAttributes(color) {
+        if (typeof color !== 'string') {
+            return this.createAttributes({ fillColor: color });
+        }
+
+        if (!this.fillAttributes[color]) {
+            this.fillAttributes[color] = this.createAttributes({ fillColor: this.resolveColor(color) });
+        }
+        return this.fillAttributes[color];
+    }
+
+    getLineAttributes(color) {
+        if (typeof color !== 'string') {
+            return this.createAttributes({ lineColor: color });
+        }
+
+        if (!this.lineAttributes[color]) {
+            this.lineAttributes[color] = this.createAttributes({ lineColor: this.resolveColor(color) });
+        }
+        return this.lineAttributes[color];
     }
 
     getPanelContentStartY(rect) {
@@ -712,7 +857,7 @@ class Display {
     }
 
     drawTextLine(text, x, y, color = 'lightgray', size = 12, style = pdg.textStyle_Plain) {
-        this.port.drawText(text, new pdg.Point(x, y), this.makeTextAttributes(color, size, style));
+        this.port.drawText(text, new pdg.Point(x, y), this.getTextAttributes(color, size, style));
     }
 
     drawRightTextLine(text, rightX, y, color = 'lightgray', size = 12) {
@@ -731,44 +876,24 @@ class Display {
 
     toPDGRect(rect) {
         if (rect && rect.x !== undefined && rect.y !== undefined && rect.width !== undefined && rect.height !== undefined) {
-            return {
-                left: rect.x,
-                top: rect.y,
-                right: rect.x + rect.width,
-                bottom: rect.y + rect.height
-            };
+            return new pdg.Rect(new pdg.Point(rect.x, rect.y), rect.width, rect.height);
         }
         return rect;
     }
 
-    drawRoundedRect(rect, radius = 12, fillColor = null, lineColor = null) {
-        const pdgRect = this.toPDGRect(rect);
-        const attrs = new pdg.Attributes();
-        if (fillColor) {
-            attrs.fillColor(fillColor);
-        }
-        if (lineColor) {
-            attrs.lineColor(lineColor);
-        }
-
-        if (typeof this.port.drawRoundedRect === 'function') {
-            this.port.drawRoundedRect(pdgRect, radius, attrs);
-        } else if (typeof attrs.roundedCorners === 'function') {
-            attrs.roundedCorners(radius);
-            this.port.drawRect(pdgRect, attrs);
-        } else {
-            this.port.drawRect(pdgRect, attrs);
-        }
+    drawRoundedRect(rect, radius = 12, attrs = this.styles.panel) {
+        this.port.drawRoundedRect(this.toPDGRect(rect), radius, attrs);
     }
 
     drawDivider(x, y, width) {
-        const dividerAttrs = new pdg.Attributes();
-        dividerAttrs.lineColor(this.getUIColor('divider'));
-        this.port.drawLine(new pdg.Point(x, y), new pdg.Point(x + width, y), dividerAttrs);
+        this.port.drawLine(new pdg.Point(x, y), new pdg.Point(x + width, y), this.styles.divider);
     }
 
     drawPanel(rect, title = null, borderColor = null) {
-        this.drawRoundedRect(rect, 14, this.getUIColor('panelFill'), borderColor ? new pdg.Color(borderColor) : this.getUIColor('panelBorder'));
+        const attrs = borderColor
+            ? this.createAttributes({ fillColor: this.getUIColor('panelFill'), lineColor: new pdg.Color(borderColor) })
+            : this.styles.panel;
+        this.drawRoundedRect(rect, 14, attrs);
 
         if (title) {
             this.drawTextLine(title, rect.x + 16, rect.y + 22, 'lightgray', 14);
@@ -807,9 +932,9 @@ class Display {
             return;
         }
 
-        const attrs = new pdg.Attributes();
-        attrs.fillColor(this.getUIColor('panelFill'));
-        attrs.lineColor(borderColor ? new pdg.Color(borderColor) : this.getUIColor('panelBorder'));
+        const attrs = borderColor
+            ? this.createAttributes({ fillColor: this.getUIColor('panelFill'), lineColor: new pdg.Color(borderColor) })
+            : this.styles.panelPointer;
         this.port.drawPolygon(new pdg.Polygon(...pointer.points), attrs);
     }
 
@@ -876,20 +1001,14 @@ class Display {
     }
 
     drawBar(x, y, width, height, ratio, color) {
-        const trackAttrs = new pdg.Attributes();
-        trackAttrs.fillColor(this.getUIColor('barTrack'));
-        this.port.drawRect(new pdg.Rect(new pdg.Point(x, y), width, height), trackAttrs);
+        this.port.drawRect(new pdg.Rect(new pdg.Point(x, y), width, height), this.styles.barTrack);
 
         const fillWidth = Math.max(0, Math.min(width, Math.round(width * ratio)));
         if (fillWidth > 0) {
-            const fillAttrs = new pdg.Attributes();
-            fillAttrs.fillColor(this.resolveColor(color));
-            this.port.drawRect(new pdg.Rect(new pdg.Point(x, y), fillWidth, height), fillAttrs);
+            this.port.drawRect(new pdg.Rect(new pdg.Point(x, y), fillWidth, height), this.getFillAttributes(color));
         }
 
-        const frameAttrs = new pdg.Attributes();
-        frameAttrs.lineColor(this.getUIColor('divider'));
-        this.port.drawRect(new pdg.Rect(new pdg.Point(x, y), width, height), frameAttrs);
+        this.port.drawRect(new pdg.Rect(new pdg.Point(x, y), width, height), this.styles.barFrame);
     }
 
     snapRectToPixels(rect) {
@@ -909,12 +1028,7 @@ class Display {
         if (hovered) {
             fillColorName = active ? 'buttonFillActiveHover' : 'buttonFillHover';
         }
-        this.drawRoundedRect(
-            drawRect,
-            options.radius || 10,
-            this.getUIColor(fillColorName),
-            this.getUIColor('buttonBorder')
-        );
+        this.drawRoundedRect(drawRect, options.radius || 10, this.styles[fillColorName]);
 
         const buttonText = hotkey ? `${label} <${hotkey}>` : label;
         const size = options.size || 11;
@@ -1077,14 +1191,11 @@ class Display {
     }
 
     drawContextButtonArc(object, panelRect) {
-        const connectorAttrs = new pdg.Attributes();
-        connectorAttrs.lineColor(this.getUIColor('connector'));
-
         const buttons = this.getContextButtonArc(object, panelRect);
         for (const button of buttons) {
             const end = this.getButtonConnectorPoint(object, button);
             const start = this.getConnectorStartPoint(object, end.x, end.y);
-            this.port.drawLine(new pdg.Point(start.x, start.y), new pdg.Point(end.x, end.y), connectorAttrs);
+            this.port.drawLine(new pdg.Point(start.x, start.y), new pdg.Point(end.x, end.y), this.styles.connector);
         }
         for (const button of buttons) {
             this.drawUIButton(button.rect, button.label, button.key, { size: 10, radius: 14 });
@@ -1280,9 +1391,7 @@ class Display {
         this.drawTextLine(`${Math.round(desired)}%`, rects.percent.x, y, valueColor, 11);
 
         const currentMarkerX = rects.track.x + this.clamp(Math.round(width * current / 100.0), 0, width);
-        const markerAttrs = new pdg.Attributes();
-        markerAttrs.lineColor(this.resolveColor(valueColor));
-        this.port.drawLine(new pdg.Point(currentMarkerX, y - 11), new pdg.Point(currentMarkerX, y + 1), markerAttrs);
+        this.port.drawLine(new pdg.Point(currentMarkerX, y - 11), new pdg.Point(currentMarkerX, y + 1), this.getLineAttributes(valueColor));
     }
 
     drawStarAllocationSummary(star, x, y, width = 150) {
@@ -1355,7 +1464,7 @@ class Display {
             height: 56
         };
 
-        this.drawRoundedRect(rect, 16, this.getUIColor('topInfoFill'), this.getUIColor('panelBorder'));
+        this.drawRoundedRect(rect, 16, this.styles.topInfoPanel);
         this.drawTextLine(`${gameName}  •  ${this.STR.turn} ${turn}`, screen.width / 2, rect.y + 24, 'lightgray', 15, pdg.textStyle_Centered);
         this.drawTextLine(`${this.STR.stars} ${starCount}   ${this.STR.ships} ${shipCount}   Zoom ${this.getZoomPercentage()}%`, screen.width / 2, rect.y + 44, 'gray', 11, pdg.textStyle_Centered);
         this.drawMapButtons();
@@ -1599,9 +1708,6 @@ class Display {
     // Draw grid lines based on sector boundaries
     drawGrid() {
         const drawingArea = this.port.getDrawingArea();
-        const gridAttrs = new pdg.Attributes();
-        gridAttrs.lineColor(new pdg.Color(0.25, 0.25, 0.5, 0.5));
-        
         // Use original C++ grid spacing - full sectors only (no subgrid)
         const sectorSize = 1024 * 1024; // PIXELS_PER_SECTOR * COORDINATE_SCALE
         const gridSpacing = sectorSize; // Full sector spacing (matches original C++)
@@ -1622,7 +1728,7 @@ class Display {
                 this.port.drawLine(
                     new pdg.Point(screenX, 0),
                     new pdg.Point(screenX, drawingArea.height()),
-                    gridAttrs
+                    this.styles.gridLine
                 );
             }
         }
@@ -1634,7 +1740,7 @@ class Display {
                 this.port.drawLine(
                     new pdg.Point(0, screenY),
                     new pdg.Point(drawingArea.width(), screenY),
-                    gridAttrs
+                    this.styles.gridLine
                 );
             }
         }
@@ -1713,9 +1819,7 @@ class Display {
     drawOverlay(overlay) {
         const drawingArea = this.port.getDrawingArea();
         // Dim the scene
-        const dimAttrs = new pdg.Attributes();
-        dimAttrs.fillColor(new pdg.Color(0, 0, 0, 0.65));
-        this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), dimAttrs);
+        this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), this.styles.overlayDim);
         
         if (overlay.type === 'lab') {
             const back = this.getImageCached('labback', 'events/labback.png');
@@ -1724,44 +1828,36 @@ class Display {
             const blueprintName = `tech/blue-0${blueprintIdx}.png`;
             let blueprint = null;
             try { blueprint = pdg.res.getImage(blueprintName); } catch (e) { }
-            const centerRect = new pdg.Rect(
-                drawingArea.width()*0.1,
-                drawingArea.height()*0.05,
-                drawingArea.width()*0.8,
-                drawingArea.height()*0.9
-            );
-            const attrs = new pdg.Attributes();
-            if (back) this.port.drawImage(back, centerRect, attrs);
-            if (blueprint) this.port.drawImage(blueprint, centerRect, attrs);
-            if (top) this.port.drawImage(top, centerRect, attrs);
-            const text = new pdg.Attributes();
-            text.fillColor(new pdg.Color('yellow')).textSize(16).textStyle(pdg.textStyle_Centered);
-            this.port.drawText(`New Drive Technology`, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.1), text);
+            const centerRect = this.toPDGRect({
+                x: drawingArea.width() * 0.1,
+                y: drawingArea.height() * 0.05,
+                width: drawingArea.width() * 0.8,
+                height: drawingArea.height() * 0.9
+            });
+            if (back) this.port.drawImage(back, centerRect, this.styles.image);
+            if (blueprint) this.port.drawImage(blueprint, centerRect, this.styles.image);
+            if (top) this.port.drawImage(top, centerRect, this.styles.image);
+            this.port.drawText(`New Drive Technology`, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.1), this.getTextAttributes('yellow', 16, pdg.textStyle_Centered));
         } else if (overlay.type === 'stardock') {
             const back = this.getImageCached('stardock', 'events/newstardock.png');
             const front = this.getImageCached('stardockfront', 'events/newstardockfront.png');
             const base = this.getShipArtNameForClass(overlay.classIndex);
             let shipImg = null;
             try { shipImg = pdg.res.getImage(`ships/${base}.png`); } catch (e) {}
-            const centerRect = new pdg.Rect(
-                drawingArea.width()*0.05,
-                drawingArea.height()*0.15,
-                drawingArea.width()*0.9,
-                drawingArea.height()*0.75
-            );
-            const attrs = new pdg.Attributes();
-            if (back) this.port.drawImage(back, centerRect, attrs);
-            if (shipImg) this.port.drawImage(shipImg, centerRect, attrs);
-            if (front) this.port.drawImage(front, centerRect, attrs);
-            const text = new pdg.Attributes();
-            text.fillColor(new pdg.Color('cyan')).textSize(16).textStyle(pdg.textStyle_Centered);
+            const centerRect = this.toPDGRect({
+                x: drawingArea.width() * 0.05,
+                y: drawingArea.height() * 0.15,
+                width: drawingArea.width() * 0.9,
+                height: drawingArea.height() * 0.75
+            });
+            if (back) this.port.drawImage(back, centerRect, this.styles.image);
+            if (shipImg) this.port.drawImage(shipImg, centerRect, this.styles.image);
+            if (front) this.port.drawImage(front, centerRect, this.styles.image);
             const name = overlay.ship && overlay.ship.name ? overlay.ship.name.split('\t')[0] : this.getShipArtNameForClass(overlay.classIndex);
-            this.port.drawText(`New ${name} Class Commissioned`, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.2), text);
+            this.port.drawText(`New ${name} Class Commissioned`, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.2), this.getTextAttributes('cyan', 16, pdg.textStyle_Centered));
         }
         // Footer hint
-        const hint = new pdg.Attributes();
-        hint.fillColor(new pdg.Color('white')).textSize(12).textStyle(pdg.textStyle_Centered);
-        this.port.drawText(`Press any key to continue`, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.95), hint);
+        this.port.drawText(`Press any key to continue`, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.95), this.getTextAttributes('white', 12, pdg.textStyle_Centered));
     }
 }
 

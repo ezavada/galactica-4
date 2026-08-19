@@ -75,48 +75,78 @@ function startupUIColor(name) {
         panelBorder: [0.42, 0.42, 0.44, 0.95],
         divider: [0.34, 0.34, 0.36, 0.85],
         textLight: [0.78, 0.78, 0.80, 1.0],
-        textMuted: [0.56, 0.56, 0.58, 1.0]
+        textMuted: [0.56, 0.56, 0.58, 1.0],
+        background: [0.02, 0.02, 0.08, 1.0]
     };
     const color = colors[name];
     return color ? new pdg.Color(color[0], color[1], color[2], color[3]) : new pdg.Color(name);
 }
 
+function createStartupAttributes(definition = {}) {
+    const attrs = new pdg.Attributes();
+    if (definition.fillColor) {
+        attrs.fillColor(definition.fillColor);
+    }
+    if (definition.lineColor) {
+        attrs.lineColor(definition.lineColor);
+    }
+    if (definition.textSize !== undefined) {
+        attrs.textSize(definition.textSize);
+    }
+    if (definition.textStyle !== undefined) {
+        attrs.textStyle(definition.textStyle);
+    }
+    return attrs;
+}
+
+// Startup dialog drawing uses Attributes like CSS classes: define once, reuse at draw sites.
+const startupStyles = {
+    background: createStartupAttributes({ fillColor: startupUIColor('background') }),
+    panel: createStartupAttributes({
+        fillColor: startupUIColor('panelFill'),
+        lineColor: startupUIColor('panelBorder')
+    }),
+    divider: createStartupAttributes({ lineColor: startupUIColor('divider') }),
+    titleText: createStartupAttributes({
+        fillColor: startupUIColor('textLight'),
+        textSize: 24,
+        textStyle: pdg.textStyle_Centered
+    }),
+    subtitleText: createStartupAttributes({
+        fillColor: startupUIColor('textMuted'),
+        textSize: 13,
+        textStyle: pdg.textStyle_Centered
+    }),
+    lineText: createStartupAttributes({
+        fillColor: startupUIColor('textLight'),
+        textSize: 13,
+        textStyle: pdg.textStyle_Plain
+    }),
+    hintText: createStartupAttributes({
+        fillColor: startupUIColor('textLight'),
+        textSize: 12,
+        textStyle: pdg.textStyle_Plain
+    }),
+    startText: createStartupAttributes({
+        fillColor: startupUIColor('textLight'),
+        textSize: 14,
+        textStyle: pdg.textStyle_Centered
+    })
+};
+
 function toStartupPDGRect(rect) {
     if (rect && rect.x !== undefined && rect.y !== undefined && rect.width !== undefined && rect.height !== undefined) {
-        return {
-            left: rect.x,
-            top: rect.y,
-            right: rect.x + rect.width,
-            bottom: rect.y + rect.height
-        };
+        return new pdg.Rect(new pdg.Point(rect.x, rect.y), rect.width, rect.height);
     }
     return rect;
 }
 
-function drawStartupRoundedRect(rect, radius = 14, fillColor = null, lineColor = null) {
-    const pdgRect = toStartupPDGRect(rect);
-    const attrs = new pdg.Attributes();
-    if (fillColor) {
-        attrs.fillColor(fillColor);
-    }
-    if (lineColor) {
-        attrs.lineColor(lineColor);
-    }
-
-    if (typeof port.drawRoundedRect === 'function') {
-        port.drawRoundedRect(pdgRect, radius, attrs);
-    } else if (typeof attrs.roundedCorners === 'function') {
-        attrs.roundedCorners(radius);
-        port.drawRect(pdgRect, attrs);
-    } else {
-        port.drawRect(pdgRect, attrs);
-    }
+function drawStartupRoundedRect(rect, radius = 14, attrs = startupStyles.panel) {
+    port.drawRoundedRect(toStartupPDGRect(rect), radius, attrs);
 }
 
 function drawStartupDivider(x, y, width) {
-    const dividerAttrs = new pdg.Attributes();
-    dividerAttrs.lineColor(startupUIColor('divider'));
-    port.drawLine(new pdg.Point(x, y), new pdg.Point(x + width, y), dividerAttrs);
+    port.drawLine(new pdg.Point(x, y), new pdg.Point(x + width, y), startupStyles.divider);
 }
 
 function drawStartupDialog() {
@@ -124,62 +154,37 @@ function drawStartupDialog() {
     const screenWidth = drawingArea.width();
     const screenHeight = drawingArea.height();
 
-    const backgroundAttrs = new pdg.Attributes();
-    backgroundAttrs.fillColor(new pdg.Color(0.02, 0.02, 0.08));
-    port.drawRect(new pdg.Rect(0, 0, screenWidth, screenHeight), backgroundAttrs);
+    port.drawRect(new pdg.Rect(0, 0, screenWidth, screenHeight), startupStyles.background);
 
     const panelWidth = Math.min(560, screenWidth - 40);
     const panelHeight = 390;
     const panelX = (screenWidth - panelWidth) / 2;
     const panelY = Math.max(30, (screenHeight - panelHeight) / 2);
     const panelRect = { x: panelX, y: panelY, width: panelWidth, height: panelHeight };
-    drawStartupRoundedRect(panelRect, 16, startupUIColor('panelFill'), startupUIColor('panelBorder'));
+    drawStartupRoundedRect(panelRect, 16, startupStyles.panel);
 
-    const titleAttrs = new pdg.Attributes();
-    titleAttrs.fillColor(startupUIColor('textLight'));
-    titleAttrs.textSize(24);
-    titleAttrs.textStyle(pdg.textStyle_Centered);
-    port.drawText('Galactica-4', new pdg.Point(screenWidth / 2, panelY + 44), titleAttrs);
-
-    const subAttrs = new pdg.Attributes();
-    subAttrs.fillColor(startupUIColor('textMuted'));
-    subAttrs.textSize(13);
-    subAttrs.textStyle(pdg.textStyle_Centered);
-    port.drawText('New Game Setup', new pdg.Point(screenWidth / 2, panelY + 72), subAttrs);
+    port.drawText('Galactica-4', new pdg.Point(screenWidth / 2, panelY + 44), startupStyles.titleText);
+    port.drawText('New Game Setup', new pdg.Point(screenWidth / 2, panelY + 72), startupStyles.subtitleText);
     drawStartupDivider(panelX + 28, panelY + 88, panelWidth - 56);
-
-    const lineAttrs = new pdg.Attributes();
-    lineAttrs.fillColor(startupUIColor('textLight'));
-    lineAttrs.textSize(13);
-    lineAttrs.textStyle(pdg.textStyle_Plain);
-
-    const hintAttrs = new pdg.Attributes();
-    hintAttrs.fillColor(startupUIColor('textLight'));
-    hintAttrs.textSize(12);
-    hintAttrs.textStyle(pdg.textStyle_Plain);
 
     const x = panelX + 34;
     let y = panelY + 112;
-    port.drawText(`Players: ${pendingConfig.numHumans} human, ${pendingConfig.numComputers} AI`, new pdg.Point(x, y), lineAttrs);
+    port.drawText(`Players: ${pendingConfig.numHumans} human, ${pendingConfig.numComputers} AI`, new pdg.Point(x, y), startupStyles.lineText);
     y += 24;
-    port.drawText(`AI skill: ${pendingConfig.getDifficultyName()} (${pendingConfig.compSkill})`, new pdg.Point(x, y), lineAttrs);
+    port.drawText(`AI skill: ${pendingConfig.getDifficultyName()} (${pendingConfig.compSkill})`, new pdg.Point(x, y), startupStyles.lineText);
     y += 24;
-    port.drawText(`Map: ${pendingConfig.getMapSizeDescription()} / ${pendingConfig.getDensityDescription()}`, new pdg.Point(x, y), lineAttrs);
+    port.drawText(`Map: ${pendingConfig.getMapSizeDescription()} / ${pendingConfig.getDensityDescription()}`, new pdg.Point(x, y), startupStyles.lineText);
     y += 24;
-    port.drawText(`Options: ${pendingConfig.fastGame ? 'Fast game' : 'Normal speed'}, ${pendingConfig.getFogOfWarDescription()}`, new pdg.Point(x, y), lineAttrs);
+    port.drawText(`Options: ${pendingConfig.fastGame ? 'Fast game' : 'Normal speed'}, ${pendingConfig.getFogOfWarDescription()}`, new pdg.Point(x, y), startupStyles.lineText);
     y += 36;
-    port.drawText('<C> cycle AI players   <1-5> AI skill', new pdg.Point(x, y), hintAttrs);
+    port.drawText('<C> cycle AI players   <1-5> AI skill', new pdg.Point(x, y), startupStyles.hintText);
     y += 22;
-    port.drawText('<S> map size   <D> star density', new pdg.Point(x, y), hintAttrs);
+    port.drawText('<S> map size   <D> star density', new pdg.Point(x, y), startupStyles.hintText);
     y += 22;
-    port.drawText('<F> fast game   <O> fog/all visible   <R> defaults', new pdg.Point(x, y), hintAttrs);
+    port.drawText('<F> fast game   <O> fog/all visible   <R> defaults', new pdg.Point(x, y), startupStyles.hintText);
     y += 42;
 
-    const startAttrs = new pdg.Attributes();
-    startAttrs.fillColor(startupUIColor('textLight'));
-    startAttrs.textSize(14);
-    startAttrs.textStyle(pdg.textStyle_Centered);
-    port.drawText('<Enter> Start', new pdg.Point(screenWidth / 2, y), startAttrs);
+    port.drawText('<Enter> Start', new pdg.Point(screenWidth / 2, y), startupStyles.startText);
 }
 
 function handleStartupKey(key) {
