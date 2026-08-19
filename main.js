@@ -10,8 +10,12 @@ console.log("=== Galactica-4 PDG Game Starting ===");
 // This tells the ResourceManager where to look for localized string files
 const path = require('path');
 const dataPath = path.join(__dirname, 'data');
-pdg.res.openResourceFile(dataPath);
-console.log(`Resource path set to: ${dataPath}`);
+const resourceRef = pdg.res.openResourceFile(dataPath);
+if (resourceRef) {
+    console.log(`Resource path set to: ${dataPath}`);
+} else {
+    console.warn(`Failed to open resource path: ${dataPath}`);
+}
 
 // Parse command-line arguments for language setting
 // Format: --lang=xx (e.g., --lang=es for Spanish, --lang=fr for French)
@@ -39,7 +43,7 @@ if (args.every(arg => !arg.startsWith('--lang='))) {
 }
 
 // Initialize random seed
-pdg.srand(Date.now());
+pdg.srand(Date.now() >>> 0);
 
 // Load required modules
 const Factory = require('./src/js/factory.js');
@@ -285,7 +289,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     // Check if this is a mouse down event
     if (event && event.eventType === pdg.eventType_MouseDown) {
         // Check which button was pressed
-        // PDG uses 'button' property: 0=left, 1=right, 2=middle
+        // PDG uses buttonNumber: 0=left, 1=right, 2=middle
         if (event.buttonNumber === 0) {
             game.display.setHoverPoint(event.mousePos.x, event.mousePos.y);
             if (game.handleUIClick(event.mousePos.x, event.mousePos.y)) {

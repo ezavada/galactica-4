@@ -560,8 +560,9 @@ class Display {
         // Draw default destination indicator (only for owned stars)
         const defaultDestination = star.getDefaultDestination();
         if (star.owner === humanPlayer && defaultDestination) {
-            // Draw a small circle to indicate default destination is set
-            this.port.drawLine(new pdg.Point(screenX, screenY), new pdg.Point(defaultDestination.x, defaultDestination.y), this.styles.defaultDestinationLine);
+            const destX = this.toScreenX(defaultDestination.x);
+            const destY = this.toScreenY(defaultDestination.y);
+            this.port.drawLine(new pdg.Point(screenX, screenY), new pdg.Point(destX, destY), this.styles.defaultDestinationLine);
         }
     }
     

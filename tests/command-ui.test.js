@@ -267,6 +267,36 @@ module.exports = function runCommandUITests() {
             test.assertTrue(roundedCall.attrs === attrs, 'Display should pass the supplied Attributes object through directly');
         });
 
+        test.it('draws star default-destination lines in screen coordinates', () => {
+            const game = createGameForTests();
+            const lineCalls = [];
+            game.port = {
+                ...createFakePort(800, 600),
+                drawLine: (from, to, attrs) => {
+                    lineCalls.push({ from, to, attrs });
+                }
+            };
+            const display = new Display(game);
+            display.scaledStarRadius = 8;
+            display.mapEntityNameOpacity = 1;
+            display.toScreenX = (x) => (x / 10) + 3;
+            display.toScreenY = (y) => (y / 10) + 5;
+
+            const star = createOwnedStar(game, 1, 'Waypoint');
+            star.x = 100;
+            star.y = 200;
+            star.setDefaultDestination({ x: 900, y: 500 });
+
+            display.drawStar(star);
+
+            const destinationLine = lineCalls.find(call => call.attrs === display.styles.defaultDestinationLine);
+            test.assertNotNull(destinationLine, 'Owned stars with a default destination should draw a destination line');
+            test.assertEqual(destinationLine.from.x, 13);
+            test.assertEqual(destinationLine.from.y, 25);
+            test.assertEqual(destinationLine.to.x, 93);
+            test.assertEqual(destinationLine.to.y, 55);
+        });
+
         test.it('draws panel title dividers near the title text', () => {
             const game = createGameForTests();
             game.port = createFakePort(800, 600);
