@@ -1,9 +1,9 @@
 
 .DS_Store
 
+.pdg/
 pdg
 
 pdg-docs
 
-gad4
 gad4.exe

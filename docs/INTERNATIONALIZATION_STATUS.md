@@ -37,7 +37,8 @@ Every supported localized file currently has the same string ID set as the defau
 ./gad4 -- --lang=ru
 ```
 
-Directly running `./gad4 --lang=es` does not work because `gad4` treats `--lang=es` as a launcher option and exits with `bad option: --lang=es`.
+The `--` separator keeps application arguments distinct from launcher options
+and works consistently in the macOS and Windows launchers.
 
 The code then calls `pdg.res.setLanguage(languageCode)`.
 

@@ -13,7 +13,11 @@ The comparison is based on:
 - the published [Galactica v3 User's Manual](http://annodominari.com/);
 - all JavaScript source, tests, and documentation currently in `galactica-4`.
 
-The comparison started as a static code review. After `pdg-devel/gad4` and its `pdg` target became available, the v4 automated suite was verified on 2026-08-19 with `./gad4 tests/run-tests.js`: 284 passed, 0 failed. Passing tests prove the covered classes and helpers behave as tested, but do not prove that the playable runtime invokes every scaffolded system.
+The comparison started as a static code review. With the public PDG runtime,
+the v4 automated suite was verified on 2026-08-19 with
+`./gad4 tests/run-tests.js`: 284 passed, 0 failed. Passing tests prove the
+covered classes and helpers behave as tested, but do not prove that the
+playable runtime invokes every scaffolded system.
 
 ### Status key
 

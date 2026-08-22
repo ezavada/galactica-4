@@ -4,14 +4,15 @@ A space exploration and empire game built in JavaScript using the PDG game engin
 
 The port is actively moving toward Galactica v3 parity, but it is not feature-complete yet. See [V3 to V4 Feature Status](docs/V3_V4_FEATURE_STATUS.md) for the current parity inventory.
 
-Use the PDG JavaScript APIs documented at `../pdg/docs/javascript/pdg-js.h`. Other examples of JavaScript code written with PDG APIs can be found in `../pdg/test/perf/` and `../pdg/test/ui/`.
+The game pins the public PDG `v1.0.0` runtime. API documentation and examples
+are available in the [public PDG repository](https://github.com/ezavada/pdg).
 
 The original C++ Galactica v3 source is in `../galactica-anno-dominari-3/Classes`.
 
 ## Running the Game
 
 ```bash
-# Run with default settings (English)
+# macOS (Apple silicon): downloads and verifies PDG v1.0.0 on first run
 ./gad4
 
 # Run in a different language
@@ -20,9 +21,17 @@ The original C++ Galactica v3 source is in `../galactica-anno-dominari-3/Classes
 ./gad4 -- --lang=de   # German
 ./gad4 -- --lang=ja   # Japanese
 ./gad4 -- --lang=ru   # Russian
+
+# Windows PowerShell
+.\gad4.ps1
+.\gad4.ps1 -- --lang=es
 ```
 
-The extra `--` separates app arguments from `gad4` launcher options. Directly running `./gad4 --lang=es` will fail with `bad option: --lang=es`.
+The extra `--` separates app arguments from launcher options. The launchers
+cache PDG under `.pdg/` and verify its SHA-256 before use. Set `PDG_CACHE_DIR`
+to share that cache between clones, or `PDG_EXECUTABLE` to test with an
+already installed runtime. Pass `--refresh-pdg` (or `-RefreshPdg` in
+PowerShell) to replace the cached copy.
 
 ## Features
 
@@ -51,3 +60,9 @@ The extra `--` separates app arguments from `gad4` launcher options. Directly ru
 ```
 
 Current expected result: 284 passed, 0 failed.
+
+## Licensing and assets
+
+Source code, documentation, and localization files are MIT licensed. Visual
+assets are not yet cleared for unrestricted redistribution; see
+[ASSET_RIGHTS.md](ASSET_RIGHTS.md) before making the repository public.

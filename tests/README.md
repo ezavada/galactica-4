@@ -8,6 +8,9 @@ Run the full suite from the project root with the PDG runtime:
 
 Current expected result: 284 passed, 0 failed.
 
+The launcher downloads the checksum-pinned public PDG release on first use;
+no sibling `pdg` or `pdg-devel` checkout is required.
+
 ## Runner
 
 - `run-tests.js` - main PDG runtime test runner.
