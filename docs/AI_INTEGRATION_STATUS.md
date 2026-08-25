@@ -17,20 +17,21 @@ AI is integrated into the local single-player runtime:
 - Computer advantage now affects AI research and shipbuilding output.
 - Human controls reject AI-owned and unowned entities.
 
-AI is not yet full v3 parity:
+AI is not yet full v3 parity. The confirmed v3 gaps are narrower than "make the AI smarter" work:
 
-- AI economy is still a first-pass v3 role port rather than a fully tuned long-game economy.
-- Defensive actions build satellites and toggle patrol, but do not yet implement v3 reinforcement/call-in behavior.
-- Fleet formation works for docked ships, but rendezvous points, named fleets, exchange UI, and course tools are still missing.
-- Ship AI uses the five v3 skill values for search distance, target passes, lower-skill randomness, and Novice fleet avoidance, but some other behavior still maps into three coarse AI buckets.
-- Computer advantage is applied to production, but the full v3 setup range and any non-production effects are incomplete.
-- Combat odds, retreat/avoidance, and richer strategic evaluation remain future work.
+- Ship/fleet AI still needs every `CShipCompMove.cpp`/`UShipUtils.cpp` factor and edge case verified against the v3 source, including the docked-fleet-with-fewer-than-three-ships guard and Good/Expert patrol toggle.
+- Fleet formation works for docked ships, but the wider v3 fleet/player UI around rendezvous, exchange, and course tools is still missing.
+- AI orders still use v4's single-destination movement instead of the full v3 waypoint/course model.
+- Computer advantage is applied to production, but the full v3 setup range is not exposed in the startup UI.
+- Older three-bucket helper paths remain in the implementation and should be removed or bypassed wherever they affect C++-backed behavior.
+
+Items such as player-visible AI intent, richer defensive threat tuning, non-production computer-advantage effects, combat-odds estimation, and retreat/avoidance are possible v4 enhancements. They were not found as shipped v3 computer-player requirements in the audited C++ paths.
 
 ## Main files
 
 - `src/js/ai-manager.js` - owns AI players and processes their turns.
 - `src/js/ai-base.js` - common AI decision/action model.
-- `src/js/ai-skill.js` - three effective behavior levels: Average, Good, Expert.
+- `src/js/ai-skill.js` - legacy Average/Good/Expert helper buckets; C++ parity work should prefer the preserved five-value `PlayerInfo.compSkill` where v3 behavior depends on it.
 - `src/js/ai-utils.js` - entity/fleet queries, distance, ownership, speed, strength, and docked-state helpers.
 - `src/js/ai-ship.js` - ship/fleet target selection, v3 skill handling, fleet formation, and destination execution.
 - `src/js/ai-star.js` - star economy role assignment, ship-building choices, threat checks, and defensive activation.
@@ -67,24 +68,23 @@ The setup model preserves the five v3 difficulty labels:
 - 4 = Passable
 - 5 = Novice
 
-The current high-level AI behavior bucket still has three effective levels:
+The legacy high-level AI helper bucket still has three effective levels:
 
 - v3 Expert -> AI Expert
 - v3 Good -> AI Good
 - v3 Average/Passable/Novice -> AI Average
 
-Ship AI also reads the preserved v3 `PlayerInfo.compSkill` value directly for search distance, target-pass count, lower-skill randomness, and Novice fleet avoidance. This is why the UI can show five labels and several ship-decision behaviors now differ by all five values, while some other AI modifiers remain coarser.
+Ship AI also reads the preserved v3 `PlayerInfo.compSkill` value directly for search distance, target-pass count, skilled scout behavior, lower-skill randomness, and Novice fleet avoidance. The remaining cleanup is to stop using the older three-bucket helper anywhere it changes behavior that v3's five-value skill actually controlled.
 
 ## What AI decisions currently do
 
 Star decisions:
 
-- assess nearby threats;
 - apply desired growth/research/shipbuilding allocations;
 - use v3-style expert tech-star/shipbuilder roles and default non-expert allocations;
 - choose a ship type to build;
 - call `star.startBuildingShip()` when a build decision is selected;
-- start defensive satellite construction and put healthy docked non-scout defenders on patrol when defensive activation is selected.
+- choose defense satellites through the build-selection path when threat/need calls for it. The separate defensive-activation helper exists, but the normal star decision path currently returns the build decision and does not execute that helper as an independent second action.
 
 Ship decisions:
 
@@ -107,12 +107,21 @@ Ownership controls:
 
 ## Known gaps
 
-- Tune AI economic allocation and build choices against long v3/autoplay outcomes.
-- Expand defensive decisions beyond satellite builds/patrol toggles into v3-like reinforcement and call-in behavior.
-- Add rendezvous, named fleets, fleet exchange UI, and course tools around the now-active fleet formation path.
-- Expose the full v3 computer-advantage range in setup and determine whether any strategic modifiers are needed beyond production.
-- Finish v3-accurate behavior for Passable and Novice outside the ship search/randomness/fleet-avoidance hooks.
-- Improve combat-aware target selection and retreat/avoidance.
+Confirmed v3 parity gaps:
+
+- Verify the full ship/fleet decision factor set against `CShipCompMove.cpp` and `UShipUtils.cpp`.
+- Add the v3 guard that docked AI fleets with fewer than three ships do not move.
+- Run the v3 Good/Expert patrol toggle in the normal ship/fleet AI path, including taking damaged patrollers off patrol for repair.
+- Integrate AI orders with the full waypoint/course model once that navigation system is ported.
+- Add rendezvous, fleet exchange UI, and course tools around the now-active fleet formation path.
+- Expose the full v3 computer-advantage range in setup.
+
+Possible v4 enhancements, not counted as v3 parity gaps:
+
+- Player-visible AI intent/debug overlays.
+- Richer defensive threat tuning or reinforcement coordination beyond v3's satellite/patrol behavior.
+- Strategic computer-advantage effects beyond v3's production-style modifiers.
+- Combat-odds estimation, retreat/avoidance, and additional late-game attack-pressure tuning.
 - Add long-game AI regression tests and AI-vs-AI scenario tests.
 
 ## Testing

@@ -20,12 +20,22 @@ AI integration is partially complete and active in the local runtime. Computer p
 
 ## What is scaffolded or incomplete
 
-- Economy roles and allocations need more long-game tuning against v3/autoplay outcomes.
-- Defensive actions do not yet implement v3 reinforcement/call-in behavior.
-- Fleet formation does not yet include rendezvous points, named fleets, exchange UI, or course tools.
-- v3 Passable and Novice have ship-decision differences, but some remaining AI behavior still collapses to the Average behavior tier.
-- Computer advantage applies to production, but the full v3 setup range and any non-production effects remain incomplete.
-- AI does not yet evaluate combat odds, retreats, and attack pressure deeply enough for v3-like planning.
+Confirmed v3 parity gaps:
+
+- Ship/fleet movement scoring still needs every `CShipCompMove.cpp`/`UShipUtils.cpp` factor and edge case verified against the v3 source.
+- The v3 guard that docked AI fleets with fewer than three ships do not move is not yet implemented.
+- Good/Expert patrol toggling should run in the normal ship/fleet AI path, including taking damaged patrollers off patrol for repair.
+- AI orders still use v4's single-destination movement rather than the full v3 waypoint/course model.
+- Fleet formation does not yet include the wider v3 fleet UI around rendezvous, exchange, and course tools.
+- Computer advantage applies to production, but the full v3 setup range is not exposed in the startup UI.
+- Older Average/Good/Expert helper buckets remain and should be removed or bypassed wherever v3's five skill values control behavior directly.
+
+Possible v4 enhancements, not counted as v3 parity gaps:
+
+- Player-visible AI intent/debug overlays.
+- Richer defensive threat tuning or reinforcement coordination beyond v3's satellite/patrol behavior.
+- Strategic computer-advantage effects beyond v3's production-style modifiers.
+- Combat-odds estimation, retreat/avoidance, and additional late-game attack-pressure tuning.
 
 ## Architecture
 
@@ -67,9 +77,10 @@ The AI tests verify the current integrated behavior, but passing tests should no
 
 ## Recommended next AI work
 
-1. Tune long-game attack pressure and combat odds with the 250-turn AI-only observer.
-2. Expand defensive decisions into v3-like reinforcement/call-in behavior.
-3. Implement rendezvous points, named fleets, fleet exchange UI, and fleet course tools.
+1. Verify the remaining ship/fleet scoring factors against `CShipCompMove.cpp` and `UShipUtils.cpp`.
+2. Add the docked-fleet-size guard and normal-path Good/Expert patrol toggle.
+3. Implement rendezvous points, fleet exchange UI, and fleet course tools.
 4. Expose and validate the full v3 computer-advantage range.
-5. Split remaining Passable and Novice behavior outside ship search/randomness/fleet avoidance.
-6. Add richer combat/fleet result presentation once balance settles.
+5. Remove or bypass legacy three-bucket helper behavior where it conflicts with v3's five skill values.
+6. Use the 250-turn AI-only observer to tune v3-equivalent outcomes; treat combat odds/retreat logic as a future enhancement unless the v3 source/manual confirms it.
+7. Add richer combat/fleet result presentation once balance settles.

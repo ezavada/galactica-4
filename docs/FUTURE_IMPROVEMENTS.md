@@ -18,3 +18,26 @@ Currently, the AI system can start ship construction and send ships toward desti
 - Would require extending the AI decision matrices to include combat evaluation factors
 - Could add combat odds display for human players as well
 - Should maintain the original game's balance where combat is automatic on arrival
+
+## Computer Player Enhancements Beyond v3
+
+These are intentionally listed as possible Galactica-4 improvements, not missing v3 parity. The audited v3 C++ computer-player paths are mostly mechanical weighted movement, expert tech-star allocation, satellite production, patrol toggles, and production advantage.
+
+### AI Intent and Diagnostics
+**Priority: Low**
+
+- Optional player/debug overlay explaining why an AI chose a destination, fleet action, or build.
+- Autoplay summaries that highlight stalled players, repeated no-op decisions, or unchanged front lines.
+
+### Richer Defensive Coordination
+**Priority: Medium**
+
+- Reinforcement planning that sends mobile defenders toward threatened systems.
+- Threat scoring that considers enemy trajectories, nearby friendly fleets, and expected arrival timing.
+- Defensive fleet rally behavior beyond v3's satellite/patrol mechanics.
+
+### Strategic Advantage Modifiers
+**Priority: Low**
+
+- Optional uses of computer advantage outside production, such as AI risk tolerance or target search breadth.
+- These should be balance options rather than v3 parity requirements unless new v3 evidence is found.
