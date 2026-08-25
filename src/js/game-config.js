@@ -20,6 +20,7 @@ class GameConfig {
         // AI configuration
         this.compSkill = options.compSkill || 2;         // 1=Expert, 2=Good, 3=Average, 4=Passable, 5=Novice
         this.compAdvantage = options.compAdvantage || 0; // 0=None, 1=Some, 2=More
+        this.aiSkillByPlayer = options.aiSkillByPlayer ? { ...options.aiSkillByPlayer } : {};
         
         // Game speed and mechanics
         this.fastGame = options.fastGame !== undefined ? options.fastGame : false;  // Affects production/speed
@@ -31,6 +32,18 @@ class GameConfig {
         
         // Hosting (for multiplayer)
         this.hosting = options.hosting !== undefined ? options.hosting : false;
+
+        // Test/harness option for constructing a Game without procedural map setup.
+        this.skipMapGeneration = options.skipMapGeneration !== undefined ? options.skipMapGeneration : false;
+
+        // Local autoplay/test harness settings
+        this.autoplay = {
+            enabled: false,
+            seed: null,
+            turnDelayMs: 250,
+            maxTurns: 10000,
+            ...(options.autoplay || {})
+        };
     }
     
     // Create default single-player game config
@@ -97,6 +110,36 @@ class GameConfig {
         });
     }
 
+    // Create the deterministic AI-only parity harness:
+    // five computer players, one for each v3 AI skill, on the smallest map.
+    static createAISkillAutoplay(options = {}) {
+        const seed = options.seed !== undefined ? options.seed : 424242;
+        return new GameConfig({
+            gameTitle: options.gameTitle || I18n.getString(642, 'AI Skill Autoplay'),
+            numHumans: 0,
+            numComputers: 5,
+            density: 1,
+            sectorSize: 1,
+            compSkill: 3,
+            compAdvantage: options.compAdvantage !== undefined ? options.compAdvantage : 0,
+            fastGame: options.fastGame !== undefined ? options.fastGame : false,
+            omniscient: options.omniscient !== undefined ? options.omniscient : true,
+            aiSkillByPlayer: {
+                1: 1,
+                2: 2,
+                3: 3,
+                4: 4,
+                5: 5
+            },
+            autoplay: {
+                enabled: true,
+                seed,
+                turnDelayMs: options.turnDelayMs !== undefined ? options.turnDelayMs : 250,
+                maxTurns: options.maxTurns !== undefined ? options.maxTurns : 10000
+            }
+        });
+    }
+
     // Create game with fog of war enabled (default behavior)
     static createFogOfWarGame(numComputers = 1) {
         return new GameConfig({
@@ -138,8 +181,20 @@ class GameConfig {
         if (this.compSkill < 1 || this.compSkill > 5) {
             errors.push("compSkill must be between 1 (Expert) and 5 (Novice)");
         }
+
+        for (const playerNum of Object.keys(this.aiSkillByPlayer)) {
+            const skill = this.aiSkillByPlayer[playerNum];
+            if (skill < 1 || skill > 5) {
+                errors.push(`aiSkillByPlayer[${playerNum}] must be between 1 (Expert) and 5 (Novice)`);
+            }
+        }
         
         return errors;
+    }
+
+    getAISkillForPlayer(playerNum) {
+        const explicitSkill = this.aiSkillByPlayer[playerNum];
+        return explicitSkill !== undefined ? explicitSkill : this.compSkill;
     }
     
     // Get human-readable difficulty name
@@ -212,11 +267,14 @@ class GameConfig {
         const mapStr = I18n.getString(507, "map");
         const fastGameStr = I18n.getString(505, "Fast Game");
         const allVisibleStr = I18n.getString(506, "All Visible");
+        const aiSkillDescription = Object.keys(this.aiSkillByPlayer).length > 0 ?
+            I18n.getString(647, 'all skills') :
+            this.getDifficultyName();
         
         const parts = [];
         parts.push(`${this.totalPlayers} ${playersStr} (${this.numHumans} ${humanStr}, ${this.numComputers} ${aiStr})`);
         parts.push(`${this.getMapSizeDescription()} ${this.getDensityDescription()} ${mapStr}`);
-        parts.push(`${aiStr}: ${this.getDifficultyName()}`);
+        parts.push(`${aiStr}: ${aiSkillDescription}`);
         if (this.fastGame) parts.push(fastGameStr);
         if (this.omniscient) parts.push(allVisibleStr);
         return parts.join(", ");

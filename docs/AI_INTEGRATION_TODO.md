@@ -58,7 +58,7 @@ Run all tests with:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 286 passed, 0 failed.
+Current expected result: 295 passed, 0 failed.
 
 The AI tests verify the current integrated behavior, but passing tests should not be read as v3 feature parity. The parity source of truth is `docs/V3_V4_FEATURE_STATUS.md`.
 

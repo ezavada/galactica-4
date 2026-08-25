@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 286
-Passed: 286 ✓
+Total: 295
+Passed: 295 ✓
 Failed: 0 ✗
 ```
 
@@ -44,6 +44,7 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - `command-ui.test.js`
 - `fleet-formation.test.js`
 - `ship-naming-events.test.js`
+- `autoplay.test.js`
 
 ## What the tests cover
 
@@ -57,6 +58,23 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - Runtime combat resolution, destruction, interception, docked defenders, and colony capture.
 - Command UI state, windows, permanent map buttons, popup action buttons, production sliders, hover behavior, and layout details.
 - Ship naming and new tech/class event overlays.
+- Deterministic AI-only autoplay setup, per-player AI skill assignment, victory state, and autoplay stop conditions.
+
+## AI-only parity observer
+
+Run the deterministic smallest-map AI observer with:
+
+```bash
+./gad4 -- --ai-autoplay
+```
+
+This starts five computer players and no human players. Players 1-5 represent the five v3 AI skill settings: Expert, Good, Average, Passable, and Novice. The default seed is `424242`, fog is disabled for observation, and the game advances automatically until the win condition or the max-turn guard is reached.
+
+Useful options:
+
+```bash
+./gad4 -- --ai-autoplay --seed=314159 --autoplay-delay=100 --autoplay-max-turns=5000
+```
 
 ## Important interpretation
 

@@ -159,6 +159,7 @@
 611	Raumdock
 612	Kolonisierung
 613	Niederlage
+614	Sieg
 620	Wählen Sie einen Ihrer Sterne, bevor Sie die Produktionssteuerung öffnen.
 621	{0}: Wachstum {1}% / Schiffe {2}% / Forschung {3}%
 622	Sie können nur Ihren eigenen Schiffen und Flotten Befehle geben.
@@ -181,6 +182,12 @@
 639	Ziel
 640	Kampf
 641	neues Ziel
+642	KI-Fähigkeiten-Autoplay
+643	KI-Autoplay mit Seed {0} und Verzögerung {1} ms gestartet
+644	{0} gewinnt in Runde {1}
+645	KI-Autoplay nach {0} Runden ohne Sieger gestoppt
+646	Sieger:
+647	alle Fähigkeiten
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
 800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion

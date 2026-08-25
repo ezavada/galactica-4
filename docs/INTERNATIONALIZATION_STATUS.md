@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 152 IDs
-- localized files: 152 IDs each
+- `strings.txt`: 159 IDs
+- localized files: 159 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -52,6 +52,7 @@ The current resources cover:
 - permanent map buttons and selected-object popup action labels;
 - event titles/messages currently emitted by the runtime;
 - lab/stardock overlay titles and dismissal text;
+- AI autoplay observer and victory/result text;
 - star names and roman numerals;
 - computer player name templates and faction group names;
 - player type and skill labels;
@@ -81,7 +82,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 286 passed, 0 failed.
+Current expected full-suite result: 295 passed, 0 failed.
 
 ## Future work
 

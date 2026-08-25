@@ -15,7 +15,7 @@ The comparison is based on:
 
 The comparison started as a static code review. With the public PDG runtime,
 the v4 automated suite was verified on 2026-08-25 with
-`./gad4 tests/run-tests.js`: 286 passed, 0 failed. Passing tests prove the
+`./gad4 tests/run-tests.js`: 295 passed, 0 failed. Passing tests prove the
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
@@ -48,6 +48,8 @@ The largest blockers to a complete game are:
 - Fixed display-side fog-of-war visibility to read numeric visibility levels directly, so owner/detail disclosure uses the stored visibility tier.
 - Made omniscient/all-visible mode affect normal display helpers and visibility queries for enemy stars, ships, and fleets.
 - Updated the Game Title status to reflect the top-center header path while keeping setup/save/hosting gaps visible.
+- Added a deterministic AI-only autoplay observer (`./gad4 -- --ai-autoplay`) that starts five computer players on the smallest map, one for each v3 AI skill level, using fixed seed `424242` by default.
+- Made End Turn close event overlays/event-list windows before advancing, so autoplay and the hotkey do not stall behind event presentation UI.
 
 ## 1. Game creation, configuration, and lifecycle (55% complete)
 
@@ -55,8 +57,8 @@ The largest blockers to a complete game are:
 |---|---|---|---|
 | New single-player game | `File > New Game...` opens a setup dialog and then asks for the player's name. | 🟡 Partial | `main.js` now shows a simple startup setup dialog before map generation with AI count, AI skill, map size, density, fast game, and fog/all-visible options. It still lacks player-name/title dialogs and v3's full setup layout. |
 | Game title | Editable title in the setup dialog; also used for host save files. | 🟡 Partial | `GameConfig.gameTitle` feeds the top-center header (`display.js`) and defaults from localized string ID 500. It is still not editable in setup and is not used for saves/hosting. |
-| Human/computer player counts | Configurable human and computer slots. | 🟡 Partial | The startup dialog can cycle AI player count and the model/map generator support the resulting totals. Human count is still fixed to one and `getCurrentHumanPlayer()` always returns player 1. |
-| Five computer skill levels | Expert, Good, Average, Passable, Novice. | 🟡 Partial | All five values and localized names exist, but runtime mapping collapses Average, Passable, and Novice to the same AI level (`game.js:52-59`). |
+| Human/computer player counts | Configurable human and computer slots. | 🟡 Partial | The startup dialog can cycle AI player count and the model/map generator support the resulting totals. The deterministic autoplay harness can run with zero humans and five AI players. Normal setup still fixes human count to one. |
+| Five computer skill levels | Expert, Good, Average, Passable, Novice. | 🟡 Partial | All five values and localized names exist, and the AI autoplay harness assigns one player to each v3 skill. Runtime behavior still collapses Average, Passable, and Novice to the same AI level. |
 | Computer advantage | Setup offers +3 through -3. | 🧱 Scaffold only | A value is stored in `GameConfig`/`PlayerInfo`, but it is neither modeled over the full v3 range nor applied to AI or rules. |
 | Stellar density | Scale of 1-10 controls star count. | 🟡 Partial | Map density affects the original-style count formula and is now exposed in the startup dialog, but v4 validation still accepts only 1-5 instead of the v3 1-10 range. |
 | Sector size | Controls galaxy dimensions. | 🟡 Partial | Implemented in map generation/camera and exposed in the startup dialog. |
@@ -67,8 +69,8 @@ The largest blockers to a complete game are:
 | Procedural galaxy construction | Random star count/placement, separated home systems, unique names, named homeworlds. | ✅ Implemented | `map-generator.js:36-239` ports the main v3 construction path with the corrected 1024×1024 coordinate scale. |
 | Initial homeworld state | One named home system, tech 1, population, scanner, and colony ship at 99%. | ✅ Implemented | `map-generator.js:249-299`. |
 | Computer faction naming | Home-star name plus faction word, such as “Vega Alliance.” | ✅ Implemented | Resource-driven templates and group names are used in `map-generator.js:302-333`. |
-| End turn | Button/menu/shortcut; multiplayer waits for posts as needed. | 🟡 Partial | Tab and the localized bottom-right End Turn map button advance the local simulation. There is no attention warning, posting, timer, or multiplayer coordination. |
-| Victory and defeat | Defeat notifications and victory/defeat conclusion screens. | 🟡 Partial | Piece counting can mark a player defeated and log an event (`game.js:603-621`), but there is no victory test, game-over state, or conclusion UI. |
+| End turn | Button/menu/shortcut; multiplayer waits for posts as needed. | 🟡 Partial | Tab and the localized bottom-right End Turn map button advance the local simulation, closing event overlays/event-list windows before processing the turn. There is no attention warning, posting, timer, or multiplayer coordination. |
+| Victory and defeat | Defeat notifications and victory/defeat conclusion screens. | 🟡 Partial | Piece counting can mark defeated players, a single remaining active player now sets a game-over/winner state, victory is logged, and the top header shows the winner. Missing pieces remain: richer conclusion screens, defeat/victory art, and full v3 reporting. |
 
 ## 2. Map, camera, visibility, and display modes (45% complete)
 
@@ -177,7 +179,7 @@ The largest blockers to a complete game are:
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
-| AI turn participation | Computer systems choose production and ships choose strategic destinations. | 🟡 Partial | AI players are created and processed before movement (`game.js:48-67`, `554-569`). Star build and ship destination decisions can execute. |
+| AI turn participation | Computer systems choose production and ships choose strategic destinations. | 🟡 Partial | AI players are created and processed before movement. Star build and ship destination decisions can execute, and `./gad4 -- --ai-autoplay` can advance a deterministic no-human five-AI observer game until win condition or max-turn guard. |
 | AI ship decision matrices | Role-aware selection of colonies, enemies, friendly systems, and fleet formation. | 🟡 Partial | A large decision matrix port exists, and attack destinations can now resolve combat. Fleet formation is still a log-only placeholder in AI, and several factors use placeholders. |
 | AI economy management | Adjusts growth/research/ships by development and threat. | 🧱 Scaffold only | Priorities are calculated but `applyEconomicAllocation()` only logs them (`ai-star.js:133-142`). |
 | AI defenses | Builds satellites/patrols/reacts to threats. | 🧱 Scaffold only | Defense decisions exist, but `activateDefenses()` only logs. |
@@ -191,10 +193,10 @@ The largest blockers to a complete game are:
 | Main information/navigation panels | Context-sensitive system, ship, fleet, and list panels with command buttons. | 🟡 Partial | v4 draws anchored context panels for selected systems, ships, and fleets plus simple menu/event/comparison windows. Permanent map buttons and popup arc buttons are clickable, and panel clicks are consumed so they do not dismiss selection. The v3 contextual button architecture, list panels, and richer command workflows are still absent. |
 | Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | 🟡 Partial | v4 now uses charcoal rounded panels, light-gray text, medium dividers, hover brightening/darkening, a top-center game/turn header, bottom-right permanent map buttons, and pointer triangles on anchored panels. It is intentionally simple and still needs final visual direction, more responsive layout polish, and v3-level window variety. |
 | Keyboard shortcuts and hover help | Buttons advertise shortcuts; balloon/flyby help describes controls. | 🟡 Partial | More keys are wired (`M/E/P/V`, production controls, `C`, `H`, zoom keys), clickable buttons show `<key>` notation after the label, and hover brightens text/darkens button backgrounds. There is still no hover/balloon help. |
-| Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | 🟡 Partial | `Game` now retains recent noteworthy events and `[E]` or the Events map button opens a simple localized event list. It is not selectable, filtered by last turn, or as narratively complete as v3. |
+| Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | 🟡 Partial | `Game` now retains recent noteworthy events and `[E]` or the Events map button opens a simple localized event list. End Turn closes the list before advancing. It is not selectable, filtered by last turn, or as narratively complete as v3. |
 | Attention queue | New ships, idle ships, colonies, messages, and other important events select themselves in sequence. | ❌ Missing | No `needy` queue; Tab is repurposed to end the turn. |
-| New technology lab presentation | Illustrated new-drive event. | ✅ Implemented | Dimming lab overlay with blueprint art; dismissed with any key. |
-| New battleship class/stardock presentation | Illustrated first-of-class event. | ✅ Implemented | Stardock overlay and ship art in `display.js:920-944`. |
+| New technology lab presentation | Illustrated new-drive event. | ✅ Implemented | Dimming lab overlay with blueprint art; dismissed with any key or cleared by End Turn. |
+| New battleship class/stardock presentation | Illustrated first-of-class event. | ✅ Implemented | Stardock overlay and ship art in `display.js:920-944`; cleared by any key or End Turn. |
 | Colonization/capture/battle event text | Player-relative narrative messages for 45 event types. | 🟡 Partial | A small localized subset of event text is retained and displayed in the event list. It is still not player-relative in the v3 style and remains far short of v3's event coverage. |
 | Compare players | Sortable comparison with best values blue and worst red. | 🟡 Partial | `[V]` or the Compare map button opens a simple player comparison table for stars, ships, population, average tech, and max tech. It is not sortable and does not color best/worst values or compute v3 scores. |
 | Send/show/hold player messages | Multiplayer chat to one/all/admin, with message history and repeat settings. | ❌ Missing | No chat or message model. |
@@ -231,7 +233,7 @@ The project documentation was refreshed on 2026-08-25 so the docs now agree on c
 - `AI_INTEGRATION_STATUS.md` and `AI_INTEGRATION_TODO.md` describe AI as active but partial: AI turns run, stars can start builds, and ships can set destinations, while economy allocation, defenses, fleet formation, advantage, and finer skill behavior remain incomplete.
 - `README.md` now links only to files that exist and no longer describes the port as a complete 4X game.
 - `INTERNATIONALIZATION_STATUS.md` now serves as the current i18n reference and records that current runtime UI/event strings are localized with parity tests across supported languages.
-- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command and 286-test expected result.
+- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command and 295-test expected result.
 
 This file remains the main parity source of truth. More focused docs may describe implementation details for an area, but their status claims should stay consistent with the tables above.
 

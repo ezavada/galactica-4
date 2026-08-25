@@ -168,7 +168,8 @@ class MapGenerator {
             
             // Find next star for next player (if any)
             if (playerNum < totalPlayers) {
-                currentStar = this.findNextPlayerStar(unused, taken, minHomeDist, numExtraStars);
+                const remainingPlayers = totalPlayers - playerNum;
+                currentStar = this.findNextPlayerStar(unused, taken, minHomeDist, numExtraStars, remainingPlayers);
             }
         }
         
@@ -209,7 +210,7 @@ class MapGenerator {
     /**
      * Find next star for a player with distance constraints - matches original algorithm
      */
-    findNextPlayerStar(unused, taken, minHomeDist, numExtraStars) {
+    findNextPlayerStar(unused, taken, minHomeDist, numExtraStars, minimumStarsToKeep = 0) {
         let attempts = 0;
         const maxAttempts = unused.length * 2; // Prevent infinite loops
         
@@ -232,7 +233,7 @@ class MapGenerator {
             }
             
             // Remove star if too close and we have extras
-            if (numExtraStars > 0) {
+            if (numExtraStars > 0 && unused.length > minimumStarsToKeep) {
                 unused.splice(randomIndex, 1);
                 numExtraStars--;
             }

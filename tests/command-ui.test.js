@@ -338,6 +338,33 @@ module.exports = function runCommandUITests() {
             test.assertEqual(game.turn, turnBefore + 1, 'End Turn button should advance the turn');
         });
 
+        test.it('closes event windows before advancing the turn', () => {
+            const game = createGameForTests();
+            game.overlay = { type: 'lab', classIndex: 2 };
+            game.uiWindow = 'events';
+
+            const turnBefore = game.turn;
+            const result = game.endTurn();
+
+            test.assertNull(game.overlay, 'Event presentation overlay should close');
+            test.assertNull(game.uiWindow, 'Event list window should close');
+            test.assertEqual(game.turn, turnBefore + 1, 'Turn should still advance after event windows close');
+            test.assertFalse(result.isGameOver, 'Closing event windows should not force a game-over result');
+        });
+
+        test.it('lets the end-turn hotkey advance while an event overlay is open', () => {
+            const game = createGameForTests();
+            game.overlay = { type: 'stardock', classIndex: 1 };
+            game.uiWindow = 'events';
+
+            const turnBefore = game.turn;
+            game.handleKeyPress(pdg.key_Tab);
+
+            test.assertNull(game.overlay, 'End-turn hotkey should close the overlay');
+            test.assertNull(game.uiWindow, 'End-turn hotkey should close the event list');
+            test.assertEqual(game.turn, turnBefore + 1, 'End-turn hotkey should advance instead of only dismissing the overlay');
+        });
+
         test.it('handles clicks on selected-star action buttons', () => {
             const game = createGameForTests();
             game.port = createFakePort(800, 600);

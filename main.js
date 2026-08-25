@@ -1,6 +1,7 @@
 // Galactica-4 PDG Game - Main Entry Point
 // Run with: ./gad4
 // Optional: ./gad4 -- --lang=es (for Spanish)
+// AI autoplay observer: ./gad4 -- --ai-autoplay
 
 const pdg = require('pdg');
 globalThis.pdg = pdg;
@@ -18,9 +19,24 @@ if (resourceRef) {
     console.warn(`Failed to open resource path: ${dataPath}`);
 }
 
-// Parse command-line arguments for language setting.
+// Parse command-line arguments for language setting and observer modes.
 // With the gad4 launcher, pass app arguments after `--`, e.g. `./gad4 -- --lang=es`.
 const args = process.argv.slice(2); // Skip launcher and script path entries
+
+function hasArg(...names) {
+    return args.some(arg => names.includes(arg));
+}
+
+function getIntegerArg(name, fallback = null) {
+    const prefix = `${name}=`;
+    const arg = args.find(value => value.startsWith(prefix));
+    if (!arg) {
+        return fallback;
+    }
+    const parsed = Number(arg.substring(prefix.length));
+    return Number.isFinite(parsed) ? Math.floor(parsed) : fallback;
+}
+
 for (const arg of args) {
     if (arg.startsWith('--lang=')) {
         const langCode = arg.substring(7); // Extract language code after '--lang='
@@ -43,9 +59,6 @@ if (args.every(arg => !arg.startsWith('--lang='))) {
     console.log(`Using default language. Test string (ID 1): "${testStr}"`);
 }
 
-// Initialize random seed
-pdg.srand(Date.now() >>> 0);
-
 // Load required modules
 const Factory = require('./src/js/factory.js');
 const Display = require('./src/js/display.js');
@@ -53,6 +66,23 @@ const Game = require('./src/js/game.js');
 const Rules = require('./src/js/rules.js');
 const GameConfig = require('./src/js/game-config.js');
 const I18n = require('./src/js/i18n.js');
+const Autoplay = require('./src/js/autoplay.js');
+
+const launchOptions = {
+    aiAutoplay: hasArg('--ai-autoplay', '--autoplay-ai-skills'),
+    seed: getIntegerArg('--seed', null),
+    autoplayDelayMs: getIntegerArg('--autoplay-delay', Autoplay.DEFAULT_AUTOPLAY_TURN_DELAY_MS),
+    autoplayMaxTurns: getIntegerArg('--autoplay-max-turns', Autoplay.DEFAULT_AUTOPLAY_MAX_TURNS),
+    fastAutoplay: hasArg('--fast-autoplay')
+};
+
+const selectedSeed = launchOptions.seed !== null ?
+    launchOptions.seed :
+    (launchOptions.aiAutoplay ? Autoplay.DEFAULT_AI_SKILL_AUTOPLAY_SEED : Date.now() >>> 0);
+const randomSeed = selectedSeed >>> 0;
+
+pdg.srand(randomSeed);
+console.log(`Random seed set to: ${randomSeed}${launchOptions.aiAutoplay ? ' (AI autoplay)' : ''}`);
 
 // Create window port
 const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), I18n.getString(568, 'Galactica-4'));
@@ -67,9 +97,18 @@ function refreshTotalPlayers(config) {
     config.totalPlayers = config.numHumans + config.numComputers;
 }
 
-let pendingConfig = createDefaultConfig();
+let pendingConfig = launchOptions.aiAutoplay ?
+    Autoplay.createAISkillAutoplayConfig({
+        seed: randomSeed,
+        turnDelayMs: Math.max(1, launchOptions.autoplayDelayMs),
+        maxTurns: Math.max(1, launchOptions.autoplayMaxTurns),
+        fastGame: launchOptions.fastAutoplay
+    }) :
+    createDefaultConfig();
 let game = null;
 let display = null;
+let autoplayController = null;
+const AUTOPLAY_TIMER_ID = 0x47414434; // "GAD4"
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -271,6 +310,9 @@ function startGame() {
     game = new Game(factory, rules, pendingConfig);
     game.port = port;
     display = new Display(game);
+    if (pendingConfig.numHumans === 0 && display) {
+        display.zoomToFit();
+    }
     game.recordEvent(
         I18n.getString(601, 'Startup'),
         I18n.formatString(511, 'Game started: {0}', pendingConfig.getDescription()),
@@ -279,7 +321,42 @@ function startGame() {
     console.log("Game created and window opened");
 }
 
-console.log("Window opened; showing startup dialog");
+function startAutoplay() {
+    if (!game || !launchOptions.aiAutoplay || autoplayController) {
+        return;
+    }
+
+    autoplayController = new Autoplay.AutoplayController(game, {
+        maxTurns: pendingConfig.autoplay.maxTurns
+    });
+    game.recordEvent(
+        I18n.getString(601, 'Startup'),
+        I18n.formatString(643, 'AI autoplay started with seed {0} and {1} ms delay', randomSeed, pendingConfig.autoplay.turnDelayMs),
+        { type: 'autoplay' }
+    );
+    console.log(`AI autoplay started with seed ${randomSeed}; delay ${pendingConfig.autoplay.turnDelayMs} ms; max turns ${pendingConfig.autoplay.maxTurns}`);
+    pdg.tm.startTimer(AUTOPLAY_TIMER_ID, pendingConfig.autoplay.turnDelayMs, pdg.timer_Repeating);
+}
+
+function stopAutoplayTimer() {
+    if (autoplayController) {
+        pdg.tm.cancelTimer(AUTOPLAY_TIMER_ID);
+        const status = autoplayController.getStatus();
+        if (status.stopReason === 'gameOver' && game && game.winningPlayerNum) {
+            const winner = game.players[game.winningPlayerNum];
+            const winnerName = winner && winner.name ? winner.name : `${I18n.getString(18, 'Player')} ${game.winningPlayerNum}`;
+            console.log(I18n.formatString(644, '{0} wins on turn {1}', winnerName, game.victoryTurn));
+        } else if (status.stopReason === 'maxTurns') {
+            console.log(I18n.formatString(645, 'AI autoplay stopped after {0} turns with no winner', status.turnsRun));
+        }
+    }
+}
+
+if (launchOptions.aiAutoplay) {
+    console.log("Window opened; starting AI autoplay observer");
+} else {
+    console.log("Window opened; showing startup dialog");
+}
 
 // Create event handlers using the correct PDG syntax
 const drawHandler = new pdg.IEventHandler(function(event) {
@@ -287,6 +364,18 @@ const drawHandler = new pdg.IEventHandler(function(event) {
         game.draw();
     } else {
         drawStartupDialog();
+    }
+    return true;
+});
+
+const autoplayTimerHandler = new pdg.IEventHandler(function(event) {
+    if (!autoplayController || !event || event.id !== AUTOPLAY_TIMER_ID) {
+        return false;
+    }
+
+    const status = autoplayController.step();
+    if (!status.running) {
+        stopAutoplayTimer();
     }
     return true;
 });
@@ -445,6 +534,12 @@ pdg.evt.addHandler(mouseWheelHandler, pdg.eventType_ScrollWheel);
 pdg.evt.addHandler(mouseMoveHandler, pdg.eventType_MouseMove);
 pdg.evt.addHandler(keyHandler, pdg.eventType_KeyPress);
 pdg.evt.addHandler(portResizeHandler, pdg.eventType_PortResized);
+pdg.evt.addHandler(autoplayTimerHandler, pdg.eventType_Timer);
+
+if (launchOptions.aiAutoplay) {
+    startGame();
+    startAutoplay();
+}
 
 console.log("Event handlers registered, starting PDG...");
 

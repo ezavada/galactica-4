@@ -159,6 +159,7 @@
 611	Astillero
 612	Colonización
 613	Derrota
+614	Victoria
 620	Selecciona una de tus estrellas antes de abrir los controles de producción.
 621	{0}: Crecimiento {1}% / Naves {2}% / Investigación {3}%
 622	Solo puedes dar órdenes a tus propias naves y flotas.
@@ -181,6 +182,12 @@
 639	objetivo
 640	combate
 641	nuevo destino
+642	Autoplay de habilidades de IA
+643	Autoplay de IA iniciado con semilla {0} y retraso de {1} ms
+644	{0} gana en el turno {1}
+645	Autoplay de IA detenido tras {0} turnos sin ganador
+646	Ganador:
+647	todas las habilidades
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
 800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion

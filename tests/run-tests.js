@@ -21,6 +21,7 @@ const runCombatTests = require('./combat.test.js');
 const runCommandUITests = require('./command-ui.test.js');
 const runFleetFormationTests = require('./fleet-formation.test.js');
 const runShipNamingEventsTests = require('./ship-naming-events.test.js');
+const runAutoplayTests = require('./autoplay.test.js');
 
 console.log('╔═══════════════════════════════════════════════════════════╗');
 console.log('║          Galactica-4 Test Suite                           ║');
@@ -80,6 +81,9 @@ try {
 
     console.log('\n🚢 Running Ship Naming & Events Tests...');
     runShipNamingEventsTests();
+
+    console.log('\n🤖 Running AI Autoplay Tests...');
+    runAutoplayTests();
 
     // Print summary
     const success = test.printSummary();

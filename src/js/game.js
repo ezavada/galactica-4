@@ -29,6 +29,9 @@ class Game {
         this.overlay = null; // UI overlay for lab/stardock events
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
+        this.isGameOver = false;
+        this.winningPlayerNum = null;
+        this.victoryTurn = null;
         
         // Core systems
         this.factory = factory;
@@ -49,7 +52,7 @@ class Game {
             const isComputer = (i > this.config.numHumans);
             this.players[i] = new PlayerInfo(i, isComputer);
             if (isComputer) {
-                this.players[i].setAISkill(this.config.compSkill, this.config.compAdvantage);
+                this.players[i].setAISkill(this.config.getAISkillForPlayer(i), this.config.compAdvantage);
             }
         }
         
@@ -64,14 +67,7 @@ class Game {
         // Initialize AI players for computer-controlled players
         for (let i = 1; i <= this.config.totalPlayers; i++) {
             if (this.players[i] && this.players[i].isComputer) {
-                // Map compSkill to AI skill levels (1=Expert is best, but AI uses 2=Expert as best)
-                // Original: 1=Expert, 2=Good, 3=Average, 4=Passable, 5=Novice
-                // AI System: 0=Average, 1=Good, 2=Expert
-                let aiSkillLevel = 0; // Default to Average
-                if (this.config.compSkill === 1) aiSkillLevel = 2; // Expert
-                else if (this.config.compSkill === 2) aiSkillLevel = 1; // Good
-                else aiSkillLevel = 0; // Average or lower
-                
+                const aiSkillLevel = Game.mapV3SkillToAISkillLevel(this.config.getAISkillForPlayer(i));
                 this.aiManager.initializeAIPlayer(i, aiSkillLevel);
                 console.log(`AI initialized for player ${i} (skill level ${aiSkillLevel})`);
             }
@@ -89,6 +85,17 @@ class Game {
         }
         console.log("Game constructor completed");
     }
+
+    static mapV3SkillToAISkillLevel(v3Skill) {
+        if (v3Skill === 1) {
+            return 2; // Expert
+        }
+        if (v3Skill === 2) {
+            return 1; // Good
+        }
+        return 0; // Average, Passable, and Novice currently share Average behavior
+    }
+
     initializeGame() {
         console.log("Initializing game with MapGenerator...");
         
@@ -290,7 +297,16 @@ class Game {
     // Get the player number for the current human (for single player, this is 1)
     // In multiplayer, this would need to be tracked differently
     getCurrentHumanPlayer() {
-        return 1; // For now, assume player 1 is the human
+        if (!this.players) {
+            return null;
+        }
+        for (let i = 1; i <= this.config.numHumans; i++) {
+            const player = this.players[i];
+            if (player && player.isHuman) {
+                return i;
+            }
+        }
+        return null;
     }
 
     // Get the home star ID for a specific player
@@ -330,6 +346,22 @@ class Game {
     toggleUIWindow(windowName) {
         this.uiWindow = (this.uiWindow === windowName) ? null : windowName;
         return true;
+    }
+
+    closeEventWindowsForTurnAdvance() {
+        let closedAny = false;
+
+        if (this.overlay) {
+            this.overlay = null;
+            closedAny = true;
+        }
+
+        if (this.uiWindow === 'events') {
+            this.uiWindow = null;
+            closedAny = true;
+        }
+
+        return closedAny;
     }
 
     toggleProductionWindow() {
@@ -945,6 +977,11 @@ class Game {
     }
     
     handleKeyPress(key) {
+        if (key === pdg.key_Tab) {
+            this.endTurn();
+            return true;
+        }
+
         // Dismiss overlay on any key press
         if (this.overlay) {
             this.overlay = null;
@@ -954,9 +991,7 @@ class Game {
         if (this.handleCommandWindowKey(key, char)) {
             return true;
         }
-        if (key === pdg.key_Tab) {
-            this.endTurn();
-        } else if (key === pdg.key_Escape) {
+        if (key === pdg.key_Escape) {
             this.selectedObject = null;
             this.display.setSelectedObject(null);
         } else if (key === 61 || key === 43) { // = or + key
@@ -1004,10 +1039,10 @@ class Game {
             return;
         }
         
-        // Get the player's home star ID
-        const homeStarId = this.getPlayerHomeSystem(1); // Player 1 is the human player
+        const playerNum = this.getCurrentHumanPlayer() || 1;
+        const homeStarId = this.getPlayerHomeSystem(playerNum);
         if (!homeStarId) {
-            console.log('No home star found for player 1');
+            console.log(`No home star found for player ${playerNum}`);
             return;
         }
         
@@ -1057,6 +1092,13 @@ class Game {
     }
     
     endTurn() {
+        if (this.isGameOver) {
+            console.log(`Game already complete on turn ${this.victoryTurn}`);
+            return this.getGameResult();
+        }
+
+        this.closeEventWindowsForTurnAdvance();
+
         console.log(`=== End of Turn ${this.turn} ===`);
         
         // Log ships under construction status
@@ -1101,10 +1143,26 @@ class Game {
         // Update player piece counts and check for defeats
         this.updatePlayerPieceCounts();
 
+        if (this.isGameOver) {
+            console.log(`=== Game ended on turn ${this.victoryTurn} ===`);
+            return this.getGameResult();
+        }
+
         this.turn++;
         console.log(`=== Start of Turn ${this.turn} ===`);
+        return this.getGameResult();
     }
     
+    getPlayerPieceCounts(playerNum) {
+        const starCount = this.stars.filter(star => star.owner === playerNum).length;
+        const shipCount = this.allShips.filter(ship => ship.owner === playerNum).length;
+        return {
+            stars: starCount,
+            ships: shipCount,
+            total: starCount + shipCount
+        };
+    }
+
     // Update piece counts for all players
     updatePlayerPieceCounts() {
         if (!this.players) return;
@@ -1113,18 +1171,73 @@ class Game {
             const player = this.players[i];
             if (!player) continue;
             
-            // Count stars owned by this player
-            const starCount = this.stars.filter(star => star.owner === i).length;
-            
-            // Count ships owned by this player
-            const shipCount = this.allShips.filter(ship => ship.owner === i).length;
+            const counts = this.getPlayerPieceCounts(i);
             
             // Update piece count (returns true if player just died)
-            if (player.updatePieceCount(starCount, shipCount)) {
+            if (player.updatePieceCount(counts.stars, counts.ships)) {
                 console.log(`${player.name} has been defeated!`);
                 this.noteworthyEvent(player, Common.EventType.PLAYER_DIED);
             }
         }
+
+        this.updateVictoryState();
+    }
+
+    getActivePlayerIds() {
+        const activePlayerIds = [];
+        if (!this.players || !this.config) {
+            return activePlayerIds;
+        }
+
+        for (let i = 1; i <= this.config.totalPlayers; i++) {
+            const player = this.players[i];
+            if (!player || !player.isAlive) {
+                continue;
+            }
+            if (this.getPlayerPieceCounts(i).total > 0) {
+                activePlayerIds.push(i);
+            }
+        }
+
+        return activePlayerIds;
+    }
+
+    updateVictoryState() {
+        if (this.isGameOver || !this.config || this.config.totalPlayers < 2) {
+            return this.winningPlayerNum;
+        }
+
+        const activePlayerIds = this.getActivePlayerIds();
+        if (activePlayerIds.length === 1) {
+            this.markGameWon(activePlayerIds[0]);
+        }
+
+        return this.winningPlayerNum;
+    }
+
+    markGameWon(playerNum) {
+        if (this.isGameOver) {
+            return false;
+        }
+
+        const player = this.players ? this.players[playerNum] : null;
+        this.isGameOver = true;
+        this.winningPlayerNum = playerNum;
+        this.victoryTurn = this.turn;
+
+        const playerName = player && player.name ? player.name : `${I18n.getString(18, 'Player')} ${playerNum}`;
+        const message = I18n.formatString(644, '{0} wins on turn {1}', playerName, this.victoryTurn);
+        console.log(message);
+        this.recordEvent(I18n.getString(614, 'Victory'), message, { type: Common.EventType.GAME_WON });
+        return true;
+    }
+
+    getGameResult() {
+        return {
+            isGameOver: this.isGameOver,
+            winningPlayerNum: this.winningPlayerNum,
+            victoryTurn: this.victoryTurn
+        };
     }
 
     isOwnerAlliedWith(ownerId, otherOwnerId) {

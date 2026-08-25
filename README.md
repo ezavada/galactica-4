@@ -59,7 +59,13 @@ PowerShell) to replace the cached copy.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 286 passed, 0 failed.
+Current expected result: 295 passed, 0 failed.
+
+AI-only parity observer:
+
+```bash
+./gad4 -- --ai-autoplay
+```
 
 ## Licensing and assets
 

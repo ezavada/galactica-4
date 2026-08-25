@@ -15,6 +15,20 @@ const AI_SKILL_NAMES = {
     [AI_SKILL_LEVELS.EXPERT]: 'Expert'
 };
 
+function randomInt(max) {
+    if (!max || max <= 0) {
+        return 0;
+    }
+    if (typeof pdg !== 'undefined' && pdg && typeof pdg.rand === 'function') {
+        return pdg.rand() % max;
+    }
+    return 0;
+}
+
+function randomFloat() {
+    return randomInt(1000000) / 1000000;
+}
+
 class AISkillManager {
     constructor(skillLevel = AI_SKILL_LEVELS.AVERAGE) {
         this.skillLevel = skillLevel;
@@ -61,7 +75,7 @@ class AISkillManager {
     getRandomVariation(skillMultiplier) {
         // Higher skill = smaller random variation
         const maxVariation = 12 * skillMultiplier;
-        return Math.floor(Math.random() * maxVariation * 2) - maxVariation;
+        return randomInt(maxVariation * 2) - maxVariation;
     }
 
     // Check if AI should avoid certain actions based on skill level
@@ -100,7 +114,7 @@ class AISkillManager {
         switch (action) {
             case 'formFleet':
                 // Good AI forms fleets but less aggressively
-                return Math.random() < 0.3; // 30% chance to avoid
+                return randomFloat() < 0.3; // 30% chance to avoid
             default:
                 return false;
         }
@@ -215,7 +229,7 @@ class AISkillManager {
     // Create a random skill level
     static createRandomSkill() {
         const levels = Object.values(AI_SKILL_LEVELS);
-        const randomLevel = levels[Math.floor(Math.random() * levels.length)];
+        const randomLevel = levels[randomInt(levels.length)];
         return new AISkillManager(randomLevel);
     }
 

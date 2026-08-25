@@ -103,6 +103,7 @@ class Display {
             endTurn: I18n.getString(563, "End Turn"),
             growth: I18n.getString(564, "Growth"),
             research: I18n.getString(565, "Research"),
+            winner: I18n.getString(646, "Winner:"),
             commandMenu: I18n.getString(529, "Command Menu"),
             keyboardShortcutsActive: I18n.getString(530, "Keyboard shortcuts remain active."),
             escClose: I18n.getString(531, "<Esc> Close"),
@@ -1530,8 +1531,13 @@ class Display {
             height: 56
         };
 
+        const winner = this.game.isGameOver && this.game.winningPlayerNum ? this.game.players[this.game.winningPlayerNum] : null;
+        const headline = winner ?
+            `${gameName}  •  ${this.STR.winner} ${winner.name || `${I18n.getString(18, 'Player')} ${winner.playerNum}`}` :
+            `${gameName}  •  ${this.STR.turn} ${turn}`;
+
         this.drawRoundedRect(rect, 16, this.styles.topInfoPanel);
-        this.drawTextLine(`${gameName}  •  ${this.STR.turn} ${turn}`, screen.width / 2, rect.y + 24, 'lightgray', 15, pdg.textStyle_Centered);
+        this.drawTextLine(headline, screen.width / 2, rect.y + 24, 'lightgray', 15, pdg.textStyle_Centered);
         this.drawTextLine(`${this.STR.stars} ${starCount}   ${this.STR.ships} ${shipCount}   ${this.STR.zoom} ${this.getZoomPercentage()}%`, screen.width / 2, rect.y + 44, 'gray', 11, pdg.textStyle_Centered);
         this.drawMapButtons();
     }

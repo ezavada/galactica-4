@@ -332,13 +332,27 @@ class AIUtils {
 
     // Get random number for AI decisions
     getRandomVariation(maxVariation) {
-        return Math.floor(Math.random() * maxVariation * 2) - maxVariation;
+        return this.randomInt(maxVariation * 2) - maxVariation;
     }
 
     // Sign a random number (for AI randomness)
     signRandom(maxValue) {
-        const value = Math.floor(Math.random() * maxValue);
-        return Math.random() < 0.5 ? value : -value;
+        const value = this.randomInt(maxValue);
+        return this.randomFloat() < 0.5 ? value : -value;
+    }
+
+    randomInt(max) {
+        if (!max || max <= 0) {
+            return 0;
+        }
+        if (typeof pdg !== 'undefined' && pdg && typeof pdg.rand === 'function') {
+            return pdg.rand() % max;
+        }
+        return 0;
+    }
+
+    randomFloat() {
+        return this.randomInt(1000000) / 1000000;
     }
     
     // Get all entities within range of a given entity

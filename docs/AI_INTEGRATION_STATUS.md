@@ -111,6 +111,8 @@ Run the full suite with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 286 passed, 0 failed.
+Current expected result: 295 passed, 0 failed.
+
+The deterministic AI-only parity observer can be launched with `./gad4 -- --ai-autoplay`. It creates five computer players on the smallest map with v3 skill levels Expert, Good, Average, Passable, and Novice represented by players 1-5, uses a fixed default seed of `424242`, and advances turns until the win condition or the max-turn guard.
 
 Use only the pinned PDG runtime (`./gad4`) for the full suite; the project relies on PDG globals such as `pdg.res`, `pdg.srand()`, and `pdg.rand()`.
