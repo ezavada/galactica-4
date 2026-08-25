@@ -15,7 +15,7 @@ The comparison is based on:
 
 The comparison started as a static code review. With the public PDG runtime,
 the v4 automated suite was verified on 2026-08-25 with
-`./gad4 tests/run-tests.js`: 304 passed, 0 failed. Passing tests prove the
+`./gad4 tests/run-tests.js`: 312 passed, 0 failed. Passing tests prove the
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
@@ -32,7 +32,7 @@ Section completion percentages are rough parity estimates based on the table row
 
 ## Executive summary
 
-Galactica-4 currently has a credible simulation foundation, not feature parity with v3. Its strongest areas are procedural map generation, the coordinate/camera system, the basic turn loop, star growth/research/ship construction, direct point-to-point movement, basic fleet objects, localization resources, and a first pass at AI and fog-of-war calculations.
+Galactica-4 currently has a credible simulation foundation, not feature parity with v3. Its strongest areas are procedural map generation, the coordinate/camera system, the basic turn loop, star growth/research/ship construction, direct point-to-point movement, basic fleet objects, localization resources, runtime combat/capture, and a now-usable first pass at AI and fog-of-war calculations.
 
 The largest blockers to a complete game are:
 
@@ -40,7 +40,7 @@ The largest blockers to a complete game are:
 2. **The v3 command UI now has a first clickable runtime path, but not full parity.** v4 has a startup setup dialog, charcoal rounded windows, bottom-right permanent map buttons, a top-center turn/game header, clickable popup action buttons, directly clickable production sliders, retained event list, player comparison window, and anchored selection panels. Missing pieces remain: player-name/title dialogs, course editor, attention workflow, system/fleet comparison tables, fleet exchange UI, rendezvous UI, and final visual/art direction polish.
 3. **Ship navigation only supports one destination.** v3's waypoint list, editing, looping, course memory, call-in, hunt, patrol, and scrap workflows are missing.
 4. **Persistence and multiplayer are absent.** v3 save/open/revert, hosting, joining/rejoining, turn posting, timers, passwords, discovery, chat, and host administration have not been ported.
-5. **Several systems are present but incomplete or incorrectly wired.** Examples include fog-of-war rendering, AI economic allocation, repairs, patrol state, event depth, and fleet UI.
+5. **Several systems are present but incomplete or incorrectly wired.** Examples include fog-of-war rendering, waypoint courses, tech transfer, attention workflow, event depth, and fleet UI.
 
 ## Easy wins applied on 2026-08-25
 
@@ -52,16 +52,18 @@ The largest blockers to a complete game are:
 - Made End Turn close event overlays/event-list windows before advancing, so autoplay and the hotkey do not stall behind event presentation UI.
 - Capped default autoplay runs at 250 turns while the late-game AI stagnation issue is unresolved, hid event presentation windows by default for AI autoplay, and added `--show-event-windows` for opt-in visible overlays with a presentation hold.
 - Aligned ship/star combat strength and population damage with the v3 formulas, recorded localized combat-summary events, neutralized/captured enemy systems more safely, and recomputed defeat/victory after combat.
+- Improved computer-player parity: AI now applies v3-style expert tech-star/shipbuilder allocations, starts concrete defense builds, enables patrol on eligible defenders, forms docked fleets, gives fleets strategic orders, applies computer production advantage, repairs docked non-patrolling mobile ships, and uses v3 skill values for ship search distance/repetition/randomness.
+- Hardened movement/combat bookkeeping by preventing duplicate entity registration and by transferring ships cleanly between fleets.
 
-## 1. Game creation, configuration, and lifecycle (58% complete)
+## 1. Game creation, configuration, and lifecycle (60% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
 | New single-player game | `File > New Game...` opens a setup dialog and then asks for the player's name. | 🟡 Partial | `main.js` now shows a simple startup setup dialog before map generation with AI count, AI skill, map size, density, fast game, and fog/all-visible options. It still lacks player-name/title dialogs and v3's full setup layout. |
 | Game title | Editable title in the setup dialog; also used for host save files. | 🟡 Partial | `GameConfig.gameTitle` feeds the top-center header (`display.js`) and defaults from localized string ID 500. It is still not editable in setup and is not used for saves/hosting. |
 | Human/computer player counts | Configurable human and computer slots. | 🟡 Partial | The startup dialog can cycle AI player count and the model/map generator support the resulting totals. The deterministic autoplay harness can run with zero humans and five AI players. Normal setup still fixes human count to one. |
-| Five computer skill levels | Expert, Good, Average, Passable, Novice. | 🟡 Partial | All five values and localized names exist, and the AI autoplay harness assigns one player to each v3 skill. Runtime behavior still collapses Average, Passable, and Novice to the same AI level. |
-| Computer advantage | Setup offers +3 through -3. | 🧱 Scaffold only | A value is stored in `GameConfig`/`PlayerInfo`, but it is neither modeled over the full v3 range nor applied to AI or rules. |
+| Five computer skill levels | Expert, Good, Average, Passable, Novice. | 🟡 Partial | All five values and localized names exist, and the AI autoplay harness assigns one player to each v3 skill. Ship AI now uses the preserved v3 value for search distance, target passes, lower-skill randomness, and Novice fleet avoidance; some other AI behavior still collapses Average, Passable, and Novice into the same coarse behavior bucket. |
+| Computer advantage | Setup offers +3 through -3. | 🟡 Partial | A value is stored in `GameConfig`/`PlayerInfo` and now applies a v3-style 20% production modifier per advantage level to computer research and shipbuilding. Startup setup still does not expose the full -3 through +3 v3 range, and advantage does not yet affect strategic choices. |
 | Stellar density | Scale of 1-10 controls star count. | 🟡 Partial | Map density affects the original-style count formula and is now exposed in the startup dialog, but v4 validation still accepts only 1-5 instead of the v3 1-10 range. |
 | Sector size | Controls galaxy dimensions. | 🟡 Partial | Implemented in map generation/camera and exposed in the startup dialog. |
 | Fast Game | Doubles ship speed and increases production. | 🟡 Partial | `Rules` applies it to scanning, shipbuilding, research, and movement, and the startup dialog can toggle it. |
@@ -98,13 +100,13 @@ The largest blockers to a complete game are:
 | Full screen | Window menu toggle. | ❌ Missing | The PDG window is resizable, but no full-screen command exists. |
 | Nebula/background art | v3 configurable starmap background. | ✅ Implemented | v4 loads and scales `data/background.png`, with a gradient fallback (`display.js:206-242`). No toggle exists. |
 
-## 3. Star systems, economy, research, and production (45% complete)
+## 3. Star systems, economy, research, and production (48% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
 | System information panel | Name, owner, population, tech, build choice/progress, and production. | 🟡 Partial | v4 now shows an anchored selected-star panel with owner, population, tech, current hull, inline build progress, directly clickable production sliders, and nearby clickable build buttons. It still lacks ships-in-system access, defenses detail, auto-destination editing, and final v3-style controls. |
 | Population growth | Growth allocation drives a capped population curve. | ✅ Implemented | `star.js:98-165` and `rules.js:86-102` implement autonomous growth. |
-| Three-way economy | Growth, ships, and tech share system output. | 🟡 Partial | The `Allocation` model, gradual adjustment, and human keyboard controls exist. AI calculates allocations and then only logs them (`ai-star.js:133-142`). |
+| Three-way economy | Growth, ships, and tech share system output. | 🟡 Partial | The `Allocation` model, gradual adjustment, human keyboard controls, and clickable sliders exist. AI now applies desired allocations directly, including v3-style expert tech-star/shipbuilder roles and the default non-expert split. Slider locks and final v3 production workflows remain missing. |
 | Production sliders | Coupled sliders with current/desired colors and gradual adjustment. | 🟡 Partial | Slider bars are drawn in selected-star panels and the production window. They are directly clickable, keep total allocation at 100%, show the desired percentage at the right edge, and mark the current value. Keyboard controls still work. They do not expose locks and still need final tuning/polish. |
 | Slider locks | Lock one allocation while adjusting others. | 🧱 Scaffold only | A `locked` field/accessor exists but is not enforced or exposed. |
 | Equalize production | Button resets three allocations equally. | 🟡 Partial | `[R]` in the production window resets to the default 34/33/33 split. There is no visible equalize button and no exact v3 equalize behavior. |
@@ -119,11 +121,11 @@ The largest blockers to a complete game are:
 | Rename colony/system | Edit menu rename dialog; new colony asks for name. | ❌ Missing | No rename command or colony naming prompt. |
 | System comparison window | Sortable “Your Star Systems” table. | ❌ Missing | No equivalent UI. |
 
-## 4. Ships and navigation (26% complete)
+## 4. Ships and navigation (31% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
-| Four hull roles | Satellite, Scout/Courier, Colony, Battleship with distinct cost/speed/combat/scanner roles. | 🟡 Partial | Types, cost, speed, power, scout scanning, and first-pass combat/capture exist. Key role behaviors such as technology transfer, patrol, and repair remain incomplete. |
+| Four hull roles | Satellite, Scout/Courier, Colony, Battleship with distinct cost/speed/combat/scanner roles. | 🟡 Partial | Types, cost, speed, power, scout scanning, first-pass combat/capture, satellite patrol, and docked repair now exist. Key role behaviors such as courier/battleship technology transfer remain incomplete. |
 | Battleship drive classes/names | A new named class every five tech levels (Traveler through Hellion). | ✅ Implemented | Class index/name and first-of-class event are assigned in `star.js:180-203`, using resource ID 800. |
 | Ship information/diagnostics | Name, class, tech, speed, power, damage/health bar. | 🟡 Partial | v4 shows type, tech, speed, and power (`display.js:690-721`). It does not show ship name, damage/health bar, patrol/docked state, course, or scanner information. |
 | Direct destination orders | Add destination to a star, ship, fleet, or open space. | 🟡 Partial | Right-click sets one destination for a selected owned ship/fleet, and the popup Orders button can arm a left-click destination target. It replaces rather than appends a course. |
@@ -134,32 +136,32 @@ The largest blockers to a complete game are:
 | Course memory | Save/swap a ship's course. | ❌ Missing | No course-memory state. |
 | Call in | Ship asks for attention next turn. | ❌ Missing | No ship call-in flag or attention queue. |
 | Automatic idle call-ins | Newly built or idle ships request orders periodically. | ❌ Missing | Events are logged only; there is no attention workflow. |
-| Patrol mode | Ship or fleet patrols a friendly system and gains defensive advantages; satellites always patrol. | 🧱 Scaffold only | Combat formulas reference `isOnPatrol()`, but it always returns false and is marked TODO (`ship.js:184-187`). There is no patrol command. |
+| Patrol mode | Ship or fleet patrols a friendly system and gains defensive advantages; satellites always patrol. | 🟡 Partial | Ships/fleets now carry patrol state, completed satellites patrol automatically, AI defensive activation can put eligible docked non-scouts on patrol, and combat formulas use patrol bonuses. There is still no human patrol command, patrol UI, or full v3 course/attention integration. |
 | Hunt mode | Course behavior seeks/intercepts hostile units. | ❌ Missing | No hunt state or command. |
 | Scrap ship/fleet | Mark for scrapping and recover part of build value. | 🧱 Scaffold only | `Rules.getShipScrapValue()` exists, but no scrap state, command, or resource return is wired. |
 | Movement by drive speed | Ships advance once per turn; scout faster, colony slower, satellite stationary. | ✅ Implemented | `ship.js:44-83` and `rules.js:125-145`. |
-| Colonize neutral system | Colony ship is consumed; system takes owner and ship tech. | 🟡 Partial | Implemented in `ship.js:218-253`, but it emits `SHIP_ARRIVED` twice rather than `STAR_COLONIZED`, has no rename/economy prompt, and calls removal twice (the second splice can remove an unrelated final ship). |
+| Colonize neutral system | Colony ship is consumed; system takes owner and ship tech. | 🟡 Partial | Implemented through arrival and `Game.colonizeStar()`: the colony ship is consumed, ownership/tech/scanner are updated, and a colonization event is recorded. It still has no rename/economy prompt or v3-style colony report UI. |
 | Courier technology pickup/transfer | Courier updates its library from higher-tech systems and upgrades lower-tech colonies. | ❌ Missing | Ships receive build-time tech only; arrival does not exchange technology. |
 | Battleship technology delivery | Battleships can upgrade colonies but cannot update their own library. | ❌ Missing | No arrival-time technology transfer. |
-| Docking and repair | Damaged mobile ships repair at friendly systems based on system tech/production. | 🧱 Scaffold only | Damage and `repairDamage()` exist, and rules compute a repair amount, but no turn path calls it. |
-| Ship arrival/interception outcomes | Friendly arrival docks/forms fleet; enemy arrival fights. | 🟡 Partial | Star docking, friendly ship/fleet formation, and enemy arrival combat are now wired through `CombatSystem`. Remaining gaps include richer arrival events, course continuation, and UI feedback. |
+| Docking and repair | Damaged mobile ships repair at friendly systems based on system tech/production. | 🟡 Partial | `Star.update()` now repairs docked, non-patrolling, non-moving mobile ships using the rules repair amount and excludes satellites. Fleet-contained dock repair, repair UI, and full v3 reporting/priority details remain missing. |
+| Ship arrival/interception outcomes | Friendly arrival docks/forms fleet; enemy arrival fights. | 🟡 Partial | Star docking, friendly ship/fleet formation, clean fleet membership transfer, and enemy arrival combat are now wired through `CombatSystem`. Remaining gaps include richer arrival events, course continuation, and UI feedback. |
 
-## 5. Fleets and rendezvous (42% complete)
+## 5. Fleets and rendezvous (47% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
-| Fleet entity | Group operates as one unit; power sums and speed is slowest member. | ✅ Implemented | `fleet.js:7-118`; map and detail rendering are present. |
+| Fleet entity | Group operates as one unit; power sums and speed is slowest member. | ✅ Implemented | `fleet.js` tracks fleet stats, docked state, patrol state, member positions, and spatial location; map and detail rendering are present. |
 | Form fleet by meeting ships | Friendly ship targeting another friendly ship automatically forms a fleet. | ✅ Implemented | `game.js:700-742` and `ship.js:254-258`. |
-| Join/merge fleets | Ship joins friendly fleet; two fleets can merge. | ✅ Implemented | Arrival and `mergeFleets()` support these cases. |
-| Exchange/remove ships | Fleet/group panels move selected ships between fleets or out of a fleet. | 🧱 Scaffold only | `addShip()`/`removeShip()` exist, but there is no player-facing fleet contents/exchange UI. |
+| Join/merge fleets | Ship joins friendly fleet; two fleets can merge. | ✅ Implemented | Arrival and `mergeFleets()` support these cases; adding a ship to a new fleet now removes it from the old one instead of leaving duplicate membership. |
+| Exchange/remove ships | Fleet/group panels move selected ships between fleets or out of a fleet. | 🟡 Partial | `addShip()`/`removeShip()` and transfer bookkeeping exist, but there is no player-facing fleet contents/exchange UI. |
 | Fleet contents panel | Lists ships/groups and health. | 🟡 Partial | Fleet detail shows counts by type, but not individual ships or interactive selection/exchange. |
-| Fleet navigation | Fleet course panel and the same course tools as ships. | 🟡 Partial | A fleet can receive one right-click destination and move at slowest speed; waypoint tools, loop, memory, patrol, call-in, and hunt are absent. |
+| Fleet navigation | Fleet course panel and the same course tools as ships. | 🟡 Partial | A fleet can receive one right-click or AI-selected destination and move at slowest speed; waypoint tools, loop, memory, patrol commands, call-in, and hunt are absent. |
 | Named fleets | New fleet prompts for a name; rename is available. | ❌ Missing | Fleets are displayed only by numeric ID. |
 | Rendezvous points | Place/name/move/delete a point in open space, on a system, or on another ship. | ❌ Missing | No rendezvous entity, placement mode, or UI exists. Arbitrary coordinate auto-destinations are not a substitute because they cannot collect/name/manage a fleet-forming target. |
 | Auto-form fleet at rendezvous | Ships sent by producing systems assemble into a named fleet. | ❌ Missing | Default destinations exist, but open-space arrivals do not create a shared target or assemble a fleet. |
 | Fleet comparison window | Sortable “Your Fleets” table. | ❌ Missing | No equivalent UI. |
 
-## 6. Combat, occupation, defense, and fog of war (62% complete)
+## 6. Combat, occupation, defense, and fog of war (68% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
@@ -168,25 +170,25 @@ The largest blockers to a complete game are:
 | Multi-target and rollover damage | Higher-tech attackers hit multiple targets and excess damage rolls over. | ✅ Implemented | The resolver uses tech-based target counts and rollover damage during runtime combat. |
 | Defended-system invasion | Defeat stationed ships, then fixed planetary defenses; production/population is damaged. | 🟡 Partial | Enemy star arrivals now run space combat, ground combat against population, v3-style star attack/defense and population damage, and colony capture when a colony survives. Result UI is still event-list level, and broader balance tuning remains. |
 | Capture/surrender | Successful invasion transfers system ownership and reports capture/surrender. | 🟡 Partial | A surviving colony ship can transfer ownership after ground combat, defeated systems clear stale default destinations, non-colony survivors are kept outside hostile stars that hold, and defeat/victory updates run after combat. Surrender/result UI and full v3 reporting still need work. |
-| Defense satellites | Stationary, strong, always on patrol, cannot repair. | 🟡 Partial | The hull is stationary and attached satellites are included in star-defense combat. Patrol, repair restrictions, and the build/attach path still need cleanup. |
-| Patrol coordination bonus | Patrolling defenders receive attack/defense advantages. | 🧱 Scaffold only | Bonus formulas exist but patrol can never be enabled. |
+| Defense satellites | Stationary, strong, always on patrol, cannot repair. | 🟡 Partial | The hull is stationary, completed defense builds attach to the star as satellites, satellites patrol automatically, satellites do not receive repair, and attached satellites are included in star-defense combat. Human build/UI flow and fuller satellite reporting still need cleanup. |
+| Patrol coordination bonus | Patrolling defenders receive attack/defense advantages. | 🟡 Partial | Patrol state can now be enabled by satellite completion and AI defense activation, and ship combat formulas apply the patrol attack/defense bonuses. There is still no direct player patrol command or v3-level coordination UI. |
 | Damage and destruction | Health decreases, units die, fleet loss accounting and debris/explosion feedback. | 🟡 Partial | Runtime combat now applies v3-style ship power, star strength, and population damage, and removes destroyed ships robustly. Fleet loss accounting is basic, and debris/explosion feedback is still missing. |
-| Repairs | Friendly docking repairs surviving mobile ships; satellites do not repair. | 🧱 Scaffold only | Repair calculations exist but are never called. |
+| Repairs | Friendly docking repairs surviving mobile ships; satellites do not repair. | 🟡 Partial | Friendly stars now repair docked, non-patrolling, non-moving mobile ships during star updates, and satellites are excluded. Fleet-contained dock repair, visible repair summaries, and full v3 priority behavior remain unfinished. |
 | Scanner-based fog of war | Stars/scouts reveal enemy presence, owner, tech, then class/details by range; scout stealth matters. | 🟡 Partial | Spatial visibility levels, star/scout scanners, and stealth calculations exist. Visibility only increases and is never cleared when an entity leaves range; remembered/last-seen presentation is not distinguished. |
 | Fog-of-war rendering | Enemy colonies/ships are hidden or partially identified according to visibility. | 🟡 Partial | Enemy ships and fleets are hidden when visibility is none, and star ownership/detail rendering now reads numeric visibility levels correctly. Stars are still always plotted; remembered/last-seen presentation and fuller class/detail UI remain incomplete. |
 | Omniscient mode | Disabling Fog of War shows the whole galaxy. | ✅ Implemented | Disabling fog through startup/config makes visibility queries and display helpers treat enemy stars, ships, and fleets as fully visible; covered by fog and command UI tests. |
 | Combat odds estimate | Not part of shipped v3/manual behavior; listed as a v4 future enhancement. | ❌ Missing / not a parity blocker | Correctly remains in `docs/FUTURE_IMPROVEMENTS.md`; it should not be counted as missing v3 parity. |
 
-## 7. Computer players (38% complete)
+## 7. Computer players (61% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
-| AI turn participation | Computer systems choose production and ships choose strategic destinations. | 🟡 Partial | AI players are created and processed before movement. Star build and ship destination decisions can execute, and `./gad4 -- --ai-autoplay` can advance a deterministic no-human five-AI observer game until win condition or the default 250-turn max-turn guard. Event presentation windows are hidden by default for unattended autoplay and can be restored with `--show-event-windows`. |
-| AI ship decision matrices | Role-aware selection of colonies, enemies, friendly systems, and fleet formation. | 🟡 Partial | A large decision matrix port exists, and attack destinations can now resolve combat. Fleet formation is still a log-only placeholder in AI, and several factors use placeholders. |
-| AI economy management | Adjusts growth/research/ships by development and threat. | 🧱 Scaffold only | Priorities are calculated but `applyEconomicAllocation()` only logs them (`ai-star.js:133-142`). |
-| AI defenses | Builds satellites/patrols/reacts to threats. | 🧱 Scaffold only | Defense decisions exist, but `activateDefenses()` only logs. |
-| Skill differences | Five v3 skill levels affect search depth/quality. | 🟡 Partial | The v4 AI system has only three effective levels; lower two v3 levels map to Average. |
-| Advantage modifier | Production/decision advantage from -3 to +3. | 🧱 Scaffold only | Stored only; not applied. |
+| AI turn participation | Computer systems choose production and ships choose strategic destinations. | 🟡 Partial | AI players are created and processed before movement. Star build/economy/defense decisions, ship destination decisions, and fleet destination decisions can execute, and `./gad4 -- --ai-autoplay` can advance a deterministic no-human five-AI observer game until win condition or the default 250-turn max-turn guard. Event presentation windows are hidden by default for unattended autoplay and can be restored with `--show-event-windows`. |
+| AI ship decision matrices | Role-aware selection of colonies, enemies, friendly systems, and fleet formation. | 🟡 Partial | The decision-matrix port now uses v3 skill search distances/repetition counts, fixes several placeholder comparisons, prevents invalid no-target choices, forms/join docked fleets, and processes fleets as AI actors. Remaining work includes the full v3 private-state logic, all edge-case factors, route/course behavior, and late-game attack tuning. |
+| AI economy management | Adjusts growth/research/ships by development and threat. | 🟡 Partial | AI now writes desired star allocations instead of logging only. Expert AI can select a v3-style tech star and then split other systems into growth/shipbuilding; non-experts use the default split. Remaining work includes fuller v3 setup control, persistent strategic roles, and tuning against long autoplay outcomes. |
+| AI defenses | Builds satellites/patrols/reacts to threats. | 🟡 Partial | Defensive activation can start satellite construction and set eligible docked non-scout mobile ships to patrol when healthy. It still lacks full v3 reinforcement/call-in behavior, player-visible AI intent, and richer defensive threat tuning. |
+| Skill differences | Five v3 skill levels affect search depth/quality. | 🟡 Partial | Ship AI now reads the preserved five-level v3 skill for search distance, target-pass count, lower-skill randomness, and Novice fleet avoidance. Some other AI behavior still goes through the coarser Average/Good/Expert behavior buckets. |
+| Advantage modifier | Production/decision advantage from -3 to +3. | 🟡 Partial | Computer advantage now applies to AI research and shipbuilding output at 20% per level, matching the core v3 production modifier. The setup UI/range and any non-production strategic effects remain incomplete. |
 
 ## 8. Events, messages, comparison, help, and general UI (35% complete)
 
@@ -232,16 +234,16 @@ The largest blockers to a complete game are:
 The project documentation was refreshed on 2026-08-25 so the docs now agree on current runtime status rather than mixing old plans with newer implementation summaries.
 
 - `MAP_GENERATION_PORT_STATUS.md` records current map-generation status instead of listing already-completed work as future tasks.
-- `AI_INTEGRATION_STATUS.md` and `AI_INTEGRATION_TODO.md` describe AI as active but partial: AI turns run, stars can start builds, and ships can set destinations, while economy allocation, defenses, fleet formation, advantage, and finer skill behavior remain incomplete.
+- `AI_INTEGRATION_STATUS.md` and `AI_INTEGRATION_TODO.md` describe AI as active but partial: AI turns run, stars can start builds, AI can apply economy/defense actions, ships and fleets can set destinations, and key v3 skill/advantage hooks are now active while broader v3 strategic behavior remains incomplete.
 - `README.md` now links only to files that exist and no longer describes the port as a complete 4X game.
 - `INTERNATIONALIZATION_STATUS.md` now serves as the current i18n reference and records that current runtime UI/event strings are localized with parity tests across supported languages.
-- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command and 304-test expected result.
+- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command and 312-test expected result.
 
 This file remains the main parity source of truth. More focused docs may describe implementation details for an area, but their status claims should stay consistent with the tables above.
 
 ## Recommended parity sequence
 
-1. **Continue making the core game completable:** use the 250-turn autoplay observer to diagnose late-game AI stagnation, deepen attack planning, add richer fleet/result reporting, and keep tuning combat/capture against v3.
+1. **Continue making the core game completable:** use the 250-turn autoplay observer to diagnose late-game AI stagnation, deepen attack planning and target pressure, add richer fleet/result reporting, and keep tuning combat/capture against v3.
 2. **Finish essential player control:** complete the build selector/progress workflow, production lock/equalize behavior, ships-in-system, damage state, patrol, repairs, courier tech transfer, and clear destination controls.
 3. **Restore v3 navigation:** waypoint lists, add/edit/delete/clear, looping, course memory, call-in, attention queue, and event history.
 4. **Finish fleets:** contents/exchange UI, named fleets, rendezvous points, auto-assembly, richer fleet combat reporting, and fleet visibility.

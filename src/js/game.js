@@ -196,11 +196,15 @@ class Game {
     entityAdded(entity) {
         const objectType = this.getObjectType(entity);
         if (objectType === Common.ObjectType.STAR) {
-            this.stars.push(entity);
+            if (!this.stars.includes(entity)) {
+                this.stars.push(entity);
+            }
             // Add to spatial partition
             this.spatialPartition.addEntity(entity, Common.SpatialConstants.ENTITY_TYPE_STAR);
         } else if (objectType === Common.ObjectType.SHIP) {
-            this.allShips.push(entity);
+            if (!this.allShips.includes(entity)) {
+                this.allShips.push(entity);
+            }
             console.log(`➕ SHIP ADDED TO GAME: ${entity.type} (ID: ${entity.id}) - Owner: ${entity.owner}, Under Construction: ${entity.underConstruction()}, Total Ships: ${this.allShips.length}`);
             // Add to spatial partition
             const entityType = (entity.type === 'defense') ? 
@@ -208,7 +212,9 @@ class Game {
                 Common.SpatialConstants.ENTITY_TYPE_SHIP;
             this.spatialPartition.addEntity(entity, entityType);
         } else if (objectType === Common.ObjectType.FLEET) {
-            this.allFleets.push(entity);
+            if (!this.allFleets.includes(entity)) {
+                this.allFleets.push(entity);
+            }
             // Add to spatial partition
             this.spatialPartition.addEntity(entity, Common.SpatialConstants.ENTITY_TYPE_FLEET);
         }
@@ -308,6 +314,30 @@ class Game {
             }
         }
         return null;
+    }
+
+    getComputerAdvantageForOwner(ownerId) {
+        const player = this.players ? this.players[ownerId] : null;
+        if (!player || !player.isComputer) {
+            return 0;
+        }
+        if (typeof player.compAdvantage === 'number') {
+            return player.compAdvantage;
+        }
+        return this.config && typeof this.config.compAdvantage === 'number' ? this.config.compAdvantage : 0;
+    }
+
+    applyComputerAdvantageToProduction(ownerId, amount) {
+        if (!Number.isFinite(amount) || amount <= 0) {
+            return amount;
+        }
+
+        const advantage = this.getComputerAdvantageForOwner(ownerId);
+        if (!advantage) {
+            return amount;
+        }
+
+        return Math.max(0, amount * (1 + (advantage * 0.20)));
     }
 
     // Get the home star ID for a specific player
@@ -1575,38 +1605,47 @@ class Game {
         if (entity1Type === Common.ObjectType.FLEET && entity2Type === Common.ObjectType.FLEET) {
             // Both entities are fleets - merge them
             if (entity1 !== entity2) {
-                this.mergeFleets(entity1, entity2);
+                return this.mergeFleets(entity1, entity2);
             }
+            return entity1;
         } else if (entity1Type === Common.ObjectType.FLEET) {
             // Entity1 is a fleet, add entity2 to it if it can form a fleet
             if (entity2.canFormFleet()) {
                 entity1.addShip(entity2);
+                return entity1;
             }
         } else if (entity2Type === Common.ObjectType.FLEET) {
             // Entity2 is a fleet, add entity1 to it if it can form a fleet
             if (entity1.canFormFleet()) {
                 entity2.addShip(entity1);
+                return entity2;
             }
         } else {
             // Both entities are ships - check if either ship is already in a fleet
             if (entity1.isInFleet() && entity2.isInFleet()) {
                 // Both ships are in fleets - merge the fleets
                 if (entity1.fleet !== entity2.fleet) {
-                    this.mergeFleets(entity1.fleet, entity2.fleet);
+                    return this.mergeFleets(entity1.fleet, entity2.fleet);
                 }
+                return entity1.fleet;
             } else if (entity1.isInFleet()) {
                 // Ship1 is in a fleet, add ship2 to it
                 entity1.fleet.addShip(entity2);
+                return entity1.fleet;
             } else if (entity2.isInFleet()) {
                 // Ship2 is in a fleet, add ship1 to it
                 entity2.fleet.addShip(entity1);
+                return entity2.fleet;
             } else {
                 // Neither ship is in a fleet, create a new fleet
                 const fleet = this.factory.createFleet(entity1.x, entity1.y, entity1.owner);
                 fleet.addShip(entity1);
                 fleet.addShip(entity2);
+                return fleet;
             }
         }
+
+        return null;
     }
     
     /**
@@ -1621,6 +1660,7 @@ class Game {
         
         // Remove the empty fleet2
         this.entityRemoved(fleet2);
+        return fleet1;
     }
 }
 

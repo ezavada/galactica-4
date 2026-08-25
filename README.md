@@ -59,7 +59,7 @@ PowerShell) to replace the cached copy.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 304 passed, 0 failed.
+Current expected result: 312 passed, 0 failed.
 
 AI-only parity observer:
 

@@ -54,6 +54,35 @@ function runFleetTests() {
             test.assertEqual(mockShip.fleet, fleet);
             test.assertEqual(mockShip.star, null);
         });
+
+        test.it('should not duplicate ships when transferring between fleets', () => {
+            const mockGame = {
+                players: [],
+                entityAdded: () => {}
+            };
+
+            const Fleet = require('../src/js/fleet.js');
+            const firstFleet = new Fleet(0, 0, mockGame, 1);
+            const secondFleet = new Fleet(100, 0, mockGame, 1);
+
+            const mockShip = {
+                power: 5,
+                speed: 10,
+                techLevel: 3,
+                damage: 0,
+                fleet: null,
+                star: null
+            };
+
+            test.assertTrue(firstFleet.addShip(mockShip), 'First fleet should accept the ship');
+            test.assertFalse(firstFleet.addShip(mockShip), 'Adding the same ship twice should be ignored');
+            test.assertEqual(firstFleet.getSize(), 1, 'First fleet should contain one copy of the ship');
+
+            test.assertTrue(secondFleet.addShip(mockShip), 'Second fleet should be able to take the ship');
+            test.assertEqual(firstFleet.getSize(), 0, 'Ship should be removed from its previous fleet');
+            test.assertEqual(secondFleet.getSize(), 1, 'Ship should be present in the new fleet');
+            test.assertEqual(mockShip.fleet, secondFleet, 'Ship should point at its current fleet');
+        });
         
         test.it('should remove ships from fleet and recalculate stats', () => {
             const mockGame = {

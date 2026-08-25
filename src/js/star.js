@@ -101,6 +101,8 @@ class Star {
             return; // do nothing with unpopulated stars
         }
 
+        this.repairDockedShips();
+
         // Adjust all the allocations
         this.shipBuilding.adjustValue();
         this.growth.adjustValue();
@@ -115,6 +117,9 @@ class Star {
 
         // apply research
         let amount = this.game.rules.getStarResearchAmount(this);
+        if (this.game && typeof this.game.applyComputerAdvantageToProduction === 'function') {
+            amount = this.game.applyComputerAdvantageToProduction(this.owner, amount);
+        }
         //console.log(`Paid ${amount} toward research at ${this.name}`);
         this.paidTowardResearch += amount;
             if (this.paidTowardResearch >= 1000) {
@@ -140,6 +145,9 @@ class Star {
         // apply shipbuilding effort
         if (this.currentShip) {
             amount = this.game.rules.getStarShipBuildingAmount(this);
+            if (this.game && typeof this.game.applyComputerAdvantageToProduction === 'function') {
+                amount = this.game.applyComputerAdvantageToProduction(this.owner, amount);
+            }
             //console.log(`Paid ${amount} toward shipbuilding at ${this.name}`);
             this.paidTowardShipBuilding += amount;
             const cost = this.game.rules.getShipBuildCost(this.currentShip, this);
@@ -163,6 +171,35 @@ class Star {
         if (this.population > 99900) {
             this.population = 99900;
         }
+    }
+
+    repairDockedShips() {
+        if (!this.game || !this.game.rules || typeof this.game.rules.getStarRepairAmount !== 'function') {
+            return 0;
+        }
+
+        let repairRemaining = this.game.rules.getStarRepairAmount(this);
+        let repairedTotal = 0;
+        if (repairRemaining <= 0) {
+            return 0;
+        }
+
+        for (const ship of [...this.ships]) {
+            if (!ship || ship.type === 'defense' || ship.underConstruction()) {
+                continue;
+            }
+            if (ship.destination || (ship.isOnPatrol && ship.isOnPatrol()) || !ship.repairDamage) {
+                continue;
+            }
+            const repaired = ship.repairDamage(repairRemaining);
+            repairedTotal += repaired;
+            repairRemaining -= repaired;
+            if (repairRemaining <= 0) {
+                break;
+            }
+        }
+
+        return repairedTotal;
     }
     
     completeShip() {
@@ -203,6 +240,13 @@ class Star {
             }
         } catch (err) {
             ship.name = `${ship.type} S${this.id}T${this.game.turn}-${ship.id}`;
+        }
+
+        if (ship.type === 'defense') {
+            if (ship.setPatrol) {
+                ship.setPatrol(true);
+            }
+            this.addDefenseSatellite(ship);
         }
         
         // Set default destination if the star has one and ship doesn't already have a destination

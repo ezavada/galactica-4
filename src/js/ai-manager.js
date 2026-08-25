@@ -76,6 +76,9 @@ class AIManager {
         
         // Process ship AI decisions
         aiPlayer.processShipDecisions();
+
+        // Process fleet AI decisions after individual ships have had a chance to form fleets.
+        aiPlayer.processFleetDecisions();
         
         console.log(`=== End AI Turn for ${playerName} ===\n`);
     }
@@ -217,6 +220,37 @@ class AIPlayer {
         }
     }
 
+    processFleetDecisions() {
+        this.debugLog(`Processing fleet decisions for player ${this.playerId}`);
+
+        for (const fleet of this.getPlayerFleets()) {
+            try {
+                this.processFleetDecision(fleet);
+            } catch (error) {
+                console.error(`Error processing AI decision for fleet ${fleet.id}:`, error);
+            }
+        }
+    }
+
+    processFleetDecision(fleet) {
+        if (!fleet || (fleet.isEmpty && fleet.isEmpty())) {
+            return;
+        }
+
+        const fleetAI = new ShipAI(fleet, this.game, this.rules, this.skillManager.getSkillLevel());
+        const decision = fleetAI.makeDecision();
+        const location = fleet.star ? `at ${fleet.star.name}` : `at (${Math.round(fleet.x/1024)}, ${Math.round(fleet.y/1024)})`;
+        console.log(`  Fleet ${fleet.id} ${location} [${fleet.getSize()} ships]: ${decision.action} - ${decision.reason}`);
+
+        if (decision.action !== AIActions.DO_NOTHING) {
+            fleetAI.executeDecision(decision);
+            if (decision.target) {
+                const targetName = decision.target.name || `(${Math.round(decision.target.x/1024)}, ${Math.round(decision.target.y/1024)})`;
+                console.log(`    -> Fleet going to ${targetName}`);
+            }
+        }
+    }
+
     // Get all stars owned by this AI player
     getPlayerStars() {
         return this.game.stars.filter(star => star.owner === this.playerId);
@@ -225,6 +259,10 @@ class AIPlayer {
     // Get all ships owned by this AI player
     getPlayerShips() {
         return this.game.allShips.filter(ship => ship.owner === this.playerId);
+    }
+
+    getPlayerFleets() {
+        return this.game.allFleets.filter(fleet => fleet.owner === this.playerId);
     }
 
     // Get count of ships owned by this AI player
@@ -284,7 +322,8 @@ class AIPlayer {
             shipCount: this.getShipCount(),
             starCount: this.getStarCount(),
             activeShipAIs: this.shipAIs.size,
-            activeStarAIs: this.starAIs.size
+            activeStarAIs: this.starAIs.size,
+            fleetCount: this.getPlayerFleets().length
         };
     }
 }

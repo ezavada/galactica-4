@@ -95,6 +95,22 @@ test.describe('Game Fog of War Integration', () => {
             const finalStats = game.getSpatialStats();
             test.assertEqual(finalStats.totalEntities, 0, 'Should have no entities after removal');
         });
+
+        test.it('ignores duplicate entity registration', () => {
+            const factory = new Factory();
+            const rules = new Rules(false);
+            const config = GameConfig.createSinglePlayer(1, 2);
+            config.sectorSize = 1;
+            config.skipMapGeneration = true;
+
+            const game = new Game(factory, rules, config);
+
+            const star = factory.createStar(1000, 2000, "Test Star");
+            game.entityAdded(star);
+
+            test.assertEqual(game.stars.length, 1, 'Duplicate star registration should not create a second game entry');
+            test.assertEqual(game.getSpatialStats().totalStars, 1, 'Duplicate star registration should not create a second spatial entry');
+        });
     });
 
     test.describe('Performance', () => {

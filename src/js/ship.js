@@ -22,6 +22,7 @@ class Ship {
         this.fleet = null; // Reference to fleet if ship is in one
         this.name = '';
         this.classIndex = 0; // 1-based class index for battleships per 5 tech levels
+        this.onPatrol = false;
         
         // Fog of War properties
         this.scannerRange = 0;
@@ -171,8 +172,11 @@ class Ship {
     }
     
     isOnPatrol() {
-        // TODO: Implement patrol logic
-        return false;
+        return !!this.onPatrol;
+    }
+
+    setPatrol(onPatrol) {
+        this.onPatrol = !!onPatrol;
     }
 
     isAllyOf(playerId) {
@@ -234,8 +238,7 @@ class Ship {
                 // If this is a defense satellite, add it to the star's defense
                 if (this.type === 'defense') {
                     destinationStar.addDefenseSatellite(this);
-                    // Remove from spatial partition as it's now part of star system
-                    this.game.spatialPartition.removeEntity(this, Common.SpatialConstants.ENTITY_TYPE_SHIP);
+                    this.updateSpatialLocation();
                 }
                 
                 this.game.noteworthyEvent(this, Common.EventType.SHIP_ARRIVED, destinationStar);
@@ -271,6 +274,7 @@ class Ship {
     
     setDestination(obj) {
         if (this.type !== 'defense') {
+            this.setPatrol(false);
             this.destination = obj;
             console.log(`🎯 DESTINATION SET: ${this.type} (ID: ${this.id}) - Destination: ${obj.name || obj.type || `(${obj.x.toFixed(0)}, ${obj.y.toFixed(0)})`}`);
             this.game.noteworthyEvent(this, Common.EventType.SHIP_TASKED, obj, null, Common.EventWhy.NEW_DESTINATION);

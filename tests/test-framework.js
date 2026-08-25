@@ -3,6 +3,11 @@
 
 class TestFramework {
     constructor() {
+        if (typeof pdg !== 'undefined' && pdg && typeof pdg.srand === 'function' && !globalThis.__galacticaTestRandomSeeded) {
+            pdg.srand(42);
+            globalThis.__galacticaTestRandomSeeded = true;
+        }
+
         this.tests = [];
         this.currentSuite = null;
         this.results = {
@@ -192,4 +197,3 @@ class TestFramework {
 const test = new TestFramework();
 
 module.exports = test;
-

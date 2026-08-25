@@ -41,14 +41,106 @@ class StarAI extends AIBase {
     manageEconomy() {
         this.debugLog(`Managing economy for star ${this.star.name}`);
 
-        // Get current threat level
-        const threatLevel = this.assessThreatLevel();
-        
-        // Get current economic priorities based on threat and development
-        const priorities = this.calculateEconomicPriorities(threatLevel);
+        if (this.applyV3EconomicRole()) {
+            return;
+        }
 
-        // Apply economic allocation
-        this.applyEconomicAllocation(priorities);
+        this.applyEconomicAllocation({ growth: 34, shipbuilding: 33, research: 33 });
+    }
+
+    getPlayerInfo() {
+        return this.game && this.game.players ? this.game.players[this.star.owner] : null;
+    }
+
+    getV3SkillLevel() {
+        const player = this.getPlayerInfo();
+        if (player && player.compSkill) {
+            return player.compSkill;
+        }
+        if (this.skillManager.getSkillLevel() >= AI_SKILL_LEVELS.EXPERT) {
+            return 1;
+        }
+        if (this.skillManager.getSkillLevel() >= AI_SKILL_LEVELS.GOOD) {
+            return 2;
+        }
+        return 3;
+    }
+
+    isTechStar() {
+        return this.star.research && this.star.research.desired > 40;
+    }
+
+    applyV3EconomicRole() {
+        const v3Skill = this.getV3SkillLevel();
+        const player = this.getPlayerInfo();
+
+        if (v3Skill !== 1 || !player) {
+            return false;
+        }
+
+        if (this.isTechStar()) {
+            this.applyEconomicAllocation({ growth: 49.4, shipbuilding: 1.2, research: 49.4 });
+            if (!player.hasTechStar) {
+                player.setTechStar(this.star.id);
+            }
+            return true;
+        }
+
+        if ((this.game.turn > 100 || (this.game.turn % 6) === 0) && this.shouldBecomeTechStar(player)) {
+            this.applyEconomicAllocation({ growth: 49.4, shipbuilding: 1.2, research: 49.4 });
+            player.setTechStar(this.star.id);
+            return true;
+        }
+
+        if (player.hasTechStar) {
+            this.applyEconomicAllocation({ growth: 50, shipbuilding: 50, research: 0 });
+            return true;
+        }
+
+        return false;
+    }
+
+    shouldBecomeTechStar(player) {
+        const highestTech = player.hiStarTech || this.getHighestOwnedStarTech();
+        if (this.star.techLevel < highestTech) {
+            return false;
+        }
+
+        const nearby = this.utils.findClosestStars(this.star, 222222);
+        if (nearby.nearestEnemyStar) {
+            return false;
+        }
+
+        const nearestOwnedStar = this.findNearestOtherOwnedStar(222222);
+        if (!nearestOwnedStar) {
+            return false;
+        }
+
+        return !(nearestOwnedStar.research && nearestOwnedStar.research.desired > 40);
+    }
+
+    findNearestOtherOwnedStar(maxDistance) {
+        let nearest = null;
+        let nearestDistance = maxDistance;
+        for (const star of this.utils.getPlayerStars(this.star.owner)) {
+            if (star === this.star) {
+                continue;
+            }
+            const distance = this.utils.calculateDistance(this.star, star);
+            if (distance <= nearestDistance) {
+                nearest = star;
+                nearestDistance = distance;
+            }
+        }
+        return nearest;
+    }
+
+    getHighestOwnedStarTech() {
+        let highest = 0;
+        for (const star of this.utils.getPlayerStars(this.star.owner)) {
+            highest = Math.max(highest, star.techLevel || 0);
+        }
+        return highest;
     }
 
     // Assess the threat level to this star
@@ -132,17 +224,50 @@ class StarAI extends AIBase {
 
     // Apply economic allocation to star settings
     applyEconomicAllocation(priorities) {
-        // This would need to be implemented based on how star economic settings work
-        // For now, just log the allocation
-        this.debugLog(`Applying economic allocation: Growth ${priorities.growth}%, Research ${priorities.research}%, Shipbuilding ${priorities.shipbuilding}%`);
-        
-        // In the actual implementation, this would modify the star's economic settings
-        // this.star.setEconomicAllocation(priorities);
+        const normalized = this.normalizeAllocation(priorities);
+        this.debugLog(`Applying economic allocation: Growth ${normalized.growth}%, Research ${normalized.research}%, Shipbuilding ${normalized.shipbuilding}%`);
+
+        if (this.star.growth && this.star.growth.setDesired) {
+            this.star.growth.setDesired(normalized.growth);
+        }
+        if (this.star.shipBuilding && this.star.shipBuilding.setDesired) {
+            this.star.shipBuilding.setDesired(normalized.shipbuilding);
+        }
+        if (this.star.research && this.star.research.setDesired) {
+            this.star.research.setDesired(normalized.research);
+        }
+
+        return normalized;
+    }
+
+    normalizeAllocation(priorities) {
+        const growth = Math.max(0, Number(priorities.growth) || 0);
+        const shipbuilding = Math.max(0, Number(priorities.shipbuilding) || 0);
+        const research = Math.max(0, Number(priorities.research) || 0);
+        const total = growth + shipbuilding + research;
+
+        if (total <= 0) {
+            return { growth: 34, shipbuilding: 33, research: 33 };
+        }
+
+        const normalizedGrowth = Math.round((growth / total) * 1000) / 10;
+        const normalizedShipbuilding = Math.round((shipbuilding / total) * 1000) / 10;
+        const normalizedResearch = Math.round((100 - normalizedGrowth - normalizedShipbuilding) * 10) / 10;
+
+        return {
+            growth: normalizedGrowth,
+            shipbuilding: normalizedShipbuilding,
+            research: normalizedResearch
+        };
     }
 
     // Decide what ships to build
     decideShipBuilding() {
         this.debugLog(`Deciding ship building for star ${this.star.name}`);
+
+        if (this.star.currentShip) {
+            return new AIDecision(AIActions.DO_NOTHING, null, 0, 'Ship already under construction');
+        }
 
         // Check if we can afford to build ships
         if (!this.canAffordShipBuilding()) {
@@ -246,26 +371,46 @@ class StarAI extends AIBase {
 
     // Choose which ship to build based on needs
     chooseShipToBuild(needs) {
-        // Priority order based on threat and strategic situation
-        const priorities = [];
-
-        // High threat: prioritize defense
         const threatLevel = this.assessThreatLevel();
-        if (threatLevel > 60) {
-            if (needs.defense > 0) priorities.push({ type: 'defense', priority: 100 });
-            if (needs.battleships > 0) priorities.push({ type: 'battleship', priority: 80 });
-        } else {
-            // Low threat: prioritize expansion and exploration
-            if (needs.colonies > 0) priorities.push({ type: 'colony', priority: 90 });
-            if (needs.scouts > 0) priorities.push({ type: 'scout', priority: 70 });
-            if (needs.battleships > 0) priorities.push({ type: 'battleship', priority: 60 });
+        if (threatLevel > 60 || needs.defense > 1) {
+            return { type: 'defense', priority: 100 };
         }
 
-        // Sort by priority
-        priorities.sort((a, b) => b.priority - a.priority);
+        if (this.isTechStar()) {
+            return { type: this.chooseNextTechStarHull(), priority: 90 };
+        }
 
-        // Return the highest priority ship type
-        return priorities.length > 0 ? priorities[0] : null;
+        return { type: this.chooseV3ComputerHull(), priority: 70 };
+    }
+
+    chooseNextTechStarHull() {
+        const nextType = this.star.aiNextTechStarBuildType || 'defense';
+        this.star.aiNextTechStarBuildType = nextType === 'defense' ? 'scout' : 'defense';
+        return nextType;
+    }
+
+    chooseV3ComputerHull() {
+        let hullType;
+        const roll = this.utils.randomInt(5);
+
+        if (roll === 0) {
+            hullType = 'defense';
+        } else if (roll === 1) {
+            hullType = this.utils.randomInt(20) <= 10 ? 'defense' : 'scout';
+        } else if (roll === 2) {
+            hullType = 'colony';
+        } else {
+            hullType = 'battleship';
+        }
+
+        if (this.game.turn > 50 && (hullType === 'scout' || hullType === 'colony')) {
+            const threshold = Math.floor(this.game.turn / 25);
+            if (this.utils.randomInt(20) <= threshold) {
+                hullType = 'battleship';
+            }
+        }
+
+        return hullType;
     }
 
     // Decide on defensive actions
@@ -317,9 +462,16 @@ class StarAI extends AIBase {
     // Activate defensive measures
     activateDefenses() {
         this.debugLog('Activating defensive measures');
-        
-        // This could include building defensive ships, setting up patrols, etc.
-        // For now, just log the action
+
+        if (!this.star.currentShip) {
+            this.startBuildingShip('defense');
+        }
+
+        for (const ship of this.utils.getShipsAtStarList(this.star)) {
+            if (ship.owner === this.star.owner && ship.type !== 'scout' && !ship.destination && ship.setPatrol) {
+                ship.setPatrol(ship.damage <= 0);
+            }
+        }
     }
 
     // Get the star's current economic status

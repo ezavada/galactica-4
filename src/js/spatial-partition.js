@@ -13,6 +13,7 @@ class SpatialCell {
         this.stars = [];      // Stars in this cell (don't move)
         this.ships = [];      // Ships in this cell (move frequently)
         this.defense = [];    // Defense satellites (part of star systems)
+        this.fleets = [];     // Fleets in this cell (move frequently)
     }
     
     addEntity(entity, entityType) {
@@ -30,6 +31,11 @@ class SpatialCell {
             case Common.SpatialConstants.ENTITY_TYPE_DEFENSE:
                 if (!this.defense.includes(entity)) {
                     this.defense.push(entity);
+                }
+                break;
+            case Common.SpatialConstants.ENTITY_TYPE_FLEET:
+                if (!this.fleets.includes(entity)) {
+                    this.fleets.push(entity);
                 }
                 break;
         }
@@ -55,11 +61,17 @@ class SpatialCell {
                     this.defense.splice(defenseIndex, 1);
                 }
                 break;
+            case Common.SpatialConstants.ENTITY_TYPE_FLEET:
+                const fleetIndex = this.fleets.indexOf(entity);
+                if (fleetIndex !== -1) {
+                    this.fleets.splice(fleetIndex, 1);
+                }
+                break;
         }
     }
     
     getAllEntities() {
-        return [...this.stars, ...this.ships, ...this.defense];
+        return [...this.stars, ...this.ships, ...this.defense, ...this.fleets];
     }
     
     getEntitiesByType(entityType) {
@@ -70,6 +82,8 @@ class SpatialCell {
                 return this.ships;
             case Common.SpatialConstants.ENTITY_TYPE_DEFENSE:
                 return this.defense;
+            case Common.SpatialConstants.ENTITY_TYPE_FLEET:
+                return this.fleets;
             default:
                 return this.getAllEntities();
         }
@@ -246,6 +260,7 @@ class SpatialPartition {
         let totalStars = 0;
         let totalShips = 0;
         let totalDefense = 0;
+        let totalFleets = 0;
         
         for (const sector of this.sectors.values()) {
             for (let cellX = 0; cellX < Common.SpatialConstants.CELLS_PER_SECTOR; cellX++) {
@@ -256,6 +271,7 @@ class SpatialPartition {
                         totalStars += cell.stars.length;
                         totalShips += cell.ships.length;
                         totalDefense += cell.defense.length;
+                        totalFleets += cell.fleets.length;
                     }
                 }
             }
@@ -266,7 +282,8 @@ class SpatialPartition {
             totalEntities: totalEntities,
             totalStars: totalStars,
             totalShips: totalShips,
-            totalDefense: totalDefense
+            totalDefense: totalDefense,
+            totalFleets: totalFleets
         };
     }
 }

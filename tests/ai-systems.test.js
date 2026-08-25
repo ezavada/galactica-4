@@ -16,6 +16,46 @@ const GameConfig = require('../src/js/game-config.js');
 // Test seed for reproducible results
 const TEST_SEED = 42;
 
+function createEmptyAITestGame(options = {}) {
+    const factory = new Factory();
+    const rules = new Rules(options.fastGame || false);
+    const config = new GameConfig({
+        numHumans: options.numHumans !== undefined ? options.numHumans : 0,
+        numComputers: options.numComputers !== undefined ? options.numComputers : 2,
+        compSkill: options.compSkill || 2,
+        compAdvantage: options.compAdvantage || 0,
+        aiSkillByPlayer: options.aiSkillByPlayer || { 1: options.compSkill || 2, 2: 2 },
+        skipMapGeneration: true,
+        omniscient: true
+    });
+    const game = new Game(factory, rules, config);
+    return { game, factory, rules, config };
+}
+
+function createOwnedStar(game, owner, x, y, name, options = {}) {
+    const star = game.factory.createStar(x, y, name);
+    star.owner = owner;
+    star.population = options.population !== undefined ? options.population : 1000;
+    star.techLevel = options.techLevel !== undefined ? options.techLevel : 5;
+    star.setScannerRange(game.rules.getScanRangeForTechLevel(star.techLevel));
+    const player = game.players[owner];
+    if (player) {
+        player.updateHighestStarTech(star.techLevel);
+    }
+    return star;
+}
+
+function createCompletedShip(game, star, type, options = {}) {
+    const ship = game.factory.createShip(star.x, star.y, type, star);
+    ship.techLevel = options.techLevel !== undefined ? options.techLevel : star.techLevel;
+    ship.speed = game.rules.getShipInitialSpeed(ship);
+    ship.power = ship.calculatePower();
+    ship.complete();
+    ship.star = star;
+    star.shipArrived(ship);
+    return ship;
+}
+
 function runAISystemTests() {
 
     test.describe('AIManager - Initialization and Player Management', () => {
@@ -512,6 +552,64 @@ function runAISystemTests() {
                 test.assertDefined(aiStar.currentShip.type, 'Ship being built should have a type');
             }
         });
+
+        test.it('applies v3-style expert tech-star and shipbuilder allocations', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 1,
+                aiSkillByPlayer: { 1: 1, 2: 2 }
+            });
+            game.turn = 6;
+            const techCandidate = createOwnedStar(game, 1, 0, 0, 'Tech Candidate', { techLevel: 6 });
+            const nearbyAlly = createOwnedStar(game, 1, 10000, 0, 'Nearby Ally', { techLevel: 6 });
+            createOwnedStar(game, 2, 500000, 0, 'Distant Enemy', { techLevel: 1 });
+
+            const candidateAI = new StarAI(techCandidate, game, rules, AI_SKILL_LEVELS.EXPERT);
+            candidateAI.manageEconomy();
+
+            test.assertEqual(techCandidate.growth.desired, 49.4, 'Expert AI should set tech-star growth allocation');
+            test.assertEqual(techCandidate.shipBuilding.desired, 1.2, 'Expert AI tech stars should keep token ship production');
+            test.assertEqual(techCandidate.research.desired, 49.4, 'Expert AI should set tech-star research allocation');
+            test.assertEqual(game.players[1].techStarId, techCandidate.id, 'Expert AI should remember its tech star');
+
+            const allyAI = new StarAI(nearbyAlly, game, rules, AI_SKILL_LEVELS.EXPERT);
+            allyAI.manageEconomy();
+
+            test.assertEqual(nearbyAlly.growth.desired, 50, 'Expert AI shipbuilder should split growth');
+            test.assertEqual(nearbyAlly.shipBuilding.desired, 50, 'Expert AI shipbuilder should split shipbuilding');
+            test.assertEqual(nearbyAlly.research.desired, 0, 'Expert AI shipbuilder should stop research after a tech star exists');
+        });
+
+        test.it('registers completed defense builds as patrolling star defenses', () => {
+            const { game } = createEmptyAITestGame({ compSkill: 2 });
+            const star = createOwnedStar(game, 1, 0, 0, 'Fortress', { techLevel: 5 });
+
+            star.startBuildingShip('defense');
+            star.currentShip.complete();
+            const satellite = star.completeShip();
+
+            test.assertContains(star.getDefenseSatellites(), satellite, 'Completed defense ship should be registered as a defense satellite');
+            test.assertTrue(satellite.isOnPatrol(), 'Defense satellites should patrol automatically');
+            test.assertGreaterThan(star.getTotalDefenseStrength(), star.getDefenseStrength(), 'Defense satellite should add to total star defense');
+        });
+
+        test.it('repairs docked non-patrolling mobile ships from star repair capacity', () => {
+            const { game } = createEmptyAITestGame({ compSkill: 2 });
+            const star = createOwnedStar(game, 1, 0, 0, 'Repair Yard', { techLevel: 4 });
+            const ship = createCompletedShip(game, star, 'battleship', { techLevel: 4 });
+            ship.damage = 90;
+
+            const repaired = star.repairDockedShips();
+
+            test.assertGreaterThan(repaired, 0, 'Star should repair some mobile ship damage');
+            test.assertLessThan(ship.damage, 90, 'Ship damage should decrease after repair');
+        });
+
+        test.it('applies computer advantage to AI research and shipbuilding output', () => {
+            const { game } = createEmptyAITestGame({ compSkill: 2, compAdvantage: 2 });
+
+            test.assertEqual(game.applyComputerAdvantageToProduction(1, 100), 140, 'Two levels of advantage should add 40% output');
+            test.assertEqual(game.applyComputerAdvantageToProduction(0, 100), 100, 'Neutral ownership should not receive AI advantage');
+        });
     });
 
     test.describe('ShipAI - Decision Making', () => {
@@ -640,6 +738,47 @@ function runAISystemTests() {
                 test.assertDefined(aiShip.destination.y, 'Destination should have y coordinate');
             }
         });
+
+        test.it('forms fleets from docked ships and gives the fleet AI orders', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 1,
+                aiSkillByPlayer: { 1: 1, 2: 2 }
+            });
+            const home = createOwnedStar(game, 1, 0, 0, 'Fleet Yard', { techLevel: 8 });
+            const enemy = createOwnedStar(game, 2, 50000, 0, 'Weak Target', { techLevel: 1, population: 10 });
+            const shipA = createCompletedShip(game, home, 'battleship', { techLevel: 8 });
+            const shipB = createCompletedShip(game, home, 'battleship', { techLevel: 8 });
+
+            const shipAI = new ShipAI(shipA, game, rules, AI_SKILL_LEVELS.EXPERT);
+            const fleet = shipAI.attemptFleetFormation();
+
+            test.assertNotNull(fleet, 'AI should create a fleet when another docked ship can join');
+            test.assertEqual(fleet.getSize(), 2, 'Fleet should contain both docked ships');
+            test.assertTrue(shipA.isInFleet(), 'Original ship should be in the fleet');
+            test.assertTrue(shipB.isInFleet(), 'Nearby docked ship should be pulled into the fleet');
+
+            const aiPlayer = game.aiManager.getAIPlayer(1);
+            aiPlayer.processFleetDecision(fleet);
+
+            test.assertEqual(fleet.destination, enemy, 'Fleet AI should send the strong fleet to the weak enemy star');
+        });
+
+        test.it('uses v3 skill values for search distance and decision repetitions', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 5,
+                aiSkillByPlayer: { 1: 5, 2: 2 }
+            });
+            const home = createOwnedStar(game, 1, 0, 0, 'Novice Home', { techLevel: 5 });
+            const ship = createCompletedShip(game, home, 'battleship', { techLevel: 5 });
+            const shipAI = new ShipAI(ship, game, rules, AI_SKILL_LEVELS.AVERAGE);
+
+            test.assertEqual(shipAI.getV3SkillLevel(), 5, 'Ship AI should preserve the configured v3 novice skill');
+            test.assertEqual(shipAI.getSearchDistanceForV3Skill(1), 888888, 'Expert search distance should match v3');
+            test.assertEqual(shipAI.getSearchDistanceForV3Skill(5), 444444, 'Novice search distance should match v3');
+            test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(1), 3, 'Expert should run three target passes');
+            test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(2), 2, 'Good should run two target passes');
+            test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(5), 1, 'Novice should run one target pass');
+        });
     });
 
     test.describe('AI Integration - End to End', () => {
@@ -747,4 +886,3 @@ function runAISystemTests() {
 }
 
 module.exports = runAISystemTests;
-

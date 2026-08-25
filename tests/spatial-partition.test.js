@@ -13,14 +13,17 @@ test.describe('SpatialCell', () => {
             const star = { id: 1, type: 'star' };
             const ship = { id: 2, type: 'ship' };
             const defense = { id: 3, type: 'defense' };
+            const fleet = { id: 4, type: 'fleet' };
             
             cell.addEntity(star, Common.SpatialConstants.ENTITY_TYPE_STAR);
             cell.addEntity(ship, Common.SpatialConstants.ENTITY_TYPE_SHIP);
             cell.addEntity(defense, Common.SpatialConstants.ENTITY_TYPE_DEFENSE);
+            cell.addEntity(fleet, Common.SpatialConstants.ENTITY_TYPE_FLEET);
             
             test.assertEqual(cell.stars.length, 1, 'Should have one star');
             test.assertEqual(cell.ships.length, 1, 'Should have one ship');
             test.assertEqual(cell.defense.length, 1, 'Should have one defense');
+            test.assertEqual(cell.fleets.length, 1, 'Should have one fleet');
             
             cell.removeEntity(star, Common.SpatialConstants.ENTITY_TYPE_STAR);
             test.assertEqual(cell.stars.length, 0, 'Should have no stars after removal');
@@ -40,15 +43,20 @@ test.describe('SpatialCell', () => {
             const star1 = { id: 1 };
             const star2 = { id: 2 };
             const ship = { id: 3 };
+            const fleet = { id: 4 };
             
             cell.addEntity(star1, Common.SpatialConstants.ENTITY_TYPE_STAR);
             cell.addEntity(star2, Common.SpatialConstants.ENTITY_TYPE_STAR);
             cell.addEntity(ship, Common.SpatialConstants.ENTITY_TYPE_SHIP);
+            cell.addEntity(fleet, Common.SpatialConstants.ENTITY_TYPE_FLEET);
             
             const stars = cell.getEntitiesByType(Common.SpatialConstants.ENTITY_TYPE_STAR);
+            const fleets = cell.getEntitiesByType(Common.SpatialConstants.ENTITY_TYPE_FLEET);
             test.assertEqual(stars.length, 2, 'Should return correct number of stars');
             test.assertTrue(stars.includes(star1), 'Should include first star');
             test.assertTrue(stars.includes(star2), 'Should include second star');
+            test.assertEqual(fleets.length, 1, 'Should return fleet entities by type');
+            test.assertTrue(fleets.includes(fleet), 'Should include the fleet');
         });
     });
 });
@@ -136,17 +144,22 @@ test.describe('SpatialPartition', () => {
             const partition = new SpatialPartition();
             const star = { x: 1000, y: 1000, id: 1 };
             const ship = { x: 1500, y: 1500, id: 2 };
+            const fleet = { x: 1600, y: 1600, id: 3 };
             
             partition.addEntity(star, Common.SpatialConstants.ENTITY_TYPE_STAR);
             partition.addEntity(ship, Common.SpatialConstants.ENTITY_TYPE_SHIP);
+            partition.addEntity(fleet, Common.SpatialConstants.ENTITY_TYPE_FLEET);
             
             const starsInRange = partition.getEntitiesInRangeByType(1200, 1200, 1000, Common.SpatialConstants.ENTITY_TYPE_STAR);
             const shipsInRange = partition.getEntitiesInRangeByType(1200, 1200, 1000, Common.SpatialConstants.ENTITY_TYPE_SHIP);
+            const fleetsInRange = partition.getEntitiesInRangeByType(1200, 1200, 1000, Common.SpatialConstants.ENTITY_TYPE_FLEET);
             
             test.assertEqual(starsInRange.length, 1, 'Should find one star in range');
             test.assertEqual(shipsInRange.length, 1, 'Should find one ship in range');
+            test.assertEqual(fleetsInRange.length, 1, 'Should find one fleet in range');
             test.assertTrue(starsInRange.includes(star), 'Should include the star');
             test.assertTrue(shipsInRange.includes(ship), 'Should include the ship');
+            test.assertTrue(fleetsInRange.includes(fleet), 'Should include the fleet');
         });
     });
 
@@ -155,15 +168,18 @@ test.describe('SpatialPartition', () => {
             const partition = new SpatialPartition();
             const star = { x: 1000, y: 1000, id: 1 };
             const ship = { x: 2000, y: 2000, id: 2 };
+            const fleet = { x: 3000, y: 3000, id: 3 };
             
             partition.addEntity(star, Common.SpatialConstants.ENTITY_TYPE_STAR);
             partition.addEntity(ship, Common.SpatialConstants.ENTITY_TYPE_SHIP);
+            partition.addEntity(fleet, Common.SpatialConstants.ENTITY_TYPE_FLEET);
             
             const stats = partition.getStats();
             
-            test.assertEqual(stats.totalEntities, 2, 'Should count total entities');
+            test.assertEqual(stats.totalEntities, 3, 'Should count total entities');
             test.assertEqual(stats.totalStars, 1, 'Should count stars');
             test.assertEqual(stats.totalShips, 1, 'Should count ships');
+            test.assertEqual(stats.totalFleets, 1, 'Should count fleets');
             test.assertGreaterThan(stats.totalSectors, 0, 'Should have at least one sector');
         });
     });

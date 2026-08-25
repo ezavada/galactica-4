@@ -11,6 +11,9 @@ class Fleet {
         this.y = y;
         this.owner = owner;
         this.game = game;
+        this.type = 'fleet';
+        this.star = null;
+        this.onPatrol = false;
         
         // Fleet composition
         this.ships = [];
@@ -47,6 +50,18 @@ class Fleet {
     // Add a ship to this fleet
     addShip(ship) {
         if (!ship) return false;
+        if (this.ships.includes(ship)) return false;
+
+        const previousStar = ship.star || null;
+
+        if (ship.fleet && ship.fleet !== this) {
+            const oldFleet = ship.fleet;
+            const oldIndex = oldFleet.ships ? oldFleet.ships.indexOf(ship) : -1;
+            if (oldIndex !== -1) {
+                oldFleet.ships.splice(oldIndex, 1);
+                oldFleet.calculateFleetStats();
+            }
+        }
         
         // Remove ship from its current location
         if (ship.star) {
@@ -57,9 +72,21 @@ class Fleet {
         this.ships.push(ship);
         ship.fleet = this;
         ship.star = null; // Ship is now in fleet, not at star
+        ship.destination = null;
+        ship.x = this.x;
+        ship.y = this.y;
+        if (ship.setPatrol) {
+            ship.setPatrol(this.isOnPatrol());
+        }
+        if (!this.star && previousStar && !this.destination) {
+            this.star = previousStar;
+        } else if (previousStar && this.star && this.star !== previousStar) {
+            this.star = null;
+        }
         
         // Recalculate fleet stats
         this.calculateFleetStats();
+        this.syncShipPositions();
         
         return true;
     }
@@ -216,6 +243,10 @@ class Fleet {
         this.destination = destination;
         this.progress = 0;
         if (destination) {
+            this.star = null;
+            this.setPatrol(false);
+        }
+        if (destination) {
             const dx = destination.x - this.x;
             const dy = destination.y - this.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
@@ -271,6 +302,7 @@ class Fleet {
             this.x = this.destination.x;
             this.y = this.destination.y;
             this.remainingDistance = 0;
+            this.syncShipPositions();
             console.log(`🎯 FLEET ARRIVED: fleet (ID: ${this.id}, ships: ${this.ships.length}) at (${this.x.toFixed(0)}, ${this.y.toFixed(0)})`);
             this.arriveAtDestination();
             return true;
@@ -281,8 +313,33 @@ class Fleet {
             this.x += this.moveDelta.x;
             this.y += this.moveDelta.y;
             this.remainingDistance -= moveDistance;
+            this.syncShipPositions();
             console.log(`📍 FLEET MOVED: fleet (ID: ${this.id}, ships: ${this.ships.length}) from (${oldX.toFixed(0)}, ${oldY.toFixed(0)}) to (${this.x.toFixed(0)}, ${this.y.toFixed(0)}) - Moved ${moveDistance.toFixed(0)} pixels`);
             return false;
+        }
+    }
+
+    syncShipPositions() {
+        for (const ship of this.ships) {
+            ship.x = this.x;
+            ship.y = this.y;
+            if (ship.updateSpatialLocation) {
+                ship.updateSpatialLocation();
+            }
+        }
+        if (this.updateSpatialLocation) {
+            this.updateSpatialLocation();
+        }
+    }
+
+    updateSpatialLocation() {
+        if (this.game && this.game.spatialPartition) {
+            this.game.spatialPartition.updateEntityPosition(
+                this,
+                Common.SpatialConstants.ENTITY_TYPE_FLEET,
+                this.x,
+                this.y
+            );
         }
     }
     
@@ -319,6 +376,17 @@ class Fleet {
             console.log(`Fleet ${this.id} arrived at star ${arrivingDestination.name}`);
             if (this.game.shouldResolveCombat && this.game.shouldResolveCombat(this, arrivingDestination)) {
                 this.game.resolveCombat(this, arrivingDestination);
+            } else if (arrivingDestination.owner === 0 && this.hasShipType('colony') && this.game.colonizeStar) {
+                const colonyShip = this.getShipsOfType('colony')[0];
+                this.game.colonizeStar(arrivingDestination, colonyShip, 0);
+            }
+            if (this.isEmpty && this.isEmpty()) {
+                this.game.removeDestroyedFleet(this, this.owner);
+            } else if (arrivingDestination.owner === this.owner) {
+                this.star = arrivingDestination;
+                this.x = arrivingDestination.x;
+                this.y = arrivingDestination.y;
+                this.syncShipPositions();
             }
         } else {
             console.log(`Fleet ${this.id} arrived at destination`);
@@ -354,6 +422,53 @@ class Fleet {
         if (this.game && typeof this.game.removeDestroyedFleet === 'function') {
             this.game.removeDestroyedFleet(this, attackerOwner);
         }
+    }
+
+    underConstruction() {
+        return false;
+    }
+
+    isDocked() {
+        return !!this.star;
+    }
+
+    isInFleet() {
+        return false;
+    }
+
+    canFormFleet() {
+        return false;
+    }
+
+    isOnPatrol() {
+        return !!this.onPatrol;
+    }
+
+    setPatrol(onPatrol) {
+        this.onPatrol = !!onPatrol;
+        for (const ship of this.ships) {
+            if (ship.setPatrol) {
+                ship.setPatrol(this.onPatrol);
+            }
+        }
+    }
+
+    repairDamage(amount) {
+        let repairRemaining = amount;
+        let repairedTotal = 0;
+        for (const ship of this.ships) {
+            if (!ship || ship.type === 'defense' || !ship.repairDamage || ship.isOnPatrol && ship.isOnPatrol()) {
+                continue;
+            }
+            const repaired = ship.repairDamage(repairRemaining);
+            repairedTotal += repaired;
+            repairRemaining -= repaired;
+            if (repairRemaining <= 0) {
+                break;
+            }
+        }
+        this.calculateFleetStats();
+        return repairedTotal;
     }
     
     // Get fleet information for display

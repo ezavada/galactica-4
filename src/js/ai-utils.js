@@ -164,6 +164,15 @@ class AIUtils {
         return star.ships.length;
     }
 
+    // Get all ships/fleets currently docked at a star
+    getShipsAtStarList(star) {
+        if (!star.ships || !Array.isArray(star.ships)) {
+            return [];
+        }
+
+        return [...star.ships];
+    }
+
     // Get ships of a specific class at a star
     getShipsOfClassAtStar(star, shipClass) {
         if (!star.ships || !Array.isArray(star.ships)) {
@@ -184,14 +193,19 @@ class AIUtils {
     getEntityStrength(entity) {
         if (this.game.getObjectType(entity) === Common.ObjectType.STAR) {
             return this.rules.getStarDefenseStrength(entity);
+        } else if (this.game.getObjectType(entity) === Common.ObjectType.FLEET) {
+            return entity.getDefenseStrength ? entity.getDefenseStrength() : (entity.totalPower || 0);
         } else if (this.game.getObjectType(entity) === Common.ObjectType.SHIP) {
-            return this.rules.getShipPower(entity);
+            return entity.getDefenseStrength ? entity.getDefenseStrength() : this.rules.getShipPower(entity);
         }
         return 0;
     }
 
     // Get the speed of an entity
     getEntitySpeed(entity) {
+        if (this.game.getObjectType(entity) === Common.ObjectType.FLEET) {
+            return entity.totalSpeed || 0;
+        }
         if (this.game.getObjectType(entity) === Common.ObjectType.SHIP) {
             return entity.speed || this.rules.getShipInitialSpeed(entity);
         }
@@ -216,14 +230,20 @@ class AIUtils {
     // Get damage percentage of an entity
     getDamagePercentage(entity) {
         if (this.game.getObjectType(entity) === Common.ObjectType.SHIP) {
-            return (entity.damage / entity.maxHealth) * 100;
+            const maxDefense = Math.max(1, this.rules.getShipPower(entity)) * 100;
+            return (entity.damage / maxDefense) * 100;
+        }
+        if (this.game.getObjectType(entity) === Common.ObjectType.FLEET) {
+            const maxDefense = entity.getDefenseStrength ? entity.getDefenseStrength() + (entity.totalDamage || 0) : 0;
+            return maxDefense > 0 ? ((entity.totalDamage || 0) / maxDefense) * 100 : 0;
         }
         return 0;
     }
 
     // Check if an entity has a destination/course
     hasDestination(entity) {
-        if (this.game.getObjectType(entity) === Common.ObjectType.SHIP) {
+        if (this.game.getObjectType(entity) === Common.ObjectType.SHIP ||
+                this.game.getObjectType(entity) === Common.ObjectType.FLEET) {
             return entity.destination !== null;
         }
         return false;
@@ -243,8 +263,7 @@ class AIUtils {
 
     // Check if there's fog of war enabled
     hasFogOfWar() {
-        // Fog of war is always enabled
-        return true;
+        return !(this.game && this.game.config && this.game.config.omniscient);
     }
 
     // Check if this is a fast game
@@ -425,12 +444,25 @@ class AIUtils {
     
     // Check if a ship is currently at a star (orbiting/docked)
     isAtStar(ship) {
-        return ship.star !== null && ship.star !== undefined;
+        if (ship.star !== null && ship.star !== undefined) {
+            return true;
+        }
+        return !!this.getCurrentStar(ship);
     }
     
     // Get the star that a ship is currently at (null if not at a star)
     getCurrentStar(ship) {
-        return ship.star || null;
+        if (ship.star) {
+            return ship.star;
+        }
+        if (!ship.destination && this.game && this.game.stars) {
+            return this.game.stars.find(star =>
+                star.owner === ship.owner &&
+                Math.round(star.x) === Math.round(ship.x) &&
+                Math.round(star.y) === Math.round(ship.y)
+            ) || null;
+        }
+        return null;
     }
 }
 

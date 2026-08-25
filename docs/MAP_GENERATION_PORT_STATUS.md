@@ -1,6 +1,6 @@
 # Map Generation Port Status
 
-Last reviewed: 2026-08-19
+Last reviewed: 2026-08-25
 
 This document used to be a forward-looking port plan. The core map-generation work described here has since been implemented, so this file now records the current status, remaining differences from Galactica v3, and the tests that cover the area.
 
@@ -28,7 +28,7 @@ This document used to be a forward-looking port plan. The core map-generation wo
 ## Remaining differences and caveats
 
 - Density and sector size currently validate as 1-5 in `GameConfig`; v3 exposed a broader density range.
-- `compAdvantage`, `endEarly`, `maxTimePerTurn`, and `hosting` are stored but not active in the local turn loop.
+- `compAdvantage` now affects AI research and shipbuilding output, while `endEarly`, `maxTimePerTurn`, and `hosting` are stored but not active in the local turn loop.
 - `GameConfig.toMapGeneratorConfig()` intentionally passes only the map/player values needed by `MapGenerator`; other setup values are consumed by `Game`, `Rules`, AI, or future multiplayer systems.
 - The map generator creates mostly `S-##` unnamed systems and uses roman numerals only when the random named-star path produces a duplicate. This matches the current v4 implementation, not the older wording in this file.
 - Save/load, multiplayer host setup, turn posting, and timed-turn behavior are not part of the current map-generation implementation.
@@ -49,7 +49,7 @@ The full suite was last verified with:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 304 passed, 0 failed.
+Current expected result: 312 passed, 0 failed.
 
 ## Maintenance notes
 

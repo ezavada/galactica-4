@@ -18,7 +18,76 @@ class ShipAI extends AIBase {
 
     // Get ship type for decision matrix lookup
     getShipType() {
+        if (this.isFleetEntity()) {
+            if (this.ship.hasShipType && this.ship.hasShipType('battleship')) {
+                return 'battleship';
+            }
+            if (this.ship.hasShipType && this.ship.hasShipType('colony')) {
+                return 'colony';
+            }
+            return 'scout';
+        }
         return this.ship.type;
+    }
+
+    isFleetEntity() {
+        return this.game && this.game.getObjectType &&
+            this.game.getObjectType(this.ship) === Common.ObjectType.FLEET;
+    }
+
+    getV3SkillLevel() {
+        const player = this.game && this.game.players ? this.game.players[this.ship.owner] : null;
+        if (player && player.compSkill) {
+            return player.compSkill;
+        }
+        if (this.skillManager.getSkillLevel() >= AI_SKILL_LEVELS.EXPERT) {
+            return 1;
+        }
+        if (this.skillManager.getSkillLevel() >= AI_SKILL_LEVELS.GOOD) {
+            return 2;
+        }
+        return 3;
+    }
+
+    getDecisionRepetitionsForV3Skill(v3Skill) {
+        if (v3Skill === 1) {
+            return 3;
+        }
+        if (v3Skill === 2) {
+            return 2;
+        }
+        return 1;
+    }
+
+    getSearchDistanceForV3Skill(v3Skill) {
+        return Math.max(1, 999999 - (111111 * v3Skill));
+    }
+
+    getEntitySpeed(entity) {
+        return this.utils.getEntitySpeed(entity);
+    }
+
+    getEntityDefenseStrength(entity) {
+        if (!entity) {
+            return 0;
+        }
+        if (entity.getDefenseStrength) {
+            return entity.getDefenseStrength();
+        }
+        if (this.game.getObjectType(entity) === Common.ObjectType.STAR) {
+            return this.rules.getStarDefenseStrength(entity);
+        }
+        return this.utils.getEntityStrength(entity);
+    }
+
+    getShipPower(entity) {
+        if (!entity) {
+            return 0;
+        }
+        if (this.game.getObjectType(entity) === Common.ObjectType.FLEET) {
+            return entity.totalPower || 0;
+        }
+        return this.rules.getShipPower(entity);
     }
 
     // Main AI decision making method
@@ -32,23 +101,24 @@ class ShipAI extends AIBase {
         }
 
         // Check if ship is in a fleet (fleets make decisions for their ships)
-        if (this.ship.isInFleet()) {
+        if (!this.isFleetEntity() && this.ship.isInFleet && this.ship.isInFleet()) {
             this.debugLog('Ship is in fleet, fleet will make decision');
             return new AIDecision(AIActions.DO_NOTHING, null, 0, 'Ship in fleet');
         }
 
         // Get maximum search distance based on skill level
-        const maxDistance = this.skillManager.getMaxSearchDistance(999999 - (111111 * this.skillManager.getSkillLevel()));
+        const v3Skill = this.getV3SkillLevel();
+        const maxDistance = this.getSearchDistanceForV3Skill(v3Skill);
 
         // Perform multiple iterations for higher skill levels
-        const repetitions = this.skillManager.getDecisionRepetitions();
+        const repetitions = this.getDecisionRepetitionsForV3Skill(v3Skill);
         let bestDecision = null;
         let bestScore = -Infinity;
 
         for (let iteration = 0; iteration < repetitions; iteration++) {
             this.debugLog(`AI iteration ${iteration + 1} of ${repetitions}`);
             
-            const decision = this.performDecisionIteration(iteration, maxDistance);
+            const decision = this.performDecisionIteration(iteration, maxDistance, v3Skill);
             if (decision.score > bestScore) {
                 bestDecision = decision;
                 bestScore = decision.score;
@@ -59,8 +129,9 @@ class ShipAI extends AIBase {
     }
 
     // Perform a single decision iteration
-    performDecisionIteration(iteration, maxDistance) {
+    performDecisionIteration(iteration, maxDistance, v3Skill = this.getV3SkillLevel()) {
         this.decisionMatrix.reset();
+        this.ignoreUnoccupiedStar = false;
 
         // Find nearby entities
         const closestStars = this.utils.findClosestStars(this.ship, maxDistance);
@@ -71,7 +142,7 @@ class ShipAI extends AIBase {
         // For higher skill levels, consider alternative targets
         if (iteration === 1 && this.skillManager.getSkillLevel() >= AI_SKILL_LEVELS.GOOD) {
             // Second iteration: look for weakest enemy star
-            const weakestEnemy = this.utils.findWeakestEnemyStar(this.ship, this.ship.speed * 4);
+            const weakestEnemy = this.utils.findWeakestEnemyStar(this.ship, this.getEntitySpeed(this.ship) * 4);
             if (weakestEnemy) {
                 this.debugLog(`Found weakest enemy star: ${weakestEnemy.name}`);
                 nearestEnemyStar = weakestEnemy;
@@ -79,7 +150,7 @@ class ShipAI extends AIBase {
             }
         } else if (iteration === 2 && this.skillManager.getSkillLevel() >= AI_SKILL_LEVELS.EXPERT) {
             // Third iteration: look for enemy tech production star
-            const techStar = this.utils.findNearestEnemyTechProductionStar(this.ship, this.ship.speed * 8);
+            const techStar = this.utils.findNearestEnemyTechProductionStar(this.ship, this.getEntitySpeed(this.ship) * 8);
             if (techStar) {
                 this.debugLog(`Found enemy tech star: ${techStar.name}`);
                 nearestEnemyStar = techStar;
@@ -94,17 +165,16 @@ class ShipAI extends AIBase {
         this.decisionMatrix.targets.ship = closestEnemyShip.ship;
 
         // Special handling for scout ships at lower skill levels
-        if (this.skillManager.getSkillLevel() <= AI_SKILL_LEVELS.GOOD && this.ship.type === 'scout') {
+        if (v3Skill <= 2 && this.ship.type === 'scout') {
             return this.handleScoutSpecialBehavior(closestStars);
         }
 
         // Evaluate all decision factors
-        this.evaluateDecisionFactors(closestStars, closestEnemyShip);
+        this.evaluateDecisionFactors(closestStars, closestEnemyShip, v3Skill);
+        this.applyV3DecisionGuards();
 
         // Apply skill-based modifications
-        const scores = this.decisionMatrix.scores;
-        const modifiedScores = this.skillManager.addRandomness(scores);
-        this.decisionMatrix.scores = modifiedScores;
+        this.decisionMatrix.scores = this.applyV3SkillRandomness(this.decisionMatrix.scores, v3Skill);
 
         // Get the best action
         const result = this.decisionMatrix.getBestAction();
@@ -114,6 +184,44 @@ class ShipAI extends AIBase {
             result.score,
             `AI decision: ${result.action} with score ${result.score}`
         );
+    }
+
+    applyV3SkillRandomness(scores, v3Skill) {
+        if (v3Skill <= 3) {
+            return scores;
+        }
+
+        const skillMultiplier = v3Skill - 3;
+        const modified = { ...scores };
+        modified.toOurStar += this.utils.signRandom(12 * skillMultiplier);
+        modified.toEnemyStar += this.utils.signRandom(12 * skillMultiplier);
+        modified.toOtherStar += this.utils.signRandom(6 * skillMultiplier);
+        modified.toShip += this.utils.signRandom(14 * skillMultiplier);
+        if (v3Skill >= 5) {
+            modified.toFormFleet = -1;
+        }
+        return modified;
+    }
+
+    applyV3DecisionGuards() {
+        if (!this.utils.isAtStar(this.ship) || this.isFleetEntity()) {
+            this.decisionMatrix.scores.toFormFleet = -1;
+        }
+        if (this.ignoreUnoccupiedStar) {
+            this.decisionMatrix.scores.toOtherStar = -1;
+        }
+        if (!this.decisionMatrix.targets.ourStar) {
+            this.decisionMatrix.scores.toOurStar = -1;
+        }
+        if (!this.decisionMatrix.targets.enemyStar) {
+            this.decisionMatrix.scores.toEnemyStar = -1;
+        }
+        if (!this.decisionMatrix.targets.otherStar) {
+            this.decisionMatrix.scores.toOtherStar = -1;
+        }
+        if (!this.decisionMatrix.targets.ship) {
+            this.decisionMatrix.scores.toShip = -1;
+        }
     }
 
     // Handle special scout behavior for lower skill levels
@@ -153,7 +261,7 @@ class ShipAI extends AIBase {
     }
 
     // Evaluate all decision factors
-    evaluateDecisionFactors(closestStars, closestEnemyShip) {
+    evaluateDecisionFactors(closestStars, closestEnemyShip, v3Skill = this.getV3SkillLevel()) {
         const factors = AI_FACTORS;
 
         // Factor 0: Already moving
@@ -187,14 +295,14 @@ class ShipAI extends AIBase {
         if (!closestStars.nearestUnownedStar) {
             this.decisionMatrix.considerFactor(factors.NO_NEARBY_UNOWNED_STAR);
         } else {
-            this.evaluateUnownedStarFactors(closestStars.nearestUnownedStar, closestStars.distances[0]);
+            this.evaluateUnownedStarFactors(closestStars.nearestUnownedStar, closestStars);
         }
 
         // Factor 4: No nearby enemy ship
         if (!closestEnemyShip.ship) {
             this.decisionMatrix.considerFactor(factors.NO_NEARBY_ENEMY_SHIP);
         } else {
-            this.evaluateEnemyShipFactors(closestEnemyShip.ship, closestEnemyShip.distance);
+            this.evaluateEnemyShipFactors(closestEnemyShip.ship, closestEnemyShip.distance, closestStars, v3Skill);
         }
 
         // Factor 29/30: Damage factors
@@ -252,7 +360,7 @@ class ShipAI extends AIBase {
         const factors = AI_FACTORS;
 
         // Factor 12: Enemy star more powerful
-        const strengthDiff = this.utils.calculateRelativeStrength(this.ship, enemyStar);
+        const strengthDiff = this.getEntityDefenseStrength(this.ship) - this.getEntityDefenseStrength(enemyStar);
         if (strengthDiff < 0) {
             this.decisionMatrix.considerFactor(factors.ENEMY_STAR_MORE_POWERFUL);
         }
@@ -276,17 +384,19 @@ class ShipAI extends AIBase {
     }
 
     // Evaluate factors related to unowned stars
-    evaluateUnownedStarFactors(unownedStar, distance) {
+    evaluateUnownedStarFactors(unownedStar, closestStars) {
         const factors = AI_FACTORS;
+        const distance = closestStars.distances[0];
+        const enemyStarDistance = closestStars.nearestEnemyStar ? closestStars.distances[2] : Infinity;
+        const ownedStarDistance = closestStars.nearestOwnedStar ? closestStars.distances[1] : Infinity;
 
         // Factor 14: Unowned star exists
         this.decisionMatrix.considerFactor(factors.UNOWNED_STAR_EXISTS);
 
-        // Factor 15: Unowned star closer than enemy star
-        // This would need to be calculated based on enemy star distance
-        // For now, we'll assume it's closer if distance is reasonable
-        if (distance < 50000) { // Arbitrary threshold
+        if (distance < enemyStarDistance) {
             this.decisionMatrix.considerFactor(factors.UNOWNED_STAR_CLOSER_THAN_ENEMY);
+        } else if (enemyStarDistance < ownedStarDistance) {
+            this.decisionMatrix.considerFactor(factors.ENEMY_STAR_CLOSEST);
         }
 
         // Factor 18: Unowned star already has ship
@@ -295,17 +405,17 @@ class ShipAI extends AIBase {
         }
 
         // Special handling for colony ships attacking heavily defended unowned planets
-        if (this.skillManager.getSkillLevel() <= AI_SKILL_LEVELS.AVERAGE && this.ship.type === 'colony') {
-            const strengthDiff = this.utils.calculateRelativeStrength(this.ship, unownedStar);
+        if (this.getV3SkillLevel() <= 3 && this.ship.type === 'colony') {
+            const strengthDiff = this.getEntityDefenseStrength(this.ship) - this.getEntityDefenseStrength(unownedStar);
             if (strengthDiff <= 0) {
                 this.debugLog('Disallowing travel to heavily defended unowned star');
-                // This would need to be handled in the decision matrix
+                this.ignoreUnoccupiedStar = true;
             }
         }
     }
 
     // Evaluate factors related to enemy ships
-    evaluateEnemyShipFactors(enemyShip, distance) {
+    evaluateEnemyShipFactors(enemyShip, distance, closestStars, v3Skill = this.getV3SkillLevel()) {
         const factors = AI_FACTORS;
 
         // Factor 5: Nearby enemy ship exists
@@ -317,15 +427,15 @@ class ShipAI extends AIBase {
             this.decisionMatrix.considerFactor(factors.ENEMY_SHIP_IS_FASTER);
         }
 
-        // Factor 7: Closer to ship than any planet
-        // This would need to be calculated based on planet distances
-        // For now, assume it's closer if distance is small
-        if (distance < 25000) { // Arbitrary threshold
+        const freeStarDistance = closestStars.nearestUnownedStar ? closestStars.distances[0] : Infinity;
+        const enemyStarDistance = closestStars.nearestEnemyStar ? closestStars.distances[2] : Infinity;
+        const ownedStarDistance = closestStars.nearestOwnedStar ? closestStars.distances[1] : Infinity;
+        if (distance < freeStarDistance && distance < enemyStarDistance && distance < ownedStarDistance) {
             this.decisionMatrix.considerFactor(factors.CLOSER_TO_SHIP_THAN_PLANET);
         }
 
         // Factor 9: Enemy ship more powerful
-        const powerDiff = this.utils.calculateRelativeStrength(this.ship, enemyShip);
+        const powerDiff = this.getShipPower(this.ship) - this.getShipPower(enemyShip);
         if (powerDiff < 0) {
             this.decisionMatrix.considerFactor(factors.ENEMY_SHIP_MORE_POWERFUL);
         }
@@ -337,6 +447,18 @@ class ShipAI extends AIBase {
 
         // Factor 23: Relative power multiplier
         this.decisionMatrix.considerMultiplierFactor(factors.RELATIVE_SHIP_POWER_MULTIPLIER, powerDiff);
+
+        if (closestStars.nearestOwnedStar) {
+            const starStrengthDiff = this.getEntityDefenseStrength(closestStars.nearestOwnedStar) - this.getEntityDefenseStrength(enemyShip);
+            this.decisionMatrix.considerMultiplierFactor(
+                factors.RELATIVE_STAR_SHIP_POWER_MULTIPLIER,
+                Math.floor(starStrengthDiff / 100)
+            );
+        }
+
+        if (this.isFleetEntity() && v3Skill <= 2 && this.getShipPower(this.ship) > this.getShipPower(enemyShip) * 2) {
+            this.decisionMatrix.scores.toShip = -1;
+        }
 
         // Factor 28: Enemy ship is scout
         if (enemyShip.type === 'scout') {
@@ -357,9 +479,27 @@ class ShipAI extends AIBase {
 
     // Check if there's a fleet at a star
     hasFleetAtStar(star) {
-        // This would need to be implemented based on how fleets are stored
-        // For now, return false as a placeholder
-        return false;
+        return !!this.findFleetAtStar(star);
+    }
+
+    findFleetAtStar(star) {
+        if (!this.game || !this.game.allFleets) {
+            return null;
+        }
+
+        for (const fleet of this.game.allFleets) {
+            if (!fleet || fleet.owner !== this.ship.owner || (fleet.isEmpty && fleet.isEmpty())) {
+                continue;
+            }
+            if (fleet.star === star) {
+                return fleet;
+            }
+            if (!fleet.destination && Math.round(fleet.x) === Math.round(star.x) && Math.round(fleet.y) === Math.round(star.y)) {
+                return fleet;
+            }
+        }
+
+        return null;
     }
 
     // Map decision matrix action to AI action
@@ -406,8 +546,38 @@ class ShipAI extends AIBase {
     // Attempt to form or join a fleet
     attemptFleetFormation() {
         this.debugLog('Attempting fleet formation');
-        // This would need to be implemented based on fleet mechanics
-        // For now, just log the attempt
+        const currentStar = this.utils.getCurrentStar(this.ship);
+        if (!currentStar || !this.ship.canFormFleet || !this.ship.canFormFleet()) {
+            return null;
+        }
+
+        let fleet = this.findFleetAtStar(currentStar);
+        if (fleet) {
+            fleet.addShip(this.ship);
+            return fleet;
+        }
+
+        const candidates = (currentStar.ships || []).filter(candidate =>
+            candidate &&
+            candidate !== this.ship &&
+            candidate.owner === this.ship.owner &&
+            candidate.canFormFleet &&
+            candidate.canFormFleet() &&
+            !candidate.destination &&
+            !candidate.fleet
+        );
+
+        if (candidates.length === 0) {
+            return null;
+        }
+
+        fleet = this.game.factory.createFleet(currentStar.x, currentStar.y, this.ship.owner);
+        fleet.addShip(this.ship);
+        const maxFleetSize = this.skillManager.getMaxFleetSize();
+        for (const candidate of candidates.slice(0, Math.max(0, maxFleetSize - 1))) {
+            fleet.addShip(candidate);
+        }
+        return fleet;
     }
 
     // Check if ship has a destination
