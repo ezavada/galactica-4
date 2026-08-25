@@ -135,6 +135,7 @@
 560	Fleet {0}
 561	Total Power:
 562	Moving to:
+563	End Turn
 564	Growth
 565	Research
 568	Galactica-4

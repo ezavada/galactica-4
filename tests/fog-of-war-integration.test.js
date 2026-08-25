@@ -117,6 +117,33 @@ test.describe('Game Fog of War Integration', () => {
             test.assertEqual(stats.totalEntities, 10, 'Should have 10 total entities');
             test.assertEqual(stats.totalStars, 10, 'Should have 10 stars');
         });
+
+        test.it('includes enemy fleets in omniscient visible entity queries', () => {
+            const factory = new Factory();
+            const rules = new Rules(false);
+            const config = GameConfig.createSinglePlayer(1, 2);
+            config.sectorSize = 1;
+            config.omniscient = true;
+            config.skipMapGeneration = true;
+
+            const game = new Game(factory, rules, config);
+            const enemyStar = factory.createStar(1000, 1000, "Enemy Star");
+            enemyStar.owner = 2;
+            const enemyShip = factory.createShip(1000, 1000, 'scout', enemyStar);
+            enemyShip.owner = 2;
+            const enemyFleet = factory.createFleet(1000, 1000, 2);
+
+            const visibleEntities = game.visibilityCalculator.getVisibleEntitiesForPlayer(1);
+            const visibleFleets = game.visibilityCalculator.getVisibleEntitiesByTypeForPlayer(
+                1,
+                Common.SpatialConstants.ENTITY_TYPE_FLEET
+            );
+
+            test.assertContains(visibleEntities, enemyStar, 'Omniscient mode should reveal enemy stars');
+            test.assertContains(visibleEntities, enemyShip, 'Omniscient mode should reveal enemy ships');
+            test.assertContains(visibleEntities, enemyFleet, 'Omniscient mode should reveal enemy fleets');
+            test.assertContains(visibleFleets, enemyFleet, 'Omniscient fleet query should return enemy fleets');
+        });
     });
 });
 

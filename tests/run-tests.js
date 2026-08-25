@@ -1,6 +1,5 @@
-#!/usr/bin/env node
 // Test Runner for Galactica-4
-// Run with: gad4 tests/run-tests.js
+// Run with: ./gad4 tests/run-tests.js
 //
 // Uses PDG's built-in pdg.srand() and pdg.rand() for deterministic testing
 

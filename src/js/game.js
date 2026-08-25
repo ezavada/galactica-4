@@ -702,6 +702,9 @@ class Game {
             case 'selectHomeStar':
                 this.selectHomeStar();
                 return true;
+            case 'endTurn':
+                this.endTurn();
+                return true;
             case 'zoomToFit':
                 if (this.display) {
                     this.display.zoomToFit();

@@ -386,9 +386,7 @@ class Fleet {
     }
     
     isVisibleTo(playerId) {
-        // For now, fleets are always visible to their owner
-        // TODO: Implement proper fog of war for fleets
-        return this.owner === playerId;
+        return this.owner === playerId || this.getVisibilityTo(playerId) > Common.VisibilityLevel.NONE;
     }
     
     isFleet() {

@@ -136,6 +136,7 @@
 560	Flotte {0}
 561	Gesamtstärke:
 562	Unterwegs nach:
+563	Zug beenden
 564	Wachstum
 565	Forschung
 568	Galactica-4

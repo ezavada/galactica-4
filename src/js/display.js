@@ -100,6 +100,7 @@ class Display {
             damage: I18n.getString(559, "Damage:"),
             totalPower: I18n.getString(561, "Total Power:"),
             movingTo: I18n.getString(562, "Moving to:"),
+            endTurn: I18n.getString(563, "End Turn"),
             growth: I18n.getString(564, "Growth"),
             research: I18n.getString(565, "Research"),
             commandMenu: I18n.getString(529, "Command Menu"),
@@ -515,6 +516,35 @@ class Display {
         return false;
     }
 
+    isOmniscientMode() {
+        return !!(this.game && this.game.config && this.game.config.omniscient);
+    }
+
+    getVisibilityLevelForPlayer(entity, playerNum) {
+        if (!entity || !playerNum) {
+            return Common.VisibilityLevel.NONE;
+        }
+        if (this.isOmniscientMode() || entity.owner === playerNum) {
+            return Common.VisibilityLevel.DETAILS;
+        }
+        if (typeof entity.getVisibilityTo === 'function') {
+            const visibility = entity.getVisibilityTo(playerNum);
+            if (typeof visibility === 'number') {
+                return visibility;
+            }
+            if (visibility && typeof visibility.level === 'number') {
+                return visibility.level;
+            }
+        }
+        return (typeof entity.isVisibleTo === 'function' && entity.isVisibleTo(playerNum)) ?
+            Common.VisibilityLevel.DETAILS :
+            Common.VisibilityLevel.NONE;
+    }
+
+    isEntityVisibleToPlayer(entity, playerNum) {
+        return this.getVisibilityLevelForPlayer(entity, playerNum) > Common.VisibilityLevel.NONE;
+    }
+
     // Draw a single star
     drawStar(star) {
         const humanPlayer = 1; // Player 1 is the human player
@@ -526,16 +556,7 @@ class Display {
         // Use cached scaled star radius (calculated once per frame)
         const scaledRadius = this.scaledStarRadius;
         
-        // Determine visibility level for this star
-        let visibilityLevel = Common.VisibilityLevel.NONE;
-        if (star.owner === humanPlayer) {
-            // Own stars are always fully visible
-            visibilityLevel = Common.VisibilityLevel.DETAILS;
-        } else if (star.isVisibleTo(humanPlayer)) {
-            // Get the actual visibility level from the star
-            const visibilityToPlayer = star.getVisibilityTo(humanPlayer);
-            visibilityLevel = visibilityToPlayer ? visibilityToPlayer.level : Common.VisibilityLevel.NONE;
-        }
+        const visibilityLevel = this.getVisibilityLevelForPlayer(star, humanPlayer);
         
         let color = 'white';
         if (star.namedStar) {
@@ -702,7 +723,7 @@ class Display {
             
             // Debug logging for ships under construction
             if (ship.underConstruction()) {
-                const willDraw = (ship.owner === humanPlayer || ship.isVisibleTo(humanPlayer));
+                const willDraw = this.isEntityVisibleToPlayer(ship, humanPlayer);
                 //console.log(`🎨 DRAWING SHIP UNDER CONSTRUCTION: ${ship.type} (ID: ${ship.id}) - Owner: ${ship.owner}, Visible: ${ship.isVisibleTo(humanPlayer)}, Will Draw: ${willDraw}`);
                 if (willDraw) {
                     shipsUnderConstructionDrawn++;
@@ -712,7 +733,7 @@ class Display {
             }
             
             // Always show own ships, only show enemy ships if visible
-            if (ship.owner === humanPlayer || ship.isVisibleTo(humanPlayer)) {
+            if (this.isEntityVisibleToPlayer(ship, humanPlayer)) {
                 this.drawShip(ship);
             }
         }
@@ -802,7 +823,7 @@ class Display {
         
         for (const fleet of fleets) {
             // Always show own fleets, only show enemy fleets if visible
-            if (fleet.owner === humanPlayer || fleet.isVisibleTo(humanPlayer)) {
+            if (this.isEntityVisibleToPlayer(fleet, humanPlayer)) {
                 this.drawFleet(fleet);
             }
         }
@@ -1099,6 +1120,7 @@ class Display {
             { key: 'M', label: this.STR.menu, window: 'menu', action: { type: 'toggleWindow', window: 'menu' } },
             { key: 'E', label: this.STR.events, window: 'events', action: { type: 'toggleWindow', window: 'events' } },
             { key: 'V', label: this.STR.compare, window: 'comparison', action: { type: 'toggleWindow', window: 'comparison' } },
+            { key: 'Tab', label: this.STR.endTurn, action: { type: 'endTurn' } },
             { key: 'H', label: this.STR.home, action: { type: 'selectHomeStar' } },
             { key: 'F', label: this.STR.fit, action: { type: 'zoomToFit' } }
         ];

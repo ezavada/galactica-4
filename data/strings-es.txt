@@ -136,6 +136,7 @@
 560	Flota {0}
 561	Poder total:
 562	Moviéndose a:
+563	Terminar turno
 564	Crecimiento
 565	Investigación
 568	Galactica-4

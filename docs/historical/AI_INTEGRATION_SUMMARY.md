@@ -119,7 +119,7 @@ Failed: 70 ✗
 - **AI Tests Passing (with PDG):** Expected ~36-40 tests
 
 ### Note on Test Failures
-Most test failures are due to `pdg is not defined` errors when running tests with Node.js instead of the PDG runtime. Tests that don't require PDG (like AISkillManager tests) pass successfully.
+Most test failures in this archived snapshot were due to running outside the PDG runtime, where globals such as `pdg` are unavailable. Tests that did not require PDG, such as AISkillManager tests, passed successfully.
 
 **To run all tests properly:**
 ```bash
@@ -313,4 +313,3 @@ The AI system has been successfully integrated into Galactica-4. Computer player
 The comprehensive test suite ensures the AI system works correctly and will catch regressions in future development. The game is now feature-complete for single-player gameplay with computer opponents!
 
 **Status: ✅ Complete and Working**
-

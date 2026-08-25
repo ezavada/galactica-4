@@ -39,6 +39,6 @@ download or inspect.
 ## Release gate
 
 The code is detached from `pdg-devel`, the pinned public runtime passes the
-284-test suite, and an MIT source license is present. Public release remains
+286-test suite, and an MIT source license is present. Public release remains
 blocked on visual-asset provenance/permission and the related decision about
 history rewriting.

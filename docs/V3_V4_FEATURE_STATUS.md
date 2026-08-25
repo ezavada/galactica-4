@@ -1,6 +1,6 @@
 # Galactica v3 to v4 Feature and UI Port Status
 
-Audit date: 2026-08-19
+Audit date: 2026-08-25
 
 ## Purpose and method
 
@@ -14,8 +14,8 @@ The comparison is based on:
 - all JavaScript source, tests, and documentation currently in `galactica-4`.
 
 The comparison started as a static code review. With the public PDG runtime,
-the v4 automated suite was verified on 2026-08-19 with
-`./gad4 tests/run-tests.js`: 284 passed, 0 failed. Passing tests prove the
+the v4 automated suite was verified on 2026-08-25 with
+`./gad4 tests/run-tests.js`: 286 passed, 0 failed. Passing tests prove the
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
@@ -27,6 +27,8 @@ playable runtime invokes every scaffolded system.
 | 🟡 Partial | A meaningful portion exists, but parity, UI, or important behavior is missing. |
 | 🧱 Scaffold only | Models, helpers, or tests exist, but the feature is not usable end to end in the game. |
 | ❌ Missing | No meaningful v4 implementation was found. |
+
+Section completion percentages are rough parity estimates based on the table rows in each numbered section. They are status summaries, not effort estimates.
 
 ## Executive summary
 
@@ -40,12 +42,19 @@ The largest blockers to a complete game are:
 4. **Persistence and multiplayer are absent.** v3 save/open/revert, hosting, joining/rejoining, turn posting, timers, passwords, discovery, chat, and host administration have not been ported.
 5. **Several systems are present but incomplete or incorrectly wired.** Examples include fog-of-war rendering, AI economic allocation, repairs, patrol state, victory, events, and fleet UI.
 
-## 1. Game creation, configuration, and lifecycle
+## Easy wins applied on 2026-08-25
+
+- Added a localized permanent End Turn map button that invokes the existing turn-advance path.
+- Fixed display-side fog-of-war visibility to read numeric visibility levels directly, so owner/detail disclosure uses the stored visibility tier.
+- Made omniscient/all-visible mode affect normal display helpers and visibility queries for enemy stars, ships, and fleets.
+- Updated the Game Title status to reflect the top-center header path while keeping setup/save/hosting gaps visible.
+
+## 1. Game creation, configuration, and lifecycle (55% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
 | New single-player game | `File > New Game...` opens a setup dialog and then asks for the player's name. | 🟡 Partial | `main.js` now shows a simple startup setup dialog before map generation with AI count, AI skill, map size, density, fast game, and fog/all-visible options. It still lacks player-name/title dialogs and v3's full setup layout. |
-| Game title | Editable title in the setup dialog; also used for host save files. | 🧱 Scaffold only | `GameConfig.gameTitle` exists (`game-config.js:7`) but is not exposed or otherwise used by the runtime. |
+| Game title | Editable title in the setup dialog; also used for host save files. | 🟡 Partial | `GameConfig.gameTitle` feeds the top-center header (`display.js`) and defaults from localized string ID 500. It is still not editable in setup and is not used for saves/hosting. |
 | Human/computer player counts | Configurable human and computer slots. | 🟡 Partial | The startup dialog can cycle AI player count and the model/map generator support the resulting totals. Human count is still fixed to one and `getCurrentHumanPlayer()` always returns player 1. |
 | Five computer skill levels | Expert, Good, Average, Passable, Novice. | 🟡 Partial | All five values and localized names exist, but runtime mapping collapses Average, Passable, and Novice to the same AI level (`game.js:52-59`). |
 | Computer advantage | Setup offers +3 through -3. | 🧱 Scaffold only | A value is stored in `GameConfig`/`PlayerInfo`, but it is neither modeled over the full v3 range nor applied to AI or rules. |
@@ -58,10 +67,10 @@ The largest blockers to a complete game are:
 | Procedural galaxy construction | Random star count/placement, separated home systems, unique names, named homeworlds. | ✅ Implemented | `map-generator.js:36-239` ports the main v3 construction path with the corrected 1024×1024 coordinate scale. |
 | Initial homeworld state | One named home system, tech 1, population, scanner, and colony ship at 99%. | ✅ Implemented | `map-generator.js:249-299`. |
 | Computer faction naming | Home-star name plus faction word, such as “Vega Alliance.” | ✅ Implemented | Resource-driven templates and group names are used in `map-generator.js:302-333`. |
-| End turn | Button/menu/shortcut; multiplayer waits for posts as needed. | 🟡 Partial | Tab advances the local simulation (`game.js:452-491`, `554-601`). There is no end-turn button hit target, attention warning, posting, timer, or multiplayer coordination. |
+| End turn | Button/menu/shortcut; multiplayer waits for posts as needed. | 🟡 Partial | Tab and the localized bottom-right End Turn map button advance the local simulation. There is no attention warning, posting, timer, or multiplayer coordination. |
 | Victory and defeat | Defeat notifications and victory/defeat conclusion screens. | 🟡 Partial | Piece counting can mark a player defeated and log an event (`game.js:603-621`), but there is no victory test, game-over state, or conclusion UI. |
 
-## 2. Map, camera, visibility, and display modes
+## 2. Map, camera, visibility, and display modes (45% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
@@ -85,7 +94,7 @@ The largest blockers to a complete game are:
 | Full screen | Window menu toggle. | ❌ Missing | The PDG window is resizable, but no full-screen command exists. |
 | Nebula/background art | v3 configurable starmap background. | ✅ Implemented | v4 loads and scales `data/background.png`, with a gradient fallback (`display.js:206-242`). No toggle exists. |
 
-## 3. Star systems, economy, research, and production
+## 3. Star systems, economy, research, and production (45% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
@@ -106,7 +115,7 @@ The largest blockers to a complete game are:
 | Rename colony/system | Edit menu rename dialog; new colony asks for name. | ❌ Missing | No rename command or colony naming prompt. |
 | System comparison window | Sortable “Your Star Systems” table. | ❌ Missing | No equivalent UI. |
 
-## 4. Ships and navigation
+## 4. Ships and navigation (26% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
@@ -131,7 +140,7 @@ The largest blockers to a complete game are:
 | Docking and repair | Damaged mobile ships repair at friendly systems based on system tech/production. | 🧱 Scaffold only | Damage and `repairDamage()` exist, and rules compute a repair amount, but no turn path calls it. |
 | Ship arrival/interception outcomes | Friendly arrival docks/forms fleet; enemy arrival fights. | 🟡 Partial | Star docking, friendly ship/fleet formation, and enemy arrival combat are now wired through `CombatSystem`. Remaining gaps include richer arrival events, course continuation, and UI feedback. |
 
-## 5. Fleets and rendezvous
+## 5. Fleets and rendezvous (42% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
@@ -146,7 +155,7 @@ The largest blockers to a complete game are:
 | Auto-form fleet at rendezvous | Ships sent by producing systems assemble into a named fleet. | ❌ Missing | Default destinations exist, but open-space arrivals do not create a shared target or assemble a fleet. |
 | Fleet comparison window | Sortable “Your Fleets” table. | ❌ Missing | No equivalent UI. |
 
-## 6. Combat, occupation, defense, and fog of war
+## 6. Combat, occupation, defense, and fog of war (54% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
@@ -160,11 +169,11 @@ The largest blockers to a complete game are:
 | Damage and destruction | Health decreases, units die, fleet loss accounting and debris/explosion feedback. | 🟡 Partial | Runtime combat now applies damage and removes destroyed ships robustly. Fleet loss accounting is basic, and debris/explosion feedback is still missing. |
 | Repairs | Friendly docking repairs surviving mobile ships; satellites do not repair. | 🧱 Scaffold only | Repair calculations exist but are never called. |
 | Scanner-based fog of war | Stars/scouts reveal enemy presence, owner, tech, then class/details by range; scout stealth matters. | 🟡 Partial | Spatial visibility levels, star/scout scanners, and stealth calculations exist. Visibility only increases and is never cleared when an entity leaves range; remembered/last-seen presentation is not distinguished. |
-| Fog-of-war rendering | Enemy colonies/ships are hidden or partially identified according to visibility. | 🟡 Partial | Enemy ships are hidden when visibility is none. Stars are always plotted, but `drawStar()` treats numeric visibility as if it had a `.level` field (`display.js:356-365`), so enemy ownership/detail rendering is incorrect. Fleet visibility is owner-only and marked TODO. |
-| Omniscient mode | Disabling Fog of War shows the whole galaxy. | 🧱 Scaffold only | Query helpers special-case `config.omniscient`, but the display does not use those helpers or otherwise force visibility. |
+| Fog-of-war rendering | Enemy colonies/ships are hidden or partially identified according to visibility. | 🟡 Partial | Enemy ships and fleets are hidden when visibility is none, and star ownership/detail rendering now reads numeric visibility levels correctly. Stars are still always plotted; remembered/last-seen presentation and fuller class/detail UI remain incomplete. |
+| Omniscient mode | Disabling Fog of War shows the whole galaxy. | ✅ Implemented | Disabling fog through startup/config makes visibility queries and display helpers treat enemy stars, ships, and fleets as fully visible; covered by fog and command UI tests. |
 | Combat odds estimate | Not part of shipped v3/manual behavior; listed as a v4 future enhancement. | ❌ Missing / not a parity blocker | Correctly remains in `docs/FUTURE_IMPROVEMENTS.md`; it should not be counted as missing v3 parity. |
 
-## 7. Computer players
+## 7. Computer players (38% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
@@ -175,7 +184,7 @@ The largest blockers to a complete game are:
 | Skill differences | Five v3 skill levels affect search depth/quality. | 🟡 Partial | The v4 AI system has only three effective levels; lower two v3 levels map to Average. |
 | Advantage modifier | Production/decision advantage from -3 to +3. | 🧱 Scaffold only | Stored only; not applied. |
 
-## 8. Events, messages, comparison, help, and general UI
+## 8. Events, messages, comparison, help, and general UI (35% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
@@ -197,7 +206,7 @@ The largest blockers to a complete game are:
 | Internationalization | v3 language plug-ins; menu can switch languages. | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian string files and a `--lang` runtime argument when passed after the `gad4` launcher separator, such as `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven and tested for localized ID/placeholder parity, but there is still no in-game language switcher and future unported v3 dialogs/help will need new resources. |
 | Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | v4 uses background and lab/stardock/ship assets, while most UI buttons, panels, animations, and states are drawn as styled primitives/text. |
 
-## 9. Save/load, multiplayer, and host administration
+## 9. Save/load, multiplayer, and host administration (0% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
@@ -216,13 +225,13 @@ The largest blockers to a complete game are:
 
 ## Documentation status
 
-The project documentation was refreshed on 2026-08-19 so the docs now agree on current runtime status rather than mixing old plans with newer implementation summaries.
+The project documentation was refreshed on 2026-08-25 so the docs now agree on current runtime status rather than mixing old plans with newer implementation summaries.
 
 - `MAP_GENERATION_PORT_STATUS.md` records current map-generation status instead of listing already-completed work as future tasks.
 - `AI_INTEGRATION_STATUS.md` and `AI_INTEGRATION_TODO.md` describe AI as active but partial: AI turns run, stars can start builds, and ships can set destinations, while economy allocation, defenses, fleet formation, advantage, and finer skill behavior remain incomplete.
 - `README.md` now links only to files that exist and no longer describes the port as a complete 4X game.
 - `INTERNATIONALIZATION_STATUS.md` now serves as the current i18n reference and records that current runtime UI/event strings are localized with parity tests across supported languages.
-- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command and 284-test expected result.
+- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command and 286-test expected result.
 
 This file remains the main parity source of truth. More focused docs may describe implementation details for an area, but their status claims should stay consistent with the tables above.
 

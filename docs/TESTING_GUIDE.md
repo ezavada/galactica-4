@@ -1,6 +1,6 @@
 # Testing Guide for Galactica-4
 
-Last reviewed: 2026-08-19
+Last reviewed: 2026-08-25
 
 ## Running the suite
 
@@ -14,14 +14,14 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 284
-Passed: 284 ✓
+Total: 286
+Passed: 286 ✓
 Failed: 0 ✗
 ```
 
 The output is intentionally verbose because several game systems still log turn, combat, movement, and construction diagnostics.
 
-Do not use plain `node tests/run-tests.js` for the full suite. The tests and runtime use PDG globals and APIs, including `pdg.res`, `pdg.srand()`, `pdg.rand()`, `pdg.Point`, and drawing attributes.
+Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and runtime use PDG globals and APIs, including `pdg.res`, `pdg.srand()`, `pdg.rand()`, `pdg.Point`, and drawing attributes.
 
 ## Test runner
 

@@ -59,7 +59,7 @@ PowerShell) to replace the cached copy.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 284 passed, 0 failed.
+Current expected result: 286 passed, 0 failed.
 
 ## Licensing and assets
 

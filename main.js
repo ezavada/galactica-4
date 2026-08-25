@@ -1,5 +1,5 @@
 // Galactica-4 PDG Game - Main Entry Point
-// Run with: ./pdg src/js/main.js
+// Run with: ./gad4
 // Optional: ./gad4 -- --lang=es (for Spanish)
 
 const pdg = require('pdg');
@@ -20,7 +20,7 @@ if (resourceRef) {
 
 // Parse command-line arguments for language setting.
 // With the gad4 launcher, pass app arguments after `--`, e.g. `./gad4 -- --lang=es`.
-const args = process.argv.slice(2); // Skip 'node' and script path
+const args = process.argv.slice(2); // Skip launcher and script path entries
 for (const arg of args) {
     if (arg.startsWith('--lang=')) {
         const langCode = arg.substring(7); // Extract language code after '--lang='

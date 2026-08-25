@@ -12,7 +12,7 @@ Complete unit test suite for map generation, movement, and player systems with *
 
 ```bash
 cd /Users/edz/Documents/personal/galactica-4
-node tests/run-tests.js
+./gad4 tests/run-tests.js
 ```
 
 ### Expected Output
@@ -373,4 +373,3 @@ Consider adding tests for:
 The test suite provides **comprehensive coverage** of the map generation and movement systems with **100% deterministic, reproducible results** using seeded random number generation.
 
 All tests pass ✅ and verify that the JavaScript port matches the original C++ game's behavior exactly.
-

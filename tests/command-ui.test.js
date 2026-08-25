@@ -328,6 +328,14 @@ module.exports = function runCommandUITests() {
 
             test.assertTrue(handled, 'Map button click should be consumed');
             test.assertEqual(game.uiWindow, 'menu');
+
+            const endTurnButton = display.getMapButtonRegions().find(button => button.action.type === 'endTurn');
+            test.assertNotNull(endTurnButton, 'End Turn button should exist');
+            const turnBefore = game.turn;
+            const handledEndTurn = game.handleUIClick(endTurnButton.rect.x + 5, endTurnButton.rect.y + 5);
+
+            test.assertTrue(handledEndTurn, 'End Turn button click should be consumed');
+            test.assertEqual(game.turn, turnBefore + 1, 'End Turn button should advance the turn');
         });
 
         test.it('handles clicks on selected-star action buttons', () => {
@@ -465,6 +473,33 @@ module.exports = function runCommandUITests() {
             test.assertEqual(popLabel.color, 'labelgray');
             test.assertEqual(popValue.color, 'lightgray');
             test.assertEqual(popValue.x - popLabel.x, 5);
+        });
+
+        test.it('uses numeric visibility levels and omniscient mode for display visibility', () => {
+            const game = createGameForTests();
+            game.port = createFakePort(800, 600);
+            const display = new Display(game);
+
+            const enemyStar = createOwnedStar(game, 2, 'Enemy Star');
+            enemyStar.setVisibilityTo(1, Common.VisibilityLevel.CLASS);
+            test.assertEqual(
+                display.getVisibilityLevelForPlayer(enemyStar, 1),
+                Common.VisibilityLevel.CLASS,
+                'Display should use numeric visibility levels directly'
+            );
+
+            const hiddenShip = game.getFactory().createShip(0, 0, 'scout', enemyStar);
+            hiddenShip.owner = 2;
+            hiddenShip.progress = 100;
+            test.assertFalse(display.isEntityVisibleToPlayer(hiddenShip, 1), 'Unseen enemy ship should be hidden');
+
+            game.config.omniscient = true;
+            test.assertEqual(
+                display.getVisibilityLevelForPlayer(enemyStar, 1),
+                Common.VisibilityLevel.DETAILS,
+                'Omniscient mode should grant full display details'
+            );
+            test.assertTrue(display.isEntityVisibleToPlayer(hiddenShip, 1), 'Omniscient mode should show enemy ships');
         });
 
         test.it('draws star build progress on the Building line with a baseline-aligned bar', () => {

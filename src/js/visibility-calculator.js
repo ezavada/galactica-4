@@ -159,7 +159,7 @@ class VisibilityCalculator {
     getVisibleEntitiesForPlayer(playerNum) {
         // If omniscient mode is enabled, return all entities
         if (this.game.config && this.game.config.omniscient) {
-            return [...this.game.stars, ...this.game.allShips].filter(entity => entity.owner !== playerNum);
+            return [...this.game.stars, ...this.game.allShips, ...this.game.allFleets].filter(entity => entity.owner !== playerNum);
         }
         
         const visibleEntities = [];
@@ -192,8 +192,12 @@ class VisibilityCalculator {
     getVisibleEntitiesByTypeForPlayer(playerNum, entityType) {
         // If omniscient mode is enabled, return all entities of the specified type
         if (this.game.config && this.game.config.omniscient) {
-            const allEntities = entityType === Common.SpatialConstants.ENTITY_TYPE_STAR ? 
-                this.game.stars : this.game.allShips;
+            let allEntities = this.game.allShips;
+            if (entityType === Common.SpatialConstants.ENTITY_TYPE_STAR) {
+                allEntities = this.game.stars;
+            } else if (entityType === Common.SpatialConstants.ENTITY_TYPE_FLEET) {
+                allEntities = this.game.allFleets;
+            }
             return allEntities.filter(entity => entity.owner !== playerNum);
         }
         
@@ -285,4 +289,3 @@ class VisibilityCalculator {
 }
 
 module.exports = VisibilityCalculator;
-

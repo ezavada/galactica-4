@@ -136,6 +136,7 @@
 560	Flotte {0}
 561	Puissance totale :
 562	En route vers :
+563	Fin du tour
 564	Croissance
 565	Recherche
 568	Galactica-4
