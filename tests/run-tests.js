@@ -18,6 +18,7 @@ const runFogOfWarIntegrationTests = require('./fog-of-war-integration.test.js');
 const runSpatialPartitioningPerformanceTests = require('./spatial-partitioning-performance.test.js');
 const runFleetTests = require('./fleet.test.js');
 const runCombatTests = require('./combat.test.js');
+const runGameRuleTests = require('./game-rules.test.js');
 const runCommandUITests = require('./command-ui.test.js');
 const runFleetFormationTests = require('./fleet-formation.test.js');
 const runShipNamingEventsTests = require('./ship-naming-events.test.js');
@@ -72,6 +73,9 @@ try {
 
     console.log('\n⚔️ Running Combat System Tests...');
     runCombatTests();
+
+    console.log('\n📜 Running V3 Game Rule Parity Tests...');
+    runGameRuleTests();
 
     console.log('\n🖥️ Running Command UI Tests...');
     runCommandUITests();

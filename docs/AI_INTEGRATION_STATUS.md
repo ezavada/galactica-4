@@ -12,14 +12,16 @@ AI is integrated into the local single-player runtime:
 - Computer-controlled players are initialized from `GameConfig`.
 - `endTurn()` processes AI decisions before ship/fleet movement, star updates, visibility updates, and piece-count checks.
 - AI stars can apply v3-style economic allocations, choose/start ship construction, and activate basic defensive builds/patrols.
-- AI ships can choose one destination and move toward owned, enemy, or unowned targets.
-- AI can form docked fleets and process fleets as ship-like strategic actors.
+- AI ships can choose one destination and move toward owned, enemy, or unowned targets, while skipping under-construction ships and stationary defense satellites.
+- AI can form docked fleets and process fleets as ship-like strategic actors, including the v3 guard that docked fleets with fewer than three ships do not move.
+- Good/Expert AI toggles eligible healthy docked non-scout ships/fleets onto patrol and takes damaged patrollers off patrol for repair.
+- AI units use the shared technology-transfer rules when scouts, battleships, and fleets arrive at or depart from allied systems.
 - Computer advantage now affects AI research and shipbuilding output.
 - Human controls reject AI-owned and unowned entities.
 
 AI is not yet full v3 parity. The confirmed v3 gaps are narrower than "make the AI smarter" work:
 
-- Ship/fleet AI still needs every `CShipCompMove.cpp`/`UShipUtils.cpp` factor and edge case verified against the v3 source, including the docked-fleet-with-fewer-than-three-ships guard and Good/Expert patrol toggle.
+- Ship/fleet AI still needs every `CShipCompMove.cpp`/`UShipUtils.cpp` factor and edge case verified against the v3 source.
 - Fleet formation works for docked ships, but the wider v3 fleet/player UI around rendezvous, exchange, and course tools is still missing.
 - AI orders still use v4's single-destination movement instead of the full v3 waypoint/course model.
 - Computer advantage is applied to production, but the full v3 setup range is not exposed in the startup UI.
@@ -91,7 +93,8 @@ Ship decisions:
 - evaluate possible targets using decision-matrix style scoring and v3 skill search/repetition values;
 - set a single destination on the ship for movement/attack/colonization;
 - form/join docked fleets when the scoring result selects fleet formation;
-- avoid moving immobile or ineligible ships.
+- avoid moving immobile or ineligible ships;
+- apply v3 Good/Expert patrol toggles when an eligible docked non-scout ship or fleet remains without a movement order.
 
 Fleet decisions:
 
@@ -110,8 +113,6 @@ Ownership controls:
 Confirmed v3 parity gaps:
 
 - Verify the full ship/fleet decision factor set against `CShipCompMove.cpp` and `UShipUtils.cpp`.
-- Add the v3 guard that docked AI fleets with fewer than three ships do not move.
-- Run the v3 Good/Expert patrol toggle in the normal ship/fleet AI path, including taking damaged patrollers off patrol for repair.
 - Integrate AI orders with the full waypoint/course model once that navigation system is ported.
 - Add rendezvous, fleet exchange UI, and course tools around the now-active fleet formation path.
 - Expose the full v3 computer-advantage range in setup.
@@ -132,7 +133,7 @@ Run the full suite with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 312 passed, 0 failed.
+Current expected result: 327 passed, 0 failed.
 
 The deterministic AI-only parity observer can be launched with `./gad4 -- --ai-autoplay`. It creates five computer players on the smallest map with v3 skill levels Expert, Good, Average, Passable, and Novice represented by players 1-5, uses a fixed default seed of `424242`, and advances turns until the win condition or the 250-turn max-turn guard. Event presentation windows are hidden by default for unattended runs; add `--show-event-windows` to display lab/stardock overlays, which are held briefly before the next autoplay turn.
 

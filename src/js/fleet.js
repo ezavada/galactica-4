@@ -359,16 +359,28 @@ class Fleet {
         if (arrivingObjectType === Common.ObjectType.SHIP) {
             // Fleet arrived at a ship - check if they can form a fleet
             if (this.owner === arrivingDestination.owner && arrivingDestination.canFormFleet()) {
+                if (typeof this.game.applyTechnologyTransferToDestination === 'function') {
+                    this.game.applyTechnologyTransferToDestination(this, arrivingDestination);
+                }
                 this.game.handleFleetFormation(this, arrivingDestination);
             } else if (this.game.shouldResolveCombat && this.game.shouldResolveCombat(this, arrivingDestination)) {
                 this.game.resolveCombat(this, arrivingDestination);
+                if (!this.isEmpty() && typeof this.game.applyTechnologyTransferToDestination === 'function') {
+                    this.game.applyTechnologyTransferToDestination(this, arrivingDestination);
+                }
             }
         } else if (arrivingObjectType === Common.ObjectType.FLEET) {
             // Fleet arrived at another fleet - merge them if same owner
             if (this.owner === arrivingDestination.owner) {
+                if (typeof this.game.applyTechnologyTransferToDestination === 'function') {
+                    this.game.applyTechnologyTransferToDestination(this, arrivingDestination);
+                }
                 this.game.mergeFleets(this, arrivingDestination);
             } else if (this.game.shouldResolveCombat && this.game.shouldResolveCombat(this, arrivingDestination)) {
                 this.game.resolveCombat(this, arrivingDestination);
+                if (!this.isEmpty() && typeof this.game.applyTechnologyTransferToDestination === 'function') {
+                    this.game.applyTechnologyTransferToDestination(this, arrivingDestination);
+                }
             } else {
                 console.log(`Fleet ${this.id} arrived at enemy fleet`);
             }
@@ -387,6 +399,9 @@ class Fleet {
                 this.x = arrivingDestination.x;
                 this.y = arrivingDestination.y;
                 this.syncShipPositions();
+                if (typeof this.game.applyTechnologyTransferToStar === 'function') {
+                    this.game.applyTechnologyTransferToStar(this, arrivingDestination);
+                }
             }
         } else {
             console.log(`Fleet ${this.id} arrived at destination`);

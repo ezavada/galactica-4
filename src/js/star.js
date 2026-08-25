@@ -142,6 +142,10 @@ class Star {
                 }
         }
 
+        if (this.game && typeof this.game.refreshDockedScoutTechnologyAtStar === 'function') {
+            this.game.refreshDockedScoutTechnologyAtStar(this);
+        }
+
         // apply shipbuilding effort
         if (this.currentShip) {
             amount = this.game.rules.getStarShipBuildingAmount(this);

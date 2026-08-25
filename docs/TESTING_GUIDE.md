@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 312
-Passed: 312 ✓
+Total: 327
+Passed: 327 ✓
 Failed: 0 ✗
 ```
 
@@ -41,6 +41,7 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - `spatial-partitioning-performance.test.js`
 - `fleet.test.js`
 - `combat.test.js`
+- `game-rules.test.js`
 - `command-ui.test.js`
 - `fleet-formation.test.js`
 - `ship-naming-events.test.js`
@@ -56,6 +57,7 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - Fog-of-war entity state, visibility calculations, spatial partitioning, and integration paths.
 - Fleet creation, joining, merging, movement, and formation rules.
 - Runtime combat resolution, v3-style ship/star strength formulas, destruction, interception, docked defenders, colony capture, defeat/victory updates, and combat summary events.
+- V3 game-rule parity for technology transfer, neutral-colony defaults, captured-colony defaults, and AI-facing movement/patrol guards.
 - Command UI state, windows, permanent map buttons, popup action buttons, production sliders, hover behavior, and layout details.
 - Ship naming and new tech/class event overlays.
 - Deterministic AI-only autoplay setup, per-player AI skill assignment, 250-turn default cap, quiet/visible event-window modes, victory/stalemate state, and autoplay stop conditions.

@@ -52,7 +52,11 @@ class Ship {
         
         if (this.destination && this.type !== 'defense') {
             if (this.star) {
-                this.star.shipDeparted(this);
+                const departingStar = this.star;
+                if (this.game && typeof this.game.handleShipDepartureTechnology === 'function') {
+                    this.game.handleShipDepartureTechnology(this, departingStar);
+                }
+                departingStar.shipDeparted(this);
                 this.star = null;
             }
             
@@ -251,18 +255,36 @@ class Ship {
                 } else if (this.type === 'colony' && destinationStar.owner === 0) {
                     this.game.colonizeStar(destinationStar, this, 0);
                 }
+
+                if (this.game && typeof this.game.applyTechnologyTransferToStar === 'function') {
+                    this.game.applyTechnologyTransferToStar(this, destinationStar);
+                }
             } else if (arrivingObjectType === Common.ObjectType.SHIP) {
                 if (this.game.shouldResolveCombat && this.game.shouldResolveCombat(this, arrivingDestination)) {
                     this.game.resolveCombat(this, arrivingDestination);
+                    if (!this.isDead() && (!this.game.allShips || this.game.allShips.includes(this)) &&
+                            typeof this.game.applyTechnologyTransferToDestination === 'function') {
+                        this.game.applyTechnologyTransferToDestination(this, arrivingDestination);
+                    }
                 } else {
+                    if (this.game && typeof this.game.applyTechnologyTransferToDestination === 'function') {
+                        this.game.applyTechnologyTransferToDestination(this, arrivingDestination);
+                    }
                     this.game.noteworthyEvent(this, Common.EventType.SHIP_INTERCEPT, arrivingDestination);
                 }
             } else if (arrivingObjectType === Common.ObjectType.FLEET) {
                 // Ship arrived at a fleet - check if they can form a fleet
                 if (this.owner === arrivingDestination.owner && this.canFormFleet()) {
+                    if (this.game && typeof this.game.applyTechnologyTransferToDestination === 'function') {
+                        this.game.applyTechnologyTransferToDestination(this, arrivingDestination);
+                    }
                     this.game.handleFleetFormation(this, arrivingDestination);
                 } else if (this.game.shouldResolveCombat && this.game.shouldResolveCombat(this, arrivingDestination)) {
                     this.game.resolveCombat(this, arrivingDestination);
+                    if (!this.isDead() && (!this.game.allShips || this.game.allShips.includes(this)) &&
+                            typeof this.game.applyTechnologyTransferToDestination === 'function') {
+                        this.game.applyTechnologyTransferToDestination(this, arrivingDestination);
+                    }
                 } else {
                     this.game.noteworthyEvent(this, Common.EventType.SHIP_STOPPED, arrivingDestination);
                 }

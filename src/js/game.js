@@ -340,6 +340,154 @@ class Game {
         return Math.max(0, amount * (1 + (advantage * 0.20)));
     }
 
+    getShipTypeForDefaultBuildType(defaultBuildType) {
+        const hullTypes = ['defense', 'scout', 'colony', 'battleship'];
+        const hullIndex = Math.floor(defaultBuildType || 1) - 1;
+        return hullTypes[hullIndex] || hullTypes[0];
+    }
+
+    getLegacyAllocationPercent(value, fallback = 0) {
+        const normalized = Number.isFinite(value) ? value : fallback;
+        return Math.round(Math.max(0, Math.min(1000, normalized)) / 10);
+    }
+
+    applyNewColonyDefaults(star, previousOwner = 0) {
+        if (!star || previousOwner !== 0 || !this.players) {
+            return false;
+        }
+
+        const player = this.players[star.owner];
+        if (!player) {
+            return false;
+        }
+
+        let changed = false;
+        if (player.isHuman) {
+            this.setAllocationDesired(star.growth, this.getLegacyAllocationPercent(player.defaultGrowth, 334));
+            this.setAllocationDesired(star.shipBuilding, this.getLegacyAllocationPercent(player.defaultShips, 333));
+            this.setAllocationDesired(star.research, this.getLegacyAllocationPercent(player.defaultTech, 333));
+            this.normalizeStarAllocations(star);
+            changed = true;
+        }
+
+        const buildType = player.isComputer ? 'defense' : this.getShipTypeForDefaultBuildType(player.defaultBuildType);
+        if (buildType && !star.currentShip && typeof star.startBuildingShip === 'function') {
+            star.startBuildingShip(buildType);
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    refreshCurrentShipBuildForStarTech(star) {
+        if (!star || !star.currentShip || !star.currentShip.underConstruction || !star.currentShip.underConstruction()) {
+            return false;
+        }
+
+        const ship = star.currentShip;
+        ship.techLevel = star.techLevel;
+        if (typeof ship.calculatePower === 'function') {
+            ship.power = ship.calculatePower();
+        }
+        if (this.rules && typeof this.rules.getShipInitialSpeed === 'function') {
+            ship.speed = this.rules.getShipInitialSpeed(ship);
+        }
+        if (this.rules && typeof this.rules.getShipScanRange === 'function') {
+            ship.scannerRange = this.rules.getShipScanRange(ship);
+        }
+        if (typeof ship.calculateApparentSize === 'function') {
+            ship.apparentSize = ship.calculateApparentSize();
+        }
+        return true;
+    }
+
+    transferScoutTechnologyFromContainer(ship, container) {
+        if (!ship || ship.type !== 'scout' || !container || !Number.isFinite(container.techLevel)) {
+            return false;
+        }
+
+        if (container.techLevel > ship.techLevel) {
+            ship.techLevel = container.techLevel;
+            return true;
+        }
+
+        return false;
+    }
+
+    handleShipDepartureTechnology(ship, oldContainer) {
+        return this.transferScoutTechnologyFromContainer(ship, oldContainer);
+    }
+
+    getTechnologyTransferStar(destination) {
+        if (!destination || typeof this.getObjectType !== 'function') {
+            return null;
+        }
+
+        const objectType = this.getObjectType(destination);
+        if (objectType === Common.ObjectType.STAR) {
+            return destination;
+        }
+        if (objectType === Common.ObjectType.SHIP) {
+            if (destination.star) {
+                return destination.star;
+            }
+            if (destination.fleet && destination.fleet.star) {
+                return destination.fleet.star;
+            }
+        }
+        if (objectType === Common.ObjectType.FLEET && destination.star) {
+            return destination.star;
+        }
+
+        return null;
+    }
+
+    applyTechnologyTransferToStar(carrier, star) {
+        if (!carrier || !star || star.owner <= 0 || !this.isOwnerAlliedWith(carrier.owner, star.owner)) {
+            return false;
+        }
+
+        const carrierTechLevel = Number.isFinite(carrier.techLevel) ? carrier.techLevel : 0;
+        const starTechLevel = Number.isFinite(star.techLevel) ? star.techLevel : 0;
+
+        if (carrierTechLevel > starTechLevel) {
+            star.techLevel = carrierTechLevel;
+            if (typeof star.setScannerRange === 'function' && this.rules && typeof this.rules.getScanRangeForTechLevel === 'function') {
+                star.setScannerRange(this.rules.getScanRangeForTechLevel(star.techLevel));
+            }
+            this.refreshCurrentShipBuildForStarTech(star);
+            return true;
+        }
+
+        if (carrier.type === 'scout' && starTechLevel > carrierTechLevel) {
+            carrier.techLevel = starTechLevel;
+            return true;
+        }
+
+        return false;
+    }
+
+    applyTechnologyTransferToDestination(carrier, destination) {
+        return this.applyTechnologyTransferToStar(carrier, this.getTechnologyTransferStar(destination));
+    }
+
+    refreshDockedScoutTechnologyAtStar(star) {
+        if (!star || !star.ships) {
+            return false;
+        }
+
+        let changed = false;
+        for (const ship of [...star.ships]) {
+            if (!ship || ship.type !== 'scout' || ship.fleet || ship.destination || (ship.underConstruction && ship.underConstruction())) {
+                continue;
+            }
+            if (this.applyTechnologyTransferToStar(ship, star)) {
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
     // Get the home star ID for a specific player
     getPlayerHomeSystem(playerNum) {
         if (playerNum < 1 || playerNum > this.config.totalPlayers) {
@@ -1461,6 +1609,7 @@ class Game {
         star.techLevel = Math.max(star.techLevel || 0, colonyShip.techLevel || 0);
         star.owner = colonyShip.owner;
         star.setScannerRange(this.rules.getScanRangeForTechLevel(star.techLevel));
+        this.applyNewColonyDefaults(star, previousOwner);
 
         const eventType = previousOwner ? Common.EventType.STAR_CAPTURED : Common.EventType.STAR_COLONIZED;
         this.noteworthyEvent(colonyShip, eventType, star);

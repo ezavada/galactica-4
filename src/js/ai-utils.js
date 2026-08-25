@@ -224,6 +224,9 @@ class AIUtils {
         if (this.game.getObjectType(entity) === Common.ObjectType.SHIP) {
             return entity.damage > 0;
         }
+        if (this.game.getObjectType(entity) === Common.ObjectType.FLEET) {
+            return (entity.totalDamage || 0) > 0;
+        }
         return false;
     }
 
@@ -244,7 +247,7 @@ class AIUtils {
     hasDestination(entity) {
         if (this.game.getObjectType(entity) === Common.ObjectType.SHIP ||
                 this.game.getObjectType(entity) === Common.ObjectType.FLEET) {
-            return entity.destination !== null;
+            return !!entity.destination;
         }
         return false;
     }

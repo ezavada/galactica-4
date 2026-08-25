@@ -93,17 +93,17 @@ class AIBase {
 
     // Check if entity is at a star
     isAtStar(entity) {
-        // Check if the entity is a ship and if it's in any star's ships array
-        if (this.game.getObjectType(entity) === Common.ObjectType.SHIP) {
-            return entity.star !== null;
+        const objectType = this.game.getObjectType(entity);
+        if (objectType === Common.ObjectType.SHIP || objectType === Common.ObjectType.FLEET) {
+            return entity.star !== null && entity.star !== undefined;
         }
         return false;
     }
 
     // Get the star this entity is currently at
     getCurrentStar(entity) {
-        // Find which star contains this entity in its ships array
-        if (this.game.getObjectType(entity) === Common.ObjectType.SHIP) {
+        const objectType = this.game.getObjectType(entity);
+        if (objectType === Common.ObjectType.SHIP || objectType === Common.ObjectType.FLEET) {
             return entity.star;
         }
         return null;

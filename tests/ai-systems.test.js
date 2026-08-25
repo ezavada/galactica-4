@@ -7,7 +7,7 @@ const { AISkillManager, AI_SKILL_LEVELS } = require('../src/js/ai-skill.js');
 const AIUtils = require('../src/js/ai-utils.js');
 const { StarAI } = require('../src/js/ai-star.js');
 const ShipAI = require('../src/js/ai-ship.js');
-const { AIActions } = require('../src/js/ai-base.js');
+const { AIActions, AIDecision } = require('../src/js/ai-base.js');
 const Factory = require('../src/js/factory.js');
 const Rules = require('../src/js/rules.js');
 const Game = require('../src/js/game.js');
@@ -748,14 +748,16 @@ function runAISystemTests() {
             const enemy = createOwnedStar(game, 2, 50000, 0, 'Weak Target', { techLevel: 1, population: 10 });
             const shipA = createCompletedShip(game, home, 'battleship', { techLevel: 8 });
             const shipB = createCompletedShip(game, home, 'battleship', { techLevel: 8 });
+            const shipC = createCompletedShip(game, home, 'battleship', { techLevel: 8 });
 
             const shipAI = new ShipAI(shipA, game, rules, AI_SKILL_LEVELS.EXPERT);
             const fleet = shipAI.attemptFleetFormation();
 
             test.assertNotNull(fleet, 'AI should create a fleet when another docked ship can join');
-            test.assertEqual(fleet.getSize(), 2, 'Fleet should contain both docked ships');
+            test.assertEqual(fleet.getSize(), 3, 'Fleet should contain the docked ships needed to move');
             test.assertTrue(shipA.isInFleet(), 'Original ship should be in the fleet');
             test.assertTrue(shipB.isInFleet(), 'Nearby docked ship should be pulled into the fleet');
+            test.assertTrue(shipC.isInFleet(), 'Third docked ship should be pulled into the fleet');
 
             const aiPlayer = game.aiManager.getAIPlayer(1);
             aiPlayer.processFleetDecision(fleet);
@@ -778,6 +780,107 @@ function runAISystemTests() {
             test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(1), 3, 'Expert should run three target passes');
             test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(2), 2, 'Good should run two target passes');
             test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(5), 1, 'Novice should run one target pass');
+        });
+
+        test.it('does not give movement orders to under-construction defense satellites', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 2,
+                aiSkillByPlayer: { 1: 2, 2: 2 }
+            });
+            const home = createOwnedStar(game, 1, 0, 0, 'Defense Yard', { techLevel: 5 });
+            const enemy = createOwnedStar(game, 2, 50000, 0, 'Enemy Target', { techLevel: 1 });
+
+            home.startBuildingShip('defense');
+            const defense = home.currentShip;
+            const shipAI = new ShipAI(defense, game, rules, AI_SKILL_LEVELS.GOOD);
+            const decision = shipAI.makeDecision();
+
+            test.assertEqual(decision.action, AIActions.DO_NOTHING, 'Under-construction defense should not receive movement orders');
+            test.assertNull(defense.destination, 'Defense satellite should remain without a destination');
+            test.assertEqual(enemy.owner, 2, 'Enemy setup should be present only as a tempting target');
+        });
+
+        test.it('applies v3 Good/Expert patrol toggles to docked healthy and damaged ships', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 2,
+                aiSkillByPlayer: { 1: 2, 2: 2 }
+            });
+            const home = createOwnedStar(game, 1, 0, 0, 'Patrol Base', { techLevel: 5 });
+            const ship = createCompletedShip(game, home, 'battleship', { techLevel: 5 });
+            const shipAI = new ShipAI(ship, game, rules, AI_SKILL_LEVELS.GOOD);
+
+            shipAI.makeDecision();
+            test.assertTrue(ship.isOnPatrol(), 'Healthy docked Good/Expert AI ship should patrol');
+
+            ship.damage = 10;
+            shipAI.makeDecision();
+            test.assertFalse(ship.isOnPatrol(), 'Damaged docked Good/Expert AI ship should leave patrol for repair');
+        });
+
+        test.it('does not apply the Good/Expert patrol toggle when a movement decision was selected', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 2,
+                aiSkillByPlayer: { 1: 2, 2: 2 }
+            });
+            const home = createOwnedStar(game, 1, 0, 0, 'Moving Patrol Base', { techLevel: 5 });
+            const target = createOwnedStar(game, 2, 50000, 0, 'Movement Target', { techLevel: 1 });
+            const ship = createCompletedShip(game, home, 'battleship', { techLevel: 5 });
+            const shipAI = new ShipAI(ship, game, rules, AI_SKILL_LEVELS.GOOD);
+
+            const changed = shipAI.applyV3PatrolRule(
+                2,
+                new AIDecision(AIActions.GO_TO_ENEMY_STAR, target, 100, 'moving')
+            );
+
+            test.assertFalse(changed, 'Movement decisions should bypass the patrol toggle');
+            test.assertFalse(ship.isOnPatrol(), 'Ship should not be put on patrol when AI selected movement');
+        });
+
+        test.it('applies v3 Good/Expert patrol toggles to docked fleets', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 1,
+                aiSkillByPlayer: { 1: 1, 2: 2 }
+            });
+            const home = createOwnedStar(game, 1, 0, 0, 'Fleet Patrol Base', { techLevel: 5 });
+            const shipA = createCompletedShip(game, home, 'battleship', { techLevel: 5 });
+            const shipB = createCompletedShip(game, home, 'battleship', { techLevel: 5 });
+            const shipC = createCompletedShip(game, home, 'battleship', { techLevel: 5 });
+            const fleet = game.factory.createFleet(home.x, home.y, 1);
+            fleet.addShip(shipA);
+            fleet.addShip(shipB);
+            fleet.addShip(shipC);
+            const fleetAI = new ShipAI(fleet, game, rules, AI_SKILL_LEVELS.EXPERT);
+            const idleDecision = new AIDecision(AIActions.DO_NOTHING, null, 0, 'idle');
+
+            fleetAI.applyV3PatrolRule(1, idleDecision);
+            test.assertTrue(fleet.isOnPatrol(), 'Healthy docked Good/Expert AI fleet should patrol');
+            test.assertTrue(shipA.isOnPatrol(), 'Fleet patrol state should propagate to member ships');
+
+            shipA.damage = 10;
+            fleet.calculateFleetStats();
+            fleetAI.applyV3PatrolRule(1, idleDecision);
+            test.assertFalse(fleet.isOnPatrol(), 'Damaged docked Good/Expert AI fleet should leave patrol for repair');
+            test.assertFalse(shipA.isOnPatrol(), 'Leaving fleet patrol should propagate to member ships');
+        });
+
+        test.it('keeps docked AI fleets with fewer than three ships from moving', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 1,
+                aiSkillByPlayer: { 1: 1, 2: 2 }
+            });
+            const home = createOwnedStar(game, 1, 0, 0, 'Small Fleet Base', { techLevel: 8 });
+            createOwnedStar(game, 2, 50000, 0, 'Weak Target', { techLevel: 1, population: 10 });
+            const shipA = createCompletedShip(game, home, 'battleship', { techLevel: 8 });
+            const shipB = createCompletedShip(game, home, 'battleship', { techLevel: 8 });
+            const fleet = game.factory.createFleet(home.x, home.y, 1);
+            fleet.addShip(shipA);
+            fleet.addShip(shipB);
+
+            const fleetAI = new ShipAI(fleet, game, rules, AI_SKILL_LEVELS.EXPERT);
+            const decision = fleetAI.makeDecision();
+
+            test.assertEqual(decision.action, AIActions.DO_NOTHING, 'Docked fleet with fewer than three ships should not move');
+            test.assertNull(fleet.destination, 'Small docked fleet should keep no destination');
         });
     });
 

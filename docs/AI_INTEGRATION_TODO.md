@@ -13,7 +13,10 @@ AI integration is partially complete and active in the local runtime. Computer p
 - AI turns run during `Game.endTurn()`.
 - AI star logic can apply v3-style desired allocations, choose a ship type, call `startBuildingShip()`, and activate basic defensive builds/patrols.
 - AI ship logic can set one destination on eligible ships.
+- AI ship/fleet logic skips under-construction ships, stationary defense satellites, and docked fleets with fewer than three ships.
+- Good/Expert AI toggles eligible healthy docked non-scout ships/fleets onto patrol and takes damaged patrollers off patrol for repair.
 - AI fleet formation can create/join docked fleets, and fleet AI can set one destination on eligible fleets.
+- AI-controlled scouts, battleships, and fleets use the shared v3 technology-transfer rules.
 - AI production receives the configured computer-advantage modifier.
 - Human control is restricted to the current human player's owned entities.
 - AI/player/config behavior is covered by `tests/ai-systems.test.js`.
@@ -23,8 +26,6 @@ AI integration is partially complete and active in the local runtime. Computer p
 Confirmed v3 parity gaps:
 
 - Ship/fleet movement scoring still needs every `CShipCompMove.cpp`/`UShipUtils.cpp` factor and edge case verified against the v3 source.
-- The v3 guard that docked AI fleets with fewer than three ships do not move is not yet implemented.
-- Good/Expert patrol toggling should run in the normal ship/fleet AI path, including taking damaged patrollers off patrol for repair.
 - AI orders still use v4's single-destination movement rather than the full v3 waypoint/course model.
 - Fleet formation does not yet include the wider v3 fleet UI around rendezvous, exchange, and course tools.
 - Computer advantage applies to production, but the full v3 setup range is not exposed in the startup UI.
@@ -71,14 +72,14 @@ Run all tests with:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 312 passed, 0 failed.
+Current expected result: 327 passed, 0 failed.
 
 The AI tests verify the current integrated behavior, but passing tests should not be read as v3 feature parity. The parity source of truth is `docs/V3_V4_FEATURE_STATUS.md`.
 
 ## Recommended next AI work
 
 1. Verify the remaining ship/fleet scoring factors against `CShipCompMove.cpp` and `UShipUtils.cpp`.
-2. Add the docked-fleet-size guard and normal-path Good/Expert patrol toggle.
+2. Integrate AI orders with the full v3 waypoint/course model once navigation parity exists.
 3. Implement rendezvous points, fleet exchange UI, and fleet course tools.
 4. Expose and validate the full v3 computer-advantage range.
 5. Remove or bypass legacy three-bucket helper behavior where it conflicts with v3's five skill values.

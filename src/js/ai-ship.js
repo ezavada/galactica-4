@@ -94,9 +94,16 @@ class ShipAI extends AIBase {
     makeDecision() {
         this.debugLog(`Making AI decision for ${this.ship.type} ship`);
 
-        // Don't make decisions if ship is marked for deletion or is a satellite
-        if (this.ship.needsDeletion || this.ship.type === 'satellite') {
-            this.debugLog('Ship marked for deletion or is satellite, no decision');
+        if (this.isFleetEntity() && this.ship.calculateFleetStats) {
+            this.ship.calculateFleetStats();
+        }
+
+        // v3 has no movable under-construction actor, and satellites do not make movement decisions.
+        if (this.ship.needsDeletion ||
+                (this.ship.underConstruction && this.ship.underConstruction()) ||
+                this.ship.type === 'satellite' ||
+                this.ship.type === 'defense') {
+            this.debugLog('Ship marked for deletion, under construction, or stationary, no decision');
             return new AIDecision(AIActions.DO_NOTHING, null, 0, 'Ship not eligible for decisions');
         }
 
@@ -106,8 +113,13 @@ class ShipAI extends AIBase {
             return new AIDecision(AIActions.DO_NOTHING, null, 0, 'Ship in fleet');
         }
 
-        // Get maximum search distance based on skill level
         const v3Skill = this.getV3SkillLevel();
+        if (this.isDockedSmallFleet()) {
+            this.debugLog('Docked fleet has fewer than three ships, no movement allowed');
+            return new AIDecision(AIActions.DO_NOTHING, null, 0, 'Docked fleet too small');
+        }
+
+        // Get maximum search distance based on skill level
         const maxDistance = this.getSearchDistanceForV3Skill(v3Skill);
 
         // Perform multiple iterations for higher skill levels
@@ -125,7 +137,48 @@ class ShipAI extends AIBase {
             }
         }
 
-        return bestDecision || new AIDecision(AIActions.DO_NOTHING, null, 0, 'No valid decision found');
+        const finalDecision = bestDecision || new AIDecision(AIActions.DO_NOTHING, null, 0, 'No valid decision found');
+        this.applyV3PatrolRule(v3Skill, finalDecision);
+
+        return finalDecision;
+    }
+
+    isDockedSmallFleet() {
+        return !!(this.isFleetEntity() &&
+            this.ship.isDocked &&
+            this.ship.isDocked() &&
+            this.ship.getSize &&
+            this.ship.getSize() < 3);
+    }
+
+    applyV3PatrolRule(v3Skill, decision = null) {
+        const movementActions = [
+            AIActions.GO_TO_OWN_STAR,
+            AIActions.GO_TO_ENEMY_STAR,
+            AIActions.GO_TO_UNOWNED_STAR,
+            AIActions.ATTACK_SHIP
+        ];
+        if (decision && movementActions.includes(decision.action) && decision.target) {
+            return false;
+        }
+
+        if (v3Skill > 2 || !this.utils.isAtStar(this.ship) || this.hasDestination(this.ship) ||
+                this.getShipType() === 'scout' || !this.ship.setPatrol) {
+            return false;
+        }
+
+        const damage = this.isFleetEntity() ? (this.ship.totalDamage || 0) : (this.ship.damage || 0);
+        if (this.ship.isOnPatrol && this.ship.isOnPatrol() && damage > 0) {
+            this.ship.setPatrol(false);
+            return true;
+        }
+
+        if ((!this.ship.isOnPatrol || !this.ship.isOnPatrol()) && damage <= 0) {
+            this.ship.setPatrol(true);
+            return true;
+        }
+
+        return false;
     }
 
     // Perform a single decision iteration
@@ -582,7 +635,7 @@ class ShipAI extends AIBase {
 
     // Check if ship has a destination
     hasDestination(entity) {
-        return entity.destination !== null;
+        return !!(entity && entity.destination);
     }
 }
 

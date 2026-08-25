@@ -39,7 +39,7 @@ class PlayerInfo {
         this.compAdvantage = 0;    // 0=None, 1=Some, 2=More
         
         // Default economic settings (used when taking over new stars)
-        this.defaultBuildType = 1;  // 1=Colony (matches original default)
+        this.defaultBuildType = 1;  // v3 1-based hull index: 1=Satellite/Defense
         this.defaultGrowth = 334;   // ~33.4% to growth
         this.defaultTech = 333;     // ~33.3% to tech
         this.defaultShips = 333;    // ~33.3% to ships
