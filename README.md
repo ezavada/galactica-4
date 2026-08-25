@@ -59,13 +59,15 @@ PowerShell) to replace the cached copy.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 295 passed, 0 failed.
+Current expected result: 304 passed, 0 failed.
 
 AI-only parity observer:
 
 ```bash
 ./gad4 -- --ai-autoplay
 ```
+
+The observer uses seed `424242` and a 250-turn default cap. Event presentation windows are hidden by default for unattended runs; add `--show-event-windows` to see lab/stardock overlays, with `--autoplay-event-ms=1000` controlling the hold time.
 
 ## Licensing and assets
 

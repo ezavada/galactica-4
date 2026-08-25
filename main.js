@@ -73,6 +73,8 @@ const launchOptions = {
     seed: getIntegerArg('--seed', null),
     autoplayDelayMs: getIntegerArg('--autoplay-delay', Autoplay.DEFAULT_AUTOPLAY_TURN_DELAY_MS),
     autoplayMaxTurns: getIntegerArg('--autoplay-max-turns', Autoplay.DEFAULT_AUTOPLAY_MAX_TURNS),
+    autoplayEventMs: getIntegerArg('--autoplay-event-ms', Autoplay.DEFAULT_AUTOPLAY_EVENT_PRESENTATION_MS),
+    showEventWindows: hasArg('--show-event-windows'),
     fastAutoplay: hasArg('--fast-autoplay')
 };
 
@@ -102,6 +104,8 @@ let pendingConfig = launchOptions.aiAutoplay ?
         seed: randomSeed,
         turnDelayMs: Math.max(1, launchOptions.autoplayDelayMs),
         maxTurns: Math.max(1, launchOptions.autoplayMaxTurns),
+        eventPresentationMs: Math.max(0, launchOptions.autoplayEventMs),
+        showEventWindows: launchOptions.showEventWindows,
         fastGame: launchOptions.fastAutoplay
     }) :
     createDefaultConfig();
@@ -327,7 +331,8 @@ function startAutoplay() {
     }
 
     autoplayController = new Autoplay.AutoplayController(game, {
-        maxTurns: pendingConfig.autoplay.maxTurns
+        maxTurns: pendingConfig.autoplay.maxTurns,
+        eventPresentationMs: pendingConfig.autoplay.eventPresentationMs
     });
     game.recordEvent(
         I18n.getString(601, 'Startup'),
@@ -346,6 +351,8 @@ function stopAutoplayTimer() {
             const winner = game.players[game.winningPlayerNum];
             const winnerName = winner && winner.name ? winner.name : `${I18n.getString(18, 'Player')} ${game.winningPlayerNum}`;
             console.log(I18n.formatString(644, '{0} wins on turn {1}', winnerName, game.victoryTurn));
+        } else if (status.stopReason === 'gameOver' && game) {
+            console.log(I18n.formatString(652, 'No players remain on turn {0}', game.victoryTurn));
         } else if (status.stopReason === 'maxTurns') {
             console.log(I18n.formatString(645, 'AI autoplay stopped after {0} turns with no winner', status.turnsRun));
         }

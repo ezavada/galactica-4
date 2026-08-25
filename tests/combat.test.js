@@ -6,6 +6,7 @@ const Factory = require('../src/js/factory.js');
 const Game = require('../src/js/game.js');
 const GameConfig = require('../src/js/game-config.js');
 const Rules = require('../src/js/rules.js');
+const Common = require('../src/js/common.js');
 
 function createRuntimeCombatGame() {
     const factory = new Factory();
@@ -63,14 +64,13 @@ function runCombatTests() {
             
             const ship = new Ship(0, 0, 'battleship', mockStar, mockGame, 1);
             
-            // Battleship with power 5 + techLevel/2 = 5 + 1 = 6
-            // Attack strength = power * 50 = 6 * 50 = 300
-            test.assertEqual(ship.getAttackStrength(), 300);
+            // v3 uses tech level as battleship power, so level 3 attacks at 3 * 50.
+            test.assertEqual(ship.getAttackStrength(), 150);
             
             // Add some damage
             ship.damage = 50;
-            // Attack strength = (power * 50) - (damage/8) = 300 - 6 = 294
-            test.assertEqual(ship.getAttackStrength(), 294);
+            // v3 ship damage affects defense, not attack strength.
+            test.assertEqual(ship.getAttackStrength(), 150);
         });
         
         test.it('should calculate ship defense strength correctly', () => {
@@ -90,13 +90,12 @@ function runCombatTests() {
             
             const ship = new Ship(0, 0, 'battleship', mockStar, mockGame, 1);
             
-            // Defense strength = (power * 100) - damage = (6 * 100) - 0 = 600
-            test.assertEqual(ship.getDefenseStrength(), 600);
+            // Defense strength = (power * 100) - damage = (3 * 100) - 0 = 300
+            test.assertEqual(ship.getDefenseStrength(), 300);
             
             // Add some damage
             ship.damage = 100;
-            // Defense strength = (6 * 100) - 100 = 500
-            test.assertEqual(ship.getDefenseStrength(), 500);
+            test.assertEqual(ship.getDefenseStrength(), 200);
         });
         
         test.it('should calculate star attack and defense strength', () => {
@@ -109,12 +108,15 @@ function runCombatTests() {
             const star = new Star(0, 0, 'Test Star', mockGame);
             
             star.population = 100;
+            star.techLevel = 1;
             
-            // Attack strength = population * 10 = 100 * 10 = 1000
-            test.assertEqual(star.getAttackStrength(), 1000);
+            // v3 log-scaled formula: log10(100k)^2 * 5 - 50 = 75 at tech 1.
+            test.assertEqual(star.getAttackStrength(), 75);
             
-            // Defense strength = population * 100 = 100 * 100 = 10000
-            test.assertEqual(star.getDefenseStrength(), 10000);
+            test.assertEqual(star.getDefenseStrength(), 75);
+
+            star.population = 9;
+            test.assertEqual(star.getDefenseStrength(), 0, 'Tiny populations should not provide defensive strength');
         });
         
         test.it('should apply damage correctly to ships', () => {
@@ -143,9 +145,9 @@ function runCombatTests() {
             // Apply more damage to destroy ship
             const excessDamage2 = ship.takeDamage(500);
             
-            // Defense strength = (6 * 100) - 700 = -100
-            // Excess damage = 100
-            test.assertEqual(excessDamage2, 100);
+            // Defense strength = (3 * 100) - 700 = -400
+            // Excess damage = 400
+            test.assertEqual(excessDamage2, 400);
         });
         
         test.it('should apply damage correctly to stars', () => {
@@ -157,25 +159,24 @@ function runCombatTests() {
             const Star = require('../src/js/star.js');
             const star = new Star(0, 0, 'Test Star', mockGame);
             
-            star.population = 100;
+            star.population = 1000000;
+            star.techLevel = 10;
+            star.shipBuilding.benefit = 12;
+            star.research.benefit = 9;
             
-            // Apply 500 damage (should kill 5 population)
-            const excessDamage = star.takeDamage(500);
+            // v3 population damage scales with population concentration and does not roll over.
+            const excessDamage = star.takeDamage(100);
             
-            test.assertEqual(star.population, 95); // 100 - 5
-            test.assertEqual(excessDamage, 0); // Star not destroyed yet
+            test.assertEqual(star.population, 934694);
+            test.assertEqual(excessDamage, 0);
+            test.assertApproximately(star.shipBuilding.benefit, 11.988, 0.0001);
+            test.assertApproximately(star.research.benefit, 8.991, 0.0001);
             
-            // Apply more damage to destroy population
-            const excessDamage2 = star.takeDamage(10000);
+            // Planets can be neutralized, but damage still does not roll over to other targets.
+            const excessDamage2 = star.takeDamage(100000);
             
             test.assertEqual(star.population, 0);
-            test.assertEqual(excessDamage2, 500); // 10000 - (95 * 100) = 500 excess damage
-            
-            // Test with actual excess damage
-            star.population = 10;
-            const excessDamage3 = star.takeDamage(2000); // 2000 damage, kills 20 population, but only 10 exist
-            test.assertEqual(star.population, 0);
-            test.assertEqual(excessDamage3, 1000); // 2000 - (10 * 100) = 1000 excess damage
+            test.assertEqual(excessDamage2, 0);
         });
         
         test.it('should use PDG random for damage variance', () => {
@@ -425,6 +426,25 @@ function runCombatTests() {
             test.assertContains(target.ships, attacker, 'Attacker should be docked at the target star');
         });
 
+        test.it('records a player-facing combat summary after battle resolution', () => {
+            const game = createRuntimeCombatGame();
+            const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 20, 100);
+            const target = createOwnedStar(game, 1000, 0, 'Target', 2, 1, 5);
+            const attacker = createCompletedShip(game, origin, 'battleship', 20);
+
+            attacker.getOneAttackAgainst = () => 100000;
+            target.getOneAttackAgainst = () => 0;
+
+            attacker.setDestination(target);
+            attacker.move();
+
+            const event = game.eventLog.find(entry => entry.type === Common.EventType.BATTLE_RESOLVED);
+            test.assertDefined(event, 'Combat should record a summary event');
+            test.assertEqual(event.title, 'Combat');
+            test.assertContains(event.message, 'Combat at Target');
+            test.assertContains(event.message, 'attacker victory');
+        });
+
         test.it('resolves enemy ship interception as combat instead of fleet formation', () => {
             const game = createRuntimeCombatGame();
             const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 20, 100);
@@ -459,6 +479,52 @@ function runCombatTests() {
             test.assertGreaterThan(target.population, 0, 'Captured star should retain colonized population');
             test.assertFalse(game.allShips.includes(colony), 'Colony ship should be converted into the colony');
             test.assertFalse(target.ships.includes(colony), 'Converted colony ship should be removed from the star ship list');
+        });
+
+        test.it('updates defeat and victory immediately after a last-star capture', () => {
+            const factory = new Factory();
+            const rules = new Rules(false);
+            const config = new GameConfig({
+                numHumans: 0,
+                numComputers: 2,
+                skipMapGeneration: true,
+                aiSkillByPlayer: { 1: 1, 2: 2 },
+                omniscient: true
+            });
+            const game = new Game(factory, rules, config);
+            const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 20, 100);
+            const target = createOwnedStar(game, 1000, 0, 'Enemy Home', 2, 1, 5);
+            const colony = createCompletedShip(game, origin, 'colony', 20);
+
+            game.updatePlayerPieceCounts();
+            colony.getOneAttackAgainst = () => 100000;
+            target.getOneAttackAgainst = () => 0;
+
+            colony.setDestination(target);
+            colony.move();
+
+            test.assertFalse(game.players[2].isAlive, 'Defeated player should be marked dead after losing the last star');
+            test.assertTrue(game.isGameOver, 'Game should end as soon as one active player remains');
+            test.assertEqual(game.winningPlayerNum, 1);
+            test.assertContains(game.getRecentEvents(8).map(event => event.title), 'Victory');
+        });
+
+        test.it('keeps surviving non-colony attackers outside an enemy star that still holds', () => {
+            const game = createRuntimeCombatGame();
+            const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 20, 100);
+            const target = createOwnedStar(game, 1000, 0, 'Fortress', 2, 20, 1000000);
+            const attacker = createCompletedShip(game, origin, 'battleship', 20);
+
+            attacker.getOneAttackAgainst = () => 1;
+            target.getOneAttackAgainst = () => 0;
+
+            attacker.setDestination(target);
+            attacker.move();
+
+            test.assertContains(game.allShips, attacker, 'Attacker should survive the inconclusive attack');
+            test.assertNull(attacker.star, 'Attacker should not remain docked inside a hostile star');
+            test.assertFalse(target.ships.includes(attacker), 'Hostile star should not retain the attacker as a docked ship');
+            test.assertEqual(target.owner, 2, 'Target should still belong to the defender');
         });
 
         test.it('removes an attacker that loses arrival combat and leaves defenders intact', () => {

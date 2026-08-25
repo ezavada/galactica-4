@@ -1531,10 +1531,13 @@ class Display {
             height: 56
         };
 
-        const winner = this.game.isGameOver && this.game.winningPlayerNum ? this.game.players[this.game.winningPlayerNum] : null;
-        const headline = winner ?
-            `${gameName}  •  ${this.STR.winner} ${winner.name || `${I18n.getString(18, 'Player')} ${winner.playerNum}`}` :
-            `${gameName}  •  ${this.STR.turn} ${turn}`;
+        let headline = `${gameName}  •  ${this.STR.turn} ${turn}`;
+        if (this.game.isGameOver) {
+            const winner = this.game.winningPlayerNum ? this.game.players[this.game.winningPlayerNum] : null;
+            headline = winner ?
+                `${gameName}  •  ${this.STR.winner} ${winner.name || `${I18n.getString(18, 'Player')} ${winner.playerNum}`}` :
+                `${gameName}  •  ${I18n.getString(653, 'No winner')}`;
+        }
 
         this.drawRoundedRect(rect, 16, this.styles.topInfoPanel);
         this.drawTextLine(headline, screen.width / 2, rect.y + 24, 'lightgray', 15, pdg.textStyle_Centered);

@@ -15,7 +15,7 @@ The comparison is based on:
 
 The comparison started as a static code review. With the public PDG runtime,
 the v4 automated suite was verified on 2026-08-25 with
-`./gad4 tests/run-tests.js`: 295 passed, 0 failed. Passing tests prove the
+`./gad4 tests/run-tests.js`: 304 passed, 0 failed. Passing tests prove the
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
@@ -36,11 +36,11 @@ Galactica-4 currently has a credible simulation foundation, not feature parity w
 
 The largest blockers to a complete game are:
 
-1. **Combat now has a first playable runtime path, but it is not full v3 parity.** Enemy ship/star/fleet arrivals can invoke `CombatSystem`, remove destroyed ships, run basic ground combat, and let surviving colony ships capture stars. Missing pieces remain: combat/result UI, explosion/debris feedback, balance tuning, and fuller fleet edge cases.
+1. **Combat now has a stronger playable runtime path, but it is not full v3 parity.** Enemy ship/star/fleet arrivals can invoke `CombatSystem`, remove destroyed ships, use v3-style ship/star combat formulas, run ground combat, let surviving colony ships capture stars, and record localized battle summaries. Missing pieces remain: polished combat/result UI, explosion/debris feedback, richer fleet reports, and broader balance tuning.
 2. **The v3 command UI now has a first clickable runtime path, but not full parity.** v4 has a startup setup dialog, charcoal rounded windows, bottom-right permanent map buttons, a top-center turn/game header, clickable popup action buttons, directly clickable production sliders, retained event list, player comparison window, and anchored selection panels. Missing pieces remain: player-name/title dialogs, course editor, attention workflow, system/fleet comparison tables, fleet exchange UI, rendezvous UI, and final visual/art direction polish.
 3. **Ship navigation only supports one destination.** v3's waypoint list, editing, looping, course memory, call-in, hunt, patrol, and scrap workflows are missing.
 4. **Persistence and multiplayer are absent.** v3 save/open/revert, hosting, joining/rejoining, turn posting, timers, passwords, discovery, chat, and host administration have not been ported.
-5. **Several systems are present but incomplete or incorrectly wired.** Examples include fog-of-war rendering, AI economic allocation, repairs, patrol state, victory, events, and fleet UI.
+5. **Several systems are present but incomplete or incorrectly wired.** Examples include fog-of-war rendering, AI economic allocation, repairs, patrol state, event depth, and fleet UI.
 
 ## Easy wins applied on 2026-08-25
 
@@ -50,8 +50,10 @@ The largest blockers to a complete game are:
 - Updated the Game Title status to reflect the top-center header path while keeping setup/save/hosting gaps visible.
 - Added a deterministic AI-only autoplay observer (`./gad4 -- --ai-autoplay`) that starts five computer players on the smallest map, one for each v3 AI skill level, using fixed seed `424242` by default.
 - Made End Turn close event overlays/event-list windows before advancing, so autoplay and the hotkey do not stall behind event presentation UI.
+- Capped default autoplay runs at 250 turns while the late-game AI stagnation issue is unresolved, hid event presentation windows by default for AI autoplay, and added `--show-event-windows` for opt-in visible overlays with a presentation hold.
+- Aligned ship/star combat strength and population damage with the v3 formulas, recorded localized combat-summary events, neutralized/captured enemy systems more safely, and recomputed defeat/victory after combat.
 
-## 1. Game creation, configuration, and lifecycle (55% complete)
+## 1. Game creation, configuration, and lifecycle (58% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
@@ -70,7 +72,7 @@ The largest blockers to a complete game are:
 | Initial homeworld state | One named home system, tech 1, population, scanner, and colony ship at 99%. | ✅ Implemented | `map-generator.js:249-299`. |
 | Computer faction naming | Home-star name plus faction word, such as “Vega Alliance.” | ✅ Implemented | Resource-driven templates and group names are used in `map-generator.js:302-333`. |
 | End turn | Button/menu/shortcut; multiplayer waits for posts as needed. | 🟡 Partial | Tab and the localized bottom-right End Turn map button advance the local simulation, closing event overlays/event-list windows before processing the turn. There is no attention warning, posting, timer, or multiplayer coordination. |
-| Victory and defeat | Defeat notifications and victory/defeat conclusion screens. | 🟡 Partial | Piece counting can mark defeated players, a single remaining active player now sets a game-over/winner state, victory is logged, and the top header shows the winner. Missing pieces remain: richer conclusion screens, defeat/victory art, and full v3 reporting. |
+| Victory and defeat | Defeat notifications and victory/defeat conclusion screens. | 🟡 Partial | Piece counting can mark defeated players, combat/capture recomputes defeat immediately, a single remaining active player sets a game-over/winner state, zero active players records a stalemate, and the top header shows the winner/no-winner result. Missing pieces remain: richer conclusion screens, defeat/victory art, and full v3 reporting. |
 
 ## 2. Map, camera, visibility, and display modes (45% complete)
 
@@ -157,18 +159,18 @@ The largest blockers to a complete game are:
 | Auto-form fleet at rendezvous | Ships sent by producing systems assemble into a named fleet. | ❌ Missing | Default destinations exist, but open-space arrivals do not create a shared target or assemble a fleet. |
 | Fleet comparison window | Sortable “Your Fleets” table. | ❌ Missing | No equivalent UI. |
 
-## 6. Combat, occupation, defense, and fog of war (54% complete)
+## 6. Combat, occupation, defense, and fog of war (62% complete)
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
-| Ship/fleet combat on interception | Enemy forces exchange attacks; defeated units are removed and winner continues. | 🟡 Partial | `CombatSystem` is instantiated by `Game`, enemy ship/star/fleet arrivals invoke it, and destroyed ships are removed from game/star/fleet containers. Combat presentation, balancing, and full fleet-result reporting are still thin. |
+| Ship/fleet combat on interception | Enemy forces exchange attacks; defeated units are removed and winner continues. | 🟡 Partial | `CombatSystem` is instantiated by `Game`, enemy ship/star/fleet arrivals invoke it, destroyed ships are removed from game/star/fleet containers, and each resolved battle records a localized summary event. Combat presentation and full fleet-result reporting are still thin. |
 | Combat reserves | Couriers and colony ships stay in reserve until combat ships are gone. | ✅ Implemented | Reserve sorting is now used by the runtime combat path. |
 | Multi-target and rollover damage | Higher-tech attackers hit multiple targets and excess damage rolls over. | ✅ Implemented | The resolver uses tech-based target counts and rollover damage during runtime combat. |
-| Defended-system invasion | Defeat stationed ships, then fixed planetary defenses; production/population is damaged. | 🟡 Partial | Enemy star arrivals now run space combat, ground combat against population, and colony capture when a colony survives. Production damage, result UI, and v3-accurate tuning still need work. |
-| Capture/surrender | Successful invasion transfers system ownership and reports capture/surrender. | 🟡 Partial | A surviving colony ship can transfer ownership after ground combat. Surrender/result UI, production/population damage presentation, and v3-accurate reporting still need work. |
+| Defended-system invasion | Defeat stationed ships, then fixed planetary defenses; production/population is damaged. | 🟡 Partial | Enemy star arrivals now run space combat, ground combat against population, v3-style star attack/defense and population damage, and colony capture when a colony survives. Result UI is still event-list level, and broader balance tuning remains. |
+| Capture/surrender | Successful invasion transfers system ownership and reports capture/surrender. | 🟡 Partial | A surviving colony ship can transfer ownership after ground combat, defeated systems clear stale default destinations, non-colony survivors are kept outside hostile stars that hold, and defeat/victory updates run after combat. Surrender/result UI and full v3 reporting still need work. |
 | Defense satellites | Stationary, strong, always on patrol, cannot repair. | 🟡 Partial | The hull is stationary and attached satellites are included in star-defense combat. Patrol, repair restrictions, and the build/attach path still need cleanup. |
 | Patrol coordination bonus | Patrolling defenders receive attack/defense advantages. | 🧱 Scaffold only | Bonus formulas exist but patrol can never be enabled. |
-| Damage and destruction | Health decreases, units die, fleet loss accounting and debris/explosion feedback. | 🟡 Partial | Runtime combat now applies damage and removes destroyed ships robustly. Fleet loss accounting is basic, and debris/explosion feedback is still missing. |
+| Damage and destruction | Health decreases, units die, fleet loss accounting and debris/explosion feedback. | 🟡 Partial | Runtime combat now applies v3-style ship power, star strength, and population damage, and removes destroyed ships robustly. Fleet loss accounting is basic, and debris/explosion feedback is still missing. |
 | Repairs | Friendly docking repairs surviving mobile ships; satellites do not repair. | 🧱 Scaffold only | Repair calculations exist but are never called. |
 | Scanner-based fog of war | Stars/scouts reveal enemy presence, owner, tech, then class/details by range; scout stealth matters. | 🟡 Partial | Spatial visibility levels, star/scout scanners, and stealth calculations exist. Visibility only increases and is never cleared when an entity leaves range; remembered/last-seen presentation is not distinguished. |
 | Fog-of-war rendering | Enemy colonies/ships are hidden or partially identified according to visibility. | 🟡 Partial | Enemy ships and fleets are hidden when visibility is none, and star ownership/detail rendering now reads numeric visibility levels correctly. Stars are still always plotted; remembered/last-seen presentation and fuller class/detail UI remain incomplete. |
@@ -179,7 +181,7 @@ The largest blockers to a complete game are:
 
 | v3 function | v3 behavior/UI | v4 status | Evidence and remaining work |
 |---|---|---|---|
-| AI turn participation | Computer systems choose production and ships choose strategic destinations. | 🟡 Partial | AI players are created and processed before movement. Star build and ship destination decisions can execute, and `./gad4 -- --ai-autoplay` can advance a deterministic no-human five-AI observer game until win condition or max-turn guard. |
+| AI turn participation | Computer systems choose production and ships choose strategic destinations. | 🟡 Partial | AI players are created and processed before movement. Star build and ship destination decisions can execute, and `./gad4 -- --ai-autoplay` can advance a deterministic no-human five-AI observer game until win condition or the default 250-turn max-turn guard. Event presentation windows are hidden by default for unattended autoplay and can be restored with `--show-event-windows`. |
 | AI ship decision matrices | Role-aware selection of colonies, enemies, friendly systems, and fleet formation. | 🟡 Partial | A large decision matrix port exists, and attack destinations can now resolve combat. Fleet formation is still a log-only placeholder in AI, and several factors use placeholders. |
 | AI economy management | Adjusts growth/research/ships by development and threat. | 🧱 Scaffold only | Priorities are calculated but `applyEconomicAllocation()` only logs them (`ai-star.js:133-142`). |
 | AI defenses | Builds satellites/patrols/reacts to threats. | 🧱 Scaffold only | Defense decisions exist, but `activateDefenses()` only logs. |
@@ -233,13 +235,13 @@ The project documentation was refreshed on 2026-08-25 so the docs now agree on c
 - `AI_INTEGRATION_STATUS.md` and `AI_INTEGRATION_TODO.md` describe AI as active but partial: AI turns run, stars can start builds, and ships can set destinations, while economy allocation, defenses, fleet formation, advantage, and finer skill behavior remain incomplete.
 - `README.md` now links only to files that exist and no longer describes the port as a complete 4X game.
 - `INTERNATIONALIZATION_STATUS.md` now serves as the current i18n reference and records that current runtime UI/event strings are localized with parity tests across supported languages.
-- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command and 295-test expected result.
+- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command and 304-test expected result.
 
 This file remains the main parity source of truth. More focused docs may describe implementation details for an area, but their status claims should stay consistent with the tables above.
 
 ## Recommended parity sequence
 
-1. **Make the core game completable:** harden combat/capture edge cases, tune battle outcomes against v3, finish victory/defeat state, and surface combat results to the player.
+1. **Continue making the core game completable:** use the 250-turn autoplay observer to diagnose late-game AI stagnation, deepen attack planning, add richer fleet/result reporting, and keep tuning combat/capture against v3.
 2. **Finish essential player control:** complete the build selector/progress workflow, production lock/equalize behavior, ships-in-system, damage state, patrol, repairs, courier tech transfer, and clear destination controls.
 3. **Restore v3 navigation:** waypoint lists, add/edit/delete/clear, looping, course memory, call-in, attention queue, and event history.
 4. **Finish fleets:** contents/exchange UI, named fleets, rendezvous points, auto-assembly, richer fleet combat reporting, and fleet visibility.

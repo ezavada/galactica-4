@@ -331,6 +331,8 @@ module.exports = function runCommandUITests() {
 
             const endTurnButton = display.getMapButtonRegions().find(button => button.action.type === 'endTurn');
             test.assertNotNull(endTurnButton, 'End Turn button should exist');
+            createOwnedStar(game, 1, 'Sol');
+            createOwnedStar(game, 2, 'Rigel');
             const turnBefore = game.turn;
             const handledEndTurn = game.handleUIClick(endTurnButton.rect.x + 5, endTurnButton.rect.y + 5);
 
@@ -340,6 +342,8 @@ module.exports = function runCommandUITests() {
 
         test.it('closes event windows before advancing the turn', () => {
             const game = createGameForTests();
+            createOwnedStar(game, 1, 'Sol');
+            createOwnedStar(game, 2, 'Rigel');
             game.overlay = { type: 'lab', classIndex: 2 };
             game.uiWindow = 'events';
 
@@ -354,6 +358,8 @@ module.exports = function runCommandUITests() {
 
         test.it('lets the end-turn hotkey advance while an event overlay is open', () => {
             const game = createGameForTests();
+            createOwnedStar(game, 1, 'Sol');
+            createOwnedStar(game, 2, 'Rigel');
             game.overlay = { type: 'stardock', classIndex: 1 };
             game.uiWindow = 'events';
 
@@ -363,6 +369,26 @@ module.exports = function runCommandUITests() {
             test.assertNull(game.overlay, 'End-turn hotkey should close the overlay');
             test.assertNull(game.uiWindow, 'End-turn hotkey should close the event list');
             test.assertEqual(game.turn, turnBefore + 1, 'End-turn hotkey should advance instead of only dismissing the overlay');
+        });
+
+        test.it('queues event presentations and advances them on dismissal', () => {
+            const game = createGameForTests();
+
+            game.queueEventOverlay({ type: 'lab', classIndex: 1 });
+            game.queueEventOverlay({ type: 'stardock', classIndex: 2 });
+
+            test.assertEqual(game.overlay.type, 'lab');
+            test.assertEqual(game.overlayQueue.length, 1);
+
+            game.dismissEventPresentation();
+
+            test.assertEqual(game.overlay.type, 'stardock');
+            test.assertEqual(game.overlay.classIndex, 2);
+            test.assertEqual(game.overlayQueue.length, 0);
+
+            game.dismissEventPresentation();
+
+            test.assertNull(game.overlay);
         });
 
         test.it('handles clicks on selected-star action buttons', () => {

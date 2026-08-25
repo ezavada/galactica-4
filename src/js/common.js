@@ -24,6 +24,8 @@ const EventType = {
     STAR_CAPTURED: 12,  // A star was captured from another player
     PLAYER_DIED: 13,    // A player has been defeated
     GAME_WON: 14,        // A player has won the game
+    BATTLE_RESOLVED: 15, // A combat engagement has completed
+    GAME_DRAW: 16,       // No active players remain
     NEW_TECH_DISCOVERY: 20, // Lab event: reached a new drive class (tech/5)
     NEW_SHIP_CLASS: 21      // Stardock event: first battleship class built for player
 }

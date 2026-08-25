@@ -40,6 +40,8 @@ function runAutoplayTests() {
             test.assertEqual(config.autoplay.seed, 98765, 'Autoplay should store the requested seed');
             test.assertEqual(config.autoplay.turnDelayMs, 123, 'Autoplay should store the requested delay');
             test.assertEqual(config.autoplay.maxTurns, 456, 'Autoplay should store the requested max turns');
+            test.assertEqual(config.autoplay.eventPresentationMs, Autoplay.DEFAULT_AUTOPLAY_EVENT_PRESENTATION_MS, 'Autoplay should store the default event presentation hold for opt-in event windows');
+            test.assertFalse(config.autoplay.showEventWindows, 'Autoplay should hide event windows by default');
             test.assertContains(config.getDescription(), 'AI: all skills', 'Autoplay description should not collapse to one AI skill');
             test.assertDeepEqual(
                 [1, 2, 3, 4, 5].map(playerNum => config.getAISkillForPlayer(playerNum)),
@@ -47,6 +49,35 @@ function runAutoplayTests() {
                 'Each AI player should represent a distinct v3 skill level'
             );
             test.assertEqual(config.validate().length, 0, 'Autoplay config should validate');
+        });
+
+        test.it('can opt into event windows for observed autoplay', () => {
+            const config = Autoplay.createAISkillAutoplayConfig({
+                seed: 98765,
+                showEventWindows: true,
+                eventPresentationMs: 750
+            });
+
+            test.assertTrue(config.autoplay.showEventWindows, 'Autoplay should store the event-window opt-in');
+            test.assertEqual(config.autoplay.eventPresentationMs, 750, 'Autoplay should preserve the event-window hold length');
+        });
+
+        test.it('suppresses event presentation overlays in autoplay unless requested', () => {
+            const quietConfig = Autoplay.createAISkillAutoplayConfig({ seed: 424242 });
+            quietConfig.skipMapGeneration = true;
+            const quietGame = createGame(quietConfig, quietConfig.autoplay.seed);
+
+            test.assertFalse(quietGame.queueEventOverlay({ type: 'lab', classIndex: 1 }), 'Quiet autoplay should reject overlay queueing');
+            test.assertNull(quietGame.overlay, 'Quiet autoplay should not show an overlay');
+            test.assertEqual(quietGame.overlayQueue.length, 0, 'Quiet autoplay should not retain queued overlays');
+
+            const visibleConfig = Autoplay.createAISkillAutoplayConfig({ seed: 424242, showEventWindows: true });
+            visibleConfig.skipMapGeneration = true;
+            const visibleGame = createGame(visibleConfig, visibleConfig.autoplay.seed);
+
+            test.assertTrue(visibleGame.queueEventOverlay({ type: 'lab', classIndex: 1 }), 'Opt-in autoplay should allow overlay queueing');
+            test.assertDefined(visibleGame.overlay, 'Opt-in autoplay should show the event overlay');
+            test.assertEqual(visibleGame.overlay.type, 'lab');
         });
 
         test.it('initializes all AI-only players and maps their current behavior buckets', () => {
@@ -83,6 +114,15 @@ function runAutoplayTests() {
 
             test.assertDeepEqual(firstSnapshot, secondSnapshot, 'Same seed should reproduce the same starting home-star layout');
         });
+
+        test.it('defaults observed autoplay runs to the first 250 turns', () => {
+            const config = Autoplay.createAISkillAutoplayConfig({ seed: 424242 });
+            const controller = new Autoplay.AutoplayController({ getGameResult: () => null }, {});
+
+            test.assertEqual(Autoplay.DEFAULT_AUTOPLAY_MAX_TURNS, 250);
+            test.assertEqual(config.autoplay.maxTurns, 250);
+            test.assertEqual(controller.maxTurns, 250);
+        });
     });
 
     test.describe('Victory State and Autoplay Controller', () => {
@@ -107,6 +147,23 @@ function runAutoplayTests() {
             test.assertEqual(game.winningPlayerNum, 1, 'Only active player should win');
             test.assertEqual(game.victoryTurn, 1, 'Victory should record the current turn');
             test.assertContains(game.getRecentEvents(5).map(event => event.title), 'Victory', 'Victory should be recorded as an event');
+        });
+
+        test.it('marks a no-winner game over when no active players remain', () => {
+            const config = new GameConfig({
+                numHumans: 0,
+                numComputers: 2,
+                skipMapGeneration: true,
+                aiSkillByPlayer: { 1: 1, 2: 2 },
+                omniscient: true
+            });
+            const game = createGame(config, 778);
+
+            game.updatePlayerPieceCounts();
+
+            test.assertTrue(game.isGameOver, 'Game should end when no active players remain');
+            test.assertEqual(game.winningPlayerNum, 0, 'No active players should produce no winner');
+            test.assertContains(game.getRecentEvents(5).map(event => event.title), 'Stalemate', 'No-winner game-over should be recorded as an event');
         });
 
         test.it('does not advance additional turns after victory', () => {
@@ -187,6 +244,44 @@ function runAutoplayTests() {
             test.assertEqual(status.stopReason, 'maxTurns', 'Controller should report max-turn stop reason');
             test.assertEqual(status.turnsRun, 2, 'Controller should report exactly two advanced turns');
             test.assertDefined(fakeGame.lastEvent, 'Max-turn stop should be recorded as an event');
+        });
+
+        test.it('waits for event presentations before advancing another autoplay turn', () => {
+            let now = 1000;
+            let advancedTurns = 0;
+            const fakeGame = {
+                overlay: { type: 'lab', classIndex: 1, createdAt: 1000 },
+                isGameOver: false,
+                dismissEventPresentation() {
+                    this.overlay = null;
+                    this.dismissedOverlay = true;
+                    return true;
+                },
+                endTurn() {
+                    advancedTurns++;
+                    return this.getGameResult();
+                },
+                getGameResult() {
+                    return { isGameOver: false, winningPlayerNum: null, victoryTurn: null };
+                }
+            };
+            const controller = new Autoplay.AutoplayController(fakeGame, {
+                maxTurns: 5,
+                eventPresentationMs: 1000,
+                now: () => now
+            });
+
+            controller.step();
+            test.assertEqual(advancedTurns, 0, 'Autoplay should not advance while the overlay is freshly visible');
+            test.assertFalse(!!fakeGame.dismissedOverlay, 'Autoplay should not dismiss before the hold time expires');
+
+            now = 2000;
+            controller.step();
+            test.assertTrue(fakeGame.dismissedOverlay, 'Autoplay should dismiss the overlay after the hold time');
+            test.assertEqual(advancedTurns, 0, 'Dismissing an overlay should consume the timer step');
+
+            controller.step();
+            test.assertEqual(advancedTurns, 1, 'Autoplay should advance on the next step after event UI is clear');
         });
     });
 }

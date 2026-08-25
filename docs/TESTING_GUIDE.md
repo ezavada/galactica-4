@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 295
-Passed: 295 ✓
+Total: 304
+Passed: 304 ✓
 Failed: 0 ✗
 ```
 
@@ -55,10 +55,10 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - AI manager/player utilities, decision plumbing, and ownership protection.
 - Fog-of-war entity state, visibility calculations, spatial partitioning, and integration paths.
 - Fleet creation, joining, merging, movement, and formation rules.
-- Runtime combat resolution, destruction, interception, docked defenders, and colony capture.
+- Runtime combat resolution, v3-style ship/star strength formulas, destruction, interception, docked defenders, colony capture, defeat/victory updates, and combat summary events.
 - Command UI state, windows, permanent map buttons, popup action buttons, production sliders, hover behavior, and layout details.
 - Ship naming and new tech/class event overlays.
-- Deterministic AI-only autoplay setup, per-player AI skill assignment, victory state, and autoplay stop conditions.
+- Deterministic AI-only autoplay setup, per-player AI skill assignment, 250-turn default cap, quiet/visible event-window modes, victory/stalemate state, and autoplay stop conditions.
 
 ## AI-only parity observer
 
@@ -68,12 +68,14 @@ Run the deterministic smallest-map AI observer with:
 ./gad4 -- --ai-autoplay
 ```
 
-This starts five computer players and no human players. Players 1-5 represent the five v3 AI skill settings: Expert, Good, Average, Passable, and Novice. The default seed is `424242`, fog is disabled for observation, and the game advances automatically until the win condition or the max-turn guard is reached.
+This starts five computer players and no human players. Players 1-5 represent the five v3 AI skill settings: Expert, Good, Average, Passable, and Novice. The default seed is `424242`, fog is disabled for observation, and the game advances automatically until the win condition or the 250-turn max-turn guard is reached.
+
+Autoplay hides event presentation windows by default for unattended testing. Add `--show-event-windows` to display lab/stardock overlays; when shown, the overlays are held briefly before dismissal so they get a visible beat even when the turn timer is short.
 
 Useful options:
 
 ```bash
-./gad4 -- --ai-autoplay --seed=314159 --autoplay-delay=100 --autoplay-max-turns=5000
+./gad4 -- --ai-autoplay --seed=314159 --autoplay-delay=100 --autoplay-max-turns=250 --show-event-windows --autoplay-event-ms=1000
 ```
 
 ## Important interpretation
@@ -84,7 +86,7 @@ Examples:
 
 - AI tests cover active AI turn participation, but economy allocation and defensive actions remain partial.
 - Fog-of-war tests cover visibility state and some rendering behavior, but the full v3 presentation is not complete.
-- Combat tests cover the current runtime combat path, but final combat presentation and v3 balance tuning remain work items.
+- Combat tests cover the current runtime combat path, but final combat presentation, richer fleet reports, and broader v3 balance tuning remain work items.
 
 Use `docs/V3_V4_FEATURE_STATUS.md` for parity status.
 

@@ -27,6 +27,7 @@ class Game {
         this.port = null;
         this.display = null;
         this.overlay = null; // UI overlay for lab/stardock events
+        this.overlayQueue = [];
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
         this.isGameOver = false;
@@ -348,11 +349,70 @@ class Game {
         return true;
     }
 
+    getCurrentMilliseconds() {
+        if (typeof pdg !== 'undefined' && pdg.tm && pdg.tm.getMilliseconds) {
+            return pdg.tm.getMilliseconds();
+        }
+        return Date.now();
+    }
+
+    shouldShowEventWindows() {
+        const autoplay = this.config && this.config.autoplay;
+        return !(autoplay && autoplay.enabled && autoplay.showEventWindows === false);
+    }
+
+    showEventOverlay(overlay) {
+        if (!overlay || !this.shouldShowEventWindows()) {
+            return false;
+        }
+
+        this.overlay = {
+            ...overlay,
+            createdAt: this.getCurrentMilliseconds()
+        };
+        return true;
+    }
+
+    queueEventOverlay(overlay) {
+        if (!overlay || !this.shouldShowEventWindows()) {
+            return false;
+        }
+
+        if (!this.overlay) {
+            this.showEventOverlay(overlay);
+        } else {
+            this.overlayQueue.push({ ...overlay });
+        }
+        return true;
+    }
+
+    hasEventPresentation() {
+        return !!(this.overlay || (this.overlayQueue && this.overlayQueue.length > 0));
+    }
+
+    dismissEventPresentation() {
+        if (!this.hasEventPresentation()) {
+            return false;
+        }
+
+        this.overlay = null;
+        if (this.overlayQueue && this.overlayQueue.length > 0) {
+            this.showEventOverlay(this.overlayQueue.shift());
+        }
+        return true;
+    }
+
+    clearEventPresentations() {
+        const hadPresentation = this.hasEventPresentation();
+        this.overlay = null;
+        this.overlayQueue = [];
+        return hadPresentation;
+    }
+
     closeEventWindowsForTurnAdvance() {
         let closedAny = false;
 
-        if (this.overlay) {
-            this.overlay = null;
+        if (this.clearEventPresentations()) {
             closedAny = true;
         }
 
@@ -984,7 +1044,7 @@ class Game {
 
         // Dismiss overlay on any key press
         if (this.overlay) {
-            this.overlay = null;
+            this.dismissEventPresentation();
             return true;
         }
         const char = this.getKeyChar(key);
@@ -1210,6 +1270,8 @@ class Game {
         const activePlayerIds = this.getActivePlayerIds();
         if (activePlayerIds.length === 1) {
             this.markGameWon(activePlayerIds[0]);
+        } else if (activePlayerIds.length === 0) {
+            this.markGameDraw();
         }
 
         return this.winningPlayerNum;
@@ -1229,6 +1291,21 @@ class Game {
         const message = I18n.formatString(644, '{0} wins on turn {1}', playerName, this.victoryTurn);
         console.log(message);
         this.recordEvent(I18n.getString(614, 'Victory'), message, { type: Common.EventType.GAME_WON });
+        return true;
+    }
+
+    markGameDraw() {
+        if (this.isGameOver) {
+            return false;
+        }
+
+        this.isGameOver = true;
+        this.winningPlayerNum = 0;
+        this.victoryTurn = this.turn;
+
+        const message = I18n.formatString(652, 'No players remain on turn {0}', this.victoryTurn);
+        console.log(message);
+        this.recordEvent(I18n.getString(615, 'Stalemate'), message, { type: Common.EventType.GAME_DRAW });
         return true;
     }
 
@@ -1433,7 +1510,7 @@ class Game {
                 break;
             case Common.EventType.NEW_TECH_DISCOVERY: {
                 const classIndex = where || Math.floor(who.techLevel / 5);
-                this.overlay = { type: 'lab', classIndex, createdAt: pdg.tm.getMilliseconds() };
+                this.queueEventOverlay({ type: 'lab', classIndex });
                 eventTitle = I18n.getString(610, 'Research');
                 eventMessage = I18n.formatString(633, 'New drive class discovered: {0}', classIndex);
                 console.log(`🧪 ${eventMessage}`);
@@ -1441,7 +1518,7 @@ class Game {
             }
             case Common.EventType.NEW_SHIP_CLASS: {
                 const classIndex = where || (who.classIndex || 1);
-                this.overlay = { type: 'stardock', classIndex, createdAt: pdg.tm.getMilliseconds(), ship: who };
+                this.queueEventOverlay({ type: 'stardock', classIndex, ship: who });
                 eventTitle = I18n.getString(611, 'Stardock');
                 eventMessage = I18n.formatString(634, 'New ship class commissioned: {0}', classIndex);
                 console.log(`🏭 ${eventMessage}`);

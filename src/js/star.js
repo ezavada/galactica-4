@@ -393,13 +393,22 @@ class Star {
     
     // Combat methods - ported from CStar.cpp
     getAttackStrength() {
-        // Population provides attack strength
-        return this.population * 10;
+        if (this.game && this.game.rules && typeof this.game.rules.getStarAttackStrength === 'function') {
+            return this.game.rules.getStarAttackStrength(this);
+        }
+        let factor = 4.0;
+        if (this.population > 10) {
+            factor = Math.log10(this.population * 1000.0);
+        }
+        const strength = Math.floor((factor * factor * 5) - 50);
+        return Math.floor(strength * this.techLevel);
     }
     
     getDefenseStrength() {
-        // Population provides defense strength
-        return this.population * 100;
+        if (this.game && this.game.rules && typeof this.game.rules.getStarDefenseStrength === 'function') {
+            return this.game.rules.getStarDefenseStrength(this);
+        }
+        return this.population < 10 ? 0 : this.getAttackStrength();
     }
     
     getOneAttackAgainst(defender) {
@@ -409,14 +418,22 @@ class Star {
     }
     
     takeDamage(amount) {
-        // Population takes damage
-        const populationDamage = Math.floor(amount / 100); // 1 population per 100 damage
-        const actualPopulationKilled = Math.min(populationDamage, this.population);
+        // v3 planets are damaged, neutralized, and left in-place; damage does not roll over.
+        let populationFactor = this.population / 49000.0;
+        if (populationFactor < 0.1) {
+            populationFactor = 0.1;
+        }
+        const populationDamage = Math.floor(amount * 32.0 * populationFactor);
         this.population = Math.max(0, this.population - populationDamage);
-        
-        // Return excess damage if population is wiped out
-        if (this.population <= 0) {
-            return amount - (actualPopulationKilled * 100);
+
+        if (this.techLevel > 0) {
+            const productionAllocations = [this.shipBuilding, this.research];
+            for (const allocation of productionAllocations) {
+                allocation.benefit -= allocation.benefit * 0.0001 * amount / this.techLevel;
+                if (!(allocation.benefit >= 6)) {
+                    allocation.benefit = 6;
+                }
+            }
         }
         
         return 0;

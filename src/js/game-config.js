@@ -41,7 +41,9 @@ class GameConfig {
             enabled: false,
             seed: null,
             turnDelayMs: 250,
-            maxTurns: 10000,
+            maxTurns: 250,
+            eventPresentationMs: 1000,
+            showEventWindows: false,
             ...(options.autoplay || {})
         };
     }
@@ -135,7 +137,9 @@ class GameConfig {
                 enabled: true,
                 seed,
                 turnDelayMs: options.turnDelayMs !== undefined ? options.turnDelayMs : 250,
-                maxTurns: options.maxTurns !== undefined ? options.maxTurns : 10000
+                maxTurns: options.maxTurns !== undefined ? options.maxTurns : 250,
+                eventPresentationMs: options.eventPresentationMs !== undefined ? options.eventPresentationMs : 1000,
+                showEventWindows: options.showEventWindows !== undefined ? options.showEventWindows : false
             }
         });
     }

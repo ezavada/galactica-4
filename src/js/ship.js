@@ -91,30 +91,16 @@ class Ship {
     }
     
     calculatePower() {
-        // Calculate ship power based on type and tech level
-        let basePower = 1;
-        switch (this.type) {
-            case 'scout':
-                basePower = 1;
-                break;
-            case 'colony':
-                basePower = 2;
-                break;
-            case 'battleship':
-                basePower = 5;
-                break;
-            case 'defense':
-                basePower = 3;
-                break;
-            default:
-                basePower = 1;
+        // v3 ships use tech level as power, except scouts/couriers have no combat power.
+        if (this.game && this.game.rules && typeof this.game.rules.getShipPower === 'function') {
+            return this.game.rules.getShipPower(this);
         }
-        return basePower + Math.floor(this.techLevel / 2);
+        return this.type === 'scout' ? 0 : this.techLevel;
     }
     
     // Combat methods - ported from CShip.cpp
     getAttackStrength() {
-        return (this.power * 50) - Math.floor(this.damage / 8);
+        return this.power * 50;
     }
     
     getDefenseStrength() {

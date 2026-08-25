@@ -3,6 +3,8 @@
 // Implements multi-target combat with damage rollover mechanics
 
 // PDG is available globally in the PDG environment
+const Common = require('./common.js');
+const I18n = require('./i18n.js');
 
 class CombatSystem {
     constructor(game) {
@@ -146,21 +148,60 @@ class CombatSystem {
         let haveWinner = false;
         let attacker;
         let defender;
-        let numDefenders = defenders.length + defendersReserves.length;
+        let numDefenders = defenders.filter(entity => this.isAliveCombatant(entity)).length +
+            defendersReserves.filter(entity => this.isAliveCombatant(entity)).length;
         let iterationCount = 0;
         const maxIterations = 100; // Prevent infinite loops
         
         // Choose attacker source (regular forces or reserves)
-        let attackerSource = attackers.length > 0 ? attackers : attackersReserves;
+        let attackerSource = attackers.some(entity => this.isAliveCombatant(entity)) ? attackers : attackersReserves;
         let attackerIndex = 0;
         
-        if (attackerSource.length === 0) {
+        if (!attackerSource.some(entity => this.isAliveCombatant(entity))) {
             console.log("No attackers remain");
             return true; // No attackers, battle must be over
+        }
+
+        if (numDefenders <= 0) {
+            return true;
         }
         
         let defenderIndex = 0;
         let reserveDefenderIndex = 0;
+
+        const nextAliveDefender = () => {
+            if (defenders.some(entity => this.isAliveCombatant(entity))) {
+                for (let attempts = 0; attempts < defenders.length; attempts++) {
+                    if (defenderIndex >= defenders.length) {
+                        defenderIndex = 0; // Wrap around
+                        console.log("Attacked all defenders, wrapping around");
+                    }
+                    const candidate = defenders[defenderIndex];
+                    defenderIndex++;
+                    if (this.isAliveCombatant(candidate)) {
+                        console.log("Taking defender from regular forces");
+                        return candidate;
+                    }
+                }
+            }
+
+            if (defendersReserves.some(entity => this.isAliveCombatant(entity))) {
+                for (let attempts = 0; attempts < defendersReserves.length; attempts++) {
+                    if (reserveDefenderIndex >= defendersReserves.length) {
+                        reserveDefenderIndex = 0; // Wrap around
+                        console.log("Attacked all defending reserves, wrapping around");
+                    }
+                    const candidate = defendersReserves[reserveDefenderIndex];
+                    reserveDefenderIndex++;
+                    if (this.isAliveCombatant(candidate)) {
+                        console.log("Taking defender from reserves forces");
+                        return candidate;
+                    }
+                }
+            }
+
+            return null;
+        };
         
         while (!done && iterationCount < maxIterations) {
             iterationCount++;
@@ -175,6 +216,9 @@ class CombatSystem {
             
             attacker = attackerSource[attackerIndex];
             attackerIndex++;
+            if (!this.isAliveCombatant(attacker)) {
+                continue;
+            }
             
             if (!done) {
                 let extraDamage = 0;
@@ -186,24 +230,8 @@ class CombatSystem {
                 console.log(`${attacker.type} attacking up to ${targets} targets`);
                 
                 do {
-                    // Get next defender
-                    if (defenders.length > 0) {
-                        console.log("Taking defender from regular forces");
-                        if (defenderIndex >= defenders.length) {
-                            defenderIndex = 0; // Wrap around
-                            console.log("Attacked all defenders, wrapping around");
-                        }
-                        defender = defenders[defenderIndex];
-                        defenderIndex++;
-                    } else if (defendersReserves.length > 0) {
-                        console.log("Taking defender from reserves forces");
-                        if (reserveDefenderIndex >= defendersReserves.length) {
-                            reserveDefenderIndex = 0; // Wrap around
-                            console.log("Attacked all defending reserves, wrapping around");
-                        }
-                        defender = defendersReserves[reserveDefenderIndex];
-                        reserveDefenderIndex++;
-                    } else {
+                    defender = nextAliveDefender();
+                    if (!defender) {
                         done = true;
                         haveWinner = true;
                         console.log("Defenders are wiped out");
@@ -485,6 +513,104 @@ class CombatSystem {
             }
         }
     }
+
+    getCombatLocationLabel(destination) {
+        if (!destination) {
+            return I18n.getString(639, 'target');
+        }
+        if (destination.name) {
+            return destination.name;
+        }
+        if (this.isFleet(destination)) {
+            return I18n.formatString(560, 'Fleet {0}', destination.id || '');
+        }
+        if (destination.x !== undefined && destination.y !== undefined) {
+            return `(${Math.round(destination.x)}, ${Math.round(destination.y)})`;
+        }
+        return I18n.getString(639, 'target');
+    }
+
+    getCombatOutcome(destination, attackerOwner, attackerSurvivors, defenderSurvivors) {
+        const attackersAlive = attackerSurvivors.length > 0;
+        const defendersAlive = defenderSurvivors.length > 0;
+
+        if (this.isStar(destination)) {
+            const destinationStillEnemy = this.isEnemyOwnedStar(destination, attackerOwner);
+            if (attackersAlive && !destinationStillEnemy) {
+                return {
+                    attackersWon: true,
+                    defendersWon: false,
+                    label: I18n.getString(648, 'attacker victory')
+                };
+            }
+            if (destinationStillEnemy || (!attackersAlive && defendersAlive)) {
+                return {
+                    attackersWon: false,
+                    defendersWon: true,
+                    label: I18n.getString(649, 'defender victory')
+                };
+            }
+        } else {
+            if (attackersAlive && !defendersAlive) {
+                return {
+                    attackersWon: true,
+                    defendersWon: false,
+                    label: I18n.getString(648, 'attacker victory')
+                };
+            }
+            if (!attackersAlive && defendersAlive) {
+                return {
+                    attackersWon: false,
+                    defendersWon: true,
+                    label: I18n.getString(649, 'defender victory')
+                };
+            }
+        }
+
+        return {
+            attackersWon: false,
+            defendersWon: false,
+            label: I18n.getString(650, 'inconclusive')
+        };
+    }
+
+    dislodgeAttackersFromHostileStar(destination, attackerOwner, attackerSurvivors) {
+        if (!this.isStar(destination) || !this.isEnemyOwnedStar(destination, attackerOwner)) {
+            return;
+        }
+
+        for (const entity of attackerSurvivors) {
+            if (this.isShip(entity) && entity.star === destination) {
+                destination.removeShip(entity);
+                entity.star = null;
+                entity.x = destination.x;
+                entity.y = destination.y;
+                if (entity.updateSpatialLocation) {
+                    entity.updateSpatialLocation();
+                }
+            }
+        }
+    }
+
+    recordCombatSummary(destination, outcome, attackersLost, defendersLost) {
+        if (!this.game || typeof this.game.recordEvent !== 'function') {
+            return;
+        }
+
+        this.game.recordEvent(
+            I18n.getString(607, 'Combat'),
+            I18n.formatString(
+                651,
+                'Combat at {0}: {1}. Losses: attackers {2}, defenders {3}.',
+                this.getCombatLocationLabel(destination),
+                outcome.label,
+                attackersLost,
+                defendersLost
+            ),
+            { type: Common.EventType.BATTLE_RESOLVED }
+        );
+    }
+
     // Resolve combat between attackers and defenders
     resolveCombat(attacker, destination) {
         if (!attacker || !destination) {
@@ -527,6 +653,8 @@ class CombatSystem {
         let attackerSurvivors = spaceResult.attackerSurvivors.filter(entity => this.isAliveCombatant(entity));
         let defenderSurvivors = spaceResult.defenderSurvivors.filter(entity => this.isAliveCombatant(entity));
         let groundResult = null;
+        let starNeutralized = false;
+        let populationCasualties = 0;
 
         if (attackerSurvivors.length > 0 &&
                 defenderSurvivors.length === 0 &&
@@ -539,11 +667,13 @@ class CombatSystem {
             const defeatedPopulation = Math.max(0, startingPopulation - Math.max(0, destination.population || 0));
             if (defeatedPopulation > 0) {
                 const casualties = Math.floor(defeatedPopulation / 10) + 1;
+                populationCasualties = casualties;
                 destination.population = Math.max(0, startingPopulation - casualties);
             }
 
             if (groundResult.defenderSurvivors.length === 0 || destination.owner === 0) {
                 destination.owner = 0;
+                starNeutralized = true;
                 if (destination.clearDefaultDestination) {
                     destination.clearDefaultDestination();
                 }
@@ -559,21 +689,30 @@ class CombatSystem {
             this.game.colonizeStar(destination, survivingColony, originalDestinationOwner);
         }
 
+        this.dislodgeAttackersFromHostileStar(destination, attackerOwner, attackerSurvivors);
         this.cleanupEmptyFleets(attackerOwner);
 
         const attackersLost = spaceResult.attackersLost + (groundResult ? groundResult.attackersLost : 0);
         const defendersLost = spaceResult.defendersLost + (groundResult ? groundResult.defendersLost : 0);
+        const finalOutcome = this.getCombatOutcome(destination, attackerOwner, attackerSurvivors, defenderSurvivors);
+        this.recordCombatSummary(destination, finalOutcome, attackersLost, defendersLost);
+
+        if (this.game && typeof this.game.updatePlayerPieceCounts === 'function') {
+            this.game.updatePlayerPieceCounts();
+        }
 
         console.log("Finished Combat");
 
         return {
-            attackersWon: attackerSurvivors.length > 0,
-            defendersWon: defenderSurvivors.length > 0 || this.isEnemyOwnedStar(destination, attackerOwner),
+            attackersWon: finalOutcome.attackersWon,
+            defendersWon: finalOutcome.defendersWon,
             attackersLost,
             defendersLost,
             hasColony: !!survivingColony,
             canColonize,
-            destinationOwner: destination.owner
+            destinationOwner: destination.owner,
+            starNeutralized,
+            populationCasualties
         };
     }
 }

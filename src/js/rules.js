@@ -48,8 +48,8 @@ class Rules {
         if (star.population > 10) {
             factor = Math.log10(star.population * 1000.0);
         }
-        let strength = (factor * factor * 5) - 50;
-        return strength * star.techLevel;
+        const strength = Math.floor((factor * factor * 5) - 50);
+        return Math.floor(strength * star.techLevel);
     }
 
     getStarDefenseStrength(star) {
