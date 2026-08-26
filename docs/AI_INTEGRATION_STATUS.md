@@ -2,7 +2,7 @@
 
 Last reviewed: 2026-08-25
 
-This guide describes the AI system as it exists in the current runtime. The old “Phase 4 not yet implemented” wording is no longer accurate: AI players are now created and processed during the turn loop. The v3-backed runtime computer-player rules are active; remaining work is mostly setup UI, waypoint/rendezvous UI, reporting, and future enhancements.
+This guide describes the AI system as it exists in the current runtime. The old “Phase 4 not yet implemented” wording is no longer accurate: AI players are now created and processed during the turn loop. The v3-backed runtime computer-player rules are active; remaining work is mostly setup UI, waypoint/course UI, reporting, and future enhancements.
 
 ## Current status
 
@@ -21,7 +21,7 @@ AI is integrated into the local single-player runtime:
 
 Remaining v3 parity gaps are outside the Section 7 runtime AI rules:
 
-- Fleet formation works for docked ships, but the wider v3 fleet/player UI around rendezvous, exchange, and course tools is still missing.
+- Fleet formation works for docked ships and rendezvous assembly now has a simple UI. The wider v3 fleet/player UI around sortable roster polish, richer exchange workflows, and course tools is still incomplete.
 - AI orders use v4's single-destination movement until the full v3 waypoint/course model is ported for all players.
 - Computer advantage is applied to production, but the full v3 setup range is not exposed in the startup UI.
 - Older three-bucket helper paths remain as scaffolding/stat display, but they should not be used for new C++-backed behavior where v3's five-value skill actually controls outcomes.
@@ -112,7 +112,7 @@ Ownership controls:
 Confirmed remaining v3 work adjacent to AI:
 
 - Integrate AI orders with the full waypoint/course model once that navigation system is ported.
-- Add rendezvous, fleet exchange UI, and course tools around the now-active fleet formation path.
+- Polish fleet roster/exchange UI and add course tools around the now-active fleet formation/rendezvous path.
 - Expose the full v3 computer-advantage range in setup.
 
 Possible v4 enhancements, not counted as v3 parity gaps:
@@ -131,7 +131,7 @@ Run the full suite with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 334 passed, 0 failed.
+Current expected result: 344 passed, 0 failed.
 
 The deterministic AI-only parity observer can be launched with `./gad4 -- --ai-autoplay`. It creates five computer players on the smallest map with v3 skill levels Expert, Good, Average, Passable, and Novice represented by players 1-5, uses a fixed default seed of `424242`, and advances turns until the win condition or the 250-turn max-turn guard. Event presentation windows are hidden by default for unattended runs; add `--show-event-windows` to display lab/stardock overlays, which are held briefly before the next autoplay turn.
 

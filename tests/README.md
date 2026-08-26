@@ -6,7 +6,7 @@ Run the full suite from the project root with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 334 passed, 0 failed.
+Current expected result: 344 passed, 0 failed.
 
 The launcher downloads the checksum-pinned public PDG release on first use;
 no sibling `pdg` or `pdg-devel` checkout is required.
@@ -32,6 +32,7 @@ no sibling `pdg` or `pdg-devel` checkout is required.
 - V3 game rule parity
 - Command UI
 - Fleet formation
+- Rendezvous and fleet UI
 - Ship naming and events
 - AI skill autoplay
 

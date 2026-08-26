@@ -139,6 +139,9 @@ class VisibilityCalculator {
         for (const entity of this.game.allFleets || []) {
             addEntity(entity);
         }
+        for (const entity of this.game.allRendezvous || []) {
+            addEntity(entity);
+        }
 
         return entities;
     }
@@ -221,7 +224,7 @@ class VisibilityCalculator {
     getVisibleEntitiesForPlayer(playerNum) {
         // If omniscient mode is enabled, return all entities
         if (this.game.config && this.game.config.omniscient) {
-            return [...this.game.stars, ...this.game.allShips, ...this.game.allFleets].filter(entity => entity.owner !== playerNum);
+            return [...this.game.stars, ...this.game.allShips, ...this.game.allFleets, ...(this.game.allRendezvous || [])].filter(entity => entity.owner !== playerNum);
         }
         
         const visibleEntities = [];
@@ -259,6 +262,8 @@ class VisibilityCalculator {
                 allEntities = this.game.stars;
             } else if (entityType === Common.SpatialConstants.ENTITY_TYPE_FLEET) {
                 allEntities = this.game.allFleets;
+            } else if (entityType === Common.SpatialConstants.ENTITY_TYPE_RENDEZVOUS) {
+                allEntities = this.game.allRendezvous || [];
             }
             return allEntities.filter(entity => entity.owner !== playerNum);
         }
@@ -278,10 +283,12 @@ class VisibilityCalculator {
                     const isStar = this.game.factory.isStar(entity);
                     const isShip = this.game.factory.isShip(entity);
                     const isFleet = this.game.factory.isFleet && this.game.factory.isFleet(entity);
+                    const isRendezvous = this.game.factory.isRendezvous && this.game.factory.isRendezvous(entity);
                     
                     const isCorrectType = (entityType === Common.SpatialConstants.ENTITY_TYPE_STAR && isStar) ||
                                         (entityType === Common.SpatialConstants.ENTITY_TYPE_SHIP && isShip) ||
-                                        (entityType === Common.SpatialConstants.ENTITY_TYPE_FLEET && isFleet);
+                                        (entityType === Common.SpatialConstants.ENTITY_TYPE_FLEET && isFleet) ||
+                                        (entityType === Common.SpatialConstants.ENTITY_TYPE_RENDEZVOUS && isRendezvous);
                     
                     if (isCorrectType) {
                         const visibility = this.calculateVisibilityToEntity(scanner, entity);
@@ -325,7 +332,8 @@ class VisibilityCalculator {
                 totalVisible: visibleEntities.length,
                 visibleStars: visibleEntities.filter(e => this.game.factory.isStar(e)).length,
                 visibleShips: visibleEntities.filter(e => this.game.factory.isShip(e)).length,
-                visibleFleets: visibleEntities.filter(e => this.game.factory.isFleet && this.game.factory.isFleet(e)).length
+                visibleFleets: visibleEntities.filter(e => this.game.factory.isFleet && this.game.factory.isFleet(e)).length,
+                visibleRendezvous: visibleEntities.filter(e => this.game.factory.isRendezvous && this.game.factory.isRendezvous(e)).length
             };
         }
         

@@ -5,6 +5,7 @@ class Factory {
     constructor() {
         this.starConstructor = require('./star.js');
         this.shipConstructor = require('./ship.js');
+        this.rendezvousConstructor = require('./rendezvous.js');
         this.game = null;
     }
 
@@ -24,11 +25,17 @@ class Factory {
         return ship;
     }
     
-    createFleet(x, y, owner) {
+    createFleet(x, y, owner, name = null) {
         const Fleet = require('./fleet.js');
-        const fleet = new Fleet(x, y, this.game, owner);
+        const fleet = new Fleet(x, y, this.game, owner, name);
         this.game.entityAdded(fleet);
         return fleet;
+    }
+
+    createRendezvous(x, y, owner, name = null, anchor = null) {
+        const rendezvous = new this.rendezvousConstructor(x, y, this.game, owner, name, anchor);
+        this.game.entityAdded(rendezvous);
+        return rendezvous;
     }
 
     isStar(object) {
@@ -42,6 +49,10 @@ class Factory {
     isFleet(object) {
         const Fleet = require('./fleet.js');
         return object instanceof Fleet;
+    }
+
+    isRendezvous(object) {
+        return object instanceof this.rendezvousConstructor;
     }
 }
 

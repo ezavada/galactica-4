@@ -139,10 +139,35 @@
 563	Fin du tour
 564	Croissance
 565	Recherche
+566	Flottes
+567	Rendez-vous
 568	Galactica-4
 570	Nouvelle technologie de propulsion
 571	Nouvelle classe {0} mise en service
 572	Appuyez sur une touche pour continuer
+573	Renommer
+574	Supprimer
+575	Déplacer
+576	Effacer
+577	Patrouille
+578	Contenu
+579	Position :
+580	Rassemblement :
+581	Aucune flotte
+582	Liste des flottes
+583	Aucune flotte ni point de rendez-vous pour l'instant.
+584	Sélectionner
+585	Retirer
+586	Transférer
+587	Nom :
+588	<Enter> Enregistrer   <Esc> Annuler
+589	Placer rendez-vous
+590	Déplacer rendez-vous
+591	Flotte
+592	Point
+593	Cliquez sur la carte ou un objet pour le placer.
+594	Cliquez sur la carte ou un objet pour le déplacer.
+595	Destination :
 
 # Event titles and messages (600-699)
 600	Événement
@@ -195,6 +220,25 @@
 651	Combat à {0} : {1}. Pertes : attaquants {2}, défenseurs {3}.
 652	Aucun joueur ne reste au tour {0}
 653	Aucun vainqueur
+655	Rendez-vous {0}
+656	({0}, {1})
+657	+{0} de plus
+658	Cliquez sur la carte ou un objet pour placer un point de rendez-vous.
+659	Cliquez sur la carte ou un objet pour déplacer {0}.
+660	{0} placé en ({1}, {2})
+661	{0} déplacé vers ({1}, {2})
+662	{0} supprimé
+663	Vous ne pouvez gérer que vos propres flottes et points de rendez-vous.
+664	{0} renommé en {1}
+665	Ordres de {0} effacés
+666	{0} patrouille maintenant
+667	{0} ne patrouille plus
+668	{0} affectée à {1}
+669	{0} formée à {1}
+670	{0} a rejoint {1}
+671	{0} retiré de {1}
+672	{0} déplacé vers {1}
+673	Renommer {0}
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
 800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion

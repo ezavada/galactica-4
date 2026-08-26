@@ -21,6 +21,7 @@ const runCombatTests = require('./combat.test.js');
 const runGameRuleTests = require('./game-rules.test.js');
 const runCommandUITests = require('./command-ui.test.js');
 const runFleetFormationTests = require('./fleet-formation.test.js');
+const runRendezvousTests = require('./rendezvous.test.js');
 const runShipNamingEventsTests = require('./ship-naming-events.test.js');
 const runAutoplayTests = require('./autoplay.test.js');
 
@@ -82,6 +83,9 @@ try {
 
     console.log('\n🔗 Running Fleet Formation Tests...');
     runFleetFormationTests();
+
+    console.log('\n📍 Running Rendezvous & Fleet UI Tests...');
+    runRendezvousTests();
 
     console.log('\n🚢 Running Ship Naming & Events Tests...');
     runShipNamingEventsTests();

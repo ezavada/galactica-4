@@ -3,15 +3,17 @@
 // Ported from original C++ CFleet class
 
 const Common = require('./common.js');
+const I18n = require('./i18n.js');
 
 class Fleet {
-    constructor(x, y, game, owner) {
+    constructor(x, y, game, owner, name = null) {
         this.id = Fleet.nextId++; // Unique ID for this fleet
         this.x = x;
         this.y = y;
         this.owner = owner;
         this.game = game;
         this.type = 'fleet';
+        this.name = name || I18n.formatString(560, 'Fleet {0}', this.id);
         this.star = null;
         this.onPatrol = false;
         
@@ -98,6 +100,14 @@ class Fleet {
         
         this.ships.splice(index, 1);
         ship.fleet = null;
+        ship.x = this.x;
+        ship.y = this.y;
+        if (ship.setPatrol) {
+            ship.setPatrol(false);
+        }
+        if (ship.updateSpatialLocation) {
+            ship.updateSpatialLocation();
+        }
         
         // Recalculate fleet stats
         this.calculateFleetStats();
@@ -402,6 +412,11 @@ class Fleet {
                 if (typeof this.game.applyTechnologyTransferToStar === 'function') {
                     this.game.applyTechnologyTransferToStar(this, arrivingDestination);
                 }
+            }
+        } else if (arrivingObjectType === Common.ObjectType.RENDEZVOUS) {
+            console.log(`Fleet ${this.id} arrived at rendezvous ${arrivingDestination.name}`);
+            if (this.owner === arrivingDestination.owner && typeof this.game.handleRendezvousArrival === 'function') {
+                this.game.handleRendezvousArrival(this, arrivingDestination);
             }
         } else {
             console.log(`Fleet ${this.id} arrived at destination`);

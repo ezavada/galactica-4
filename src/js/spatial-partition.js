@@ -14,6 +14,7 @@ class SpatialCell {
         this.ships = [];      // Ships in this cell (move frequently)
         this.defense = [];    // Defense satellites (part of star systems)
         this.fleets = [];     // Fleets in this cell (move frequently)
+        this.rendezvous = []; // Rendezvous points (usually static, sometimes moved by UI)
     }
     
     addEntity(entity, entityType) {
@@ -36,6 +37,11 @@ class SpatialCell {
             case Common.SpatialConstants.ENTITY_TYPE_FLEET:
                 if (!this.fleets.includes(entity)) {
                     this.fleets.push(entity);
+                }
+                break;
+            case Common.SpatialConstants.ENTITY_TYPE_RENDEZVOUS:
+                if (!this.rendezvous.includes(entity)) {
+                    this.rendezvous.push(entity);
                 }
                 break;
         }
@@ -67,11 +73,17 @@ class SpatialCell {
                     this.fleets.splice(fleetIndex, 1);
                 }
                 break;
+            case Common.SpatialConstants.ENTITY_TYPE_RENDEZVOUS:
+                const rendezvousIndex = this.rendezvous.indexOf(entity);
+                if (rendezvousIndex !== -1) {
+                    this.rendezvous.splice(rendezvousIndex, 1);
+                }
+                break;
         }
     }
     
     getAllEntities() {
-        return [...this.stars, ...this.ships, ...this.defense, ...this.fleets];
+        return [...this.stars, ...this.ships, ...this.defense, ...this.fleets, ...this.rendezvous];
     }
     
     getEntitiesByType(entityType) {
@@ -84,6 +96,8 @@ class SpatialCell {
                 return this.defense;
             case Common.SpatialConstants.ENTITY_TYPE_FLEET:
                 return this.fleets;
+            case Common.SpatialConstants.ENTITY_TYPE_RENDEZVOUS:
+                return this.rendezvous;
             default:
                 return this.getAllEntities();
         }
@@ -261,6 +275,7 @@ class SpatialPartition {
         let totalShips = 0;
         let totalDefense = 0;
         let totalFleets = 0;
+        let totalRendezvous = 0;
         
         for (const sector of this.sectors.values()) {
             for (let cellX = 0; cellX < Common.SpatialConstants.CELLS_PER_SECTOR; cellX++) {
@@ -272,6 +287,7 @@ class SpatialPartition {
                         totalShips += cell.ships.length;
                         totalDefense += cell.defense.length;
                         totalFleets += cell.fleets.length;
+                        totalRendezvous += cell.rendezvous.length;
                     }
                 }
             }
@@ -283,7 +299,8 @@ class SpatialPartition {
             totalStars: totalStars,
             totalShips: totalShips,
             totalDefense: totalDefense,
-            totalFleets: totalFleets
+            totalFleets: totalFleets,
+            totalRendezvous: totalRendezvous
         };
     }
 }

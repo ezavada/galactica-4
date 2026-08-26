@@ -139,10 +139,35 @@
 563	Zug beenden
 564	Wachstum
 565	Forschung
+566	Flotten
+567	Rendezvous
 568	Galactica-4
 570	Neue Antriebstechnologie
 571	Neue Klasse {0} in Dienst gestellt
 572	Drücken Sie eine Taste zum Fortfahren
+573	Umbenennen
+574	Löschen
+575	Bewegen
+576	Löschen
+577	Patrouille
+578	Inhalt
+579	Position:
+580	Sammelt:
+581	Keine Flotte
+582	Flottenliste
+583	Noch keine Flotten oder Rendezvouspunkte.
+584	Auswählen
+585	Entfernen
+586	Transfer
+587	Name:
+588	<Enter> Speichern   <Esc> Abbrechen
+589	Rendezvous setzen
+590	Rendezvous bewegen
+591	Flotte
+592	Punkt
+593	Klicken Sie auf die Karte oder ein Objekt, um ihn zu setzen.
+594	Klicken Sie auf die Karte oder ein Objekt, um ihn zu bewegen.
+595	Ziel:
 
 # Event titles and messages (600-699)
 600	Ereignis
@@ -195,6 +220,25 @@
 651	Kampf bei {0}: {1}. Verluste: Angreifer {2}, Verteidiger {3}.
 652	In Runde {0} bleiben keine Spieler übrig
 653	Kein Sieger
+655	Rendezvous {0}
+656	({0}, {1})
+657	+{0} weitere
+658	Klicken Sie auf die Karte oder ein Objekt, um einen Rendezvouspunkt zu setzen.
+659	Klicken Sie auf die Karte oder ein Objekt, um {0} zu bewegen.
+660	{0} bei ({1}, {2}) gesetzt
+661	{0} nach ({1}, {2}) bewegt
+662	{0} gelöscht
+663	Sie können nur Ihre eigenen Flotten und Rendezvouspunkte verwalten.
+664	{0} in {1} umbenannt
+665	Befehle von {0} gelöscht
+666	{0} patrouilliert jetzt
+667	{0} patrouilliert nicht mehr
+668	{0} {1} zugewiesen
+669	{0} bei {1} gebildet
+670	{0} trat {1} bei
+671	{0} aus {1} entfernt
+672	{0} nach {1} bewegt
+673	{0} umbenennen
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
 800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion

@@ -139,10 +139,35 @@
 563	Terminar turno
 564	Crecimiento
 565	Investigación
+566	Flotas
+567	Punto de reunión
 568	Galactica-4
 570	Nueva tecnología de impulso
 571	Nueva clase {0} comisionada
 572	Pulsa cualquier tecla para continuar
+573	Renombrar
+574	Eliminar
+575	Mover
+576	Limpiar
+577	Patrulla
+578	Contenido
+579	Ubicación:
+580	Reuniendo:
+581	Sin flota
+582	Lista de flotas
+583	Aún no hay flotas ni puntos de reunión.
+584	Seleccionar
+585	Quitar
+586	Transferir
+587	Nombre:
+588	<Enter> Guardar   <Esc> Cancelar
+589	Colocar reunión
+590	Mover reunión
+591	Flota
+592	Punto
+593	Haz clic en el mapa o en un objeto para colocarlo.
+594	Haz clic en el mapa o en un objeto para moverlo.
+595	Destino:
 
 # Event titles and messages (600-699)
 600	Evento
@@ -195,6 +220,25 @@
 651	Combate en {0}: {1}. Bajas: atacantes {2}, defensores {3}.
 652	No quedan jugadores en el turno {0}
 653	Sin ganador
+655	Punto de reunión {0}
+656	({0}, {1})
+657	+{0} más
+658	Haz clic en el mapa o en un objeto para colocar un punto de reunión.
+659	Haz clic en el mapa o en un objeto para mover {0}.
+660	{0} colocado en ({1}, {2})
+661	{0} movido a ({1}, {2})
+662	{0} eliminado
+663	Solo puedes gestionar tus propias flotas y puntos de reunión.
+664	{0} renombrado a {1}
+665	Órdenes de {0} limpiadas
+666	{0} ahora patrulla
+667	{0} dejó de patrullar
+668	{0} asignada a {1}
+669	{0} formada en {1}
+670	{0} se unió a {1}
+671	{0} quitada de {1}
+672	{0} movida a {1}
+673	Renombrar {0}
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
 800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion

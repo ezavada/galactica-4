@@ -288,6 +288,13 @@ class Ship {
                 } else {
                     this.game.noteworthyEvent(this, Common.EventType.SHIP_STOPPED, arrivingDestination);
                 }
+            } else if (arrivingObjectType === Common.ObjectType.RENDEZVOUS) {
+                if (this.owner === arrivingDestination.owner && this.canFormFleet() &&
+                        this.game && typeof this.game.handleRendezvousArrival === 'function') {
+                    this.game.handleRendezvousArrival(this, arrivingDestination);
+                } else {
+                    this.game.noteworthyEvent(this, Common.EventType.SHIP_STOPPED, arrivingDestination);
+                }
             } else {
                 this.game.noteworthyEvent(this, Common.EventType.SHIP_STOPPED, arrivingDestination);
             }
@@ -298,8 +305,12 @@ class Ship {
         if (this.type !== 'defense') {
             this.setPatrol(false);
             this.destination = obj;
-            console.log(`🎯 DESTINATION SET: ${this.type} (ID: ${this.id}) - Destination: ${obj.name || obj.type || `(${obj.x.toFixed(0)}, ${obj.y.toFixed(0)})`}`);
-            this.game.noteworthyEvent(this, Common.EventType.SHIP_TASKED, obj, null, Common.EventWhy.NEW_DESTINATION);
+            if (obj) {
+                console.log(`🎯 DESTINATION SET: ${this.type} (ID: ${this.id}) - Destination: ${obj.name || obj.type || `(${obj.x.toFixed(0)}, ${obj.y.toFixed(0)})`}`);
+                this.game.noteworthyEvent(this, Common.EventType.SHIP_TASKED, obj, null, Common.EventWhy.NEW_DESTINATION);
+            } else {
+                console.log(`🎯 DESTINATION CLEARED: ${this.type} (ID: ${this.id})`);
+            }
         } else {
             console.log(`❌ CANNOT SET DESTINATION: ${this.type} (ID: ${this.id}) - Defense ships cannot move`);
         }

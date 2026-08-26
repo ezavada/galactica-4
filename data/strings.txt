@@ -138,10 +138,35 @@
 563	End Turn
 564	Growth
 565	Research
+566	Fleets
+567	Rendezvous
 568	Galactica-4
 570	New Drive Technology
 571	New {0} Class Commissioned
 572	Press any key to continue
+573	Rename
+574	Delete
+575	Move
+576	Clear
+577	Patrol
+578	Contents
+579	Location:
+580	Assembling:
+581	No fleet
+582	Fleet Roster
+583	No fleets or rendezvous points yet.
+584	Select
+585	Remove
+586	Transfer
+587	Name:
+588	<Enter> Save   <Esc> Cancel
+589	Place Rendezvous
+590	Move Rendezvous
+591	Fleet
+592	Point
+593	Click the map or an object to place it.
+594	Click the map or an object to move it.
+595	Destination:
 
 # Event titles and messages (600-699)
 600	Event
@@ -194,6 +219,25 @@
 651	Combat at {0}: {1}. Losses: attackers {2}, defenders {3}.
 652	No players remain on turn {0}
 653	No winner
+655	Rendezvous {0}
+656	({0}, {1})
+657	+{0} more
+658	Click the map or an object to place a rendezvous point.
+659	Click the map or an object to move {0}.
+660	{0} placed at ({1}, {2})
+661	{0} moved to ({1}, {2})
+662	{0} deleted
+663	You can only manage your own fleets and rendezvous points.
+664	{0} renamed to {1}
+665	{0} orders cleared
+666	{0} now patrols
+667	{0} stopped patrolling
+668	{0} assigned to {1}
+669	{0} formed at {1}
+670	{0} joined {1}
+671	{0} removed from {1}
+672	{0} moved to {1}
+673	Rename {0}
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
 # Order maps to class index floor(tech/5):

@@ -7,7 +7,8 @@ const ObjectType = {
     UNKNOWN: 0,
     STAR: 1,
     SHIP: 2,
-    FLEET: 3
+    FLEET: 3,
+    RENDEZVOUS: 4
 }
 
 const EventType = {
@@ -26,6 +27,8 @@ const EventType = {
     GAME_WON: 14,        // A player has won the game
     BATTLE_RESOLVED: 15, // A combat engagement has completed
     GAME_DRAW: 16,       // No active players remain
+    FLEET_FORMED: 17,    // A fleet was created or assembled
+    RENDEZVOUS_UPDATED: 18, // A rendezvous point changed
     NEW_TECH_DISCOVERY: 20, // Lab event: reached a new drive class (tech/5)
     NEW_SHIP_CLASS: 21      // Stardock event: first battleship class built for player
 }
@@ -66,7 +69,8 @@ const SpatialConstants = {
     ENTITY_TYPE_STAR: 'star',
     ENTITY_TYPE_SHIP: 'ship',
     ENTITY_TYPE_DEFENSE: 'defense', // Defense satellites (part of star system)
-    ENTITY_TYPE_FLEET: 'fleet'
+    ENTITY_TYPE_FLEET: 'fleet',
+    ENTITY_TYPE_RENDEZVOUS: 'rendezvous'
 };
 
 

@@ -4,7 +4,7 @@ Last reviewed: 2026-08-25
 
 ## Status
 
-AI integration is active in the local runtime. Computer players are initialized, receive turns, apply v3-backed economy/build rules, send ships/fleets toward destinations with v3-style decision scoring, form/order docked fleets, use technology transfer, and apply computer advantage. Remaining work around AI is mostly adjacent setup, waypoint/rendezvous, and reporting UI.
+AI integration is active in the local runtime. Computer players are initialized, receive turns, apply v3-backed economy/build rules, send ships/fleets toward destinations with v3-style decision scoring, form/order docked fleets, use technology transfer, and apply computer advantage. Remaining work around AI is mostly adjacent setup, waypoint/course, and reporting UI.
 
 ## What is working
 
@@ -26,7 +26,7 @@ AI integration is active in the local runtime. Computer players are initialized,
 Confirmed remaining v3 work adjacent to AI:
 
 - AI orders still use v4's single-destination movement rather than the full v3 waypoint/course model.
-- Fleet formation does not yet include the wider v3 fleet UI around rendezvous, exchange, and course tools.
+- Fleet formation and rendezvous assembly have a simple UI; the wider v3 fleet UI around sortable roster polish, richer exchange workflows, and course tools is still incomplete.
 - Computer advantage applies to production, but the full v3 setup range is not exposed in the startup UI.
 - Older Average/Good/Expert helper buckets remain as scaffolding/stat display, but v3-backed ship movement and build selection use the preserved five-value skill/rule paths.
 
@@ -71,14 +71,14 @@ Run all tests with:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 334 passed, 0 failed.
+Current expected result: 344 passed, 0 failed.
 
 The AI tests verify the current integrated behavior. The broader parity source of truth is `docs/V3_V4_FEATURE_STATUS.md`.
 
 ## Recommended next AI work
 
 1. Integrate AI orders with the full v3 waypoint/course model once navigation parity exists.
-2. Implement rendezvous points, fleet exchange UI, and fleet course tools.
+2. Polish fleet roster/exchange UI and implement fleet course tools.
 3. Expose the full v3 computer-advantage range in setup UI.
 4. Use the 250-turn AI-only observer to tune v3-equivalent outcomes; treat combat odds/retreat logic as a future enhancement unless the v3 source/manual confirms it.
 5. Add richer combat/fleet result presentation once balance settles.

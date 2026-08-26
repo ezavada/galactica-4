@@ -103,6 +103,8 @@ class Display {
             endTurn: I18n.getString(563, "End Turn"),
             growth: I18n.getString(564, "Growth"),
             research: I18n.getString(565, "Research"),
+            fleets: I18n.getString(566, "Fleets"),
+            rendezvous: I18n.getString(567, "Rendezvous"),
             winner: I18n.getString(646, "Winner:"),
             commandMenu: I18n.getString(529, "Command Menu"),
             keyboardShortcutsActive: I18n.getString(530, "Keyboard shortcuts remain active."),
@@ -118,7 +120,30 @@ class Display {
             max: I18n.getString(540, "Max"),
             closeComparison: I18n.getString(545, "<V>/<Esc> Close comparison"),
             newDriveTechnology: I18n.getString(570, "New Drive Technology"),
-            pressAnyKey: I18n.getString(572, "Press any key to continue")
+            pressAnyKey: I18n.getString(572, "Press any key to continue"),
+            rename: I18n.getString(573, "Rename"),
+            delete: I18n.getString(574, "Delete"),
+            move: I18n.getString(575, "Move"),
+            clear: I18n.getString(576, "Clear"),
+            patrol: I18n.getString(577, "Patrol"),
+            contents: I18n.getString(578, "Contents"),
+            location: I18n.getString(579, "Location:"),
+            assembling: I18n.getString(580, "Assembling:"),
+            noFleet: I18n.getString(581, "No fleet"),
+            fleetRoster: I18n.getString(582, "Fleet Roster"),
+            noFleets: I18n.getString(583, "No fleets or rendezvous points yet."),
+            select: I18n.getString(584, "Select"),
+            remove: I18n.getString(585, "Remove"),
+            transfer: I18n.getString(586, "Transfer"),
+            name: I18n.getString(587, "Name:"),
+            renameHelp: I18n.getString(588, "<Enter> Save   <Esc> Cancel"),
+            placeRendezvous: I18n.getString(589, "Place Rendezvous"),
+            moveRendezvous: I18n.getString(590, "Move Rendezvous"),
+            fleet: I18n.getString(591, "Fleet"),
+            point: I18n.getString(592, "Point"),
+            placeRendezvousHelp: I18n.getString(593, "Click the map or an object to place it."),
+            moveRendezvousHelp: I18n.getString(594, "Click the map or an object to move it."),
+            destination: I18n.getString(595, "Destination:")
         };
     }
 
@@ -142,7 +167,8 @@ class Display {
             gridLine: [0.25, 0.25, 0.5, 0.5],
             overlayDim: [0, 0, 0, 0.65],
             selectionFrame: [1, 1, 1, 0.75],
-            defaultDestination: [0, 1, 0, 0.8]
+            defaultDestination: [0, 1, 0, 0.8],
+            rendezvousLine: [0.80, 0.80, 0.84, 0.75]
         };
 
         const palette = {};
@@ -238,6 +264,9 @@ class Display {
             fleetDestinationLine: this.createAttributes({
                 lineColor: new pdg.Color('orange'),
                 lineOpacity: 0.75
+            }),
+            rendezvousLine: this.createAttributes({
+                lineColor: this.getUIColor('rendezvousLine')
             })
         };
     }
@@ -331,6 +360,26 @@ class Display {
                 minY = Math.min(minY, ship.y);
                 maxX = Math.max(maxX, ship.x);
                 maxY = Math.max(maxY, ship.y);
+                hasContent = true;
+            }
+        }
+
+        if (this.game && this.game.allFleets) {
+            for (const fleet of this.game.allFleets) {
+                minX = Math.min(minX, fleet.x);
+                minY = Math.min(minY, fleet.y);
+                maxX = Math.max(maxX, fleet.x);
+                maxY = Math.max(maxY, fleet.y);
+                hasContent = true;
+            }
+        }
+
+        if (this.game && this.game.allRendezvous) {
+            for (const rendezvous of this.game.allRendezvous) {
+                minX = Math.min(minX, rendezvous.x);
+                minY = Math.min(minY, rendezvous.y);
+                maxX = Math.max(maxX, rendezvous.x);
+                maxY = Math.max(maxY, rendezvous.y);
                 hasContent = true;
             }
         }
@@ -435,6 +484,8 @@ class Display {
                 } else if (t === Common.ObjectType.FLEET) {
                     const size = object.getSize ? object.getSize() : (object.ships ? object.ships.length : 0);
                     summary = `fleet id=${object.id} owner=${object.owner} size=${size} @(${Math.round(object.x/1024)},${Math.round(object.y/1024)})`;
+                } else if (t === Common.ObjectType.RENDEZVOUS) {
+                    summary = `rendezvous ${object.name} id=${object.id} owner=${object.owner} @(${Math.round(object.x/1024)},${Math.round(object.y/1024)})`;
                 } else {
                     summary = 'unknown';
                 }
@@ -829,6 +880,57 @@ class Display {
             }
         }
     }
+
+    drawRendezvous(rendezvous) {
+        const humanPlayer = this.game.getCurrentHumanPlayer ? (this.game.getCurrentHumanPlayer() || 1) : 1;
+        if (rendezvous.owner !== humanPlayer && !this.isOmniscientMode()) {
+            return;
+        }
+
+        let x = this.toScreenX(rendezvous.x);
+        let y = this.toScreenY(rendezvous.y);
+        const selected = rendezvous === this.selectedObject;
+        if (this.camera.zoom < 0.25 && !selected) {
+            return;
+        }
+
+        const opacity = selected ? 1.0 : Math.max(0.45, this.mapEntityNameOpacity);
+        const lineColor = this.ownerColors[rendezvous.owner] || new pdg.Color('white');
+        const attrs = this.createAttributes({
+            lineColor,
+            lineOpacity: opacity,
+            lineStyle: pdg.lineStyle_Solid
+        });
+        const radius = Math.max(5, (this.scaledShipRadius || Common.ShipRadius) + 2);
+
+        this.port.drawLine(new pdg.Point(x - radius, y - radius), new pdg.Point(x + radius, y + radius), attrs);
+        this.port.drawLine(new pdg.Point(x + radius, y - radius), new pdg.Point(x - radius, y + radius), attrs);
+
+        if (selected) {
+            const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0;
+            this.port.drawCircle(new pdg.Point(x, y), radius + 6 + pulse, this.styles.selectionFrame);
+        }
+
+        if (opacity > 0.3) {
+            const textColor = new pdg.Color('white');
+            textColor.alpha = opacity;
+            this.port.drawText(
+                rendezvous.name,
+                new pdg.Point(x, y + radius + 12),
+                this.createAttributes({
+                    fillColor: textColor,
+                    textSize: 10,
+                    textStyle: pdg.textStyle_Centered
+                })
+            );
+        }
+    }
+
+    drawRendezvousPoints(rendezvousPoints) {
+        for (const rendezvous of rendezvousPoints || []) {
+            this.drawRendezvous(rendezvous);
+        }
+    }
     
     getScreenSize() {
         const drawingArea = this.port.getDrawingArea();
@@ -1121,6 +1223,8 @@ class Display {
             { key: 'M', label: this.STR.menu, window: 'menu', action: { type: 'toggleWindow', window: 'menu' } },
             { key: 'E', label: this.STR.events, window: 'events', action: { type: 'toggleWindow', window: 'events' } },
             { key: 'V', label: this.STR.compare, window: 'comparison', action: { type: 'toggleWindow', window: 'comparison' } },
+            { key: 'L', label: this.STR.fleets, window: 'fleets', action: { type: 'toggleWindow', window: 'fleets' } },
+            { key: 'U', label: this.STR.rendezvous, action: { type: 'beginRendezvousPlacement' } },
             { key: 'Tab', label: this.STR.endTurn, action: { type: 'endTurn' } },
             { key: 'H', label: this.STR.home, action: { type: 'selectHomeStar' } },
             { key: 'F', label: this.STR.fit, action: { type: 'zoomToFit' } }
@@ -1168,11 +1272,37 @@ class Display {
                 { key: 'S', label: this.STR.scoutName, action: { type: 'buildShip', shipType: 'scout' } },
                 { key: 'D', label: this.STR.defenseName, action: { type: 'buildShip', shipType: 'defense' } },
                 { key: 'B', label: this.STR.battleshipName, action: { type: 'buildShip', shipType: 'battleship' } },
-                { key: 'c', label: this.STR.colonyName, action: { type: 'buildShip', shipType: 'colony' } }
+                { key: 'c', label: this.STR.colonyName, action: { type: 'buildShip', shipType: 'colony' } },
+                { key: 'U', label: this.STR.rendezvous, action: { type: 'createRendezvous' } }
             );
         } else if (objectType === Common.ObjectType.SHIP || objectType === Common.ObjectType.FLEET) {
             if (this.game.canHumanControl(object)) {
-                actions.push({ key: 'RMB', label: this.STR.orders, action: { type: 'beginOrders' } });
+                actions.push({ key: 'O', label: this.STR.orders, action: { type: 'beginOrders' } });
+                if (object.destination) {
+                    actions.push({ key: 'X', label: this.STR.clear, action: { type: 'clearOrders' } });
+                }
+                actions.push({ key: 'P', label: this.STR.patrol, action: { type: 'togglePatrol' } });
+                if (objectType === Common.ObjectType.FLEET) {
+                    actions.push(
+                        { key: 'N', label: this.STR.rename, action: { type: 'beginRename' } },
+                        { key: 'L', label: this.STR.fleets, action: { type: 'toggleFleetWindow' } }
+                    );
+                } else {
+                    actions.push({ key: 'U', label: this.STR.rendezvous, action: { type: 'createRendezvous' } });
+                }
+            }
+            actions.push(
+                { key: 'C', label: this.STR.center, action: { type: 'centerObject' } },
+                { key: 'V', label: this.STR.compare, action: { type: 'toggleWindow', window: 'comparison' } }
+            );
+        } else if (objectType === Common.ObjectType.RENDEZVOUS) {
+            if (this.game.canHumanControl(object)) {
+                actions.push(
+                    { key: 'N', label: this.STR.rename, action: { type: 'beginRename' } },
+                    { key: 'M', label: this.STR.move, action: { type: 'beginRendezvousPlacement', rendezvous: object } },
+                    { key: 'X', label: this.STR.delete, action: { type: 'deleteRendezvous', rendezvous: object } },
+                    { key: 'L', label: this.STR.fleets, action: { type: 'toggleFleetWindow' } }
+                );
             }
             actions.push(
                 { key: 'C', label: this.STR.center, action: { type: 'centerObject' } },
@@ -1233,6 +1363,9 @@ class Display {
             const fleetSize = object.getSize ? object.getSize() : 1;
             return ((this.scaledShipRadius || Common.ShipRadius) * 1.5) + (fleetSize * 0.5) + 8;
         }
+        if (objectType === Common.ObjectType.RENDEZVOUS) {
+            return Math.max(9, (this.scaledShipRadius || Common.ShipRadius) + 6);
+        }
         return 12;
     }
 
@@ -1269,6 +1402,37 @@ class Display {
         }
     }
 
+    getFleetDetailsLayout(fleet) {
+        const visibleShips = (fleet.ships || []).slice(0, 6);
+        const transferTargets = this.game.getFleetTransferTargets ? this.game.getFleetTransferTargets(fleet) : [];
+        const shipTypes = {};
+        for (const ship of fleet.ships || []) {
+            shipTypes[ship.type] = (shipTypes[ship.type] || 0) + 1;
+        }
+        const compositionRows = Object.entries(shipTypes);
+        const memberRowHeight = 22;
+        const extraMemberHeight = visibleShips.length > 0 ? 16 + (visibleShips.length * memberRowHeight) : 0;
+        const transferHeight = transferTargets.length > 0 ? 8 : 0;
+        const destinationHeight = fleet.destination ? 18 : 0;
+        const height = 170 + (compositionRows.length * 16) + extraMemberHeight + transferHeight + destinationHeight;
+        return {
+            rect: this.getAnchoredPanelRect(fleet, 310, height),
+            visibleShips,
+            transferTargets,
+            compositionRows,
+            memberRowHeight,
+            memberStartOffset: 18 + 18 + 18 + 22 + (compositionRows.length * 16) + destinationHeight + 30
+        };
+    }
+
+    getRendezvousDetailsLayout(rendezvous) {
+        const fleet = rendezvous.getFleet ? rendezvous.getFleet() : rendezvous.fleet;
+        return {
+            rect: this.getAnchoredPanelRect(rendezvous, 280, fleet ? 150 : 132),
+            fleet
+        };
+    }
+
     getSelectedObjectPanelRect(object) {
         const objectType = this.game.getObjectType(object);
         if (objectType === Common.ObjectType.STAR) {
@@ -1278,12 +1442,10 @@ class Display {
             return this.getAnchoredPanelRect(object, 240, object.underConstruction() ? 120 : 150);
         }
         if (objectType === Common.ObjectType.FLEET) {
-            const shipTypes = {};
-            for (const ship of object.ships) {
-                shipTypes[ship.type] = (shipTypes[ship.type] || 0) + 1;
-            }
-            const compositionRows = Object.entries(shipTypes);
-            return this.getAnchoredPanelRect(object, 260, 150 + compositionRows.length * 16 + (object.destination ? 18 : 0));
+            return this.getFleetDetailsLayout(object).rect;
+        }
+        if (objectType === Common.ObjectType.RENDEZVOUS) {
+            return this.getRendezvousDetailsLayout(object).rect;
         }
         return null;
     }
@@ -1329,6 +1491,38 @@ class Display {
         });
     }
 
+    getFleetWindowRect() {
+        const rows = this.game.getFleetListRows ? this.game.getFleetListRows() : [];
+        const screen = this.getScreenSize();
+        const width = Math.min(640, screen.width - 40);
+        return this.fitPanelToScreen({
+            x: (screen.width - width) / 2,
+            y: 84,
+            width,
+            height: Math.max(150, 78 + Math.max(rows.length, 1) * 26)
+        });
+    }
+
+    getRenameWindowRect() {
+        const screen = this.getScreenSize();
+        return this.fitPanelToScreen({
+            x: (screen.width - 340) / 2,
+            y: 96,
+            width: 340,
+            height: 122
+        });
+    }
+
+    getRendezvousPlacementPromptRect() {
+        const screen = this.getScreenSize();
+        return this.fitPanelToScreen({
+            x: (screen.width - 340) / 2,
+            y: 76,
+            width: 340,
+            height: 88
+        });
+    }
+
     getActiveWindowRect() {
         switch (this.game.uiWindow) {
             case 'menu':
@@ -1339,6 +1533,10 @@ class Display {
                 return this.getEventWindowRect();
             case 'comparison':
                 return this.getComparisonWindowRect();
+            case 'fleets':
+                return this.getFleetWindowRect();
+            case 'rename':
+                return this.getRenameWindowRect();
             default:
                 return null;
         }
@@ -1396,6 +1594,60 @@ class Display {
         };
     }
 
+    getFleetMemberActionRegions(fleet = this.game.getSelectedFleet ? this.game.getSelectedFleet() : null) {
+        if (!fleet || !this.game.canHumanControl(fleet)) {
+            return [];
+        }
+
+        const layout = this.getFleetDetailsLayout(fleet);
+        const rect = layout.rect;
+        const x = rect.x + 12;
+        let y = this.getPanelContentStartY(rect) + layout.memberStartOffset;
+        const transferTargets = layout.transferTargets;
+        const primaryTransferTarget = transferTargets.length > 0 ? transferTargets[0] : null;
+        const regions = [];
+
+        for (const ship of layout.visibleShips) {
+            const rowRect = { x, y: y - 14, width: rect.width - 24, height: 20 };
+            if (primaryTransferTarget) {
+                regions.push({
+                    rect: { x: rect.x + rect.width - 136, y: y - 16, width: 58, height: 20 },
+                    action: { type: 'transferFleetShip', ship, targetFleet: primaryTransferTarget }
+                });
+            }
+            regions.push({
+                rect: { x: rect.x + rect.width - 72, y: y - 16, width: 58, height: 20 },
+                action: { type: 'removeFleetShip', fleet, ship }
+            });
+            regions.push({
+                rect: rowRect,
+                action: { type: 'selectObject', object: ship }
+            });
+            y += layout.memberRowHeight;
+        }
+
+        return regions;
+    }
+
+    getFleetListActionRegions() {
+        if (this.game.uiWindow !== 'fleets') {
+            return [];
+        }
+
+        const rect = this.getFleetWindowRect();
+        const rows = this.game.getFleetListRows ? this.game.getFleetListRows() : [];
+        const x = rect.x + 14;
+        let y = this.getPanelContentStartY(rect) + 24;
+        return rows.map(row => {
+            const region = {
+                rect: { x, y: y - 16, width: rect.width - 28, height: 22 },
+                action: { type: 'selectObject', object: row.object, center: true }
+            };
+            y += 26;
+            return region;
+        });
+    }
+
     getUIPanelRegions() {
         const regions = [];
         if (this.game.selectedObject) {
@@ -1410,6 +1662,10 @@ class Display {
             regions.push(activeWindowRect);
         }
 
+        if (this.game.pendingRendezvousPlacement) {
+            regions.push(this.getRendezvousPlacementPromptRect());
+        }
+
         return regions;
     }
 
@@ -1422,6 +1678,16 @@ class Display {
         const sliderAction = this.getSliderActionAt(x, y);
         if (sliderAction) {
             return sliderAction;
+        }
+
+        const fleetMemberAction = this.getFleetMemberActionRegions().find(region => this.containsPoint(region.rect, x, y));
+        if (fleetMemberAction) {
+            return fleetMemberAction.action;
+        }
+
+        const fleetListAction = this.getFleetListActionRegions().find(region => this.containsPoint(region.rect, x, y));
+        if (fleetListAction) {
+            return fleetListAction.action;
         }
 
         const mapButton = this.getMapButtonRegions().find(button => this.containsPoint(button.rect, x, y));
@@ -1622,13 +1888,10 @@ class Display {
     
     // Draw fleet details UI
     drawFleetDetails(fleet) {
-        const shipTypes = {};
-        for (const ship of fleet.ships) {
-            shipTypes[ship.type] = (shipTypes[ship.type] || 0) + 1;
-        }
-        const compositionRows = Object.entries(shipTypes);
-        const rect = this.getAnchoredPanelRect(fleet, 260, 150 + compositionRows.length * 16 + (fleet.destination ? 18 : 0));
-        this.drawAnchoredPanel(fleet, rect, I18n.formatString(560, 'Fleet {0}', fleet.id));
+        const layout = this.getFleetDetailsLayout(fleet);
+        const compositionRows = layout.compositionRows;
+        const rect = layout.rect;
+        this.drawAnchoredPanel(fleet, rect, this.game.getObjectDisplayName ? this.game.getObjectDisplayName(fleet) : I18n.formatString(560, 'Fleet {0}', fleet.id));
 
         const x = rect.x + 12;
         let y = this.getPanelContentStartY(rect);
@@ -1647,9 +1910,66 @@ class Display {
         }
 
         if (fleet.destination) {
-            this.drawLabelValue(this.STR.movingTo, `(${Math.round(fleet.destination.x/1024)}, ${Math.round(fleet.destination.y/1024)})`, x, y, { labelWidth: 92, size: 11, valueColor: 'gray' });
+            const destinationName = this.game.getObjectDisplayName ? this.game.getObjectDisplayName(fleet.destination) : `(${Math.round(fleet.destination.x/1024)}, ${Math.round(fleet.destination.y/1024)})`;
+            this.drawLabelValue(this.STR.movingTo, destinationName, x, y, { labelWidth: 92, size: 11, valueColor: 'gray' });
+            y += 18;
+        }
+
+        if (layout.visibleShips.length > 0) {
+            y += 2;
+            this.drawDivider(x, y - 8, rect.width - 24);
+            this.drawTextLine(this.STR.contents, x, y + 7, 'lightgray', 12);
+            y += 28;
+
+            const transferTargets = layout.transferTargets;
+            const memberRegions = this.getFleetMemberActionRegions(fleet);
+            for (const ship of layout.visibleShips) {
+                const shipName = ship.name || `${this.getShipTypeName(ship.type, { capitalized: true })} ${ship.id}`;
+                this.drawTextLine(this.trimText(shipName, 24), x, y, 'lightgray', 10);
+                const removeRegion = memberRegions.find(region =>
+                    region.action.type === 'removeFleetShip' &&
+                    region.action.ship === ship
+                );
+                const transferRegion = memberRegions.find(region =>
+                    region.action.type === 'transferFleetShip' &&
+                    region.action.ship === ship
+                );
+                if (transferTargets.length > 0 && transferRegion) {
+                    this.drawUIButton(transferRegion.rect, this.STR.transfer, null, { size: 9, radius: 7 });
+                }
+                if (removeRegion) {
+                    this.drawUIButton(removeRegion.rect, this.STR.remove, null, { size: 9, radius: 7 });
+                }
+                y += layout.memberRowHeight;
+            }
+
+            if ((fleet.ships || []).length > layout.visibleShips.length) {
+                this.drawTextLine(I18n.formatString(657, '+{0} more', (fleet.ships || []).length - layout.visibleShips.length), x, y, 'gray', 10);
+            }
         }
         this.drawContextButtonArc(fleet, rect);
+    }
+
+    drawRendezvousDetails(rendezvous) {
+        const layout = this.getRendezvousDetailsLayout(rendezvous);
+        const rect = layout.rect;
+        const fleet = layout.fleet;
+        this.drawAnchoredPanel(rendezvous, rect, rendezvous.name || this.STR.rendezvous);
+
+        const x = rect.x + 12;
+        let y = this.getPanelContentStartY(rect);
+        this.drawLabelValue(this.STR.owner, `${rendezvous.owner}`, x, y, { labelWidth: 100, size: 11 });
+        y += 18;
+        this.drawLabelValue(this.STR.location, `(${Math.round(rendezvous.x / 1024)}, ${Math.round(rendezvous.y / 1024)})`, x, y, { labelWidth: 100, size: 11 });
+        y += 18;
+        this.drawLabelValue(this.STR.assembling, fleet ? this.game.getObjectDisplayName(fleet) : this.STR.noFleet, x, y, { labelWidth: 100, size: 11, valueColor: fleet ? 'lightgray' : 'gray' });
+        y += 18;
+        if (fleet) {
+            this.drawLabelValue(this.STR.ships, fleet.getSize().toString(), x, y, { labelWidth: 100, size: 11 });
+            y += 18;
+            this.drawLabelValue(this.STR.totalPower, (fleet.totalPower || 0).toString(), x, y, { labelWidth: 100, size: 11 });
+        }
+        this.drawContextButtonArc(rendezvous, rect);
     }
 
     drawCommandWindow() {
@@ -1753,6 +2073,71 @@ class Display {
         }
     }
 
+    drawFleetWindow() {
+        const rows = this.game.getFleetListRows ? this.game.getFleetListRows() : [];
+        const rect = this.getFleetWindowRect();
+        this.drawPanel(rect, this.STR.fleetRoster);
+
+        const x = rect.x + 14;
+        let y = this.getPanelContentStartY(rect);
+
+        if (rows.length === 0) {
+            this.drawTextLine(this.STR.noFleets, x, y, 'gray', 12);
+            return;
+        }
+
+        this.drawTextLine(this.STR.name.replace(/:$/, ''), x, y, 'lightgray', 11);
+        this.drawTextLine(this.STR.type, x + 170, y, 'lightgray', 11);
+        this.drawTextLine(this.STR.ships.replace(/:$/, ''), x + 250, y, 'lightgray', 11);
+        this.drawTextLine(this.STR.power.replace(/:$/, ''), x + 305, y, 'lightgray', 11);
+        this.drawTextLine(this.STR.destination, x + 380, y, 'lightgray', 11);
+        this.drawDivider(x, y + 8, rect.width - 28);
+        y += 24;
+
+        for (const row of rows) {
+            const selected = this.game.selectedObject === row.object;
+            const color = selected ? 'hovergray' : 'lightgray';
+            this.drawTextLine(this.trimText(row.name, 22), x, y, color, 11);
+            this.drawTextLine(row.kind === 'fleet' ? this.STR.fleet : this.STR.point, x + 170, y, color, 11);
+            this.drawTextLine(row.ships.toString(), x + 250, y, color, 11);
+            this.drawTextLine(row.power.toString(), x + 305, y, color, 11);
+            this.drawTextLine(this.trimText(row.destination, 28), x + 380, y, 'gray', 10);
+            y += 26;
+        }
+    }
+
+    drawRenameWindow() {
+        const rect = this.getRenameWindowRect();
+        const target = this.game.renameTarget;
+        const title = target ? I18n.formatString(673, 'Rename {0}', this.game.getObjectDisplayName(target)) : this.STR.rename;
+        this.drawPanel(rect, title);
+
+        const x = rect.x + 14;
+        let y = this.getPanelContentStartY(rect);
+        this.drawTextLine(this.STR.name, x, y, 'labelgray', 12);
+        this.drawTextLine(this.game.renameText || '', x + 68, y, 'lightgray', 12);
+        this.drawDivider(x, y + 10, rect.width - 28);
+        y += 34;
+        this.drawTextLine(this.STR.renameHelp, x, y, 'gray', 10);
+    }
+
+    drawRendezvousPlacementPrompt() {
+        if (!this.game.pendingRendezvousPlacement) {
+            return;
+        }
+        const placement = this.game.pendingRendezvousPlacement;
+        const rect = this.getRendezvousPlacementPromptRect();
+        const title = placement.mode === 'move' ? this.STR.moveRendezvous : this.STR.placeRendezvous;
+        const help = placement.mode === 'move' ? this.STR.moveRendezvousHelp : this.STR.placeRendezvousHelp;
+        this.drawPanel(rect, title);
+
+        const x = rect.x + 14;
+        let y = this.getPanelContentStartY(rect);
+        this.drawTextLine(help, x, y, 'lightgray', 12);
+        y += 22;
+        this.drawTextLine(this.STR.escClose, x, y, 'gray', 10);
+    }
+
     drawActiveWindow() {
         switch (this.game.uiWindow) {
             case 'menu':
@@ -1766,6 +2151,12 @@ class Display {
                 break;
             case 'comparison':
                 this.drawComparisonWindow();
+                break;
+            case 'fleets':
+                this.drawFleetWindow();
+                break;
+            case 'rename':
+                this.drawRenameWindow();
                 break;
             default:
                 break;
@@ -1838,6 +2229,7 @@ class Display {
         // Draw game objects
         this.drawStars(game.stars);
         this.drawShips(game.allShips);
+        this.drawRendezvousPoints(game.allRendezvous);
         this.drawFleets(game.allFleets);
         
         // Draw UI
@@ -1852,6 +2244,8 @@ class Display {
                 this.drawShipDetails(game.selectedObject);
             } else if (objectType === Common.ObjectType.FLEET) {
                 this.drawFleetDetails(game.selectedObject);
+            } else if (objectType === Common.ObjectType.RENDEZVOUS) {
+                this.drawRendezvousDetails(game.selectedObject);
             }
         }
         
@@ -1860,6 +2254,7 @@ class Display {
 
         // Draw command UI windows above the map/help layer
         this.drawActiveWindow();
+        this.drawRendezvousPlacementPrompt();
         
         // Draw event overlay last
         if (game.overlay) {

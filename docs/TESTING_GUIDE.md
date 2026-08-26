@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 334
-Passed: 334 ✓
+Total: 344
+Passed: 344 ✓
 Failed: 0 ✗
 ```
 
@@ -44,6 +44,7 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - `game-rules.test.js`
 - `command-ui.test.js`
 - `fleet-formation.test.js`
+- `rendezvous.test.js`
 - `ship-naming-events.test.js`
 - `autoplay.test.js`
 
@@ -59,6 +60,7 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - Runtime combat resolution, v3-style ship/star strength formulas, destruction, interception, docked defenders, colony capture, defeat/victory updates, and combat summary events.
 - V3 game-rule parity for technology transfer, neutral-colony defaults, captured-colony defaults, and AI-facing movement/patrol guards.
 - Command UI state, windows, permanent map buttons, popup action buttons, production sliders, hover behavior, and layout details.
+- Rendezvous creation/placement, fleet assembly at rendezvous points, named fleet/rendezvous UI, fleet roster rows, and fleet member remove/transfer controls.
 - Ship naming and new tech/class event overlays.
 - Deterministic AI-only autoplay setup, per-player AI skill assignment, 250-turn default cap, quiet/visible event-window modes, victory/stalemate state, and autoplay stop conditions.
 
