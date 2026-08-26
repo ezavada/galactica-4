@@ -23,7 +23,7 @@ AI is integrated into the local single-player runtime:
 - AI units use the shared technology-transfer rules when scouts, battleships, and fleets arrive at or depart from allied systems.
 - Computer advantage now affects AI research and shipbuilding output.
 - AI-only autoplay records player-visible action/target intent overlays each AI turn; these are shown by default in self-play and can be hidden with `--hide-ai-intent` or `--no-ai-intent`.
-- An opt-in genetic trainer can run AI-only matches with a unique per-player decision-matrix genome, keep the top two players, and replace the remaining three with blended forced-mutation children.
+- An opt-in genetic trainer can run AI-only matches with a unique per-player decision-matrix genome, keep the top two players, replace the remaining three with blended forced-mutation children, and filter low-territory rush outcomes out of trusted quick-win success.
 - Human controls reject AI-owned and unowned entities.
 
 Remaining v3 parity gaps are outside the Section 7 runtime AI rules:
@@ -223,14 +223,14 @@ Run the full suite with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 367 passed, 0 failed.
+Current expected result: 369 passed, 0 failed.
 
 The deterministic AI-only parity observer can be launched with `./gad4 -- --ai-autoplay`. It creates five computer players on the smallest map with v3 skill levels Expert, Good, Average, Passable, and Novice represented by players 1-5, uses a fixed default seed of `424242`, and advances turns until the win condition or the 250-turn max-turn guard. Event presentation windows are hidden by default for unattended runs; add `--show-event-windows` to display lab/stardock overlays, which are held briefly before the next autoplay turn. AI intent overlays are shown by default in this observer; add `--hide-ai-intent` or `--no-ai-intent` for a clean map.
 
 The experimental matrix trainer can be launched with:
 
 ```bash
-./gad4 tools/ai-genetic-trainer.js --generations=20 --max-turns=250 --target-turns=100
+./gad4 tools/ai-genetic-trainer.js --generations=50 --max-turns=250 --target-turns=100
 ```
 
 It gives each of five AI players a unique matrix genome, scores a fixed-seed smallest-map match, keeps the top two genomes, and replaces the other three with blended children that each receive at least one mutation. This is a v4 tuning tool, not a v3 parity requirement.

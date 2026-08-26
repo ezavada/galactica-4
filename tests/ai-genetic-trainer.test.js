@@ -168,6 +168,51 @@ function runAIGeneticTrainerTests() {
             test.assertDeepEqual(first[0].matrices.scout, second[0].matrices.scout, 'Same seed should produce same first scout matrix');
             test.assertDeepEqual(first[4].matrices.battleship, second[4].matrices.battleship, 'Same seed should produce same fifth battleship matrix');
         });
+
+        test.it('does not treat a low-territory rush win as a trusted quick win', () => {
+            const standings = [{
+                playerNum: 1,
+                credibleWinner: false
+            }];
+            const result = {
+                isGameOver: true,
+                winningPlayerNum: 1,
+                victoryTurn: 80
+            };
+
+            test.assertFalse(
+                Trainer.isTrustedQuickWin(result, standings, {
+                    targetTurns: 100,
+                    minWinningStars: 4,
+                    minWinningStarShare: 0.20
+                }),
+                'A formal fast win should not count as trusted when the winning empire is too thin'
+            );
+        });
+
+        test.it('marks quick wins credible only when the winner keeps enough territory', () => {
+            const lowQuality = Trainer.getVictoryQuality({
+                stars: 2,
+                starShare: 0.11,
+                completedShips: 12
+            }, {
+                minWinningStars: 4,
+                minWinningStarShare: 0.20,
+                minWinningCompletedShips: 0
+            });
+            const credible = Trainer.getVictoryQuality({
+                stars: 4,
+                starShare: 0.22,
+                completedShips: 12
+            }, {
+                minWinningStars: 4,
+                minWinningStarShare: 0.20,
+                minWinningCompletedShips: 0
+            });
+
+            test.assertFalse(lowQuality.isDominant, 'One- or two-star rush wins should fail the quality gate');
+            test.assertTrue(credible.isDominant, 'A quick win with enough territory should pass the quality gate');
+        });
     });
 
     test.describe('AI Genetic Trainer - Combat Memory Factors', () => {

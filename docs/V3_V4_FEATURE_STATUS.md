@@ -15,7 +15,7 @@ The comparison is based on:
 
 The comparison started as a static code review. With the public PDG runtime,
 the v4 automated suite was verified on 2026-08-25 with
-`./gad4 tests/run-tests.js`: 367 passed, 0 failed. Passing tests prove the
+`./gad4 tests/run-tests.js`: 369 passed, 0 failed. Passing tests prove the
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
@@ -63,7 +63,7 @@ The largest blockers to a complete game are:
 - Matched v3 computer-player scoring more closely by merging AI pass scores per destination type, preserving v3 tie-break rules, using v3 skill checks for special second/third passes, removing the older three-bucket fleet-size cap, and returning computer build selection to the v3 weighted hull rule.
 - Added first-class rendezvous and fuller fleet UI: named fleet support, rendezvous placement/move/delete/rename, automatic fleet assembly at rendezvous points, fleet member remove/transfer controls, and a simple fleet/rendezvous roster window.
 - Added player-visible AI action/target intent overlays for AI-only autoplay; they are on by default in self-play and can be hidden with `--hide-ai-intent` or `--no-ai-intent`.
-- Added an experimental genetic AI trainer (`./gad4 tools/ai-genetic-trainer.js`) that gives each AI player a unique decision-matrix genome, keeps the top two players after each match, and replaces the other three with blended forced-mutation children.
+- Added an experimental genetic AI trainer (`./gad4 tools/ai-genetic-trainer.js`) that gives each AI player a unique decision-matrix genome, keeps the top two players after each match, replaces the other three with blended forced-mutation children, and separates fragile low-territory rush wins from trusted quick-win success.
 - Moved the new Expert movement preferences into decision-matrix overlay rows where practical, including frontier/scout context, colony support, duplicate assignments, local attack readiness, recent attacker identity, recently attacked owned systems, and retaliation/pressure against recent opponents.
 
 ## 1. Game creation, configuration, and lifecycle (Functionality 70%, UI 42%)
@@ -295,7 +295,7 @@ The project documentation was refreshed on 2026-08-25 so the docs now agree on c
 - `AI_INTEGRATION_STATUS.md` and `AI_INTEGRATION_TODO.md` describe AI as active: AI turns run, stars can start v3-weighted builds, ships and fleets can set destinations, key v3 skill/advantage hooks are active, Expert context scoring is matrix-backed where practical, and the experimental genetic trainer is available. Speculative AI upgrades are separated from C++-confirmed v3 parity gaps.
 - `README.md` now links only to files that exist and no longer describes the port as a complete 4X game.
 - `INTERNATIONALIZATION_STATUS.md` now serves as the current i18n reference and records that current runtime UI/event strings are localized with parity tests across supported languages.
-- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command. The main suite currently reports 367 tests.
+- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command. The main suite currently reports 369 tests.
 
 This file remains the main parity source of truth. More focused docs may describe implementation details for an area, but their status claims should stay consistent with the tables above.
 

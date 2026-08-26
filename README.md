@@ -59,7 +59,7 @@ PowerShell) to replace the cached copy.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 367 passed, 0 failed.
+Current expected result: 369 passed, 0 failed.
 
 AI-only parity observer:
 
@@ -72,10 +72,10 @@ The observer uses seed `424242` and a 250-turn default cap. Event presentation w
 Experimental AI genetic trainer:
 
 ```bash
-./gad4 tools/ai-genetic-trainer.js --generations=20 --max-turns=250 --target-turns=100
+./gad4 tools/ai-genetic-trainer.js --generations=50 --max-turns=250 --target-turns=100
 ```
 
-The trainer runs five AI players on the smallest fixed-seed map, gives each player a unique decision-matrix genome, keeps the top two genomes after each match, and replaces the other three with blended forced-mutation children.
+The trainer runs five AI players on the smallest fixed-seed map, gives each player a unique decision-matrix genome, keeps the top two genomes after each match, and replaces the other three with blended forced-mutation children. Fast formal victories remain visible, but only wins that also pass minimum territory/share thresholds count as trusted quick wins.
 
 ## Licensing and assets
 

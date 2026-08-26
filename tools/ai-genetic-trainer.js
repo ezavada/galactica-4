@@ -1,4 +1,4 @@
-// Run with: ./gad4 tools/ai-genetic-trainer.js --generations=20
+// Run with: ./gad4 tools/ai-genetic-trainer.js --generations=50
 //
 // Evolves five AI matrix genomes on the smallest deterministic AI-only map.
 
@@ -43,6 +43,9 @@ function printUsage() {
     console.log('  --max-turns=N            Cap each match, default 250');
     console.log('  --target-turns=N         Success target, default 100');
     console.log('  --success-streak=N       Consecutive quick wins needed, default 3');
+    console.log('  --min-winning-stars=N    Stars required for a trusted quick win, default 4');
+    console.log('  --min-winning-star-share=N  Map star share required for trusted quick win, default 0.20');
+    console.log('  --min-winning-ships=N    Completed ships required for trusted quick win, default 0');
     console.log('  --mutation-rate=N        Per-gene mutation chance, default 0.04');
     console.log('  --mutation-size=N        Max mutation delta, default 25');
     console.log('  --skill-mode=MODE        all-expert, all-good, all-average, or ladder');
@@ -67,6 +70,9 @@ const options = {
     maxTurns: getIntegerArg('--max-turns', defaults.maxTurns),
     targetTurns: getIntegerArg('--target-turns', defaults.targetTurns),
     successStreak: getIntegerArg('--success-streak', defaults.successStreak),
+    minWinningStars: getIntegerArg('--min-winning-stars', defaults.minWinningStars),
+    minWinningStarShare: getFloatArg('--min-winning-star-share', defaults.minWinningStarShare),
+    minWinningCompletedShips: getIntegerArg('--min-winning-ships', defaults.minWinningCompletedShips),
     mutationRate: getFloatArg('--mutation-rate', defaults.mutationRate),
     mutationSize: getIntegerArg('--mutation-size', defaults.mutationSize),
     skillMode: getArgValue('--skill-mode', defaults.skillMode),
@@ -77,10 +83,12 @@ const options = {
         const winner = summary.result && summary.result.winningPlayerNum ? `P${summary.result.winningPlayerNum}` : 'none';
         const victoryTurn = summary.result && summary.result.victoryTurn ? summary.result.victoryTurn : '-';
         const leader = summary.standings[0];
+        const starShare = leader.starShare !== undefined ? `${Math.round(leader.starShare * 100)}%` : '-';
         console.log(
             `Gen ${summary.generation}: winner=${winner} turn=${victoryTurn} ` +
             `quickStreak=${quickWinStreak} leader=${leader.genomeId}@P${leader.playerNum} ` +
-            `stars=${leader.stars} ships=${leader.ships} score=${leader.score}`
+            `credible=${leader.credibleWinner ? 'yes' : 'no'} stars=${leader.stars}/${leader.totalMapStars} ` +
+            `share=${starShare} ships=${leader.ships} score=${leader.score}`
         );
     }
 };
@@ -93,13 +101,24 @@ const finalTurn = final && final.result && final.result.victoryTurn ? final.resu
 console.log('');
 console.log(`Genetic training ${result.success ? 'reached target' : 'stopped'} after ${result.generationsRun} generations.`);
 console.log(`Stop reason: ${result.stopReason}`);
-console.log(`Final winner: ${finalWinner} on turn ${finalTurn}; quick-win streak ${result.quickWinStreak}/${options.successStreak}.`);
+console.log(
+    `Final winner: ${finalWinner} on turn ${finalTurn}; trusted quick-win streak ` +
+    `${result.quickWinStreak}/${options.successStreak}.`
+);
+console.log(
+    `Trusted quick-win thresholds: <=${options.targetTurns} turns, ` +
+    `${options.minWinningStars}+ stars, ` +
+    `${Math.round(options.minWinningStarShare * 100)}%+ map stars, ` +
+    `${options.minWinningCompletedShips}+ completed ships.`
+);
 
 if (final && final.standings && final.standings.length > 0) {
     console.log('Final standings:');
     for (const standing of final.standings) {
+        const starShare = standing.starShare !== undefined ? `${Math.round(standing.starShare * 100)}%` : '-';
         console.log(
-            `  ${standing.genomeId}@P${standing.playerNum}: stars=${standing.stars}, ` +
+            `  ${standing.genomeId}@P${standing.playerNum}: credible=${standing.credibleWinner ? 'yes' : 'no'}, ` +
+            `stars=${standing.stars}/${standing.totalMapStars} (${starShare}), ` +
             `ships=${standing.ships}, fleets=${standing.fleets}, score=${standing.score}`
         );
     }

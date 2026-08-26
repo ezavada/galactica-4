@@ -18,7 +18,7 @@ AI integration is active in the local runtime. Computer players are initialized,
 - Expert scouts prefer neutral frontier systems and can approach enemy-owned stars by choosing generated standoff scan points inside scanner range.
 - Expert battleships can redeploy from safe rear systems toward threatened owned border systems.
 - Expert movement scoring includes matrix rows for frontier/scout context, colony support, duplicate target assignments, local attack readiness, recent attacker identity, recently attacked owned systems, and retaliation/pressure against recent opponents.
-- An opt-in genetic trainer can give each AI player a unique matrix genome, run deterministic AI-only matches, keep the top two players, and replace the other three with blended forced-mutation children.
+- An opt-in genetic trainer can give each AI player a unique matrix genome, run deterministic AI-only matches, keep the top two players, replace the other three with blended forced-mutation children, and separate low-territory rush wins from trusted quick-win success.
 - Average-or-better AI toggles eligible healthy docked non-scout ships/fleets onto patrol and takes damaged patrollers off patrol for repair.
 - AI fleet formation can create/join docked fleets, and fleet AI can set one destination on eligible fleets.
 - AI-controlled scouts, battleships, and fleets use the shared v3 technology-transfer rules.
@@ -80,7 +80,7 @@ Run all tests with:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 367 passed, 0 failed.
+Current expected result: 369 passed, 0 failed.
 
 The AI tests verify the current integrated behavior. The experimental matrix trainer can be smoke-tested with:
 

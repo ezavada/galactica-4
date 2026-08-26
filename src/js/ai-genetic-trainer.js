@@ -27,6 +27,9 @@ const DEFAULT_GENETIC_TRAINING_OPTIONS = {
     maxTurns: 250,
     targetTurns: 100,
     successStreak: 3,
+    minWinningStars: 4,
+    minWinningStarShare: 0.20,
+    minWinningCompletedShips: 0,
     skillMode: 'all-expert',
     compAdvantage: 0,
     fastGame: false,
@@ -387,6 +390,7 @@ function getPlayerAggregateStats(game, playerNum) {
     const stars = (game.stars || []).filter(star => star.owner === playerNum);
     const ships = (game.allShips || []).filter(ship => ship.owner === playerNum);
     const fleets = (game.allFleets || []).filter(fleet => fleet.owner === playerNum && (!fleet.isEmpty || !fleet.isEmpty()));
+    const totalMapStars = game.stars ? game.stars.length : 0;
     const population = stars.reduce((total, star) => total + (star.population || 0), 0);
     const tech = stars.reduce((total, star) => total + (star.techLevel || 0), 0);
     const completedShips = ships.filter(ship => !ship.underConstruction || !ship.underConstruction());
@@ -396,18 +400,43 @@ function getPlayerAggregateStats(game, playerNum) {
         ...counts,
         fleets: fleets.length,
         completedShips: completedShips.length,
+        totalMapStars,
+        starShare: totalMapStars > 0 ? stars.length / totalMapStars : 0,
         population,
         tech,
         combatPower
     };
 }
 
-function scorePlayer(game, playerNum, genome, result, maxTurns) {
+function getVictoryQuality(stats, options = {}) {
+    const resolved = resolveOptions(options);
+    const meetsMinStars = stats.stars >= resolved.minWinningStars;
+    const meetsMinStarShare = stats.starShare >= resolved.minWinningStarShare;
+    const meetsMinCompletedShips = stats.completedShips >= resolved.minWinningCompletedShips;
+
+    return {
+        minWinningStars: resolved.minWinningStars,
+        minWinningStarShare: resolved.minWinningStarShare,
+        minWinningCompletedShips: resolved.minWinningCompletedShips,
+        meetsMinStars,
+        meetsMinStarShare,
+        meetsMinCompletedShips,
+        isDominant: meetsMinStars && meetsMinStarShare && meetsMinCompletedShips
+    };
+}
+
+function scorePlayer(game, playerNum, genome, result, options = {}) {
+    const resolved = resolveOptions(options);
     const stats = getPlayerAggregateStats(game, playerNum);
     const isWinner = result && result.winningPlayerNum === playerNum;
     const victoryTurn = isWinner ? (result.victoryTurn || game.turn) : null;
     const alive = stats.total > 0;
-    const victoryScore = isWinner ? 1000000 + Math.max(0, maxTurns - victoryTurn) * 1000 : 0;
+    const victoryQuality = getVictoryQuality(stats, resolved);
+    const credibleWinner = isWinner && victoryQuality.isDominant;
+    const speedBonus = isWinner ? Math.max(0, resolved.maxTurns - victoryTurn) * 1000 : 0;
+    const victoryScore = isWinner ?
+        (credibleWinner ? 1000000 + speedBonus : 100000 + Math.floor(speedBonus / 10)) :
+        0;
     const survivalScore = alive ? 500 : -5000;
     const territoryScore = stats.stars * 12000;
     const shipScore = stats.completedShips * 350;
@@ -422,9 +451,11 @@ function scorePlayer(game, playerNum, genome, result, maxTurns) {
         genomeId: genome.id,
         score: victoryScore + survivalScore + territoryScore + shipScore + fleetScore + techScore + combatScore + populationScore,
         isWinner,
+        credibleWinner,
         victoryTurn,
         alive,
-        stats
+        stats,
+        victoryQuality
     };
 }
 
@@ -438,11 +469,25 @@ function rankPlayers(game, seatedPopulation, options = {}) {
     const standings = [];
 
     for (let i = 0; i < seatedPopulation.length; i++) {
-        standings.push(scorePlayer(game, i + 1, seatedPopulation[i], result, resolved.maxTurns));
+        standings.push(scorePlayer(game, i + 1, seatedPopulation[i], result, resolved));
     }
 
     standings.sort((left, right) => right.score - left.score);
     return standings;
+}
+
+function isTrustedQuickWin(result, standings, options = {}) {
+    const resolved = resolveOptions(options);
+    if (!result ||
+            !result.isGameOver ||
+            result.winningPlayerNum <= 0 ||
+            result.victoryTurn === null ||
+            result.victoryTurn > resolved.targetTurns) {
+        return false;
+    }
+
+    const winnerStanding = (standings || []).find(standing => standing.playerNum === result.winningPlayerNum);
+    return !!(winnerStanding && winnerStanding.credibleWinner);
 }
 
 function runMatch(seatedPopulation, options = {}) {
@@ -463,10 +508,7 @@ function runMatch(seatedPopulation, options = {}) {
 
         const result = game.getGameResult();
         const standings = rankPlayers(game, seatedPopulation, resolved);
-        const quickWin = !!(result.isGameOver &&
-            result.winningPlayerNum > 0 &&
-            result.victoryTurn !== null &&
-            result.victoryTurn <= resolved.targetTurns);
+        const quickWin = isTrustedQuickWin(result, standings, resolved);
 
         return {
             generation: resolved.generation || 1,
@@ -537,14 +579,18 @@ function summarizeStanding(standing) {
         genomeId: standing.genomeId,
         score: standing.score,
         isWinner: standing.isWinner,
+        credibleWinner: standing.credibleWinner,
         victoryTurn: standing.victoryTurn,
         alive: standing.alive,
         stars: standing.stats.stars,
+        totalMapStars: standing.stats.totalMapStars,
+        starShare: standing.stats.starShare,
         ships: standing.stats.ships,
         completedShips: standing.stats.completedShips,
         fleets: standing.stats.fleets,
         tech: standing.stats.tech,
-        combatPower: standing.stats.combatPower
+        combatPower: standing.stats.combatPower,
+        victoryQuality: standing.victoryQuality
     };
 }
 
@@ -636,7 +682,9 @@ module.exports = {
     buildEffectiveMatrices,
     getAISkillByPlayer,
     createTrainingGame,
+    getVictoryQuality,
     rankPlayers,
+    isTrustedQuickWin,
     runMatch,
     shufflePopulation,
     evolvePopulation,

@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 367
-Passed: 367 ✓
+Total: 369
+Passed: 369 ✓
 Failed: 0 ✗
 ```
 
@@ -90,10 +90,10 @@ Useful options:
 Run the opt-in AI matrix trainer with:
 
 ```bash
-./gad4 tools/ai-genetic-trainer.js --generations=20 --max-turns=250 --target-turns=100
+./gad4 tools/ai-genetic-trainer.js --generations=50 --max-turns=250 --target-turns=100
 ```
 
-It starts five AI-only players on the smallest map, assigns each a unique decision-matrix genome, keeps the top two genomes after each match, and replaces the other three with blended children that each receive at least one mutation. By default the map seed stays fixed, seats are shuffled deterministically, event windows are hidden, and the run stops after the requested generation cap or after repeated wins under the target turn count.
+It starts five AI-only players on the smallest map, assigns each a unique decision-matrix genome, keeps the top two genomes after each match, and replaces the other three with blended children that each receive at least one mutation. By default the map seed stays fixed, seats are shuffled deterministically, event windows are hidden, and the run stops after the requested generation cap or after repeated trusted quick wins. Fast formal victories remain visible, but only wins that also pass minimum territory/share thresholds count as trusted quick wins.
 
 ## Important interpretation
 
