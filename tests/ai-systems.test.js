@@ -8,6 +8,7 @@ const AIUtils = require('../src/js/ai-utils.js');
 const { StarAI } = require('../src/js/ai-star.js');
 const ShipAI = require('../src/js/ai-ship.js');
 const { AIActions, AIDecision } = require('../src/js/ai-base.js');
+const { DecisionMatrix } = require('../src/js/ai-decision-matrices.js');
 const Factory = require('../src/js/factory.js');
 const Rules = require('../src/js/rules.js');
 const Game = require('../src/js/game.js');
@@ -263,6 +264,36 @@ function runAISystemTests() {
             skillManager.setSkillLevel(AI_SKILL_LEVELS.EXPERT);
             
             test.assertEqual(skillManager.getSkillLevel(), AI_SKILL_LEVELS.EXPERT, 'Should update to EXPERT');
+        });
+    });
+
+    test.describe('DecisionMatrix - v3 Selection Rules', () => {
+        test.it('uses the v3 tie-break order and only forms fleets on a strict win', () => {
+            const matrix = new DecisionMatrix('battleship');
+            matrix.scores = {
+                toOurStar: 10,
+                toEnemyStar: 10,
+                toOtherStar: 10,
+                toShip: 10,
+                toFormFleet: 0
+            };
+            matrix.targets = {
+                ourStar: { name: 'Own' },
+                enemyStar: { name: 'Enemy' },
+                otherStar: { name: 'Other' },
+                ship: { name: 'Ship' }
+            };
+
+            const tiedResult = matrix.getBestAction();
+            test.assertEqual(tiedResult.action, 'toOurStar', 'v3 tie-break should prefer owned stars over enemy stars, ships, and unowned stars');
+
+            matrix.scores.toFormFleet = 10;
+            const fleetTiedResult = matrix.getBestAction();
+            test.assertEqual(fleetTiedResult.action, 'toOtherStar', 'v3 should not form a fleet when fleet score only ties movement scores');
+
+            matrix.scores.toFormFleet = 11;
+            const fleetResult = matrix.getBestAction();
+            test.assertEqual(fleetResult.action, 'toFormFleet', 'Fleet formation should win only when it strictly beats every movement score');
         });
     });
 
@@ -553,6 +584,23 @@ function runAISystemTests() {
             }
         });
 
+        test.it('uses the v3 weighted hull rule without active threat-based overrides', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 2,
+                aiSkillByPlayer: { 1: 2, 2: 2 }
+            });
+            const star = createOwnedStar(game, 1, 0, 0, 'Build Yard', { techLevel: 5 });
+            const starAI = new StarAI(star, game, rules, AI_SKILL_LEVELS.GOOD);
+            starAI.assessThreatLevel = () => {
+                throw new Error('Threat heuristics should not select v3 computer hulls');
+            };
+            starAI.chooseV3ComputerHull = () => 'colony';
+
+            const choice = starAI.chooseShipToBuild();
+
+            test.assertEqual(choice.type, 'colony', 'Computer hull choice should come from the v3 weighted build rule');
+        });
+
         test.it('applies v3-style expert tech-star and shipbuilder allocations', () => {
             const { game, rules } = createEmptyAITestGame({
                 compSkill: 1,
@@ -604,11 +652,50 @@ function runAISystemTests() {
             test.assertLessThan(ship.damage, 90, 'Ship damage should decrease after repair');
         });
 
+        test.it('repairs member ships in docked fleets from star repair capacity', () => {
+            const { game } = createEmptyAITestGame({ compSkill: 2 });
+            const star = createOwnedStar(game, 1, 0, 0, 'Fleet Repair Yard', { techLevel: 4 });
+            const shipA = createCompletedShip(game, star, 'battleship', { techLevel: 4 });
+            const shipB = createCompletedShip(game, star, 'battleship', { techLevel: 4 });
+            const fleet = game.factory.createFleet(star.x, star.y, 1);
+            fleet.addShip(shipA);
+            fleet.addShip(shipB);
+            shipA.damage = 90;
+            fleet.calculateFleetStats();
+
+            const repaired = star.repairDockedShips();
+
+            test.assertGreaterThan(repaired, 0, 'Star should repair damage inside a docked fleet');
+            test.assertLessThan(shipA.damage, 90, 'Fleet member damage should decrease after repair');
+            test.assertLessThan(fleet.totalDamage, 90, 'Fleet aggregate damage should be recalculated after repair');
+        });
+
+        test.it('does not repair docked fleets while they are on patrol', () => {
+            const { game } = createEmptyAITestGame({ compSkill: 2 });
+            const star = createOwnedStar(game, 1, 0, 0, 'Patrol Repair Yard', { techLevel: 4 });
+            const ship = createCompletedShip(game, star, 'battleship', { techLevel: 4 });
+            const fleet = game.factory.createFleet(star.x, star.y, 1);
+            fleet.addShip(ship);
+            ship.damage = 90;
+            fleet.setPatrol(true);
+            fleet.calculateFleetStats();
+
+            const repaired = star.repairDockedShips();
+
+            test.assertEqual(repaired, 0, 'Patrolling fleet should not receive repair');
+            test.assertEqual(ship.damage, 90, 'Patrolling fleet member damage should not change');
+        });
+
         test.it('applies computer advantage to AI research and shipbuilding output', () => {
             const { game } = createEmptyAITestGame({ compSkill: 2, compAdvantage: 2 });
 
             test.assertEqual(game.applyComputerAdvantageToProduction(1, 100), 140, 'Two levels of advantage should add 40% output');
             test.assertEqual(game.applyComputerAdvantageToProduction(0, 100), 100, 'Neutral ownership should not receive AI advantage');
+
+            const { game: disadvantagedGame } = createEmptyAITestGame({ compSkill: 2, compAdvantage: -3 });
+            const { game: advantagedGame } = createEmptyAITestGame({ compSkill: 2, compAdvantage: 3 });
+            test.assertApproximately(disadvantagedGame.applyComputerAdvantageToProduction(1, 100), 40, 0.0001, 'Minus-three advantage should apply a 60% production penalty');
+            test.assertApproximately(advantagedGame.applyComputerAdvantageToProduction(1, 100), 160, 0.0001, 'Plus-three advantage should apply a 60% production bonus');
         });
     });
 
@@ -780,6 +867,32 @@ function runAISystemTests() {
             test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(1), 3, 'Expert should run three target passes');
             test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(2), 2, 'Good should run two target passes');
             test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(5), 1, 'Novice should run one target pass');
+        });
+
+        test.it('merges AI pass scores by destination type like v3', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 1,
+                aiSkillByPlayer: { 1: 1, 2: 2 }
+            });
+            const home = createOwnedStar(game, 1, 0, 0, 'Merge Home', { techLevel: 5 });
+            const ship = createCompletedShip(game, home, 'battleship', { techLevel: 5 });
+            const shipAI = new ShipAI(ship, game, rules, AI_SKILL_LEVELS.EXPERT);
+            const nearbyEnemy = { name: 'Nearby Enemy' };
+            const weakEnemy = { name: 'Weak Enemy' };
+            const firstPass = {
+                scores: { toOurStar: 5, toEnemyStar: 10, toOtherStar: 1, toShip: 0, toFormFleet: 20 },
+                targets: { ourStar: null, enemyStar: nearbyEnemy, otherStar: null, ship: null }
+            };
+            const secondPass = {
+                scores: { toOurStar: 4, toEnemyStar: 30, toOtherStar: 6, toShip: 7, toFormFleet: 100 },
+                targets: { ourStar: null, enemyStar: weakEnemy, otherStar: { name: 'Other' }, ship: { name: 'Enemy Ship' } }
+            };
+
+            const merged = shipAI.mergeV3DecisionPass(firstPass, secondPass, 1);
+
+            test.assertEqual(merged.scores.toEnemyStar, 30, 'Later passes should update stronger movement scores');
+            test.assertEqual(merged.targets.enemyStar, weakEnemy, 'Later passes should carry the target for an improved movement score');
+            test.assertEqual(merged.scores.toFormFleet, 20, 'v3 keeps fleet-formation score from the first pass');
         });
 
         test.it('does not give movement orders to under-construction defense satellites', () => {

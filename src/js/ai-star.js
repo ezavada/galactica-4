@@ -275,11 +275,10 @@ class StarAI extends AIBase {
             return new AIDecision(AIActions.DO_NOTHING, null, 0, 'Cannot afford ships');
         }
 
-        // Assess what ships we need
-        const shipNeeds = this.assessShipNeeds();
-        
-        // Choose the most important ship to build
-        const shipToBuild = this.chooseShipToBuild(shipNeeds);
+        // v3 chooses the next computer hull from a weighted random table.
+        // Expert tech stars are the one exception: they alternate satellites
+        // and scouts.
+        const shipToBuild = this.chooseShipToBuild();
         
         if (shipToBuild) {
             this.debugLog(`Decided to build ${shipToBuild.type} ship`);
@@ -370,12 +369,7 @@ class StarAI extends AIBase {
     }
 
     // Choose which ship to build based on needs
-    chooseShipToBuild(needs) {
-        const threatLevel = this.assessThreatLevel();
-        if (threatLevel > 60 || needs.defense > 1) {
-            return { type: 'defense', priority: 100 };
-        }
-
+    chooseShipToBuild() {
         if (this.isTechStar()) {
             return { type: this.chooseNextTechStarHull(), priority: 90 };
         }

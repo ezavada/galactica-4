@@ -122,25 +122,67 @@ class ShipAI extends AIBase {
         // Get maximum search distance based on skill level
         const maxDistance = this.getSearchDistanceForV3Skill(v3Skill);
 
-        // Perform multiple iterations for higher skill levels
+        // Perform multiple iterations for higher skill levels. v3 keeps the
+        // strongest score found for each destination class across passes, then
+        // chooses the final action once after the loop.
         const repetitions = this.getDecisionRepetitionsForV3Skill(v3Skill);
-        let bestDecision = null;
-        let bestScore = -Infinity;
+        let finalState = null;
+        const sharedState = { ignoreUnoccupiedStar: false };
 
         for (let iteration = 0; iteration < repetitions; iteration++) {
             this.debugLog(`AI iteration ${iteration + 1} of ${repetitions}`);
-            
-            const decision = this.performDecisionIteration(iteration, maxDistance, v3Skill);
-            if (decision.score > bestScore) {
-                bestDecision = decision;
-                bestScore = decision.score;
+
+            const passState = this.evaluateDecisionIteration(iteration, maxDistance, v3Skill, sharedState);
+            if (passState.directDecision) {
+                this.applyV3PatrolRule(v3Skill, passState.directDecision);
+                return passState.directDecision;
             }
+
+            finalState = this.mergeV3DecisionPass(finalState, passState, iteration);
         }
 
-        const finalDecision = bestDecision || new AIDecision(AIActions.DO_NOTHING, null, 0, 'No valid decision found');
+        if (finalState) {
+            this.decisionMatrix.scores = this.applyV3SkillRandomness(finalState.scores, v3Skill);
+            this.decisionMatrix.targets = finalState.targets;
+            const result = this.decisionMatrix.getBestAction();
+            const finalDecision = this.buildDecisionFromResult(result);
+            this.applyV3PatrolRule(v3Skill, finalDecision);
+            return finalDecision;
+        }
+
+        const finalDecision = new AIDecision(AIActions.DO_NOTHING, null, 0, 'No valid decision found');
         this.applyV3PatrolRule(v3Skill, finalDecision);
 
         return finalDecision;
+    }
+
+    mergeV3DecisionPass(finalState, passState, iteration) {
+        if (!finalState || iteration === 0) {
+            return {
+                scores: { ...passState.scores },
+                targets: { ...passState.targets }
+            };
+        }
+
+        const merged = {
+            scores: { ...finalState.scores },
+            targets: { ...finalState.targets }
+        };
+        const scoreTargets = [
+            ['toOurStar', 'ourStar'],
+            ['toEnemyStar', 'enemyStar'],
+            ['toOtherStar', 'otherStar'],
+            ['toShip', 'ship']
+        ];
+
+        for (const [scoreKey, targetKey] of scoreTargets) {
+            if (passState.scores[scoreKey] > merged.scores[scoreKey]) {
+                merged.scores[scoreKey] = passState.scores[scoreKey];
+                merged.targets[targetKey] = passState.targets[targetKey];
+            }
+        }
+
+        return merged;
     }
 
     isDockedSmallFleet() {
@@ -183,8 +225,18 @@ class ShipAI extends AIBase {
 
     // Perform a single decision iteration
     performDecisionIteration(iteration, maxDistance, v3Skill = this.getV3SkillLevel()) {
+        const passState = this.evaluateDecisionIteration(iteration, maxDistance, v3Skill, { ignoreUnoccupiedStar: false });
+        if (passState.directDecision) {
+            return passState.directDecision;
+        }
+        this.decisionMatrix.scores = this.applyV3SkillRandomness(passState.scores, v3Skill);
+        this.decisionMatrix.targets = passState.targets;
+        const result = this.decisionMatrix.getBestAction();
+        return this.buildDecisionFromResult(result);
+    }
+
+    evaluateDecisionIteration(iteration, maxDistance, v3Skill = this.getV3SkillLevel(), sharedState = { ignoreUnoccupiedStar: false }) {
         this.decisionMatrix.reset();
-        this.ignoreUnoccupiedStar = false;
 
         // Find nearby entities
         const closestStars = this.utils.findClosestStars(this.ship, maxDistance);
@@ -193,7 +245,7 @@ class ShipAI extends AIBase {
         let nearestEnemyStar = closestStars.nearestEnemyStar;
 
         // For higher skill levels, consider alternative targets
-        if (iteration === 1 && this.skillManager.getSkillLevel() >= AI_SKILL_LEVELS.GOOD) {
+        if (iteration === 1 && v3Skill <= 2) {
             // Second iteration: look for weakest enemy star
             const weakestEnemy = this.utils.findWeakestEnemyStar(this.ship, this.getEntitySpeed(this.ship) * 4);
             if (weakestEnemy) {
@@ -201,7 +253,7 @@ class ShipAI extends AIBase {
                 nearestEnemyStar = weakestEnemy;
                 closestStars.distances[2] = this.utils.calculateDistance(this.ship, weakestEnemy);
             }
-        } else if (iteration === 2 && this.skillManager.getSkillLevel() >= AI_SKILL_LEVELS.EXPERT) {
+        } else if (iteration === 2 && v3Skill === 1) {
             // Third iteration: look for enemy tech production star
             const techStar = this.utils.findNearestEnemyTechProductionStar(this.ship, this.getEntitySpeed(this.ship) * 8);
             if (techStar) {
@@ -210,6 +262,7 @@ class ShipAI extends AIBase {
                 closestStars.distances[2] = this.utils.calculateDistance(this.ship, techStar);
             }
         }
+        closestStars.nearestEnemyStar = nearestEnemyStar;
 
         // Set targets in decision matrix
         this.decisionMatrix.targets.ourStar = closestStars.nearestOwnedStar;
@@ -219,18 +272,20 @@ class ShipAI extends AIBase {
 
         // Special handling for scout ships at lower skill levels
         if (v3Skill <= 2 && this.ship.type === 'scout') {
-            return this.handleScoutSpecialBehavior(closestStars);
+            return { directDecision: this.handleScoutSpecialBehavior(closestStars) };
         }
 
         // Evaluate all decision factors
-        this.evaluateDecisionFactors(closestStars, closestEnemyShip, v3Skill);
-        this.applyV3DecisionGuards();
+        this.evaluateDecisionFactors(closestStars, closestEnemyShip, v3Skill, sharedState);
+        this.applyV3DecisionGuards(sharedState);
 
-        // Apply skill-based modifications
-        this.decisionMatrix.scores = this.applyV3SkillRandomness(this.decisionMatrix.scores, v3Skill);
+        return {
+            scores: { ...this.decisionMatrix.scores },
+            targets: { ...this.decisionMatrix.targets }
+        };
+    }
 
-        // Get the best action
-        const result = this.decisionMatrix.getBestAction();
+    buildDecisionFromResult(result) {
         return new AIDecision(
             this.mapActionToAIAction(result.action),
             result.target,
@@ -256,11 +311,11 @@ class ShipAI extends AIBase {
         return modified;
     }
 
-    applyV3DecisionGuards() {
+    applyV3DecisionGuards(sharedState = { ignoreUnoccupiedStar: false }) {
         if (!this.utils.isAtStar(this.ship) || this.isFleetEntity()) {
             this.decisionMatrix.scores.toFormFleet = -1;
         }
-        if (this.ignoreUnoccupiedStar) {
+        if (sharedState.ignoreUnoccupiedStar) {
             this.decisionMatrix.scores.toOtherStar = -1;
         }
         if (!this.decisionMatrix.targets.ourStar) {
@@ -314,7 +369,7 @@ class ShipAI extends AIBase {
     }
 
     // Evaluate all decision factors
-    evaluateDecisionFactors(closestStars, closestEnemyShip, v3Skill = this.getV3SkillLevel()) {
+    evaluateDecisionFactors(closestStars, closestEnemyShip, v3Skill = this.getV3SkillLevel(), sharedState = { ignoreUnoccupiedStar: false }) {
         const factors = AI_FACTORS;
 
         // Factor 0: Already moving
@@ -348,7 +403,7 @@ class ShipAI extends AIBase {
         if (!closestStars.nearestUnownedStar) {
             this.decisionMatrix.considerFactor(factors.NO_NEARBY_UNOWNED_STAR);
         } else {
-            this.evaluateUnownedStarFactors(closestStars.nearestUnownedStar, closestStars);
+            this.evaluateUnownedStarFactors(closestStars.nearestUnownedStar, closestStars, v3Skill, sharedState);
         }
 
         // Factor 4: No nearby enemy ship
@@ -437,7 +492,7 @@ class ShipAI extends AIBase {
     }
 
     // Evaluate factors related to unowned stars
-    evaluateUnownedStarFactors(unownedStar, closestStars) {
+    evaluateUnownedStarFactors(unownedStar, closestStars, v3Skill = this.getV3SkillLevel(), sharedState = { ignoreUnoccupiedStar: false }) {
         const factors = AI_FACTORS;
         const distance = closestStars.distances[0];
         const enemyStarDistance = closestStars.nearestEnemyStar ? closestStars.distances[2] : Infinity;
@@ -458,11 +513,11 @@ class ShipAI extends AIBase {
         }
 
         // Special handling for colony ships attacking heavily defended unowned planets
-        if (this.getV3SkillLevel() <= 3 && this.ship.type === 'colony') {
+        if (v3Skill <= 3 && this.ship.type === 'colony') {
             const strengthDiff = this.getEntityDefenseStrength(this.ship) - this.getEntityDefenseStrength(unownedStar);
             if (strengthDiff <= 0) {
                 this.debugLog('Disallowing travel to heavily defended unowned star');
-                this.ignoreUnoccupiedStar = true;
+                sharedState.ignoreUnoccupiedStar = true;
             }
         }
     }
@@ -626,8 +681,7 @@ class ShipAI extends AIBase {
 
         fleet = this.game.factory.createFleet(currentStar.x, currentStar.y, this.ship.owner);
         fleet.addShip(this.ship);
-        const maxFleetSize = this.skillManager.getMaxFleetSize();
-        for (const candidate of candidates.slice(0, Math.max(0, maxFleetSize - 1))) {
+        for (const candidate of candidates) {
             fleet.addShip(candidate);
         }
         return fleet;

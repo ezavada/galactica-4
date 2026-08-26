@@ -160,6 +160,31 @@ test.describe('Game Fog of War Integration', () => {
             test.assertContains(visibleEntities, enemyFleet, 'Omniscient mode should reveal enemy fleets');
             test.assertContains(visibleFleets, enemyFleet, 'Omniscient fleet query should return enemy fleets');
         });
+
+        test.it('includes enemy fleets in scanner-based fleet visibility queries', () => {
+            const factory = new Factory();
+            const rules = new Rules(false);
+            const config = GameConfig.createSinglePlayer(1, 2);
+            config.sectorSize = 1;
+            config.skipMapGeneration = true;
+
+            const game = new Game(factory, rules, config);
+            const playerStar = factory.createStar(0, 0, "Player Star");
+            playerStar.owner = 1;
+            playerStar.setScannerRange(12000);
+
+            const enemyFleet = factory.createFleet(1000, 0, 2);
+            enemyFleet.setStealth(1);
+            enemyFleet.setApparentSize(100);
+
+            game.visibilityCalculator.updateVisibilityForPlayer(1);
+            const visibleFleets = game.visibilityCalculator.getVisibleEntitiesByTypeForPlayer(
+                1,
+                Common.SpatialConstants.ENTITY_TYPE_FLEET
+            );
+
+            test.assertContains(visibleFleets, enemyFleet, 'Scanner-based fleet query should return visible enemy fleets');
+        });
     });
 });
 

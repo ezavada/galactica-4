@@ -19,7 +19,7 @@ class GameConfig {
         
         // AI configuration
         this.compSkill = options.compSkill || 2;         // 1=Expert, 2=Good, 3=Average, 4=Passable, 5=Novice
-        this.compAdvantage = options.compAdvantage || 0; // 0=None, 1=Some, 2=More
+        this.compAdvantage = options.compAdvantage || 0; // v3 range: -3 through +3, 20% production modifier per level
         this.aiSkillByPlayer = options.aiSkillByPlayer ? { ...options.aiSkillByPlayer } : {};
         
         // Game speed and mechanics

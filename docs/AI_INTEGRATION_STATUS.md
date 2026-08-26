@@ -2,7 +2,7 @@
 
 Last reviewed: 2026-08-25
 
-This guide describes the AI system as it exists in the current runtime. The old “Phase 4 not yet implemented” wording is no longer accurate: AI players are now created and processed during the turn loop. The integration is real, but it is still partial compared with Galactica v3.
+This guide describes the AI system as it exists in the current runtime. The old “Phase 4 not yet implemented” wording is no longer accurate: AI players are now created and processed during the turn loop. The v3-backed runtime computer-player rules are active; remaining work is mostly setup UI, waypoint/rendezvous UI, reporting, and future enhancements.
 
 ## Current status
 
@@ -11,7 +11,7 @@ AI is integrated into the local single-player runtime:
 - `Game` creates an `AIManager`.
 - Computer-controlled players are initialized from `GameConfig`.
 - `endTurn()` processes AI decisions before ship/fleet movement, star updates, visibility updates, and piece-count checks.
-- AI stars can apply v3-style economic allocations, choose/start ship construction, and activate basic defensive builds/patrols.
+- AI stars can apply v3-style economic allocations, choose/start ship construction with v3 weighted hull selection, and activate patrol behavior where v3 does.
 - AI ships can choose one destination and move toward owned, enemy, or unowned targets, while skipping under-construction ships and stationary defense satellites.
 - AI can form docked fleets and process fleets as ship-like strategic actors, including the v3 guard that docked fleets with fewer than three ships do not move.
 - Good/Expert AI toggles eligible healthy docked non-scout ships/fleets onto patrol and takes damaged patrollers off patrol for repair.
@@ -19,13 +19,12 @@ AI is integrated into the local single-player runtime:
 - Computer advantage now affects AI research and shipbuilding output.
 - Human controls reject AI-owned and unowned entities.
 
-AI is not yet full v3 parity. The confirmed v3 gaps are narrower than "make the AI smarter" work:
+Remaining v3 parity gaps are outside the Section 7 runtime AI rules:
 
-- Ship/fleet AI still needs every `CShipCompMove.cpp`/`UShipUtils.cpp` factor and edge case verified against the v3 source.
 - Fleet formation works for docked ships, but the wider v3 fleet/player UI around rendezvous, exchange, and course tools is still missing.
-- AI orders still use v4's single-destination movement instead of the full v3 waypoint/course model.
+- AI orders use v4's single-destination movement until the full v3 waypoint/course model is ported for all players.
 - Computer advantage is applied to production, but the full v3 setup range is not exposed in the startup UI.
-- Older three-bucket helper paths remain in the implementation and should be removed or bypassed wherever they affect C++-backed behavior.
+- Older three-bucket helper paths remain as scaffolding/stat display, but they should not be used for new C++-backed behavior where v3's five-value skill actually controls outcomes.
 
 Items such as player-visible AI intent, richer defensive threat tuning, non-production computer-advantage effects, combat-odds estimation, and retreat/avoidance are possible v4 enhancements. They were not found as shipped v3 computer-player requirements in the audited C++ paths.
 
@@ -36,7 +35,7 @@ Items such as player-visible AI intent, richer defensive threat tuning, non-prod
 - `src/js/ai-skill.js` - legacy Average/Good/Expert helper buckets; C++ parity work should prefer the preserved five-value `PlayerInfo.compSkill` where v3 behavior depends on it.
 - `src/js/ai-utils.js` - entity/fleet queries, distance, ownership, speed, strength, and docked-state helpers.
 - `src/js/ai-ship.js` - ship/fleet target selection, v3 skill handling, fleet formation, and destination execution.
-- `src/js/ai-star.js` - star economy role assignment, ship-building choices, threat checks, and defensive activation.
+- `src/js/ai-star.js` - star economy role assignment, v3 weighted ship-building choices, dormant threat helpers, and defensive activation scaffolding.
 - `src/js/game.js` - runtime integration, ownership checks, AI initialization, and turn sequencing.
 - `tests/ai-systems.test.js` - unit/integration coverage for the AI pieces.
 
@@ -76,7 +75,7 @@ The legacy high-level AI helper bucket still has three effective levels:
 - v3 Good -> AI Good
 - v3 Average/Passable/Novice -> AI Average
 
-Ship AI also reads the preserved v3 `PlayerInfo.compSkill` value directly for search distance, target-pass count, skilled scout behavior, lower-skill randomness, and Novice fleet avoidance. The remaining cleanup is to stop using the older three-bucket helper anywhere it changes behavior that v3's five-value skill actually controlled.
+Ship AI reads the preserved v3 `PlayerInfo.compSkill` value directly for search distance, target-pass count, skilled scout behavior, per-destination pass merging, lower-skill randomness, Novice fleet avoidance, and Good/Expert patrol toggling. The older three-bucket helper remains for coarse initialization/stat display and dormant scaffold methods.
 
 ## What AI decisions currently do
 
@@ -84,13 +83,13 @@ Star decisions:
 
 - apply desired growth/research/shipbuilding allocations;
 - use v3-style expert tech-star/shipbuilder roles and default non-expert allocations;
-- choose a ship type to build;
+- choose a ship type to build using v3's weighted hull rule, with expert tech stars alternating satellites/scouts;
 - call `star.startBuildingShip()` when a build decision is selected;
-- choose defense satellites through the build-selection path when threat/need calls for it. The separate defensive-activation helper exists, but the normal star decision path currently returns the build decision and does not execute that helper as an independent second action.
+- keep threat/need helpers dormant as possible future behavior rather than using them to override v3 build selection.
 
 Ship decisions:
 
-- evaluate possible targets using decision-matrix style scoring and v3 skill search/repetition values;
+- evaluate possible targets using the v3 decision matrices, v3 skill search/repetition values, v3 per-destination pass merging, and v3 tie-break rules;
 - set a single destination on the ship for movement/attack/colonization;
 - form/join docked fleets when the scoring result selects fleet formation;
 - avoid moving immobile or ineligible ships;
@@ -110,9 +109,8 @@ Ownership controls:
 
 ## Known gaps
 
-Confirmed v3 parity gaps:
+Confirmed remaining v3 work adjacent to AI:
 
-- Verify the full ship/fleet decision factor set against `CShipCompMove.cpp` and `UShipUtils.cpp`.
 - Integrate AI orders with the full waypoint/course model once that navigation system is ported.
 - Add rendezvous, fleet exchange UI, and course tools around the now-active fleet formation path.
 - Expose the full v3 computer-advantage range in setup.
@@ -133,7 +131,7 @@ Run the full suite with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 327 passed, 0 failed.
+Current expected result: 334 passed, 0 failed.
 
 The deterministic AI-only parity observer can be launched with `./gad4 -- --ai-autoplay`. It creates five computer players on the smallest map with v3 skill levels Expert, Good, Average, Passable, and Novice represented by players 1-5, uses a fixed default seed of `424242`, and advances turns until the win condition or the 250-turn max-turn guard. Event presentation windows are hidden by default for unattended runs; add `--show-event-windows` to display lab/stardock overlays, which are held briefly before the next autoplay turn.
 

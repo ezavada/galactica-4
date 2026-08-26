@@ -112,10 +112,72 @@ class VisibilityCalculator {
     }
 
     /**
+     * Get all visibility-tracked entities.
+     * Spatial partition is the authoritative runtime index, but tests and edge
+     * cases may have entities in the game arrays before a spatial update.
+     */
+    getAllVisibilityEntities() {
+        const entities = [];
+        const addEntity = (entity) => {
+            if (entity && !entities.includes(entity)) {
+                entities.push(entity);
+            }
+        };
+
+        if (this.game.spatialPartition && typeof this.game.spatialPartition.getAllEntities === 'function') {
+            for (const entity of this.game.spatialPartition.getAllEntities()) {
+                addEntity(entity);
+            }
+        }
+
+        for (const entity of this.game.stars || []) {
+            addEntity(entity);
+        }
+        for (const entity of this.game.allShips || []) {
+            addEntity(entity);
+        }
+        for (const entity of this.game.allFleets || []) {
+            addEntity(entity);
+        }
+
+        return entities;
+    }
+
+    resetCurrentVisibilityForPlayer(playerNum) {
+        for (const entity of this.getAllVisibilityEntities()) {
+            if (!entity || !entity.setVisibilityTo) {
+                continue;
+            }
+            if (entity.owner === playerNum) {
+                entity.setVisibilityTo(playerNum, Common.VisibilityLevel.DETAILS);
+                if (entity.setLastSeen) {
+                    entity.setLastSeen(playerNum, this.game.turn);
+                }
+            } else {
+                entity.setVisibilityTo(playerNum, Common.VisibilityLevel.NONE);
+            }
+        }
+    }
+
+    /**
      * Update visibility for all entities for a specific player
      * Optimized using spatial partition
      */
     updateVisibilityForPlayer(playerNum) {
+        this.resetCurrentVisibilityForPlayer(playerNum);
+
+        if (this.game.config && this.game.config.omniscient) {
+            for (const entity of this.getAllVisibilityEntities()) {
+                if (entity && entity.setVisibilityTo) {
+                    entity.setVisibilityTo(playerNum, Common.VisibilityLevel.DETAILS);
+                    if (entity.setLastSeen) {
+                        entity.setLastSeen(playerNum, this.game.turn);
+                    }
+                }
+            }
+            return;
+        }
+
         const playerEntities = this.getPlayerScannerEntities(playerNum);
         this.stats.scannerEntitiesUsed += playerEntities.length;
         
@@ -215,9 +277,11 @@ class VisibilityCalculator {
                     // Check entity type first to avoid unnecessary visibility calculations
                     const isStar = this.game.factory.isStar(entity);
                     const isShip = this.game.factory.isShip(entity);
+                    const isFleet = this.game.factory.isFleet && this.game.factory.isFleet(entity);
                     
                     const isCorrectType = (entityType === Common.SpatialConstants.ENTITY_TYPE_STAR && isStar) ||
-                                        (entityType === Common.SpatialConstants.ENTITY_TYPE_SHIP && isShip);
+                                        (entityType === Common.SpatialConstants.ENTITY_TYPE_SHIP && isShip) ||
+                                        (entityType === Common.SpatialConstants.ENTITY_TYPE_FLEET && isFleet);
                     
                     if (isCorrectType) {
                         const visibility = this.calculateVisibilityToEntity(scanner, entity);
@@ -260,7 +324,8 @@ class VisibilityCalculator {
             stats.visibilityByPlayer[playerNum] = {
                 totalVisible: visibleEntities.length,
                 visibleStars: visibleEntities.filter(e => this.game.factory.isStar(e)).length,
-                visibleShips: visibleEntities.filter(e => this.game.factory.isShip(e)).length
+                visibleShips: visibleEntities.filter(e => this.game.factory.isShip(e)).length,
+                visibleFleets: visibleEntities.filter(e => this.game.factory.isFleet && this.game.factory.isFleet(e)).length
             };
         }
         

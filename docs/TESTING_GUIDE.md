@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 327
-Passed: 327 ✓
+Total: 334
+Passed: 334 ✓
 Failed: 0 ✗
 ```
 
@@ -86,9 +86,9 @@ Passing tests mean the covered code paths behave as tested. They do not prove fu
 
 Examples:
 
-- AI tests cover active AI turn participation, but economy allocation and defensive actions remain partial.
-- Fog-of-war tests cover visibility state and some rendering behavior, but the full v3 presentation is not complete.
-- Combat tests cover the current runtime combat path, but final combat presentation, richer fleet reports, and broader v3 balance tuning remain work items.
+- AI tests cover active AI turn participation, v3-backed economy/build rules, ship/fleet scoring, skill differences, patrol behavior, and advantage modifiers. Player-facing setup/debug UI remains separate.
+- Fog-of-war tests cover current visibility recalculation, last-seen memory, scanner-based fleet visibility, and some rendering behavior. Full v3 remembered-object presentation is not complete.
+- Combat tests cover the current v3-style runtime combat/capture path. Final combat presentation, richer fleet reports, and broader balance tuning remain work items.
 
 Use `docs/V3_V4_FEATURE_STATUS.md` for parity status.
 

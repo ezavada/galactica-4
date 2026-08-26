@@ -4,14 +4,14 @@ Last reviewed: 2026-08-25
 
 ## Status
 
-AI integration is partially complete and active in the local runtime. Computer players are initialized, receive turns, can apply basic economy/defense choices, can start ship construction, can send ships toward destinations, and can form/order docked fleets. This is enough for basic computer participation, but it is not yet complete single-player parity with Galactica v3.
+AI integration is active in the local runtime. Computer players are initialized, receive turns, apply v3-backed economy/build rules, send ships/fleets toward destinations with v3-style decision scoring, form/order docked fleets, use technology transfer, and apply computer advantage. Remaining work around AI is mostly adjacent setup, waypoint/rendezvous, and reporting UI.
 
 ## What is working
 
 - `Game` owns an `AIManager`.
 - Computer players are initialized from the game configuration.
 - AI turns run during `Game.endTurn()`.
-- AI star logic can apply v3-style desired allocations, choose a ship type, call `startBuildingShip()`, and activate basic defensive builds/patrols.
+- AI star logic can apply v3-style desired allocations, choose a ship type with the v3 weighted hull rule, call `startBuildingShip()`, and activate v3-backed patrol behavior.
 - AI ship logic can set one destination on eligible ships.
 - AI ship/fleet logic skips under-construction ships, stationary defense satellites, and docked fleets with fewer than three ships.
 - Good/Expert AI toggles eligible healthy docked non-scout ships/fleets onto patrol and takes damaged patrollers off patrol for repair.
@@ -23,13 +23,12 @@ AI integration is partially complete and active in the local runtime. Computer p
 
 ## What is scaffolded or incomplete
 
-Confirmed v3 parity gaps:
+Confirmed remaining v3 work adjacent to AI:
 
-- Ship/fleet movement scoring still needs every `CShipCompMove.cpp`/`UShipUtils.cpp` factor and edge case verified against the v3 source.
 - AI orders still use v4's single-destination movement rather than the full v3 waypoint/course model.
 - Fleet formation does not yet include the wider v3 fleet UI around rendezvous, exchange, and course tools.
 - Computer advantage applies to production, but the full v3 setup range is not exposed in the startup UI.
-- Older Average/Good/Expert helper buckets remain and should be removed or bypassed wherever v3's five skill values control behavior directly.
+- Older Average/Good/Expert helper buckets remain as scaffolding/stat display, but v3-backed ship movement and build selection use the preserved five-value skill/rule paths.
 
 Possible v4 enhancements, not counted as v3 parity gaps:
 
@@ -46,8 +45,8 @@ Possible v4 enhancements, not counted as v3 parity gaps:
 | `src/js/ai-base.js` | Shared decision/action types. |
 | `src/js/ai-skill.js` | Average/Good/Expert behavior modifiers. |
 | `src/js/ai-utils.js` | Entity/fleet lookup, ownership, speed, strength, docked-state, and distance helpers. |
-| `src/js/ai-star.js` | Star economy role assignment, threat checks, ship-build selection, and defensive activation. |
-| `src/js/ai-ship.js` | Ship/fleet target scoring, v3 skill handling, fleet formation, and destination assignment. |
+| `src/js/ai-star.js` | Star economy role assignment, v3 weighted ship-build selection, dormant threat helpers, and defensive activation scaffolding. |
+| `src/js/ai-ship.js` | Ship/fleet target scoring, v3 skill handling, v3 pass merging/tie-break behavior, fleet formation, and destination assignment. |
 | `src/js/game.js` | Runtime integration, ownership controls, fleet processing, and advantage production modifier. |
 
 ## Turn order
@@ -72,16 +71,14 @@ Run all tests with:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 327 passed, 0 failed.
+Current expected result: 334 passed, 0 failed.
 
-The AI tests verify the current integrated behavior, but passing tests should not be read as v3 feature parity. The parity source of truth is `docs/V3_V4_FEATURE_STATUS.md`.
+The AI tests verify the current integrated behavior. The broader parity source of truth is `docs/V3_V4_FEATURE_STATUS.md`.
 
 ## Recommended next AI work
 
-1. Verify the remaining ship/fleet scoring factors against `CShipCompMove.cpp` and `UShipUtils.cpp`.
-2. Integrate AI orders with the full v3 waypoint/course model once navigation parity exists.
-3. Implement rendezvous points, fleet exchange UI, and fleet course tools.
-4. Expose and validate the full v3 computer-advantage range.
-5. Remove or bypass legacy three-bucket helper behavior where it conflicts with v3's five skill values.
-6. Use the 250-turn AI-only observer to tune v3-equivalent outcomes; treat combat odds/retreat logic as a future enhancement unless the v3 source/manual confirms it.
-7. Add richer combat/fleet result presentation once balance settles.
+1. Integrate AI orders with the full v3 waypoint/course model once navigation parity exists.
+2. Implement rendezvous points, fleet exchange UI, and fleet course tools.
+3. Expose the full v3 computer-advantage range in setup UI.
+4. Use the 250-turn AI-only observer to tune v3-equivalent outcomes; treat combat odds/retreat logic as a future enhancement unless the v3 source/manual confirms it.
+5. Add richer combat/fleet result presentation once balance settles.

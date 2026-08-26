@@ -188,8 +188,8 @@ class Star {
             return 0;
         }
 
-        for (const ship of [...this.ships]) {
-            if (!ship || ship.type === 'defense' || ship.underConstruction()) {
+        for (const ship of this.getDockedRepairables()) {
+            if (!ship || ship.type === 'defense' || (ship.underConstruction && ship.underConstruction())) {
                 continue;
             }
             if (ship.destination || (ship.isOnPatrol && ship.isOnPatrol()) || !ship.repairDamage) {
@@ -204,6 +204,37 @@ class Star {
         }
 
         return repairedTotal;
+    }
+
+    getDockedRepairables() {
+        const repairables = [];
+        const addRepairable = (entity) => {
+            if (entity && !repairables.includes(entity)) {
+                repairables.push(entity);
+            }
+        };
+
+        for (const ship of [...this.ships]) {
+            if (ship && !ship.fleet) {
+                addRepairable(ship);
+            }
+        }
+
+        if (this.game && this.game.allFleets) {
+            for (const fleet of this.game.allFleets) {
+                if (!fleet || fleet.owner !== this.owner || (fleet.isEmpty && fleet.isEmpty())) {
+                    continue;
+                }
+                if (fleet.star === this ||
+                        (!fleet.destination &&
+                            Math.round(fleet.x) === Math.round(this.x) &&
+                            Math.round(fleet.y) === Math.round(this.y))) {
+                    addRepairable(fleet);
+                }
+            }
+        }
+
+        return repairables;
     }
     
     completeShip() {

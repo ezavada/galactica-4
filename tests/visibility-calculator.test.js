@@ -13,6 +13,7 @@ function createMockGame() {
     const game = {
         stars: [],
         allShips: [],
+        allFleets: [],
         players: [
             null, // Index 0 unused
             { owner: 1, isComputer: false },
@@ -33,7 +34,8 @@ function createMockGame() {
         },
         factory: {
             isStar: (entity) => entity instanceof Star,
-            isShip: (entity) => entity instanceof Ship
+            isShip: (entity) => entity instanceof Ship,
+            isFleet: () => false
         }
     };
     return game;
@@ -160,6 +162,34 @@ test.describe('VisibilityCalculator', () => {
             
             const visibility = calculator.calculateVisibilityToPlayer(targetStar, 1);
             test.assertGreaterThan(visibility, Common.VisibilityLevel.NONE, 'Should have visibility to target');
+        });
+
+        test.it('clears stale current visibility while preserving last-seen memory', () => {
+            const game = createMockGame();
+            const calculator = new VisibilityCalculator(game);
+
+            const playerStar = new Star(0, 0, "Player Star", game);
+            playerStar.owner = 1;
+            playerStar.setScannerRange(12000);
+            game.stars.push(playerStar);
+
+            const targetStar = new Star(1000, 0, "Target Star", game);
+            targetStar.owner = 2;
+            targetStar.setStealth(1);
+            targetStar.setApparentSize(100);
+            game.stars.push(targetStar);
+
+            calculator.updateVisibilityForPlayer(1);
+            test.assertGreaterThan(targetStar.getVisibilityTo(1), Common.VisibilityLevel.NONE, 'Target should start visible');
+            test.assertEqual(targetStar.getLastSeen(1), 1, 'Visible target should record the turn it was last seen');
+
+            playerStar.setScannerRange(10);
+            game.turn = 2;
+            calculator.updateVisibilityForPlayer(1);
+
+            test.assertEqual(targetStar.getVisibilityTo(1), Common.VisibilityLevel.NONE, 'Target should no longer be currently visible outside scanner range');
+            test.assertEqual(targetStar.getLastSeen(1), 1, 'Last-seen memory should survive losing current visibility');
+            test.assertEqual(playerStar.getVisibilityTo(1), Common.VisibilityLevel.DETAILS, 'Owned entities should remain fully visible');
         });
 
         test.it('returns NONE for invalid player', () => {

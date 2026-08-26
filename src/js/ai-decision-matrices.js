@@ -203,26 +203,26 @@ class DecisionMatrix {
 
     // Get the best action based on current scores
     getBestAction() {
-        const actions = [
-            { action: 'toFormFleet', score: this.scores.toFormFleet, targetKey: null },
-            { action: 'toOurStar', score: this.scores.toOurStar, targetKey: 'ourStar' },
-            { action: 'toEnemyStar', score: this.scores.toEnemyStar, targetKey: 'enemyStar' },
-            { action: 'toShip', score: this.scores.toShip, targetKey: 'ship' },
-            { action: 'toOtherStar', score: this.scores.toOtherStar, targetKey: 'otherStar' }
-        ];
+        const tos = this.scores.toOurStar;
+        const tes = this.scores.toEnemyStar;
+        const tfs = this.scores.toOtherStar;
+        const ts = this.scores.toShip;
+        const tff = this.scores.toFormFleet;
 
-        // Sort by score (highest first)
-        actions.sort((a, b) => b.score - a.score);
-
-        // Return the best action that has a positive score
-        for (const action of actions) {
-            if (action.score > 0) {
-                return {
-                    action: action.action,
-                    score: action.score,
-                    target: action.targetKey ? this.targets[action.targetKey] : null
-                };
-            }
+        if (tff > 0 && tff > tos && tff > tfs && tff > ts && tff > tes) {
+            return { action: 'toFormFleet', score: tff, target: null };
+        }
+        if (tos > 0 && tos >= tes && tos >= tfs && tos >= ts && tos > tff) {
+            return { action: 'toOurStar', score: tos, target: this.targets.ourStar };
+        }
+        if (tes > 0 && tes >= tos && tes >= tfs && tes >= ts && tes > tff) {
+            return { action: 'toEnemyStar', score: tes, target: this.targets.enemyStar };
+        }
+        if (ts > 0 && ts >= tos && ts >= tes && ts >= tfs && ts > tff) {
+            return { action: 'toShip', score: ts, target: this.targets.ship };
+        }
+        if (tfs > 0) {
+            return { action: 'toOtherStar', score: tfs, target: this.targets.otherStar };
         }
 
         // If no positive scores, do nothing
