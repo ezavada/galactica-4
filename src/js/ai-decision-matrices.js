@@ -1,10 +1,85 @@
 // AI Decision Matrices for Galactica-4
 // Exact replication of the decision matrices from UShipUtils.cpp
-// Each matrix contains weights for 34 factors affecting AI ship decisions
+// Each matrix contains the original 34 factors affecting AI ship decisions,
+// a v3 end-marker row, and opt-in experimental factors for genetic AI tuning.
 
 // Decision matrix structure: [toOurStar, toEnemyStar, toOtherStar, toShip, toFormFleet]
+const ACTION_COLUMNS = ['toOurStar', 'toEnemyStar', 'toOtherStar', 'toShip', 'toFormFleet'];
+const LEGACY_END_MARKER_INDEX = 34;
+const GENETIC_FACTOR_START_INDEX = 35;
+
+const GENETIC_AI_FACTORS = {
+    EMPIRE_HAS_FEW_STARS: 35,
+    EMPIRE_HAS_MANY_STARS: 36,
+    HAS_IDLE_COLONY: 37,
+    NO_IDLE_COLONY: 38,
+    ENEMY_STAR_HAS_COLONY_SUPPORT: 39,
+    ENEMY_STAR_LACKS_COLONY_SUPPORT: 40,
+    OWNED_TARGET_THREATENED: 41,
+    CURRENT_STAR_SAFE: 42,
+    UNOWNED_TARGET_ON_FRONTIER: 43,
+    OWNED_TARGET_ALREADY_ASSIGNED: 44,
+    ENEMY_TARGET_ALREADY_ASSIGNED: 45,
+    UNOWNED_TARGET_ALREADY_ASSIGNED: 46,
+    SHIP_TARGET_ALREADY_ASSIGNED: 47,
+    FLEET_READY_FOR_ATTACK: 48,
+    SCOUT_STANDOFF_AVAILABLE: 49,
+    WE_WERE_RECENTLY_ATTACKED: 50,
+    OWNED_TARGET_RECENTLY_ATTACKED: 51,
+    CURRENT_STAR_RECENTLY_ATTACKED: 52,
+    ENEMY_STAR_OWNER_RECENTLY_ATTACKED_US: 53,
+    ENEMY_SHIP_OWNER_RECENTLY_ATTACKED_US: 54,
+    WE_RECENTLY_ATTACKED_TARGET_OWNER: 55,
+    RECENT_ATTACK_TARGET_WAS_STAR: 56,
+    RECENT_ATTACK_TARGET_WAS_MOBILE: 57,
+    NO_ENEMY_STARS_REMAIN: 58,
+    ONLY_US_HAS_STARS: 59,
+    ENEMY_SHIP_OWNER_HAS_NO_STARS: 60
+};
+
+const GENETIC_FACTOR_NAMES = {
+    [GENETIC_AI_FACTORS.EMPIRE_HAS_FEW_STARS]: 'Empire has few stars',
+    [GENETIC_AI_FACTORS.EMPIRE_HAS_MANY_STARS]: 'Empire has many stars',
+    [GENETIC_AI_FACTORS.HAS_IDLE_COLONY]: 'Has idle colony ship',
+    [GENETIC_AI_FACTORS.NO_IDLE_COLONY]: 'No idle colony ship',
+    [GENETIC_AI_FACTORS.ENEMY_STAR_HAS_COLONY_SUPPORT]: 'Enemy star has colony support',
+    [GENETIC_AI_FACTORS.ENEMY_STAR_LACKS_COLONY_SUPPORT]: 'Enemy star lacks colony support',
+    [GENETIC_AI_FACTORS.OWNED_TARGET_THREATENED]: 'Owned target is threatened',
+    [GENETIC_AI_FACTORS.CURRENT_STAR_SAFE]: 'Current star is safe',
+    [GENETIC_AI_FACTORS.UNOWNED_TARGET_ON_FRONTIER]: 'Unowned target is on frontier',
+    [GENETIC_AI_FACTORS.OWNED_TARGET_ALREADY_ASSIGNED]: 'Owned target already has friendly assignment',
+    [GENETIC_AI_FACTORS.ENEMY_TARGET_ALREADY_ASSIGNED]: 'Enemy target already has friendly assignment',
+    [GENETIC_AI_FACTORS.UNOWNED_TARGET_ALREADY_ASSIGNED]: 'Unowned target already has friendly assignment',
+    [GENETIC_AI_FACTORS.SHIP_TARGET_ALREADY_ASSIGNED]: 'Ship target already has friendly assignment',
+    [GENETIC_AI_FACTORS.FLEET_READY_FOR_ATTACK]: 'Fleet or local force is ready for attack',
+    [GENETIC_AI_FACTORS.SCOUT_STANDOFF_AVAILABLE]: 'Scout standoff scan is available',
+    [GENETIC_AI_FACTORS.WE_WERE_RECENTLY_ATTACKED]: 'Our empire was recently attacked',
+    [GENETIC_AI_FACTORS.OWNED_TARGET_RECENTLY_ATTACKED]: 'Owned target was recently attacked',
+    [GENETIC_AI_FACTORS.CURRENT_STAR_RECENTLY_ATTACKED]: 'Current star was recently attacked',
+    [GENETIC_AI_FACTORS.ENEMY_STAR_OWNER_RECENTLY_ATTACKED_US]: 'Enemy star owner recently attacked us',
+    [GENETIC_AI_FACTORS.ENEMY_SHIP_OWNER_RECENTLY_ATTACKED_US]: 'Enemy ship owner recently attacked us',
+    [GENETIC_AI_FACTORS.WE_RECENTLY_ATTACKED_TARGET_OWNER]: 'We recently attacked target owner',
+    [GENETIC_AI_FACTORS.RECENT_ATTACK_TARGET_WAS_STAR]: 'Recent attack target was a star',
+    [GENETIC_AI_FACTORS.RECENT_ATTACK_TARGET_WAS_MOBILE]: 'Recent attack target was a ship or fleet',
+    [GENETIC_AI_FACTORS.NO_ENEMY_STARS_REMAIN]: 'No enemy stars remain',
+    [GENETIC_AI_FACTORS.ONLY_US_HAS_STARS]: 'Only our empire still has stars',
+    [GENETIC_AI_FACTORS.ENEMY_SHIP_OWNER_HAS_NO_STARS]: 'Enemy ship owner has no stars'
+};
+
+function createZeroWeights() {
+    return [0, 0, 0, 0, 0];
+}
+
+function withGeneticFactorRows(baseRows) {
+    const rows = baseRows.map(row => row.slice());
+    for (const factorIndex of Object.values(GENETIC_AI_FACTORS)) {
+        rows[factorIndex] = createZeroWeights();
+    }
+    return rows;
+}
+
 const SHIP_DECISION_MATRICES = {
-    scout: [
+    scout: withGeneticFactorRows([
         [-50, -50, -50, -50, -50],  // 0. already moving toward a star or ship
         [-90,   0,   0,   0,   0],  // 1. no nearby owned star
         [ 20, -90,   0,   0,   0],  // 2. no nearby enemy star
@@ -40,9 +115,9 @@ const SHIP_DECISION_MATRICES = {
         [  5,   0,   5,   0,   0],  //32. we are at unowned star
         [  0,   0,   0,   0,   0],  //33. no fleet exists at this star
         [  0,   0,   0,   0,   0]   //34. end marker
-    ],
+    ]),
 
-    colony: [
+    colony: withGeneticFactorRows([
         [-50, -50, -30, -50, -50],  // 0. already moving toward a star or ship
         [-90,   0,   0,   0,   0],  // 1. no nearby owned star
         [  0, -90,   0,   0,   0],  // 2. no nearby enemy star
@@ -78,9 +153,9 @@ const SHIP_DECISION_MATRICES = {
         [  0,   0,   0,   0,   0],  //32. we are at unowned star
         [  0,   0,   0,   0,   0],  //33. no fleet exists at this star
         [  0,   0,   0,   0,   0]   //34. end marker
-    ],
+    ]),
 
-    battleship: [
+    battleship: withGeneticFactorRows([
         [-50, -20, -50, -30, -50],  // 0. already moving toward a star or ship
         [-90,   0,   0,   0,   0],  // 1. no nearby owned star
         [  0, -90,   0,   0,   5],  // 2. no nearby enemy star
@@ -116,7 +191,121 @@ const SHIP_DECISION_MATRICES = {
         [  0,   0,   0,   0, -10],  //32. we are at unowned star
         [  0,   0,   0,   0, -20],  //33. no fleet exists at this star
         [  0,   0,   0,   0,   0]   //34. end marker
-    ]
+    ])
+};
+
+function normalizeWeights(weights = []) {
+    const normalized = createZeroWeights();
+    for (let i = 0; i < ACTION_COLUMNS.length; i++) {
+        const value = Number(weights[i]);
+        normalized[i] = Number.isFinite(value) ? Math.round(value) : 0;
+    }
+    return normalized;
+}
+
+function createOverlayRows(rowOverrides = {}) {
+    const maxIndex = Math.max(
+        LEGACY_END_MARKER_INDEX,
+        ...Object.values(GENETIC_AI_FACTORS),
+        ...Object.keys(rowOverrides).map(index => Number(index)).filter(Number.isFinite)
+    );
+    const rows = [];
+    for (let i = 0; i <= maxIndex; i++) {
+        rows[i] = createZeroWeights();
+    }
+    for (const [factorIndex, weights] of Object.entries(rowOverrides)) {
+        rows[Number(factorIndex)] = normalizeWeights(weights);
+    }
+    return rows;
+}
+
+function clampWeight(value, minWeight = -250, maxWeight = 250) {
+    return Math.max(minWeight, Math.min(maxWeight, Math.round(value)));
+}
+
+function combineDecisionMatrices(baseMatrix, overlayMatrix = [], options = {}) {
+    const minWeight = options.minWeight !== undefined ? options.minWeight : -250;
+    const maxWeight = options.maxWeight !== undefined ? options.maxWeight : 250;
+    const maxLength = Math.max(
+        baseMatrix ? baseMatrix.length : 0,
+        overlayMatrix ? overlayMatrix.length : 0,
+        Math.max(...Object.values(GENETIC_AI_FACTORS)) + 1
+    );
+    const combined = [];
+
+    for (let rowIndex = 0; rowIndex < maxLength; rowIndex++) {
+        const baseWeights = baseMatrix && baseMatrix[rowIndex] ? baseMatrix[rowIndex] : createZeroWeights();
+        const overlayWeights = overlayMatrix && overlayMatrix[rowIndex] ? overlayMatrix[rowIndex] : createZeroWeights();
+        combined[rowIndex] = ACTION_COLUMNS.map((_, columnIndex) =>
+            clampWeight((baseWeights[columnIndex] || 0) + (overlayWeights[columnIndex] || 0), minWeight, maxWeight)
+        );
+    }
+
+    return combined;
+}
+
+const EXPERT_DECISION_MATRIX_OVERLAYS = {
+    scout: createOverlayRows({
+        [GENETIC_AI_FACTORS.EMPIRE_HAS_FEW_STARS]: [0, -10, 20, 0, 0],
+        [GENETIC_AI_FACTORS.UNOWNED_TARGET_ON_FRONTIER]: [0, 0, 90, 0, 0],
+        [GENETIC_AI_FACTORS.UNOWNED_TARGET_ALREADY_ASSIGNED]: [0, 0, -90, 0, 0],
+        [GENETIC_AI_FACTORS.ENEMY_TARGET_ALREADY_ASSIGNED]: [0, -70, 0, 0, 0],
+        [GENETIC_AI_FACTORS.SHIP_TARGET_ALREADY_ASSIGNED]: [0, 0, 0, -70, 0],
+        [GENETIC_AI_FACTORS.SCOUT_STANDOFF_AVAILABLE]: [0, -20, 110, 0, 0],
+        [GENETIC_AI_FACTORS.WE_WERE_RECENTLY_ATTACKED]: [15, -10, 0, 0, 0],
+        [GENETIC_AI_FACTORS.ENEMY_STAR_OWNER_RECENTLY_ATTACKED_US]: [0, -20, 50, 0, 0],
+        [GENETIC_AI_FACTORS.ENEMY_SHIP_OWNER_RECENTLY_ATTACKED_US]: [10, 0, 0, -20, 0],
+        [GENETIC_AI_FACTORS.NO_ENEMY_STARS_REMAIN]: [35, -50, 0, -25, 0],
+        [GENETIC_AI_FACTORS.ONLY_US_HAS_STARS]: [35, -50, 0, -25, 0],
+        [GENETIC_AI_FACTORS.ENEMY_SHIP_OWNER_HAS_NO_STARS]: [25, 0, 0, -30, 0]
+    }),
+    colony: createOverlayRows({
+        [GENETIC_AI_FACTORS.EMPIRE_HAS_FEW_STARS]: [0, -20, 50, 0, 0],
+        [GENETIC_AI_FACTORS.NO_IDLE_COLONY]: [0, -45, 25, 0, 0],
+        [GENETIC_AI_FACTORS.HAS_IDLE_COLONY]: [0, 15, -20, 0, 0],
+        [GENETIC_AI_FACTORS.ENEMY_STAR_HAS_COLONY_SUPPORT]: [0, 25, 0, 0, 0],
+        [GENETIC_AI_FACTORS.UNOWNED_TARGET_ON_FRONTIER]: [0, 0, 30, 0, 0],
+        [GENETIC_AI_FACTORS.ENEMY_TARGET_ALREADY_ASSIGNED]: [0, -80, 0, 0, 0],
+        [GENETIC_AI_FACTORS.UNOWNED_TARGET_ALREADY_ASSIGNED]: [0, 0, -80, 0, 0],
+        [GENETIC_AI_FACTORS.SHIP_TARGET_ALREADY_ASSIGNED]: [0, 0, 0, -70, 0],
+        [GENETIC_AI_FACTORS.WE_WERE_RECENTLY_ATTACKED]: [35, -25, 10, -10, 0],
+        [GENETIC_AI_FACTORS.OWNED_TARGET_RECENTLY_ATTACKED]: [55, -20, 0, 0, 0],
+        [GENETIC_AI_FACTORS.ENEMY_STAR_OWNER_RECENTLY_ATTACKED_US]: [0, -35, 0, 0, 0],
+        [GENETIC_AI_FACTORS.WE_RECENTLY_ATTACKED_TARGET_OWNER]: [0, 25, -10, 0, 0],
+        [GENETIC_AI_FACTORS.NO_ENEMY_STARS_REMAIN]: [50, -60, -25, -40, 0],
+        [GENETIC_AI_FACTORS.ONLY_US_HAS_STARS]: [50, -60, -25, -40, 0],
+        [GENETIC_AI_FACTORS.ENEMY_SHIP_OWNER_HAS_NO_STARS]: [40, 0, 0, -45, 0]
+    }),
+    battleship: createOverlayRows({
+        [GENETIC_AI_FACTORS.EMPIRE_HAS_FEW_STARS]: [15, -10, 0, 0, 0],
+        [GENETIC_AI_FACTORS.EMPIRE_HAS_MANY_STARS]: [0, 20, 0, 5, 5],
+        [GENETIC_AI_FACTORS.ENEMY_STAR_HAS_COLONY_SUPPORT]: [0, 45, 0, 0, 0],
+        [GENETIC_AI_FACTORS.ENEMY_STAR_LACKS_COLONY_SUPPORT]: [10, -35, 0, 10, 15],
+        [GENETIC_AI_FACTORS.OWNED_TARGET_THREATENED]: [160, -35, 0, -15, 5],
+        [GENETIC_AI_FACTORS.CURRENT_STAR_SAFE]: [0, 20, 0, 0, 20],
+        [GENETIC_AI_FACTORS.OWNED_TARGET_ALREADY_ASSIGNED]: [-80, 0, 0, 0, 0],
+        [GENETIC_AI_FACTORS.ENEMY_TARGET_ALREADY_ASSIGNED]: [0, -85, 0, 0, 0],
+        [GENETIC_AI_FACTORS.UNOWNED_TARGET_ALREADY_ASSIGNED]: [0, 0, -75, 0, 0],
+        [GENETIC_AI_FACTORS.SHIP_TARGET_ALREADY_ASSIGNED]: [0, 0, 0, -85, 0],
+        [GENETIC_AI_FACTORS.FLEET_READY_FOR_ATTACK]: [0, 55, 0, 15, 30],
+        [GENETIC_AI_FACTORS.WE_WERE_RECENTLY_ATTACKED]: [45, -10, 0, 25, 15],
+        [GENETIC_AI_FACTORS.OWNED_TARGET_RECENTLY_ATTACKED]: [130, -30, 0, -10, 10],
+        [GENETIC_AI_FACTORS.CURRENT_STAR_RECENTLY_ATTACKED]: [0, 15, 0, 15, 30],
+        [GENETIC_AI_FACTORS.ENEMY_STAR_OWNER_RECENTLY_ATTACKED_US]: [0, 65, 0, 0, 10],
+        [GENETIC_AI_FACTORS.ENEMY_SHIP_OWNER_RECENTLY_ATTACKED_US]: [0, 0, 0, 60, 5],
+        [GENETIC_AI_FACTORS.WE_RECENTLY_ATTACKED_TARGET_OWNER]: [0, 40, 0, 20, 10],
+        [GENETIC_AI_FACTORS.RECENT_ATTACK_TARGET_WAS_STAR]: [20, 35, 0, 0, 10],
+        [GENETIC_AI_FACTORS.RECENT_ATTACK_TARGET_WAS_MOBILE]: [10, 0, 0, 35, 5],
+        [GENETIC_AI_FACTORS.NO_ENEMY_STARS_REMAIN]: [0, -80, -80, 170, 0],
+        [GENETIC_AI_FACTORS.ONLY_US_HAS_STARS]: [0, -90, -90, 150, 0],
+        [GENETIC_AI_FACTORS.ENEMY_SHIP_OWNER_HAS_NO_STARS]: [0, 0, 0, 190, 0]
+    })
+};
+
+const EXPERT_SHIP_DECISION_MATRICES = {
+    scout: combineDecisionMatrices(SHIP_DECISION_MATRICES.scout, EXPERT_DECISION_MATRIX_OVERLAYS.scout),
+    colony: combineDecisionMatrices(SHIP_DECISION_MATRICES.colony, EXPERT_DECISION_MATRIX_OVERLAYS.colony),
+    battleship: combineDecisionMatrices(SHIP_DECISION_MATRICES.battleship, EXPERT_DECISION_MATRIX_OVERLAYS.battleship)
 };
 
 // Factor indices for easier reference
@@ -154,14 +343,15 @@ const AI_FACTORS = {
     WE_ARE_HEAVILY_DAMAGED: 30,
     STAR_HAS_OTHER_SHIPS_OF_CLASS: 31,
     AT_UNOWNED_STAR: 32,
-    NO_FLEET_AT_STAR: 33
+    NO_FLEET_AT_STAR: 33,
+    ...GENETIC_AI_FACTORS
 };
 
 // Decision matrix class for managing AI decisions
 class DecisionMatrix {
-    constructor(shipType) {
+    constructor(shipType, customMatrix = null) {
         this.shipType = shipType;
-        this.matrix = SHIP_DECISION_MATRICES[shipType] || SHIP_DECISION_MATRICES.battleship;
+        this.matrix = customMatrix || SHIP_DECISION_MATRICES[shipType] || SHIP_DECISION_MATRICES.battleship;
         this.scores = {
             toOurStar: 0,
             toEnemyStar: 0,
@@ -182,6 +372,7 @@ class DecisionMatrix {
         if (factorIndex >= this.matrix.length) return;
 
         const weights = this.matrix[factorIndex];
+        if (!weights) return;
         this.scores.toOurStar += weights[0] * multiplier;
         this.scores.toEnemyStar += weights[1] * multiplier;
         this.scores.toOtherStar += weights[2] * multiplier;
@@ -194,6 +385,7 @@ class DecisionMatrix {
         if (factorIndex >= this.matrix.length) return;
 
         const weights = this.matrix[factorIndex];
+        if (!weights) return;
         this.scores.toOurStar += Math.floor((weights[0] * delta) / 10);
         this.scores.toEnemyStar += Math.floor((weights[1] * delta) / 10);
         this.scores.toOtherStar += Math.floor((weights[2] * delta) / 10);
@@ -248,7 +440,15 @@ class DecisionMatrix {
 }
 
 module.exports = {
+    ACTION_COLUMNS,
+    LEGACY_END_MARKER_INDEX,
+    GENETIC_FACTOR_START_INDEX,
+    GENETIC_AI_FACTORS,
+    GENETIC_FACTOR_NAMES,
     SHIP_DECISION_MATRICES,
+    EXPERT_DECISION_MATRIX_OVERLAYS,
+    EXPERT_SHIP_DECISION_MATRICES,
+    combineDecisionMatrices,
     AI_FACTORS,
     DecisionMatrix
 };

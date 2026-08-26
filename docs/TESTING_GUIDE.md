@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 355
-Passed: 355 ✓
+Total: 363
+Passed: 363 ✓
 Failed: 0 ✗
 ```
 
@@ -47,6 +47,7 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - `rendezvous.test.js`
 - `ship-naming-events.test.js`
 - `autoplay.test.js`
+- `ai-genetic-trainer.test.js`
 
 ## What the tests cover
 
@@ -54,7 +55,7 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - v3-style map generation, star naming, homeworld assignment, and seeded reproducibility.
 - Coordinate conversion, camera zoom/pan, and ship movement.
 - Player info, game configuration, ownership, and serialization helpers.
-- AI manager/player utilities, decision plumbing, Expert campaign/scouting/redeployment extensions, ownership protection, and AI intent overlay state.
+- AI manager/player utilities, decision plumbing, matrix-backed Expert campaign/scouting/redeployment extensions, ownership protection, AI intent overlay state, per-player genetic matrix injection, and combat-memory decision factors.
 - Fog-of-war entity state, visibility calculations, spatial partitioning, and integration paths.
 - Fleet creation, joining, merging, movement, and formation rules.
 - Runtime combat resolution, v3-style ship/star strength formulas, destruction, interception, docked defenders, colony capture, defeat/victory updates, and combat summary events.
@@ -63,6 +64,7 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - Rendezvous creation/placement, fleet assembly at rendezvous points, named fleet/rendezvous UI, fleet roster rows, and fleet member remove/transfer controls.
 - Ship naming and new tech/class event overlays.
 - Deterministic AI-only autoplay setup, per-player AI skill assignment, 250-turn default cap, quiet/visible event-window modes, victory/stalemate state, and autoplay stop conditions.
+- Experimental AI genetic trainer matrix creation, deterministic populations, survivor/child evolution, forced mutation, and recent-combat context rows.
 
 ## AI-only parity observer
 
@@ -82,6 +84,16 @@ Useful options:
 ./gad4 -- --ai-autoplay --seed=314159 --autoplay-delay=100 --autoplay-max-turns=250 --show-event-windows --autoplay-event-ms=1000
 ./gad4 -- --ai-autoplay --hide-ai-intent
 ```
+
+## Experimental AI genetic trainer
+
+Run the opt-in AI matrix trainer with:
+
+```bash
+./gad4 tools/ai-genetic-trainer.js --generations=20 --max-turns=250 --target-turns=100
+```
+
+It starts five AI-only players on the smallest map, assigns each a unique decision-matrix genome, keeps the top two genomes after each match, and replaces the other three with blended children that each receive at least one mutation. By default the map seed stays fixed, seats are shuffled deterministically, event windows are hidden, and the run stops after the requested generation cap or after repeated wins under the target turn count.
 
 ## Important interpretation
 

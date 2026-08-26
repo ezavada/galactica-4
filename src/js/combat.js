@@ -611,6 +611,38 @@ class CombatSystem {
         );
     }
 
+    getPrimaryDefenderOwner(destination, originalDestinationOwner, spaceDefenders) {
+        if (originalDestinationOwner > 0 && this.isStar(destination)) {
+            return originalDestinationOwner;
+        }
+        for (const defender of spaceDefenders || []) {
+            if (defender && defender.owner > 0) {
+                return defender.owner;
+            }
+        }
+        return originalDestinationOwner || 0;
+    }
+
+    recordAICombatMemory(attackerOwner, defenderOwner, destination, finalOutcome, attackersLost, defendersLost, originalDestinationOwner) {
+        if (!this.game || typeof this.game.recordAICombatMemory !== 'function' || attackerOwner <= 0 || defenderOwner <= 0) {
+            return null;
+        }
+
+        return this.game.recordAICombatMemory({
+            turn: this.game.turn,
+            attackerOwner,
+            defenderOwner,
+            target: destination,
+            targetType: this.game.getObjectType ? this.game.getObjectType(destination) : Common.ObjectType.UNKNOWN,
+            targetOwnerBefore: originalDestinationOwner,
+            targetOwnerAfter: destination && destination.owner !== undefined ? destination.owner : null,
+            attackersWon: finalOutcome.attackersWon,
+            defendersWon: finalOutcome.defendersWon,
+            attackersLost,
+            defendersLost
+        });
+    }
+
     // Resolve combat between attackers and defenders
     resolveCombat(attacker, destination) {
         if (!attacker || !destination) {
@@ -623,6 +655,7 @@ class CombatSystem {
         const originalDestinationOwner = destination.owner || 0;
         const attackerCombatants = this.getCombatants(attacker);
         const spaceDefenders = this.collectSpaceDefenders(destination, attackerOwner, attackerCombatants);
+        const defenderOwner = this.getPrimaryDefenderOwner(destination, originalDestinationOwner, spaceDefenders);
 
         if (attackerCombatants.length === 0) {
             return {
@@ -696,6 +729,7 @@ class CombatSystem {
         const defendersLost = spaceResult.defendersLost + (groundResult ? groundResult.defendersLost : 0);
         const finalOutcome = this.getCombatOutcome(destination, attackerOwner, attackerSurvivors, defenderSurvivors);
         this.recordCombatSummary(destination, finalOutcome, attackersLost, defendersLost);
+        this.recordAICombatMemory(attackerOwner, defenderOwner, destination, finalOutcome, attackersLost, defendersLost, originalDestinationOwner);
 
         if (this.game && typeof this.game.updatePlayerPieceCounts === 'function') {
             this.game.updatePlayerPieceCounts();

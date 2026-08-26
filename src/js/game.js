@@ -37,6 +37,12 @@ class Game {
         this.renameText = '';
         this.aiIntentOverlays = [];
         this.aiIntentOverlayTurn = null;
+        this.aiDecisionMatrices = null; // Optional per-player AI matrix overrides for experiments/tools.
+        this.aiCombatMemory = {
+            recentAttacks: [],
+            byDefenderOwner: {},
+            byAttackerOwner: {}
+        };
         this.isGameOver = false;
         this.winningPlayerNum = null;
         this.victoryTurn = null;
@@ -1043,6 +1049,80 @@ class Game {
             return [];
         }
         return this.aiIntentOverlays.slice();
+    }
+
+    getAICombatMemoryTargetType(target) {
+        if (!target || !this.getObjectType) {
+            return Common.ObjectType.UNKNOWN;
+        }
+        return this.getObjectType(target);
+    }
+
+    recordAICombatMemory(details = {}) {
+        if (!this.aiCombatMemory) {
+            this.aiCombatMemory = {
+                recentAttacks: [],
+                byDefenderOwner: {},
+                byAttackerOwner: {}
+            };
+        }
+
+        const attackerOwner = Number(details.attackerOwner) || 0;
+        const defenderOwner = Number(details.defenderOwner) || 0;
+        const target = details.target || null;
+        const targetType = details.targetType !== undefined ?
+            details.targetType :
+            this.getAICombatMemoryTargetType(target);
+        const entry = {
+            turn: details.turn !== undefined ? details.turn : this.turn,
+            attackerOwner,
+            defenderOwner,
+            target,
+            targetType,
+            targetId: target && target.id !== undefined ? target.id : null,
+            targetName: target && (target.name || target.type) ? (target.name || target.type) : null,
+            targetOwnerBefore: details.targetOwnerBefore !== undefined ? details.targetOwnerBefore : defenderOwner,
+            targetOwnerAfter: target && target.owner !== undefined ? target.owner : details.targetOwnerAfter,
+            attackersWon: !!details.attackersWon,
+            defendersWon: !!details.defendersWon,
+            attackersLost: details.attackersLost || 0,
+            defendersLost: details.defendersLost || 0
+        };
+
+        this.aiCombatMemory.recentAttacks.push(entry);
+        if (this.aiCombatMemory.recentAttacks.length > 80) {
+            this.aiCombatMemory.recentAttacks.splice(0, this.aiCombatMemory.recentAttacks.length - 80);
+        }
+
+        if (attackerOwner > 0) {
+            this.aiCombatMemory.byAttackerOwner[attackerOwner] = entry;
+        }
+        if (defenderOwner > 0) {
+            this.aiCombatMemory.byDefenderOwner[defenderOwner] = entry;
+        }
+
+        return entry;
+    }
+
+    isAICombatMemoryRecent(entry, maxAgeTurns = 12) {
+        if (!entry) {
+            return false;
+        }
+        return (this.turn - entry.turn) <= maxAgeTurns;
+    }
+
+    getRecentAttackOnOwner(owner, maxAgeTurns = 12) {
+        const entry = this.aiCombatMemory && this.aiCombatMemory.byDefenderOwner ?
+            this.aiCombatMemory.byDefenderOwner[owner] :
+            null;
+        return this.isAICombatMemoryRecent(entry, maxAgeTurns) ? entry : null;
+    }
+
+    getRecentAttackByOwner(owner, maxAgeTurns = 12) {
+        const entry = this.aiCombatMemory && this.aiCombatMemory.byAttackerOwner ?
+            this.aiCombatMemory.byAttackerOwner[owner] :
+            null;
+        return this.isAICombatMemoryRecent(entry, maxAgeTurns) ? entry : null;
     }
 
     toggleProductionWindow() {

@@ -15,9 +15,10 @@ Currently, the AI system can start ship construction and send ships toward desti
 - **Fleet Coordination**: AI could wait to form larger fleets before attacking strong targets
 
 **Implementation Notes:**
-- Would require extending the AI decision matrices to include combat evaluation factors
-- Could add combat odds display for human players as well
-- Should maintain the original game's balance where combat is automatic on arrival
+
+- The AI decision matrix now has opt-in contextual rows and a genetic trainer harness, so future combat-odds work can add more rows without changing the normal v3 base table.
+- Could add combat odds display for human players as well.
+- Should maintain the original game's balance where combat is automatic on arrival.
 
 ## Computer Player Enhancements Beyond v3
 
@@ -29,11 +30,18 @@ These are intentionally listed as possible Galactica-4 improvements, not missing
 - Richer player/debug overlay explaining why an AI chose a destination, fleet action, or build, beyond the current action/target intent overlay.
 - Autoplay summaries that highlight stalled players, repeated no-op decisions, or unchanged front lines.
 
+### Genetic Matrix Tuning
+**Priority: Medium**
+
+- Use `./gad4 tools/ai-genetic-trainer.js` to evolve per-player AI decision-matrix overlays on the smallest fixed-seed self-play map.
+- Keep useful trained genomes reproducible with seed/config metadata, then decide whether to promote them into default Expert overlays.
+- Add import/export once a trained genome is worth preserving across sessions.
+
 ### Richer Defensive Coordination
 **Priority: Medium**
 
 - Reinforcement planning that sends mobile defenders toward threatened systems.
-- Threat scoring that considers enemy trajectories, nearby friendly fleets, and expected arrival timing.
+- Threat scoring that considers enemy trajectories, nearby friendly fleets, expected arrival timing, and the new short-lived recent-combat memory.
 - Defensive fleet rally behavior beyond v3's satellite/patrol mechanics.
 
 ### Strategic Advantage Modifiers

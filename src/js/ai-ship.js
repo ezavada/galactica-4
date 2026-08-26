@@ -2,7 +2,11 @@
 // Implements the exact ship AI algorithms from CShipCompMove.cpp
 
 const { AIBase, AIDecision, AIActions } = require('./ai-base.js');
-const { DecisionMatrix, AI_FACTORS } = require('./ai-decision-matrices.js');
+const {
+    DecisionMatrix,
+    AI_FACTORS,
+    EXPERT_SHIP_DECISION_MATRICES
+} = require('./ai-decision-matrices.js');
 const { AISkillManager, AI_SKILL_LEVELS } = require('./ai-skill.js');
 const AIUtils = require('./ai-utils.js');
 const Common = require('./common.js');
@@ -24,6 +28,7 @@ const EXPERT_SCOUT_STANDOFF_SCAN_MARGIN = 0.92;
 const EXPERT_SCOUT_STANDOFF_MIN_DISTANCE = 5000;
 const EXPERT_SCOUT_STANDOFF_DEFENDER_SPEED_FACTOR = 0.35;
 const EXPERT_SCOUT_STANDOFF_DANGER_MARGIN = 2500;
+const AI_COMBAT_MEMORY_TURNS = 12;
 
 class ShipAI extends AIBase {
     constructor(ship, game, rules, skillLevel = AI_SKILL_LEVELS.AVERAGE) {
@@ -31,7 +36,8 @@ class ShipAI extends AIBase {
         this.ship = ship;
         this.skillManager = new AISkillManager(skillLevel);
         this.utils = new AIUtils(game, rules);
-        this.decisionMatrix = new DecisionMatrix(this.getShipType());
+        const shipType = this.getShipType();
+        this.decisionMatrix = new DecisionMatrix(shipType, this.getPlayerDecisionMatrix(shipType));
     }
 
     // Get ship type for decision matrix lookup
@@ -46,6 +52,19 @@ class ShipAI extends AIBase {
             return 'scout';
         }
         return this.ship.type;
+    }
+
+    getPlayerDecisionMatrix(shipType) {
+        const owner = this.ship && this.ship.owner;
+        const playerMatrices = this.game && this.game.aiDecisionMatrices ?
+            this.game.aiDecisionMatrices[owner] :
+            null;
+        if (playerMatrices && playerMatrices[shipType]) {
+            return playerMatrices[shipType];
+        }
+        return this.isExpertLevel() ?
+            (EXPERT_SHIP_DECISION_MATRICES[shipType] || null) :
+            null;
     }
 
     isFleetEntity() {
@@ -161,13 +180,6 @@ class ShipAI extends AIBase {
         if (campaignDecision) {
             this.applyV3PatrolRule(v3Skill, campaignDecision);
             return campaignDecision;
-        }
-
-        const redeploymentDecision = this.getExpertDefensiveRedeploymentDecision(v3Skill, maxDistance);
-        if (redeploymentDecision) {
-            this.rememberExpertCampaignObjective(redeploymentDecision, v3Skill);
-            this.applyV3PatrolRule(v3Skill, redeploymentDecision);
-            return redeploymentDecision;
         }
 
         // Perform multiple iterations for higher skill levels. v3 keeps the
@@ -481,8 +493,13 @@ class ShipAI extends AIBase {
 
         // Find nearby entities
         const closestStars = this.utils.findClosestStars(this.ship, maxDistance);
-        const closestEnemyShip = this.utils.findClosestEnemyShip(this.ship, maxDistance >> 2);
+        const closestEnemyShip = this.utils.findClosestEnemyShip(
+            this.ship,
+            this.getEnemyShipSearchDistance(maxDistance, v3Skill, closestStars)
+        );
         
+        let nearestOwnedStar = closestStars.nearestOwnedStar;
+        let nearestUnownedStar = closestStars.nearestUnownedStar;
         let nearestEnemyStar = closestStars.nearestEnemyStar;
 
         // For higher skill levels, consider alternative targets
@@ -503,26 +520,43 @@ class ShipAI extends AIBase {
                 closestStars.distances[2] = this.utils.calculateDistance(this.ship, techStar);
             }
         } else if (iteration === 3 && this.isExpertLevel(v3Skill)) {
-            // Expert-only v4 pass: look for the best vulnerable enemy star
-            // across the wider search radius, favoring weak defenses, low
-            // population, high tech value, and shorter travel time.
+            // Expert-only v4 pass: choose richer candidate targets, then let
+            // the data-driven Expert overlay rows score them.
             const strategicEnemy = this.findExpertStrategicEnemyStar(maxDistance);
             if (strategicEnemy) {
                 this.debugLog(`Found expert strategic enemy star: ${strategicEnemy.name}`);
                 nearestEnemyStar = strategicEnemy;
                 closestStars.distances[2] = this.utils.calculateDistance(this.ship, strategicEnemy);
             }
+
+            const defensiveTarget = this.findExpertDefensiveRedeploymentTarget(maxDistance);
+            if (defensiveTarget) {
+                this.debugLog(`Found expert defensive target: ${defensiveTarget.name}`);
+                nearestOwnedStar = defensiveTarget;
+                closestStars.distances[1] = this.utils.calculateDistance(this.ship, defensiveTarget);
+            }
+
+            if (this.getShipType() === 'scout') {
+                const scoutTarget = this.findExpertScoutTarget(maxDistance);
+                if (scoutTarget) {
+                    this.debugLog(`Found expert scout target: ${scoutTarget.name || 'scan point'}`);
+                    nearestUnownedStar = scoutTarget;
+                    closestStars.distances[0] = this.utils.calculateDistance(this.ship, scoutTarget);
+                }
+            }
         }
+        closestStars.nearestOwnedStar = nearestOwnedStar;
         closestStars.nearestEnemyStar = nearestEnemyStar;
+        closestStars.nearestUnownedStar = nearestUnownedStar;
 
         // Set targets in decision matrix
-        this.decisionMatrix.targets.ourStar = closestStars.nearestOwnedStar;
+        this.decisionMatrix.targets.ourStar = nearestOwnedStar;
         this.decisionMatrix.targets.enemyStar = nearestEnemyStar;
-        this.decisionMatrix.targets.otherStar = closestStars.nearestUnownedStar;
+        this.decisionMatrix.targets.otherStar = nearestUnownedStar;
         this.decisionMatrix.targets.ship = closestEnemyShip.ship;
 
         // Special handling for scout ships at lower skill levels
-        if (capabilitySkill <= 2 && this.ship.type === 'scout') {
+        if (capabilitySkill <= 2 && this.ship.type === 'scout' && !this.isExpertLevel(v3Skill)) {
             return { directDecision: this.handleScoutSpecialBehavior(closestStars, maxDistance, v3Skill) };
         }
 
@@ -534,6 +568,23 @@ class ShipAI extends AIBase {
             scores: { ...this.decisionMatrix.scores },
             targets: { ...this.decisionMatrix.targets }
         };
+    }
+
+    getEnemyShipSearchDistance(maxDistance, v3Skill = this.getV3SkillLevel(), closestStars = null) {
+        const baseDistance = maxDistance >> 2;
+        if (!this.isExpertLevel(v3Skill)) {
+            return baseDistance;
+        }
+
+        if (!closestStars) {
+            closestStars = this.utils.findClosestStars(this.ship, maxDistance);
+        }
+
+        if (!closestStars.nearestEnemyStar || this.isOnlyEmpireWithStars(this.ship.owner)) {
+            return maxDistance;
+        }
+
+        return baseDistance;
     }
 
     buildDecisionFromResult(result) {
@@ -1253,6 +1304,11 @@ class ShipAI extends AIBase {
 
         // Additional relative factors
         this.evaluateRelativeFactors(closestStars, closestEnemyShip);
+
+        // Opt-in genetic/experimental factors. Their base weights are zero in
+        // the static v3 matrices, so normal play is unchanged unless a trainer
+        // installs per-player matrix overlays.
+        this.evaluateGeneticDecisionFactors(closestStars, closestEnemyShip);
     }
 
     // Evaluate factors when ship is at a star
@@ -1415,6 +1471,313 @@ class ShipAI extends AIBase {
                 this.decisionMatrix.considerFactor(AI_FACTORS.OWNED_STAR_CLOSER_TO_ENEMY);
             }
         }
+    }
+
+    evaluateGeneticDecisionFactors(closestStars, closestEnemyShip) {
+        const owner = this.ship.owner;
+        const playerStars = this.utils.getPlayerStars(owner);
+        if (playerStars.length <= 2) {
+            this.decisionMatrix.considerFactor(AI_FACTORS.EMPIRE_HAS_FEW_STARS);
+        }
+        if (playerStars.length >= 5) {
+            this.decisionMatrix.considerFactor(AI_FACTORS.EMPIRE_HAS_MANY_STARS);
+        }
+
+        const idleColonies = this.getIdleColonyCount(owner);
+        if (idleColonies > 0) {
+            this.decisionMatrix.considerFactor(AI_FACTORS.HAS_IDLE_COLONY);
+        } else {
+            this.decisionMatrix.considerFactor(AI_FACTORS.NO_IDLE_COLONY);
+        }
+
+        if (closestStars.nearestEnemyStar) {
+            if (this.hasColonySupportForTarget(closestStars.nearestEnemyStar)) {
+                this.decisionMatrix.considerFactor(AI_FACTORS.ENEMY_STAR_HAS_COLONY_SUPPORT);
+            } else {
+                this.decisionMatrix.considerFactor(AI_FACTORS.ENEMY_STAR_LACKS_COLONY_SUPPORT);
+            }
+        }
+
+        if (closestStars.nearestOwnedStar) {
+            const threatInfo = this.getExpertStarThreatScore(closestStars.nearestOwnedStar, owner, this.ship);
+            if (threatInfo.threat >= EXPERT_DEFENSE_REDEPLOY_THRESHOLD) {
+                this.decisionMatrix.considerFactor(AI_FACTORS.OWNED_TARGET_THREATENED);
+            }
+            if (this.isFriendlyUnitAssignedToTarget(closestStars.nearestOwnedStar, this.ship)) {
+                this.decisionMatrix.considerFactor(AI_FACTORS.OWNED_TARGET_ALREADY_ASSIGNED);
+            }
+        }
+
+        const currentStar = this.utils.getCurrentStar(this.ship);
+        if (currentStar && currentStar.owner === owner) {
+            const currentThreat = this.getExpertStarThreatScore(currentStar, owner, this.ship);
+            if (currentThreat.threat < EXPERT_DEFENSE_SAFE_SOURCE_THRESHOLD) {
+                this.decisionMatrix.considerFactor(AI_FACTORS.CURRENT_STAR_SAFE);
+            }
+        }
+
+        if (closestStars.nearestUnownedStar) {
+            const nearestEnemyDistance = this.getNearestStarDistance(
+                closestStars.nearestUnownedStar,
+                this.utils.getEnemyStars(owner)
+            );
+            const nearestOwnedDistance = this.getNearestStarDistance(
+                closestStars.nearestUnownedStar,
+                playerStars
+            );
+            if (Number.isFinite(nearestEnemyDistance) && nearestEnemyDistance < nearestOwnedDistance) {
+                this.decisionMatrix.considerFactor(AI_FACTORS.UNOWNED_TARGET_ON_FRONTIER);
+            }
+            if (this.isFriendlyUnitAssignedToTarget(closestStars.nearestUnownedStar, this.ship)) {
+                this.decisionMatrix.considerFactor(AI_FACTORS.UNOWNED_TARGET_ALREADY_ASSIGNED);
+            }
+        }
+
+        if (closestStars.nearestEnemyStar &&
+                this.isFriendlyUnitAssignedToTarget(closestStars.nearestEnemyStar, this.ship)) {
+            this.decisionMatrix.considerFactor(AI_FACTORS.ENEMY_TARGET_ALREADY_ASSIGNED);
+        }
+
+        if (closestEnemyShip.ship && this.isFriendlyUnitAssignedToTarget(closestEnemyShip.ship, this.ship)) {
+            this.decisionMatrix.considerFactor(AI_FACTORS.SHIP_TARGET_ALREADY_ASSIGNED);
+        }
+
+        if (this.hasFleetReadyForAttack()) {
+            this.decisionMatrix.considerFactor(AI_FACTORS.FLEET_READY_FOR_ATTACK);
+        }
+
+        if (this.canUseScoutStandoffFactor(closestStars.nearestEnemyStar)) {
+            this.decisionMatrix.considerFactor(AI_FACTORS.SCOUT_STANDOFF_AVAILABLE);
+        }
+
+        this.evaluateRecentCombatMemoryFactors(closestStars, closestEnemyShip);
+        this.evaluateEndgameCleanupFactors(closestStars, closestEnemyShip);
+    }
+
+    evaluateRecentCombatMemoryFactors(closestStars, closestEnemyShip) {
+        const owner = this.ship.owner;
+        const recentAttackOnUs = this.getRecentAttackOnOwner(owner);
+        if (recentAttackOnUs) {
+            this.decisionMatrix.considerFactor(AI_FACTORS.WE_WERE_RECENTLY_ATTACKED);
+
+            if (recentAttackOnUs.targetType === Common.ObjectType.STAR) {
+                this.decisionMatrix.considerFactor(AI_FACTORS.RECENT_ATTACK_TARGET_WAS_STAR);
+            } else if (recentAttackOnUs.targetType === Common.ObjectType.SHIP ||
+                    recentAttackOnUs.targetType === Common.ObjectType.FLEET) {
+                this.decisionMatrix.considerFactor(AI_FACTORS.RECENT_ATTACK_TARGET_WAS_MOBILE);
+            }
+
+            if (closestStars.nearestOwnedStar &&
+                    this.isSameCombatMemoryTarget(recentAttackOnUs, closestStars.nearestOwnedStar)) {
+                this.decisionMatrix.considerFactor(AI_FACTORS.OWNED_TARGET_RECENTLY_ATTACKED);
+            }
+
+            const currentStar = this.utils.getCurrentStar(this.ship);
+            if (currentStar && this.isSameCombatMemoryTarget(recentAttackOnUs, currentStar)) {
+                this.decisionMatrix.considerFactor(AI_FACTORS.CURRENT_STAR_RECENTLY_ATTACKED);
+            }
+
+            if (closestStars.nearestEnemyStar &&
+                    closestStars.nearestEnemyStar.owner === recentAttackOnUs.attackerOwner) {
+                this.decisionMatrix.considerFactor(AI_FACTORS.ENEMY_STAR_OWNER_RECENTLY_ATTACKED_US);
+            }
+
+            if (closestEnemyShip.ship &&
+                    closestEnemyShip.ship.owner === recentAttackOnUs.attackerOwner) {
+                this.decisionMatrix.considerFactor(AI_FACTORS.ENEMY_SHIP_OWNER_RECENTLY_ATTACKED_US);
+            }
+        }
+
+        const recentAttackByUs = this.getRecentAttackByOwner(owner);
+        if (recentAttackByUs &&
+                ((closestStars.nearestEnemyStar &&
+                    closestStars.nearestEnemyStar.owner === recentAttackByUs.defenderOwner) ||
+                (closestEnemyShip.ship &&
+                    closestEnemyShip.ship.owner === recentAttackByUs.defenderOwner))) {
+            this.decisionMatrix.considerFactor(AI_FACTORS.WE_RECENTLY_ATTACKED_TARGET_OWNER);
+        }
+    }
+
+    getRecentAttackOnOwner(owner) {
+        if (!this.game || typeof this.game.getRecentAttackOnOwner !== 'function') {
+            return null;
+        }
+        return this.game.getRecentAttackOnOwner(owner, AI_COMBAT_MEMORY_TURNS);
+    }
+
+    getRecentAttackByOwner(owner) {
+        if (!this.game || typeof this.game.getRecentAttackByOwner !== 'function') {
+            return null;
+        }
+        return this.game.getRecentAttackByOwner(owner, AI_COMBAT_MEMORY_TURNS);
+    }
+
+    isSameCombatMemoryTarget(entry, target) {
+        if (!entry || !target) {
+            return false;
+        }
+        if (entry.target && entry.target === target) {
+            return true;
+        }
+        return entry.targetId !== null &&
+            target.id !== undefined &&
+            entry.targetId === target.id;
+    }
+
+    evaluateEndgameCleanupFactors(closestStars, closestEnemyShip) {
+        if (!this.hasEnemyStars(this.ship.owner)) {
+            this.decisionMatrix.considerFactor(AI_FACTORS.NO_ENEMY_STARS_REMAIN);
+        }
+
+        if (this.isOnlyEmpireWithStars(this.ship.owner)) {
+            this.decisionMatrix.considerFactor(AI_FACTORS.ONLY_US_HAS_STARS);
+        }
+
+        if (closestEnemyShip.ship &&
+                this.utils.getPlayerStars(closestEnemyShip.ship.owner).length === 0) {
+            this.decisionMatrix.considerFactor(AI_FACTORS.ENEMY_SHIP_OWNER_HAS_NO_STARS);
+        }
+    }
+
+    hasEnemyStars(owner = this.ship.owner) {
+        return this.utils.getEnemyStars(owner).length > 0;
+    }
+
+    isOnlyEmpireWithStars(owner = this.ship.owner) {
+        const starOwners = new Set();
+        for (const star of this.game && this.game.stars ? this.game.stars : []) {
+            if (star && star.owner > 0) {
+                starOwners.add(star.owner);
+            }
+        }
+        return starOwners.size === 1 && starOwners.has(owner);
+    }
+
+    getIdleColonyCount(owner = this.ship.owner) {
+        let count = 0;
+        for (const ship of this.game && this.game.allShips ? this.game.allShips : []) {
+            if (!this.isIdleFriendlyColony(ship, owner)) {
+                continue;
+            }
+            count++;
+        }
+        for (const fleet of this.game && this.game.allFleets ? this.game.allFleets : []) {
+            if (!fleet || fleet.owner !== owner || fleet.destination ||
+                    (fleet.isEmpty && fleet.isEmpty()) ||
+                    !fleet.hasShipType ||
+                    !fleet.hasShipType('colony')) {
+                continue;
+            }
+            count++;
+        }
+        return count;
+    }
+
+    isIdleFriendlyColony(ship, owner = this.ship.owner) {
+        return !!(ship &&
+            ship.owner === owner &&
+            ship.type === 'colony' &&
+            !ship.destination &&
+            (!ship.underConstruction || !ship.underConstruction()) &&
+            (!ship.isInFleet || !ship.isInFleet()) &&
+            (!ship.isDead || !ship.isDead()));
+    }
+
+    hasColonySupportForTarget(target) {
+        if (!target) {
+            return false;
+        }
+
+        if (this.canColonize()) {
+            return true;
+        }
+
+        const owner = this.ship.owner;
+        const currentStar = this.utils.getCurrentStar(this.ship);
+        if (currentStar) {
+            for (const localShip of currentStar.ships || []) {
+                if (this.isIdleFriendlyColony(localShip, owner)) {
+                    return true;
+                }
+            }
+        }
+
+        for (const ship of this.game && this.game.allShips ? this.game.allShips : []) {
+            if (!ship || ship.owner !== owner || ship.type !== 'colony' ||
+                    (ship.underConstruction && ship.underConstruction()) ||
+                    (ship.isInFleet && ship.isInFleet())) {
+                continue;
+            }
+            if (ship.destination === target ||
+                    (ship.aiCampaignObjective && this.isSameScoutAssignmentTarget(ship.aiCampaignObjective.target, target))) {
+                return true;
+            }
+        }
+
+        for (const fleet of this.game && this.game.allFleets ? this.game.allFleets : []) {
+            if (!fleet || fleet.owner !== owner ||
+                    (fleet.isEmpty && fleet.isEmpty()) ||
+                    !fleet.hasShipType ||
+                    !fleet.hasShipType('colony')) {
+                continue;
+            }
+            if (fleet.destination === target ||
+                    (fleet.aiCampaignObjective && this.isSameScoutAssignmentTarget(fleet.aiCampaignObjective.target, target))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    hasFleetReadyForAttack() {
+        if (this.isFleetEntity()) {
+            if (this.ship.calculateFleetStats) {
+                this.ship.calculateFleetStats();
+            }
+            return this.getEntityDefenseStrength(this.ship) > 0 &&
+                (!this.ship.getSize || this.ship.getSize() >= 3);
+        }
+
+        const currentStar = this.utils.getCurrentStar(this.ship);
+        if (!currentStar) {
+            return false;
+        }
+
+        let combatants = 0;
+        let combatPower = 0;
+        for (const ship of currentStar.ships || []) {
+            if (!ship || ship.owner !== this.ship.owner ||
+                    ship.type === 'scout' ||
+                    (ship.underConstruction && ship.underConstruction()) ||
+                    (ship.isInFleet && ship.isInFleet()) ||
+                    ship.destination) {
+                continue;
+            }
+            const power = this.getShipPower(ship);
+            if (power > 0) {
+                combatants++;
+                combatPower += power;
+            }
+        }
+
+        const localFleet = this.findFleetAtStar(currentStar);
+        if (localFleet) {
+            if (localFleet.calculateFleetStats) {
+                localFleet.calculateFleetStats();
+            }
+            combatants += localFleet.getSize ? localFleet.getSize() : 1;
+            combatPower += this.getEntityDefenseStrength(localFleet);
+        }
+
+        return combatants >= 3 || combatPower >= 120;
+    }
+
+    canUseScoutStandoffFactor(nearestEnemyStar) {
+        return !!(nearestEnemyStar &&
+            this.getShipType() === 'scout' &&
+            this.getScoutScanRange() > EXPERT_SCOUT_STANDOFF_MIN_DISTANCE &&
+            this.getEstimatedEnemyStarAttackRange(nearestEnemyStar) < this.getScoutScanRange());
     }
 
     // Check if there's a fleet at a star
