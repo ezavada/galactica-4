@@ -246,6 +246,7 @@
 679	Form Fleet
 680	Defend
 681	Move
+682	{0} surrendered; {1} ships and {2} fleets were removed.
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
 # Order maps to class index floor(tech/5):

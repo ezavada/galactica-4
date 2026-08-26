@@ -6,6 +6,7 @@ const Factory = require('../src/js/factory.js');
 const Game = require('../src/js/game.js');
 const GameConfig = require('../src/js/game-config.js');
 const Rules = require('../src/js/rules.js');
+const Common = require('../src/js/common.js');
 
 function createRuleGame(options = {}) {
     const factory = new Factory();
@@ -182,6 +183,69 @@ function runGameRuleTests() {
             test.assertNotNull(target.currentShip, 'AI new colony should immediately select a build hull');
             test.assertEqual(target.currentShip.type, 'defense', 'AI new colony should start with a defense satellite like v3');
             test.assertContains(target.ships, target.currentShip, 'The under-construction satellite should be docked at the new colony');
+        });
+
+        test.it('makes a starless AI with no completed colony ships surrender and removes its forces', () => {
+            const game = createRuleGame({ numHumans: 0, numComputers: 2 });
+            game.players[1].setName('Survivor AI');
+            game.players[2].setName('Stranded AI');
+
+            createOwnedStar(game, 0, 0, 'Survivor Home', 1, 4);
+            const lostBase = createOwnedStar(game, 100, 0, 'Lost Base', 2, 2);
+            const looseShip = createCompletedShip(game, lostBase, 'battleship', 2);
+            const fleetShip = createCompletedShip(game, lostBase, 'scout', 2);
+            const fleet = game.factory.createFleet(lostBase.x, lostBase.y, 2);
+            fleet.addShip(fleetShip);
+            lostBase.startBuildingShip('colony');
+
+            lostBase.owner = 0;
+
+            game.updatePlayerPieceCounts();
+
+            test.assertFalse(game.players[2].isAlive, 'Starless AI without a usable colony ship should be marked defeated');
+            test.assertFalse(game.aiManager.isAIPlayer(2), 'Surrendered AI should be removed from AI turn processing');
+            test.assertFalse(game.allShips.includes(looseShip), 'Loose AI ship should be removed');
+            test.assertFalse(game.allShips.includes(fleetShip), 'Fleet member ship should be removed');
+            test.assertFalse(game.allFleets.includes(fleet), 'AI fleet should be removed');
+            test.assertEqual(game.allShips.filter(ship => ship.owner === 2).length, 0, 'No surrendered-player ships should remain');
+            test.assertEqual(game.allFleets.filter(fleet => fleet.owner === 2).length, 0, 'No surrendered-player fleets should remain');
+            test.assertNull(lostBase.currentShip, 'Unusable under-construction colony ship should be cleared');
+            test.assertTrue(game.isGameOver, 'Surrender should allow the remaining active player to win');
+            test.assertEqual(game.winningPlayerNum, 1);
+            const surrenderEvent = game.eventLog.find(event => event.type === Common.EventType.PLAYER_SURRENDERED);
+            test.assertDefined(surrenderEvent, 'AI surrender should be reported');
+            test.assertContains(surrenderEvent.message, 'Stranded AI surrendered');
+        });
+
+        test.it('keeps a starless AI alive while it still has a completed colony ship', () => {
+            const game = createRuleGame({ numHumans: 0, numComputers: 2 });
+            createOwnedStar(game, 0, 0, 'Rival Home', 1, 4);
+            const lostBase = createOwnedStar(game, 100, 0, 'Lost Base', 2, 2);
+            const colony = createCompletedShip(game, lostBase, 'colony', 2);
+
+            lostBase.owner = 0;
+
+            game.updatePlayerPieceCounts();
+
+            test.assertTrue(game.players[2].isAlive, 'AI with a completed colony ship can still recover and should not surrender');
+            test.assertContains(game.allShips, colony, 'Completed colony ship should remain in play');
+            test.assertFalse(game.isGameOver, 'The game should continue while a colony-capable AI remains active');
+            test.assertEqual(game.eventLog.filter(event => event.type === Common.EventType.PLAYER_SURRENDERED).length, 0);
+        });
+
+        test.it('does not force human players to surrender under the AI surrender rule', () => {
+            const game = createRuleGame({ numHumans: 1, numComputers: 1 });
+            const humanBase = createOwnedStar(game, 0, 0, 'Human Lost Base', 1, 2);
+            const survivor = createCompletedShip(game, humanBase, 'battleship', 2);
+            createOwnedStar(game, 100, 0, 'AI Home', 2, 4);
+
+            humanBase.owner = 0;
+
+            game.updatePlayerPieceCounts();
+
+            test.assertTrue(game.players[1].isAlive, 'Human players should not be auto-surrendered by the AI rule');
+            test.assertContains(game.allShips, survivor, 'Human ship should remain in play');
+            test.assertFalse(game.isGameOver, 'A surviving human ship should still keep the player active');
         });
 
         test.it('applies fleet technology to allied stars but does not refresh scouts inside fleets', () => {

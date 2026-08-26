@@ -80,7 +80,7 @@ Run all tests with:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 363 passed, 0 failed.
+Current expected result: 367 passed, 0 failed.
 
 The AI tests verify the current integrated behavior. The experimental matrix trainer can be smoke-tested with:
 

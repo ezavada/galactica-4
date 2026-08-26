@@ -2076,9 +2076,99 @@ class Game {
         };
     }
 
+    hasPlayerViableColonyShip(playerNum) {
+        return (this.allShips || []).some(ship =>
+            ship &&
+            ship.owner === playerNum &&
+            ship.type === 'colony' &&
+            (!ship.isDead || !ship.isDead()) &&
+            (!ship.underConstruction || !ship.underConstruction())
+        );
+    }
+
+    shouldAISurrender(playerNum) {
+        const player = this.players ? this.players[playerNum] : null;
+        if (!player || !player.isComputer || !player.isAlive) {
+            return false;
+        }
+
+        const counts = this.getPlayerPieceCounts(playerNum);
+        return counts.stars === 0 && !this.hasPlayerViableColonyShip(playerNum);
+    }
+
+    surrenderAIPlayer(playerNum) {
+        const player = this.players ? this.players[playerNum] : null;
+        if (!player || !player.isComputer || !player.isAlive) {
+            return null;
+        }
+
+        const playerName = player.name || `${I18n.getString(18, 'Player')} ${playerNum}`;
+        const ownedShips = (this.allShips || []).filter(ship => ship && ship.owner === playerNum);
+        const ownedFleets = (this.allFleets || []).filter(fleet => fleet && fleet.owner === playerNum);
+        let removedShips = 0;
+        let removedFleets = 0;
+
+        for (const ship of ownedShips) {
+            if (this.allShips.includes(ship) && this.removeDestroyedShip(ship, 0, false)) {
+                removedShips++;
+            }
+        }
+
+        for (const fleet of ownedFleets) {
+            if (this.allFleets.includes(fleet)) {
+                this.entityRemoved(fleet);
+                removedFleets++;
+            }
+        }
+
+        player.isAlive = false;
+        player.numPiecesRemaining = 0;
+
+        if (this.aiManager && typeof this.aiManager.removeAIPlayer === 'function') {
+            this.aiManager.removeAIPlayer(playerNum);
+        }
+
+        const message = I18n.formatString(
+            682,
+            '{0} surrendered; {1} ships and {2} fleets were removed.',
+            playerName,
+            removedShips,
+            removedFleets
+        );
+        console.log(message);
+        this.recordEvent(I18n.getString(613, 'Defeat'), message, { type: Common.EventType.PLAYER_SURRENDERED });
+
+        return {
+            playerNum,
+            playerName,
+            shipsRemoved: removedShips,
+            fleetsRemoved: removedFleets
+        };
+    }
+
+    processAISurrenders() {
+        const surrendered = [];
+        if (!this.players || !this.config) {
+            return surrendered;
+        }
+
+        for (let i = 1; i <= this.config.totalPlayers; i++) {
+            if (this.shouldAISurrender(i)) {
+                const result = this.surrenderAIPlayer(i);
+                if (result) {
+                    surrendered.push(result);
+                }
+            }
+        }
+
+        return surrendered;
+    }
+
     // Update piece counts for all players
     updatePlayerPieceCounts() {
         if (!this.players) return;
+
+        this.processAISurrenders();
         
         for (let i = 1; i <= this.config.totalPlayers; i++) {
             const player = this.players[i];

@@ -82,7 +82,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 363 passed, 0 failed.
+Current expected full-suite result: 367 passed, 0 failed.
 
 ## Future work
 

@@ -29,6 +29,7 @@ const EventType = {
     GAME_DRAW: 16,       // No active players remain
     FLEET_FORMED: 17,    // A fleet was created or assembled
     RENDEZVOUS_UPDATED: 18, // A rendezvous point changed
+    PLAYER_SURRENDERED: 19, // A player surrendered and removed remaining forces
     NEW_TECH_DISCOVERY: 20, // Lab event: reached a new drive class (tech/5)
     NEW_SHIP_CLASS: 21      // Stardock event: first battleship class built for player
 }

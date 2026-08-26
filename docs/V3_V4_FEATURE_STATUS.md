@@ -15,7 +15,7 @@ The comparison is based on:
 
 The comparison started as a static code review. With the public PDG runtime,
 the v4 automated suite was verified on 2026-08-25 with
-`./gad4 tests/run-tests.js`: 363 passed, 0 failed. Passing tests prove the
+`./gad4 tests/run-tests.js`: 367 passed, 0 failed. Passing tests prove the
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
@@ -38,7 +38,7 @@ Galactica-4 currently has a credible simulation foundation, not feature parity w
 
 The largest blockers to a complete game are:
 
-1. **Combat runtime rules are now at v3 parity for Section 6, but presentation is still thin.** Enemy ship/star/fleet arrivals invoke `CombatSystem`, remove destroyed ships, use v3-style ship/star combat formulas, run ground combat, let surviving colony ships capture stars, repair docked mobile ships/fleets, recalculate fog each turn, and record localized battle summaries. Missing v3 pieces are UI/presentation: polished combat/result windows, explosion/debris feedback, richer fleet reports, surrender/capture reporting, and remembered/last-seen rendering.
+1. **Combat runtime rules are now at v3 parity for Section 6, but presentation is still thin.** Enemy ship/star/fleet arrivals invoke `CombatSystem`, remove destroyed ships, use v3-style ship/star combat formulas, run ground combat, let surviving colony ships capture stars, remove starless AIs that have no completed colony ships left, repair docked mobile ships/fleets, recalculate fog each turn, and record localized battle/surrender summaries. Missing v3 pieces are UI/presentation: polished combat/result windows, explosion/debris feedback, richer fleet reports, fuller conclusion windows, and remembered/last-seen rendering.
 2. **The v3 command UI now has a first clickable runtime path, but not full parity.** v4 has a startup setup dialog, charcoal rounded windows, bottom-right permanent map buttons, a top-center turn/game header, clickable popup action buttons, directly clickable production sliders, retained event list, player comparison window, a simple fleet roster, fleet/rendezvous panels, and anchored selection panels. Missing v3 pieces remain: player-name/title dialogs, course editor, attention workflow, sortable system/fleet table polish, shipped map/menu toggles, help, sound, and preferences.
 3. **Ship navigation only supports one destination.** v3's waypoint list, editing, looping, course memory, human call-in/attention, Hunt toggle, human Patrol toggle, and scrap workflows are missing.
 4. **Persistence and multiplayer are absent.** v3 save/open/revert, hosting, joining/rejoining, turn posting, timers, passwords, discovery, chat, and host administration have not been ported.
@@ -200,7 +200,7 @@ The largest blockers to a complete game are:
 | Combat reserves | Couriers and colony ships stay in reserve until combat ships are gone. | ✅ Implemented | ➖ N/A | Reserve sorting is used by the runtime combat path. |
 | Multi-target and rollover damage | Higher-tech attackers hit multiple targets and excess damage rolls over. | ✅ Implemented | ➖ N/A | The resolver uses tech-based target counts and rollover damage during runtime combat. |
 | Defended-system invasion | Defeat stationed ships, then fixed planetary defenses; production/population is damaged. | ✅ Implemented | 🟡 Partial | Enemy star arrivals run space combat, ground combat against population, v3-style star attack/defense and population damage, and colony capture when a colony survives. Remaining work is result presentation and surrender/capture text coverage. |
-| Capture/surrender | Successful invasion transfers system ownership and reports capture/surrender. | ✅ Implemented | 🟡 Partial | A surviving colony ship can transfer ownership after ground combat, defeated systems clear stale default destinations, new colony defaults apply where v3 does, non-colony survivors are kept outside hostile stars that hold, and defeat/victory updates run after combat. Surrender/result UI still needs v3-style presentation. |
+| Capture/surrender | Successful invasion transfers system ownership and reports capture/surrender. | ✅ Implemented | 🟡 Partial | A surviving colony ship can transfer ownership after ground combat, defeated systems clear stale default destinations, new colony defaults apply where v3 does, non-colony survivors are kept outside hostile stars that hold, starless AIs with no completed colony ships surrender and remove their ships/fleets, and defeat/victory updates run after combat. Result UI still needs v3-style presentation. |
 | Defense satellites | Stationary, strong, always on patrol, cannot repair. | ✅ Implemented | 🟡 Partial | The hull is stationary, completed defense builds attach to the star, satellites patrol automatically, satellites do not repair, and attached satellites defend systems. Human build/progress presentation and fuller satellite reporting need parity work. |
 | Patrol coordination bonus | Patrolling defenders receive attack/defense advantages. | ✅ Implemented | 🟡 Partial | Patrol state can be enabled by satellite completion, shifted Average-or-better AI docked-ship/fleet behavior, and human popup/key controls; ship combat formulas apply patrol bonuses. Indicators are still tracked as Section 4/UI work. |
 | Damage and destruction | Health decreases, units die, fleet loss accounting and debris/explosion feedback. | ✅ Implemented | ❌ Missing | Runtime combat applies v3-style ship power, star strength, and population damage, removes destroyed ships robustly, and recalculates/cleans up affected fleets. Debris/explosion feedback is missing. |
@@ -295,7 +295,7 @@ The project documentation was refreshed on 2026-08-25 so the docs now agree on c
 - `AI_INTEGRATION_STATUS.md` and `AI_INTEGRATION_TODO.md` describe AI as active: AI turns run, stars can start v3-weighted builds, ships and fleets can set destinations, key v3 skill/advantage hooks are active, Expert context scoring is matrix-backed where practical, and the experimental genetic trainer is available. Speculative AI upgrades are separated from C++-confirmed v3 parity gaps.
 - `README.md` now links only to files that exist and no longer describes the port as a complete 4X game.
 - `INTERNATIONALIZATION_STATUS.md` now serves as the current i18n reference and records that current runtime UI/event strings are localized with parity tests across supported languages.
-- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command. The main suite currently reports 363 tests.
+- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command. The main suite currently reports 367 tests.
 
 This file remains the main parity source of truth. More focused docs may describe implementation details for an area, but their status claims should stay consistent with the tables above.
 
