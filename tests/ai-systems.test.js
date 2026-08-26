@@ -154,6 +154,46 @@ function runAISystemTests() {
         });
     });
 
+    test.describe('AI Intent Overlay State', () => {
+        test.it('records and clears player-visible AI intents by turn when enabled', () => {
+            const { game } = createEmptyAITestGame();
+            game.config.autoplay = {
+                enabled: true,
+                showAIIntent: true
+            };
+
+            const source = createOwnedStar(game, 1, 100, 200, 'Source');
+            const target = createOwnedStar(game, 2, 500, 700, 'Target');
+            const decision = new AIDecision(AIActions.GO_TO_ENEMY_STAR, target, 42, 'test intent');
+
+            test.assertTrue(game.recordAIIntent(source, decision, 'star'), 'Enabled autoplay should record non-idle AI intent');
+
+            const intents = game.getAIIntentOverlays();
+            test.assertEqual(intents.length, 1, 'One intent should be available to the display');
+            test.assertEqual(intents[0].action, AIActions.GO_TO_ENEMY_STAR);
+            test.assertEqual(intents[0].sourceName, 'Source');
+            test.assertEqual(intents[0].targetName, 'Target');
+            test.assertEqual(intents[0].sourceX, 100);
+            test.assertEqual(intents[0].targetY, 700);
+
+            test.assertFalse(game.recordAIIntent(source, new AIDecision(AIActions.DO_NOTHING, null, 0, 'idle'), 'star'), 'Idle decisions should not create visual clutter');
+            test.assertEqual(game.getAIIntentOverlays().length, 1, 'Idle decisions should not add overlay records');
+
+            game.turn++;
+            game.beginAIIntentTurn();
+            test.assertEqual(game.getAIIntentOverlays().length, 0, 'Starting a new AI turn should clear stale intent overlays');
+        });
+
+        test.it('keeps AI intents disabled outside the autoplay observer by default', () => {
+            const { game } = createEmptyAITestGame();
+            const source = createOwnedStar(game, 1, 100, 200, 'Source');
+            const target = createOwnedStar(game, 2, 500, 700, 'Target');
+
+            test.assertFalse(game.recordAIIntent(source, new AIDecision(AIActions.ATTACK_SHIP, target, 99, 'test intent'), 'ship'), 'Normal games should not record AI intent overlays by default');
+            test.assertEqual(game.getAIIntentOverlays().length, 0, 'Disabled intent overlays should stay empty');
+        });
+    });
+
     test.describe('AIPlayer - Decision Processing', () => {
         test.it('creates AI player with correct skill level', () => {
             const factory = new Factory();
@@ -586,8 +626,8 @@ function runAISystemTests() {
 
         test.it('uses the v3 weighted hull rule without active threat-based overrides', () => {
             const { game, rules } = createEmptyAITestGame({
-                compSkill: 2,
-                aiSkillByPlayer: { 1: 2, 2: 2 }
+                compSkill: 3,
+                aiSkillByPlayer: { 1: 3, 2: 2 }
             });
             const star = createOwnedStar(game, 1, 0, 0, 'Build Yard', { techLevel: 5 });
             const starAI = new StarAI(star, game, rules, AI_SKILL_LEVELS.GOOD);
@@ -601,7 +641,44 @@ function runAISystemTests() {
             test.assertEqual(choice.type, 'colony', 'Computer hull choice should come from the v3 weighted build rule');
         });
 
-        test.it('applies v3-style expert tech-star and shipbuilder allocations', () => {
+        test.it('lets Expert use strategic hull overrides before the random build rule', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 1,
+                aiSkillByPlayer: { 1: 1, 2: 2 }
+            });
+            const star = createOwnedStar(game, 1, 0, 0, 'Expert Yard', { techLevel: 5 });
+            createOwnedStar(game, 2, 60000, 0, 'Enemy Base', { techLevel: 5 });
+            createCompletedShip(game, createOwnedStar(game, 2, 50000, 0, 'Enemy Patrol Base', { techLevel: 5 }), 'battleship', { techLevel: 5 });
+
+            const starAI = new StarAI(star, game, rules, AI_SKILL_LEVELS.EXPERT);
+            starAI.chooseV3ComputerHull = () => {
+                throw new Error('Expert should satisfy urgent defender need before random hull selection');
+            };
+
+            const choice = starAI.chooseShipToBuild();
+
+            test.assertEqual(choice.type, 'battleship', 'Expert should build a battleship when enemy ships are nearby and no local combat ship is docked');
+        });
+
+        test.it('lets Good inherit the old Expert tech-star economy role', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 2,
+                aiSkillByPlayer: { 1: 2, 2: 2 }
+            });
+            game.turn = 6;
+            const techCandidate = createOwnedStar(game, 1, 0, 0, 'Good Tech Candidate', { techLevel: 6 });
+            createOwnedStar(game, 1, 10000, 0, 'Good Nearby Ally', { techLevel: 6 });
+            createOwnedStar(game, 2, 500000, 0, 'Distant Enemy', { techLevel: 1 });
+
+            const candidateAI = new StarAI(techCandidate, game, rules, AI_SKILL_LEVELS.EXPERT);
+            candidateAI.manageEconomy();
+
+            test.assertEqual(techCandidate.growth.desired, 49.4, 'Good AI should now inherit the old Expert tech-star growth allocation');
+            test.assertEqual(techCandidate.shipBuilding.desired, 1.2, 'Good AI should now inherit the old Expert tech-star ship allocation');
+            test.assertEqual(techCandidate.research.desired, 49.4, 'Good AI should now inherit the old Expert tech-star research allocation');
+        });
+
+        test.it('keeps Expert on the tech-star and shipbuilder allocation rung', () => {
             const { game, rules } = createEmptyAITestGame({
                 compSkill: 1,
                 aiSkillByPlayer: { 1: 1, 2: 2 }
@@ -852,7 +929,7 @@ function runAISystemTests() {
             test.assertEqual(fleet.destination, enemy, 'Fleet AI should send the strong fleet to the weak enemy star');
         });
 
-        test.it('uses v3 skill values for search distance and decision repetitions', () => {
+        test.it('pushes existing skill capabilities down one level and gives Expert a new top rung', () => {
             const { game, rules } = createEmptyAITestGame({
                 compSkill: 5,
                 aiSkillByPlayer: { 1: 5, 2: 2 }
@@ -862,11 +939,126 @@ function runAISystemTests() {
             const shipAI = new ShipAI(ship, game, rules, AI_SKILL_LEVELS.AVERAGE);
 
             test.assertEqual(shipAI.getV3SkillLevel(), 5, 'Ship AI should preserve the configured v3 novice skill');
-            test.assertEqual(shipAI.getSearchDistanceForV3Skill(1), 888888, 'Expert search distance should match v3');
-            test.assertEqual(shipAI.getSearchDistanceForV3Skill(5), 444444, 'Novice search distance should match v3');
-            test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(1), 3, 'Expert should run three target passes');
-            test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(2), 2, 'Good should run two target passes');
-            test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(5), 1, 'Novice should run one target pass');
+            test.assertEqual(shipAI.getCapabilitySkillLevel(1), 1, 'Expert should remain on the strongest existing capability rung');
+            test.assertEqual(shipAI.getCapabilitySkillLevel(2), 1, 'Good should inherit old Expert capabilities');
+            test.assertEqual(shipAI.getCapabilitySkillLevel(3), 2, 'Average should inherit old Good capabilities');
+            test.assertEqual(shipAI.getCapabilitySkillLevel(4), 3, 'Passable should inherit old Average capabilities');
+            test.assertEqual(shipAI.getCapabilitySkillLevel(5), 4, 'Novice should inherit old Passable capabilities');
+            test.assertEqual(shipAI.getSearchDistanceForV3Skill(1), 999999, 'Expert should get the new wider search distance');
+            test.assertEqual(shipAI.getSearchDistanceForV3Skill(2), 888888, 'Good should get old Expert search distance');
+            test.assertEqual(shipAI.getSearchDistanceForV3Skill(5), 555555, 'Novice should get old Passable search distance');
+            test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(1), 4, 'Expert should run the new fourth target pass');
+            test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(2), 3, 'Good should run old Expert three-pass targeting');
+            test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(3), 2, 'Average should run old Good two-pass targeting');
+            test.assertEqual(shipAI.getDecisionRepetitionsForV3Skill(5), 1, 'Novice should still run one target pass');
+        });
+
+        test.it('lets Expert run a strategic enemy-star targeting pass', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 1,
+                aiSkillByPlayer: { 1: 1, 2: 2 }
+            });
+            const home = createOwnedStar(game, 1, 0, 0, 'Expert Strike Base', { techLevel: 10 });
+            const ship = createCompletedShip(game, home, 'battleship', { techLevel: 10 });
+            createOwnedStar(game, 2, 25000, 0, 'Nearby Stronghold', { techLevel: 10, population: 100000 });
+            const softTarget = createOwnedStar(game, 2, 110000, 0, 'Soft High Tech Target', { techLevel: 8, population: 20 });
+            const shipAI = new ShipAI(ship, game, rules, AI_SKILL_LEVELS.EXPERT);
+
+            const target = shipAI.findExpertStrategicEnemyStar(shipAI.getSearchDistanceForV3Skill(1));
+
+            test.assertEqual(target, softTarget, 'Expert strategic pass should prefer the more vulnerable valuable target over the nearest stronghold');
+        });
+
+        test.it('retains valid Expert campaign objectives across decision passes', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 1,
+                aiSkillByPlayer: { 1: 1, 2: 2 }
+            });
+            const home = createOwnedStar(game, 1, 0, 0, 'Campaign Home', { techLevel: 10 });
+            const ship = createCompletedShip(game, home, 'battleship', { techLevel: 10 });
+            const target = createOwnedStar(game, 2, 120000, 0, 'Campaign Target', { techLevel: 1, population: 20 });
+            const shipAI = new ShipAI(ship, game, rules, AI_SKILL_LEVELS.EXPERT);
+            const selected = new AIDecision(AIActions.GO_TO_ENEMY_STAR, target, 88, 'campaign target');
+
+            test.assertTrue(shipAI.rememberExpertCampaignObjective(selected, 1), 'Expert should remember a valid campaign movement objective');
+
+            game.turn++;
+            const retained = shipAI.makeDecision();
+
+            test.assertEqual(retained.target, target, 'Expert should keep pursuing the same campaign target while it remains valid');
+            test.assertTrue(retained.fromCampaignObjective, 'Retained decisions should be marked as campaign objectives');
+
+            target.owner = 1;
+            const invalid = shipAI.getRetainedExpertCampaignObjectiveDecision(1);
+
+            test.assertNull(invalid, 'Captured campaign targets should invalidate retained objectives');
+            test.assertNull(ship.aiCampaignObjective, 'Invalid campaign objectives should be cleared');
+        });
+
+        test.it('sends Expert scouts toward neutral frontier systems', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 1,
+                aiSkillByPlayer: { 1: 1, 2: 2 }
+            });
+            const home = createOwnedStar(game, 1, 0, 0, 'Scout Home', { techLevel: 10 });
+            const scout = createCompletedShip(game, home, 'scout', { techLevel: 10 });
+            scout.scannerRange = rules.getShipScanRange(scout);
+            createOwnedStar(game, 2, 300000, 0, 'Enemy Frontier', { techLevel: 6, population: 1000 });
+            createOwnedStar(game, 0, 30000, 0, 'Rear Neutral', { techLevel: 1, population: 100 });
+            const frontier = createOwnedStar(game, 0, 260000, 0, 'Frontier Neutral', { techLevel: 1, population: 100 });
+            const shipAI = new ShipAI(scout, game, rules, AI_SKILL_LEVELS.EXPERT);
+
+            const target = shipAI.findExpertFrontierScoutTarget(999999);
+
+            test.assertEqual(target, frontier, 'Expert scout should prefer unexplored neutral stars on the enemy frontier');
+        });
+
+        test.it('uses standoff scan points for Expert scouts approaching enemy stars', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 1,
+                aiSkillByPlayer: { 1: 1, 2: 2 }
+            });
+            const home = createOwnedStar(game, 1, 0, 0, 'Standoff Scout Home', { techLevel: 10 });
+            const scout = createCompletedShip(game, home, 'scout', { techLevel: 10 });
+            scout.scannerRange = rules.getShipScanRange(scout);
+            const enemy = createOwnedStar(game, 2, 100000, 0, 'Enemy Scan Target', { techLevel: 10, population: 1000 });
+            createCompletedShip(game, enemy, 'battleship', { techLevel: 10 });
+            const shipAI = new ShipAI(scout, game, rules, AI_SKILL_LEVELS.EXPERT);
+
+            const target = shipAI.findExpertEnemyStarScoutTarget(999999);
+
+            test.assertNotNull(target, 'Expert scout should find an enemy-star scan point');
+            const starDistance = shipAI.utils.calculateDistance(target, enemy);
+            const dangerRange = shipAI.getEstimatedEnemyStarAttackRange(enemy);
+            test.assertTrue(target.aiStandoffScoutPoint, 'Enemy-star scouting should use a generated standoff point');
+            test.assertEqual(target.aiScoutTarget, enemy, 'Standoff point should remember which enemy star it scans');
+            test.assertTrue(starDistance <= shipAI.getScoutScanRange(), 'Standoff point should be inside scout scanner range');
+            test.assertGreaterThan(starDistance, dangerRange, 'Standoff point should stay beyond estimated defender attack range when scanner range allows');
+            test.assertLessThan(target.x, enemy.x, 'Scout should approach from the friendly side of the enemy star');
+
+            const decision = shipAI.makeDecision();
+            test.assertEqual(decision.action, AIActions.GO_TO_UNOWNED_STAR, 'Standoff scan points should remain movement-to-point orders, not attacks');
+            test.assertEqual(decision.target.aiScoutTarget, enemy, 'Expert scout decision should target the enemy-star scan point');
+        });
+
+        test.it('redeploys safe Expert battleships to threatened owned stars', () => {
+            const { game, rules } = createEmptyAITestGame({
+                compSkill: 1,
+                aiSkillByPlayer: { 1: 1, 2: 2 }
+            });
+            const rear = createOwnedStar(game, 1, 0, 0, 'Rear Guard', { techLevel: 8, population: 1000 });
+            const border = createOwnedStar(game, 1, 450000, 0, 'Border World', { techLevel: 5, population: 1000 });
+            const enemyBase = createOwnedStar(game, 2, 520000, 0, 'Enemy Staging Base', { techLevel: 5, population: 1000 });
+            createCompletedShip(game, enemyBase, 'battleship', { techLevel: 8 });
+            const defender = createCompletedShip(game, rear, 'battleship', { techLevel: 8 });
+            const shipAI = new ShipAI(defender, game, rules, AI_SKILL_LEVELS.EXPERT);
+
+            const decision = shipAI.getExpertDefensiveRedeploymentDecision(1, 999999);
+
+            test.assertNotNull(decision, 'Expert should identify a defensive redeployment when the source star is safe');
+            test.assertEqual(decision.action, AIActions.GO_TO_OWN_STAR, 'Defensive redeployment should move to a friendly star');
+            test.assertEqual(decision.target, border, 'Expert should reinforce the threatened border star');
+            test.assertEqual(decision.objectiveKind, 'defendStar', 'Defensive redeployment should be remembered as a defense objective');
         });
 
         test.it('merges AI pass scores by destination type like v3', () => {
@@ -913,24 +1105,24 @@ function runAISystemTests() {
             test.assertEqual(enemy.owner, 2, 'Enemy setup should be present only as a tempting target');
         });
 
-        test.it('applies v3 Good/Expert patrol toggles to docked healthy and damaged ships', () => {
+        test.it('lets Average inherit old Good patrol toggles for docked healthy and damaged ships', () => {
             const { game, rules } = createEmptyAITestGame({
-                compSkill: 2,
-                aiSkillByPlayer: { 1: 2, 2: 2 }
+                compSkill: 3,
+                aiSkillByPlayer: { 1: 3, 2: 2 }
             });
             const home = createOwnedStar(game, 1, 0, 0, 'Patrol Base', { techLevel: 5 });
             const ship = createCompletedShip(game, home, 'battleship', { techLevel: 5 });
             const shipAI = new ShipAI(ship, game, rules, AI_SKILL_LEVELS.GOOD);
 
             shipAI.makeDecision();
-            test.assertTrue(ship.isOnPatrol(), 'Healthy docked Good/Expert AI ship should patrol');
+            test.assertTrue(ship.isOnPatrol(), 'Healthy docked Average-or-better AI ship should patrol after the shift');
 
             ship.damage = 10;
             shipAI.makeDecision();
-            test.assertFalse(ship.isOnPatrol(), 'Damaged docked Good/Expert AI ship should leave patrol for repair');
+            test.assertFalse(ship.isOnPatrol(), 'Damaged docked Average-or-better AI ship should leave patrol for repair');
         });
 
-        test.it('does not apply the Good/Expert patrol toggle when a movement decision was selected', () => {
+        test.it('does not apply the Average-or-better patrol toggle when a movement decision was selected', () => {
             const { game, rules } = createEmptyAITestGame({
                 compSkill: 2,
                 aiSkillByPlayer: { 1: 2, 2: 2 }
@@ -949,7 +1141,7 @@ function runAISystemTests() {
             test.assertFalse(ship.isOnPatrol(), 'Ship should not be put on patrol when AI selected movement');
         });
 
-        test.it('applies v3 Good/Expert patrol toggles to docked fleets', () => {
+        test.it('applies shifted Average-or-better patrol toggles to docked fleets', () => {
             const { game, rules } = createEmptyAITestGame({
                 compSkill: 1,
                 aiSkillByPlayer: { 1: 1, 2: 2 }
@@ -966,13 +1158,13 @@ function runAISystemTests() {
             const idleDecision = new AIDecision(AIActions.DO_NOTHING, null, 0, 'idle');
 
             fleetAI.applyV3PatrolRule(1, idleDecision);
-            test.assertTrue(fleet.isOnPatrol(), 'Healthy docked Good/Expert AI fleet should patrol');
+            test.assertTrue(fleet.isOnPatrol(), 'Healthy docked Average-or-better AI fleet should patrol');
             test.assertTrue(shipA.isOnPatrol(), 'Fleet patrol state should propagate to member ships');
 
             shipA.damage = 10;
             fleet.calculateFleetStats();
             fleetAI.applyV3PatrolRule(1, idleDecision);
-            test.assertFalse(fleet.isOnPatrol(), 'Damaged docked Good/Expert AI fleet should leave patrol for repair');
+            test.assertFalse(fleet.isOnPatrol(), 'Damaged docked Average-or-better AI fleet should leave patrol for repair');
             test.assertFalse(shipA.isOnPatrol(), 'Leaving fleet patrol should propagate to member ships');
         });
 

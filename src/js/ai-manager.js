@@ -54,6 +54,10 @@ class AIManager {
     // Process AI turns for all AI players
     processAITurns() {
         this.debugLog('Processing AI turns for all AI players');
+
+        if (this.game && typeof this.game.beginAIIntentTurn === 'function') {
+            this.game.beginAIIntentTurn();
+        }
         
         for (const [playerId, aiPlayer] of this.aiPlayers) {
             try {
@@ -173,6 +177,7 @@ class AIPlayer {
 
         const decision = starAI.makeDecision();
         console.log(`  Star ${star.name}: ${decision.action} - ${decision.reason}`);
+        this.recordAIIntent(star, decision, 'star');
         
         if (decision.action !== AIActions.DO_NOTHING) {
             starAI.executeDecision(decision);
@@ -209,6 +214,7 @@ class AIPlayer {
         const location = ship.star ? `at ${ship.star.name}` : `at (${Math.round(ship.x/1024)}, ${Math.round(ship.y/1024)})`;
         const status = ship.underConstruction() ? `[${ship.progress}% built]` : '';
         console.log(`  Ship ${ship.type} ${location} ${status}: ${decision.action} - ${decision.reason}`);
+        this.recordAIIntent(ship, decision, 'ship');
         
         if (decision.action !== AIActions.DO_NOTHING) {
             shipAI.executeDecision(decision);
@@ -241,6 +247,7 @@ class AIPlayer {
         const decision = fleetAI.makeDecision();
         const location = fleet.star ? `at ${fleet.star.name}` : `at (${Math.round(fleet.x/1024)}, ${Math.round(fleet.y/1024)})`;
         console.log(`  Fleet ${fleet.id} ${location} [${fleet.getSize()} ships]: ${decision.action} - ${decision.reason}`);
+        this.recordAIIntent(fleet, decision, 'fleet');
 
         if (decision.action !== AIActions.DO_NOTHING) {
             fleetAI.executeDecision(decision);
@@ -249,6 +256,13 @@ class AIPlayer {
                 console.log(`    -> Fleet going to ${targetName}`);
             }
         }
+    }
+
+    recordAIIntent(source, decision, sourceType) {
+        if (this.game && typeof this.game.recordAIIntent === 'function') {
+            return this.game.recordAIIntent(source, decision, sourceType);
+        }
+        return false;
     }
 
     // Get all stars owned by this AI player

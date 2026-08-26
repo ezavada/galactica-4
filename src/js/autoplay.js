@@ -8,6 +8,7 @@ const DEFAULT_AUTOPLAY_TURN_DELAY_MS = 250;
 const DEFAULT_AUTOPLAY_MAX_TURNS = 250;
 const DEFAULT_AUTOPLAY_EVENT_PRESENTATION_MS = 1000;
 const DEFAULT_AUTOPLAY_SHOW_EVENT_WINDOWS = false;
+const DEFAULT_AUTOPLAY_SHOW_AI_INTENT = true;
 
 function createAISkillAutoplayConfig(options = {}) {
     return GameConfig.createAISkillAutoplay({
@@ -16,6 +17,7 @@ function createAISkillAutoplayConfig(options = {}) {
         maxTurns: options.maxTurns !== undefined ? options.maxTurns : DEFAULT_AUTOPLAY_MAX_TURNS,
         eventPresentationMs: options.eventPresentationMs !== undefined ? options.eventPresentationMs : DEFAULT_AUTOPLAY_EVENT_PRESENTATION_MS,
         showEventWindows: options.showEventWindows !== undefined ? options.showEventWindows : DEFAULT_AUTOPLAY_SHOW_EVENT_WINDOWS,
+        showAIIntent: options.showAIIntent !== undefined ? options.showAIIntent : DEFAULT_AUTOPLAY_SHOW_AI_INTENT,
         fastGame: options.fastGame,
         omniscient: options.omniscient,
         compAdvantage: options.compAdvantage,
@@ -140,6 +142,7 @@ module.exports = {
     DEFAULT_AUTOPLAY_MAX_TURNS,
     DEFAULT_AUTOPLAY_EVENT_PRESENTATION_MS,
     DEFAULT_AUTOPLAY_SHOW_EVENT_WINDOWS,
+    DEFAULT_AUTOPLAY_SHOW_AI_INTENT,
     createAISkillAutoplayConfig,
     AutoplayController
 };

@@ -238,6 +238,14 @@
 671	{0} removed from {1}
 672	{0} moved to {1}
 673	Rename {0}
+674	AI Intent
+675	Attack
+676	Explore
+677	Reinforce
+678	Build
+679	Form Fleet
+680	Defend
+681	Move
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
 # Order maps to class index floor(tech/5):

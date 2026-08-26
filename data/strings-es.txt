@@ -239,6 +239,14 @@
 671	{0} quitada de {1}
 672	{0} movida a {1}
 673	Renombrar {0}
+674	Intención de IA
+675	Atacar
+676	Explorar
+677	Reforzar
+678	Construir
+679	Formar flota
+680	Defender
+681	Mover
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
 800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion

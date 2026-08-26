@@ -38,7 +38,7 @@ PowerShell) to replace the cached copy.
 - **Map generation**: Procedurally generated star maps using v3-style algorithms.
 - **Local setup dialog**: Basic startup configuration for AI count, skill, map size, density, fast-game, and fog/all-visible mode.
 - **Turn-based core**: Build ships, colonize stars, move ships/fleets, resolve v3-style combat/capture, repair docked ships/fleets, and update fog-of-war state.
-- **AI players**: Computer opponents participate in turns, use v3-backed economy/build rules, and send ships/fleets to destinations with v3-style decision scoring.
+- **AI players**: Computer opponents participate in turns, use v3-backed economy/build rules, send ships/fleets to destinations with v3-style decision scoring, and include Expert-only campaign/scout/redeployment extensions.
 - **Command UI**: Simple runtime windows, event list, comparison window, permanent map buttons, popup action buttons, and production sliders.
 - **Internationalization**: Current runtime UI/event strings are resource-driven for English, German, Spanish, French, Japanese, and Russian.
 
@@ -59,7 +59,7 @@ PowerShell) to replace the cached copy.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 334 passed, 0 failed.
+Current expected result: 355 passed, 0 failed.
 
 AI-only parity observer:
 
@@ -67,7 +67,7 @@ AI-only parity observer:
 ./gad4 -- --ai-autoplay
 ```
 
-The observer uses seed `424242` and a 250-turn default cap. Event presentation windows are hidden by default for unattended runs; add `--show-event-windows` to see lab/stardock overlays, with `--autoplay-event-ms=1000` controlling the hold time.
+The observer uses seed `424242` and a 250-turn default cap. Event presentation windows are hidden by default for unattended runs; add `--show-event-windows` to see lab/stardock overlays, with `--autoplay-event-ms=1000` controlling the hold time. AI intent overlays are on by default in this mode; add `--hide-ai-intent` or `--no-ai-intent` for a clean map.
 
 ## Licensing and assets
 

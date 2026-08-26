@@ -75,6 +75,7 @@ const launchOptions = {
     autoplayMaxTurns: getIntegerArg('--autoplay-max-turns', Autoplay.DEFAULT_AUTOPLAY_MAX_TURNS),
     autoplayEventMs: getIntegerArg('--autoplay-event-ms', Autoplay.DEFAULT_AUTOPLAY_EVENT_PRESENTATION_MS),
     showEventWindows: hasArg('--show-event-windows'),
+    showAIIntent: !hasArg('--hide-ai-intent', '--no-ai-intent'),
     fastAutoplay: hasArg('--fast-autoplay')
 };
 
@@ -106,6 +107,7 @@ let pendingConfig = launchOptions.aiAutoplay ?
         maxTurns: Math.max(1, launchOptions.autoplayMaxTurns),
         eventPresentationMs: Math.max(0, launchOptions.autoplayEventMs),
         showEventWindows: launchOptions.showEventWindows,
+        showAIIntent: launchOptions.showAIIntent,
         fastGame: launchOptions.fastAutoplay
     }) :
     createDefaultConfig();

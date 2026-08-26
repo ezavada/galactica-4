@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 344
-Passed: 344 ✓
+Total: 355
+Passed: 355 ✓
 Failed: 0 ✗
 ```
 
@@ -54,12 +54,12 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - v3-style map generation, star naming, homeworld assignment, and seeded reproducibility.
 - Coordinate conversion, camera zoom/pan, and ship movement.
 - Player info, game configuration, ownership, and serialization helpers.
-- AI manager/player utilities, decision plumbing, and ownership protection.
+- AI manager/player utilities, decision plumbing, Expert campaign/scouting/redeployment extensions, ownership protection, and AI intent overlay state.
 - Fog-of-war entity state, visibility calculations, spatial partitioning, and integration paths.
 - Fleet creation, joining, merging, movement, and formation rules.
 - Runtime combat resolution, v3-style ship/star strength formulas, destruction, interception, docked defenders, colony capture, defeat/victory updates, and combat summary events.
 - V3 game-rule parity for technology transfer, neutral-colony defaults, captured-colony defaults, and AI-facing movement/patrol guards.
-- Command UI state, windows, permanent map buttons, popup action buttons, production sliders, hover behavior, and layout details.
+- Command UI state, windows, permanent map buttons, popup action buttons, production sliders, hover behavior, AI intent overlay drawing, and layout details.
 - Rendezvous creation/placement, fleet assembly at rendezvous points, named fleet/rendezvous UI, fleet roster rows, and fleet member remove/transfer controls.
 - Ship naming and new tech/class event overlays.
 - Deterministic AI-only autoplay setup, per-player AI skill assignment, 250-turn default cap, quiet/visible event-window modes, victory/stalemate state, and autoplay stop conditions.
@@ -74,12 +74,13 @@ Run the deterministic smallest-map AI observer with:
 
 This starts five computer players and no human players. Players 1-5 represent the five v3 AI skill settings: Expert, Good, Average, Passable, and Novice. The default seed is `424242`, fog is disabled for observation, and the game advances automatically until the win condition or the 250-turn max-turn guard is reached.
 
-Autoplay hides event presentation windows by default for unattended testing. Add `--show-event-windows` to display lab/stardock overlays; when shown, the overlays are held briefly before dismissal so they get a visible beat even when the turn timer is short.
+Autoplay hides event presentation windows by default for unattended testing. Add `--show-event-windows` to display lab/stardock overlays; when shown, the overlays are held briefly before dismissal so they get a visible beat even when the turn timer is short. AI intent overlays are on by default for this self-play mode; add `--hide-ai-intent` or `--no-ai-intent` to hide them.
 
 Useful options:
 
 ```bash
 ./gad4 -- --ai-autoplay --seed=314159 --autoplay-delay=100 --autoplay-max-turns=250 --show-event-windows --autoplay-event-ms=1000
+./gad4 -- --ai-autoplay --hide-ai-intent
 ```
 
 ## Important interpretation
@@ -88,7 +89,7 @@ Passing tests mean the covered code paths behave as tested. They do not prove fu
 
 Examples:
 
-- AI tests cover active AI turn participation, v3-backed economy/build rules, ship/fleet scoring, skill differences, patrol behavior, and advantage modifiers. Player-facing setup/debug UI remains separate.
+- AI tests cover active AI turn participation, v3-derived economy/build rules, shifted skill differences, Expert campaign/scouting/redeployment extensions, ship/fleet scoring, patrol behavior, advantage modifiers, and AI intent overlay capture. Player-facing setup UI and richer debug explanations remain separate.
 - Fog-of-war tests cover current visibility recalculation, last-seen memory, scanner-based fleet visibility, and some rendering behavior. Full v3 remembered-object presentation is not complete.
 - Combat tests cover the current v3-style runtime combat/capture path. Final combat presentation, richer fleet reports, and broader balance tuning remain work items.
 

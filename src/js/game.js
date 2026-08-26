@@ -35,6 +35,8 @@ class Game {
         this.pendingRendezvousPlacement = null;
         this.renameTarget = null;
         this.renameText = '';
+        this.aiIntentOverlays = [];
+        this.aiIntentOverlayTurn = null;
         this.isGameOver = false;
         this.winningPlayerNum = null;
         this.victoryTurn = null;
@@ -93,13 +95,13 @@ class Game {
     }
 
     static mapV3SkillToAISkillLevel(v3Skill) {
-        if (v3Skill === 1) {
+        if (v3Skill <= 2) {
             return 2; // Expert
         }
-        if (v3Skill === 2) {
+        if (v3Skill === 3) {
             return 1; // Good
         }
-        return 0; // Average, Passable, and Novice currently share Average behavior
+        return 0; // Passable and Novice currently share the Average legacy helper bucket
     }
 
     initializeGame() {
@@ -962,6 +964,85 @@ class Game {
         }
 
         return closedAny;
+    }
+
+    isAIIntentOverlayEnabled() {
+        const autoplay = this.config && this.config.autoplay;
+        return !!(autoplay && autoplay.enabled && autoplay.showAIIntent !== false);
+    }
+
+    clearAIIntentOverlays() {
+        const hadIntents = this.aiIntentOverlays && this.aiIntentOverlays.length > 0;
+        this.aiIntentOverlays = [];
+        this.aiIntentOverlayTurn = this.turn;
+        return hadIntents;
+    }
+
+    beginAIIntentTurn() {
+        if (!this.isAIIntentOverlayEnabled()) {
+            this.aiIntentOverlays = [];
+            this.aiIntentOverlayTurn = null;
+            return false;
+        }
+
+        if (this.aiIntentOverlayTurn !== this.turn) {
+            this.clearAIIntentOverlays();
+        }
+        return true;
+    }
+
+    getAIIntentObjectPoint(object) {
+        if (!object || !Number.isFinite(object.x) || !Number.isFinite(object.y)) {
+            return null;
+        }
+        return { x: object.x, y: object.y };
+    }
+
+    recordAIIntent(source, decision, sourceType = 'entity') {
+        if (!decision || decision.action === 'doNothing' || !this.beginAIIntentTurn()) {
+            return false;
+        }
+
+        const sourcePoint = this.getAIIntentObjectPoint(source);
+        if (!sourcePoint) {
+            return false;
+        }
+
+        const target = decision.target || null;
+        const targetPoint = this.getAIIntentObjectPoint(target);
+        const sourceOwner = source && source.owner !== undefined ? source.owner : null;
+        const targetType = target ? this.getObjectType(target) : Common.ObjectType.UNKNOWN;
+        const fallbackName = target && (target.name || target.type) ? (target.name || target.type) : null;
+
+        this.aiIntentOverlays.push({
+            turn: this.turn,
+            playerNum: sourceOwner,
+            action: decision.action,
+            sourceType,
+            source,
+            sourceName: this.getObjectDisplayName(source),
+            sourceX: sourcePoint.x,
+            sourceY: sourcePoint.y,
+            target,
+            targetType,
+            targetName: target ? this.getObjectDisplayName(target) : fallbackName,
+            targetX: targetPoint ? targetPoint.x : null,
+            targetY: targetPoint ? targetPoint.y : null,
+            targetHullType: target && target.type ? target.type : null,
+            score: Number.isFinite(decision.score) ? decision.score : 0
+        });
+
+        if (this.aiIntentOverlays.length > 160) {
+            this.aiIntentOverlays.splice(0, this.aiIntentOverlays.length - 160);
+        }
+        return true;
+    }
+
+    getAIIntentOverlays() {
+        if (!this.isAIIntentOverlayEnabled() || !this.aiIntentOverlays) {
+            return [];
+        }
+        return this.aiIntentOverlays.slice();
     }
 
     toggleProductionWindow() {
@@ -1865,6 +1946,7 @@ class Game {
         
         // Process AI decisions before moving/updating
         if (this.aiManager) {
+            this.beginAIIntentTurn();
             this.aiManager.processAITurns();
         }
         

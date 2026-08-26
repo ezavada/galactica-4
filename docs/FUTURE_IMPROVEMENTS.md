@@ -26,7 +26,7 @@ These are intentionally listed as possible Galactica-4 improvements, not missing
 ### AI Intent and Diagnostics
 **Priority: Low**
 
-- Optional player/debug overlay explaining why an AI chose a destination, fleet action, or build.
+- Richer player/debug overlay explaining why an AI chose a destination, fleet action, or build, beyond the current action/target intent overlay.
 - Autoplay summaries that highlight stalled players, repeated no-op decisions, or unchanged front lines.
 
 ### Richer Defensive Coordination

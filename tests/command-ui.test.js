@@ -63,6 +63,7 @@ const Game = require('../src/js/game.js');
 const Rules = require('../src/js/rules.js');
 const GameConfig = require('../src/js/game-config.js');
 const Display = require('../src/js/display.js');
+const { AIActions, AIDecision } = require('../src/js/ai-base.js');
 
 function keyCode(char) {
     return char.charCodeAt(0);
@@ -295,6 +296,56 @@ module.exports = function runCommandUITests() {
             test.assertEqual(destinationLine.from.y, 25);
             test.assertEqual(destinationLine.to.x, 93);
             test.assertEqual(destinationLine.to.y, 55);
+        });
+
+        test.it('draws AI intent lines and badges in screen coordinates', () => {
+            const game = createGameForTests();
+            game.config.autoplay = {
+                enabled: true,
+                showAIIntent: true
+            };
+            const lineCalls = [];
+            const circleCalls = [];
+            const badgeCalls = [];
+            const textCalls = [];
+            game.port = {
+                ...createFakePort(800, 600),
+                drawLine: (from, to, attrs) => {
+                    lineCalls.push({ from, to, attrs });
+                },
+                drawCircle: (point, radius, attrs) => {
+                    circleCalls.push({ point, radius, attrs });
+                },
+                drawRoundedRect: (rect, radius, attrs) => {
+                    badgeCalls.push({ rect, radius, attrs });
+                },
+                drawText: (text, point, attrs) => {
+                    textCalls.push({ text, point, attrs });
+                }
+            };
+            const display = new Display(game);
+            display.toScreenX = (x) => (x / 10) + 3.25;
+            display.toScreenY = (y) => (y / 10) + 5.25;
+
+            const source = createOwnedStar(game, 1, 'Raider');
+            source.x = 100;
+            source.y = 200;
+            const target = createOwnedStar(game, 2, 'Victim');
+            target.x = 900;
+            target.y = 500;
+
+            game.recordAIIntent(source, new AIDecision(AIActions.GO_TO_ENEMY_STAR, target, 77, 'test attack'), 'star');
+            display.drawAIIntentOverlays();
+
+            const intentLine = lineCalls.find(call => call.attrs === display.styles.aiIntentLine);
+            test.assertNotNull(intentLine, 'AI target-bearing intents should draw an intent line');
+            test.assertEqual(intentLine.from.x, 13);
+            test.assertEqual(intentLine.from.y, 25);
+            test.assertEqual(intentLine.to.x, 93);
+            test.assertEqual(intentLine.to.y, 55);
+            test.assertEqual(circleCalls[0].attrs, display.styles.aiIntentTarget, 'AI target-bearing intents should mark the target');
+            test.assertEqual(badgeCalls[0].attrs, display.styles.aiIntentBadge, 'AI intent labels should use the predefined badge Attributes');
+            test.assert(textCalls.some(call => call.text.indexOf('Attack Victim') !== -1), 'AI intent badge should include a localized action and target name');
         });
 
         test.it('draws panel title dividers near the title text', () => {

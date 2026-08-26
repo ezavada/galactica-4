@@ -143,7 +143,15 @@ class Display {
             point: I18n.getString(592, "Point"),
             placeRendezvousHelp: I18n.getString(593, "Click the map or an object to place it."),
             moveRendezvousHelp: I18n.getString(594, "Click the map or an object to move it."),
-            destination: I18n.getString(595, "Destination:")
+            destination: I18n.getString(595, "Destination:"),
+            aiIntent: I18n.getString(674, "AI Intent"),
+            aiAttack: I18n.getString(675, "Attack"),
+            aiExplore: I18n.getString(676, "Explore"),
+            aiReinforce: I18n.getString(677, "Reinforce"),
+            aiBuild: I18n.getString(678, "Build"),
+            aiFormFleet: I18n.getString(679, "Form Fleet"),
+            aiDefend: I18n.getString(680, "Defend"),
+            aiMove: I18n.getString(681, "Move")
         };
     }
 
@@ -168,7 +176,12 @@ class Display {
             overlayDim: [0, 0, 0, 0.65],
             selectionFrame: [1, 1, 1, 0.75],
             defaultDestination: [0, 1, 0, 0.8],
-            rendezvousLine: [0.80, 0.80, 0.84, 0.75]
+            rendezvousLine: [0.80, 0.80, 0.84, 0.75],
+            aiIntentLine: [1.0, 0.78, 0.28, 0.65],
+            aiIntentBadge: [0.08, 0.08, 0.09, 0.78],
+            aiIntentBorder: [0.92, 0.72, 0.30, 0.70],
+            aiIntentTarget: [1.0, 0.84, 0.34, 0.80],
+            aiIntentText: [1.0, 0.88, 0.56, 1.0]
         };
 
         const palette = {};
@@ -267,6 +280,17 @@ class Display {
             }),
             rendezvousLine: this.createAttributes({
                 lineColor: this.getUIColor('rendezvousLine')
+            }),
+            aiIntentLine: this.createAttributes({
+                lineColor: this.getUIColor('aiIntentLine')
+            }),
+            aiIntentBadge: this.createAttributes({
+                fillColor: this.getUIColor('aiIntentBadge'),
+                lineColor: this.getUIColor('aiIntentBorder')
+            }),
+            aiIntentTarget: this.createAttributes({
+                fillColor: this.getUIColor('aiIntentTarget'),
+                lineColor: this.getUIColor('aiIntentBorder')
             })
         };
     }
@@ -931,6 +955,99 @@ class Display {
             this.drawRendezvous(rendezvous);
         }
     }
+
+    getAIIntentActionLabel(action) {
+        switch (action) {
+            case 'goToEnemyStar':
+            case 'attackShip':
+                return this.STR.aiAttack;
+            case 'goToUnownedStar':
+                return this.STR.aiExplore;
+            case 'goToOwnStar':
+                return this.STR.aiReinforce;
+            case 'buildShip':
+                return this.STR.aiBuild;
+            case 'formFleet':
+                return this.STR.aiFormFleet;
+            case 'defendStar':
+                return this.STR.aiDefend;
+            default:
+                return this.STR.aiMove;
+        }
+    }
+
+    getAIIntentScreenPoint(intent, role) {
+        const xKey = role === 'target' ? 'targetX' : 'sourceX';
+        const yKey = role === 'target' ? 'targetY' : 'sourceY';
+        if (!intent || !Number.isFinite(intent[xKey]) || !Number.isFinite(intent[yKey])) {
+            return null;
+        }
+
+        return {
+            x: Math.round(this.toScreenX(intent[xKey])),
+            y: Math.round(this.toScreenY(intent[yKey]))
+        };
+    }
+
+    getAIIntentLabel(intent) {
+        const actionLabel = this.getAIIntentActionLabel(intent.action);
+        if (intent.action === 'buildShip' && intent.targetHullType) {
+            return `${actionLabel} ${this.getShipTypeName(intent.targetHullType, { capitalized: true })}`;
+        }
+
+        if (intent.targetName && intent.targetName !== intent.sourceName) {
+            return `${actionLabel} ${this.trimText(intent.targetName, 18)}`;
+        }
+
+        return actionLabel;
+    }
+
+    drawAIIntentBadge(label, source, target, index) {
+        const labelWidth = Math.min(168, Math.max(66, Math.round((label || '').length * 6.2 + 20)));
+        const labelHeight = 20;
+        const lineHasTarget = !!target;
+        const anchorX = lineHasTarget ? Math.round((source.x * 0.68) + (target.x * 0.32)) : source.x;
+        const anchorY = lineHasTarget ? Math.round((source.y * 0.68) + (target.y * 0.32)) : source.y;
+        const labelX = Math.round(anchorX + 8);
+        const labelY = Math.round(anchorY - 24 + ((index % 4) * 7));
+
+        this.drawRoundedRect(
+            { x: labelX, y: labelY, width: labelWidth, height: labelHeight },
+            7,
+            this.styles.aiIntentBadge
+        );
+        this.drawTextLine(label, labelX + 10, labelY + 14, 'aiintent', 10);
+    }
+
+    drawAIIntentOverlays() {
+        if (!this.game || typeof this.game.getAIIntentOverlays !== 'function') {
+            return;
+        }
+
+        const intents = this.game.getAIIntentOverlays();
+        if (!intents || intents.length === 0) {
+            return;
+        }
+
+        intents.forEach((intent, index) => {
+            const source = this.getAIIntentScreenPoint(intent, 'source');
+            if (!source) {
+                return;
+            }
+
+            const target = this.getAIIntentScreenPoint(intent, 'target');
+            if (target) {
+                this.port.drawLine(
+                    new pdg.Point(source.x, source.y),
+                    new pdg.Point(target.x, target.y),
+                    this.styles.aiIntentLine
+                );
+                this.port.drawCircle(new pdg.Point(target.x, target.y), 4, this.styles.aiIntentTarget);
+            }
+
+            this.drawAIIntentBadge(this.getAIIntentLabel(intent), source, target, index);
+        });
+    }
     
     getScreenSize() {
         const drawingArea = this.port.getDrawingArea();
@@ -966,6 +1083,9 @@ class Display {
         }
         if (color === 'hovergray' || color === 'hovergrey') {
             return this.getUIColor('textHover');
+        }
+        if (color === 'aiintent') {
+            return this.getUIColor('aiIntentText');
         }
         return new pdg.Color(color);
     }
@@ -2231,6 +2351,7 @@ class Display {
         this.drawShips(game.allShips);
         this.drawRendezvousPoints(game.allRendezvous);
         this.drawFleets(game.allFleets);
+        this.drawAIIntentOverlays();
         
         // Draw UI
         this.drawMainUI(game.turn, game.stars.length, game.allShips.length);

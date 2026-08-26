@@ -42,6 +42,7 @@ function runAutoplayTests() {
             test.assertEqual(config.autoplay.maxTurns, 456, 'Autoplay should store the requested max turns');
             test.assertEqual(config.autoplay.eventPresentationMs, Autoplay.DEFAULT_AUTOPLAY_EVENT_PRESENTATION_MS, 'Autoplay should store the default event presentation hold for opt-in event windows');
             test.assertFalse(config.autoplay.showEventWindows, 'Autoplay should hide event windows by default');
+            test.assertTrue(config.autoplay.showAIIntent, 'Autoplay should show AI intent overlays by default');
             test.assertContains(config.getDescription(), 'AI: all skills', 'Autoplay description should not collapse to one AI skill');
             test.assertDeepEqual(
                 [1, 2, 3, 4, 5].map(playerNum => config.getAISkillForPlayer(playerNum)),
@@ -60,6 +61,16 @@ function runAutoplayTests() {
 
             test.assertTrue(config.autoplay.showEventWindows, 'Autoplay should store the event-window opt-in');
             test.assertEqual(config.autoplay.eventPresentationMs, 750, 'Autoplay should preserve the event-window hold length');
+        });
+
+        test.it('can opt out of AI intent overlays for observed autoplay', () => {
+            const config = Autoplay.createAISkillAutoplayConfig({
+                seed: 98765,
+                showAIIntent: false
+            });
+
+            test.assertFalse(config.autoplay.showAIIntent, 'Autoplay should store the AI intent overlay opt-out');
+            test.assertTrue(Autoplay.DEFAULT_AUTOPLAY_SHOW_AI_INTENT, 'AI intent overlays should default on for autoplay');
         });
 
         test.it('suppresses event presentation overlays in autoplay unless requested', () => {
@@ -93,8 +104,8 @@ function runAutoplayTests() {
             );
             test.assertDeepEqual(
                 [1, 2, 3, 4, 5].map(playerNum => game.aiManager.getAIPlayer(playerNum).skillManager.getSkillLevel()),
-                [2, 1, 0, 0, 0],
-                'Current AI engine should map v3 Expert/Good/Average-or-lower into its three behavior buckets'
+                [2, 2, 1, 0, 0],
+                'Current AI engine should push legacy helper buckets down one skill level'
             );
             test.assertDeepEqual(
                 [1, 2, 3, 4, 5].map(playerNum => game.getPlayerPieceCounts(playerNum).stars),

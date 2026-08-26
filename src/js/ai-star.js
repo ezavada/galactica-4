@@ -66,6 +66,15 @@ class StarAI extends AIBase {
         return 3;
     }
 
+    getCapabilitySkillLevel(v3Skill = this.getV3SkillLevel()) {
+        const normalizedSkill = Math.min(5, Math.max(1, Number(v3Skill) || 3));
+        return Math.max(1, normalizedSkill - 1);
+    }
+
+    isExpertLevel(v3Skill = this.getV3SkillLevel()) {
+        return Number(v3Skill) === 1;
+    }
+
     isTechStar() {
         return this.star.research && this.star.research.desired > 40;
     }
@@ -74,7 +83,7 @@ class StarAI extends AIBase {
         const v3Skill = this.getV3SkillLevel();
         const player = this.getPlayerInfo();
 
-        if (v3Skill !== 1 || !player) {
+        if (this.getCapabilitySkillLevel(v3Skill) !== 1 || !player) {
             return false;
         }
 
@@ -374,7 +383,57 @@ class StarAI extends AIBase {
             return { type: this.chooseNextTechStarHull(), priority: 90 };
         }
 
+        if (this.isExpertLevel()) {
+            const expertHull = this.chooseExpertStrategicHull();
+            if (expertHull) {
+                return { type: expertHull, priority: 85 };
+            }
+        }
+
         return { type: this.chooseV3ComputerHull(), priority: 70 };
+    }
+
+    chooseExpertStrategicHull() {
+        const owner = this.star.owner;
+        const completedShips = this.utils.getPlayerShips(owner).filter(ship =>
+            ship &&
+            (!ship.underConstruction || !ship.underConstruction()) &&
+            !ship.needsDeletion
+        );
+        const unownedStars = this.utils.getUnownedStars();
+        const nearbyEnemyShips = this.utils.getEntitiesInRange(
+            this.star,
+            this.utils.getEnemyShips(owner),
+            150000
+        );
+        const dockedCombatShip = (this.star.ships || []).some(ship =>
+            ship &&
+            ship.owner === owner &&
+            ship.type === 'battleship' &&
+            (!ship.underConstruction || !ship.underConstruction()) &&
+            !ship.destination
+        );
+
+        if (nearbyEnemyShips.length > 0 && !dockedCombatShip) {
+            return 'battleship';
+        }
+
+        const mobileColonies = completedShips.filter(ship =>
+            ship.type === 'colony' && !ship.destination
+        ).length;
+        const desiredColonies = Math.min(2, Math.ceil(unownedStars.length / 6));
+        if (unownedStars.length > 0 && mobileColonies < desiredColonies) {
+            return 'colony';
+        }
+
+        const scouts = completedShips.filter(ship => ship.type === 'scout').length;
+        const ownedStarCount = this.utils.getPlayerStars(owner).length;
+        const desiredScouts = Math.min(2, Math.max(1, Math.ceil(ownedStarCount / 3)));
+        if (this.utils.hasFogOfWar() && scouts < desiredScouts) {
+            return 'scout';
+        }
+
+        return null;
     }
 
     chooseNextTechStarHull() {
