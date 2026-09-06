@@ -33,6 +33,28 @@ to share that cache between clones, or `PDG_EXECUTABLE` to test with an
 already installed runtime. Pass `--refresh-pdg` (or `-RefreshPdg` in
 PowerShell) to replace the cached copy.
 
+## Running in a Browser
+
+Galactica-4 can also run against PDG's Emscripten/WebAssembly build.
+
+```bash
+# Uses ../pdg/build/wasm by default; override with PDG_WASM_DIR if needed.
+./tools/build-web.sh
+python3 -m http.server --bind 127.0.0.1 --directory dist 8080
+```
+
+Then open `http://localhost:8080/`. Browser launch options are query
+parameters, for example:
+
+```text
+http://localhost:8080/?lang=es
+http://localhost:8080/?ai-autoplay=1&seed=424242&autoplay-max-turns=250
+```
+
+The web build preloads the `data/` resource directory into Emscripten's virtual
+filesystem before starting `main.js`, so localized strings and image resources
+use the same paths as the desktop launcher.
+
 ## Features
 
 - **Map generation**: Procedurally generated star maps using v3-style algorithms.
@@ -41,6 +63,7 @@ PowerShell) to replace the cached copy.
 - **AI players**: Computer opponents participate in turns, use v3-backed economy/build rules, and send ships/fleets to destinations with v3-style decision scoring.
 - **Command UI**: Simple runtime windows, event list, comparison window, permanent map buttons, popup action buttons, and production sliders.
 - **Internationalization**: Current runtime UI/event strings are resource-driven for English, German, Spanish, French, Japanese, and Russian.
+- **WebAssembly build**: Browser bootstrap and build script for running the game with PDG's Emscripten runtime.
 
 ## Documentation
 
@@ -59,7 +82,7 @@ PowerShell) to replace the cached copy.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 334 passed, 0 failed.
+Current expected result: 344 passed, 0 failed.
 
 AI-only parity observer:
 

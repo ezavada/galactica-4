@@ -191,7 +191,10 @@ function toStartupPDGRect(rect) {
 }
 
 function drawStartupRoundedRect(rect, radius = 14, attrs = startupStyles.panel) {
-    port.drawRoundedRect(toStartupPDGRect(rect), radius, attrs);
+    if (attrs && typeof attrs.roundedCorners === 'function') {
+        attrs.roundedCorners(radius);
+    }
+    port.drawRect(toStartupPDGRect(rect), attrs);
 }
 
 function drawStartupDivider(x, y, width) {

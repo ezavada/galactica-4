@@ -1050,7 +1050,10 @@ class Display {
     }
 
     drawRoundedRect(rect, radius = 12, attrs = this.styles.panel) {
-        this.port.drawRoundedRect(this.toPDGRect(rect), radius, attrs);
+        if (attrs && typeof attrs.roundedCorners === 'function') {
+            attrs.roundedCorners(radius);
+        }
+        this.port.drawRect(this.toPDGRect(rect), attrs);
     }
 
     drawDivider(x, y, width) {

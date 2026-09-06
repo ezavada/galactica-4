@@ -244,13 +244,13 @@ module.exports = function runCommandUITests() {
             test.assert(edgeRect.y + edgeRect.height <= 590, 'Panel should stay within the bottom edge');
         });
 
-        test.it('uses PDG rounded rect drawing with positioned rects', () => {
+        test.it('uses Attributes rounded corners with positioned rects', () => {
             const game = createGameForTests();
-            let roundedCall = null;
+            let drawCall = null;
             game.port = {
                 ...createFakePort(800, 600),
-                drawRoundedRect: (rect, radius, attrs) => {
-                    roundedCall = { rect, radius, attrs };
+                drawRect: (rect, attrs) => {
+                    drawCall = { rect, attrs };
                 }
             };
             const display = new Display(game);
@@ -258,13 +258,13 @@ module.exports = function runCommandUITests() {
 
             display.drawRoundedRect({ x: 42, y: 73, width: 120, height: 44 }, 11, attrs);
 
-            test.assertNotNull(roundedCall, 'Display should use port.drawRoundedRect when available');
-            test.assertEqual(roundedCall.radius, 11);
-            test.assertEqual(roundedCall.rect.left !== undefined ? roundedCall.rect.left : roundedCall.rect.x, 42);
-            test.assertEqual(roundedCall.rect.top !== undefined ? roundedCall.rect.top : roundedCall.rect.y, 73);
-            test.assertEqual(roundedCall.rect.right !== undefined ? roundedCall.rect.right : roundedCall.rect.x + roundedCall.rect.width, 162);
-            test.assertEqual(roundedCall.rect.bottom !== undefined ? roundedCall.rect.bottom : roundedCall.rect.y + roundedCall.rect.height, 117);
-            test.assertTrue(roundedCall.attrs === attrs, 'Display should pass the supplied Attributes object through directly');
+            test.assertNotNull(drawCall, 'Display should draw rounded rectangles with port.drawRect');
+            test.assertEqual(attrs.getRoundedCornerRadius(), 11);
+            test.assertEqual(drawCall.rect.left !== undefined ? drawCall.rect.left : drawCall.rect.x, 42);
+            test.assertEqual(drawCall.rect.top !== undefined ? drawCall.rect.top : drawCall.rect.y, 73);
+            test.assertEqual(drawCall.rect.right !== undefined ? drawCall.rect.right : drawCall.rect.x + drawCall.rect.width, 162);
+            test.assertEqual(drawCall.rect.bottom !== undefined ? drawCall.rect.bottom : drawCall.rect.y + drawCall.rect.height, 117);
+            test.assertTrue(drawCall.attrs === attrs, 'Display should pass the supplied Attributes object through directly');
         });
 
         test.it('draws star default-destination lines in screen coordinates', () => {
