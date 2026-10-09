@@ -1720,6 +1720,23 @@ class Display {
         }));
     }
 
+    getDraggableSliderAt(x,y) {
+        const action = this.getUIActionAt(x,y);
+        if (!action) return null;
+        if (action.type==='setColonyDefaultAllocation' && this.game.uiWindow==='colonyDefaults') {
+            const slider = this.getColonyDefaultSliderRegions().find(region=>this.containsPoint(region.rect,x,y));
+            return slider ? {key:slider.key,trackRect:{...slider.rect},window:this.game.uiWindow,
+                draft:this.game.colonyDefaultsDraft} : null;
+        }
+        if (action.type!=='setAllocation') return null;
+        const window = this.getActiveWindowRect();
+        const regions = window && this.containsPoint(window,x,y) ? this.getProductionWindowSliderRegions() :
+            this.getStarAllocationSliderRegions(action.star);
+        const slider = regions.find(region=>this.containsPoint(region.rect,x,y));
+        if (!slider || slider.allocation.locked || !this.game.canHumanControl(slider.star)) return null;
+        return {star:slider.star,key:slider.key,trackRect:{...slider.trackRect},window:this.game.uiWindow};
+    }
+
     getSliderActionAt(x, y) {
         const slider = this.getAllocationSliderRegions().find(region => this.containsPoint(region.rect, x, y));
         if (!slider) {

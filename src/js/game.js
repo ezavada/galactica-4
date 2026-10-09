@@ -32,6 +32,7 @@ class Game {
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
         this.pendingMapOrderObject = null;
+        this.uiSliderDrag = null;
         this.colonyDefaultsDraft = null;
         this.systemShipWindowStar = null;
         this.systemShipPage = 0;
@@ -1079,7 +1080,7 @@ class Game {
         }
     }
 
-    adjustStarAllocation(star, allocationKey, delta) {
+    adjustStarAllocation(star, allocationKey, delta, options = {}) {
         if (!star || !this.canHumanControl(star)) {
             return false;
         }
@@ -1144,7 +1145,7 @@ class Game {
 
         this.setAllocationDesired(targetEntry.allocation, oldDesired + appliedDelta);
         this.normalizeStarAllocations(star);
-        this.recordProductionChange(star);
+        if (!options.silent) this.recordProductionChange(star);
         return true;
     }
 
@@ -1160,7 +1161,7 @@ class Game {
         return this.adjustStarAllocation(this.getSelectedStar(), allocationKey, delta);
     }
 
-    setStarAllocation(star, allocationKey, desired) {
+    setStarAllocation(star, allocationKey, desired, options = {}) {
         const entries = this.getStarAllocationEntries(star);
         const targetEntry = entries.find(entry => entry.key === allocationKey);
         if (!targetEntry) {
@@ -1168,7 +1169,7 @@ class Game {
         }
 
         const current = this.getAllocationDesired(targetEntry.allocation);
-        return this.adjustStarAllocation(star, allocationKey, desired - current);
+        return this.adjustStarAllocation(star, allocationKey, desired - current, options);
     }
 
     resetSelectedStarAllocations() {
@@ -1471,7 +1472,7 @@ class Game {
             case 'setAllocation':
                 if (action.star) {
                     this.setSelectedObject(action.star);
-                    this.setStarAllocation(action.star, action.allocationKey, action.desired);
+                    this.setStarAllocation(action.star, action.allocationKey, action.desired, {silent:!!action.silent});
                 }
                 return true;
             case 'selectHomeStar':
@@ -1575,6 +1576,39 @@ class Game {
             default:
                 return false;
         }
+    }
+
+    beginUISliderDrag(x,y) {
+        this.endUISliderDrag();
+        const slider = this.display && this.display.getDraggableSliderAt(x,y);
+        if (!slider) return false;
+        this.uiSliderDrag = slider;
+        if (slider.star) slider.initialDesired = this.getAllocationDesired(slider.star[slider.key]);
+        this.updateUISliderDrag(x,y);
+        return true;
+    }
+
+    updateUISliderDrag(x,y) {
+        const drag = this.uiSliderDrag;
+        if (!drag) return false;
+        const valid = this.uiWindow===drag.window && (drag.star ?
+            this.selectedObject===drag.star && this.canHumanControl(drag.star) && !drag.star[drag.key].locked :
+            this.colonyDefaultsDraft===drag.draft);
+        if (!valid) { this.endUISliderDrag(); return true; }
+        const ratio = Math.max(0,Math.min(1,(x-drag.trackRect.x)/drag.trackRect.width));
+        if (drag.star) this.setStarAllocation(drag.star,drag.key,Math.round(ratio*100),{silent:true});
+        else this.setColonyDefaultAllocation(drag.key,Math.round(ratio*1000));
+        return true;
+    }
+
+    endUISliderDrag(x,y) {
+        if (!this.uiSliderDrag) return false;
+        if (Number.isFinite(x) && Number.isFinite(y)) this.updateUISliderDrag(x,y);
+        const drag = this.uiSliderDrag;
+        this.uiSliderDrag = null;
+        if (drag && drag.star && this.canHumanControl(drag.star) &&
+            this.getAllocationDesired(drag.star[drag.key])!==drag.initialDesired) this.recordProductionChange(drag.star);
+        return true;
     }
 
     handleUIClick(x, y) {
@@ -1850,6 +1884,11 @@ class Game {
         if (['rename','colonyDefaults'].includes(this.uiWindow) && key === pdg.key_Tab) return true;
         if (key === pdg.key_Tab) {
             this.endTurn();
+            return true;
+        }
+
+        if (key === pdg.key_Escape && this.uiSliderDrag) {
+            this.endUISliderDrag();
             return true;
         }
 
