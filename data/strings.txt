@@ -246,3 +246,4 @@
 # Production allocation locks
 674	Lock
 675	Unlock
+676	Equalize

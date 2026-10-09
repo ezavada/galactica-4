@@ -1171,9 +1171,14 @@ class Game {
         if (!star || !this.canHumanControl(star)) {
             return false;
         }
-        this.setAllocationDesired(star.growth, 34);
-        this.setAllocationDesired(star.shipBuilding, 33);
-        this.setAllocationDesired(star.research, 33);
+        const entries = this.getStarAllocationEntries(star);
+        const unlocked = entries.filter(entry => !entry.allocation.locked);
+        if (!unlocked.length) return false;
+        const budget = 100 - entries.filter(entry => entry.allocation.locked)
+            .reduce((sum, entry) => sum + this.getAllocationDesired(entry.allocation), 0);
+        const share = Math.floor(budget / unlocked.length);
+        unlocked.forEach((entry, index) => this.setAllocationDesired(entry.allocation,
+            share + (index === 0 ? budget - share * unlocked.length : 0)));
         this.recordProductionChange(star);
         return true;
     }
@@ -1354,6 +1359,9 @@ class Game {
                     this.setSelectedObject(action.object);
                 }
                 return this.toggleProductionWindow();
+            case 'equalizeAllocations':
+                this.setSelectedObject(action.star);
+                return this.resetSelectedStarAllocations();
             case 'toggleAllocationLock':
                 return this.toggleStarAllocationLock(action.star, action.allocationKey);
             case 'setAllocation':

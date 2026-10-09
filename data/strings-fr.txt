@@ -246,3 +246,4 @@
 # Production allocation locks
 674	Verrouiller
 675	Déverrouiller
+676	Équilibrer

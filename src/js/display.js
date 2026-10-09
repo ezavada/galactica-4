@@ -1472,7 +1472,7 @@ class Display {
 
     getProductionWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({ x: screen.width - 440, y: 84, width: 420, height: 155 });
+        return this.fitPanelToScreen({ x: screen.width - 440, y: 84, width: 420, height: 184 });
     }
 
     getEventWindowRect() {
@@ -1586,6 +1586,20 @@ class Display {
         return regions;
     }
 
+    getAllocationEqualizeRegions() {
+        const star = this.game.getSelectedStar();
+        if (!star || !this.game.canHumanControl(star)) return [];
+        const panel = this.getStarDetailsLayout(star).rect;
+        const regions = [{ rect: { x: panel.x + 12, y: panel.y + 216, width: 170, height: 22 },
+            action: { type: 'equalizeAllocations', star } }];
+        if (this.game.uiWindow === 'production') {
+            const window = this.getProductionWindowRect();
+            regions.unshift({ rect: { x: window.x + 14, y: window.y + 128, width: 170, height: 22 },
+                action: { type: 'equalizeAllocations', star }, key: 'R' });
+        }
+        return regions;
+    }
+
     getAllocationLockRegions() {
         return this.getAllocationSliderRegions().map(slider => ({
             rect: { x: slider.trackRect.x + slider.trackRect.width + 48, y: slider.rect.y + 1, width: 68, height: 18 },
@@ -1689,6 +1703,8 @@ class Display {
             return contextButton.action;
         }
 
+        const equalize = this.getAllocationEqualizeRegions().find(region => this.containsPoint(region.rect, x, y));
+        if (equalize) return equalize.action;
         const lock = this.getAllocationLockRegions().find(region => this.containsPoint(region.rect, x, y));
         if (lock) return lock.action;
 
@@ -1759,7 +1775,7 @@ class Display {
         if (!this.game.canHumanControl(star)) {
             return 130;
         }
-        return 216;
+        return 246;
     }
 
     getStarDetailsLayout(star) {
@@ -1872,6 +1888,8 @@ class Display {
         this.drawDivider(x, layout.dividerY, rect.width - 24);
         this.drawTextLine(this.STR.production, x, layout.productionTitleY, 'lightgray', 12);
         this.drawStarAllocationSummary(star, x, layout.sliderStartY, layout.sliderWidth);
+        const equalize = this.getAllocationEqualizeRegions().find(region => !region.key);
+        if (equalize) this.drawUIButton(equalize.rect, I18n.getString(676, 'Equalize'), null, { size: 10 });
         this.drawContextButtonArc(star, rect);
     }
     
@@ -2018,7 +2036,9 @@ class Display {
         this.drawTextLine(star.name, x, y, 'lightgray', 13);
         y += 28;
         this.drawStarAllocationSummary(star, x, y, 185);
-        y += 68;
+        const equalize = this.getAllocationEqualizeRegions().find(region => region.key);
+        if (equalize) this.drawUIButton(equalize.rect, I18n.getString(676, 'Equalize'), 'R', { size: 10 });
+        y += 98;
         this.drawTextLine(this.STR.escClose, x, y, 'gray', 10);
     }
 

@@ -246,3 +246,4 @@
 # Production allocation locks
 674	固定
 675	固定解除
+676	均等配分

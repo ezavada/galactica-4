@@ -31,6 +31,20 @@ module.exports = function() {
             test.assertFalse(game.toggleStarAllocationLock(star, 'growth'));
             test.assertFalse(star.growth.locked);
         });
+        test.it('equalizes only unlocked allocations and leaves the remainder on the first unlocked slider', () => {
+            const {game, star} = fixture();
+            star.growth.desired = 45; star.growth.locked = true;
+            game.resetSelectedStarAllocations();
+            test.assertEqual(star.growth.desired, 45);
+            test.assertEqual(star.shipBuilding.desired, 28);
+            test.assertEqual(star.research.desired, 27);
+        });
+        test.it('does not equalize an entirely locked economy', () => {
+            const {game, star} = fixture();
+            game.getStarAllocationEntries(star).forEach(entry => entry.allocation.setLocked(true));
+            test.assertFalse(game.resetSelectedStarAllocations());
+            test.assertEqual(star.growth.desired, 34);
+        });
         test.it('routes lock button clicks to the matching allocation', () => {
             const {game, star} = fixture();
             game.port = {getDrawingArea: () => new pdg.Rect(800,600)};
