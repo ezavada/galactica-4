@@ -154,6 +154,7 @@ class Display {
     createUIColorPalette() {
         const colors = {
             panelFill: [0.13, 0.13, 0.14, 0.92],
+            windowFill: [0.13, 0.13, 0.14, 1.0],
             panelBorder: [0.42, 0.42, 0.44, 0.95],
             buttonFill: [0.18, 0.18, 0.19, 0.92],
             buttonFillHover: [0.14, 0.14, 0.15, 0.96],
@@ -229,6 +230,8 @@ class Display {
                 fillColor: this.getUIColor('panelFill'),
                 lineColor: this.getUIColor('panelBorder')
             }),
+            windowPanel: this.createAttributes({ fillColor: this.getUIColor('windowFill'),
+                lineColor: this.getUIColor('panelBorder') }),
             topInfoPanel: this.createAttributes({
                 fillColor: this.getUIColor('topInfoFill'),
                 lineColor: this.getUIColor('panelBorder')
@@ -1064,16 +1067,20 @@ class Display {
         this.port.drawLine(new pdg.Point(x, y), new pdg.Point(x + width, y), this.styles.divider);
     }
 
-    drawPanel(rect, title = null, borderColor = null) {
-        const attrs = borderColor
+    drawPanel(rect, title = null, borderColor = null, appearance = null) {
+        const attrs = appearance || (borderColor
             ? this.createAttributes({ fillColor: this.getUIColor('panelFill'), lineColor: new pdg.Color(borderColor) })
-            : this.styles.panel;
+            : this.styles.panel);
         this.drawRoundedRect(rect, 14, attrs);
 
         if (title) {
             this.drawTextLine(title, rect.x + 16, rect.y + 22, 'lightgray', 14);
             this.drawDivider(rect.x + 14, rect.y + 28, rect.width - 28);
         }
+    }
+
+    drawWindowPanel(rect, title) {
+        this.drawPanel(rect, title, null, this.styles.windowPanel);
     }
 
     getPanelPointer(object, rect) {
@@ -1605,8 +1612,8 @@ class Display {
         return regions;
     }
 
-    getAllocationLockRegions() {
-        return this.getAllocationSliderRegions().map(slider => ({
+    getAllocationLockRegions(sliders = this.getAllocationSliderRegions()) {
+        return sliders.map(slider => ({
             rect: { x: slider.trackRect.x + slider.trackRect.width + 48, y: slider.rect.y + 1, width: 68, height: 18 },
             action: { type: 'toggleAllocationLock', star: slider.star, allocationKey: slider.key }
         }));
@@ -1702,12 +1709,29 @@ class Display {
         return regions;
     }
 
-    getUIActionAt(x, y) {
-        if (this.game.uiWindow === 'rename') {
-            const button = this.getRenameActionRegions().find(region => this.containsPoint(region.rect, x, y));
-            if (button) return button.action;
-            if (this.containsPoint(this.getRenameWindowRect(), x, y)) return { type: 'consume' };
+    getActiveWindowActionAt(x, y) {
+        const window = this.getActiveWindowRect();
+        if (!window || !this.containsPoint(window, x, y)) return null;
+        let controls = [];
+        if (this.game.uiWindow === 'rename') controls = this.getRenameActionRegions();
+        if (this.game.uiWindow === 'fleets') controls = this.getFleetListActionRegions();
+        if (this.game.uiWindow === 'production') {
+            const sliders = this.getProductionWindowSliderRegions();
+            controls = this.getAllocationLockRegions(sliders)
+                .concat(this.getAllocationEqualizeRegions().filter(region => region.key));
+            const slider = sliders.find(region => this.containsPoint(region.rect, x, y));
+            if (slider) return { type: 'setAllocation', star: slider.star, allocationKey: slider.key,
+                desired: this.clamp(Math.round((x - slider.trackRect.x) / slider.trackRect.width * 100), 0, 100) };
         }
+        const control = controls.find(region => this.containsPoint(region.rect, x, y));
+        return control ? control.action : { type: 'consume' };
+    }
+
+    getUIActionAt(x, y) {
+        const windowAction = this.getActiveWindowActionAt(x, y);
+        if (windowAction) return windowAction;
+        // Rename is modal: map controls cannot change its target mid-edit.
+        if (this.game.uiWindow === 'rename') return { type: 'consume' };
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
         if (contextButton) {
             return contextButton.action;
@@ -2031,7 +2055,7 @@ class Display {
 
     drawCommandWindow() {
         const rect = this.getCommandWindowRect();
-        this.drawPanel(rect, this.STR.commandMenu);
+        this.drawWindowPanel(rect, this.STR.commandMenu);
 
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
@@ -2042,7 +2066,7 @@ class Display {
 
     drawProductionWindow() {
         const rect = this.getProductionWindowRect();
-        this.drawPanel(rect, this.STR.productionSliders);
+        this.drawWindowPanel(rect, this.STR.productionSliders);
 
         const star = this.game.getSelectedStar();
         const x = rect.x + 14;
@@ -2067,7 +2091,7 @@ class Display {
     drawEventWindow() {
         const events = this.game.getRecentEvents(10);
         const rect = this.getEventWindowRect();
-        this.drawPanel(rect, this.STR.eventList);
+        this.drawWindowPanel(rect, this.STR.eventList);
 
         let y = this.getPanelContentStartY(rect);
         const x = rect.x + 14;
@@ -2088,7 +2112,7 @@ class Display {
     drawComparisonWindow() {
         const rows = this.game.getPlayerComparisonRows();
         const rect = this.getComparisonWindowRect();
-        this.drawPanel(rect, this.STR.empireComparison);
+        this.drawWindowPanel(rect, this.STR.empireComparison);
 
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
@@ -2135,7 +2159,7 @@ class Display {
     drawFleetWindow() {
         const rows = this.game.getFleetListRows ? this.game.getFleetListRows() : [];
         const rect = this.getFleetWindowRect();
-        this.drawPanel(rect, this.STR.fleetRoster);
+        this.drawWindowPanel(rect, this.STR.fleetRoster);
 
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
@@ -2177,7 +2201,7 @@ class Display {
         const rect = this.getRenameWindowRect();
         const target = this.game.renameTarget;
         const title = target ? I18n.formatString(673, 'Rename {0}', this.game.getObjectDisplayName(target)) : this.STR.rename;
-        this.drawPanel(rect, title);
+        this.drawWindowPanel(rect, title);
 
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
@@ -2202,7 +2226,7 @@ class Display {
         const rect = this.getRendezvousPlacementPromptRect();
         const title = placement.mode === 'move' ? this.STR.moveRendezvous : this.STR.placeRendezvous;
         const help = placement.mode === 'move' ? this.STR.moveRendezvousHelp : this.STR.placeRendezvousHelp;
-        this.drawPanel(rect, title);
+        this.drawWindowPanel(rect, title);
 
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);

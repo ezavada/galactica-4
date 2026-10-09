@@ -1710,6 +1710,7 @@ class Game {
     }
     
     handleKeyPress(key) {
+        if (this.uiWindow === 'rename' && key === pdg.key_Tab) return true;
         if (key === pdg.key_Tab) {
             this.endTurn();
             return true;

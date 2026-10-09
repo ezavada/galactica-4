@@ -312,3 +312,4 @@ This file remains the main parity source of truth. More focused docs may describ
 - Hull selection: per-hull credit, switch/pause/resume, active build highlighting, and cleanup of superseded construction hulls. Full suite: 365 passed; actual browser switch/pause/resume clicks verified saved 99% colony credit; layouts checked in all six languages.
 - Construction ETA: projected-production calculation follows `CStar::GetEstimatedTurnsToNextShip`, with system and retained construction-panel display.
 - System/ship rename: added context and keyboard controls, Unicode input/deletion, and explicit localized Save/Cancel buttons. Full suite: 373 passed; real browser Unicode typing and Save clicks verified; localized dialog layouts inspected.
+- Window chrome/interaction: opaque shared window styling, foreground control routing, and modal rename behavior prevent background text and hidden controls from interfering with dialogs.

@@ -144,6 +144,33 @@ module.exports = function() {
             test.assertEqual(star.name, 'Changed'); test.assertNull(game.uiWindow);
         });
     });
+    test.describe('Window layering and interaction', () => {
+        test.it('blocks hidden context buttons and routes production sliders to the visible window', () => {
+            const {game, star} = fixture(); game.port = {getDrawingArea: () => new pdg.Rect(800,600)};
+            const display = new Display(game); game.uiWindow = 'production';
+            const rect = display.getProductionWindowRect();
+            display.getContextButtonRegions = () => [{rect,action:{type:'buildShip',object:star,shipType:'scout'}}];
+            test.assertEqual(display.getUIActionAt(rect.x+10,rect.y+10).type, 'consume');
+            const slider = display.getProductionWindowSliderRegions()[0];
+            const action = display.getUIActionAt(slider.trackRect.x+slider.trackRect.width*.8, slider.trackRect.y+4);
+            test.assertEqual(action.type,'setAllocation'); test.assertEqual(action.desired,80);
+        });
+        test.it('makes rename modal and prevents Tab from advancing the turn during editing', () => {
+            const {game, star} = fixture(); game.port = {getDrawingArea: () => new pdg.Rect(800,600)};
+            const display = new Display(game); game.beginRenameObject(star);
+            test.assertEqual(display.getUIActionAt(0,0).type,'consume');
+            let turns = 0; game.endTurn = () => turns++;
+            game.handleKeyPress(pdg.key_Tab); test.assertEqual(turns,0);
+        });
+        test.it('uses a separate shared appearance for opaque windows', () => {
+            const {game} = fixture(); game.port = {getDrawingArea: () => new pdg.Rect(800,600)};
+            const display = new Display(game); let appearance;
+            display.drawRoundedRect = (_rect,_radius,attrs) => appearance=attrs;
+            display.drawWindowPanel({x:0,y:0,width:300,height:120},null);
+            test.assertTrue(appearance === display.styles.windowPanel);
+            test.assertFalse(appearance === display.styles.panel);
+        });
+    });
     test.describe('Production locks', () => {
         test.it('preserves locked allocations while maintaining a total of 100', () => {
             const {game, star} = fixture(); game.toggleStarAllocationLock(star, 'growth');
