@@ -1,9 +1,10 @@
-// Camera class for Galactica-4
+// PDG v1.2 camera adapter for Galactica-4
 // Manages view transformation (zoom + pan) for the map display
 
 class Camera {
     constructor(port, mapWidth, mapHeight) {
         this.port = port;
+        this.view = new pdg.Camera();
         this.mapWidth = mapWidth;
         this.mapHeight = mapHeight;
         
@@ -49,24 +50,45 @@ class Camera {
         this.updatePanLimits();
     }
     
-    // Convert galactic coordinates to screen coordinates with camera transform
+    // The game stores galactic units (1024 per pixel). Keep that conversion
+    // at the boundary, and let PDG own the view/inverse transforms.
+    syncView() {
+        const area = this.getDrawingArea();
+        const width = area.width(), height = area.height();
+        const state = this.viewState;
+        if (state && state.width === width && state.height === height &&
+            state.zoom === this.zoom && state.panX === this.panX && state.panY === this.panY &&
+            state.mapWidth === this.mapWidth && state.mapHeight === this.mapHeight) return;
+        this.viewState = { width, height, zoom: this.zoom, panX: this.panX, panY: this.panY,
+            mapWidth: this.mapWidth, mapHeight: this.mapHeight };
+        this.view.setViewport(new pdg.Rect(width, height));
+        this.view.setZoom(this.zoom);
+        this.view.setLocation(
+            this.panX * this.scale + this.mapWidth * this.scale / (2 * this.zoom),
+            this.panY * this.scale + this.mapHeight * this.scale / (2 * this.zoom)
+        );
+    }
+
     toScreenX(galacticX) {
-        return ((galacticX - this.panX) * this.zoom * this.scale) + this.offsetX;
+        this.syncView();
+        return this.view.worldToView(new pdg.Point(galacticX * this.scale, 0)).x;
     }
-    
+
     toScreenY(galacticY) {
-        return ((galacticY - this.panY) * this.zoom * this.scale) + this.offsetY;
+        this.syncView();
+        return this.view.worldToView(new pdg.Point(0, galacticY * this.scale)).y;
     }
-    
-    // Convert screen coordinates to galactic coordinates with camera transform
+
     toGalacticX(screenX) {
-        return ((screenX - this.offsetX) / (this.zoom * this.scale)) + this.panX;
+        this.syncView();
+        return this.view.viewToWorld(new pdg.Point(screenX, 0)).x / this.scale;
     }
-    
+
     toGalacticY(screenY) {
-        return ((screenY - this.offsetY) / (this.zoom * this.scale)) + this.panY;
+        this.syncView();
+        return this.view.viewToWorld(new pdg.Point(0, screenY)).y / this.scale;
     }
-    
+
     // Zoom functions
     setZoom(newZoom) {
         this.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, newZoom));
@@ -76,28 +98,11 @@ class Camera {
     
     // Zoom to a specific point, maintaining its screen position
     zoomToPoint(newZoom, galacticX, galacticY, screenX, screenY) {
-        const oldZoom = this.zoom;
-        const oldOffsetX = this.offsetX;
-        const oldOffsetY = this.offsetY;
-        const oldScale = this.scale;
-        
         this.setZoom(newZoom);
-        
-        // Calculate the new pan to keep the point at the same screen position
-        // Using the inverse of the coordinate conversion formula:
-        // screenX = ((galacticX - panX) * zoom * scale) + offsetX
-        // Solving for panX: panX = galacticX - ((screenX - offsetX) / (zoom * scale))
-        // Use the NEW scale AND NEW offset values (both are recalculated by setZoom)
-        const newPanX = galacticX - ((screenX - this.offsetX) / (newZoom * this.scale));
-        const newPanY = galacticY - ((screenY - this.offsetY) / (newZoom * this.scale));
-        
-        this.panX = newPanX;
-        this.panY = newPanY;
-        
-        // For zoom-to-point operations, we prioritize accuracy over pan limits
-        // Do not clamp pan values during zoom-to-point to maintain precision
+        this.panX += galacticX - this.toGalacticX(screenX);
+        this.panY += galacticY - this.toGalacticY(screenY);
     }
-    
+
     // Determine the best zoom target point based on priority
     getZoomTargetPoint(selectedObject, mouseX, mouseY) {
         const drawingArea = this.getDrawingArea();
@@ -146,108 +151,24 @@ class Camera {
         };
     }
     
-    zoomIn(factor = 1.2, selectedObject = null, mouseX = undefined, mouseY = undefined) {
-        if (this.zoom >= this.maxZoom) {
-            return;
-        }
-        let newZoom = this.zoom * factor;
-        if (newZoom > this.maxZoom) {
-            newZoom = this.maxZoom;
-        }
-        
-        if (selectedObject) {
-            // Selected object zoom - use object coordinates
-            const screenX = this.toScreenX(selectedObject.x);
-            const screenY = this.toScreenY(selectedObject.y);
-            this.zoomToPoint(newZoom, selectedObject.x, selectedObject.y, screenX, screenY);
-        } else if (mouseX !== undefined && mouseY !== undefined) {
-            // Check if mouse is within bounds
-            const drawingArea = this.getDrawingArea();
-            if (mouseX >= 0 && mouseX < drawingArea.width() && 
-                mouseY >= 0 && mouseY < drawingArea.height()) {
-                // Mouse position zoom - use pure screen coordinate approach
-                this.zoomToScreenPoint(newZoom, mouseX, mouseY);
-            } else {
-                // Mouse outside bounds - zoom to center
-                const centerX = drawingArea.width() / 2;
-                const centerY = drawingArea.height() / 2;
-                this.zoomToScreenPoint(newZoom, centerX, centerY);
-            }
-        } else {
-            // Center zoom
-            const drawingArea = this.getDrawingArea();
-            const centerX = drawingArea.width() / 2;
-            const centerY = drawingArea.height() / 2;
-            this.zoomToScreenPoint(newZoom, centerX, centerY);
-        }
+    zoomIn(factor = 1.2, selectedObject = null, mouseX, mouseY) {
+        if (this.zoom >= this.maxZoom) return;
+        const target = this.getZoomTargetPoint(selectedObject, mouseX, mouseY);
+        this.zoomToPoint(this.zoom * factor, target.galacticX, target.galacticY, target.screenX, target.screenY);
     }
-    
-    zoomOut(factor = 1.2, selectedObject = null, mouseX = undefined, mouseY = undefined) {
-        if (this.zoom <= this.minZoom) {
-            return;
-        }
-        let newZoom = this.zoom / factor;
-        if (newZoom < this.minZoom) {
-            newZoom = this.minZoom;
-        }
-        
-        if (selectedObject) {
-            // Selected object zoom - use object coordinates
-            const screenX = this.toScreenX(selectedObject.x);
-            const screenY = this.toScreenY(selectedObject.y);
-            this.zoomToPoint(newZoom, selectedObject.x, selectedObject.y, screenX, screenY);
-        } else if (mouseX !== undefined && mouseY !== undefined) {
-            // Check if mouse is within bounds
-            const drawingArea = this.getDrawingArea();
-            if (mouseX >= 0 && mouseX < drawingArea.width() && 
-                mouseY >= 0 && mouseY < drawingArea.height()) {
-                // Mouse position zoom - use pure screen coordinate approach
-                this.zoomToScreenPoint(newZoom, mouseX, mouseY);
-            } else {
-                // Mouse outside bounds - zoom to center
-                const centerX = drawingArea.width() / 2;
-                const centerY = drawingArea.height() / 2;
-                this.zoomToScreenPoint(newZoom, centerX, centerY);
-            }
-        } else {
-            // Center zoom
-            const drawingArea = this.getDrawingArea();
-            const centerX = drawingArea.width() / 2;
-            const centerY = drawingArea.height() / 2;
-            this.zoomToScreenPoint(newZoom, centerX, centerY);
-        }
+
+    zoomOut(factor = 1.2, selectedObject = null, mouseX, mouseY) {
+        if (this.zoom <= this.minZoom) return;
+        const target = this.getZoomTargetPoint(selectedObject, mouseX, mouseY);
+        this.zoomToPoint(this.zoom / factor, target.galacticX, target.galacticY, target.screenX, target.screenY);
     }
-    
-    // Zoom to a specific screen point using pure mathematical approach
+
     zoomToScreenPoint(newZoom, screenX, screenY) {
-        // Store the OLD camera state before any changes
-        const oldZoom = this.zoom;
-        const oldPanX = this.panX;
-        const oldPanY = this.panY;
-        const oldOffsetX = this.offsetX;
-        const oldOffsetY = this.offsetY;
-        const oldScale = this.scale;
-        
-        // Calculate what galactic point the screen point represents in the OLD camera state
-        // This is the key: we need to use the OLD camera state to avoid feedback loops
-        const galacticX = ((screenX - oldOffsetX) / (oldZoom * oldScale)) + oldPanX;
-        const galacticY = ((screenY - oldOffsetY) / (oldZoom * oldScale)) + oldPanY;
-        
-        // Update zoom (this will recalculate scale and offsets)
-        this.setZoom(newZoom);
-        
-        // Calculate what pan values are needed to keep the same galactic point at the same screen position
-        // Formula: pan = galactic - (screen - offset) / (zoom * scale)
-        const newPanX = galacticX - ((screenX - this.offsetX) / (newZoom * this.scale));
-        const newPanY = galacticY - ((screenY - this.offsetY) / (newZoom * this.scale));
-        
-        this.panX = newPanX;
-        this.panY = newPanY;
-        
-        // For zoom-to-point operations, we prioritize accuracy over pan limits
-        // Do not clamp pan values during zoom-to-point to maintain precision
+        const x = this.toGalacticX(screenX);
+        const y = this.toGalacticY(screenY);
+        this.zoomToPoint(newZoom, x, y, screenX, screenY);
     }
-    
+
     // Pan functions
     pan(deltaX, deltaY) {
         // Convert screen coordinate delta to galactic coordinate delta
@@ -267,19 +188,12 @@ class Camera {
     
     // Center view on a specific galactic coordinate
     centerOn(galacticX, galacticY) {
-        const drawingArea = this.getDrawingArea();
-        const centerX = drawingArea.width() / 2;
-        const centerY = drawingArea.height() / 2;
-        
-        // Calculate pan to center the galactic point at the screen center
-        // Using the inverse of the coordinate conversion formula:
-        // centerX = ((galacticX - panX) * zoom * scale) + offsetX
-        // Solving for panX: panX = galacticX - ((centerX - offsetX) / (zoom * scale))
-        this.panX = galacticX - ((centerX - this.offsetX) / (this.zoom * this.scale));
-        this.panY = galacticY - ((centerY - this.offsetY) / (this.zoom * this.scale));
+        const area = this.getDrawingArea();
+        this.panX += galacticX - this.toGalacticX(area.width() / 2);
+        this.panY += galacticY - this.toGalacticY(area.height() / 2);
         this.clampPan();
     }
-    
+
     // Reset to default view (show entire map)
     resetView() {
         this.zoom = 1.0;

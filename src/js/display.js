@@ -3,6 +3,8 @@
 
 const Common = require('./common.js');
 const Camera = require('./camera.js');
+const RetainedPanel = require('./retained-panel.js');
+const SelectionPulse = require('./selection-pulse.js');
 const I18n = require('./i18n.js');
 
 const debugSelectedObject = true;
@@ -20,6 +22,8 @@ class Display {
         this.ownerColors.forEach(color => color.alpha = 0.5);
         this.uiColors = this.createUIColorPalette();
         this.textAttributes = {};
+        this.shipPanels = new Map();
+        this.selectionPulse = new SelectionPulse();
         this.fillAttributes = {};
         this.lineAttributes = {};
         this.styles = this.createDrawingStyles();
@@ -669,7 +673,7 @@ class Display {
 
         // Draw selection indicator
         if (star === this.selectedObject) {
-            const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0
+            const pulse = this.selectionPulse.sample(pdg.tm.getMilliseconds());
             this.port.drawCircle(new pdg.Point(screenX, screenY), scaledRadius + 4 + pulse, this.styles.selectionFrame);
         }
         
@@ -754,7 +758,7 @@ class Display {
         // Draw selection indicator
         if (ship === this.selectedObject) {
             //console.log(`🎯 DRAWING SELECTION CIRCLE for ship ${ship.type} (ID: ${ship.id}) at (${x}, ${y})`);
-            const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0
+            const pulse = this.selectionPulse.sample(pdg.tm.getMilliseconds());
             this.port.drawCircle(new pdg.Point(x - 1.5, y), Common.ShipRadius + 4 + pulse, this.styles.selectionFrame);
         }
     }
@@ -864,7 +868,7 @@ class Display {
 
         // Draw selection indicator
         if (fleet === this.selectedObject) {
-            const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0;
+            const pulse = this.selectionPulse.sample(pdg.tm.getMilliseconds());
             this.port.drawCircle(new pdg.Point(x, y), hexRadius + 6 + pulse, this.styles.selectionFrame);
         }
     }
@@ -907,7 +911,7 @@ class Display {
         this.port.drawLine(new pdg.Point(x + radius, y - radius), new pdg.Point(x - radius, y + radius), attrs);
 
         if (selected) {
-            const pulse = 2.0 * pdg.tm.getMilliseconds() % 1000 / 1000.0;
+            const pulse = this.selectionPulse.sample(pdg.tm.getMilliseconds());
             this.port.drawCircle(new pdg.Point(x, y), radius + 6 + pulse, this.styles.selectionFrame);
         }
 
@@ -1859,36 +1863,32 @@ class Display {
     
     // Draw ship details UI
     drawShipDetails(ship) {
-        const shipTypeName = this.getShipTypeName(ship.type);
-        const rect = this.getAnchoredPanelRect(ship, 240, ship.underConstruction() ? 120 : 150);
-        this.drawAnchoredPanel(ship, rect, `${shipTypeName} ${ship.underConstruction() ? this.STR.shipHull : this.STR.ship}`);
-
-        const x = rect.x + 12;
-        let y = this.getPanelContentStartY(rect);
-        this.drawLabelValue(this.STR.owner, `${ship.owner}`, x, y, { labelWidth: 110, size: 11 });
-        y += 18;
-        this.drawLabelValue(this.STR.techLevel, ship.techLevel.toFixed(1), x, y, { labelWidth: 110 });
-        y += 18;
-
-        if (ship.underConstruction()) {
-            const progressTextRight = rect.x + rect.width - 14;
-            const progressTextWidth = 40;
-            const progressBarWidth = 70;
-            const progressBarX = progressTextRight - progressTextWidth - 6 - progressBarWidth;
-            this.drawTextLine(this.STR.underConstruction, x, y, 'labelgray', 12);
-            this.drawBar(progressBarX, y - 8, progressBarWidth, 8, ship.progress / 100.0, 'lightgray');
-            this.drawRightTextLine(`${Math.round(ship.progress)}%`, progressTextRight, y, 'lightgray', 11);
+        const construction = ship.underConstruction();
+        const rect = this.getAnchoredPanelRect(ship, 240, construction ? 120 : 150);
+        let panel = this.shipPanels.get(construction);
+        if (!panel) {
+            panel = new RetainedPanel(this, rect.width);
+            this.shipPanels.set(construction, panel);
+        }
+        panel.text('title', `${this.getShipTypeName(ship.type)} ${construction ? this.STR.shipHull : this.STR.ship}`, 16, 22, 'lightgray', 14);
+        panel.labelValue('owner', this.STR.owner, ship.owner, 47, { size: 11 });
+        panel.labelValue('tech', this.STR.techLevel, ship.techLevel.toFixed(1), 65);
+        if (construction) {
+            panel.text('construction', this.STR.underConstruction, 12, 83, 'labelgray');
+            panel.text('progress', `${Math.round(ship.progress)}%`, rect.width - 14, 83, 'lightgray', 11, pdg.textStyle_RightJustified);
         } else {
-            const speed = ship.speed / 16380.0;
-            this.drawLabelValue(this.STR.speed, speed.toFixed(1), x, y, { labelWidth: 110 });
-            y += 18;
-            this.drawLabelValue(this.STR.power, this.game.rules.getShipPower(ship).toFixed(1), x, y, { labelWidth: 110 });
-            y += 18;
-            this.drawLabelValue(this.STR.damage, ship.damage ? ship.damage.toString() : this.STR.none, x, y, { labelWidth: 110, size: 11, valueColor: 'gray' });
+            panel.labelValue('speed', this.STR.speed, (ship.speed / 16380.0).toFixed(1), 83);
+            panel.labelValue('power', this.STR.power, this.game.rules.getShipPower(ship).toFixed(1), 101);
+            panel.labelValue('damage', this.STR.damage, ship.damage ? ship.damage.toString() : this.STR.none, 119, { size: 11, valueColor: 'gray' });
+        }
+        this.drawPanelPointer(ship, rect);
+        panel.draw(rect);
+        if (construction) {
+            this.drawBar(rect.x + rect.width - 130, rect.y + 75, 70, 8, ship.progress / 100.0, 'lightgray');
         }
         this.drawContextButtonArc(ship, rect);
     }
-    
+
     // Draw fleet details UI
     drawFleetDetails(fleet) {
         const layout = this.getFleetDetailsLayout(fleet);
