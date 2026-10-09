@@ -137,31 +137,33 @@ class Star {
             if (this.game && typeof this.game.applyComputerAdvantageToProduction === 'function') {
                 amount = this.game.applyComputerAdvantageToProduction(this.owner, amount);
             }
-            //console.log(`Paid ${amount} toward shipbuilding at ${this.name}`);
-            this.paidTowardShipBuilding += amount;
-            // v3 keeps the selected hull active and spends all available
-            // effort, possibly completing several hulls in the same turn.
-            while (this.currentShip) {
-                const cost = this.game.rules.getShipBuildCost(this.currentShip, this);
-                if (!Number.isFinite(cost) || cost <= 0) break;
-                this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / cost * 100);
-                if (this.paidTowardShipBuilding < cost) break;
-                const newShip = this.completeShip();
-                this.paidTowardShipBuilding -= cost;
-                this.buildCredits[newShip.type] = this.paidTowardShipBuilding;
-                this.game.noteworthyEvent(newShip, Common.EventType.SHIP_BUILT, this);
-                let nextType = newShip.type;
-                const computer = this.game.aiManager.getAIPlayer(this.owner);
-                if (computer) {
-                    let ai = computer.starAIs.get(this.id);
-                    if (!ai) {
-                        const { StarAI } = require('./ai-star.js');
-                        ai = new StarAI(this, this.game, this.game.rules, computer.skillManager.getSkillLevel());
-                        computer.starAIs.set(this.id, ai);
+            if (amount > 0) {
+                //console.log(`Paid ${amount} toward shipbuilding at ${this.name}`);
+                this.paidTowardShipBuilding += amount;
+                // v3 keeps the selected hull active and spends all available
+                // effort, possibly completing several hulls in the same turn.
+                while (this.currentShip) {
+                    const cost = this.game.rules.getShipBuildCost(this.currentShip, this);
+                    if (!Number.isFinite(cost) || cost <= 0) break;
+                    this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / cost * 100);
+                    if (this.paidTowardShipBuilding <= cost) break;
+                    const newShip = this.completeShip();
+                    this.paidTowardShipBuilding -= cost;
+                    this.buildCredits[newShip.type] = this.paidTowardShipBuilding;
+                    this.game.noteworthyEvent(newShip, Common.EventType.SHIP_BUILT, this);
+                    let nextType = newShip.type;
+                    const computer = this.game.aiManager.getAIPlayer(this.owner);
+                    if (computer) {
+                        let ai = computer.starAIs.get(this.id);
+                        if (!ai) {
+                            const { StarAI } = require('./ai-star.js');
+                            ai = new StarAI(this, this.game, this.game.rules, computer.skillManager.getSkillLevel());
+                            computer.starAIs.set(this.id, ai);
+                        }
+                        nextType = ai.chooseShipToBuild().type;
                     }
-                    nextType = ai.chooseShipToBuild().type;
+                    this.startBuildingShip(nextType);
                 }
-                this.startBuildingShip(nextType);
             }
         }
 

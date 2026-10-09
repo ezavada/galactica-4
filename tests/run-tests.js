@@ -24,6 +24,7 @@ const runFleetFormationTests = require('./fleet-formation.test.js');
 const runRendezvousTests = require('./rendezvous.test.js');
 const runShipNamingEventsTests = require('./ship-naming-events.test.js');
 const runAutoplayTests = require('./autoplay.test.js');
+const runConstructionBoundaryTests = require('./construction-boundary.test.js');
 const runPopulationGrowthTests = require('./population-growth.test.js');
 const runResearchProgressTests = require('./research-progress.test.js');
 const runEconomyTurnOrderTests = require('./economy-turn-order.test.js');
@@ -111,6 +112,7 @@ try {
     runEconomyTurnOrderTests();
     runResearchProgressTests();
     runPopulationGrowthTests();
+    runConstructionBoundaryTests();
 
     // Print summary
     const success = test.printSummary();

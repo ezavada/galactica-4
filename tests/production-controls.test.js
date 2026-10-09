@@ -81,9 +81,10 @@ module.exports = function() {
             game.rules.getShipBuildCost = () => 1;
             game.rules.getStarResearchAmount = () => 0;
             star.startBuildingShip('defense'); star.update();
-            test.assertEqual(star.defenseSatellites.length, 2);
+            test.assertEqual(star.defenseSatellites.length, 1);
             test.assertTrue(star.defenseSatellites.every(ship => ship.isOnPatrol()));
-            test.assertEqual(star.currentShip.progress, 0);
+            test.assertEqual(star.currentShip.progress, 100);
+            test.assertTrue(star.currentShip.underConstruction());
         });
         test.it('chooses a fresh v3 AI hull after each completed computer build', () => {
             const {game, star} = fixture(); star.owner = 2; star.population = 1000; star.techLevel = 1;
