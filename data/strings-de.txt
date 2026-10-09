@@ -247,3 +247,4 @@
 674	Sperren
 675	Entsperren
 676	Ausgleichen
+677	Fortlaufend

@@ -11,6 +11,43 @@ function fixture() {
     return { game, star };
 }
 module.exports = function() {
+    test.describe('Continuous ship production', () => {
+        test.it('builds every affordable hull in a turn and carries the remaining effort forward', () => {
+            const {game, star} = fixture(); star.population = 1000; star.techLevel = 1;
+            game.rules.getStarShipBuildingAmount = () => 3.5;
+            game.rules.getShipBuildCost = () => 1;
+            game.rules.getStarResearchAmount = () => 0;
+            star.startBuildingShip('scout'); star.update();
+            test.assertEqual(game.allShips.filter(ship => !ship.underConstruction()).length, 3);
+            test.assertEqual(star.currentShip.type, 'scout');
+            test.assertApproximately(star.currentShip.progress, 50, .001);
+            test.assertApproximately(star.paidTowardShipBuilding, .5, .001);
+        });
+        test.it('continues satellite production and registers every completed defense', () => {
+            const {game, star} = fixture(); star.population = 1000; star.techLevel = 1;
+            game.rules.getStarShipBuildingAmount = () => 2;
+            game.rules.getShipBuildCost = () => 1;
+            game.rules.getStarResearchAmount = () => 0;
+            star.startBuildingShip('defense'); star.update();
+            test.assertEqual(star.defenseSatellites.length, 2);
+            test.assertTrue(star.defenseSatellites.every(ship => ship.isOnPatrol()));
+            test.assertEqual(star.currentShip.progress, 0);
+        });
+        test.it('chooses a fresh v3 AI hull after each completed computer build', () => {
+            const {game, star} = fixture(); star.owner = 2; star.population = 1000; star.techLevel = 1;
+            let choices = 0;
+            game.aiManager.getAIPlayer(2).starAIs.set(star.id, { chooseShipToBuild: () => {
+                choices++; return {type: 'defense'};
+            }});
+            game.rules.getStarShipBuildingAmount = () => 2.5;
+            game.rules.getShipBuildCost = () => 1;
+            game.rules.getStarResearchAmount = () => 0;
+            star.startBuildingShip('scout'); star.update();
+            test.assertEqual(choices, 2);
+            test.assertEqual(star.currentShip.type, 'defense');
+            test.assertApproximately(star.currentShip.progress, 50, .001);
+        });
+    });
     test.describe('Production locks', () => {
         test.it('preserves locked allocations while maintaining a total of 100', () => {
             const {game, star} = fixture(); game.toggleStarAllocationLock(star, 'growth');

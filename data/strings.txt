@@ -247,3 +247,4 @@
 674	Lock
 675	Unlock
 676	Equalize
+677	Continuous

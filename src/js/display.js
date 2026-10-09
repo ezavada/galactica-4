@@ -1887,6 +1887,8 @@ class Display {
 
         this.drawDivider(x, layout.dividerY, rect.width - 24);
         this.drawTextLine(this.STR.production, x, layout.productionTitleY, 'lightgray', 12);
+        if (star.currentShip) this.drawTextLine(I18n.getString(677, 'Continuous'), x + 120,
+            layout.productionTitleY, 'gray', 10);
         this.drawStarAllocationSummary(star, x, layout.sliderStartY, layout.sliderWidth);
         const equalize = this.getAllocationEqualizeRegions().find(region => !region.key);
         if (equalize) this.drawUIButton(equalize.rect, I18n.getString(676, 'Equalize'), null, { size: 10 });

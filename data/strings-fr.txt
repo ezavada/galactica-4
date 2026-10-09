@@ -247,3 +247,4 @@
 674	Verrouiller
 675	Déverrouiller
 676	Équilibrer
+677	En continu

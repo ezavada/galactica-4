@@ -247,3 +247,4 @@
 674	Bloquear
 675	Desbloquear
 676	Equilibrar
+677	Continua
