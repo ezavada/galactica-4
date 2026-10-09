@@ -171,8 +171,9 @@ class Star {
         this.growth.adjustValue();
         this.research.adjustValue();
         if (this.growth.value > 0) {
-            this.population += this.game.rules.getStarPopulationGrowth(this);
-            if (this.population > 99900) this.population = 99900;
+            // v3 truncates the resulting population, not the growth delta.
+            // Its 99,900 limit belongs only to the slider economy indicator.
+            this.population = Math.trunc(this.population + this.game.rules.getStarPopulationGrowth(this));
             const benefitAdjustment = this.growth.getBenefits() / 166.5;
             this.shipBuilding.setPerUnitBenefit(this.shipBuilding.getPerUnitBenefit() + benefitAdjustment);
             this.research.setPerUnitBenefit(this.research.getPerUnitBenefit() + benefitAdjustment);

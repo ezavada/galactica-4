@@ -82,7 +82,8 @@ class Rules {
     }
 
     getStarPopulationGrowth(star) {
-        let g = star.growth.value / 500.0;
+        // Runtime allocations are percentages; v3 divides its 0–1000 units by 500.
+        let g = star.growth.value / 50.0;
         let p = star.population / 1000000.0;
         let x = 0.0;
         if (p > 1.0) {
@@ -90,6 +91,7 @@ class Rules {
             x = -(x * x) + this.inverseGrowthLimitSquared;
         } else {
             x = p / 0.2 + 5.0;
+            x = 10.0 / (x * x + 20.0);
         }
         p = star.population * x * g;
         if (p < 1.0) {
