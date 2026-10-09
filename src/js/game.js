@@ -365,7 +365,7 @@ class Game {
         return this.config && typeof this.config.compAdvantage === 'number' ? this.config.compAdvantage : 0;
     }
 
-    applyComputerAdvantageToProduction(ownerId, amount) {
+    applyComputerAdvantageToProduction(ownerId, amount, integerPayment = false) {
         if (!Number.isFinite(amount) || amount <= 0) {
             return amount;
         }
@@ -375,6 +375,10 @@ class Game {
             return amount;
         }
 
+        if (integerPayment) {
+            const increase = Math.trunc(amount * (advantage * 20) / 100);
+            return Math.max(0, amount + increase);
+        }
         return Math.max(0, amount * (1 + (advantage * 0.20)));
     }
 

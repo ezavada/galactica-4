@@ -106,31 +106,25 @@ class Star {
 
         this.repairDockedShips();
 
-        // apply research
-        let amount = this.game.rules.getStarResearchAmount(this);
-        if (this.game && typeof this.game.applyComputerAdvantageToProduction === 'function') {
-            amount = this.game.applyComputerAdvantageToProduction(this.owner, amount);
+        // v3 truncates the base payment and the computer bonus separately.
+        let amount = Math.trunc(this.game.rules.getStarResearchAmount(this));
+        if (typeof this.game.applyComputerAdvantageToProduction === 'function') {
+            amount = this.game.applyComputerAdvantageToProduction(this.owner, amount, true);
         }
-        //console.log(`Paid ${amount} toward research at ${this.name}`);
         this.paidTowardResearch += amount;
-            if (this.paidTowardResearch >= 1000) {
-            this.paidTowardResearch -= 1000;
+        const researchThreshold = this.game.rules.isFast ? 750 : 1000;
+        if (this.paidTowardResearch > researchThreshold) {
+            this.paidTowardResearch -= researchThreshold;
             const oldTechLevel = this.techLevel;
             this.techLevel++;
-            
-            // Update player's highest tech level
+
             const playerInfo = this.game.players ? this.game.players[this.owner] : null;
-            if (playerInfo && playerInfo.updateHighestStarTech(this.techLevel)) {
-                // This is a new tech milestone for this player
-                console.log(`${playerInfo.name} reached star tech level ${this.techLevel}!`);
+            const newHighestTech = playerInfo && playerInfo.updateHighestStarTech(this.techLevel);
+            this.game.noteworthyEvent(this, Common.EventType.TECH_LEVEL_UP);
+            const driveClassIndex = Math.floor(this.techLevel / 5);
+            if (newHighestTech && driveClassIndex !== Math.floor(oldTechLevel / 5)) {
+                this.game.noteworthyEvent(this, Common.EventType.NEW_TECH_DISCOVERY, driveClassIndex);
             }
-            
-                this.game.noteworthyEvent(this, Common.EventType.TECH_LEVEL_UP); // who = Star. new tech level taken from star
-                // Lab event for new drive class (every 5 levels like original)
-                const driveClassIndex = Math.floor(this.techLevel / 5);
-                if (driveClassIndex !== Math.floor(oldTechLevel / 5)) {
-                    this.game.noteworthyEvent(this, Common.EventType.NEW_TECH_DISCOVERY, driveClassIndex);
-                }
         }
 
         if (this.game && typeof this.game.refreshDockedScoutTechnologyAtStar === 'function') {

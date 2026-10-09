@@ -76,11 +76,9 @@ class Rules {
     }
 
     getStarResearchAmount(star) {
-        let amount = star.research.getBenefits() / (0.9 * star.techLevel);
-        if (this.isFast) {
-            amount *= 1.3333;  // 1.3333 ~= 4/3
-        }
-        return amount;
+        // v3 pays whole credits from integer 0–1000 allocation units.
+        const units = Math.round(star.research.value * 10);
+        return Math.trunc(units * star.research.getPerUnitBenefit() / (9 * star.techLevel));
     }
 
     getStarPopulationGrowth(star) {
