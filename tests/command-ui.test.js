@@ -569,7 +569,8 @@ module.exports = function runCommandUITests() {
             const star = createOwnedStar(game, 1, 'Build Progress');
             star.x = 500;
             star.y = 300;
-            star.currentShip = { type: 'scout', progress: 37 };
+            star.startBuildingShip('scout');
+            star.currentShip.progress = 37.9;
             const rect = display.getStarDetailsLayout(star).rect;
             const drawnText = [];
             let barCall = null;
@@ -591,7 +592,7 @@ module.exports = function runCommandUITests() {
             test.assertEqual(progressText.x, rect.x + rect.width - 25);
             test.assertEqual(progressText.style, pdg.textStyle_RightJustified);
             test.assertEqual(barCall.y + barCall.height, buildingLabel.y);
-            test.assertApproximately(barCall.ratio, 0.37, 0.001);
+            test.assertApproximately(barCall.ratio, 0.379, 0.001);
         });
 
         test.it('uses the ship Orders button to arm a left-click destination', () => {

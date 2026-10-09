@@ -43,15 +43,15 @@ module.exports = function() {
             game.beginMapOrder(star); test.assertFalse(game.isAwaitingMapTarget());
         });
         test.it('dispatches a completed mobile hull to its system default', () => {
-            const {game, star} = fixture(); const target = game.factory.createStar(2048,4096,'Target');
+            const {game, star} = fixture(); const target = game.factory.createStar(204800,409600,'Target');
             star.setDefaultDestination(target); star.startBuildingShip('scout');
-            const ship = star.currentShip; let moved = false; ship.move = () => moved=true;
-            star.completeShip(); test.assertTrue(ship.destination === target); test.assertTrue(moved);
+            const ship = star.completeShip(); test.assertTrue(ship.destination === target);
+            test.assertFalse(ship.star === star); test.assertGreaterThan(ship.x,star.x);
         });
         test.it('keeps defense satellites at their system despite an automatic destination', () => {
             const {star} = fixture(); star.setDefaultDestination({x:2048,y:4096}); star.startBuildingShip('defense');
-            const ship = star.currentShip; let moved = false; ship.move = () => moved=true;
-            star.completeShip(); test.assertFalse(!!ship.destination); test.assertFalse(moved);
+            const ship = star.completeShip(); test.assertFalse(!!ship.destination);
+            test.assertTrue(ship.star === star); test.assertEqual(ship.x,star.x);
         });
         test.it('routes visible destination buttons and hides clear when no default is set', () => {
             const {game, star} = fixture(); game.port = {getDrawingArea: () => new pdg.Rect(800,600)};
@@ -84,7 +84,7 @@ module.exports = function() {
             test.assertEqual(star.defenseSatellites.length, 1);
             test.assertTrue(star.defenseSatellites.every(ship => ship.isOnPatrol()));
             test.assertEqual(star.currentShip.progress, 100);
-            test.assertTrue(star.currentShip.underConstruction());
+            test.assertFalse(game.allShips.includes(star.currentShip));
         });
         test.it('chooses a fresh v3 AI hull after each completed computer build', () => {
             const {game, star} = fixture(); star.owner = 2; star.population = 1000; star.techLevel = 1;
@@ -117,7 +117,7 @@ module.exports = function() {
             test.assertEqual(star.paidTowardShipBuilding, 8);
             test.assertEqual(star.currentShip.progress, 80);
             test.assertEqual(star.buildCredits.battleship, 3);
-            test.assertEqual(game.allShips.length, 1);
+            test.assertEqual(game.allShips.length, 0);
         });
         test.it('pauses and resumes construction without losing paid effort', () => {
             const {game, star} = fixture(); star.startBuildingShip('colony');
@@ -149,17 +149,15 @@ module.exports = function() {
     });
     test.describe('Construction ETA', () => {
         test.it('uses projected production and v3 rounding at exact turn boundaries', () => {
-            const {game, star} = fixture(); star.startBuildingShip('colony');
+            const {game, star} = fixture(); game.rules.getShipBuildCost = () => 4; star.startBuildingShip('colony');
             star.shipBuilding.value = 1; star.shipBuilding.desired = 10;
             star.shipBuilding.setPerUnitBenefit(166.5);
-            game.rules.getShipBuildCost = () => 4;
             star.paidTowardShipBuilding = 1;
             test.assertEqual(star.getEstimatedTurnsToNextShip(), 4);
         });
         test.it('applies fast-game and computer-advantage modifiers', () => {
-            const {game, star} = fixture(); star.owner = 2; star.startBuildingShip('colony');
+            const {game, star} = fixture(); star.owner = 2; game.rules.getShipBuildCost = () => 6; star.startBuildingShip('colony');
             star.shipBuilding.desired = 10; star.shipBuilding.setPerUnitBenefit(166.5);
-            game.rules.getShipBuildCost = () => 6;
             game.rules.isFast = true; game.players[2].compAdvantage = 1;
             test.assertEqual(star.getEstimatedTurnsToNextShip(), 3);
         });

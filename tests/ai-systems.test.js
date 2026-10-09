@@ -190,8 +190,9 @@ function runAISystemTests() {
             const playerShips = aiPlayer.getPlayerShips();
             
             test.assertTrue(Array.isArray(playerShips), 'Should return array');
-            // Should have ships under construction at home star
-            test.assertGreaterThan(playerShips.length, 0, 'Should have at least construction ships');
+            test.assertEqual(playerShips.length, 0, 'Pending construction is not an AI ship');
+            const commissioned=game.stars.find(star=>star.owner===2).completeShip();
+            test.assertContains(aiPlayer.getPlayerShips(), commissioned, 'Completed colony enters the AI ship list');
         });
 
         test.it('returns AI player statistics', () => {
@@ -455,6 +456,8 @@ function runAISystemTests() {
             const game = new Game(factory, rules, config);
             const utils = new AIUtils(game, rules);
             
+            test.assertEqual(utils.getPlayerShips(1).length,0,'Initial construction is not a ship');
+            game.stars.find(star=>star.owner===1).completeShip();
             const ships = utils.getPlayerShips(1);
             test.assertTrue(Array.isArray(ships), 'Should return array');
             test.assertGreaterThan(ships.length, 0, 'Player 1 should have ships');
@@ -479,6 +482,8 @@ function runAISystemTests() {
             const game = new Game(factory, rules, config);
             const utils = new AIUtils(game, rules);
             
+            test.assertFalse(utils.playerHasShips(1), 'Pending colony is not a ship');
+            game.stars.filter(star=>star.owner>0).forEach(star=>star.completeShip());
             test.assertTrue(utils.playerHasShips(1), 'Player 1 should have ships');
             test.assertTrue(utils.playerHasShips(2), 'Player 2 should have ships');
         });
@@ -632,7 +637,6 @@ function runAISystemTests() {
             const star = createOwnedStar(game, 1, 0, 0, 'Fortress', { techLevel: 5 });
 
             star.startBuildingShip('defense');
-            star.currentShip.complete();
             const satellite = star.completeShip();
 
             test.assertContains(star.getDefenseSatellites(), satellite, 'Completed defense ship should be registered as a defense satellite');
@@ -721,8 +725,8 @@ function runAISystemTests() {
             const config = GameConfig.createSinglePlayer(1, 2);
             const game = new Game(factory, rules, config);
             
-            // Get a ship that's at a star (like the initial colony ship)
-            const ship = game.allShips.find(s => s.owner === 2 && s.star !== null);
+            // A commissioned colony is a real docked ship.
+            const ship = game.stars.find(star=>star.owner===2).completeShip();
             test.assertNotNull(ship, 'Should have a ship at a star');
             
             const shipAI = new ShipAI(ship, game, rules, AI_SKILL_LEVELS.GOOD);
@@ -904,12 +908,9 @@ function runAISystemTests() {
             const enemy = createOwnedStar(game, 2, 50000, 0, 'Enemy Target', { techLevel: 1 });
 
             home.startBuildingShip('defense');
-            const defense = home.currentShip;
-            const shipAI = new ShipAI(defense, game, rules, AI_SKILL_LEVELS.GOOD);
-            const decision = shipAI.makeDecision();
-
-            test.assertEqual(decision.action, AIActions.DO_NOTHING, 'Under-construction defense should not receive movement orders');
-            test.assertNull(defense.destination, 'Defense satellite should remain without a destination');
+            test.assertFalse(game.allShips.includes(home.currentShip), 'Pending satellite must not enter the AI ship list');
+            test.assertEqual(home.currentShip.type, 'defense', 'Defense remains queued on its system');
+            test.assertEqual(home.ships.length, 0, 'No docked ship exists before commissioning');
             test.assertEqual(enemy.owner, 2, 'Enemy setup should be present only as a tempting target');
         });
 

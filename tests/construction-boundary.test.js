@@ -16,21 +16,21 @@ module.exports=function() {
             const {game,star}=fixture();const pending=star.currentShip;
             game.rules.getStarShipBuildingAmount=()=>1;star.update();
             test.assertTrue(star.currentShip===pending);test.assertEqual(pending.progress,100);
-            test.assertTrue(pending.underConstruction());test.assertEqual(star.paidTowardShipBuilding,1);
+            test.assertFalse(game.allShips.includes(pending));test.assertEqual(star.paidTowardShipBuilding,1);
             test.assertEqual(game.allShips.filter(s=>!s.underConstruction()).length,0);
         });
         test.it('completes only after the next positive payment and carries its excess',()=>{
             const {game,star}=fixture();const pending=star.currentShip;
             game.rules.getStarShipBuildingAmount=()=>1;star.update();
             game.rules.getStarShipBuildingAmount=()=>.125;star.update();
-            test.assertFalse(pending.underConstruction());test.assertFalse(star.currentShip===pending);
+            test.assertEqual(game.allShips[0].progress,100);test.assertFalse(star.currentShip===pending);
             test.assertApproximately(star.paidTowardShipBuilding,.125,.000001);
             test.assertEqual(game.allShips.filter(s=>!s.underConstruction()).length,1);
         });
         test.it('leaves the last exact-cost hull unfinished during multiple production',()=>{
             const {game,star}=fixture();game.rules.getStarShipBuildingAmount=()=>3;star.update();
             test.assertEqual(game.allShips.filter(s=>!s.underConstruction()).length,2);
-            test.assertTrue(star.currentShip.underConstruction());test.assertEqual(star.currentShip.progress,100);
+            test.assertFalse(game.allShips.includes(star.currentShip));test.assertEqual(star.currentShip.progress,100);
             test.assertEqual(star.paidTowardShipBuilding,1);
         });
         test.it('does not complete banked over-cost credit while output is zero',()=>{
@@ -40,14 +40,15 @@ module.exports=function() {
             game.rules.getStarShipBuildingAmount=()=>.125;star.update();
             test.assertEqual(game.allShips.filter(s=>!s.underConstruction()).length,2);
         });
-        test.it('prevents movement of an exact-cost unfinished hull',()=>{
+        test.it('keeps an exact-cost pending hull outside all movement entities',()=>{
             const {game,star}=fixture();game.rules.getStarShipBuildingAmount=()=>1;star.update();
-            const pending=star.currentShip;pending.destination={x:100,y:0};pending.move();
-            test.assertEqual(pending.x,0);test.assertTrue(pending.star===star);
+            test.assertEqual(game.allShips.length,0);test.assertEqual(star.ships.length,0);
+            test.assertFalse(game.factory.isShip(star.currentShip));
         });
-        test.it('allows explicit commissioning to complete a hull at 100%',()=>{
+        test.it('allows explicit commissioning to create a completed ship at 100%',()=>{
             const {game,star}=fixture();game.rules.getStarShipBuildingAmount=()=>1;star.update();
-            const pending=star.currentShip;pending.complete();test.assertFalse(pending.underConstruction());
+            const ship=star.completeShip();test.assertFalse(ship.underConstruction());
+            test.assertTrue(game.allShips.includes(ship));test.assertNull(star.currentShip);
         });
         test.it('keeps the existing fully built fixture convention for standalone ships',()=>{
             const {game,star}=fixture();const ship=game.factory.createShip(0,0,'scout',star);
@@ -56,7 +57,7 @@ module.exports=function() {
         test.it('matches the ETA at an exact remaining-effort boundary',()=>{
             const {game,star}=fixture();star.shipBuilding.value=10;star.shipBuilding.setDesired(10);
             star.shipBuilding.setPerUnitBenefit(166.5);test.assertEqual(star.getEstimatedTurnsToNextShip(),2);
-            star.update();test.assertTrue(star.currentShip.underConstruction());
+            star.update();test.assertFalse(game.allShips.includes(star.currentShip));
             test.assertEqual(star.getEstimatedTurnsToNextShip(),1);star.update();
             test.assertEqual(game.allShips.filter(s=>!s.underConstruction()).length,1);
         });

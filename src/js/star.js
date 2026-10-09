@@ -143,7 +143,7 @@ class Star {
                 // v3 keeps the selected hull active and spends all available
                 // effort, possibly completing several hulls in the same turn.
                 while (this.currentShip) {
-                    const cost = this.game.rules.getShipBuildCost(this.currentShip, this);
+                    const cost = this.currentShip.cost;
                     if (!Number.isFinite(cost) || cost <= 0) break;
                     this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / cost * 100);
                     if (this.paidTowardShipBuilding <= cost) break;
@@ -246,9 +246,10 @@ class Star {
     }
     
     completeShip() {
-        const ship = this.currentShip;
-        this.currentShip.complete();
+        if (!this.currentShip) return null;
+        const ship = this.game.factory.createShip(this.x, this.y, this.currentShip.type, this, true);
         this.currentShip = null;
+        this.ships.push(ship);
         
         // Update player info for new ship type and tech level
         const playerInfo = this.game.players ? this.game.players[this.owner] : null;
@@ -313,7 +314,7 @@ class Star {
         if (this.game.rules.isFast) effort *= 2;
         effort = this.game.applyComputerAdvantageToProduction(this.owner, effort);
         if (effort <= 0) return -1;
-        const remaining = this.game.rules.getShipBuildCost(this.currentShip, this) - this.paidTowardShipBuilding;
+        const remaining = this.currentShip.cost - this.paidTowardShipBuilding;
         return Math.max(1, Math.floor(remaining / effort) + 1);
     }
 
@@ -321,8 +322,6 @@ class Star {
         if (!this.currentShip) return false;
         const hull = this.currentShip;
         this.buildCredits[hull.type] = this.paidTowardShipBuilding;
-        this.shipDeparted(hull);
-        this.game.entityRemoved(hull);
         this.currentShip = null;
         this.paidTowardShipBuilding = 0;
         return true;
@@ -333,10 +332,12 @@ class Star {
         if (this.currentShip && this.currentShip.type === shipType) return false;
         if (this.currentShip) this.pauseShipBuilding();
         this.paidTowardShipBuilding = this.buildCredits[shipType] || 0;
-        this.currentShip = this.game.factory.createShip(this.x, this.y, shipType, this);
-        this.ships.push(this.currentShip);
-        const cost = this.game.rules.getShipBuildCost(this.currentShip, this);
-        this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / cost * 100);
+        // Pending construction is system data, not a ship/map entity.
+        // v3 caches its price when selecting the hull and commissions at
+        // the system's current technology when that price is exceeded.
+        this.currentShip = { type: shipType, techLevel: this.techLevel, progress: 0 };
+        this.currentShip.cost = this.game.rules.getShipBuildCost(this.currentShip, this);
+        this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / this.currentShip.cost * 100);
         return true;
     }
 

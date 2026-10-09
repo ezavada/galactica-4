@@ -2048,7 +2048,7 @@ class Display {
             const progressBarWidth = 72;
             const progressBarX = progressTextRight - progressTextWidth + 11 - progressBarWidth;
             this.drawBar(progressBarX, y - 8, progressBarWidth, 8, star.currentShip.progress / 100.0, 'lightgray');
-            this.drawRightTextLine(`${Math.round(star.currentShip.progress)}%`, progressTextRight, y, 'lightgray', 11);
+            this.drawRightTextLine(`${Math.floor(star.currentShip.progress)}%`, progressTextRight, y, 'lightgray', 11);
         }
         y += 18;
 

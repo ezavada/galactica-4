@@ -20,8 +20,9 @@ class Factory {
         return star;
     }
 
-    createShip(x, y, type, star) {
+    createShip(x, y, type, star, completed = false) {
         const ship = new this.shipConstructor(x, y, type, star, this.game, star.owner);
+        if (completed) ship.complete();
         this.game.entityAdded(ship);
         return ship;
     }

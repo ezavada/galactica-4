@@ -261,17 +261,11 @@ class MapGenerator {
         // Set scanner range
         star.scannerRange = this.game.rules.getScanRangeForTechLevel(1);
         
-        // Start with colony ship at 99% completion (matches original)
-        // Create the ship but keep it under construction
-        const colonyShip = this.game.factory.createShip(star.x, star.y, 'colony', star);
-        colonyShip.progress = 99; // 99% complete
-        star.currentShip = colonyShip;
-        star.ships.push(colonyShip);
-        
-        // Set paid amount to 99% of build cost
-        const buildCost = this.game.rules.getShipBuildCost(colonyShip, star);
-        star.paidTowardShipBuilding = buildCost * 0.99;
-        
+        // v3 stores initial construction on the system, not in the ship list.
+        star.startBuildingShip('colony');
+        star.currentShip.progress = 99;
+        star.paidTowardShipBuilding = star.currentShip.cost * 0.99;
+
         // Update PlayerInfo for this player
         const playerInfo = this.game.players[playerNum];
         if (playerInfo) {

@@ -421,28 +421,6 @@ class Game {
         return changed;
     }
 
-    refreshCurrentShipBuildForStarTech(star) {
-        if (!star || !star.currentShip || !star.currentShip.underConstruction || !star.currentShip.underConstruction()) {
-            return false;
-        }
-
-        const ship = star.currentShip;
-        ship.techLevel = star.techLevel;
-        if (typeof ship.calculatePower === 'function') {
-            ship.power = ship.calculatePower();
-        }
-        if (this.rules && typeof this.rules.getShipInitialSpeed === 'function') {
-            ship.speed = this.rules.getShipInitialSpeed(ship);
-        }
-        if (this.rules && typeof this.rules.getShipScanRange === 'function') {
-            ship.scannerRange = this.rules.getShipScanRange(ship);
-        }
-        if (typeof ship.calculateApparentSize === 'function') {
-            ship.apparentSize = ship.calculateApparentSize();
-        }
-        return true;
-    }
-
     transferScoutTechnologyFromContainer(ship, container) {
         if (!ship || ship.type !== 'scout' || !container || !Number.isFinite(container.techLevel)) {
             return false;
@@ -497,7 +475,6 @@ class Game {
             if (typeof star.setScannerRange === 'function' && this.rules && typeof this.rules.getScanRangeForTechLevel === 'function') {
                 star.setScannerRange(this.rules.getScanRangeForTechLevel(star.techLevel));
             }
-            this.refreshCurrentShipBuildForStarTech(star);
             return true;
         }
 
@@ -2012,12 +1989,12 @@ class Game {
         this.refreshRendezvousFleetReferences();
         
         // Log ships under construction status
-        const shipsUnderConstruction = this.allShips.filter(ship => ship.underConstruction());
+        const shipsUnderConstruction = this.stars.filter(star => star.currentShip).map(star => ({ ...star.currentShip, star, owner: star.owner }));
         if (shipsUnderConstruction.length > 0) {
             console.log(`🔍 SHIPS UNDER CONSTRUCTION (${shipsUnderConstruction.length}):`);
             for (const ship of shipsUnderConstruction) {
                 const starName = ship.star ? ship.star.name : 'UNKNOWN';
-                console.log(`  - ${ship.type} (ID: ${ship.id}) at ${starName} - Owner: ${ship.owner}, Progress: ${ship.progress.toFixed(1)}%, Visible: ${ship.isVisibleTo(1)}`);
+                console.log(`  - ${ship.type} at ${starName} - Owner: ${ship.owner}, Progress: ${ship.progress.toFixed(1)}%`);
             }
         } else {
             console.log(`🔍 NO SHIPS UNDER CONSTRUCTION`);

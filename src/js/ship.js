@@ -12,7 +12,6 @@ class Ship {
         this.star = star;
         this.destination = null;
         this.progress = 0;
-        this.constructionCompleted = false;
         this.owner = owner;
         this.game = game;
         // Ship stats
@@ -37,12 +36,10 @@ class Ship {
 
     complete() {
         this.progress = 100;
-        this.constructionCompleted = true;
     }
 
     underConstruction() {
-        // At exact cost v3 still has an unfinished hull, even at 100%.
-        return this.progress < 100 || (!!this.star && this.star.currentShip === this && !this.constructionCompleted);
+        return this.progress < 100;
     }
 
     move() {

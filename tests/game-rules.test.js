@@ -181,7 +181,7 @@ function runGameRuleTests() {
             test.assertEqual(target.owner, 1, 'AI colony should claim the neutral star');
             test.assertNotNull(target.currentShip, 'AI new colony should immediately select a build hull');
             test.assertEqual(target.currentShip.type, 'defense', 'AI new colony should start with a defense satellite like v3');
-            test.assertContains(target.ships, target.currentShip, 'The under-construction satellite should be docked at the new colony');
+            test.assertFalse(target.ships.includes(target.currentShip), 'Pending satellite construction should remain system data');
         });
 
         test.it('applies fleet technology to allied stars but does not refresh scouts inside fleets', () => {
