@@ -1472,7 +1472,7 @@ class Display {
 
     getProductionWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({ x: screen.width - 370, y: 84, width: 350, height: 155 });
+        return this.fitPanelToScreen({ x: screen.width - 440, y: 84, width: 420, height: 155 });
     }
 
     getEventWindowRect() {
@@ -1586,6 +1586,13 @@ class Display {
         return regions;
     }
 
+    getAllocationLockRegions() {
+        return this.getAllocationSliderRegions().map(slider => ({
+            rect: { x: slider.trackRect.x + slider.trackRect.width + 48, y: slider.rect.y + 1, width: 68, height: 18 },
+            action: { type: 'toggleAllocationLock', star: slider.star, allocationKey: slider.key }
+        }));
+    }
+
     getSliderActionAt(x, y) {
         const slider = this.getAllocationSliderRegions().find(region => this.containsPoint(region.rect, x, y));
         if (!slider) {
@@ -1682,6 +1689,9 @@ class Display {
             return contextButton.action;
         }
 
+        const lock = this.getAllocationLockRegions().find(region => this.containsPoint(region.rect, x, y));
+        if (lock) return lock.action;
+
         const sliderAction = this.getSliderActionAt(x, y);
         if (sliderAction) {
             return sliderAction;
@@ -1730,6 +1740,10 @@ class Display {
         this.drawBar(rects.track.x, rects.track.y, rects.track.width, rects.track.height, desired / 100.0, color);
         this.drawTextLine(`${Math.round(desired)}%`, rects.percent.x, y, valueColor, 11);
 
+        this.drawUIButton({ x: rects.track.x + width + 48, y: y - 13, width: 68, height: 18 },
+            allocation.locked ? I18n.getString(675, 'Unlock') : I18n.getString(674, 'Lock'), null,
+            { size: 9, radius: 6, active: allocation.locked });
+
         const currentMarkerX = rects.track.x + this.clamp(Math.round(width * current / 100.0), 0, width);
         this.port.drawLine(new pdg.Point(currentMarkerX, y - 11), new pdg.Point(currentMarkerX, y + 1), this.getLineAttributes(valueColor));
     }
@@ -1749,7 +1763,7 @@ class Display {
     }
 
     getStarDetailsLayout(star) {
-        const rect = this.getAnchoredPanelRect(star, 290, this.getStarDetailsPanelHeight(star));
+        const rect = this.getAnchoredPanelRect(star, 360, this.getStarDetailsPanelHeight(star));
         const x = rect.x + 12;
         let y = this.getPanelContentStartY(rect);
 

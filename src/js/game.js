@@ -1040,7 +1040,10 @@ class Game {
         }
 
         let total = entries.reduce((sum, entry) => sum + this.getAllocationDesired(entry.allocation), 0);
-        let diff = Math.round(100 - total);
+        const lockedTotal = this.getStarAllocationEntries(star)
+            .filter(entry => entry.allocation && entry.allocation.locked)
+            .reduce((sum, entry) => sum + this.getAllocationDesired(entry.allocation), 0);
+        let diff = Math.round(100 - lockedTotal - total);
         let guard = 0;
 
         while (diff !== 0 && guard < 300) {
@@ -1137,6 +1140,14 @@ class Game {
         this.setAllocationDesired(targetEntry.allocation, oldDesired + appliedDelta);
         this.normalizeStarAllocations(star);
         this.recordProductionChange(star);
+        return true;
+    }
+
+    toggleStarAllocationLock(star, allocationKey) {
+        if (!star || !this.canHumanControl(star)) return false;
+        const entry = this.getStarAllocationEntries(star).find(item => item.key === allocationKey);
+        if (!entry || !entry.allocation) return false;
+        entry.allocation.setLocked(!entry.allocation.locked);
         return true;
     }
 
@@ -1343,6 +1354,8 @@ class Game {
                     this.setSelectedObject(action.object);
                 }
                 return this.toggleProductionWindow();
+            case 'toggleAllocationLock':
+                return this.toggleStarAllocationLock(action.star, action.allocationKey);
             case 'setAllocation':
                 if (action.star) {
                     this.setSelectedObject(action.star);

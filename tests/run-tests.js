@@ -24,6 +24,7 @@ const runFleetFormationTests = require('./fleet-formation.test.js');
 const runRendezvousTests = require('./rendezvous.test.js');
 const runShipNamingEventsTests = require('./ship-naming-events.test.js');
 const runAutoplayTests = require('./autoplay.test.js');
+const runProductionControlTests = require('./production-controls.test.js');
 const runPdgV12DisplayTests = require('./pdg-v12-display.test.js');
 
 console.log('╔═══════════════════════════════════════════════════════════╗');
@@ -95,6 +96,7 @@ try {
     runAutoplayTests();
 
     runPdgV12DisplayTests();
+    runProductionControlTests();
 
     // Print summary
     const success = test.printSummary();

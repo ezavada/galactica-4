@@ -125,7 +125,7 @@ The largest blockers to a complete game are:
 | Population growth | Growth allocation drives a capped population curve. | ✅ Implemented | ➖ N/A | `star.js:98-165` and `rules.js:86-102` implement autonomous growth. |
 | Three-way economy | Growth, ships, and tech share system output. | 🟡 Partial | 🟡 Partial | Allocation model, gradual adjustment, human keyboard controls, clickable sliders, AI desired allocations, expert tech-star/shipbuilder roles, and default non-expert split exist. Lock/equalize/context workflows remain incomplete. |
 | Production sliders | Coupled sliders with current/desired colors and gradual adjustment. | 🟡 Partial | 🟡 Partial | Slider math keeps total allocation at 100%; bars are visible and clickable in the star panel/production window. Locks and the full v3 production interaction model are not exposed. |
-| Slider locks | Lock one allocation while adjusting others. | 🧱 Scaffold only | ❌ Missing | A `locked` field/accessor exists but is not fully enforced or exposed. |
+| Slider locks | Lock one allocation while adjusting others. | ✅ Implemented | ✅ Implemented | Localized Lock/Unlock buttons in system and production panels preserve locked allocations while redistributing the remaining budget. Ownership, all-locked behavior, and click routing are tested. |
 | Equalize production | Button resets three allocations equally. | 🟡 Partial | ❌ Missing | `[R]` in the production window resets to 34/33/33. There is no visible v3-style equalize button and exact interaction still needs verification. |
 | Research and tech advancement | Research accumulates; higher levels take more work. | ✅ Implemented | ➖ N/A | `star.js:116-141`, `rules.js:78-84`. |
 | New-drive milestone | New technology class event every five levels. | ✅ Implemented | ✅ Implemented | A lab overlay is raised at class boundaries (`star.js:132-139`, `display.js:898-944`). |
@@ -302,3 +302,8 @@ This file remains the main parity source of truth. More focused docs may describ
 5. **Add game setup and persistence:** setup screen for all supported options, then full save/open/revert.
 6. **Add comparison and polish:** v3 player-comparison columns/highlights, sortable system tables, display modes/toggles, remaining renaming prompts, sound, manual link, tutorial, and shipped preference/help flows. Treat Compare Players sorting/scoring and final v4 art direction as future enhancements unless further v3 evidence appears.
 7. **Port multiplayer last:** host/join/rejoin, synchronization, turn posting/timers, chat, discovery, and administration rely on the preceding state model being stable and serializable.
+
+## Parity implementation log
+
+- 2026-10-09: Baseline 353 unit tests passed. Deterministic 250-turn AI observer reached its guard without a crash (428 ships, 25 fleets, no winner); additional balance tuning requires evidence of a v3 rule mismatch.
+- Production locks: corrected allocation normalization and added localized controls in both production surfaces. Full suite: 357 passed; browser click verified; production panels checked in English, German, Spanish, French, Japanese, and Russian.
