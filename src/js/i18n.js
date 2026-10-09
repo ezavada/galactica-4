@@ -29,6 +29,10 @@ function formatPluralString(id, fallback, count) {
     return (forms[index] || forms[0]).replace(/\{0\}/g, String(count));
 }
 
+function formatDecimal(value, digits = 1) {
+    return Number(value).toFixed(digits).replace('.',getString(695,'.'));
+}
+
 function getShipTypeName(shipType, options = {}) {
     const capitalized = !!options.capitalized;
     const ids = capitalized
@@ -57,6 +61,7 @@ module.exports = {
     getString,
     formatString,
     formatPluralString,
+    formatDecimal,
     getShipTypeName,
     getEventWhyName
 };

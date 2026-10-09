@@ -1479,7 +1479,7 @@ class Display {
 
     getCommandWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 120 });
+        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 160 });
     }
 
     getProductionWindowRect() {
@@ -1520,6 +1520,47 @@ class Display {
             width,
             height: Math.max(150, 78 + Math.max(rows.length, 1) * 26)
         });
+    }
+
+    getCommandActionRegions() {
+        if (this.game.uiWindow!=='menu' || !this.game.getCurrentHumanPlayer()) return [];
+        const rect = this.getCommandWindowRect();
+        return [{rect:{x:rect.x+14,y:rect.y+80,width:rect.width-28,height:28},
+            label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}}];
+    }
+
+    getColonyDefaultsWindowRect() {
+        const screen = this.getScreenSize();
+        const width = Math.min(520,screen.width-40);
+        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:310});
+    }
+
+    getColonyDefaultSliderRegions() {
+        const rect = this.getColonyDefaultsWindowRect();
+        return ['defaultGrowth','defaultShips','defaultTech'].map((key,index) => ({key,
+            label:[this.STR.growth,this.STR.ships.replace(/:$/, ''),this.STR.research][index],
+            color:['green','aqua','purple'][index],
+            rect:{x:rect.x+130,y:rect.y+66+index*28,width:rect.width-290,height:24}}));
+    }
+
+    getColonyDefaultActionRegions() {
+        if (this.game.uiWindow!=='colonyDefaults' || !this.game.colonyDefaultsDraft) return [];
+        const rect = this.getColonyDefaultsWindowRect(), draft = this.game.colonyDefaultsDraft;
+        const regions = [];
+        this.getColonyDefaultSliderRegions().forEach(slider => {
+            [-10,10].forEach((delta,index) => regions.push({
+                rect:{x:rect.x+rect.width-90+index*38,y:slider.rect.y,width:32,height:24},label:delta>0?'+':'−',
+                action:{type:'setColonyDefaultAllocation',key:slider.key,value:draft[slider.key]+delta}}));
+        });
+        ['defense','scout','colony','battleship'].forEach((type,index) => regions.push({
+            rect:{x:rect.x+14+(index%2)*(rect.width/2-7),y:rect.y+168+Math.floor(index/2)*32,width:rect.width/2-21,height:26},
+            label:this.getShipTypeName(type),active:draft.defaultBuildType===index+1,
+            action:{type:'setColonyDefaultHull',hull:index+1}}));
+        regions.push({rect:{x:rect.x+14,y:rect.y+266,width:rect.width/2-21,height:28},
+            label:I18n.getString(682,'Save'),action:{type:'saveColonyDefaults'}},
+            {rect:{x:rect.x+rect.width/2+7,y:rect.y+266,width:rect.width/2-21,height:28},
+            label:I18n.getString(683,'Cancel'),action:{type:'cancelColonyDefaults'}});
+        return regions;
     }
 
     getSystemShipWindowLayout() {
@@ -1598,6 +1639,8 @@ class Display {
                 return this.getComparisonWindowRect();
             case 'fleets':
                 return this.getFleetWindowRect();
+            case 'colonyDefaults':
+                return this.getColonyDefaultsWindowRect();
             case 'systemShips':
                 return this.getSystemShipWindowLayout().rect;
             case 'rename':
@@ -1771,6 +1814,13 @@ class Display {
         const window = this.getActiveWindowRect();
         if (!window || !this.containsPoint(window, x, y)) return null;
         let controls = [];
+        if (this.game.uiWindow==='menu') controls=this.getCommandActionRegions();
+        if (this.game.uiWindow==='colonyDefaults') {
+            controls=this.getColonyDefaultActionRegions();
+            const slider=this.getColonyDefaultSliderRegions().find(region=>this.containsPoint(region.rect,x,y));
+            if(slider) return {type:'setColonyDefaultAllocation',key:slider.key,
+                value:Math.round(this.clamp((x-slider.rect.x)/slider.rect.width,0,1)*1000)};
+        }
         if (this.game.uiWindow === 'systemShips') controls = this.getSystemShipActionRegions();
         if (this.game.uiWindow === 'rename') controls = this.getRenameActionRegions();
         if (this.game.uiWindow === 'fleets') controls = this.getFleetListActionRegions();
@@ -1790,7 +1840,7 @@ class Display {
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
-        if (this.game.uiWindow === 'rename') return { type: 'consume' };
+        if (['rename','colonyDefaults'].includes(this.game.uiWindow)) return { type: 'consume' };
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
         if (contextButton) {
             return contextButton.action;
@@ -2141,8 +2191,8 @@ class Display {
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
         this.drawTextLine(this.STR.keyboardShortcutsActive, x, y, 'gray', 11);
-        y += 24;
-        this.drawTextLine(this.STR.escClose, x, y, 'gray', 10);
+        this.getCommandActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label));
+        this.drawTextLine(this.STR.escClose,x,rect.y+rect.height-16,'gray',10);
     }
 
     drawProductionWindow() {
@@ -2278,6 +2328,21 @@ class Display {
         ];
     }
 
+    drawColonyDefaultsWindow() {
+        const rect = this.getColonyDefaultsWindowRect(), draft = this.game.colonyDefaultsDraft;
+        this.drawWindowPanel(rect,I18n.getString(693,'New colony defaults'));
+        if (!draft) return;
+        this.drawTextLine(I18n.getString(694,'Applies to future colonies'),rect.x+14,rect.y+47,'gray',11);
+        this.getColonyDefaultSliderRegions().forEach(slider=>{
+            const y = slider.rect.y+17;
+            this.drawRightTextLine(slider.label,slider.rect.x-8,y,'labelgray',11);
+            this.drawBar(slider.rect.x,slider.rect.y+8,slider.rect.width,8,draft[slider.key]/1000,slider.color);
+            this.drawTextLine(`${I18n.formatDecimal(draft[slider.key]/10)}%`,slider.rect.x+slider.rect.width+8,y,'lightgray',11);
+        });
+        this.drawTextLine(this.STR.building.replace(/:$/, ''),rect.x+14,rect.y+153,'labelgray',11);
+        this.getColonyDefaultActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,null,{active:region.active}));
+    }
+
     drawSystemShipWindow() {
         const layout = this.getSystemShipWindowLayout(), rect = layout.rect;
         const star = this.game.systemShipWindowStar;
@@ -2292,7 +2357,7 @@ class Display {
             const y = rect.y+85+index*26;
             layout.columns.forEach(column => {
                 let text = column.key==='name' ? (row.member?'  ↳ ':'')+row.name :
-                    (column.key==='damage' ? `${row.damage}` : row[column.key].toFixed(1));
+                    (column.key==='damage' ? `${row.damage}` : I18n.formatDecimal(row[column.key]));
                 while (Array.from(text).length>1 && (this.port.getTextWidth ? this.port.getTextWidth(text,11) : text.length*7)>column.width-8)
                     text=Array.from(text).slice(0,-2).join('')+'…';
                 this.drawTextLine(text,rect.x+column.offset,y,row.member?'gray':'lightgray',11);
@@ -2359,6 +2424,9 @@ class Display {
                 break;
             case 'fleets':
                 this.drawFleetWindow();
+                break;
+            case 'colonyDefaults':
+                this.drawColonyDefaultsWindow();
                 break;
             case 'systemShips':
                 this.drawSystemShipWindow();

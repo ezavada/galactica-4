@@ -32,7 +32,7 @@ const REQUIRED_RUNTIME_STRING_IDS = [
     640, 641, 642, 643, 644, 645, 646, 647,
     648, 649, 650, 651, 652, 653, 655, 656, 657, 658,
     659, 660, 661, 662, 663, 664, 665, 666, 667, 668,
-    669, 670, 671, 672, 673, 674, 675, 676, 677, 678, 679, 680, 681, 682, 683, 684, 685, 686, 687, 688, 689, 690, 691, 692,
+    669, 670, 671, 672, 673, 674, 675, 676, 677, 678, 679, 680, 681, 682, 683, 684, 685, 686, 687, 688, 689, 690, 691, 692, 693, 694, 695,
     800
 ];
 
@@ -249,6 +249,20 @@ function runStringResourceTests() {
             test.assertDefined(computer, 'Computer should be defined');
             test.assertDefined(human, 'Human should be defined');
             test.assertDefined(ai, 'AI should be defined');
+        });
+    });
+
+    test.describe('Localized decimal formatting', () => {
+        test.it('formats new numeric controls with each supported language decimal separator', () => {
+            const I18n = require('../src/js/i18n.js');
+            const original = pdg.res.getLanguage();
+            try {
+                for (const [language, expected] of [['en','33.4'],['de','33,4'],['es','33,4'],
+                        ['fr','33,4'],['ja','33.4'],['ru','33,4']]) {
+                    pdg.res.setLanguage(language);
+                    test.assertEqual(I18n.formatDecimal(33.4),expected,language);
+                }
+            } finally { pdg.res.setLanguage(original); }
         });
     });
 

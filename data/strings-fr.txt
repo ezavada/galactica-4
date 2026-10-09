@@ -267,3 +267,8 @@
 690	Précédent
 691	Suivant
 692	Cliquez sur un vaisseau ou une flotte pour voir ses détails
+
+# New colony defaults
+693	Réglages des nouvelles colonies
+694	S’applique aux futures colonies
+695	,

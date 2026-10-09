@@ -267,3 +267,8 @@
 690	Anterior
 691	Siguiente
 692	Haz clic en una nave o flota para verla
+
+# New colony defaults
+693	Valores de nuevas colonias
+694	Se aplica a futuras colonias
+695	,

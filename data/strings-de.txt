@@ -267,3 +267,8 @@
 690	Zurück
 691	Weiter
 692	Schiff oder Flotte anklicken, um Details anzuzeigen
+
+# New colony defaults
+693	Standardwerte für neue Kolonien
+694	Gilt für zukünftige Kolonien
+695	,

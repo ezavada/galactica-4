@@ -32,6 +32,7 @@ class Game {
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
         this.pendingMapOrderObject = null;
+        this.colonyDefaultsDraft = null;
         this.systemShipWindowStar = null;
         this.systemShipPage = 0;
         this.systemShipSort = { key: 'name', ascending: true };
@@ -1205,6 +1206,12 @@ class Game {
 
         const lower = char.toLowerCase();
 
+        if (this.uiWindow === 'colonyDefaults') {
+            if (key === pdg.key_Escape) return this.cancelColonyDefaults();
+            if (key === 13 || key === 3) return this.saveColonyDefaults();
+            return true;
+        }
+
         if (this.uiWindow === 'rename') {
             if (key === pdg.key_Escape) {
                 this.renameTarget = null;
@@ -1318,6 +1325,63 @@ class Game {
         if (this.display) {
             this.display.setSelectedObject(object);
         }
+    }
+
+    beginColonyDefaults() {
+        const playerNum = this.getCurrentHumanPlayer();
+        const player = this.players[playerNum];
+        if (!player || !player.isHuman) return false;
+        this.colonyDefaultsDraft = { playerNum, defaultGrowth: player.defaultGrowth,
+            defaultShips: player.defaultShips, defaultTech: player.defaultTech,
+            defaultBuildType: player.defaultBuildType };
+        this.uiWindow = 'colonyDefaults';
+        return true;
+    }
+
+    setColonyDefaultAllocation(key,value) {
+        const draft = this.colonyDefaultsDraft;
+        const keys = ['defaultGrowth','defaultShips','defaultTech'];
+        if (!draft || !keys.includes(key) || !Number.isFinite(value) ||
+            keys.some(other => !Number.isInteger(draft[other]) || draft[other]<0 || draft[other]>1000) ||
+            keys.reduce((sum,other)=>sum+draft[other],0)!==1000) return false;
+        const desired = Math.max(0,Math.min(1000,Math.round(value)));
+        let remaining = desired-draft[key];
+        const direction = remaining > 0 ? -1 : 1;
+        const others = keys.filter(other => other!==key);
+        while (remaining !== 0) {
+            let changed = false;
+            for (const other of others) {
+                if (remaining===0) break;
+                const next = draft[other]+direction;
+                if (next >= 0 && next <= 1000) {
+                    draft[other] = next; remaining+=direction; changed=true;
+                }
+            }
+            if (!changed) return false;
+        }
+        draft[key] = desired;
+        return true;
+    }
+
+    saveColonyDefaults() {
+        const draft = this.colonyDefaultsDraft;
+        const player = draft && this.players[draft.playerNum];
+        if (!player || !player.isHuman) return false;
+        const values = [draft.defaultGrowth,draft.defaultShips,draft.defaultTech];
+        if (values.some(value => !Number.isInteger(value) || value<0 || value>1000) ||
+            values.reduce((sum,value)=>sum+value,0)!==1000 ||
+            !Number.isInteger(draft.defaultBuildType) || draft.defaultBuildType<1 || draft.defaultBuildType>4) return false;
+        player.setDefaultEconomics(draft.defaultGrowth,draft.defaultTech,draft.defaultShips);
+        player.setDefaultBuildType(draft.defaultBuildType);
+        this.colonyDefaultsDraft = null;
+        this.uiWindow = null;
+        return true;
+    }
+
+    cancelColonyDefaults() {
+        this.colonyDefaultsDraft = null;
+        this.uiWindow = null;
+        return true;
     }
 
     canViewSystemShips(star) {
@@ -1438,6 +1502,18 @@ class Game {
                     this.display.centerOn(action.object.x, action.object.y);
                 }
                 return true;
+            case 'beginColonyDefaults':
+                return this.beginColonyDefaults();
+            case 'setColonyDefaultAllocation':
+                return this.setColonyDefaultAllocation(action.key,action.value);
+            case 'setColonyDefaultHull':
+                if (!this.colonyDefaultsDraft || !Number.isInteger(action.hull) || action.hull<1 || action.hull>4) return false;
+                this.colonyDefaultsDraft.defaultBuildType = action.hull;
+                return true;
+            case 'saveColonyDefaults':
+                return this.saveColonyDefaults();
+            case 'cancelColonyDefaults':
+                return this.cancelColonyDefaults();
             case 'showSystemShips':
                 if (!this.canViewSystemShips(action.star)) return false;
                 this.systemShipWindowStar = action.star;
@@ -1771,7 +1847,7 @@ class Game {
     }
     
     handleKeyPress(key) {
-        if (this.uiWindow === 'rename' && key === pdg.key_Tab) return true;
+        if (['rename','colonyDefaults'].includes(this.uiWindow) && key === pdg.key_Tab) return true;
         if (key === pdg.key_Tab) {
             this.endTurn();
             return true;

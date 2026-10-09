@@ -267,3 +267,8 @@
 690	Previous
 691	Next
 692	Click a ship or fleet to inspect it
+
+# New colony defaults
+693	New colony defaults
+694	Applies to future colonies
+695	.
