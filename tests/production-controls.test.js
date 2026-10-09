@@ -4,6 +4,7 @@ const Game = require('../src/js/game.js');
 const GameConfig = require('../src/js/game-config.js');
 const Rules = require('../src/js/rules.js');
 const Display = require('../src/js/display.js');
+const I18n = require('../src/js/i18n.js');
 function fixture() {
     const game = new Game(new Factory(), new Rules(false), new GameConfig({ numHumans: 1, numComputers: 1, skipMapGeneration: true }));
     const star = game.factory.createStar(0, 0, 'Test'); star.owner = 1;
@@ -80,6 +81,41 @@ module.exports = function() {
             test.assertFalse(star.startBuildingShip('colony'));
             test.assertFalse(star.startBuildingShip('invalid'));
             test.assertTrue(star.currentShip === hull);
+        });
+    });
+    test.describe('Localized turn counts', () => {
+        test.it('supports singular/plural and Japanese single-form resources', () => {
+            test.assertEqual(I18n.formatPluralString(0, '{0} turn|{0} turns', 1), '1 turn');
+            test.assertEqual(I18n.formatPluralString(0, '{0} turn|{0} turns', 2), '2 turns');
+            test.assertEqual(I18n.formatPluralString(0, '{0}ターン', 2), '2ターン');
+        });
+        test.it('selects Russian singular, few, and many endings', () => {
+            const cases = [[1,'ход'],[2,'хода'],[5,'ходов'],[11,'ходов'],[21,'ход'],[22,'хода'],[25,'ходов']];
+            cases.forEach(([count, word]) => test.assertEqual(
+                I18n.formatPluralString(0, '{0} ход|{0} хода|{0} ходов', count), `${count} ${word}`));
+        });
+    });
+    test.describe('Construction ETA', () => {
+        test.it('uses projected production and v3 rounding at exact turn boundaries', () => {
+            const {game, star} = fixture(); star.startBuildingShip('colony');
+            star.shipBuilding.value = 1; star.shipBuilding.desired = 10;
+            star.shipBuilding.setPerUnitBenefit(166.5);
+            game.rules.getShipBuildCost = () => 4;
+            star.paidTowardShipBuilding = 1;
+            test.assertEqual(star.getEstimatedTurnsToNextShip(), 4);
+        });
+        test.it('applies fast-game and computer-advantage modifiers', () => {
+            const {game, star} = fixture(); star.owner = 2; star.startBuildingShip('colony');
+            star.shipBuilding.desired = 10; star.shipBuilding.setPerUnitBenefit(166.5);
+            game.rules.getShipBuildCost = () => 6;
+            game.rules.isFast = true; game.players[2].compAdvantage = 1;
+            test.assertEqual(star.getEstimatedTurnsToNextShip(), 3);
+        });
+        test.it('distinguishes stopped production from zero projected effort', () => {
+            const {star} = fixture();
+            test.assertNull(star.getEstimatedTurnsToNextShip());
+            star.startBuildingShip('colony'); star.shipBuilding.desired = 0;
+            test.assertEqual(star.getEstimatedTurnsToNextShip(), -1);
         });
     });
     test.describe('Production locks', () => {

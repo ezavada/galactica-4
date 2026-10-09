@@ -249,3 +249,6 @@
 676	Equalize
 677	Continuous
 678	Pause build
+679	ETA:
+680	{0} turn|{0} turns
+681	Paused

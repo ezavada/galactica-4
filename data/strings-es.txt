@@ -249,3 +249,6 @@
 676	Equilibrar
 677	Continua
 678	Pausar
+679	Plazo:
+680	{0} turno|{0} turnos
+681	En pausa

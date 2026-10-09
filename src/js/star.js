@@ -308,6 +308,18 @@ class Star {
         return ship;
     }
     
+    getEstimatedTurnsToNextShip() {
+        if (!this.currentShip) return null;
+        // v3 estimates using desired (projected) allocation, including fast
+        // game and computer advantage, rather than the current slider value.
+        let effort = this.shipBuilding.getProjectedBenefit() / 1665.0;
+        if (this.game.rules.isFast) effort *= 2;
+        effort = this.game.applyComputerAdvantageToProduction(this.owner, effort);
+        if (effort <= 0) return -1;
+        const remaining = this.game.rules.getShipBuildCost(this.currentShip, this) - this.paidTowardShipBuilding;
+        return Math.max(1, Math.floor(remaining / effort) + 1);
+    }
+
     pauseShipBuilding() {
         if (!this.currentShip) return false;
         const hull = this.currentShip;

@@ -1449,7 +1449,7 @@ class Display {
             return this.getStarDetailsLayout(object).rect;
         }
         if (objectType === Common.ObjectType.SHIP) {
-            return this.getAnchoredPanelRect(object, 240, object.underConstruction() ? 120 : 150);
+            return this.getAnchoredPanelRect(object, 240, object.underConstruction() ? 138 : 150);
         }
         if (objectType === Common.ObjectType.FLEET) {
             return this.getFleetDetailsLayout(object).rect;
@@ -1593,7 +1593,7 @@ class Display {
         const star = this.game.getSelectedStar();
         if (!star || !this.game.canHumanControl(star)) return [];
         const panel = this.getStarDetailsLayout(star).rect;
-        const regions = [{ rect: { x: panel.x + 12, y: panel.y + 216, width: 170, height: 22 },
+        const regions = [{ rect: { x: panel.x + 12, y: panel.y + panel.height - 30, width: 170, height: 22 },
             action: { type: 'equalizeAllocations', star } }];
         if (this.game.uiWindow === 'production') {
             const window = this.getProductionWindowRect();
@@ -1778,7 +1778,7 @@ class Display {
         if (!this.game.canHumanControl(star)) {
             return 130;
         }
-        return 246;
+        return 264;
     }
 
     getStarDetailsLayout(star) {
@@ -1790,6 +1790,7 @@ class Display {
         y += 18; // population
         y += 18; // tech
         y += 18; // current build
+        if (this.game.canHumanControl(star)) y += 18; // construction ETA
 
         const dividerY = y - 1;
         const productionTitleY = dividerY + 19;
@@ -1855,6 +1856,13 @@ class Display {
         this.drawMapButtons();
     }
     
+    formatConstructionETA(star) {
+        const turns = star ? star.getEstimatedTurnsToNextShip() : null;
+        if (turns === null) return this.STR.none;
+        if (turns < 0) return I18n.getString(681, 'Paused');
+        return I18n.formatPluralString(680, '{0} turn|{0} turns', turns);
+    }
+
     // Draw star details UI
     drawStarDetails(star) {
         const owned = this.game.canHumanControl(star);
@@ -1888,6 +1896,7 @@ class Display {
             return;
         }
 
+        this.drawLabelValue(I18n.getString(679, 'ETA:'), this.formatConstructionETA(star), x, y, { labelWidth: 70 });
         this.drawDivider(x, layout.dividerY, rect.width - 24);
         this.drawTextLine(this.STR.production, x, layout.productionTitleY, 'lightgray', 12);
         if (star.currentShip) this.drawTextLine(I18n.getString(677, 'Continuous'), x + 120,
@@ -1901,7 +1910,7 @@ class Display {
     // Draw ship details UI
     drawShipDetails(ship) {
         const construction = ship.underConstruction();
-        const rect = this.getAnchoredPanelRect(ship, 240, construction ? 120 : 150);
+        const rect = this.getAnchoredPanelRect(ship, 240, construction ? 138 : 150);
         let panel = this.shipPanels.get(construction);
         if (!panel) {
             panel = new RetainedPanel(this, rect.width);
@@ -1913,6 +1922,7 @@ class Display {
         if (construction) {
             panel.text('construction', this.STR.underConstruction, 12, 83, 'labelgray');
             panel.text('progress', `${Math.round(ship.progress)}%`, rect.width - 14, 83, 'lightgray', 11, pdg.textStyle_RightJustified);
+            panel.labelValue('eta', I18n.getString(679, 'ETA:'), this.formatConstructionETA(ship.star), 101, { size: 11 });
         } else {
             panel.labelValue('speed', this.STR.speed, (ship.speed / 16380.0).toFixed(1), 83);
             panel.labelValue('power', this.STR.power, this.game.rules.getShipPower(ship).toFixed(1), 101);

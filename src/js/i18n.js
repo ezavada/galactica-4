@@ -16,6 +16,19 @@ function formatString(id, fallback, ...values) {
     });
 }
 
+// Resource alternatives use one form (Japanese), singular/plural, or the
+// singular/few/many forms needed by Russian. Values stay in the resource.
+function formatPluralString(id, fallback, count) {
+    const forms = getString(id, fallback).split('|');
+    let index = count === 1 ? 0 : 1;
+    if (forms.length === 3) {
+        const last = Math.abs(count) % 10, lastTwo = Math.abs(count) % 100;
+        index = last === 1 && lastTwo !== 11 ? 0
+            : last >= 2 && last <= 4 && !(lastTwo >= 12 && lastTwo <= 14) ? 1 : 2;
+    }
+    return (forms[index] || forms[0]).replace(/\{0\}/g, String(count));
+}
+
 function getShipTypeName(shipType, options = {}) {
     const capitalized = !!options.capitalized;
     const ids = capitalized
@@ -43,6 +56,7 @@ function getEventWhyName(why) {
 module.exports = {
     getString,
     formatString,
+    formatPluralString,
     getShipTypeName,
     getEventWhyName
 };

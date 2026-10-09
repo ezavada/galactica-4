@@ -249,3 +249,6 @@
 676	Ausgleichen
 677	Fortlaufend
 678	Baupause
+679	Dauer:
+680	{0} Runde|{0} Runden
+681	Pausiert

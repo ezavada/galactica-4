@@ -249,3 +249,6 @@
 676	Équilibrer
 677	En continu
 678	Suspendre
+679	Délai :
+680	{0} tour|{0} tours
+681	En pause
