@@ -14,7 +14,8 @@ class Allocation {
         this.locked = locked; // if true, the allocation is locked and cannot be changed
     }
     setDesired(desired) {
-        this.desired = desired;
+        if (!Number.isFinite(desired)) return;
+        this.desired = Math.max(0,Math.min(100,Math.round(desired*10)/10));
     }
     setRate(rate) {
         this.rate = rate;
@@ -49,6 +50,7 @@ class Allocation {
                 this.value = this.desired;
             }
         }
+        this.value = Math.round(this.value*10)/10;
         return changed;
     }
 }
@@ -65,9 +67,9 @@ class Star {
         this.game = game;
 
         // Resource allocation (0.0 to 100.0 for each)
-        this.growth = new Allocation(34.0, 60.0, 6.0, false);
-        this.shipBuilding = new Allocation(33.0, 60.0, 6.0, false);
-        this.research = new Allocation(33.0, 60.0, 6.0, false);
+        this.growth = new Allocation(33.4, 6.0, 6.0, false);
+        this.shipBuilding = new Allocation(33.3, 6.0, 6.0, false);
+        this.research = new Allocation(33.3, 6.0, 6.0, false);
         
         // Current production
         this.currentShip = null; // Ship currently being built

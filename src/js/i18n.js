@@ -33,6 +33,11 @@ function formatDecimal(value, digits = 1) {
     return Number(value).toFixed(digits).replace('.',getString(695,'.'));
 }
 
+function formatPercentage(value) {
+    const units = Math.round(value*10);
+    return units%10 ? formatDecimal(units/10) : String(units/10);
+}
+
 function getShipTypeName(shipType, options = {}) {
     const capitalized = !!options.capitalized;
     const ids = capitalized
@@ -62,6 +67,7 @@ module.exports = {
     formatString,
     formatPluralString,
     formatDecimal,
+    formatPercentage,
     getShipTypeName,
     getEventWhyName
 };

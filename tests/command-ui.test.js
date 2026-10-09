@@ -98,9 +98,8 @@ function createOwnedStar(game, owner, name = 'Alpha') {
 }
 
 function allocationTotal(game, star) {
-    return game.getAllocationDesired(star.growth) +
-        game.getAllocationDesired(star.shipBuilding) +
-        game.getAllocationDesired(star.research);
+    return [star.growth,star.shipBuilding,star.research].reduce((sum,allocation)=>
+        sum+Math.round(game.getAllocationDesired(allocation)*10),0)/10;
 }
 
 module.exports = function runCommandUITests() {
@@ -123,7 +122,7 @@ module.exports = function runCommandUITests() {
             const changed = game.adjustStarAllocation(star, 'growth', 15);
 
             test.assertTrue(changed, 'Human-owned star allocation should change');
-            test.assertEqual(game.getAllocationDesired(star.growth), 49);
+            test.assertEqual(game.getAllocationDesired(star.growth), 48.4);
             test.assertEqual(allocationTotal(game, star), 100);
 
             game.adjustStarAllocation(star, 'research', -20);
@@ -491,7 +490,7 @@ module.exports = function runCommandUITests() {
             test.assertEqual(drawnText[0].x, rects.track.x - 8);
             test.assertEqual(drawnText[0].color, 'labelgray');
             test.assertEqual(drawnText[0].style, pdg.textStyle_RightJustified);
-            test.assertEqual(drawnText[1].text, '34%');
+            test.assertEqual(drawnText[1].text, '33.4%');
             test.assertEqual(drawnText[1].x, rects.track.x + rects.track.width + 8);
             test.assertEqual(barCall.y + barCall.height, 100);
             test.assert(drawnText.every(entry => entry.text.indexOf('→') === -1), 'Slider text should not include current-to-desired arrows');

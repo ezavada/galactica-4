@@ -1743,7 +1743,7 @@ class Display {
             return null;
         }
 
-        const desired = this.clamp(Math.round(((x - slider.trackRect.x) / slider.trackRect.width) * 100), 0, 100);
+        const desired = this.clamp(Math.round(((x - slider.trackRect.x) / slider.trackRect.width) * 1000)/10, 0, 100);
         return {
             type: 'setAllocation',
             star: slider.star,
@@ -1847,7 +1847,7 @@ class Display {
                 .concat(this.getAllocationEqualizeRegions().filter(region => region.key));
             const slider = sliders.find(region => this.containsPoint(region.rect, x, y));
             if (slider) return { type: 'setAllocation', star: slider.star, allocationKey: slider.key,
-                desired: this.clamp(Math.round((x - slider.trackRect.x) / slider.trackRect.width * 100), 0, 100) };
+                desired: this.clamp(Math.round((x - slider.trackRect.x) / slider.trackRect.width * 1000)/10, 0, 100) };
         }
         const control = controls.find(region => this.containsPoint(region.rect, x, y));
         return control ? control.action : { type: 'consume' };
@@ -1918,7 +1918,7 @@ class Display {
         const valueColor = hovered ? 'hovergray' : 'lightgray';
         this.drawRightTextLine(`${label}:`, rects.track.x - 8, y, labelColor, 11);
         this.drawBar(rects.track.x, rects.track.y, rects.track.width, rects.track.height, desired / 100.0, color);
-        this.drawTextLine(`${Math.round(desired)}%`, rects.percent.x, y, valueColor, 11);
+        this.drawTextLine(`${I18n.formatPercentage(desired)}%`, rects.percent.x, y, valueColor, 11);
 
         this.drawUIButton({ x: rects.track.x + width + 48, y: y - 13, width: 68, height: 18 },
             allocation.locked ? I18n.getString(675, 'Unlock') : I18n.getString(674, 'Lock'), null,

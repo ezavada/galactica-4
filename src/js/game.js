@@ -386,7 +386,7 @@ class Game {
 
     getLegacyAllocationPercent(value, fallback = 0) {
         const normalized = Number.isFinite(value) ? value : fallback;
-        return Math.round(Math.max(0, Math.min(1000, normalized)) / 10);
+        return Math.round(Math.max(0, Math.min(1000, normalized))) / 10;
     }
 
     applyNewColonyDefaults(star, previousOwner = 0) {
@@ -1019,7 +1019,8 @@ class Game {
     }
 
     setAllocationDesired(allocation, value) {
-        const desired = this.clampAllocationValue(Math.round(value));
+        if (!Number.isFinite(value)) return false;
+        const desired = this.clampAllocationValue(Math.round(value * 10) / 10);
         if (allocation && typeof allocation.setDesired === 'function') {
             allocation.setDesired(desired);
         } else if (allocation) {
@@ -1036,114 +1037,50 @@ class Game {
     }
 
     normalizeStarAllocations(star) {
-        const entries = this.getStarAllocationEntries(star).filter(entry => entry.allocation && !entry.allocation.locked);
-        if (entries.length === 0) {
-            return;
-        }
-
-        for (const entry of entries) {
-            this.setAllocationDesired(entry.allocation, this.getAllocationDesired(entry.allocation));
-        }
-
-        let total = entries.reduce((sum, entry) => sum + this.getAllocationDesired(entry.allocation), 0);
-        const lockedTotal = this.getStarAllocationEntries(star)
-            .filter(entry => entry.allocation && entry.allocation.locked)
-            .reduce((sum, entry) => sum + this.getAllocationDesired(entry.allocation), 0);
-        let diff = Math.round(100 - lockedTotal - total);
-        let guard = 0;
-
-        while (diff !== 0 && guard < 300) {
-            guard++;
-            const direction = diff > 0 ? 1 : -1;
-            let changed = false;
-
-            const orderedEntries = [...entries].sort((a, b) => {
-                const aDesired = this.getAllocationDesired(a.allocation);
-                const bDesired = this.getAllocationDesired(b.allocation);
-                return direction > 0 ? aDesired - bDesired : bDesired - aDesired;
-            });
-
-            for (const entry of orderedEntries) {
-                const current = this.getAllocationDesired(entry.allocation);
-                const next = this.clampAllocationValue(current + direction);
-                if (next !== current) {
-                    this.setAllocationDesired(entry.allocation, next);
-                    diff -= direction;
-                    changed = true;
-                    break;
-                }
-            }
-
-            if (!changed) {
-                break;
-            }
+        const entries = this.getStarAllocationEntries(star);
+        const unlocked = entries.filter(entry => entry.allocation && !entry.allocation.locked);
+        unlocked.forEach(entry => this.setAllocationDesired(entry.allocation,this.getAllocationDesired(entry.allocation)));
+        // Work in v3's integer 0–1000 units, retaining the public percentage representation.
+        let remaining = 1000-entries.reduce((sum,entry)=>sum+Math.round(this.getAllocationDesired(entry.allocation)*10),0);
+        if (!Number.isFinite(remaining)) return;
+        while (remaining!==0 && unlocked.length) {
+            const direction=remaining>0?1:-1;
+            const ordered=[...unlocked].sort((a,b)=>direction*(this.getAllocationDesired(a.allocation)-this.getAllocationDesired(b.allocation)));
+            const target=ordered.find(entry=>{const units=Math.round(this.getAllocationDesired(entry.allocation)*10);return units+direction>=0&&units+direction<=1000;});
+            if (!target) break;
+            const units=Math.round(this.getAllocationDesired(target.allocation)*10);
+            this.setAllocationDesired(target.allocation,(units+direction)/10); remaining-=direction;
         }
     }
 
-    adjustStarAllocation(star, allocationKey, delta, options = {}) {
-        if (!star || !this.canHumanControl(star)) {
-            return false;
-        }
-
-        const entries = this.getStarAllocationEntries(star);
-        const targetEntry = entries.find(entry => entry.key === allocationKey);
-        if (!targetEntry || targetEntry.allocation.locked) {
-            return false;
-        }
-
-        const oldDesired = this.getAllocationDesired(targetEntry.allocation);
-        const requestedDesired = this.clampAllocationValue(oldDesired + delta);
-        let appliedDelta = requestedDesired - oldDesired;
-
-        if (appliedDelta === 0) {
-            return false;
-        }
-
-        const otherEntries = entries
-            .filter(entry => entry !== targetEntry && entry.allocation && !entry.allocation.locked);
-
-        if (otherEntries.length === 0) {
-            return false;
-        }
-
-        if (appliedDelta > 0) {
-            let remaining = appliedDelta;
-            const donors = [...otherEntries].sort((a, b) =>
-                this.getAllocationDesired(b.allocation) - this.getAllocationDesired(a.allocation)
-            );
-            for (const donor of donors) {
-                if (remaining <= 0) {
-                    break;
+    adjustStarAllocation(star,allocationKey,delta,options = {}) {
+        if (!star || !this.canHumanControl(star) || !Number.isFinite(delta)) return false;
+        const entries=this.getStarAllocationEntries(star);
+        const target=entries.find(entry=>entry.key===allocationKey);
+        if (!target || target.allocation.locked) return false;
+        const others=entries.filter(entry=>entry!==target && !entry.allocation.locked);
+        if (!others.length) return false;
+        const oldUnits=Math.round(this.getAllocationDesired(target.allocation)*10);
+        const desiredUnits=Math.round(this.clampAllocationValue(oldUnits/10+delta)*10);
+        let remaining=desiredUnits-oldUnits;
+        if (!remaining) return false;
+        const direction=remaining>0?-1:1;
+        // Share the change across unlocked neighbors, spilling at an endpoint.
+        while (remaining!==0) {
+            let changed=false;
+            for (const entry of others) {
+                if (remaining===0) break;
+                const units=Math.round(this.getAllocationDesired(entry.allocation)*10);
+                const next=units+direction;
+                if (next>=0 && next<=1000) {
+                    this.setAllocationDesired(entry.allocation,next/10); remaining+=direction; changed=true;
                 }
-                const current = this.getAllocationDesired(donor.allocation);
-                const take = Math.min(current, remaining);
-                this.setAllocationDesired(donor.allocation, current - take);
-                remaining -= take;
             }
-            appliedDelta -= remaining;
-        } else {
-            let remaining = -appliedDelta;
-            const receivers = [...otherEntries].sort((a, b) =>
-                this.getAllocationDesired(a.allocation) - this.getAllocationDesired(b.allocation)
-            );
-            for (const receiver of receivers) {
-                if (remaining <= 0) {
-                    break;
-                }
-                const current = this.getAllocationDesired(receiver.allocation);
-                const room = 100 - current;
-                const add = Math.min(room, remaining);
-                this.setAllocationDesired(receiver.allocation, current + add);
-                remaining -= add;
-            }
-            appliedDelta += remaining;
+            if (!changed) break;
         }
-
-        if (appliedDelta === 0) {
-            return false;
-        }
-
-        this.setAllocationDesired(targetEntry.allocation, oldDesired + appliedDelta);
+        const applied=desiredUnits-oldUnits-remaining;
+        if (!applied) return false;
+        this.setAllocationDesired(target.allocation,(oldUnits+applied)/10);
         this.normalizeStarAllocations(star);
         if (!options.silent) this.recordProductionChange(star);
         return true;
@@ -1180,11 +1117,11 @@ class Game {
         const entries = this.getStarAllocationEntries(star);
         const unlocked = entries.filter(entry => !entry.allocation.locked);
         if (!unlocked.length) return false;
-        const budget = 100 - entries.filter(entry => entry.allocation.locked)
-            .reduce((sum, entry) => sum + this.getAllocationDesired(entry.allocation), 0);
+        const budget = 1000 - entries.filter(entry => entry.allocation.locked)
+            .reduce((sum, entry) => sum + Math.round(this.getAllocationDesired(entry.allocation)*10), 0);
         const share = Math.floor(budget / unlocked.length);
         unlocked.forEach((entry, index) => this.setAllocationDesired(entry.allocation,
-            share + (index === 0 ? budget - share * unlocked.length : 0)));
+            (share + (index === 0 ? budget - share * unlocked.length : 0))/10));
         this.recordProductionChange(star);
         return true;
     }
@@ -1195,7 +1132,7 @@ class Game {
         const research = this.getAllocationDesired(star.research);
         this.recordEvent(
             I18n.getString(603, 'Production'),
-            I18n.formatString(621, '{0}: Growth {1}% / Ships {2}% / Research {3}%', star.name, growth, ships, research),
+            I18n.formatString(621, '{0}: Growth {1}% / Ships {2}% / Research {3}%', star.name, I18n.formatPercentage(growth), I18n.formatPercentage(ships), I18n.formatPercentage(research)),
             { type: 'ui' }
         );
     }
@@ -1596,7 +1533,7 @@ class Game {
             this.colonyDefaultsDraft===drag.draft);
         if (!valid) { this.endUISliderDrag(); return true; }
         const ratio = Math.max(0,Math.min(1,(x-drag.trackRect.x)/drag.trackRect.width));
-        if (drag.star) this.setStarAllocation(drag.star,drag.key,Math.round(ratio*100),{silent:true});
+        if (drag.star) this.setStarAllocation(drag.star,drag.key,Math.round(ratio*1000)/10,{silent:true});
         else this.setColonyDefaultAllocation(drag.key,Math.round(ratio*1000));
         return true;
     }

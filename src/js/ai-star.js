@@ -45,7 +45,7 @@ class StarAI extends AIBase {
             return;
         }
 
-        this.applyEconomicAllocation({ growth: 34, shipbuilding: 33, research: 33 });
+        this.applyEconomicAllocation({ growth: 33.4, shipbuilding: 33.3, research: 33.3 });
     }
 
     getPlayerInfo() {
@@ -247,7 +247,7 @@ class StarAI extends AIBase {
         const total = growth + shipbuilding + research;
 
         if (total <= 0) {
-            return { growth: 34, shipbuilding: 33, research: 33 };
+            return { growth: 33.4, shipbuilding: 33.3, research: 33.3 };
         }
 
         const normalizedGrowth = Math.round((growth / total) * 1000) / 10;

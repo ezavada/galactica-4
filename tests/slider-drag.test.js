@@ -28,8 +28,8 @@ module.exports = function() {
         });
         test.it('preserves a locked neighboring allocation and rejects a locked target', () => {
             const {game,star,x,y}=fixture(); star.research.locked=true;
-            game.beginUISliderDrag(x(.6),y); test.assertEqual(star.research.desired,33);
-            test.assertEqual(star.shipBuilding.desired,7); game.endUISliderDrag();
+            game.beginUISliderDrag(x(.6),y); test.assertEqual(star.research.desired,33.3);
+            test.assertEqual(star.shipBuilding.desired,6.7); game.endUISliderDrag();
             star.growth.locked=true; test.assertFalse(game.beginUISliderDrag(x(.7),y));
             test.assertEqual(star.growth.desired,60);
         });

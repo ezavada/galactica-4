@@ -226,16 +226,16 @@ module.exports = function() {
         test.it('preserves locked allocations while maintaining a total of 100', () => {
             const {game, star} = fixture(); game.toggleStarAllocationLock(star, 'growth');
             game.setStarAllocation(star, 'research', 60);
-            test.assertEqual(star.growth.desired, 34);
+            test.assertEqual(star.growth.desired, 33.4);
             test.assertEqual(star.research.desired, 60);
-            test.assertEqual(star.shipBuilding.desired, 6);
+            test.assertEqual(star.shipBuilding.desired, 6.6);
         });
         test.it('rejects a locked target and adjustments when no other allocation is unlocked', () => {
             const {game, star} = fixture();
             game.toggleStarAllocationLock(star, 'growth'); game.toggleStarAllocationLock(star, 'research');
             test.assertFalse(game.adjustStarAllocation(star, 'growth', 10));
             test.assertFalse(game.adjustStarAllocation(star, 'shipBuilding', 10));
-            test.assertEqual(star.shipBuilding.desired, 33);
+            test.assertEqual(star.shipBuilding.desired, 33.3);
         });
         test.it('does not allow an enemy star lock to be changed', () => {
             const {game, star} = fixture(); star.owner = 2;
@@ -247,14 +247,14 @@ module.exports = function() {
             star.growth.desired = 45; star.growth.locked = true;
             game.resetSelectedStarAllocations();
             test.assertEqual(star.growth.desired, 45);
-            test.assertEqual(star.shipBuilding.desired, 28);
-            test.assertEqual(star.research.desired, 27);
+            test.assertEqual(star.shipBuilding.desired, 27.5);
+            test.assertEqual(star.research.desired, 27.5);
         });
         test.it('does not equalize an entirely locked economy', () => {
             const {game, star} = fixture();
             game.getStarAllocationEntries(star).forEach(entry => entry.allocation.setLocked(true));
             test.assertFalse(game.resetSelectedStarAllocations());
-            test.assertEqual(star.growth.desired, 34);
+            test.assertEqual(star.growth.desired, 33.4);
         });
         test.it('routes lock button clicks to the matching allocation', () => {
             const {game, star} = fixture();
