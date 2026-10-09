@@ -72,6 +72,7 @@ class Star {
         // Current production
         this.currentShip = null; // Ship currently being built
         this.paidTowardShipBuilding = 0;
+        this.buildCredits = {};
         this.paidTowardResearch = 0;
         
         // Ships at this star
@@ -163,6 +164,7 @@ class Star {
                 if (this.paidTowardShipBuilding < cost) break;
                 const newShip = this.completeShip();
                 this.paidTowardShipBuilding -= cost;
+                this.buildCredits[newShip.type] = this.paidTowardShipBuilding;
                 this.game.noteworthyEvent(newShip, Common.EventType.SHIP_BUILT, this);
                 let nextType = newShip.type;
                 const computer = this.game.aiManager.getAIPlayer(this.owner);
@@ -306,14 +308,27 @@ class Star {
         return ship;
     }
     
+    pauseShipBuilding() {
+        if (!this.currentShip) return false;
+        const hull = this.currentShip;
+        this.buildCredits[hull.type] = this.paidTowardShipBuilding;
+        this.shipDeparted(hull);
+        this.game.entityRemoved(hull);
+        this.currentShip = null;
+        this.paidTowardShipBuilding = 0;
+        return true;
+    }
+
     startBuildingShip(shipType) {
-        if (!this.currentShip) {
-            this.currentShip = this.game.factory.createShip(this.x, this.y, shipType, this);
-            this.ships.push(this.currentShip);
-            console.log(`🚀 SHIP CONSTRUCTION STARTED: ${shipType} at ${this.name} (owner: ${this.owner}) - Ship ID: ${this.currentShip.id}, Progress: ${this.currentShip.progress}%`);
-        } else {
-            console.log(`⚠️  SHIP CONSTRUCTION ALREADY IN PROGRESS: ${this.currentShip.type} at ${this.name} - Progress: ${this.currentShip.progress}%`);
-        }
+        if (!['scout', 'defense', 'colony', 'battleship'].includes(shipType)) return false;
+        if (this.currentShip && this.currentShip.type === shipType) return false;
+        if (this.currentShip) this.pauseShipBuilding();
+        this.paidTowardShipBuilding = this.buildCredits[shipType] || 0;
+        this.currentShip = this.game.factory.createShip(this.x, this.y, shipType, this);
+        this.ships.push(this.currentShip);
+        const cost = this.game.rules.getShipBuildCost(this.currentShip, this);
+        this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / cost * 100);
+        return true;
     }
 
     shipDeparted(ship) {

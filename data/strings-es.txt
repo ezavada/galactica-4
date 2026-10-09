@@ -248,3 +248,4 @@
 675	Desbloquear
 676	Equilibrar
 677	Continua
+678	Pausar

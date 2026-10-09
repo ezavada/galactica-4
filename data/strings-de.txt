@@ -248,3 +248,4 @@
 675	Entsperren
 676	Ausgleichen
 677	Fortlaufend
+678	Baupause

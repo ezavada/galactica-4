@@ -43,9 +43,43 @@ module.exports = function() {
             game.rules.getShipBuildCost = () => 1;
             game.rules.getStarResearchAmount = () => 0;
             star.startBuildingShip('scout'); star.update();
-            test.assertEqual(choices, 2);
+            test.assertEqual(choices, 1);
             test.assertEqual(star.currentShip.type, 'defense');
-            test.assertApproximately(star.currentShip.progress, 50, .001);
+            test.assertEqual(star.currentShip.progress, 0);
+            test.assertApproximately(star.buildCredits.scout, 1.5, .001);
+        });
+    });
+    test.describe('Hull switching and construction credit', () => {
+        test.it('preserves per-hull effort while removing superseded unfinished hulls', () => {
+            const {game, star} = fixture(); star.techLevel = 1;
+            game.rules.getShipBuildCost = () => 10;
+            star.startBuildingShip('scout'); const old = star.currentShip;
+            star.paidTowardShipBuilding = 8;
+            star.startBuildingShip('battleship');
+            test.assertFalse(game.allShips.includes(old));
+            test.assertFalse(star.ships.includes(old));
+            test.assertEqual(star.paidTowardShipBuilding, 0);
+            star.paidTowardShipBuilding = 3;
+            star.startBuildingShip('scout');
+            test.assertEqual(star.paidTowardShipBuilding, 8);
+            test.assertEqual(star.currentShip.progress, 80);
+            test.assertEqual(star.buildCredits.battleship, 3);
+            test.assertEqual(game.allShips.length, 1);
+        });
+        test.it('pauses and resumes construction without losing paid effort', () => {
+            const {game, star} = fixture(); star.startBuildingShip('colony');
+            star.paidTowardShipBuilding = 2;
+            test.assertTrue(game.executeUIAction({type:'pauseBuild',object:star}));
+            test.assertNull(star.currentShip);
+            star.startBuildingShip('colony');
+            test.assertEqual(star.paidTowardShipBuilding, 2);
+        });
+        test.it('does not restart the selected hull or accept an unknown hull', () => {
+            const {star} = fixture(); star.startBuildingShip('colony');
+            const hull = star.currentShip;
+            test.assertFalse(star.startBuildingShip('colony'));
+            test.assertFalse(star.startBuildingShip('invalid'));
+            test.assertTrue(star.currentShip === hull);
         });
     });
     test.describe('Production locks', () => {

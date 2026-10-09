@@ -248,3 +248,4 @@
 675	Unlock
 676	Equalize
 677	Continuous
+678	Pause build

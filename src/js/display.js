@@ -1275,6 +1275,7 @@ class Display {
         const actions = [];
 
         if (objectType === Common.ObjectType.STAR && this.game.canHumanControl(object)) {
+            if (object.currentShip) actions.push({ key: 'X', label: I18n.getString(678, 'Pause build'), action: { type: 'pauseBuild' } });
             actions.push(
                 { key: 'S', label: this.STR.scoutName, action: { type: 'buildShip', shipType: 'scout' } },
                 { key: 'D', label: this.STR.defenseName, action: { type: 'buildShip', shipType: 'defense' } },
@@ -1405,7 +1406,9 @@ class Display {
             this.port.drawLine(new pdg.Point(start.x, start.y), new pdg.Point(end.x, end.y), this.styles.connector);
         }
         for (const button of buttons) {
-            this.drawUIButton(button.rect, button.label, button.key, { size: 10, radius: 14 });
+            this.drawUIButton(button.rect, button.label, button.key, { size: 10, radius: 14,
+                active: button.action.type === 'buildShip' && !!object.currentShip &&
+                    object.currentShip.type === button.action.shipType });
         }
     }
 

@@ -1381,6 +1381,9 @@ class Game {
                     this.display.zoomToFit();
                 }
                 return true;
+            case 'pauseBuild':
+                return !!action.object && this.canHumanControl(action.object) &&
+                    this.getObjectType(action.object) === Common.ObjectType.STAR && action.object.pauseShipBuilding();
             case 'buildShip':
                 if (action.object && this.getObjectType(action.object) === Common.ObjectType.STAR) {
                     this.setSelectedObject(action.object);
@@ -1802,6 +1805,9 @@ class Game {
         }
         
         switch (String.fromCharCode(key)) {
+            case 'x':
+                star.pauseShipBuilding();
+                return true;
             case 's':
                 star.startBuildingShip('scout');
                 break;
