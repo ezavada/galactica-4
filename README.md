@@ -4,7 +4,7 @@ A space exploration and empire game built in JavaScript using the PDG game engin
 
 The port is actively moving toward Galactica v3 parity, but it is not feature-complete yet. See [V3 to V4 Feature Status](docs/V3_V4_FEATURE_STATUS.md) for the current parity inventory.
 
-The game pins the public PDG `v1.0.0` runtime. API documentation and examples
+The game pins the public PDG `v1.2.0` runtime. API documentation and examples
 are available in the [public PDG repository](https://github.com/ezavada/pdg).
 
 The original C++ Galactica v3 source is in `../galactica-anno-dominari-3/Classes`.
@@ -12,7 +12,7 @@ The original C++ Galactica v3 source is in `../galactica-anno-dominari-3/Classes
 ## Running the Game
 
 ```bash
-# macOS (Apple silicon): downloads and verifies PDG v1.0.0 on first run
+# macOS (Apple silicon): downloads and verifies PDG v1.2.0 on first run
 ./gad4
 
 # Run in a different language
