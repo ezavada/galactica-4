@@ -751,8 +751,18 @@ class Display {
             }
         }
 
+        if (selected && zoom >= 1 && !ship.underConstruction()) {
+            const viewer = this.game.getCurrentHumanPlayer() || 1;
+            if (this.game.config.omniscient || this.game.isOwnerAlliedWith(viewer, ship.owner)
+                    || ship.getVisibilityTo(viewer) >= Common.VisibilityLevel.CLASS) {
+                const health = Math.max(0, Math.min(100, 100 - ship.getDamagePercent()));
+                this.drawBar(x - 20, y - 14, 40, 4, health / 100, 'green');
+            }
+        }
+
         // Draw destination line (convert destination to screen coordinates)
-        if (ship.destination) {
+        if (ship.destination && (this.game.config.omniscient ||
+                this.game.isOwnerAlliedWith(this.game.getCurrentHumanPlayer() || 1, ship.owner))) {
             const destX = this.toScreenX(ship.destination.x);
             const destY = this.toScreenY(ship.destination.y);
             this.port.drawLine(new pdg.Point(x, y), new pdg.Point(destX, destY), this.styles.shipDestinationLine);
@@ -1458,7 +1468,7 @@ class Display {
             return this.getStarDetailsLayout(object).rect;
         }
         if (objectType === Common.ObjectType.SHIP) {
-            return this.getAnchoredPanelRect(object, 240, object.underConstruction() ? 138 : 150);
+            return this.getShipDetailsRect(object);
         }
         if (objectType === Common.ObjectType.FLEET) {
             return this.getFleetDetailsLayout(object).rect;
@@ -2086,32 +2096,96 @@ class Display {
         this.drawContextButtonArc(star, rect);
     }
     
-    // Draw ship details UI
+    getShipDetailsRect(ship) {
+        return ship.underConstruction() ? this.getAnchoredPanelRect(ship, 240, 138)
+            : this.getAnchoredPanelRect(ship, 350, 292);
+    }
+
+    getShipDiagnostics(ship) {
+        const viewer = this.game.getCurrentHumanPlayer() || 1;
+        const full = !!this.game.config.omniscient || this.game.isOwnerAlliedWith(viewer, ship.owner);
+        const visibility = full ? Common.VisibilityLevel.DETAILS : ship.getVisibilityTo(viewer);
+        const techVisible = visibility >= Common.VisibilityLevel.TECH;
+        const classVisible = visibility >= Common.VisibilityLevel.CLASS;
+        const detailsVisible = visibility >= Common.VisibilityLevel.DETAILS;
+        const names = I18n.getString(800, '').split('|');
+        const classIndex = ship.classIndex || Math.floor(ship.techLevel / 5) + 1;
+        const damagePercent = Math.max(0, Math.min(100, ship.getDamagePercent()));
+        let status = I18n.getString(705, 'Idle');
+        if (ship.fleet) status = I18n.getString(707, 'In fleet');
+        else if (ship.isOnPatrol()) status = I18n.getString(703, 'Patrolling');
+        else if (ship.destination) status = I18n.getString(704, 'Travelling');
+        else if (ship.star || ship.fleet) status = I18n.getString(702, 'Docked');
+        const position = ship.fleet || ship;
+        const coordinates = I18n.formatString(656, '({0}, {1})', Math.round(position.x / 1024), Math.round(position.y / 1024));
+        return {
+            title: classVisible ? this.game.getObjectDisplayName(ship).replace(/\t/g, ' · ') : this.STR.ship,
+            hull: classVisible ? this.getShipTypeName(ship.type, { capitalized: true }) : '?',
+            driveClass: classVisible ? (ship.type === 'battleship' ? names[classIndex - 1] || '-' : '-') : '?',
+            owner: techVisible ? String(ship.owner) : '?',
+            tech: techVisible ? String(Math.trunc(ship.techLevel)) : '?',
+            speed: visibility >= Common.VisibilityLevel.SPEED ? (ship.speed ? I18n.formatDecimal(ship.speed / 16380) : '-') : '?',
+            power: classVisible ? String(Math.trunc(ship.power)) : '?',
+            damage: classVisible ? damagePercent + '%' : '?',
+            health: classVisible ? (100 - damagePercent) + '%' : '?',
+            healthRatio: classVisible ? (100 - damagePercent) / 100 : null,
+            scanner: detailsVisible ? I18n.formatString(706, '{0} light-years', I18n.formatDecimal(ship.getScannerRange() / 65536, 2)) : '?',
+            status: detailsVisible ? status : '?',
+            location: detailsVisible && (ship.star || ship.fleet) ? this.game.getObjectDisplayName(ship.fleet || ship.star)
+                : visibility >= Common.VisibilityLevel.SPEED ? coordinates : '?',
+            destination: full ? (position.destination ? this.game.getObjectDisplayName(position.destination) : this.STR.none) : '?'
+        };
+    }
+
+    fitShipDiagnosticText(text, width, size = 11) {
+        const chars = Array.from(String(text));
+        if (this.port.getTextWidth(chars.join(''), size) <= width) return chars.join('');
+        while (chars.length && this.port.getTextWidth(chars.join('') + '…', size) > width) chars.pop();
+        return chars.join('') + '…';
+    }
+
+    // Text retains its native ElementRefs while the selected ship changes.
     drawShipDetails(ship) {
         const construction = ship.underConstruction();
-        const rect = this.getAnchoredPanelRect(ship, 240, construction ? 138 : 150);
+        const rect = this.getShipDetailsRect(ship);
         let panel = this.shipPanels.get(construction);
         if (!panel) {
             panel = new RetainedPanel(this, rect.width);
             this.shipPanels.set(construction, panel);
         }
-        panel.text('title', `${this.getShipTypeName(ship.type)} ${construction ? this.STR.shipHull : this.STR.ship}`, 16, 22, 'lightgray', 14);
-        panel.labelValue('owner', this.STR.owner, ship.owner, 47, { size: 11 });
-        panel.labelValue('tech', this.STR.techLevel, ship.techLevel.toFixed(1), 65);
         if (construction) {
+            panel.text('title', `${this.getShipTypeName(ship.type)} ${this.STR.shipHull}`, 16, 22, 'lightgray', 14);
+            panel.labelValue('owner', this.STR.owner, ship.owner, 47, { size: 11 });
+            panel.labelValue('tech', this.STR.techLevel, I18n.formatDecimal(ship.techLevel), 65);
             panel.text('construction', this.STR.underConstruction, 12, 83, 'labelgray');
-            panel.text('progress', `${Math.round(ship.progress)}%`, rect.width - 14, 83, 'lightgray', 11, pdg.textStyle_RightJustified);
+            panel.text('progress', `${Math.floor(ship.progress)}%`, rect.width - 14, 83, 'lightgray', 11, pdg.textStyle_RightJustified);
             panel.labelValue('eta', I18n.getString(679, 'ETA:'), this.formatConstructionETA(ship.star), 101, { size: 11 });
         } else {
-            panel.labelValue('speed', this.STR.speed, (ship.speed / 16380.0).toFixed(1), 83);
-            panel.labelValue('power', this.STR.power, this.game.rules.getShipPower(ship).toFixed(1), 101);
-            panel.labelValue('damage', this.STR.damage, ship.damage ? ship.damage.toString() : this.STR.none, 119, { size: 11, valueColor: 'gray' });
+            const data = this.getShipDiagnostics(ship);
+            const rows = [
+                ['hull', I18n.getString(701, 'Hull:'), 47],
+                ['driveClass', I18n.getString(697, 'Class:'), 65],
+                ['owner', this.STR.owner, 83], ['tech', this.STR.techLevel, 101],
+                ['speed', this.STR.speed, 119], ['power', this.STR.power, 137],
+                ['damage', this.STR.damage, 155], ['health', I18n.getString(698, 'Health:'), 173],
+                ['scanner', I18n.getString(696, 'Scanner range:'), 209],
+                ['status', I18n.getString(699, 'Status:'), 227],
+                ['location', I18n.getString(700, 'Location:'), 245],
+                ['destination', I18n.getString(595, 'Destination:'), 263]
+            ];
+            const labelWidth = Math.max(117, ...rows.map(row => Math.ceil(this.port.getTextWidth(row[1], 11)) + 12));
+            const width = rect.width - labelWidth - 21;
+            panel.text('title', this.fitShipDiagnosticText(data.title, rect.width - 32, 14), 16, 22, 'lightgray', 14);
+            rows.forEach(([id, label, y]) => panel.labelValue(id, label, this.fitShipDiagnosticText(data[id], width), y, { size: 11, labelWidth }));
+            this.drawPanelPointer(ship, rect);
+            panel.draw(rect);
+            if (data.healthRatio !== null) this.drawBar(rect.x + labelWidth + 5, rect.y + 181, width, 8, data.healthRatio, 'green');
+            this.drawContextButtonArc(ship, rect);
+            return;
         }
         this.drawPanelPointer(ship, rect);
         panel.draw(rect);
-        if (construction) {
-            this.drawBar(rect.x + rect.width - 130, rect.y + 75, 70, 8, ship.progress / 100.0, 'lightgray');
-        }
+        this.drawBar(rect.x + rect.width - 130, rect.y + 75, 70, 8, ship.progress / 100, 'lightgray');
         this.drawContextButtonArc(ship, rect);
     }
 

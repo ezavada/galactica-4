@@ -103,6 +103,11 @@ class Ship {
         return this.type === 'scout' ? 0 : this.techLevel;
     }
     
+    // v3 diagnostics use integer damage percent; scouts have zero power.
+    getDamagePercent() {
+        return this.power ? Math.trunc(this.damage / this.power) : 0;
+    }
+
     // Combat methods - ported from CShip.cpp
     getAttackStrength() {
         return this.power * 50;

@@ -272,3 +272,17 @@
 693	Réglages des nouvelles colonies
 694	S’applique aux futures colonies
 695	,
+
+# Ship diagnostics
+696	Portée du scanner :
+697	Classe :
+698	Intégrité :
+699	État :
+700	Position :
+701	Type de vaisseau :
+702	À quai
+703	En patrouille
+704	En route
+705	Inactif
+706	{0} années-lumière
+707	Dans une flotte

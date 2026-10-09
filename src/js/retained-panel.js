@@ -40,8 +40,9 @@ class RetainedPanel {
 
     labelValue(id, label, value, y, options = {}) {
         const size = options.size || 12;
-        this.text(id + '-label', label, 117, y, 'labelgray', size, pdg.textStyle_RightJustified);
-        this.text(id, value, 122, y, options.valueColor || 'lightgray', size);
+        const labelWidth = options.labelWidth || 117;
+        this.text(id + '-label', label, labelWidth, y, 'labelgray', size, pdg.textStyle_RightJustified);
+        this.text(id, value, labelWidth + 5, y, options.valueColor || 'lightgray', size);
     }
 
     draw(rect) {

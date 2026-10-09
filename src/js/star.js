@@ -280,10 +280,10 @@ class Star {
                     this.game.noteworthyEvent(ship, Common.EventType.NEW_SHIP_CLASS, classIndex);
                 }
             } else {
-                ship.name = `${ship.type} S${this.id}T${this.game.turn}-${ship.id}`;
+                ship.name = `${I18n.getShipTypeName(ship.type, { capitalized: true })} S${this.id}T${this.game.turn}-${ship.id}`;
             }
         } catch (err) {
-            ship.name = `${ship.type} S${this.id}T${this.game.turn}-${ship.id}`;
+            ship.name = `${I18n.getShipTypeName(ship.type, { capitalized: true })} S${this.id}T${this.game.turn}-${ship.id}`;
         }
 
         if (ship.type === 'defense') {

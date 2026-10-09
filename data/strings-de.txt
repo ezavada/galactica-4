@@ -272,3 +272,17 @@
 693	Standardwerte für neue Kolonien
 694	Gilt für zukünftige Kolonien
 695	,
+
+# Ship diagnostics
+696	Scanreichweite:
+697	Klasse:
+698	Zustand:
+699	Status:
+700	Position:
+701	Schiffstyp:
+702	Angedockt
+703	Auf Patrouille
+704	Unterwegs
+705	Untätig
+706	{0} Lichtjahre
+707	In Flotte

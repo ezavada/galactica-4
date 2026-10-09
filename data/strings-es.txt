@@ -272,3 +272,17 @@
 693	Valores de nuevas colonias
 694	Se aplica a futuras colonias
 695	,
+
+# Ship diagnostics
+696	Alcance del escáner:
+697	Clase:
+698	Integridad:
+699	Estado:
+700	Ubicación:
+701	Tipo de nave:
+702	Atracada
+703	Patrullando
+704	En tránsito
+705	Inactiva
+706	{0} años luz
+707	En flota

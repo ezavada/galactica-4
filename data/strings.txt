@@ -272,3 +272,17 @@
 693	New colony defaults
 694	Applies to future colonies
 695	.
+
+# Ship diagnostics
+696	Scanner range:
+697	Class:
+698	Health:
+699	Status:
+700	Location:
+701	Hull:
+702	Docked
+703	Patrolling
+704	Travelling
+705	Idle
+706	{0} light-years
+707	In fleet
