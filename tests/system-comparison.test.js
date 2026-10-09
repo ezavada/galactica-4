@@ -80,9 +80,9 @@ module.exports = function() {
         test.it('excludes enemies, includes allies, and includes all owners at a neutral star',()=>{
             const {game,star}=fixture();const enemy=shipAt(game,star,'battleship',2);
             test.assertEqual(star.getDefenseBreakdown().shipDefense,0);
-            const original=game.players[1].isAllyOf;game.players[1].isAllyOf=owner=>owner===2;
+            const original=game.players[2].isAllyOf;game.players[2].isAllyOf=owner=>owner===1;
             test.assertEqual(star.getDefenseBreakdown().shipDefense,enemy.getDefenseStrength());
-            game.players[1].isAllyOf=original;star.owner=0;
+            game.players[2].isAllyOf=original;star.owner=0;
             test.assertEqual(star.getDefenseBreakdown().shipDefense,enemy.getDefenseStrength());
         });
         test.it('sorts every column in both directions with stable IDs on ties',()=>{

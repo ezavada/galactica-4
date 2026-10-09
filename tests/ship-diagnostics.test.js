@@ -44,13 +44,13 @@ module.exports=function() {
         });
         test.it('identifies fleet membership and displays the fleet location and destination',()=>{
             const {game,star,ship,display}=fixture();const fleet=game.factory.createFleet(star.x,star.y,1,'Guard');
-            fleet.addShip(ship);fleet.destination=game.factory.createStar(50000,60000,'Fleet target');
+            fleet.addShip(ship);fleet.destination=game.factory.createStar(50000,60000,'Fleet target');fleet.destination.setVisibilityTo(1,Common.VisibilityLevel.CLASS);
             const data=display.getShipDiagnostics(ship);test.assertEqual(data.status,'In fleet');
             test.assertEqual(data.location,'Guard');test.assertEqual(data.destination,'Fleet target');
         });
         test.it('reports scanner range in light-years and the current destination',()=>{
             const {game,ship,display}=fixture('scout');ship.setScannerRange(65536);
-            ship.destination=game.factory.createStar(30000,40000,'Target');const data=display.getShipDiagnostics(ship);
+            ship.destination=game.factory.createStar(30000,40000,'Target');ship.destination.setVisibilityTo(1,Common.VisibilityLevel.CLASS);const data=display.getShipDiagnostics(ship);
             test.assertEqual(data.scanner,'1.00 light-years');test.assertEqual(data.destination,'Target');
         });
         test.it('hides enemy fields until their v3 visibility thresholds are met',()=>{

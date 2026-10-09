@@ -33,6 +33,11 @@ function formatDecimal(value, digits = 1) {
     return Number(value).toFixed(digits).replace('.',getString(695,'.'));
 }
 
+function formatInteger(value) {
+    const separator = getString(720, ',');
+    return String(Math.trunc(value)).replace(/\B(?=(\d{3})+(?!\d))/g, separator);
+}
+
 function formatPercentage(value) {
     const units = Math.round(value*10);
     return units%10 ? formatDecimal(units/10) : String(units/10);
@@ -67,6 +72,7 @@ module.exports = {
     formatString,
     formatPluralString,
     formatDecimal,
+    formatInteger,
     formatPercentage,
     getShipTypeName,
     getEventWhyName

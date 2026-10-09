@@ -300,3 +300,11 @@
 717	Defense|Ships
 718	Double-click a system, or select it and press Enter
 719	No owned systems
+
+# System diagnostics and integer grouping
+720	,
+721	Position:
+722	Total defense:
+723	Satellites:
+724	Ship defense:
+725	S-{0}

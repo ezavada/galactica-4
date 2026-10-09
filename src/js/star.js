@@ -491,7 +491,7 @@ class Star {
 
     getDefenseBreakdown() {
         const allied = ship => !this.owner || ship.owner === this.owner ||
-            (this.game && this.game.isOwnerAlliedWith && this.game.isOwnerAlliedWith(ship.owner, this.owner));
+            (typeof ship.isAllyOf === 'function' && ship.isAllyOf(this.owner));
         const completed = ship => !ship.underConstruction || !ship.underConstruction();
         const docked = ship => ship.star === this && !ship.destination;
         const satellites = new Set(this.defenseSatellites.filter(ship => !ship.fleet && completed(ship) &&

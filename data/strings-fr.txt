@@ -300,3 +300,11 @@
 717	Défense|Vaisseaux
 718	Double-cliquez sur un système, ou sélectionnez-le et appuyez sur Entrée
 719	Aucun système possédé
+
+# System diagnostics and integer grouping
+720	 
+721	Position :
+722	Défense totale :
+723	Satellites :
+724	Défense navale :
+725	S-{0}

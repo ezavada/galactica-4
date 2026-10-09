@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 256 IDs
-- localized files: 256 IDs each
+- `strings.txt`: 262 IDs
+- localized files: 262 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -82,7 +82,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 498 passed, 0 failed.
+Current expected full-suite result: 513 passed, 0 failed.
 
 ## Future work
 
@@ -91,3 +91,5 @@ Current expected full-suite result: 498 passed, 0 failed.
 - Add tutorial/help, save/load, multiplayer, and richer event/result text resources when those v3 systems are ported.
 
 The Your Star Systems table adds localized titles, nine column headers, population units, row-opening guidance and the empty state (IDs 708–719). The shared class names in ID 800 remain unchanged. Browser sorting, paging and row navigation were verified in every supported language.
+
+System diagnostics adds IDs 720–725 for locale-specific integer grouping, coordinates, defense labels and unidentified system designations. English/Japanese use commas, German/Spanish periods, French narrow nonbreaking spaces and Russian nonbreaking spaces. Light-year coordinates retain two decimal places with each language’s decimal separator. All six browser layouts and native numeric resources were verified.

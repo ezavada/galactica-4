@@ -671,7 +671,14 @@ class Display {
                 textSize: star.namedStar ? 11 : 10,
                 textStyle: pdg.textStyle_Centered
             });
-            this.port.drawText(`${star.name}`, new pdg.Point(screenX, screenY + scaledRadius + 12), textAttrs);
+            let nameWidth = 160;
+            if (star === this.game.selectedObject) {
+                const panel = this.getStarDetailsLayout(star).rect;
+                const gap = panel.x > screenX ? panel.x-screenX : screenX-panel.x-panel.width;
+                nameWidth = Math.min(nameWidth,Math.max(24,gap*2-8));
+            }
+            this.port.drawText(this.fitShipDiagnosticText(this.getStarDisplayName(star),nameWidth,star.namedStar?11:10),
+                new pdg.Point(screenX, screenY + scaledRadius + 12), textAttrs);
         }
 
         // Draw selection indicator
@@ -1962,18 +1969,18 @@ class Display {
         };
     }
 
-    drawAllocationSlider(label, allocation, x, y, width, color) {
+    drawAllocationSlider(label, allocation, x, y, width, color, options = {}) {
         const desired = this.game.getAllocationDesired(allocation);
         const current = allocation && allocation.value !== undefined ? allocation.value : desired;
         const rects = this.getAllocationSliderRects(x, y, width);
-        const hovered = this.isHovered(rects.control);
+        const hovered = options.interactive !== false && this.isHovered(rects.control);
         const labelColor = hovered ? 'hovergray' : 'labelgray';
         const valueColor = hovered ? 'hovergray' : 'lightgray';
         this.drawRightTextLine(`${label}:`, rects.track.x - 8, y, labelColor, 11);
         this.drawBar(rects.track.x, rects.track.y, rects.track.width, rects.track.height, desired / 100.0, color);
-        this.drawTextLine(`${I18n.formatPercentage(desired)}%`, rects.percent.x, y, valueColor, 11);
+        this.drawTextLine(options.unknown ? '?' : `${I18n.formatPercentage(desired)}%`, rects.percent.x, y, valueColor, 11);
 
-        this.drawUIButton({ x: rects.track.x + width + 48, y: y - 13, width: 68, height: 18 },
+        if (options.interactive !== false) this.drawUIButton({ x: rects.track.x + width + 48, y: y - 13, width: 68, height: 18 },
             allocation.locked ? I18n.getString(675, 'Unlock') : I18n.getString(674, 'Lock'), null,
             { size: 9, radius: 6, active: allocation.locked });
 
@@ -1988,36 +1995,73 @@ class Display {
         return y + 54;
     }
 
+    formatSpaceCoordinates(point) {
+        return I18n.formatString(656,'({0}, {1})',I18n.formatDecimal(point.x/65536,2),I18n.formatDecimal(point.y/65536,2));
+    }
+
+    getSpacePointDescription(point) {
+        const type = this.game.getObjectType(point);
+        if (type === Common.ObjectType.STAR) return this.getStarDisplayName(point);
+        return type ? this.game.getObjectDisplayName(point) : this.formatSpaceCoordinates(point);
+    }
+
+    getStarDisplayName(star) {
+        const player = this.game.getCurrentHumanPlayer();
+        const visible = this.game.config.omniscient || star.isAllyOf(player) ||
+            star.getVisibilityTo(player) >= Common.VisibilityLevel.CLASS;
+        return visible ? star.name : I18n.formatString(725,'S-{0}',star.id);
+    }
+
+    getStarDiagnostics(star) {
+        const player = this.game.getCurrentHumanPlayer();
+        const allied = this.game.config.omniscient || star.isAllyOf(player);
+        const visibility = star.getVisibilityTo(player);
+        const techVisible = allied || visibility >= Common.VisibilityLevel.TECH;
+        const classVisible = allied || visibility >= Common.VisibilityLevel.CLASS;
+        const detailsVisible = allied || visibility >= Common.VisibilityLevel.DETAILS;
+        const defense = detailsVisible ? star.getDefenseBreakdown() : null;
+        const build = star.currentShip;
+        const names = I18n.getString(800, 'Traveller').split('|');
+        const building = !build ? this.STR.none : build.type === 'battleship'
+            ? names[Math.min(names.length-1, Math.max(0,Math.floor(star.techLevel/5)))]
+            : I18n.getShipTypeName(build.type, {capitalized:true});
+        const destination = allied ? star.getDefaultDestination() : null;
+        return {
+            title: this.getStarDisplayName(star),
+            owner: allied || visibility > Common.VisibilityLevel.NONE ? String(star.owner || this.STR.unclaimed) : '?',
+            population: classVisible ? I18n.formatInteger((star.population || 0)*1000) : '?',
+            tech: techVisible ? String(Math.trunc(star.techLevel)) : '?',
+            position: this.formatSpaceCoordinates(star),
+            building: detailsVisible ? building : '?',
+            completion: allied && build ? Math.trunc(build.progress) : null,
+            eta: allied ? this.formatConstructionETA(star) : null,
+            totalDefense: defense ? I18n.formatInteger(Math.trunc(defense.totalDefense/100)) : '?',
+            satelliteDefense: defense ? I18n.formatInteger(Math.trunc(defense.satelliteDefense/100)) : '?',
+            shipDefense: defense ? I18n.formatInteger(Math.trunc(defense.shipDefense/100)) : '?',
+            production: allied ? I18n.formatInteger(Math.trunc(star.getProduction()/100)) : '?',
+            showProduction: detailsVisible, showDestination: allied, allied,
+            destination: destination ? this.getSpacePointDescription(destination) : this.STR.none
+        };
+    }
+
     getStarDetailsPanelHeight(star) {
-        if (!this.game.canHumanControl(star)) {
-            return this.game.canViewSystemShips(star) ? 160 : 130;
-        }
-        return 322;
+        const data = this.getStarDiagnostics(star);
+        if (this.game.canHumanControl(star)) return 394;
+        if (data.allied) return 364;
+        if (data.showProduction) return 325;
+        return this.game.canViewSystemShips(star) ? 254 : 224;
     }
 
     getStarDetailsLayout(star) {
+        const data = this.getStarDiagnostics(star);
         const rect = this.getAnchoredPanelRect(star, 360, this.getStarDetailsPanelHeight(star));
         const x = rect.x + 12;
-        let y = this.getPanelContentStartY(rect);
-
-        y += 18; // owner
-        y += 18; // population
-        y += 18; // tech
-        y += 18; // current build
-        if (this.game.canHumanControl(star)) y += 18; // construction ETA
-
+        let y = this.getPanelContentStartY(rect) + 8*18;
+        if (data.eta !== null) y += 18;
         const dividerY = y - 1;
         const productionTitleY = dividerY + 19;
         const sliderStartY = productionTitleY + 18;
-        return {
-            rect,
-            x,
-            basicStartY: this.getPanelContentStartY(rect),
-            dividerY,
-            productionTitleY,
-            sliderStartY,
-            sliderWidth: 150
-        };
+        return {rect,x,basicStartY:this.getPanelContentStartY(rect),dividerY,productionTitleY,sliderStartY,sliderWidth:150};
     }
 
     getStarAllocationSliderRegions(star) {
@@ -2079,66 +2123,56 @@ class Display {
 
     // Draw star details UI
     drawStarDetails(star) {
-        const owned = this.game.canHumanControl(star);
-        const layout = this.getStarDetailsLayout(star);
-        const rect = layout.rect;
-        this.drawAnchoredPanel(star, rect, star.name);
-
+        const owned = this.game.canHumanControl(star), data = this.getStarDiagnostics(star);
+        const layout = this.getStarDetailsLayout(star), rect = layout.rect, x = layout.x;
+        this.drawAnchoredPanel(star, rect, this.fitShipDiagnosticText(data.title,rect.width-32,14));
         let y = layout.basicStartY;
-        const x = layout.x;
-        this.drawLabelValue(this.STR.owner, `${star.owner || this.STR.unclaimed}`, x, y, { labelWidth: 70, valueColor: star.owner ? 'lightgray' : 'gray' });
-        y += 18;
-        this.drawLabelValue(this.STR.pop, this.formatPopulation(star), x, y, { labelWidth: 70 });
-        y += 18;
-        this.drawLabelValue(this.STR.tech, star.techLevel.toFixed(1), x, y, { labelWidth: 70 });
-        y += 18;
-
-        const buildingType = star.currentShip ? this.getShipTypeName(star.currentShip.type) : this.STR.none;
-        this.drawLabelValue(this.STR.building, buildingType, x, y, { labelWidth: 70 });
-        if (star.currentShip) {
-            const progressTextRight = rect.x + rect.width - 25;
-            const progressTextWidth = 40;
-            const progressBarWidth = 72;
-            const progressBarX = progressTextRight - progressTextWidth + 11 - progressBarWidth;
-            this.drawBar(progressBarX, y - 8, progressBarWidth, 8, star.currentShip.progress / 100.0, 'lightgray');
-            this.drawRightTextLine(`${Math.floor(star.currentShip.progress)}%`, progressTextRight, y, 'lightgray', 11);
+        const labels = [this.STR.owner,this.STR.pop,this.STR.tech,this.STR.building,
+            I18n.getString(721,'Position:'),I18n.getString(722,'Total defense:'),
+            I18n.getString(723,'Satellites:'),I18n.getString(724,'Ship defense:')];
+        const values = [data.owner,data.population,data.tech,data.building,data.position,
+            data.totalDefense,data.satelliteDefense,data.shipDefense];
+        const labelWidth = Math.max(70,...labels.map(label=>this.port.getTextWidth(label,11)+8));
+        labels.forEach((label,index) => {
+            let valueWidth = rect.width-labelWidth-24;
+            if (index===3 && data.completion!==null) valueWidth -= 105;
+            this.drawLabelValue(label,this.fitShipDiagnosticText(values[index],valueWidth,11),x,y,{labelWidth,size:11});
+            if (index===3 && data.completion!==null) {
+                const right = rect.x+rect.width-25;
+                this.drawBar(right-101,y-8,72,8,star.currentShip.progress/100,'lightgray');
+                this.drawRightTextLine(`${data.completion}%`,right,y,'lightgray',11);
+            }
+            y += 18;
+        });
+        if (data.eta!==null) this.drawLabelValue(I18n.getString(679,'ETA:'),data.eta,x,y,{labelWidth,size:11});
+        if (data.showProduction) {
+            this.drawDivider(x,layout.dividerY,rect.width-24);
+            this.drawTextLine(this.STR.production,x,layout.productionTitleY,'lightgray',12);
+            this.drawRightTextLine(data.production,rect.x+rect.width-16,layout.productionTitleY,'lightgray',11);
+            if (data.completion!==null) this.drawTextLine(I18n.getString(677,'Continuous'),x+120,layout.productionTitleY,'gray',10);
+            if (owned) this.drawStarAllocationSummary(star,x,layout.sliderStartY,layout.sliderWidth);
+            else {
+                const entries = [this.STR.growth,this.STR.ships.replace(/:$/,''),this.STR.research];
+                ['growth','shipBuilding','research'].forEach((key,index)=>this.drawAllocationSlider(entries[index],
+                    data.allied?star[key]:{value:0,desired:0,locked:false},x,layout.sliderStartY+index*18,layout.sliderWidth,
+                    ['green','cyan','purple'][index],{interactive:false,unknown:!data.allied}));
+            }
         }
-        y += 18;
-
         const shipButton = this.getSystemShipButtonRegion();
         if (shipButton) this.drawUIButton(shipButton.rect,shipButton.label,null,{size:10});
-
-        if (!owned) {
-            this.drawContextButtonArc(star, rect);
-            return;
+        const equalize = this.getAllocationEqualizeRegions().find(region=>!region.key);
+        if (owned && equalize) this.drawUIButton(equalize.rect,I18n.getString(676,'Equalize'),null,{size:10});
+        if (data.showDestination) {
+            const label = I18n.getString(684,'Send to:');
+            const width = Math.max(86,this.port.getTextWidth(label,11)+8);
+            this.drawLabelValue(label,this.fitShipDiagnosticText(data.destination,rect.width-width-24),x,rect.y+rect.height-45,
+                {labelWidth:width,size:11});
         }
-
-        this.drawLabelValue(I18n.getString(679, 'ETA:'), this.formatConstructionETA(star), x, y, { labelWidth: 70 });
-        this.drawDivider(x, layout.dividerY, rect.width - 24);
-        this.drawTextLine(this.STR.production, x, layout.productionTitleY, 'lightgray', 12);
-        if (star.currentShip) this.drawTextLine(I18n.getString(677, 'Continuous'), x + 120,
-            layout.productionTitleY, 'gray', 10);
-        this.drawStarAllocationSummary(star, x, layout.sliderStartY, layout.sliderWidth);
-        const equalize = this.getAllocationEqualizeRegions().find(region => !region.key);
-        if (equalize) this.drawUIButton(equalize.rect, I18n.getString(676, 'Equalize'), null, { size: 10 });
-        const destination = star.getDefaultDestination();
-        const destinationType = this.game.getObjectType(destination);
-        let destinationText = this.STR.none;
-        if (destination) destinationText = destinationType ? this.game.getObjectDisplayName(destination) :
-            `(${Math.round(destination.x / 1024)}, ${Math.round(destination.y / 1024)})`;
-        const destinationLabel = I18n.getString(684, 'Send to:');
-        const textWidth = text => this.port.getTextWidth ? this.port.getTextWidth(text, 11) : Array.from(text).length * 7;
-        const destinationLabelWidth = Math.max(86, textWidth(destinationLabel) + 8);
-        // Fit long system names in the available space without covering controls.
-        while (Array.from(destinationText).length > 1 && textWidth(destinationText) > rect.width - destinationLabelWidth - 24)
-            destinationText = Array.from(destinationText).slice(0, -2).join('') + '…';
-        this.drawLabelValue(destinationLabel, destinationText, x, rect.y + rect.height - 45,
-            { labelWidth: destinationLabelWidth, size: 11 });
-        this.getDefaultDestinationRegions().forEach(region => this.drawUIButton(region.rect, region.label, null,
-            { size: 10, active: region.action.type === 'beginOrders' && this.game.pendingMapOrderObject === star }));
-        this.drawContextButtonArc(star, rect);
+        this.getDefaultDestinationRegions().forEach(region=>this.drawUIButton(region.rect,region.label,null,
+            {size:10,active:region.action.type==='beginOrders' && this.game.pendingMapOrderObject===star}));
+        this.drawContextButtonArc(star,rect);
     }
-    
+
     getShipDetailsRect(ship) {
         return ship.underConstruction() ? this.getAnchoredPanelRect(ship, 240, 138)
             : this.getAnchoredPanelRect(ship, 350, 292);
@@ -2160,7 +2194,7 @@ class Display {
         else if (ship.destination) status = I18n.getString(704, 'Travelling');
         else if (ship.star || ship.fleet) status = I18n.getString(702, 'Docked');
         const position = ship.fleet || ship;
-        const coordinates = I18n.formatString(656, '({0}, {1})', Math.round(position.x / 1024), Math.round(position.y / 1024));
+        const coordinates = this.formatSpaceCoordinates(position);
         return {
             title: classVisible ? this.game.getObjectDisplayName(ship).replace(/\t/g, ' · ') : this.STR.ship,
             hull: classVisible ? this.getShipTypeName(ship.type, { capitalized: true }) : '?',
@@ -2174,9 +2208,9 @@ class Display {
             healthRatio: classVisible ? (100 - damagePercent) / 100 : null,
             scanner: detailsVisible ? I18n.formatString(706, '{0} light-years', I18n.formatDecimal(ship.getScannerRange() / 65536, 2)) : '?',
             status: detailsVisible ? status : '?',
-            location: detailsVisible && (ship.star || ship.fleet) ? this.game.getObjectDisplayName(ship.fleet || ship.star)
+            location: detailsVisible && (ship.star || ship.fleet) ? this.getSpacePointDescription(ship.fleet || ship.star)
                 : visibility >= Common.VisibilityLevel.SPEED ? coordinates : '?',
-            destination: full ? (position.destination ? this.game.getObjectDisplayName(position.destination) : this.STR.none) : '?'
+            destination: full ? (position.destination ? this.getSpacePointDescription(position.destination) : this.STR.none) : '?'
         };
     }
 
@@ -2256,7 +2290,7 @@ class Display {
         }
 
         if (fleet.destination) {
-            const destinationName = this.game.getObjectDisplayName ? this.game.getObjectDisplayName(fleet.destination) : `(${Math.round(fleet.destination.x/1024)}, ${Math.round(fleet.destination.y/1024)})`;
+            const destinationName = this.getSpacePointDescription(fleet.destination);
             this.drawLabelValue(this.STR.movingTo, destinationName, x, y, { labelWidth: 92, size: 11, valueColor: 'gray' });
             y += 18;
         }
@@ -2306,7 +2340,7 @@ class Display {
         let y = this.getPanelContentStartY(rect);
         this.drawLabelValue(this.STR.owner, `${rendezvous.owner}`, x, y, { labelWidth: 100, size: 11 });
         y += 18;
-        this.drawLabelValue(this.STR.location, `(${Math.round(rendezvous.x / 1024)}, ${Math.round(rendezvous.y / 1024)})`, x, y, { labelWidth: 100, size: 11 });
+        this.drawLabelValue(this.STR.location, this.formatSpaceCoordinates(rendezvous), x, y, { labelWidth: 100, size: 11 });
         y += 18;
         this.drawLabelValue(this.STR.assembling, fleet ? this.game.getObjectDisplayName(fleet) : this.STR.noFleet, x, y, { labelWidth: 100, size: 11, valueColor: fleet ? 'lightgray' : 'gray' });
         y += 18;
@@ -2513,7 +2547,7 @@ class Display {
     drawSystemShipWindow() {
         const layout = this.getSystemShipWindowLayout(), rect = layout.rect;
         const star = this.game.systemShipWindowStar;
-        this.drawWindowPanel(rect,I18n.formatString(687,'Ships at {0}',star ? star.name : this.STR.none));
+        this.drawWindowPanel(rect,I18n.formatString(687,'Ships at {0}',star ? this.getStarDiagnostics(star).title : this.STR.none));
         const sort = this.game.systemShipSort;
         layout.columns.forEach(column => this.drawUIButton({x:rect.x+column.offset,y:rect.y+38,
             width:column.width-4,height:24}, column.label+(sort.key===column.key?(sort.ascending?' ↑':' ↓'):''),null,{size:10}));

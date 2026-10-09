@@ -1316,6 +1316,7 @@ class Game {
         if (!star || this.getObjectType(star) !== Common.ObjectType.STAR) return false;
         if (this.config.omniscient || this.canHumanControl(star)) return true;
         const player = this.getCurrentHumanPlayer();
+        if (star.isAllyOf(player)) return true;
         if (star.getVisibilityTo(player) >= Common.VisibilityLevel.DETAILS) return true;
         return !star.owner && this.allShips.some(ship => ship.star === star && this.canHumanControl(ship) &&
             !ship.underConstruction());

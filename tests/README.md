@@ -6,7 +6,7 @@ Run the full suite from the project root with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 498 passed, 0 failed.
+Current expected result: 513 passed, 0 failed.
 
 The launcher downloads the checksum-pinned public PDG release on first use;
 no sibling `pdg` or `pdg-devel` checkout is required.
@@ -38,6 +38,8 @@ no sibling `pdg` or `pdg-devel` checkout is required.
 - PDG v1.2 camera, retained panel text, and selection scripts
 
 - `system-comparison.test.js`: owned-system filtering, v3 production/defense arithmetic, fleet/satellite minimums, all-column sorting, paging, stale selection, mouse/keyboard navigation and six-language resources.
+
+- `system-diagnostics.test.js`: information visibility, read-only allied production, live defense values, localized grouped population, light-year coordinates and Unicode panel fitting.
 
 ## Notes
 

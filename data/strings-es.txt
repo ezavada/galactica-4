@@ -300,3 +300,11 @@
 717	Defensa|Naves
 718	Haz doble clic en un sistema o selecciónalo y pulsa Intro
 719	Sin sistemas propios
+
+# System diagnostics and integer grouping
+720	.
+721	Posición:
+722	Defensa total:
+723	Satélites:
+724	Defensa naval:
+725	S-{0}

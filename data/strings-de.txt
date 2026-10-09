@@ -300,3 +300,11 @@
 717	Abwehr|Schiffe
 718	System doppelt anklicken oder auswählen und Eingabetaste drücken
 719	Keine eigenen Systeme
+
+# System diagnostics and integer grouping
+720	.
+721	Position:
+722	Gesamtabwehr:
+723	Satelliten:
+724	Schiffsabwehr:
+725	S-{0}

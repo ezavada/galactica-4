@@ -85,6 +85,7 @@ function createFakePort(width = 800, height = 600) {
         drawLine: () => {},
         drawPolygon: () => {},
         drawCircle: () => {},
+        getTextWidth: (text,size=12) => Array.from(String(text)).length*size/2,
         drawText: () => {}
     };
 }
@@ -519,7 +520,7 @@ module.exports = function runCommandUITests() {
             display.drawStarDetails(star);
 
             const popLabel = drawnText.find(entry => entry.text === 'Pop:');
-            const popValue = drawnText.find(entry => entry.text === '2000');
+            const popValue = drawnText.find(entry => entry.text === '2,000');
             test.assertNotNull(popLabel, 'Pop label should be drawn separately');
             test.assertNotNull(popValue, 'Population value should be drawn separately');
             test.assertEqual(popLabel.color, 'labelgray');
