@@ -1522,6 +1522,50 @@ class Display {
         });
     }
 
+    getSystemShipWindowLayout() {
+        const screen = this.getScreenSize();
+        const width = Math.min(720, screen.width - 40);
+        const pageSize = Math.max(1, Math.min(12, Math.floor((screen.height - 230) / 26)));
+        const rows = this.game.getSystemShipRows();
+        const pages = Math.max(1, Math.ceil(rows.length / pageSize));
+        const page = Math.min(this.game.systemShipPage, pages - 1);
+        const visibleRows = rows.slice(page * pageSize, (page + 1) * pageSize);
+        const rect = this.fitPanelToScreen({x: (screen.width - width)/2, y: 84, width,
+            height: 142 + Math.max(1,visibleRows.length) * 26});
+        const columns = [
+            { key: 'name', label: this.STR.name.replace(/:$/, ''), offset: 14, width: width*.40-14 },
+            { key: 'tech', label: this.STR.tech.replace(/:$/, ''), offset: width*.40, width: width*.14 },
+            { key: 'power', label: this.STR.power.replace(/:$/, ''), offset: width*.54, width: width*.14 },
+            { key: 'damage', label: this.STR.damage.replace(/:$/, ''), offset: width*.68, width: width*.16 },
+            { key: 'speed', label: this.STR.speed.replace(/:$/, ''), offset: width*.84, width: width*.16-14 }
+        ];
+        return { rect, page, pages, pageSize, visibleRows, columns };
+    }
+
+    getSystemShipActionRegions() {
+        if (this.game.uiWindow !== 'systemShips') return [];
+        const layout = this.getSystemShipWindowLayout(), rect = layout.rect;
+        const regions = layout.columns.map(column => ({
+            rect: { x: rect.x+column.offset, y: rect.y+38, width: column.width, height: 24 },
+            action: { type: 'sortSystemShips', key: column.key } }));
+        layout.visibleRows.forEach((row,index) => regions.push({
+            rect: {x: rect.x+14, y: rect.y+68+index*26, width: rect.width-28, height: 24},
+            action: {type:'selectObject',object:row.object,center:true,closeWindow:true} }));
+        if (layout.page > 0) regions.push({rect:{x:rect.x+14,y:rect.y+rect.height-36,width:150,height:24},
+            label:I18n.getString(690,'Previous'), action:{type:'systemShipPage',page:layout.page-1}});
+        if (layout.page < layout.pages-1) regions.push({rect:{x:rect.x+rect.width-164,y:rect.y+rect.height-36,width:150,height:24},
+            label:I18n.getString(691,'Next'), action:{type:'systemShipPage',page:layout.page+1}});
+        return regions;
+    }
+
+    getSystemShipButtonRegion() {
+        const star = this.game.getSelectedStar();
+        if (!this.game.canViewSystemShips(star)) return null;
+        const panel = this.getStarDetailsLayout(star).rect;
+        return {rect:{x:panel.x+184,y:panel.y+panel.height-(this.game.canHumanControl(star)?88:30),width:164,height:22},
+            label:I18n.getString(688,'Ships in system'),action:{type:'showSystemShips',star}};
+    }
+
     getRenameWindowRect() {
         const screen = this.getScreenSize();
         return this.fitPanelToScreen({
@@ -1554,6 +1598,8 @@ class Display {
                 return this.getComparisonWindowRect();
             case 'fleets':
                 return this.getFleetWindowRect();
+            case 'systemShips':
+                return this.getSystemShipWindowLayout().rect;
             case 'rename':
                 return this.getRenameWindowRect();
             default:
@@ -1725,6 +1771,7 @@ class Display {
         const window = this.getActiveWindowRect();
         if (!window || !this.containsPoint(window, x, y)) return null;
         let controls = [];
+        if (this.game.uiWindow === 'systemShips') controls = this.getSystemShipActionRegions();
         if (this.game.uiWindow === 'rename') controls = this.getRenameActionRegions();
         if (this.game.uiWindow === 'fleets') controls = this.getFleetListActionRegions();
         if (this.game.uiWindow === 'production') {
@@ -1749,6 +1796,8 @@ class Display {
             return contextButton.action;
         }
 
+        const systemShips = this.getSystemShipButtonRegion();
+        if (systemShips && this.containsPoint(systemShips.rect,x,y)) return systemShips.action;
         const destination = this.getDefaultDestinationRegions().find(region => this.containsPoint(region.rect, x, y));
         if (destination) return destination.action;
         const equalize = this.getAllocationEqualizeRegions().find(region => this.containsPoint(region.rect, x, y));
@@ -1821,7 +1870,7 @@ class Display {
 
     getStarDetailsPanelHeight(star) {
         if (!this.game.canHumanControl(star)) {
-            return 130;
+            return this.game.canViewSystemShips(star) ? 160 : 130;
         }
         return 322;
     }
@@ -1935,6 +1984,9 @@ class Display {
             this.drawRightTextLine(`${Math.round(star.currentShip.progress)}%`, progressTextRight, y, 'lightgray', 11);
         }
         y += 18;
+
+        const shipButton = this.getSystemShipButtonRegion();
+        if (shipButton) this.drawUIButton(shipButton.rect,shipButton.label,null,{size:10});
 
         if (!owned) {
             this.drawContextButtonArc(star, rect);
@@ -2226,6 +2278,33 @@ class Display {
         ];
     }
 
+    drawSystemShipWindow() {
+        const layout = this.getSystemShipWindowLayout(), rect = layout.rect;
+        const star = this.game.systemShipWindowStar;
+        this.drawWindowPanel(rect,I18n.formatString(687,'Ships at {0}',star ? star.name : this.STR.none));
+        const sort = this.game.systemShipSort;
+        layout.columns.forEach(column => this.drawUIButton({x:rect.x+column.offset,y:rect.y+38,
+            width:column.width-4,height:24}, column.label+(sort.key===column.key?(sort.ascending?' ↑':' ↓'):''),null,{size:10}));
+        if (!layout.visibleRows.length) this.drawTextLine(I18n.getString(689,'No docked ships'),rect.x+14,rect.y+88,'gray',12);
+        layout.visibleRows.forEach((row,index) => {
+            const rowRect = {x:rect.x+14,y:rect.y+68+index*26,width:rect.width-28,height:24};
+            if (this.isHovered(rowRect)) this.drawRoundedRect(rowRect,4,this.styles.buttonFillHover);
+            const y = rect.y+85+index*26;
+            layout.columns.forEach(column => {
+                let text = column.key==='name' ? (row.member?'  ↳ ':'')+row.name :
+                    (column.key==='damage' ? `${row.damage}` : row[column.key].toFixed(1));
+                while (Array.from(text).length>1 && (this.port.getTextWidth ? this.port.getTextWidth(text,11) : text.length*7)>column.width-8)
+                    text=Array.from(text).slice(0,-2).join('')+'…';
+                this.drawTextLine(text,rect.x+column.offset,y,row.member?'gray':'lightgray',11);
+            });
+            this.drawDivider(rect.x+14,y+7,rect.width-28);
+        });
+        this.drawTextLine(I18n.getString(692,'Click a ship or fleet to inspect it'),rect.x+rect.width/2,
+            rect.y+rect.height-51,'gray',10,pdg.textStyle_Centered);
+        this.getSystemShipActionRegions().filter(region=>region.label).forEach(region=>this.drawUIButton(region.rect,region.label));
+        this.drawTextLine(`${layout.page+1} / ${layout.pages}`,rect.x+rect.width/2,rect.y+rect.height-19,'gray',11,pdg.textStyle_Centered);
+    }
+
     drawRenameWindow() {
         const rect = this.getRenameWindowRect();
         const target = this.game.renameTarget;
@@ -2280,6 +2359,9 @@ class Display {
                 break;
             case 'fleets':
                 this.drawFleetWindow();
+                break;
+            case 'systemShips':
+                this.drawSystemShipWindow();
                 break;
             case 'rename':
                 this.drawRenameWindow();

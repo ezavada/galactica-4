@@ -32,6 +32,9 @@ class Game {
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
         this.pendingMapOrderObject = null;
+        this.systemShipWindowStar = null;
+        this.systemShipPage = 0;
+        this.systemShipSort = { key: 'name', ascending: true };
         this.pendingRendezvousPlacement = null;
         this.renameTarget = null;
         this.renameText = '';
@@ -1317,6 +1320,42 @@ class Game {
         }
     }
 
+    canViewSystemShips(star) {
+        if (!star || this.getObjectType(star) !== Common.ObjectType.STAR) return false;
+        if (this.config.omniscient || this.canHumanControl(star)) return true;
+        const player = this.getCurrentHumanPlayer();
+        if (star.getVisibilityTo(player) >= Common.VisibilityLevel.DETAILS) return true;
+        return !star.owner && this.allShips.some(ship => ship.star === star && this.canHumanControl(ship) &&
+            !ship.underConstruction());
+    }
+
+    getSystemShipRows(star = this.systemShipWindowStar) {
+        if (!this.canViewSystemShips(star)) return [];
+        const isDocked = object => object.star === star || (!object.destination &&
+            Math.round(object.x) === Math.round(star.x) && Math.round(object.y) === Math.round(star.y));
+        const ships = this.allShips.filter(ship => !ship.fleet && !ship.underConstruction() && isDocked(ship));
+        const fleets = this.allFleets.filter(fleet => !fleet.isEmpty() && isDocked(fleet));
+        const makeRow = (object, member = false) => {
+            const fleet = this.factory.isFleet(object);
+            return { object, member, name: this.getObjectDisplayName(object), tech: object.techLevel || 0,
+                speed: (fleet ? object.totalSpeed : object.speed) / 16380,
+                power: fleet ? object.totalPower : this.rules.getShipPower(object),
+                damage: (fleet ? object.totalDamage : object.damage) || 0 };
+        };
+        const sort = this.systemShipSort;
+        const compare = (a,b) => {
+            const comparison = sort.key === 'name' ? a.name.localeCompare(b.name) : a[sort.key]-b[sort.key];
+            return (sort.ascending ? comparison : -comparison) || a.object.id-b.object.id;
+        };
+        const rows = [];
+        ships.concat(fleets).map(object => makeRow(object)).sort(compare).forEach(row => {
+            rows.push(row);
+            if (this.factory.isFleet(row.object)) row.object.ships.filter(ship => !ship.underConstruction())
+                .map(ship => makeRow(ship,true)).sort(compare).forEach(member => rows.push(member));
+        });
+        return rows;
+    }
+
     isAwaitingMapTarget() {
         return !!this.pendingMapOrderObject;
     }
@@ -1399,6 +1438,21 @@ class Game {
                     this.display.centerOn(action.object.x, action.object.y);
                 }
                 return true;
+            case 'showSystemShips':
+                if (!this.canViewSystemShips(action.star)) return false;
+                this.systemShipWindowStar = action.star;
+                this.systemShipPage = 0;
+                this.uiWindow = 'systemShips';
+                return true;
+            case 'systemShipPage':
+                this.systemShipPage = Math.max(0, action.page);
+                return true;
+            case 'sortSystemShips':
+                if (!['name','tech','speed','power','damage'].includes(action.key)) return false;
+                this.systemShipSort = { key: action.key, ascending: this.systemShipSort.key === action.key ?
+                    !this.systemShipSort.ascending : true };
+                this.systemShipPage = 0;
+                return true;
             case 'beginOrders':
                 return this.beginMapOrder(action.object);
             case 'clearDefaultDestination':
@@ -1414,6 +1468,7 @@ class Game {
             case 'toggleFleetWindow':
                 return this.toggleUIWindow('fleets');
             case 'selectObject':
+                if (action.closeWindow) this.uiWindow = null;
                 if (action.object) {
                     this.setSelectedObject(action.object);
                     if (this.display && action.center) {

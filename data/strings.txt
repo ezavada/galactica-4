@@ -259,3 +259,11 @@
 684	Send to:
 685	Set destination
 686	Clear destination
+
+# Ships in system
+687	Ships at {0}
+688	Ships in system
+689	No docked ships
+690	Previous
+691	Next
+692	Click a ship or fleet to inspect it

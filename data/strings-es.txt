@@ -259,3 +259,11 @@
 684	Enviar a:
 685	Fijar destino
 686	Borrar destino
+
+# Ships in system
+687	Naves en {0}
+688	Naves del sistema
+689	No hay naves atracadas
+690	Anterior
+691	Siguiente
+692	Haz clic en una nave o flota para verla

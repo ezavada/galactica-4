@@ -259,3 +259,11 @@
 684	Ziel:
 685	Ziel festlegen
 686	Ziel löschen
+
+# Ships in system
+687	Schiffe bei {0}
+688	Schiffe im System
+689	Keine angedockten Schiffe
+690	Zurück
+691	Weiter
+692	Schiff oder Flotte anklicken, um Details anzuzeigen
