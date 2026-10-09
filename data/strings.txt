@@ -254,3 +254,8 @@
 681	Paused
 682	Save
 683	Cancel
+
+# Default destination controls
+684	Send to:
+685	Set destination
+686	Clear destination

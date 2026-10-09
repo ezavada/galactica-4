@@ -254,3 +254,8 @@
 681	Pausiert
 682	Speichern
 683	Abbrechen
+
+# Default destination controls
+684	Ziel:
+685	Ziel festlegen
+686	Ziel löschen

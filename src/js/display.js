@@ -1602,13 +1602,25 @@ class Display {
         const star = this.game.getSelectedStar();
         if (!star || !this.game.canHumanControl(star)) return [];
         const panel = this.getStarDetailsLayout(star).rect;
-        const regions = [{ rect: { x: panel.x + 12, y: panel.y + panel.height - 30, width: 170, height: 22 },
+        const regions = [{ rect: { x: panel.x + 12, y: panel.y + panel.height - 88, width: 170, height: 22 },
             action: { type: 'equalizeAllocations', star } }];
         if (this.game.uiWindow === 'production') {
             const window = this.getProductionWindowRect();
             regions.unshift({ rect: { x: window.x + 14, y: window.y + 128, width: 170, height: 22 },
                 action: { type: 'equalizeAllocations', star }, key: 'R' });
         }
+        return regions;
+    }
+
+    getDefaultDestinationRegions() {
+        const star = this.game.getSelectedStar();
+        if (!star || !this.game.canHumanControl(star)) return [];
+        const panel = this.getStarDetailsLayout(star).rect;
+        const regions = [{ rect: { x: panel.x + 12, y: panel.y + panel.height - 30, width: 164, height: 22 },
+            label: I18n.getString(685, 'Set destination'), action: { type: 'beginOrders', object: star } }];
+        if (star.getDefaultDestination()) regions.push({
+            rect: { x: panel.x + 184, y: panel.y + panel.height - 30, width: 164, height: 22 },
+            label: I18n.getString(686, 'Clear destination'), action: { type: 'clearDefaultDestination', object: star } });
         return regions;
     }
 
@@ -1737,6 +1749,8 @@ class Display {
             return contextButton.action;
         }
 
+        const destination = this.getDefaultDestinationRegions().find(region => this.containsPoint(region.rect, x, y));
+        if (destination) return destination.action;
         const equalize = this.getAllocationEqualizeRegions().find(region => this.containsPoint(region.rect, x, y));
         if (equalize) return equalize.action;
         const lock = this.getAllocationLockRegions().find(region => this.containsPoint(region.rect, x, y));
@@ -1809,7 +1823,7 @@ class Display {
         if (!this.game.canHumanControl(star)) {
             return 130;
         }
-        return 264;
+        return 322;
     }
 
     getStarDetailsLayout(star) {
@@ -1935,6 +1949,21 @@ class Display {
         this.drawStarAllocationSummary(star, x, layout.sliderStartY, layout.sliderWidth);
         const equalize = this.getAllocationEqualizeRegions().find(region => !region.key);
         if (equalize) this.drawUIButton(equalize.rect, I18n.getString(676, 'Equalize'), null, { size: 10 });
+        const destination = star.getDefaultDestination();
+        const destinationType = this.game.getObjectType(destination);
+        let destinationText = this.STR.none;
+        if (destination) destinationText = destinationType ? this.game.getObjectDisplayName(destination) :
+            `(${Math.round(destination.x / 1024)}, ${Math.round(destination.y / 1024)})`;
+        const destinationLabel = I18n.getString(684, 'Send to:');
+        const textWidth = text => this.port.getTextWidth ? this.port.getTextWidth(text, 11) : Array.from(text).length * 7;
+        const destinationLabelWidth = Math.max(86, textWidth(destinationLabel) + 8);
+        // Fit long system names in the available space without covering controls.
+        while (Array.from(destinationText).length > 1 && textWidth(destinationText) > rect.width - destinationLabelWidth - 24)
+            destinationText = Array.from(destinationText).slice(0, -2).join('') + '…';
+        this.drawLabelValue(destinationLabel, destinationText, x, rect.y + rect.height - 45,
+            { labelWidth: destinationLabelWidth, size: 11 });
+        this.getDefaultDestinationRegions().forEach(region => this.drawUIButton(region.rect, region.label, null,
+            { size: 10, active: region.action.type === 'beginOrders' && this.game.pendingMapOrderObject === star }));
         this.drawContextButtonArc(star, rect);
     }
     

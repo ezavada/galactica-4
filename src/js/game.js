@@ -1323,13 +1323,13 @@ class Game {
 
     beginMapOrder(object) {
         const objectType = this.getObjectType(object);
-        if (objectType !== Common.ObjectType.SHIP && objectType !== Common.ObjectType.FLEET) {
-            return true;
+        if (![Common.ObjectType.STAR, Common.ObjectType.SHIP, Common.ObjectType.FLEET].includes(objectType)) {
+            return false;
         }
         if (!this.canHumanControl(object)) {
             this.recordEvent(
                 I18n.getString(604, 'Orders'),
-                I18n.getString(622, 'You can only give orders to your own ships and fleets.'),
+                I18n.getString(663, 'You can only manage your own objects.'),
                 { type: 'ui' }
             );
             return true;
@@ -1401,6 +1401,12 @@ class Game {
                 return true;
             case 'beginOrders':
                 return this.beginMapOrder(action.object);
+            case 'clearDefaultDestination':
+                if (!action.object || !this.canHumanControl(action.object) ||
+                    this.getObjectType(action.object) !== Common.ObjectType.STAR) return false;
+                action.object.clearDefaultDestination();
+                if (this.pendingMapOrderObject === action.object) this.pendingMapOrderObject = null;
+                return true;
             case 'clearOrders':
                 return this.clearOrders(action.object);
             case 'togglePatrol':
@@ -1713,6 +1719,11 @@ class Game {
         if (this.uiWindow === 'rename' && key === pdg.key_Tab) return true;
         if (key === pdg.key_Tab) {
             this.endTurn();
+            return true;
+        }
+
+        if (key === pdg.key_Escape && this.pendingMapOrderObject) {
+            this.pendingMapOrderObject = null;
             return true;
         }
 

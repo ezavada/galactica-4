@@ -12,6 +12,57 @@ function fixture() {
     return { game, star };
 }
 module.exports = function() {
+    test.describe('Default new-ship destinations', () => {
+        test.it('arms an owned system and assigns its selected map target', () => {
+            const {game, star} = fixture(); const target = game.factory.createStar(2048, 4096, 'Target');
+            game.display = {toGalacticX: x => x, toGalacticY: y => y, setSelectedObject: () => {}};
+            game.findObjectAtPosition = () => target;
+            test.assertTrue(game.beginMapOrder(star)); game.handleMouseClick(2048,4096);
+            test.assertTrue(star.getDefaultDestination() === target);
+            test.assertFalse(game.isAwaitingMapTarget());
+        });
+        test.it('allows coordinate targets and cancels targeting with Escape without changing the old destination', () => {
+            const {game, star} = fixture();
+            game.display = {toGalacticX: x => x*1024, toGalacticY: y => y*1024, setSelectedObject: () => {}};
+            game.findObjectAtPosition = () => null;
+            game.beginMapOrder(star); game.handleMouseClick(10,20);
+            test.assertEqual(star.getDefaultDestination().x,10240);
+            game.beginMapOrder(star); game.handleKeyPress(pdg.key_Escape);
+            test.assertFalse(game.isAwaitingMapTarget());
+            test.assertEqual(star.getDefaultDestination().y,20480);
+            test.assertTrue(game.selectedObject === star);
+        });
+        test.it('clears only an owned system default and stops pending targeting', () => {
+            const {game, star} = fixture(); star.setDefaultDestination({x:1,y:2});
+            game.beginMapOrder(star);
+            test.assertTrue(game.executeUIAction({type:'clearDefaultDestination',object:star}));
+            test.assertEqual(star.getDefaultDestination(),null); test.assertFalse(game.isAwaitingMapTarget());
+            star.owner=2; star.setDefaultDestination({x:1,y:2});
+            test.assertFalse(game.executeUIAction({type:'clearDefaultDestination',object:star}));
+            test.assertEqual(star.getDefaultDestination().x,1);
+            game.beginMapOrder(star); test.assertFalse(game.isAwaitingMapTarget());
+        });
+        test.it('dispatches a completed mobile hull to its system default', () => {
+            const {game, star} = fixture(); const target = game.factory.createStar(2048,4096,'Target');
+            star.setDefaultDestination(target); star.startBuildingShip('scout');
+            const ship = star.currentShip; let moved = false; ship.move = () => moved=true;
+            star.completeShip(); test.assertTrue(ship.destination === target); test.assertTrue(moved);
+        });
+        test.it('keeps defense satellites at their system despite an automatic destination', () => {
+            const {star} = fixture(); star.setDefaultDestination({x:2048,y:4096}); star.startBuildingShip('defense');
+            const ship = star.currentShip; let moved = false; ship.move = () => moved=true;
+            star.completeShip(); test.assertFalse(!!ship.destination); test.assertFalse(moved);
+        });
+        test.it('routes visible destination buttons and hides clear when no default is set', () => {
+            const {game, star} = fixture(); game.port = {getDrawingArea: () => new pdg.Rect(800,600)};
+            const display = new Display(game); let regions = display.getDefaultDestinationRegions();
+            test.assertEqual(regions.length,1);
+            let r=regions[0].rect; test.assertEqual(display.getUIActionAt(r.x+5,r.y+5).type,'beginOrders');
+            star.setDefaultDestination({x:1,y:2}); regions=display.getDefaultDestinationRegions();
+            test.assertEqual(regions.length,2); r=regions[1].rect;
+            test.assertEqual(display.getUIActionAt(r.x+5,r.y+5).type,'clearDefaultDestination');
+        });
+    });
     test.describe('Continuous ship production', () => {
         test.it('builds every affordable hull in a turn and carries the remaining effort forward', () => {
             const {game, star} = fixture(); star.population = 1000; star.techLevel = 1;

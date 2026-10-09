@@ -254,3 +254,8 @@
 681	En pause
 682	Enregistrer
 683	Annuler
+
+# Default destination controls
+684	Envoyer vers :
+685	Définir la destination
+686	Effacer la destination
