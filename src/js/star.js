@@ -100,23 +100,11 @@ class Star {
     }
 
     update() {
-        if (this.population <= 0) {
-            return; // do nothing with unpopulated stars
+        if (!this.owner) {
+            return; // v3 processes the economy only for owned systems.
         }
 
         this.repairDockedShips();
-
-        // Adjust all the allocations
-        this.shipBuilding.adjustValue();
-        this.growth.adjustValue();
-        this.research.adjustValue();
-
-        // Adjust shipbuilding and research benefits based on the benefit of growth
-        const benefitAdjustment = this.growth.getBenefits() / 166.5;
-        if (benefitAdjustment > 0) {
-            this.shipBuilding.setPerUnitBenefit(this.shipBuilding.getPerUnitBenefit() + benefitAdjustment);
-            this.research.setPerUnitBenefit(this.research.getPerUnitBenefit() + benefitAdjustment);
-        }
 
         // apply research
         let amount = this.game.rules.getStarResearchAmount(this);
@@ -183,11 +171,21 @@ class Star {
             }
         }
 
-        // apply growth
-        this.population += this.game.rules.getStarPopulationGrowth(this);
-        if (this.population > 99900) {
-            this.population = 99900;
+        // Current output pays for research and construction first. v3 then
+        // adjusts allocations and grows the economy for the following turn.
+        this.shipBuilding.adjustValue();
+        this.growth.adjustValue();
+        this.research.adjustValue();
+        if (this.growth.value > 0) {
+            this.population += this.game.rules.getStarPopulationGrowth(this);
+            if (this.population > 99900) this.population = 99900;
+            const benefitAdjustment = this.growth.getBenefits() / 166.5;
+            this.shipBuilding.setPerUnitBenefit(this.shipBuilding.getPerUnitBenefit() + benefitAdjustment);
+            this.research.setPerUnitBenefit(this.research.getPerUnitBenefit() + benefitAdjustment);
         }
+        // v3 restores the minimum output of irradiated systems at turn end.
+        this.shipBuilding.setPerUnitBenefit(Math.max(6,this.shipBuilding.getPerUnitBenefit()));
+        this.research.setPerUnitBenefit(Math.max(6,this.research.getPerUnitBenefit()));
     }
 
     repairDockedShips() {

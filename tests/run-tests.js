@@ -24,6 +24,7 @@ const runFleetFormationTests = require('./fleet-formation.test.js');
 const runRendezvousTests = require('./rendezvous.test.js');
 const runShipNamingEventsTests = require('./ship-naming-events.test.js');
 const runAutoplayTests = require('./autoplay.test.js');
+const runEconomyTurnOrderTests = require('./economy-turn-order.test.js');
 const runAllocationPrecisionTests = require('./allocation-precision.test.js');
 const runSliderDragTests = require('./slider-drag.test.js');
 const runColonyDefaultsTests = require('./colony-defaults.test.js');
@@ -105,6 +106,7 @@ try {
     runColonyDefaultsTests();
     runSliderDragTests();
     runAllocationPrecisionTests();
+    runEconomyTurnOrderTests();
 
     // Print summary
     const success = test.printSummary();
