@@ -540,7 +540,7 @@ class Game {
         if (typeof key !== 'number' || key < 0) {
             return '';
         }
-        return String.fromCharCode(key);
+        return key <= 0x10ffff ? String.fromCodePoint(key) : '';
     }
 
     getSelectedStar() {
@@ -642,7 +642,7 @@ class Game {
         if (rendezvous && !this.canHumanControl(rendezvous)) {
             this.recordEvent(
                 I18n.getString(602, 'Command'),
-                I18n.getString(663, 'You can only manage your own fleets and rendezvous points.'),
+                I18n.getString(663, 'You can only manage your own objects.'),
                 { type: 'ui' }
             );
             return true;
@@ -679,7 +679,7 @@ class Game {
         if (!object || !this.canHumanControl(object)) {
             this.recordEvent(
                 I18n.getString(602, 'Command'),
-                I18n.getString(663, 'You can only manage your own fleets and rendezvous points.'),
+                I18n.getString(663, 'You can only manage your own objects.'),
                 { type: 'ui' }
             );
             return true;
@@ -823,13 +823,13 @@ class Game {
         if (!object || !this.canHumanControl(object)) {
             this.recordEvent(
                 I18n.getString(602, 'Command'),
-                I18n.getString(663, 'You can only manage your own fleets and rendezvous points.'),
+                I18n.getString(663, 'You can only manage your own objects.'),
                 { type: 'ui' }
             );
             return true;
         }
         const objectType = this.getObjectType(object);
-        if (objectType !== Common.ObjectType.FLEET && objectType !== Common.ObjectType.RENDEZVOUS) {
+        if (![Common.ObjectType.STAR, Common.ObjectType.SHIP, Common.ObjectType.FLEET, Common.ObjectType.RENDEZVOUS].includes(objectType)) {
             return false;
         }
         this.renameTarget = object;
@@ -869,10 +869,11 @@ class Game {
             return this.commitRename();
         }
         if (key === 8 || key === 127) {
-            this.renameText = this.renameText.substring(0, Math.max(0, this.renameText.length - 1));
+            this.renameText = Array.from(this.renameText).slice(0, -1).join('');
             return true;
         }
-        if (char && char.length === 1 && char.charCodeAt(0) >= 32 && char.charCodeAt(0) <= 126 && this.renameText.length < 32) {
+        if (char && Array.from(char).length === 1 && char.codePointAt(0) >= 32 &&
+                !/[\u007f-\u009f]/.test(char) && Array.from(this.renameText).length < 32) {
             this.renameText += char;
             return true;
         }
@@ -1423,6 +1424,11 @@ class Game {
                 return this.beginRendezvousPlacement();
             case 'deleteRendezvous':
                 return this.deleteRendezvous(action.rendezvous || action.object);
+            case 'commitRename':
+                return this.commitRename();
+            case 'cancelRename':
+                this.renameTarget = null; this.renameText = ''; this.uiWindow = null;
+                return true;
             case 'beginRename':
                 return this.beginRenameObject(action.object);
             case 'removeFleetShip':
@@ -1805,6 +1811,8 @@ class Game {
         }
         
         switch (String.fromCharCode(key)) {
+            case 'n':
+                return this.beginRenameObject(star);
             case 'x':
                 star.pauseShipBuilding();
                 return true;
@@ -1828,6 +1836,8 @@ class Game {
 
     handleShipKeyPress(ship, key) {
         switch (String.fromCharCode(key).toLowerCase()) {
+            case 'n':
+                return this.beginRenameObject(ship);
             case 'o':
                 return this.beginMapOrder(ship);
             case 'x':

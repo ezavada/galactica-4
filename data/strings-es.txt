@@ -228,7 +228,7 @@
 660	{0} colocado en ({1}, {2})
 661	{0} movido a ({1}, {2})
 662	{0} eliminado
-663	Solo puedes gestionar tus propias flotas y puntos de reunión.
+663	Solo puedes gestionar tus propios objetos.
 664	{0} renombrado a {1}
 665	Órdenes de {0} limpiadas
 666	{0} ahora patrulla
@@ -252,3 +252,5 @@
 679	Plazo:
 680	{0} turno|{0} turnos
 681	En pausa
+682	Guardar
+683	Cancelar

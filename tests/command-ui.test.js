@@ -642,7 +642,7 @@ module.exports = function runCommandUITests() {
             for (let i = 1; i < leftPanelButtons.length; i++) {
                 test.assertEqual(leftPanelButtons[i].centerY - leftPanelButtons[i - 1].centerY, 36);
             }
-            test.assertEqual(leftPanelButtons[0].rect.x - star.x, 62);
+            test.assertInRange(leftPanelButtons[0].rect.x - star.x, 50, 68, 'The arc should keep a usable gap as the action count grows');
 
             const rightPanelButtons = display.getContextButtonArc(star, { x: 540, y: 240, width: 200, height: 120 });
             test.assert(rightPanelButtons.every(button => button.centerX < star.x), 'Buttons should arc left when panel is right of object');

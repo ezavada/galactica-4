@@ -227,7 +227,7 @@
 660	{0} placed at ({1}, {2})
 661	{0} moved to ({1}, {2})
 662	{0} deleted
-663	You can only manage your own fleets and rendezvous points.
+663	You can only manage your own objects.
 664	{0} renamed to {1}
 665	{0} orders cleared
 666	{0} now patrols
@@ -252,3 +252,5 @@
 679	ETA:
 680	{0} turn|{0} turns
 681	Paused
+682	Save
+683	Cancel

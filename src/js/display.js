@@ -1275,6 +1275,7 @@ class Display {
         const actions = [];
 
         if (objectType === Common.ObjectType.STAR && this.game.canHumanControl(object)) {
+            actions.push({ key: 'N', label: this.STR.rename, action: { type: 'beginRename' } });
             if (object.currentShip) actions.push({ key: 'X', label: I18n.getString(678, 'Pause build'), action: { type: 'pauseBuild' } });
             actions.push(
                 { key: 'S', label: this.STR.scoutName, action: { type: 'buildShip', shipType: 'scout' } },
@@ -1296,7 +1297,8 @@ class Display {
                         { key: 'L', label: this.STR.fleets, action: { type: 'toggleFleetWindow' } }
                     );
                 } else {
-                    actions.push({ key: 'U', label: this.STR.rendezvous, action: { type: 'createRendezvous' } });
+                    actions.push({ key: 'N', label: this.STR.rename, action: { type: 'beginRename' } },
+                        { key: 'U', label: this.STR.rendezvous, action: { type: 'createRendezvous' } });
                 }
             }
             actions.push(
@@ -1519,7 +1521,7 @@ class Display {
             x: (screen.width - 340) / 2,
             y: 96,
             width: 340,
-            height: 122
+            height: 160
         });
     }
 
@@ -1701,6 +1703,11 @@ class Display {
     }
 
     getUIActionAt(x, y) {
+        if (this.game.uiWindow === 'rename') {
+            const button = this.getRenameActionRegions().find(region => this.containsPoint(region.rect, x, y));
+            if (button) return button.action;
+            if (this.containsPoint(this.getRenameWindowRect(), x, y)) return { type: 'consume' };
+        }
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
         if (contextButton) {
             return contextButton.action;
@@ -2158,6 +2165,14 @@ class Display {
         }
     }
 
+    getRenameActionRegions() {
+        const rect = this.getRenameWindowRect();
+        return [
+            { rect: { x: rect.x + 14, y: rect.y + 112, width: 144, height: 26 }, action: { type: 'commitRename' }, label: I18n.getString(682, 'Save') },
+            { rect: { x: rect.x + 182, y: rect.y + 112, width: 144, height: 26 }, action: { type: 'cancelRename' }, label: I18n.getString(683, 'Cancel') }
+        ];
+    }
+
     drawRenameWindow() {
         const rect = this.getRenameWindowRect();
         const target = this.game.renameTarget;
@@ -2167,10 +2182,16 @@ class Display {
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
         this.drawTextLine(this.STR.name, x, y, 'labelgray', 12);
-        this.drawTextLine(this.game.renameText || '', x + 68, y, 'lightgray', 12);
+        let text = this.game.renameText || '';
+        if (this.port.getTextWidth) {
+            // Keep the insertion end visible even for a long Japanese name.
+            while (text && this.port.getTextWidth(text, 12) > rect.width - 96) text = Array.from(text).slice(1).join('');
+        }
+        this.drawTextLine(text, x + 68, y, 'lightgray', 12);
         this.drawDivider(x, y + 10, rect.width - 28);
         y += 34;
         this.drawTextLine(this.STR.renameHelp, x, y, 'gray', 10);
+        this.getRenameActionRegions().forEach(button => this.drawUIButton(button.rect, button.label));
     }
 
     drawRendezvousPlacementPrompt() {

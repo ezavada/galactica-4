@@ -118,6 +118,32 @@ module.exports = function() {
             test.assertEqual(star.getEstimatedTurnsToNextShip(), -1);
         });
     });
+    test.describe('System and ship renaming', () => {
+        test.it('renames both owned systems and owned ships with Unicode keyboard input', () => {
+            const {game, star} = fixture();
+            const ship = game.factory.createShip(0,0,'scout',star); ship.complete();
+            for (const object of [star, ship]) {
+                test.assertTrue(game.beginRenameObject(object)); game.renameText = '';
+                for (const char of '京都 α 🚀') game.handleRenameKey(char.codePointAt(0), char);
+                game.handleRenameKey(8, '');
+                test.assertEqual(game.renameText, '京都 α ');
+                game.commitRename(); test.assertEqual(object.name, '京都 α');
+            }
+        });
+        test.it('keeps names unchanged on cancel and disallows enemy renaming', () => {
+            const {game, star} = fixture();
+            game.beginRenameObject(star); game.renameText = 'Changed';
+            game.executeUIAction({type:'cancelRename'}); test.assertEqual(star.name, 'Test');
+            star.owner = 2; game.beginRenameObject(star); test.assertNull(game.renameTarget);
+        });
+        test.it('routes explicit Save and Cancel controls inside the rename window', () => {
+            const {game, star} = fixture(); game.port = { getDrawingArea: () => new pdg.Rect(800,600) };
+            const display = new Display(game); game.beginRenameObject(star); game.renameText = 'Changed';
+            const region = display.getRenameActionRegions()[0];
+            game.executeUIAction(display.getUIActionAt(region.rect.x+20,region.rect.y+10));
+            test.assertEqual(star.name, 'Changed'); test.assertNull(game.uiWindow);
+        });
+    });
     test.describe('Production locks', () => {
         test.it('preserves locked allocations while maintaining a total of 100', () => {
             const {game, star} = fixture(); game.toggleStarAllocationLock(star, 'growth');

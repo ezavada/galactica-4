@@ -228,7 +228,7 @@
 660	{0} placé en ({1}, {2})
 661	{0} déplacé vers ({1}, {2})
 662	{0} supprimé
-663	Vous ne pouvez gérer que vos propres flottes et points de rendez-vous.
+663	Vous ne pouvez gérer que vos propres objets.
 664	{0} renommé en {1}
 665	Ordres de {0} effacés
 666	{0} patrouille maintenant
@@ -252,3 +252,5 @@
 679	Délai :
 680	{0} tour|{0} tours
 681	En pause
+682	Enregistrer
+683	Annuler

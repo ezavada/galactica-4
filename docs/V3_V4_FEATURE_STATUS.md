@@ -136,7 +136,7 @@ The largest blockers to a complete game are:
 | Default new-ship destination | System “Send to” automatically dispatches new ships. | 🟡 Partial | 🟡 Partial | Right-click while a star is selected sets an object/coordinate destination and completed mobile ships inherit it (`game.js:300-376`, `star.js:204-215`). Rendezvous points can be created and targeted for fleet assembly. There is still no explicit default-destination picker/list or clear/edit UI. |
 | Default new-colony settings | Newly colonized neutral systems use player defaults; computer colonies start satellites. | ✅ Implemented | ❌ Missing | `Game.applyNewColonyDefaults()` applies human default economics/build hulls using v3's 0-1000 allocation scale and starts computer colonies on defense satellites. There is no UI to edit default new-colony settings yet. |
 | Ships in system | Dedicated list/panel for inspecting and selecting docked ships/fleets. | 🧱 Scaffold only | ❌ Missing | `star.ships` exists, but no list or panel is exposed. |
-| Rename colony/system | Edit menu rename dialog; new colony asks for name. | ❌ Missing | ❌ Missing | No rename command or colony naming prompt. |
+| Rename colony/system | Edit menu rename dialog; new colony asks for name. | 🟡 Partial | 🟡 Partial | Owned systems have a Rename button and `[N]`, Unicode-aware editing, Save/Cancel, and localized feedback. Automatic new-colony naming prompts still need the attention/event workflow. |
 | System comparison window | Sortable “Your Star Systems” table. | ❌ Missing | ❌ Missing | No equivalent UI. |
 
 ## 4. Ships and navigation (Functionality 52%, UI 30%)
@@ -246,7 +246,7 @@ The largest blockers to a complete game are:
 | Colonization/capture/battle event text | Player-relative narrative messages for 45 event types. | 🟡 Partial | 🟡 Partial | A small localized subset of event text is retained and displayed. It is not player-relative in the full v3 style and remains far short of v3's event coverage. |
 | Compare players | Player summary table with best values blue and worst red; the audited v3 sort handler is empty. | 🟡 Partial | 🟡 Partial | `[V]`/Compare opens a simple table for stars, ships, population, average tech, and max tech. Remaining parity is extra columns/metrics, dead/unassigned styling, and best/worst coloring. Functional sorting and aggregate score columns were not confirmed in v3 C++. |
 | Send/show/hold player messages | Multiplayer chat to one/all/admin, with message history and repeat settings. | ❌ Missing | ❌ Missing | No chat or message model. |
-| Rename ship/fleet/colony/rendezvous | Edit menu rename workflow. | 🟡 Partial | 🟡 Partial | Fleet and rendezvous rename flows exist. Ship/system rename and new-colony naming prompts are still missing. |
+| Rename ship/fleet/colony/rendezvous | Edit menu rename workflow. | 🟡 Partial | 🟡 Partial | Owned ships, systems, fleets, and rendezvous points can be renamed through localized controls with Unicode-aware editing. Automatic new-colony naming prompts remain. |
 | Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | ❌ Missing | ❌ Missing | No sound use or preference found. |
 | Preferences | Persistent drawing, sound, language, and game preferences. | ❌ Missing | ❌ Missing | No preferences UI or persistence. |
 | User's Manual | In-app menu opens the manual. | ❌ Missing | ❌ Missing | The current v4 UI has no Help/manual command. The public v3 manual remains available online. |
@@ -311,3 +311,4 @@ This file remains the main parity source of truth. More focused docs may describ
 - Continuous production: removed the one-hull-per-turn limit, retained production effort, and reused v3 AI hull selection after every completion. Full suite: 362 passed; all six language layouts checked; 250-turn observer completed without a crash (511 ships, 17 fleets, no winner).
 - Hull selection: per-hull credit, switch/pause/resume, active build highlighting, and cleanup of superseded construction hulls. Full suite: 365 passed; actual browser switch/pause/resume clicks verified saved 99% colony credit; layouts checked in all six languages.
 - Construction ETA: projected-production calculation follows `CStar::GetEstimatedTurnsToNextShip`, with system and retained construction-panel display.
+- System/ship rename: added context and keyboard controls, Unicode input/deletion, and explicit localized Save/Cancel buttons. Full suite: 373 passed; real browser Unicode typing and Save clicks verified; localized dialog layouts inspected.

@@ -228,7 +228,7 @@
 660	{0} bei ({1}, {2}) gesetzt
 661	{0} nach ({1}, {2}) bewegt
 662	{0} gelöscht
-663	Sie können nur Ihre eigenen Flotten und Rendezvouspunkte verwalten.
+663	Du kannst nur eigene Objekte verwalten.
 664	{0} in {1} umbenannt
 665	Befehle von {0} gelöscht
 666	{0} patrouilliert jetzt
@@ -252,3 +252,5 @@
 679	Dauer:
 680	{0} Runde|{0} Runden
 681	Pausiert
+682	Speichern
+683	Abbrechen
