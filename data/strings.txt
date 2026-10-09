@@ -286,3 +286,17 @@
 705	Idle
 706	{0} light-years
 707	In fleet
+
+# Your Star Systems comparison table
+708	Your Star Systems
+709	Name
+710	Tech
+711	Population|×1000
+712	Production
+713	Building
+714	Complete|%
+715	Defense|Total
+716	Defense|Satellites
+717	Defense|Ships
+718	Double-click a system, or select it and press Enter
+719	No owned systems

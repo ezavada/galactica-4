@@ -286,3 +286,17 @@
 705	Untätig
 706	{0} Lichtjahre
 707	In Flotte
+
+# Your Star Systems comparison table
+708	Ihre Sternsysteme
+709	Name
+710	Tech.
+711	Bevölkerung|×1000
+712	Produktion
+713	Bauauftrag
+714	Fertig|%
+715	Abwehr|Gesamt
+716	Abwehr|Satelliten
+717	Abwehr|Schiffe
+718	System doppelt anklicken oder auswählen und Eingabetaste drücken
+719	Keine eigenen Systeme

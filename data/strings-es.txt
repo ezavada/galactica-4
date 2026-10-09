@@ -286,3 +286,17 @@
 705	Inactiva
 706	{0} años luz
 707	En flota
+
+# Your Star Systems comparison table
+708	Tus sistemas estelares
+709	Nombre
+710	Tec.
+711	Población|×1000
+712	Producción
+713	Construcción
+714	Avance|%
+715	Defensa|Total
+716	Defensa|Satélites
+717	Defensa|Naves
+718	Haz doble clic en un sistema o selecciónalo y pulsa Intro
+719	Sin sistemas propios

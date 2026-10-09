@@ -1489,7 +1489,7 @@ class Display {
 
     getCommandWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 160 });
+        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 190 });
     }
 
     getProductionWindowRect() {
@@ -1536,7 +1536,9 @@ class Display {
         if (this.game.uiWindow!=='menu' || !this.game.getCurrentHumanPlayer()) return [];
         const rect = this.getCommandWindowRect();
         return [{rect:{x:rect.x+14,y:rect.y+80,width:rect.width-28,height:28},
-            label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}}];
+            label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}},
+            {rect:{x:rect.x+14,y:rect.y+114,width:rect.width-28,height:28},
+            label:I18n.getString(708,'Your Star Systems'),action:{type:'showSystemComparison'}}];
     }
 
     getColonyDefaultsWindowRect() {
@@ -1570,6 +1572,44 @@ class Display {
             label:I18n.getString(682,'Save'),action:{type:'saveColonyDefaults'}},
             {rect:{x:rect.x+rect.width/2+7,y:rect.y+266,width:rect.width/2-21,height:28},
             label:I18n.getString(683,'Cancel'),action:{type:'cancelColonyDefaults'}});
+        return regions;
+    }
+
+    getSystemComparisonLayout() {
+        const screen = this.getScreenSize(), width = Math.min(760, screen.width - 40);
+        const pageSize = Math.max(1, Math.min(12, Math.floor((screen.height - 240) / 26)));
+        const rows = this.game.getSystemComparisonRows(), pages = Math.max(1, Math.ceil(rows.length / pageSize));
+        const page = Math.min(this.game.systemComparisonPage, pages - 1);
+        const visibleRows = rows.slice(page * pageSize, (page + 1) * pageSize);
+        const rect = this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,
+            height:150 + Math.max(1,visibleRows.length) * 26});
+        let offset = 14;
+        const columns = [
+            ['name',709,'Name',.21], ['tech',710,'Tech',.07], ['population',711,'Population|×1000',.12],
+            ['production',712,'Production',.10], ['buildName',713,'Building',.16], ['completion',714,'Complete|%',.07],
+            ['totalDefense',715,'Defense|Total',.10], ['satelliteDefense',716,'Defense|Satellites',.085],
+            ['shipDefense',717,'Defense|Ships',.085]
+        ].map(([key,id,fallback,weight]) => {
+            const column = {key,label:I18n.getString(id,fallback),offset,width:(width-28)*weight};
+            offset += column.width;
+            return column;
+        });
+        return {rect,page,pages,pageSize,visibleRows,columns};
+    }
+
+    getSystemComparisonActionRegions() {
+        if (this.game.uiWindow !== 'systemComparison') return [];
+        const layout = this.getSystemComparisonLayout(), rect = layout.rect;
+        const regions = layout.columns.map(column => ({
+            rect:{x:rect.x+column.offset,y:rect.y+38,width:column.width,height:32},
+            action:{type:'sortSystemComparison',key:column.key}}));
+        layout.visibleRows.forEach((row,index) => regions.push({
+            rect:{x:rect.x+14,y:rect.y+76+index*26,width:rect.width-28,height:24},
+            action:{type:'systemComparisonRow',star:row.star}}));
+        if (layout.page > 0) regions.push({rect:{x:rect.x+14,y:rect.y+rect.height-36,width:150,height:24},
+            label:I18n.getString(690,'Previous'),action:{type:'systemComparisonPage',page:layout.page-1}});
+        if (layout.page < layout.pages-1) regions.push({rect:{x:rect.x+rect.width-164,y:rect.y+rect.height-36,width:150,height:24},
+            label:I18n.getString(691,'Next'),action:{type:'systemComparisonPage',page:layout.page+1}});
         return regions;
     }
 
@@ -1653,6 +1693,8 @@ class Display {
                 return this.getColonyDefaultsWindowRect();
             case 'systemShips':
                 return this.getSystemShipWindowLayout().rect;
+            case 'systemComparison':
+                return this.getSystemComparisonLayout().rect;
             case 'rename':
                 return this.getRenameWindowRect();
             default:
@@ -1848,6 +1890,7 @@ class Display {
             if(slider) return {type:'setColonyDefaultAllocation',key:slider.key,
                 value:Math.round(this.clamp((x-slider.rect.x)/slider.rect.width,0,1)*1000)};
         }
+        if (this.game.uiWindow === 'systemComparison') controls = this.getSystemComparisonActionRegions();
         if (this.game.uiWindow === 'systemShips') controls = this.getSystemShipActionRegions();
         if (this.game.uiWindow === 'rename') controls = this.getRenameActionRegions();
         if (this.game.uiWindow === 'fleets') controls = this.getFleetListActionRegions();
@@ -2434,6 +2477,39 @@ class Display {
         this.getColonyDefaultActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,null,{active:region.active}));
     }
 
+    drawSystemComparisonWindow() {
+        const layout = this.getSystemComparisonLayout(), rect = layout.rect, sort = this.game.systemComparisonSort;
+        this.drawWindowPanel(rect,I18n.getString(708,'Your Star Systems'));
+        layout.columns.forEach(column => {
+            const button = {x:rect.x+column.offset,y:rect.y+38,width:column.width-3,height:32};
+            this.drawRoundedRect(button,5,this.styles[this.isHovered(button)?'buttonFillHover':'buttonFill']);
+            const lines = column.label.split('|');
+            if (sort.key === column.key) lines[0] += sort.ascending ? ' ↑' : ' ↓';
+            lines.forEach((text,index) => {
+                // Two-line translated headers keep the nine v3 columns legible.
+                let size = 10;
+                while (size > 8 && this.port.getTextWidth(text,size) > button.width-6) size--;
+                this.drawTextLine(this.fitShipDiagnosticText(text,button.width-6,size),button.x+button.width/2,
+                    button.y+(lines.length>1?12+index*13:21),'lightgray',size,pdg.textStyle_Centered);
+            });
+        });
+        if (!layout.visibleRows.length) this.drawTextLine(I18n.getString(719,'No owned systems'),rect.x+14,rect.y+94,'gray',12);
+        layout.visibleRows.forEach((row,index) => {
+            const rowRect = {x:rect.x+14,y:rect.y+76+index*26,width:rect.width-28,height:24};
+            if (row.star === this.game.systemComparisonSelection || this.isHovered(rowRect)) {
+                this.drawRoundedRect(rowRect,4,this.styles[row.star===this.game.systemComparisonSelection?'buttonFillActive':'buttonFillHover']);
+            }
+            layout.columns.forEach(column => this.drawTextLine(
+                this.fitShipDiagnosticText(row[column.key],column.width-8,11),rect.x+column.offset+3,
+                rowRect.y+17,'lightgray',11));
+            this.drawDivider(rect.x+14,rowRect.y+24,rect.width-28);
+        });
+        this.drawTextLine(I18n.getString(718,'Double-click a system, or select it and press Enter'),rect.x+rect.width/2,
+            rect.y+rect.height-48,'gray',10,pdg.textStyle_Centered);
+        this.getSystemComparisonActionRegions().filter(region=>region.label).forEach(region=>this.drawUIButton(region.rect,region.label));
+        this.drawTextLine(`${layout.page+1} / ${layout.pages}`,rect.x+rect.width/2,rect.y+rect.height-19,'gray',11,pdg.textStyle_Centered);
+    }
+
     drawSystemShipWindow() {
         const layout = this.getSystemShipWindowLayout(), rect = layout.rect;
         const star = this.game.systemShipWindowStar;
@@ -2518,6 +2594,9 @@ class Display {
                 break;
             case 'colonyDefaults':
                 this.drawColonyDefaultsWindow();
+                break;
+            case 'systemComparison':
+                this.drawSystemComparisonWindow();
                 break;
             case 'systemShips':
                 this.drawSystemShipWindow();

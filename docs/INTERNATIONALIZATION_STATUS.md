@@ -1,6 +1,6 @@
 # Internationalization Status
 
-Last reviewed: 2026-08-25
+Last reviewed: 2026-10-09
 
 Galactica-4 uses the PDG `ResourceManager` for localized string resources. Current user-visible runtime strings are routed through resources and covered by tests for required IDs, localized file parity, and formatted placeholder compatibility.
 
@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 166 IDs
-- localized files: 166 IDs each
+- `strings.txt`: 256 IDs
+- localized files: 256 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -82,10 +82,12 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 344 passed, 0 failed.
+Current expected full-suite result: 498 passed, 0 failed.
 
 ## Future work
 
 - Add an in-game language selector.
 - Decide whether battleship class names should stay stable asset identifiers or become fully translated display names separate from artwork.
 - Add tutorial/help, save/load, multiplayer, and richer event/result text resources when those v3 systems are ported.
+
+The Your Star Systems table adds localized titles, nine column headers, population units, row-opening guidance and the empty state (IDs 708–719). The shared class names in ID 800 remain unchanged. Browser sorting, paging and row navigation were verified in every supported language.

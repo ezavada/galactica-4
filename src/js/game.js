@@ -37,6 +37,10 @@ class Game {
         this.systemShipWindowStar = null;
         this.systemShipPage = 0;
         this.systemShipSort = { key: 'name', ascending: true };
+        this.systemComparisonPage = 0;
+        this.systemComparisonSort = { key: 'name', ascending: true };
+        this.systemComparisonSelection = null;
+        this.systemComparisonLastClick = null;
         this.pendingRendezvousPlacement = null;
         this.renameTarget = null;
         this.renameText = '';
@@ -1146,6 +1150,11 @@ class Game {
             return true;
         }
 
+        if (this.uiWindow === 'systemComparison') {
+            if (key === 13 || key === 3) this.openSystemComparisonSelection();
+            return true;
+        }
+
         if (this.uiWindow === 'production') {
             switch (lower) {
                 case 'q':
@@ -1312,6 +1321,40 @@ class Game {
             !ship.underConstruction());
     }
 
+    getSystemComparisonRows() {
+        const player = this.getCurrentHumanPlayer();
+        if (!player) return [];
+        const classNames = I18n.getString(800, 'Traveller').split('|');
+        const rows = this.stars.filter(star => star.owner === player).map(star => {
+            const build = star.currentShip;
+            const buildName = !build ? I18n.getString(7, 'None') : build.type === 'battleship'
+                ? classNames[Math.min(classNames.length - 1, Math.max(0, Math.floor(star.techLevel / 5)))]
+                : I18n.getShipTypeName(build.type, { capitalized: true });
+            const defense = star.getDefenseBreakdown();
+            return { star, name: star.name, tech: Math.trunc(star.techLevel), population: Math.trunc(star.population),
+                production: Math.trunc(star.getProduction() / 100), buildName,
+                completion: build ? Math.trunc(build.progress) : 0,
+                totalDefense: Math.trunc(defense.totalDefense / 100),
+                satelliteDefense: Math.trunc(defense.satelliteDefense / 100),
+                shipDefense: Math.trunc(defense.shipDefense / 100) };
+        });
+        const sort = this.systemComparisonSort;
+        return rows.sort((a,b) => {
+            const order = typeof a[sort.key] === 'string' ? a[sort.key].localeCompare(b[sort.key]) : a[sort.key] - b[sort.key];
+            return (sort.ascending ? order : -order) || a.star.id - b.star.id;
+        });
+    }
+
+    openSystemComparisonSelection() {
+        const star = this.systemComparisonSelection;
+        if (!star || !this.getSystemComparisonRows().some(row => row.star === star)) return false;
+        this.setSelectedObject(star);
+        if (this.display) this.display.centerOn(star.x, star.y);
+        this.uiWindow = null;
+        this.systemComparisonLastClick = null;
+        return true;
+    }
+
     getSystemShipRows(star = this.systemShipWindowStar) {
         if (!this.canViewSystemShips(star)) return [];
         const isDocked = object => object.star === star || (!object.destination &&
@@ -1433,6 +1476,36 @@ class Game {
                 return this.saveColonyDefaults();
             case 'cancelColonyDefaults':
                 return this.cancelColonyDefaults();
+            case 'showSystemComparison':
+                if (!this.getCurrentHumanPlayer()) return false;
+                this.systemComparisonPage = 0;
+                this.systemComparisonSelection = null;
+                this.systemComparisonLastClick = null;
+                this.uiWindow = 'systemComparison';
+                return true;
+            case 'systemComparisonPage':
+                if (!Number.isInteger(action.page) || action.page < 0) return false;
+                this.systemComparisonPage = action.page;
+                this.systemComparisonLastClick = null;
+                return true;
+            case 'sortSystemComparison':
+                if (!['name','tech','population','production','buildName','completion',
+                    'totalDefense','satelliteDefense','shipDefense'].includes(action.key)) return false;
+                this.systemComparisonSort = { key: action.key, ascending: this.systemComparisonSort.key === action.key
+                    ? !this.systemComparisonSort.ascending : true };
+                this.systemComparisonPage = 0;
+                this.systemComparisonLastClick = null;
+                return true;
+            case 'systemComparisonRow': {
+                if (!this.getSystemComparisonRows().some(row => row.star === action.star)) return false;
+                const time = this.getCurrentMilliseconds(), previous = this.systemComparisonLastClick;
+                this.systemComparisonSelection = action.star;
+                if (previous && previous.star === action.star && time >= previous.time && time - previous.time <= 500) {
+                    return this.openSystemComparisonSelection();
+                }
+                this.systemComparisonLastClick = { star: action.star, time };
+                return true;
+            }
             case 'showSystemShips':
                 if (!this.canViewSystemShips(action.star)) return false;
                 this.systemShipWindowStar = action.star;

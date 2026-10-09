@@ -482,28 +482,53 @@ class Star {
     /**
      * Get defense strength of the star itself
      */
-    getDefenseStrength() {
-        // Stars have base defense strength based on tech level and population
-        return this.techLevel * 1000; // Base defense per tech level
+    // CStar::GetProduction reports hundredths, with the computer multiplier
+    // applied to the integer combined benefits (not to research payments).
+    getProduction() {
+        const advantage = this.game && this.game.getComputerAdvantageForOwner ? this.game.getComputerAdvantageForOwner(this.owner) : 0;
+        return Math.trunc(this.shipBuilding.benefit + this.research.benefit) * (100 + advantage * 20);
     }
-    
-    /**
-     * Get total defense strength including satellites
-     */
-    getTotalDefenseStrength() {
-        let totalDefense = this.getDefenseStrength();
-        for (const satellite of this.defenseSatellites) {
-            // Defense satellites should have a getDefenseStrength method
-            if (satellite.getDefenseStrength) {
-                totalDefense += satellite.getDefenseStrength();
-            } else {
-                // Fallback: assume satellites have a strength property
-                totalDefense += satellite.strength || 0;
+
+    getDefenseBreakdown() {
+        const allied = ship => !this.owner || ship.owner === this.owner ||
+            (this.game && this.game.isOwnerAlliedWith && this.game.isOwnerAlliedWith(ship.owner, this.owner));
+        const completed = ship => !ship.underConstruction || !ship.underConstruction();
+        const docked = ship => ship.star === this && !ship.destination;
+        const satellites = new Set(this.defenseSatellites.filter(ship => !ship.fleet && completed(ship) &&
+            (docked(ship) && allied(ship) || !ship.owner && !ship.star && !ship.destination)));
+        const satelliteDefense = [...satellites].reduce((sum, ship) => sum +
+            (typeof ship.power === 'number' ? ship.power * 100 - (ship.damage || 0) : ship.strength || 0), 0);
+        const ships = new Set(this.ships.concat(this.game && this.game.allShips || []));
+        let shipDefense = 0;
+        for (const ship of ships) {
+            if (!ship.fleet && !satellites.has(ship) && completed(ship) && docked(ship) && allied(ship)) {
+                shipDefense += ship.getDefenseStrength();
             }
         }
-        return totalDefense;
+        for (const fleet of this.game && this.game.allFleets || []) {
+            if (docked(fleet) && allied(fleet)) {
+                const members = fleet.ships.filter(completed);
+                if (!members.length) continue;
+                // v3 fleets inherit CShip defense: clamp the combined power
+                // once, rather than granting minimum power to every courier.
+                const power = members.reduce((sum, ship) => sum + ship.power, 0);
+                const damage = members.reduce((sum, ship) => sum + ship.damage, 0);
+                shipDefense += Math.max(1, power) * 100 - damage;
+            }
+        }
+        // v3 satellites form one special fleet. Its table column is raw power
+        // minus damage; total defense also has CShip's one-power minimum.
+        const realSatellites = [...satellites].filter(ship => typeof ship.power === 'number');
+        const minimumSatellitePower = realSatellites.length &&
+            realSatellites.reduce((sum, ship) => sum + ship.power, 0) < 1 ? 100 : 0;
+        return { satelliteDefense, shipDefense,
+            totalDefense: this.getDefenseStrength() + satelliteDefense + minimumSatellitePower + shipDefense };
     }
-    
+
+    getTotalDefenseStrength() {
+        return this.getDefenseBreakdown().totalDefense;
+    }
+
     // Combat methods - ported from CStar.cpp
     getAttackStrength() {
         if (this.game && this.game.rules && typeof this.game.rules.getStarAttackStrength === 'function') {
