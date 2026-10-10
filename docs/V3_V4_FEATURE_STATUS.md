@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1101 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1265 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -958,3 +958,30 @@ parse with their seventeen chapters retained. Actual native cursor appearance
 still requires a connected native display; the browser appearance/behavior and
 both native model suites were checked. The overall parity, tutorial presentation
 and Map Generation checklists remain active.
+
+
+### Complete six-language runtime tutorial texts
+
+Added runtime presentation resources for all sixty source lessons, recovery pages
+100/101/103 and macOS variants 1001/1002/1060. Every supported language has all
+texts, headings and instruction buttons; there is no English-only runtime docs
+reference dependency. Common source action controls, sounds and picture IDs match
+the shipped English and German resources. The metadata tool regenerates identical
+bytes. Text follows the original teaching sequence while describing v4’s actual
+sliders/locks/=, report acknowledgment, Scout couriers, rendezvous placement,
+Set destinations, command-menu comparison, fleet exchange and retained practice
+game. Proper names New Terra and Alpha remain stable tutorial identities.
+
+The validated loader reads the chosen packaged language, refuses blank/missing
+translations and corrupt control destinations, and returns independent pages.
+The existing hidden session entry defaults to it. Six regressions bring both full
+suites to 1,265 passing tests on release and development PDG. Browser virtual-FS
+loading and the real setup/name/install/completion/continue/switch flows pass in
+all six languages under `/private/tmp/galactica-parity/tutorial-lessons`; logs are
+`/private/tmp/galactica-tutorial-lessons-{tests,native-tests,<language>}.log`.
+
+The lesson text is not rendered yet; these browser fixtures exercise the hidden
+entry and final-controller completion, not a complete guided playthrough.
+Instruction-panel rendering, lesson illustrations, language-switch refresh,
+public launch controls and complete tutorial saves remain required. The tutorial
+row and broader parity/Map Generation goal remain incomplete.

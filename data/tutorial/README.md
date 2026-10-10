@@ -50,7 +50,7 @@ monotonicity, restores player milestones and initializes visibility/selection.
 The session owner preserves previous open games and binds the original
 action-driven model. Cancellation restores the previous application; successful
 completion keeps the practice game as an unsaved ordinary document. Each new tutorial now owns a private seed-101 random stream.
-Visible lessons and the public launch UI are unfinished; this fixture does not
+Visible lesson rendering and the public launch UI are unfinished; this fixture does not
 constitute a completed tutorial.
 
 
@@ -89,3 +89,20 @@ The shipped tutorial attention cue is in `sounds/7000.wav`. Regenerate it with
 that the English and German sources agree. Its manifest records unchanged PCM
 bytes and source hashes. Session entry uses the normal Sound preference and
 stops playback when the tutorial ends.
+
+
+### Localized lessons
+
+`pages.json` contains the 66 original control records with presentation keys.
+Reproduce it with `python3 tools/make-tutorial-runtime-metadata.py` after updating
+the decoded v3 reference. English and German controls must agree. The six
+`languages/*.json` files are maintained UTF-8 runtime text, with all sixty lessons,
+three recovery explanations, headings and instruction buttons translated.
+The original macOS resource variants share modern platform-neutral text.
+
+`src/js/tutorial-lessons.js` validates and assembles the selected language without
+loading the docs reference or silently filling missing translations with English.
+Its packaged-resource path is used by the hidden session entry. These resources
+complete the lesson-text dependency; they are not a visible instruction panel or
+a finished tutorial. Full save/resume, illustrations, language-switch refresh and
+the public menu entry remain separate integration work.

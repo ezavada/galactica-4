@@ -519,7 +519,7 @@ function clearSessionInput() {
     if(game){game.endUIWindowDrag();game.endMapScrollDrag();game.endUISliderDrag();}
 }
 // No menu advertises the tutorial until the localized instruction UI is ready.
-function beginTutorial(pages,context={window:game && !sessions.starting?1:34,modal:sessions.starting}) {
+function beginTutorial(pages=require('./src/js/tutorial-lessons.js').load(dataPath),context={window:game && !sessions.starting?1:34,modal:sessions.starting}) {
     if(tutorialSession && tutorialSession.controller.active)return false;
     const owner=new (require('./src/js/tutorial-session.js'))(pages,{
         sessions,sound,

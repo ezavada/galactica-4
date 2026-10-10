@@ -4,11 +4,11 @@
 original lessons. It is connected to an explicitly bound tutorial game through
 `src/js/tutorial-runtime.js`, but has no startup entry or rendered instruction
 panel. A successful model walkthrough is not proof of a
-playable tutorial. Session preservation is implemented below; localized runtime
-lessons and the public launch UI remain required work in `V3_V4_FEATURE_STATUS.md`.
+playable tutorial. Session preservation and localized runtime lessons are implemented below;
+the public launch UI and instruction renderer remain required work in `V3_V4_FEATURE_STATUS.md`.
 
-The constructor accepts decoded page metadata and callbacks. Use localized
-runtime pages when the UI is wired; `v3-tutorial.json` is a source reference,
+The constructor accepts decoded page metadata and callbacks. Use `tutorial-lessons.js::load(dataDirectory, language)` for runtime pages;
+`v3-tutorial.json` is a source reference,
 not an English-only UI dependency. The model needs every logical lesson and
 recovery pages 100, 101 and 103. macOS alternate resources replace presentation
 metadata without changing the logical page number. Source page 102 does not
@@ -94,7 +94,8 @@ validates hull/owner identities and progress before applying them. This is not a
 complete tutorial save: the session owner must also preserve the game graph,
 renderer/camera, file association, previous game and progress in setup. Normal
 Save/restore does not install or persist the runtime automatically. The startup actions for lessons 1–4 are connected by the session owner below.
-Visible instructions and the full walkthrough remain unfinished. No startup/menu
+All sixty lesson texts are now available in six languages, with recovery pages
+and platform variants. Visible instructions and the full walkthrough remain unfinished. No startup/menu
 command advertises this partial tutorial yet.
 
 
@@ -119,8 +120,7 @@ remain available in Open games. This follows `GalacticaTutorial.cp:111–116,
 498–520`: finishing closes the instructions while leaving the practice game open.
 Completion before accepting a practice game, attachment failures and fixture
 construction failures restore the original application; repeated cleanup is
-harmless. Cancellation preserves unfinished initial setup when no game was open. Visible instruction controls, translated lesson
-resources, tutorial save/resume and presentation pictures remain required.
+harmless. Cancellation preserves unfinished initial setup when no game was open. Visible instruction controls, tutorial save/resume and presentation pictures remain required.
 Lesson entry audio now uses the shared Sound preference and stops when the
 session ends, including cancellation before acknowledgment. Source-silent
 pages do not play a cue. The sample is identical in both shipped languages.
@@ -140,3 +140,30 @@ saves remains valid. This preserves random continuation only; restoring the full
 tutorial runtime, simulation safeguards and session ownership is separate work.
 The portable stream is not asserted to reproduce the old platform library's
 exact random sequence. Full guided-playthrough verification remains required.
+
+
+## Runtime lesson resources
+
+`data/tutorial/pages.json` holds the common controls for all 66 source resource
+IDs: sixty lessons, three recoveries and three macOS presentation variants.
+`tools/make-tutorial-runtime-metadata.py` reproduces it from the decoded reference
+and rejects differences in the English/German action controls. Individual JSON
+files in `data/tutorial/languages` provide all 63 logical texts, grouped headings
+and button labels in en/de/es/fr/ja/ru. Platform variants reuse the matching
+modern instructions without changing logical progression.
+
+The text retains the original teaching sequence but describes current controls:
+actual fill/target markers and locks, = equalization, Enter/Escape report
+acknowledgment versus Tab attention, Scout couriers, map rendezvous placement,
+inline Set destinations, command-menu Compare Players, Exchange ships and the
+practice game remaining open. Names New Terra and Alpha are tutorial identities.
+Text resources are source files, not generated output.
+
+`load` resolves the selected language through LanguageSettings and reads only
+packaged runtime files. A missing/blank translation fails validation rather than
+silently substituting English. Unsupported language codes use the application's
+ordinary English default. It validates headings/buttons/IDs, action destinations,
+exceptions and presentation metadata, then returns independent page objects.
+The still-hidden application entry now defaults to this loader. Runtime reload
+when changing language, the visible instruction panel, illustrations and the
+public launch action still need integration and an actual guided walkthrough.
