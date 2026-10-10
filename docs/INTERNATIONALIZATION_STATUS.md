@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 276 IDs
-- localized files: 276 IDs each
+- `strings.txt`: 277 IDs
+- localized files: 277 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -82,7 +82,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 560 passed, 0 failed.
+Current expected full-suite result: 576 passed, 0 failed.
 
 ## Future work
 

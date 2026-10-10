@@ -1602,6 +1602,9 @@ class Display {
             });
             regions.push({rect:{x:r.x+14,y:r.y+r.height-64,width:190,height:24},label:I18n.getString(733,'Loop'),
                 key:'L',active:object.course.loop,action:{type:'toggleCourseLoop'}});
+            if(object.course.waypoints.length || object.course.hasMemory)regions.push({
+                rect:{x:r.x+214,y:r.y+r.height-64,width:190,height:24},label:I18n.getString(740,'Memory'),
+                key:'M',active:object.course.hasMemory,action:{type:'swapCourseMemory'}});
         }
         if(layout.page>0)regions.push({rect:{x:r.x+14,y:r.y+r.height-32,width:130,height:22},
             label:I18n.getString(690,'Previous'),action:{type:'coursePage',page:layout.page-1}});

@@ -324,3 +324,6 @@
 737	Abschnitt
 738	Verbleibend
 739	Kurs für {0} aktualisiert
+
+# Course memory
+740	Kursspeicher

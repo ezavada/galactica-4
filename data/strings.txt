@@ -324,3 +324,6 @@
 737	Leg
 738	Remaining
 739	Course updated for {0}
+
+# Course memory
+740	Memory

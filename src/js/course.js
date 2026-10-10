@@ -7,8 +7,10 @@ class Course {
         this.current = 0;
         this.previous = -1;
         this.loop = false;
+        this.hunt = false;
         this.hasOrigin = false;
         this.revision = 0;
+        this.memory = null;
     }
     point(target) {
         if (!target || !Number.isFinite(target.x) || !Number.isFinite(target.y)) return null;
@@ -38,13 +40,39 @@ class Course {
         this.revision++;
         if (this.owner.calculateMovement) this.owner.calculateMovement();
     }
+    get hasMemory() { return !!(this.memory && this.memory.waypoints.length); }
+    snapshot() {
+        const game=this.owner.game;
+        return {waypoints:this.waypoints.map(point=>{
+            const object=game && game.getObjectType(point.target)!==Common.ObjectType.UNKNOWN;
+            return {...point,target:object?point.target:{x:point.target.x,y:point.target.y}};
+        }),current:this.current,previous:this.previous,loop:this.loop,hunt:this.hunt,hasOrigin:this.hasOrigin,
+            patrol:this.owner.isOnPatrol?this.owner.isOnPatrol():false};
+    }
+    swapMemory() {
+        if(!this.waypoints.length && !this.hasMemory)return false;
+        const current=this.snapshot();
+        if(this.hasMemory) {
+            const saved=this.memory;
+            this.waypoints=saved.waypoints;this.current=saved.current;this.previous=saved.previous;
+            this.loop=saved.loop;this.hunt=saved.hunt;this.hasOrigin=saved.hasOrigin;
+            if(this.owner.setPatrol)this.owner.setPatrol(saved.patrol);
+            this.memory=current;
+            this.changed();
+        } else {
+            // The first use copies the course without changing its progress.
+            // v3 deliberately excludes patrol from this initial saved copy.
+            current.patrol=false;this.memory=current;
+        }
+        return true;
+    }
     clear() {
-        this.waypoints=[];this.current=0;this.previous=-1;this.loop=false;this.hasOrigin=false;
+        this.waypoints=[];this.current=0;this.previous=-1;this.loop=false;this.hunt=false;this.hasOrigin=false;
         this.changed();
     }
     replace(target) {
         const point=this.point(target);
-        this.waypoints=point?[point]:[];this.current=0;this.previous=-1;this.loop=false;this.hasOrigin=false;
+        this.waypoints=point?[point]:[];this.current=0;this.previous=-1;this.loop=false;this.hunt=false;this.hasOrigin=false;
         this.changed();
     }
     insert(target,index=this.waypoints.length) {

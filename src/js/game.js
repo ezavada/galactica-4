@@ -1157,6 +1157,7 @@ class Game {
             else if (key===127 || key===8 || lower==='d') this.executeUIAction({type:'deleteWaypoint'});
             else if (lower==='x') this.clearOrders(this.courseWindowObject);
             else if (lower==='l') this.executeUIAction({type:'toggleCourseLoop'});
+            else if (lower==='m') this.executeUIAction({type:'swapCourseMemory'});
             return true;
         }
 
@@ -1604,6 +1605,18 @@ class Game {
             case 'coursePage':
                 if (!Number.isInteger(action.page)||action.page<0)return false;
                 this.coursePage=action.page;return true;
+            case 'swapCourseMemory': {
+                const object=this.courseWindowObject;
+                if(!this.canEditCourse(object) || !object.course.swapMemory())return false;
+                object.setPatrol(false); // CbxNaPanel cancels patrol after memory use.
+                const index=object.course.current;
+                this.courseSelection=object.course.waypoints[index]?index:null;
+                this.coursePage=0;
+                if(this.courseSelection!==null && this.display && this.display.getCourseWindowLayout) {
+                    this.coursePage=Math.floor(index/this.display.getCourseWindowLayout().pageSize);
+                }
+                return true;
+            }
             case 'toggleCourseLoop':
                 if (!this.canEditCourse(this.courseWindowObject)) return false;
                 this.courseWindowObject.course.loop=!this.courseWindowObject.course.loop;

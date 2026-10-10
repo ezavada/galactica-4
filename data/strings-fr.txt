@@ -324,3 +324,6 @@
 737	Trajet
 738	Restant
 739	Parcours mis à jour pour {0}
+
+# Course memory
+740	Mémoire
