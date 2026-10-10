@@ -1498,6 +1498,8 @@ class Game {
             const defense = star.getDefenseBreakdown();
             return { star, name: star.name, tech: Math.trunc(star.techLevel), population: Math.trunc(star.population),
                 production: Math.trunc(star.getProduction() / 100), buildName,
+                buildRank: !build ? -1 : build.type === 'battleship' ? 3 + Math.floor(star.techLevel / 5)
+                    : {defense:0,scout:1,colony:2}[build.type],
                 completion: build ? Math.trunc(build.progress) : 0,
                 totalDefense: Math.trunc(defense.totalDefense / 100),
                 satelliteDefense: Math.trunc(defense.satelliteDefense / 100),
@@ -1505,7 +1507,8 @@ class Game {
         });
         const sort = this.systemComparisonSort;
         return rows.sort((a,b) => {
-            const order = typeof a[sort.key] === 'string' ? a[sort.key].localeCompare(b[sort.key]) : a[sort.key] - b[sort.key];
+            const key=sort.key==='buildName'?'buildRank':sort.key;
+            const order = typeof a[key] === 'string' ? a[key].localeCompare(b[key]) : a[key] - b[key];
             return (sort.ascending ? order : -order) || a.star.id - b.star.id;
         });
     }
@@ -1870,9 +1873,10 @@ class Game {
                 if (!['name','tech','population','production','buildName','completion',
                     'totalDefense','satelliteDefense','shipDefense'].includes(action.key)) return false;
                 this.systemComparisonSort = { key: action.key, ascending: this.systemComparisonSort.key === action.key
-                    ? !this.systemComparisonSort.ascending : true };
+                    ? !this.systemComparisonSort.ascending : action.key === 'name' };
                 this.systemComparisonPage = 0;
                 this.systemComparisonLastClick = null;
+                if(this.systemComparisonPreferences)this.systemComparisonPreferences.write(this.systemComparisonSort);
                 return true;
             case 'systemComparisonRow': {
                 if (!this.getSystemComparisonRows().some(row => row.star === action.star)) return false;

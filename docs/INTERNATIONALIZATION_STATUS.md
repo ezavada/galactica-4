@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 900 passed, 0 failed.
+Current expected full-suite result: 903 passed, 0 failed.
 
 ## Future work
 
@@ -143,3 +143,5 @@ Fleet exchange adds IDs 801–805 (window title/action, main-list heading, desti
 Fleet roster adds IDs 806–809 (empty roster, Yes/No colony capability and double-click help) in all six languages. It reuses localized column names, patrol, paging and close labels, with native decimal formatting for speed and coordinates. All translated columns, later pages, selected/double-click views and smaller CSS views passed actual browser checks; header layouts also fit logical 640×480/600 screens. Current resources: 344 IDs per language; full suites: 889 passed on release/current native PDG.
 
 Roster geometry adds ID 810, a native-language title/corner drag hint, in all six languages. Actual browser move/resize, paging, Escape, release outside the canvas and fresh-page restoration passed in every language; inspected translated moved/resized/restored windows and smaller CSS views. Current resources: 345 IDs per language; full suites: 900 passed on release/current native PDG.
+
+System comparison sorting uses existing localized headers and hull labels in all six languages. Hull order follows class/technology rather than translated spelling. Browser clicks and fresh-page preference restoration passed in en/de/es/fr/ja/ru; translated screenshots inspected. Resources remain 345 IDs per language; current full suites: 903 passed on release/current native PDG.

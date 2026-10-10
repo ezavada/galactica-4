@@ -41,6 +41,10 @@ function getIntegerArg(name, fallback = null) {
 const LanguageSettings = require('./src/js/language-settings.js');
 const StartupSetup = require('./src/js/startup-setup.js');
 const rosterPreferences = require('./src/js/roster-preferences.js').createPreferences();
+const systemComparisonPreferences = require('./src/js/roster-preferences.js').createPreferences(globalThis, {
+    prefix:'systemComparison', keys:['name','tech','population','production','buildName','completion',
+        'totalDefense','satelliteDefense','shipDefense']
+});
 const drawingPreferences = require('./src/js/drawing-preferences.js').createPreferences();
 const languagePreferences = LanguageSettings.createPreferences();
 LanguageSettings.initialize(args,pdg.res,languagePreferences);
@@ -330,6 +334,8 @@ function startGame() {
     game = new Game(factory, rules, pendingConfig);
     game.languagePreferences = languagePreferences;
     game.drawingPreferences = drawingPreferences;
+    game.systemComparisonPreferences = systemComparisonPreferences;
+    game.systemComparisonSort = systemComparisonPreferences.read();
     game.rosterPreferences = rosterPreferences;
     game.fleetRosterSort = rosterPreferences.read();
     game.fleetRosterGeometry = rosterPreferences.readGeometry();

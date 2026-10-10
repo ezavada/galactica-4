@@ -92,13 +92,50 @@ module.exports = function() {
             shipAt(game,other,'defense');shipAt(game,other);
             for(const key of ['name','tech','population','production','buildName','completion','totalDefense','satelliteDefense','shipDefense']) {
                 game.systemComparisonSort={key,ascending:true};const rows=game.getSystemComparisonRows();
-                const order=typeof rows[0][key]==='string'?rows[0][key].localeCompare(rows[1][key]):rows[0][key]-rows[1][key];
+                const field=key==='buildName'?'buildRank':key;
+                const order=typeof rows[0][field]==='string'?rows[0][field].localeCompare(rows[1][field]):rows[0][field]-rows[1][field];
                 test.assertTrue(order<=0,key);game.executeUIAction({type:'sortSystemComparison',key});
                 test.assertTrue(game.getSystemComparisonRows()[0].star===rows[1].star,key);
             }
             other.name=star.name;game.systemComparisonSort={key:'name',ascending:false};
             test.assertTrue(game.getSystemComparisonRows()[0].star===star);
             test.assertFalse(game.executeUIAction({type:'sortSystemComparison',key:'invalid'}));
+        });
+        test.it('starts numeric and hull columns highest first, persists reversals, and leaves names alphabetical',()=>{
+            const {game}=fixture(),writes=[];game.systemComparisonPreferences={write:sort=>writes.push({...sort})};
+            for(const key of ['tech','population','production','buildName','completion','totalDefense','satelliteDefense','shipDefense']) {
+                game.systemComparisonSort={key:'name',ascending:true};game.systemComparisonPage=3;
+                game.executeUIAction({type:'sortSystemComparison',key});test.assertFalse(game.systemComparisonSort.ascending);
+                test.assertEqual(game.systemComparisonPage,0);game.executeUIAction({type:'sortSystemComparison',key});
+                test.assertTrue(game.systemComparisonSort.ascending);
+            }
+            game.executeUIAction({type:'sortSystemComparison',key:'name'});test.assertTrue(game.systemComparisonSort.ascending);
+            test.assertEqual(writes.length,17);game.executeUIAction({type:'sortSystemComparison',key:'invalid'});test.assertEqual(writes.length,17);
+        });
+        test.it('orders hull classes by technology independently of translated labels',()=>{
+            const {game,star}=fixture();star.startBuildingShip('colony');
+            const advanced=game.factory.createStar(0,0,'Advanced');advanced.owner=1;advanced.techLevel=20;advanced.startBuildingShip('battleship');
+            const basic=game.factory.createStar(0,0,'Basic');basic.owner=1;basic.techLevel=0;basic.startBuildingShip('battleship');
+            const previous=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']) {
+                pdg.res.setLanguage(lang);game.systemComparisonSort={key:'buildName',ascending:false};
+                const rows=game.getSystemComparisonRows();test.assertTrue(rows[0].star===advanced);test.assertTrue(rows[1].star===basic);test.assertTrue(rows[2].star===star);
+            }}finally{pdg.res.setLanguage(previous);}
+        });
+        test.it('restores independent native and browser system sort preferences and tolerates broken storage',()=>{
+            const Preferences=require('../src/js/roster-preferences.js'),options={prefix:'systemComparison',keys:['name','population']};
+            for(const native of [false,true]) {
+                const values={},store={getItem:key=>values[key]||null,setItem:(key,value)=>{values[key]=value;}};
+                const env=native?{pdg:{cfg:{useConfig:()=>{},getConfigString:store.getItem,setConfigString:store.setItem}}}:{window:{localStorage:store}};
+                const fleet=Preferences.createPreferences(env);fleet.write({key:'power',ascending:false});
+                Preferences.createPreferences(env,options).write({key:'population',ascending:false});
+                const restored=Preferences.createPreferences(env,options).read();test.assertEqual(restored.key,'population');test.assertFalse(restored.ascending);
+                test.assertEqual(fleet.read().key,'power');values[(native?'':'galactica.')+'systemComparisonSort']='broken';
+                test.assertEqual(Preferences.createPreferences(env,options).read().key,'name');
+                values[(native?'':'galactica.')+'systemComparisonSort']=JSON.stringify({key:'power',ascending:true});
+                test.assertEqual(Preferences.createPreferences(env,options).read().key,'name');
+            }
+            const unavailable={window:{get localStorage(){throw Error('Unavailable');}}};
+            const prefs=Preferences.createPreferences(unavailable,options);prefs.write({key:'population',ascending:false});test.assertEqual(prefs.read().key,'name');
         });
         test.it('paginates inside the viewport and clamps the last page after system loss',()=>{
             const {game,display}=fixture();for(let i=0;i<30;i++)game.factory.createStar(0,0,'System '+i).owner=1;
