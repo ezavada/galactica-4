@@ -16,13 +16,27 @@ Galactica v3 sound resource bundle. Their source hashes and unchanged PCM
 payloads are recorded in their respective `manifest.json` files; no additional license
 is granted for those legacy recordings.
 
-No embedded license, source URL, artist credit, or written rights statement
-was found in the current tree or Git history. The filenames identify several
-items that need explicit verification:
+The Galactica v3 repository supplies an explicit art credit and rights statement:
+its `README.md:5` says, “The art assets are copyright Claudio Berni, and must not
+be used without his permission.” The shipped English credits in
+`Resources/gal-en-shareware.r` PICT 132 identify “art”, Claudio Berni and
+`http://www.dreamstudio.com`; About dialog PPob 32 also lists him. The CD-ROM
+and German resources carry the same artist credit. These establish ownership
+and attribution. They do not record a permission grant for this repository.
+The previous audit incorrectly reported that no artist/rights record existed;
+that conclusion is superseded by this source evidence.
+
+Source evidence lives in the peer `galactica-anno-dominari-3` repository:
+[README](../galactica-anno-dominari-3/README.md) and
+[English shipped resources](../galactica-anno-dominari-3/Resources/gal-en-shareware.r).
+Do not interpret the general art statement as identifying the rights holders of
+third-party recordings, logos or every extra astronomy image below.
+
+The remaining asset-specific questions are:
 
 | Asset group | Files | Current evidence | Required action |
 |---|---:|---|---|
-| Galactica ships, event panels, and blueprints | 32 runtime PNGs plus legacy sources | Derived from the historical Galactica art archive; no artist/license record in this repository | Confirm ownership or obtain written permission, then record author and license |
+| Galactica ships, event panels, and blueprints | 32 runtime PNGs plus legacy sources | Derived from the historical Galactica art archive; v3 credits and README identify Claudio Berni and require his permission | Retain the Claudio Berni credit and record permission covering this use before unrestricted redistribution |
 | Legacy sound recordings | 13 runtime WAVs | Converted from shipped v3 snd resources; resource 1003 is labeled Message (TNG doorbell), with no recording license in this repository | Confirm recording rights before public redistribution, or replace the recordings |
 | Space background | `data/background.png` and `besthubble_keyhole_02.jpg` derivatives | Filenames suggest Hubble imagery, but the precise NASA/ESA source and transformation chain are not documented | Identify the original image and add its authoritative credit/usage statement |
 | VendorNation and STS logos | `vn-logo*`, `VN_logo*`, `PICT_135*`, `PICT_136*` | Trademark/logo files with no redistribution grant | Confirm trademark ownership and intended public use, or remove them |
