@@ -433,3 +433,16 @@
 
 # Roster window geometry
 810	Faites glisser le titre pour déplacer ; le coin inférieur droit pour redimensionner.
+
+# Player comparison
+811	Systèmes sans propriétaire
+812	Système|Min
+813	Système|Max
+814	Système|Moy.
+815	Vaisseau|Min
+816	Vaisseau|Max
+817	Vaisseau|Moy.
+818	Bleu : meilleur · Rouge : moins bon
+819	{0} (vaincu)
+820	Technologie des systèmes
+821	Technologie des vaisseaux

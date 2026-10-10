@@ -67,6 +67,7 @@ class Game {
         this.systemShipWindowStar = null;
         this.systemShipPage = 0;
         this.systemShipSort = { key: 'name', ascending: true };
+        this.playerComparisonPage = 0;
         this.systemComparisonPage = 0;
         this.systemComparisonSort = { key: 'name', ascending: true };
         this.systemComparisonSelection = null;
@@ -1254,6 +1255,10 @@ class Game {
             return true;
         }
         if(key===pdg.key_Home && this.uiWindow==='menu')return this.executeUIAction({type:'selectHomeStar'});
+        if(this.uiWindow==='comparison') {
+            if(key===pdg.key_Escape || lower==='v')this.uiWindow=null;
+            return true;
+        }
         if(this.uiWindow==='systemComparison') {
             if(key===pdg.key_Escape){this.saveTableWindowGeometry();this.uiWindow=null;}
             else if(key===13 || key===3)this.openSystemComparisonSelection();
@@ -1863,6 +1868,10 @@ class Game {
                 return this.saveColonyDefaults();
             case 'cancelColonyDefaults':
                 return this.cancelColonyDefaults();
+            case 'closePlayerComparison':this.uiWindow=null;return true;
+            case 'playerComparisonPage':
+                if(this.uiWindow!=='comparison' || !Number.isInteger(action.page) || action.page<0)return false;
+                this.playerComparisonPage=action.page;return true;
             case 'closeSystemComparison':this.endUIWindowDrag();this.saveTableWindowGeometry();this.uiWindow=null;this.systemComparisonLastClick=null;return true;
             case 'showSystemComparison':
                 if (!this.getCurrentHumanPlayer()) return false;
@@ -2219,39 +2228,45 @@ class Game {
     }
 
     getPlayerComparisonRows() {
-        const rows = [];
-        if (!this.players || !this.config) {
-            return rows;
+        if(!this.players || !this.config)return [];
+        const rows=[];
+        for(let i=0;i<=this.config.totalPlayers;i++) {
+            const player=this.players[i];
+            const stars=this.stars.filter(star=>star.owner===i);
+            const ships=this.allShips.filter(ship=>ship.owner===i && !ship.isDead() && !ship.underConstruction());
+            const tech=objects=>objects.map(object=>Math.trunc(object.techLevel || 0));
+            const starTech=tech(stars),shipTech=tech(ships);
+            const average=values=>values.length?Math.trunc(values.reduce((sum,value)=>sum+value,0)/values.length):0;
+            const assigned=!!player && (player.isComputer || !!player.name);
+            const alive=stars.length>0 || ships.length>0;
+            const name=i===0?I18n.getString(811,'Unowned systems'):assigned?(player.name || `${I18n.getString(18,'Player')} ${i}`):I18n.getString(306,'Unknown');
+            const productionRaw=stars.reduce((sum,star)=>sum+star.getProduction(),0);
+            rows.push({playerNum:i,name:i>0 && assigned && !alive?I18n.formatString(819,'{0} (defeated)',name):name,
+                italicizeName:i===0 || !assigned,isAlive:alive,assigned,
+                type:player && player.isComputer?I18n.getString(504,'AI'):I18n.getString(300,'Human'),
+                stars:stars.length,ships:ships.length,
+                shipsBuilding:this.allShips.filter(ship=>ship.owner===i && !ship.isDead() && ship.underConstruction()).length,
+                population:stars.reduce((sum,star)=>sum+Math.trunc(star.population),0),
+                production:Math.trunc(productionRaw/100),productionRaw,
+                power:ships.reduce((sum,ship)=>sum+Math.trunc(ship.power),0),
+                minimumTech:starTech.length?Math.min(...starTech):0,maxTech:starTech.length?Math.max(...starTech):0,
+                averageTech:average(starTech),minimumShipTech:shipTech.length?Math.min(...shipTech):0,
+                maximumShipTech:shipTech.length?Math.max(...shipTech):0,averageShipTech:average(shipTech),
+                pieces:stars.length+ships.length});
         }
-
-        for (let i = 1; i <= this.config.totalPlayers; i++) {
-            const player = this.players[i];
-            if (!player) {
-                continue;
-            }
-            const ownedStars = this.stars.filter(star => star.owner === i);
-            const ownedShips = this.allShips.filter(ship => ship.owner === i);
-            const completedShips = ownedShips.filter(ship => !ship.underConstruction || !ship.underConstruction());
-            const population = ownedStars.reduce((sum, star) => sum + Math.floor(star.population * 1000.0), 0);
-            const techSum = ownedStars.reduce((sum, star) => sum + (star.techLevel || 0), 0);
-            const maxTech = ownedStars.reduce((max, star) => Math.max(max, star.techLevel || 0), 0);
-
-            rows.push({
-                playerNum: i,
-                name: player.name || `${I18n.getString(18, 'Player')} ${i}`,
-                type: player.isComputer ? I18n.getString(504, 'AI') : I18n.getString(300, 'Human'),
-                isAlive: player.isAlive,
-                stars: ownedStars.length,
-                ships: completedShips.length,
-                shipsBuilding: ownedShips.length - completedShips.length,
-                population,
-                averageTech: ownedStars.length > 0 ? techSum / ownedStars.length : 0,
-                maxTech,
-                pieces: ownedStars.length + ownedShips.length
-            });
-        }
-
         return rows;
+    }
+
+    getPlayerComparisonExtrema(rows=this.getPlayerComparisonRows()) {
+        const fields=['stars','population','production','minimumTech','maxTech','averageTech',
+            'ships','power','minimumShipTech','maximumShipTech','averageShipTech'];
+        const extrema={};
+        fields.forEach(key=>{
+            const shipField=['ships','power','minimumShipTech','maximumShipTech','averageShipTech'].includes(key);
+            const values=rows.filter(row=>row.playerNum>0 && row.isAlive && (shipField?row.ships:row.stars)>0).map(row=>row[key==='production'?'productionRaw':key]);
+            extrema[key]=values.length?{minimum:Math.min(...values),maximum:Math.max(...values)}:null;
+        });
+        return extrema;
     }
 
     clearOrders(object = this.selectedObject) {
@@ -2380,7 +2395,7 @@ class Game {
     }
     
     handleMouseRightClick(x, y, options={}) {
-        if(['mapPick','fleets','systemComparison'].includes(this.uiWindow))return true;
+        if(['mapPick','fleets','systemComparison','comparison'].includes(this.uiWindow))return true;
         if(this.pendingMapOrderObject || this.pendingRendezvousPlacement)return this.handleMouseClick(x,y,options);
         if(!options.resolved && this.beginMapSelection(x,y,'order'))return true;
         this.pendingMapOrderObject = null;
@@ -2473,7 +2488,7 @@ class Game {
     }
 
     handleKeyPress(key) {
-        if(this.uiWindow==='systemComparison')return this.handleCommandWindowKey(key,this.getKeyChar(key));
+        if(['comparison','systemComparison'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
         if(key === pdg.key_F6)return this.executeUIAction({type:'toggleScannerRanges'});
         if(key === pdg.key_F4)return this.executeUIAction({type:'toggleAllCourses'});
         if(key === pdg.key_F5)return this.executeUIAction({type:'toggleCourierCourses'});

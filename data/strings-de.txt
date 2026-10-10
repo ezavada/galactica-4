@@ -433,3 +433,16 @@
 
 # Roster window geometry
 810	Titelleiste zum Verschieben ziehen; untere rechte Ecke zum Ändern der Größe ziehen.
+
+# Player comparison
+811	Unbesetzte Systeme
+812	System|Min
+813	System|Max
+814	System|Ø
+815	Schiff|Min
+816	Schiff|Max
+817	Schiff|Ø
+818	Blau: bester Wert · Rot: schlechtester Wert
+819	{0} (besiegt)
+820	Systemtechnologie
+821	Schiffstechnologie

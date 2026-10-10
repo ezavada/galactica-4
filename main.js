@@ -444,7 +444,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     }
     // Check if this is a mouse down event
     if (event && event.eventType === pdg.eventType_MouseDown) {
-        if(['mapPick','fleets','systemComparison'].includes(game.uiWindow) && event.buttonNumber!==0)return true;
+        if(['mapPick','fleets','systemComparison','comparison'].includes(game.uiWindow) && event.buttonNumber!==0)return true;
         // Check which button was pressed
         // PDG uses buttonNumber: 0=left, 1=right, 2=middle
         if (event.buttonNumber === 0) {
@@ -548,7 +548,7 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
         // Recover if the button was released outside the game window.
         if(game.uiWindowDrag && event.leftButton===false){game.endUIWindowDrag();return true;}
         if(game.updateUIWindowDrag(event.mousePos.x,event.mousePos.y))return true;
-        if(['fleets','systemComparison'].includes(game.uiWindow)) {
+        if(['fleets','systemComparison','comparison'].includes(game.uiWindow)) {
             game.endMapScrollDrag();game.endUISliderDrag();
             isDragging=false;isLeftClickDragging=false;return true;
         }

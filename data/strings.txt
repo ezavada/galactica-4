@@ -433,3 +433,16 @@
 
 # Roster window geometry
 810	Drag title to move; drag lower-right corner to resize.
+
+# Player comparison
+811	Unowned systems
+812	System|Min
+813	System|Max
+814	System|Avg
+815	Ship|Min
+816	Ship|Max
+817	Ship|Avg
+818	Blue: best · Red: worst
+819	{0} (defeated)
+820	System technology
+821	Ship technology

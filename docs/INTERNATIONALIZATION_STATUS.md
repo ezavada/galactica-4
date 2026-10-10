@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 345 IDs
-- localized files: 345 IDs each
+- `strings.txt`: 356 IDs
+- localized files: 356 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 909 passed, 0 failed.
+Current expected full-suite result: 919 passed, 0 failed.
 
 ## Future work
 
@@ -147,3 +147,5 @@ Roster geometry adds ID 810, a native-language title/corner drag hint, in all si
 System comparison sorting uses existing localized headers and hull labels in all six languages. Hull order follows class/technology rather than translated spelling. Browser clicks and fresh-page preference restoration passed in en/de/es/fr/ja/ru; translated screenshots inspected. Resources remain 345 IDs per language; current full suites: 903 passed on release/current native PDG.
 
 System comparison geometry reuses localized title/corner hints (810), close (531), paging and table guidance. No new strings; 345 resource IDs per language. Actual browser controls and full reload restoration passed in en/de/es/fr/ja/ru, with moved and smaller/restored layouts inspected. Current full suites: 909 passed on release/current native PDG.
+
+Compare Players adds IDs 811–821 in English, German, Spanish, French, Japanese and Russian: unowned systems, compact technology subheadings, best/worst legend, defeated-name template and grouped system/ship technology headings. Integer formatting follows each language; real enemy faction/homeworld names are preserved independently of fogged map aliases. All six translated table and smaller CSS views inspected after actual paging/input/close/reopen flows. Current resources: 356 IDs per language; full suites: 919 passed on release/current native PDG.

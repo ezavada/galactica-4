@@ -189,10 +189,10 @@ module.exports = function runCommandUITests() {
         test.it('builds comparison rows for the comparison window', () => {
             const game = createGameForTests();
             const playerStar = createOwnedStar(game, 1, 'Sol');
-            playerStar.population = 2.5;
+            playerStar.population = 2500;
             playerStar.techLevel = 4;
             const aiStar = createOwnedStar(game, 2, 'Rigel');
-            aiStar.population = 1.5;
+            aiStar.population = 1500;
             aiStar.techLevel = 2;
 
             const ship = game.getFactory().createShip(playerStar.x, playerStar.y, 'scout', playerStar);

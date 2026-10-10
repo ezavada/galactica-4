@@ -433,3 +433,16 @@
 
 # Roster window geometry
 810	Arrastra el título para mover; la esquina inferior derecha para cambiar el tamaño.
+
+# Player comparison
+811	Sistemas sin dueño
+812	Sistema|Mín
+813	Sistema|Máx
+814	Sistema|Media
+815	Nave|Mín
+816	Nave|Máx
+817	Nave|Media
+818	Azul: mejor · Rojo: peor
+819	{0} (derrotado)
+820	Tecnología de sistemas
+821	Tecnología de naves

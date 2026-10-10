@@ -263,6 +263,7 @@ class Display {
                 lineColor: this.getUIColor('panelBorder')
             }),
             divider: this.createAttributes({ lineColor: this.getUIColor('divider') }),
+            comparisonStripe:this.createAttributes({fillColor:new pdg.Color(1,1,1,1),fillOpacity:.035,lineOpacity:0}),
             connector: this.createAttributes({ lineColor: this.getUIColor('connector') }),
             barTrack: this.createAttributes({ fillColor: this.getUIColor('barTrack') }),
             barFrame: this.createAttributes({ lineColor: this.getUIColor('divider') }),
@@ -1068,6 +1069,8 @@ class Display {
         if (typeof color !== 'string') {
             return color;
         }
+        if(color==='comparisonBest')return new pdg.Color(.35,.65,1);
+        if(color==='comparisonWorst')return new pdg.Color(1,.42,.42);
         if (color === 'lightgray' || color === 'lightgrey') {
             return this.getUIColor('textLight');
         }
@@ -1789,16 +1792,40 @@ class Display {
         return controls;
     }
 
-    getComparisonWindowRect() {
-        const rows = this.game.getPlayerComparisonRows();
-        const screen = this.getScreenSize();
-        const width = Math.min(650, screen.width - 40);
-        return this.fitPanelToScreen({
-            x: (screen.width - width) / 2,
-            y: 82,
-            width,
-            height: 120 + rows.length * 22 + (this.game.selectedObject ? 44 : 0)
-        });
+    getPlayerComparisonLayout() {
+        const screen=this.getScreenSize(),width=Math.min(1000,screen.width-32),rows=this.game.getPlayerComparisonRows();
+        const pageSize=Math.max(1,Math.floor((screen.height-210)/26)),pages=Math.max(1,Math.ceil(rows.length/pageSize));
+        const page=this.clamp(this.game.playerComparisonPage,0,pages-1);this.game.playerComparisonPage=page;
+        const visibleRows=rows.slice(page*pageSize,(page+1)*pageSize);
+        const rect=this.fitPanelToScreen({x:(screen.width-width)/2,y:82,width,height:156+Math.max(1,visibleRows.length)*26});
+        let offset=14;
+        const fields=[['name',537,'Player',160],['stars',null,this.STR.stars.replace(/:$/,''),45],
+            ['population',711,'Population|×1000',100],['production',712,'Production',75],
+            ['minimumTech',812,'System|Min',40],['maxTech',813,'System|Max',40],['averageTech',814,'System|Avg',40],
+            ['ships',null,this.STR.ships.replace(/:$/,''),45],['power',16,'Power',65],
+            ['minimumShipTech',815,'Ship|Min',40],['maximumShipTech',816,'Ship|Max',40],['averageShipTech',817,'Ship|Avg',40]];
+        const total=fields.reduce((sum,field)=>sum+field[3],0);
+        const columns=fields.map(([key,id,fallback,weight])=>{const column={key,label:id?I18n.getString(id,fallback).replace(/:$/,''):fallback,offset,width:(width-28)*weight/total};offset+=column.width;return column;});
+        return {rect,page,pages,pageSize,rows,visibleRows,columns,extrema:this.game.getPlayerComparisonExtrema(rows)};
+    }
+
+    getComparisonWindowRect() {return this.getPlayerComparisonLayout().rect;}
+
+    getPlayerComparisonActionRegions() {
+        if(this.game.uiWindow!=='comparison')return [];
+        const layout=this.getPlayerComparisonLayout(),rect=layout.rect,regions=[];
+        if(layout.page>0)regions.push({rect:{x:rect.x+14,y:rect.y+rect.height-36,width:150,height:24},label:I18n.getString(690,'Previous'),action:{type:'playerComparisonPage',page:layout.page-1}});
+        if(layout.page<layout.pages-1)regions.push({rect:{x:rect.x+rect.width-164,y:rect.y+rect.height-36,width:150,height:24},label:I18n.getString(691,'Next'),action:{type:'playerComparisonPage',page:layout.page+1}});
+        regions.push({rect:{x:rect.x+rect.width/2-75,y:rect.y+rect.height-36,width:150,height:24},label:this.STR.escClose,action:{type:'closePlayerComparison'}});
+        return regions;
+    }
+
+    getPlayerComparisonCellColor(row,key,extrema) {
+        if(row.playerNum===0 || !row.isAlive || !extrema[key])return 'gray';
+        const value=row[key==='production'?'productionRaw':key];
+        if(value>=extrema[key].maximum)return 'comparisonBest';
+        if(value===extrema[key].minimum)return 'comparisonWorst';
+        return 'lightgray';
     }
 
     getFleetRosterLayout() {
@@ -2548,6 +2575,7 @@ class Display {
                 value:Math.round(this.clamp((x-slider.rect.x)/slider.rect.width,0,1)*1000)};
         }
         if (this.game.uiWindow === 'course') controls = this.getCourseActionRegions();
+        if (this.game.uiWindow === 'comparison') controls=this.getPlayerComparisonActionRegions();
         if (this.game.uiWindow === 'systemComparison') controls = this.getSystemComparisonActionRegions();
         if (this.game.uiWindow === 'fleetExchange') controls = this.getFleetExchangeActions();
         if (this.game.uiWindow === 'systemShips') controls = this.getSystemShipActionRegions();
@@ -2575,7 +2603,7 @@ class Display {
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
-        if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick','endTurnConfirm','fleetExchange','fleets','systemComparison'].includes(this.game.uiWindow)) return { type: 'consume' };
+        if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick','endTurnConfirm','fleetExchange','fleets','systemComparison','comparison'].includes(this.game.uiWindow)) return { type: 'consume' };
         const scrollAction=this.getMapScrollActionAt(x,y);
         if(scrollAction)return scrollAction;
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
@@ -3125,50 +3153,50 @@ class Display {
     }
 
     drawComparisonWindow() {
-        const rows = this.game.getPlayerComparisonRows();
-        const rect = this.getComparisonWindowRect();
-        this.drawWindowPanel(rect, this.STR.empireComparison);
-
-        const x = rect.x + 14;
-        let y = this.getPanelContentStartY(rect);
-        this.drawTextLine(this.STR.player, x, y, 'lightgray', 11);
-        this.drawTextLine(this.STR.type, x + 170, y, 'lightgray', 11);
-        this.drawTextLine(this.STR.stars.replace(/:$/, ''), x + 245, y, 'lightgray', 11);
-        this.drawTextLine(this.STR.ships.replace(/:$/, ''), x + 300, y, 'lightgray', 11);
-        this.drawTextLine(this.STR.pop.replace(/:$/, ''), x + 355, y, 'lightgray', 11);
-        this.drawTextLine(this.STR.avgTech, x + 445, y, 'lightgray', 11);
-        this.drawTextLine(this.STR.max, x + 535, y, 'lightgray', 11);
-        this.drawDivider(x, y + 8, rect.width - 28);
-        y += 22;
-
-        for (const row of rows) {
-            const color = row.playerNum === this.game.getCurrentHumanPlayer() ? 'lightgray' : 'gray';
-            this.drawTextLine(this.trimText(row.name, 22), x, y, color, 11);
-            this.drawTextLine(row.type, x + 170, y, color, 11);
-            this.drawTextLine(row.stars.toString(), x + 245, y, color, 11);
-            const shipText = row.shipsBuilding > 0 ? `${row.ships}+${row.shipsBuilding}` : row.ships.toString();
-            this.drawTextLine(shipText, x + 300, y, color, 11);
-            this.drawTextLine(row.population.toString(), x + 355, y, color, 11);
-            this.drawTextLine(row.averageTech.toFixed(1), x + 445, y, color, 11);
-            this.drawTextLine(row.maxTech.toFixed(1), x + 535, y, color, 11);
-            y += 22;
+        const layout=this.getPlayerComparisonLayout(),{rect,columns,visibleRows,extrema}=layout;
+        this.drawWindowPanel(rect,this.STR.empireComparison);
+        const technologyKeys=['minimumTech','maxTech','averageTech','minimumShipTech','maximumShipTech','averageShipTech'];
+        for(const [startKey,id,label] of [['minimumTech',820,'System technology'],['minimumShipTech',821,'Ship technology']]) {
+            const start=columns.findIndex(column=>column.key===startKey),group=columns.slice(start,start+3);
+            const width=group.reduce((sum,column)=>sum+column.width,0);
+            const text=I18n.getString(id,label);let size=10;
+            while(size>8 && this.port.getTextWidth(text,size)>width-6)size--;
+            this.drawTextLine(this.fitShipDiagnosticText(text,width-6,size),rect.x+group[0].offset+width/2,rect.y+44,'lightgray',size,pdg.textStyle_Centered);
         }
-
-        if (this.game.selectedObject) {
-            y += 12;
-            const selectedType = this.game.getObjectType(this.game.selectedObject);
-            let label = I18n.getString(541, 'Selected object');
-            if (selectedType === Common.ObjectType.STAR) {
-                label = I18n.formatString(542, 'Selected star: {0}', this.getStarDisplayName(this.game.selectedObject));
-            } else if (selectedType === Common.ObjectType.SHIP) {
-                label = I18n.formatString(543, 'Selected ship: {0}', this.getShipTypeName(this.game.selectedObject.type));
-            } else if (selectedType === Common.ObjectType.FLEET) {
-                label = I18n.formatString(544, 'Selected fleet: {0} ships', this.getFleetDiagnostics(this.game.selectedObject).count);
+        columns.forEach(column=>{
+            const technology=technologyKeys.includes(column.key),lines=technology?[column.label.split('|').pop()]:column.label.split('|');
+            lines.forEach((line,index)=>{
+                let size=10;while(size>8 && this.port.getTextWidth(line,size)>column.width-6)size--;
+                this.drawTextLine(this.fitShipDiagnosticText(line,column.width-6,size),rect.x+column.offset+column.width/2,
+                    rect.y+(technology?61:lines.length>1?48+index*13:55),'lightgray',size,pdg.textStyle_Centered);
+            });
+        });
+        this.drawDivider(rect.x+14,rect.y+69,rect.width-28);
+        visibleRows.forEach((row,index)=>{
+            const y=rect.y+91+index*26,rowRect={x:rect.x+14,y:y-17,width:rect.width-28,height:24};
+            if(index%2)this.drawRoundedRect(rowRect,3,this.styles.comparisonStripe);
+            const nameColumn=columns[0],nameWidth=nameColumn.width-22;
+            if(row.playerNum>0) {
+                if(!this.comparisonOwnerAttributes)this.comparisonOwnerAttributes=new Map();
+                if(!this.comparisonOwnerAttributes.has(row.playerNum)) {
+                    const color=this.ownerColors[row.playerNum] || this.getUIColor('textLight');
+                    this.comparisonOwnerAttributes.set(row.playerNum,this.createAttributes({fillColor:new pdg.Color(color.red,color.green,color.blue,1),lineOpacity:0}));
+                }
+                this.port.drawCircle(new pdg.Point(rect.x+nameColumn.offset+7,y-4),3,this.comparisonOwnerAttributes.get(row.playerNum));
             }
-            this.drawTextLine(label, x, y, 'lightgray', 11);
-            y += 18;
-            this.drawTextLine(this.STR.closeComparison, x, y, 'gray', 10);
-        }
+            this.drawTextLine(this.fitShipDiagnosticText(row.name,nameWidth,11),rect.x+nameColumn.offset+17,y,
+                row.isAlive?'lightgray':'gray',11,row.italicizeName?pdg.textStyle_Italic:pdg.textStyle_Plain);
+            columns.slice(1).forEach(column=>{
+                const hidden=!row.isAlive || row.playerNum===0 && ['ships','power','minimumShipTech','maximumShipTech','averageShipTech'].includes(column.key);
+                const text=hidden?'—':I18n.formatInteger(row[column.key]);
+                this.drawTextLine(this.fitShipDiagnosticText(text,column.width-6,10),rect.x+column.offset+column.width/2,y,
+                    this.getPlayerComparisonCellColor(row,column.key,extrema),10,pdg.textStyle_Centered);
+            });
+            if(this.isHovered(rowRect))this.iconHint={rect:rowRect,inWindow:true,label:row.name};
+        });
+        this.drawTextLine(this.fitShipDiagnosticText(I18n.getString(818,'Blue: best · Red: worst')+`   ${layout.page+1} / ${layout.pages}`,rect.width-28,10),
+            rect.x+rect.width/2,rect.y+rect.height-48,'gray',10,pdg.textStyle_Centered);
+        this.getPlayerComparisonActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,null,{size:10}));
     }
 
     drawFleetWindow() {
