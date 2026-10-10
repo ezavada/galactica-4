@@ -67,8 +67,46 @@ def decode_window(source, number):
     return result
 
 
+def decode_menu(source, number):
+    menu = resource(source, 'MENU', number)
+    commands = resource(source, 'Mcmd', number)
+    if len(menu) < 16 or struct.unpack_from('>h', menu)[0] != number or len(commands) < 2:
+        raise ValueError('Invalid menu header')
+    count = struct.unpack_from('>H', commands)[0]
+    if len(commands) != 2+4*count:
+        raise ValueError('Invalid command payload length')
+    command_ids = struct.unpack_from('>'+str(count)+'i', commands, 2)
+    offset = 14
+    def caption():
+        nonlocal offset
+        if offset >= len(menu):
+            raise ValueError('Missing menu caption')
+        length = menu[offset]
+        offset += 1
+        if offset+length > len(menu):
+            raise ValueError('Truncated menu caption')
+        text = menu[offset:offset+length].decode('mac_roman')
+        offset += length
+        return text
+    title = caption()
+    items = []
+    while offset < len(menu) and menu[offset]:
+        label = caption()
+        if offset+4 > len(menu):
+            raise ValueError('Truncated menu item attributes')
+        attributes = list(menu[offset:offset+4])
+        offset += 4
+        items.append({'label': label, 'attributes': attributes})
+    if offset >= len(menu) or any(menu[offset:]) or len(items) != count:
+        raise ValueError('Invalid menu terminator or item count')
+    for item, command in zip(items, command_ids):
+        item['command'] = command
+    return {'resource': number, 'title': title, 'menuSha256': digest(menu),
+            'commandsSha256': digest(commands), 'items': items}
+
+
 def import_reference(root):
-    result = {'format': 1, 'purpose': 'Source evidence; startup/About runtime port remains unfinished', 'variants': {}}
+    result = {'format': 2, 'purpose': 'Source evidence for startup/About and application commands; parity tracked separately', 'variants': {}}
     for language in ('en', 'de'):
         for edition in ('shareware', 'cdrom'):
             relative = f'Resources/gal-{language}-{edition}.r'
@@ -87,7 +125,7 @@ def import_reference(root):
                         payload = resource((root / picture_source).read_bytes().decode('mac_roman'), 'PICT', number)
                     top, left, bottom, right = struct.unpack_from('>4h', payload, 2)
                     pictures[str(number)] = {'source': picture_source, 'sha256': digest(payload), 'bytes': len(payload), 'frame': [top, left, bottom, right]}
-            result['variants'][language+'-'+edition] = {'source': relative, 'sha256': digest(blob), 'windows': windows, 'pictures': pictures}
+            result['variants'][language+'-'+edition] = {'source': relative, 'sha256': digest(blob), 'windows': windows, 'pictures': pictures, 'menus': {str(number): decode_menu(source, number) for number in (128, 129, 130, 134, 137)}}
     return result
 
 

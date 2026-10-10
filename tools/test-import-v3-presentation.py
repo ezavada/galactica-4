@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import unittest
 import sys
+import struct
 
 sys.dont_write_bytecode = True
 
@@ -35,6 +36,39 @@ class PresentationReferenceTests(unittest.TestCase):
                 t,l,b,r = picture['frame']
                 self.assertGreater(b,t)
                 self.assertGreater(r,l)
+
+    def test_menu_labels_keep_the_shipped_command_mapping(self):
+        reference = json.loads((ROOT / 'docs/reference/v3-presentation.json').read_text())
+        self.assertEqual(reference['format'], 2)
+        for name, variant in reference['variants'].items():
+            menus = variant['menus']
+            self.assertEqual(menus['128']['items'][0]['command'], 1)
+            file = menus['129']['items']
+            self.assertEqual(file[0]['command'], 2)
+            self.assertEqual(file[1]['command'], 3)
+            self.assertEqual(file[-1]['command'], 10)
+            preferences = [item for item in file if item['command'] == 27]
+            self.assertEqual(len(preferences), 1 if name == 'en-cdrom' else 0)
+            if preferences:
+                self.assertEqual(preferences[0]['label'], 'Prefererences…')
+            select = [item for item in menus['130']['items'] if item['command'] == 16]
+            self.assertEqual(len(select), 1)
+            if name.startswith('en-'):
+                self.assertEqual(select[0]['label'], 'Select All')
+            sound = [item for item in menus['137']['items'] if item['command'] == 4017]
+            self.assertEqual(len(sound), 0 if name == 'en-cdrom' else 1)
+            if sound:
+                self.assertEqual(sound[0]['label'], 'Sound')
+
+    def test_invalid_menu_lengths_and_command_counts_rejected(self):
+        menu = struct.pack('>h', 129)+bytes(12)+b'\x04File\x03New'+bytes(4)+b'\0'
+        commands = struct.pack('>Hi', 1, 2)
+        def source(m, c):
+            return 'data \'MENU\' (129) { $"'+m.hex()+'" }; data \'Mcmd\' (129) { $"'+c.hex()+'" };'
+        self.assertEqual(module.decode_menu(source(menu, commands), 129)['items'][0]['command'], 2)
+        for m, c in [(menu[:-1], commands), (menu[:18], commands), (menu, commands[:-1]), (menu, struct.pack('>H', 0))]:
+            with self.assertRaises(ValueError):
+                module.decode_menu(source(m, c), 129)
 
     def test_comments_cannot_inject_payload(self):
         self.assertEqual(module.resource("data 'PPob' (32) { $\"0002\" /* $\"FFFF\" */ };", 'PPob',32), b'\x00\x02')

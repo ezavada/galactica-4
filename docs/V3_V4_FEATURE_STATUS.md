@@ -1904,3 +1904,39 @@ The original music asset, other inherited/window commands, multiplayer startup
 flows and the broader v3/Map Generation checklist remain unfinished or carry
 their existing concrete blockers. This completes these three application
 command connections, not full startup or project parity.
+
+
+### Shipped CD-ROM Preferences command and menu evidence
+
+Decoded MENU and Mcmd together instead of inferring commands from menu order.
+The English CD-ROM File menu labels command 27 as “Prefererences…”; the other
+three audited resource variants omit that item. V4 now accepts 27 as well as the
+synthetic 1324679167 already handled by v3. Both open the same localized modal
+Settings window. Select All (16) remains unrelated and cannot open preferences.
+The earlier statement that command 27 needed further runtime work is superseded
+by this verified implementation.
+
+The source importer now stores labels, raw item attributes, signed command IDs
+and separate MENU/Mcmd hashes for Apple/File/Edit/Window/Game menus in each of
+the four resource variants. It rejects truncated titles/items, mismatched item
+counts, malformed command lengths and missing terminators. Source edition
+differences are retained: the English CD-ROM Game menu omits Sound whereas the
+other three include it. No artwork or translated runtime string is changed.
+
+Seven importer tests pass and reimport is byte-identical. The real Settings
+regression exercises both command forms, closes each through Escape and checks
+that Select All cannot open it. Both full runtime suites pass 1,352 tests.
+Actual browser checks in en/de/es/fr/ja/ru verify command 27 opens the translated
+modal before a document exists and reopens it on fresh launch. Inspected the
+previous ignored-command screenshot, the resulting Settings window and all six
+translated layouts. Evidence: `/private/tmp/galactica-preferences-alias-{tests,public-tests,<language>,before}.log`,
+`/private/tmp/galactica-parity/preferences-alias`, and
+`/private/tmp/galactica-preferences-alias-{review,languages}.png`.
+
+The Community handler was also audited: its original page redirects to Vendor
+Nation's missing `community_GA.html`, confirmed by a direct HTTP 404 GET on
+2026-10-10. That feature requires a replacement destination or restored legacy
+service; details/evidence are in `docs/reference/STARTUP_ABOUT.md`. This is an
+individual external-service blocker, not a reason to stop the broader goal.
+Check for New Version, other application/window commands, multiplayer and Map
+Generation remain pending alongside the existing specific blockers.

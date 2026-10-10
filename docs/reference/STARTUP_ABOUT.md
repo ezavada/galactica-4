@@ -11,7 +11,8 @@ python3 tools/test-import-v3-presentation.py
 ```
 
 `v3-presentation.json` records source file and payload SHA-256 hashes, decoded
-captions, referenced PICT resources, picture frames and scrolling parameters.
+captions, referenced PICT resources, picture frames, scrolling parameters, and
+MENU/Mcmd label-to-command mappings with separate payload hashes.
 The importer reads only the requested hexadecimal resources; comments never
 contribute bytes. Shared splash and logo artwork comes from
 `Resources/gal-non-module.r`, rather than the language module. No translated v4
@@ -74,8 +75,10 @@ No shipped preference control or writer was found, so v4 adds no chooser.
 
 Decoded `Mcmd` 128 and 129 in the English/German shareware and CD-ROM resources
 confirm About=1, New=2, Open=3, Close=4, Save=5, Save As=6, Revert=7 and Quit=10.
-The English CD-ROM File menu additionally includes command 27; the other three
-variants do not. This difference does not change these shared command IDs.
+The English CD-ROM File menu additionally includes Preferences as command 27
+(the shipped caption is misspelled “Prefererences…”); the other three variants
+do not include that item. V4 now accepts both this resource-proven command and
+the synthetic Preferences command explicitly normalized by the application.
 The header defines Fullscreen=4016, Help=0x4069FFFA and Tutorial=0x4069FFF9.
 `xmnu` extension data does not supply these command IDs.
 
@@ -95,8 +98,8 @@ input before it reaches setup and remove both listeners before opening.
 
 This is not full arbitrary-command parity. Hosting (4020), Open as Host (4002)
 and Joining (4021) require the unported multiplayer flows. Community (8000),
-Check for New Version (8001), the edition-specific command 27 and other
-inherited/window commands still need individual source and runtime audits.
+Check for New Version (8001) and other inherited/window commands still need
+individual source and runtime audits.
 They are pending work, not unavailable-help blockers. Music and the pinned
 native fullscreen runtime remain the separately documented limitations.
 
@@ -104,8 +107,9 @@ native fullscreen runtime remain the separately documented limitations.
 
 `Galactica.cpp:2099–2102` explicitly maps synthetic command `1324679167` to
 `cmd_Preferences`; it is now connected to the existing application Settings
-window. The numeric PowerPlant constant behind `cmd_Preferences` is not defined
-in this checkout and is not guessed. In particular, command 16 in Mcmd 130 is
+window. The PowerPlant constant declaration is absent from this checkout, but the
+English CD-ROM MENU/Mcmd 129 directly proves Preferences command 27. Both 27
+and the synthetic command now open Settings. Command 16 in MENU/Mcmd 130 is
 Select All, not Preferences. The shipped Preferences handler (`1813–1815`)
 opens its modal dialog without a beep and is enabled before a game exists.
 
@@ -118,3 +122,20 @@ play an invented source cue. Flyby Help changes clear cached hover state and
 update any existing renderer. The settings window reads the shared preferences
 when opened. These behaviors remain separate from the unavailable original
 music asset; no music playback is claimed.
+
+### Legacy Community destination requires replacement
+
+The shipped Community handler (`Galactica.cpp:1777–1789`) opens
+`http://www.annodominari.com/community/`. On 2026-10-10 that page returned a
+meta-refresh redirect to `http://www.vendornation.com/community_GA.html`.
+A direct GET of the destination returned HTTP 404; this was not inferred from
+an inaccessible browser/search tool or a HEAD-only check. Recorded body and
+headers: `/private/tmp/galactica-legacy-community.html` and
+`/private/tmp/galactica-legacy-community-headers.txt`.
+
+Community is blocked on a working, approved replacement community destination
+or restoration of the original service. V4 should not claim a working community
+feature by sending players to a known missing page. No guessed replacement
+service, public issue tracker or discussion URL has been introduced. This
+external-service blocker does not block other parity work. Check for New Version
+is still pending its own endpoint/version audit, not covered by this result.

@@ -1,7 +1,8 @@
 // Numeric commands from shipped v3 Mcmd resources and GalacticaConsts.h.
-// Preferences is the synthetic value explicitly normalized in Galactica.cpp.
+// Preferences 27 is shipped in the English CD-ROM File menu.
+// Galactica.cpp also normalizes synthetic command 1324679167.
 const commands=Object.freeze({about:1,newGame:2,open:3,close:4,save:5,saveAs:6,revert:7,quit:10,
-    fullscreen:4016,sound:4017,preferences:1324679167,controlHelp:0x4069FFFC,help:0x4069FFFA,tutorial:0x4069FFF9});
+    fullscreen:4016,sound:4017,preferences:27,controlHelp:0x4069FFFC,help:0x4069FFFA,tutorial:0x4069FFF9});
 function read(env=globalThis){
     try{
         const value=env.window?env.window.localStorage.getItem('galactica.StartAction'):env.pdg.cfg.getConfigLong('StartAction');
@@ -25,6 +26,7 @@ function withUserGesture(open,env=globalThis){
     return true;
 }
 function dispatch(command,services,env=globalThis){
+    if(command===1324679167)command=commands.preferences;
     const action=Object.keys(commands).find(key=>commands[key]===command);
     if(!action || typeof services[action]!=='function')return false;
     return ['open','help','fullscreen'].includes(action)?withUserGesture(services[action],env):services[action]();

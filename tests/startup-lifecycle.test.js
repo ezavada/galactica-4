@@ -86,4 +86,10 @@ module.exports=()=>test.describe('First-install startup lifecycle',()=>{
   test.assertTrue(Actions.dispatch(1324679167,Actions.preferenceServices(preferences,{},settings),{}));test.assertTrue(settings.active);test.assertEqual(settings.model.uiWindow,'settings');test.assertEqual(settings.model.turn,1);settings.key(pdg.key_Escape);test.assertFalse(settings.active);
  });
 
+ test.it('opens the same standalone preferences for the shipped CD-ROM command and the synthetic command',()=>{
+  const Actions=require('../src/js/startup-actions.js'),preferences=require('../src/js/drawing-preferences.js').createPreferences(browser()),presentation=new (require('../src/js/presentation.js'))(preferences),port={getDrawingArea:()=>new pdg.Rect(800,600)},settings=new (require('../src/js/startup-settings.js'))(port,{drawingPreferences:preferences,presentation,sound:{isEnabled:()=>true,play:()=>{}}}),services=Actions.preferenceServices(preferences,{},settings);
+  for(const command of [27,1324679167]){test.assertTrue(Actions.dispatch(command,services,{}));test.assertEqual(settings.model.uiWindow,'settings');settings.key(pdg.key_Escape);test.assertFalse(settings.active);}
+  test.assertFalse(Actions.dispatch(16,services,{}));test.assertFalse(settings.active);
+ });
+
 });

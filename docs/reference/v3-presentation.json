@@ -1,6 +1,6 @@
 {
-  "format": 1,
-  "purpose": "Source evidence; startup/About runtime port remains unfinished",
+  "format": 2,
+  "purpose": "Source evidence for startup/About and application commands; parity tracked separately",
   "variants": {
     "en-shareware": {
       "source": "Resources/gal-en-shareware.r",
@@ -113,6 +113,448 @@
             0,
             1404,
             145
+          ]
+        }
+      },
+      "menus": {
+        "128": {
+          "resource": 128,
+          "title": "\u0014",
+          "menuSha256": "5a496f95dbbf68c0b67bb3355015e7a7e49deb0bdf53d966e6e8c2541f37b405",
+          "commandsSha256": "60e9f3ca1f7ea7a8cfaab5757adc5e45881dc40adc6b6038ffde7eab29ebe81a",
+          "items": [
+            {
+              "label": "About Galactica…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 1
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Galactica Users Manual…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 1080688634
+            },
+            {
+              "label": "Galactica Community Site…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 8000
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Check for New Version…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 8001
+            }
+          ]
+        },
+        "129": {
+          "resource": 129,
+          "title": "File",
+          "menuSha256": "fede230a360e33d3e6de78c2d8be33014b1a944a5e68b6f767a05a905475eff2",
+          "commandsSha256": "e77d2e6e13668d1107e09963582635083e345586f3248cf112fcf904191835d9",
+          "items": [
+            {
+              "label": "New Game…",
+              "attributes": [
+                0,
+                78,
+                0,
+                0
+              ],
+              "command": 2
+            },
+            {
+              "label": "Open Game…",
+              "attributes": [
+                0,
+                79,
+                0,
+                0
+              ],
+              "command": 3
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": -1
+            },
+            {
+              "label": "Host New Game…",
+              "attributes": [
+                0,
+                78,
+                0,
+                0
+              ],
+              "command": 4020
+            },
+            {
+              "label": "Open as Host…",
+              "attributes": [
+                0,
+                79,
+                0,
+                0
+              ],
+              "command": 4002
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Close Game",
+              "attributes": [
+                0,
+                87,
+                0,
+                0
+              ],
+              "command": 4
+            },
+            {
+              "label": "Save Turn",
+              "attributes": [
+                0,
+                83,
+                0,
+                0
+              ],
+              "command": 5
+            },
+            {
+              "label": "Save Turn As…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 6
+            },
+            {
+              "label": "Revert to Saved Turn",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 7
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Join Game…",
+              "attributes": [
+                0,
+                74,
+                0,
+                0
+              ],
+              "command": 4021
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Quit",
+              "attributes": [
+                0,
+                81,
+                0,
+                0
+              ],
+              "command": 10
+            }
+          ]
+        },
+        "130": {
+          "resource": 130,
+          "title": "Edit",
+          "menuSha256": "90ea93d7f2f7de9d97c8f80e7d143eea27fb392da6680164893716178f14e74f",
+          "commandsSha256": "a4b1ff25bc5cf2f20aca2b6106368bf925195398ab68b5c16312742592e14aaa",
+          "items": [
+            {
+              "label": "Undo",
+              "attributes": [
+                0,
+                90,
+                0,
+                0
+              ],
+              "command": 11
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Cut",
+              "attributes": [
+                0,
+                88,
+                0,
+                0
+              ],
+              "command": 12
+            },
+            {
+              "label": "Copy",
+              "attributes": [
+                0,
+                67,
+                0,
+                0
+              ],
+              "command": 13
+            },
+            {
+              "label": "Paste",
+              "attributes": [
+                0,
+                86,
+                0,
+                0
+              ],
+              "command": 14
+            },
+            {
+              "label": "Clear",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 15
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Select All",
+              "attributes": [
+                0,
+                65,
+                0,
+                0
+              ],
+              "command": 16
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Rename…",
+              "attributes": [
+                0,
+                82,
+                0,
+                0
+              ],
+              "command": 4012
+            }
+          ]
+        },
+        "134": {
+          "resource": 134,
+          "title": "Window",
+          "menuSha256": "97f1b42954d3c9bd849f38d10c733c9a35b26e88896e1b9d96507acfdcf80951",
+          "commandsSha256": "ca70034b43b304fdf93cac5896e7d67027834b043ff5998a72b22863d0bea7e1",
+          "items": [
+            {
+              "label": "Full Screen",
+              "attributes": [
+                0,
+                66,
+                18,
+                0
+              ],
+              "command": 4016
+            },
+            {
+              "label": "Show/Hide Events",
+              "attributes": [
+                0,
+                69,
+                0,
+                0
+              ],
+              "command": 4018
+            }
+          ]
+        },
+        "137": {
+          "resource": 137,
+          "title": "Game",
+          "menuSha256": "c6b4065b2a53caadcad4c66558e563665f314fa5d48b7adb25db68a77e04ca47",
+          "commandsSha256": "a40af372fb139eb935acc9bb02b3d9d2be5c80a9b9e7f63df3df9776f2be04e0",
+          "items": [
+            {
+              "label": "Sound",
+              "attributes": [
+                0,
+                0,
+                18,
+                0
+              ],
+              "command": 4017
+            },
+            {
+              "label": "Show All Courses",
+              "attributes": [
+                0,
+                0,
+                18,
+                0
+              ],
+              "command": 4023
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Compare Players…",
+              "attributes": [
+                0,
+                80,
+                0,
+                0
+              ],
+              "command": 4011
+            },
+            {
+              "label": "Your Star Systems…",
+              "attributes": [
+                0,
+                89,
+                0,
+                0
+              ],
+              "command": 4025
+            },
+            {
+              "label": "Your Fleets…",
+              "attributes": [
+                0,
+                70,
+                0,
+                0
+              ],
+              "command": 4026
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "End Turn",
+              "attributes": [
+                0,
+                84,
+                19,
+                0
+              ],
+              "command": 4000
+            }
           ]
         }
       }
@@ -230,6 +672,438 @@
             145
           ]
         }
+      },
+      "menus": {
+        "128": {
+          "resource": 128,
+          "title": "\u0014",
+          "menuSha256": "5a496f95dbbf68c0b67bb3355015e7a7e49deb0bdf53d966e6e8c2541f37b405",
+          "commandsSha256": "60e9f3ca1f7ea7a8cfaab5757adc5e45881dc40adc6b6038ffde7eab29ebe81a",
+          "items": [
+            {
+              "label": "About Galactica…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 1
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Galactica Users Manual…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 1080688634
+            },
+            {
+              "label": "Galactica Community Site…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 8000
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Check for New Version…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 8001
+            }
+          ]
+        },
+        "129": {
+          "resource": 129,
+          "title": "File",
+          "menuSha256": "5f9ac822967dbb89402c067da97161ad21bc61b36f1d0bde8bce8e6d708f967d",
+          "commandsSha256": "523ec6dde00d769216f3e113ec7433d1e6b6a9c10ff2e4b6b1bc316f990a620d",
+          "items": [
+            {
+              "label": "New Game…",
+              "attributes": [
+                0,
+                78,
+                0,
+                0
+              ],
+              "command": 2
+            },
+            {
+              "label": "Open Game…",
+              "attributes": [
+                0,
+                79,
+                0,
+                0
+              ],
+              "command": 3
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": -1
+            },
+            {
+              "label": "Host New Game…",
+              "attributes": [
+                0,
+                78,
+                0,
+                0
+              ],
+              "command": 4020
+            },
+            {
+              "label": "Open as Host…",
+              "attributes": [
+                0,
+                79,
+                0,
+                0
+              ],
+              "command": 4002
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Close Game",
+              "attributes": [
+                0,
+                87,
+                0,
+                0
+              ],
+              "command": 4
+            },
+            {
+              "label": "Save Turn",
+              "attributes": [
+                0,
+                83,
+                0,
+                0
+              ],
+              "command": 5
+            },
+            {
+              "label": "Save Turn As…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 6
+            },
+            {
+              "label": "Revert to Saved Turn",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 7
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Join Game…",
+              "attributes": [
+                0,
+                74,
+                0,
+                0
+              ],
+              "command": 4021
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Prefererences…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 27
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Quit",
+              "attributes": [
+                0,
+                81,
+                0,
+                0
+              ],
+              "command": 10
+            }
+          ]
+        },
+        "130": {
+          "resource": 130,
+          "title": "Edit",
+          "menuSha256": "90ea93d7f2f7de9d97c8f80e7d143eea27fb392da6680164893716178f14e74f",
+          "commandsSha256": "a4b1ff25bc5cf2f20aca2b6106368bf925195398ab68b5c16312742592e14aaa",
+          "items": [
+            {
+              "label": "Undo",
+              "attributes": [
+                0,
+                90,
+                0,
+                0
+              ],
+              "command": 11
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Cut",
+              "attributes": [
+                0,
+                88,
+                0,
+                0
+              ],
+              "command": 12
+            },
+            {
+              "label": "Copy",
+              "attributes": [
+                0,
+                67,
+                0,
+                0
+              ],
+              "command": 13
+            },
+            {
+              "label": "Paste",
+              "attributes": [
+                0,
+                86,
+                0,
+                0
+              ],
+              "command": 14
+            },
+            {
+              "label": "Clear",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 15
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Select All",
+              "attributes": [
+                0,
+                65,
+                0,
+                0
+              ],
+              "command": 16
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Rename…",
+              "attributes": [
+                0,
+                82,
+                0,
+                0
+              ],
+              "command": 4012
+            }
+          ]
+        },
+        "134": {
+          "resource": 134,
+          "title": "Window",
+          "menuSha256": "97f1b42954d3c9bd849f38d10c733c9a35b26e88896e1b9d96507acfdcf80951",
+          "commandsSha256": "ca70034b43b304fdf93cac5896e7d67027834b043ff5998a72b22863d0bea7e1",
+          "items": [
+            {
+              "label": "Full Screen",
+              "attributes": [
+                0,
+                66,
+                18,
+                0
+              ],
+              "command": 4016
+            },
+            {
+              "label": "Show/Hide Events",
+              "attributes": [
+                0,
+                69,
+                0,
+                0
+              ],
+              "command": 4018
+            }
+          ]
+        },
+        "137": {
+          "resource": 137,
+          "title": "Game",
+          "menuSha256": "8dd3060c8c707cc833de77ee21e54747ee64f53d80c2d0b178815a7642c168a4",
+          "commandsSha256": "954619f60444608a81cb25da6ac69627b6db197743f1d676e44dfb090b654403",
+          "items": [
+            {
+              "label": "Compare Players…",
+              "attributes": [
+                0,
+                80,
+                0,
+                0
+              ],
+              "command": 4011
+            },
+            {
+              "label": "Your Star Systems…",
+              "attributes": [
+                0,
+                89,
+                0,
+                0
+              ],
+              "command": 4025
+            },
+            {
+              "label": "Your Fleets…",
+              "attributes": [
+                0,
+                70,
+                0,
+                0
+              ],
+              "command": 4026
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "End Turn",
+              "attributes": [
+                0,
+                84,
+                19,
+                0
+              ],
+              "command": 4000
+            }
+          ]
+        }
       }
     },
     "de-shareware": {
@@ -345,6 +1219,448 @@
             155
           ]
         }
+      },
+      "menus": {
+        "128": {
+          "resource": 128,
+          "title": "\u0014",
+          "menuSha256": "77f5e44f0f282dcdb465780978f4be3328d15d5f70203dc15a4bf5be66fa238d",
+          "commandsSha256": "60e9f3ca1f7ea7a8cfaab5757adc5e45881dc40adc6b6038ffde7eab29ebe81a",
+          "items": [
+            {
+              "label": "Über Galactica...",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 1
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Galactica Benutzerhandbuch…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 1080688634
+            },
+            {
+              "label": "Galactica Gemeinschaftwebsite…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 8000
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Suchen Sie Neue Version…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 8001
+            }
+          ]
+        },
+        "129": {
+          "resource": 129,
+          "title": "Datei",
+          "menuSha256": "dc033b8d69154b85aca67d2f702938c23b050f2e62877ee31da66375145bb2ba",
+          "commandsSha256": "e77d2e6e13668d1107e09963582635083e345586f3248cf112fcf904191835d9",
+          "items": [
+            {
+              "label": "Neues Spiel…",
+              "attributes": [
+                0,
+                78,
+                0,
+                0
+              ],
+              "command": 2
+            },
+            {
+              "label": "Spiel Eröffnen…",
+              "attributes": [
+                0,
+                79,
+                0,
+                0
+              ],
+              "command": 3
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": -1
+            },
+            {
+              "label": "Gastgeber Neues Spiel…",
+              "attributes": [
+                0,
+                78,
+                0,
+                0
+              ],
+              "command": 4020
+            },
+            {
+              "label": "Spiel als Gast Eröffnen…",
+              "attributes": [
+                0,
+                79,
+                0,
+                0
+              ],
+              "command": 4002
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Spiel Schließen",
+              "attributes": [
+                0,
+                87,
+                0,
+                0
+              ],
+              "command": 4
+            },
+            {
+              "label": "Spielzug Speichern",
+              "attributes": [
+                0,
+                83,
+                0,
+                0
+              ],
+              "command": 5
+            },
+            {
+              "label": "Spielzug Speichern Unter…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 6
+            },
+            {
+              "label": "Zum Gespeicherten Spielzug Zurückkehren",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 7
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Spiel Beitreten…",
+              "attributes": [
+                0,
+                74,
+                0,
+                0
+              ],
+              "command": 4021
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Beenden",
+              "attributes": [
+                0,
+                81,
+                0,
+                0
+              ],
+              "command": 10
+            }
+          ]
+        },
+        "130": {
+          "resource": 130,
+          "title": "Bearbeiten",
+          "menuSha256": "cd9f5b4e31501861c657c6784e7ca2304d6995ec8ce9194228e9d9c01c50cee6",
+          "commandsSha256": "a4b1ff25bc5cf2f20aca2b6106368bf925195398ab68b5c16312742592e14aaa",
+          "items": [
+            {
+              "label": "Widerrufen",
+              "attributes": [
+                0,
+                90,
+                0,
+                0
+              ],
+              "command": 11
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Ausschneiden",
+              "attributes": [
+                0,
+                88,
+                0,
+                0
+              ],
+              "command": 12
+            },
+            {
+              "label": "Kopieren",
+              "attributes": [
+                0,
+                67,
+                0,
+                0
+              ],
+              "command": 13
+            },
+            {
+              "label": "Einsetzen",
+              "attributes": [
+                0,
+                86,
+                0,
+                0
+              ],
+              "command": 14
+            },
+            {
+              "label": "Löschen",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 15
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Alles Auswählen",
+              "attributes": [
+                0,
+                65,
+                0,
+                0
+              ],
+              "command": 16
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Umbennenen…",
+              "attributes": [
+                0,
+                82,
+                0,
+                0
+              ],
+              "command": 4012
+            }
+          ]
+        },
+        "134": {
+          "resource": 134,
+          "title": "Fenster",
+          "menuSha256": "f89bfa7072de291b15b978116ed17cb25e9f3e4aef1b5407674ea6e03b6d19ee",
+          "commandsSha256": "ca70034b43b304fdf93cac5896e7d67027834b043ff5998a72b22863d0bea7e1",
+          "items": [
+            {
+              "label": "Voller Bildschirm",
+              "attributes": [
+                0,
+                66,
+                18,
+                0
+              ],
+              "command": 4016
+            },
+            {
+              "label": "Ereignisse Anzeigen/Verstecken",
+              "attributes": [
+                0,
+                69,
+                0,
+                0
+              ],
+              "command": 4018
+            }
+          ]
+        },
+        "137": {
+          "resource": 137,
+          "title": "Spiel",
+          "menuSha256": "4a066bffc983c60be37b0384ed706189c79d43362e9c7d0b18fc2f70c66f648b",
+          "commandsSha256": "a40af372fb139eb935acc9bb02b3d9d2be5c80a9b9e7f63df3df9776f2be04e0",
+          "items": [
+            {
+              "label": "Sound",
+              "attributes": [
+                0,
+                0,
+                18,
+                0
+              ],
+              "command": 4017
+            },
+            {
+              "label": "Alle Kurse Anzeigen",
+              "attributes": [
+                0,
+                0,
+                18,
+                0
+              ],
+              "command": 4023
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Spieler Vergleichen…",
+              "attributes": [
+                0,
+                80,
+                0,
+                0
+              ],
+              "command": 4011
+            },
+            {
+              "label": "Ihr Sternensystem…",
+              "attributes": [
+                0,
+                89,
+                0,
+                0
+              ],
+              "command": 4025
+            },
+            {
+              "label": "Ihre Flotten…",
+              "attributes": [
+                0,
+                70,
+                0,
+                0
+              ],
+              "command": 4026
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Spielzug Beenden",
+              "attributes": [
+                0,
+                84,
+                19,
+                0
+              ],
+              "command": 4000
+            }
+          ]
+        }
       }
     },
     "de-cdrom": {
@@ -458,6 +1774,448 @@
             0,
             1768,
             155
+          ]
+        }
+      },
+      "menus": {
+        "128": {
+          "resource": 128,
+          "title": "\u0014",
+          "menuSha256": "77f5e44f0f282dcdb465780978f4be3328d15d5f70203dc15a4bf5be66fa238d",
+          "commandsSha256": "60e9f3ca1f7ea7a8cfaab5757adc5e45881dc40adc6b6038ffde7eab29ebe81a",
+          "items": [
+            {
+              "label": "Über Galactica...",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 1
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Galactica Benutzerhandbuch…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 1080688634
+            },
+            {
+              "label": "Galactica Gemeinschaftwebsite…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 8000
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Suchen Sie Neue Version…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 8001
+            }
+          ]
+        },
+        "129": {
+          "resource": 129,
+          "title": "Datei",
+          "menuSha256": "dc033b8d69154b85aca67d2f702938c23b050f2e62877ee31da66375145bb2ba",
+          "commandsSha256": "e77d2e6e13668d1107e09963582635083e345586f3248cf112fcf904191835d9",
+          "items": [
+            {
+              "label": "Neues Spiel…",
+              "attributes": [
+                0,
+                78,
+                0,
+                0
+              ],
+              "command": 2
+            },
+            {
+              "label": "Spiel Eröffnen…",
+              "attributes": [
+                0,
+                79,
+                0,
+                0
+              ],
+              "command": 3
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": -1
+            },
+            {
+              "label": "Gastgeber Neues Spiel…",
+              "attributes": [
+                0,
+                78,
+                0,
+                0
+              ],
+              "command": 4020
+            },
+            {
+              "label": "Spiel als Gast Eröffnen…",
+              "attributes": [
+                0,
+                79,
+                0,
+                0
+              ],
+              "command": 4002
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Spiel Schließen",
+              "attributes": [
+                0,
+                87,
+                0,
+                0
+              ],
+              "command": 4
+            },
+            {
+              "label": "Spielzug Speichern",
+              "attributes": [
+                0,
+                83,
+                0,
+                0
+              ],
+              "command": 5
+            },
+            {
+              "label": "Spielzug Speichern Unter…",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 6
+            },
+            {
+              "label": "Zum Gespeicherten Spielzug Zurückkehren",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 7
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Spiel Beitreten…",
+              "attributes": [
+                0,
+                74,
+                0,
+                0
+              ],
+              "command": 4021
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Beenden",
+              "attributes": [
+                0,
+                81,
+                0,
+                0
+              ],
+              "command": 10
+            }
+          ]
+        },
+        "130": {
+          "resource": 130,
+          "title": "Bearbeiten",
+          "menuSha256": "cd9f5b4e31501861c657c6784e7ca2304d6995ec8ce9194228e9d9c01c50cee6",
+          "commandsSha256": "a4b1ff25bc5cf2f20aca2b6106368bf925195398ab68b5c16312742592e14aaa",
+          "items": [
+            {
+              "label": "Widerrufen",
+              "attributes": [
+                0,
+                90,
+                0,
+                0
+              ],
+              "command": 11
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Ausschneiden",
+              "attributes": [
+                0,
+                88,
+                0,
+                0
+              ],
+              "command": 12
+            },
+            {
+              "label": "Kopieren",
+              "attributes": [
+                0,
+                67,
+                0,
+                0
+              ],
+              "command": 13
+            },
+            {
+              "label": "Einsetzen",
+              "attributes": [
+                0,
+                86,
+                0,
+                0
+              ],
+              "command": 14
+            },
+            {
+              "label": "Löschen",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 15
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Alles Auswählen",
+              "attributes": [
+                0,
+                65,
+                0,
+                0
+              ],
+              "command": 16
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Umbennenen…",
+              "attributes": [
+                0,
+                82,
+                0,
+                0
+              ],
+              "command": 4012
+            }
+          ]
+        },
+        "134": {
+          "resource": 134,
+          "title": "Fenster",
+          "menuSha256": "f89bfa7072de291b15b978116ed17cb25e9f3e4aef1b5407674ea6e03b6d19ee",
+          "commandsSha256": "ca70034b43b304fdf93cac5896e7d67027834b043ff5998a72b22863d0bea7e1",
+          "items": [
+            {
+              "label": "Voller Bildschirm",
+              "attributes": [
+                0,
+                66,
+                18,
+                0
+              ],
+              "command": 4016
+            },
+            {
+              "label": "Ereignisse Anzeigen/Verstecken",
+              "attributes": [
+                0,
+                69,
+                0,
+                0
+              ],
+              "command": 4018
+            }
+          ]
+        },
+        "137": {
+          "resource": 137,
+          "title": "Spiel",
+          "menuSha256": "4a066bffc983c60be37b0384ed706189c79d43362e9c7d0b18fc2f70c66f648b",
+          "commandsSha256": "a40af372fb139eb935acc9bb02b3d9d2be5c80a9b9e7f63df3df9776f2be04e0",
+          "items": [
+            {
+              "label": "Sound",
+              "attributes": [
+                0,
+                0,
+                18,
+                0
+              ],
+              "command": 4017
+            },
+            {
+              "label": "Alle Kurse Anzeigen",
+              "attributes": [
+                0,
+                0,
+                18,
+                0
+              ],
+              "command": 4023
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Spieler Vergleichen…",
+              "attributes": [
+                0,
+                80,
+                0,
+                0
+              ],
+              "command": 4011
+            },
+            {
+              "label": "Ihr Sternensystem…",
+              "attributes": [
+                0,
+                89,
+                0,
+                0
+              ],
+              "command": 4025
+            },
+            {
+              "label": "Ihre Flotten…",
+              "attributes": [
+                0,
+                70,
+                0,
+                0
+              ],
+              "command": 4026
+            },
+            {
+              "label": "-",
+              "attributes": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "command": 0
+            },
+            {
+              "label": "Spielzug Beenden",
+              "attributes": [
+                0,
+                84,
+                19,
+                0
+              ],
+              "command": 4000
+            }
           ]
         }
       }
