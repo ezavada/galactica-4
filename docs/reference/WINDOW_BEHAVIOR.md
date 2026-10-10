@@ -29,3 +29,13 @@ window with a draggable title. Its text is 150% of the map name size. The cursor
 becomes a text caret; Enter accepts the draft and Escape keeps the original name.
 Target selection uses a crosshair, with a 50% alpha rubber-band line for system
 destinations and course waypoint editing.
+
+
+Tutorial instructions are floating, interactive teaching windows rather than
+modal system windows: gameplay/setup actions must remain reachable while a
+lesson is displayed. They reuse the bright neutral gradient and gold edging,
+wrap localized text and consume pointer/wheel events inside their surface.
+Their title is draggable, constrained to the port and remembered in application
+configuration. Action-only lessons do not offer a forward button. File and
+manual-error dialogs retain foreground priority. The public tutorial launch
+entry and full guided walkthrough remain unfinished.

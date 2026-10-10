@@ -66,6 +66,8 @@ const I18n = require('./src/js/i18n.js');
 const Autoplay = require('./src/js/autoplay.js');
 const sessions=new (require('./src/js/game-sessions.js'))();
 let tutorialSession=null;
+let tutorialPanel=null;
+let tutorialPointerCapture=false;
 const documents=new (require('./src/js/documents.js'))(require('./src/js/document-files.js').createFiles(),()=>sessions.active,installSavedGame,revertSavedGame);
 
 const launchOptions = {
@@ -537,12 +539,26 @@ function beginTutorial(pages=require('./src/js/tutorial-lessons.js').load(dataPa
                 pdg.tm.startTimer(AUTOPLAY_TIMER_ID,game.config.autoplay.turnDelayMs,pdg.timer_Repeating);
         },
         installApplication:(nextGame,nextDisplay)=>{game=nextGame;display=nextDisplay;autoplayController=null;},
-        onStop:()=>{clearSessionInput();if(tutorialSession===owner)tutorialSession=null;}
+        onStop:()=>{clearSessionInput();if(tutorialSession===owner){tutorialSession=null;tutorialPanel=null;}}
     });
     tutorialSession=owner;
-    try{owner.start(context);}catch(error){tutorialSession=null;throw error;}
+    tutorialPanel=new (require('./src/js/tutorial-panel.js'))(owner,{preferences:drawingPreferences,language:()=>LanguageSettings.current(),loadPages:code=>require('./src/js/tutorial-lessons.js').load(dataPath,code),context:()=>({window:game && !sessions.starting?1:startupPlayerName?4:34,modal:sessions.starting})});
+    try{owner.start(context);}catch(error){tutorialSession=null;tutorialPanel=null;throw error;}
     return owner;
 }
+
+function tutorialPanelContext(){
+    const area=port.getDrawingArea(),screen={width:area.width(),height:area.height()},targets=[];
+    const foreground=foregroundApplicationWindow();if(foreground)targets.push(foreground.rect);
+    if(display && game){
+        const active=display.getActiveWindowRect();if(active)targets.push(active);
+        if(game.overlay && game.overlay.type==='report')targets.push(display.getReportLayout(game.overlay).rect);
+        if(game.overlay && game.overlay.type==='outcome')targets.push(display.getOutcomeLayout(game.overlay).rect);
+        if(game.selectedObject){const inspector=display.getSelectedObjectPanelRect(game.selectedObject);if(inspector)targets.push(inspector);}
+    }
+    return {screen,measure:(text,size)=>port.getTextWidth(text,size),targets};
+}
+function drawTutorialPanel(){if(tutorialPanel){const c=tutorialPanelContext();tutorialPanel.draw(port,c.screen,c.targets);}}
 
 function beginNewGame() {
     if(tutorialSession && tutorialSession.engaged)return tutorialSession.openSetup();
@@ -744,6 +760,7 @@ const drawHandler = new pdg.IEventHandler(function(event) {
         drawStartupDialog();
         drawStartupControlHelp();
     }
+    drawTutorialPanel();
     return true;
 });
 
@@ -773,6 +790,12 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     startupHelp.clear();startupHoverPoint=null;
     if(game && game.display)game.display.clearControlHelp();
     if(event && event.eventType===pdg.eventType_MouseUp && windowPlacement.end(event.mousePos.x,event.mousePos.y))return true;
+    if(event && event.eventType===pdg.eventType_MouseUp && event.buttonNumber===0 && tutorialPointerCapture){tutorialPointerCapture=false;if(tutorialPanel)tutorialPanel.mouseUp(event.mousePos.x,event.mousePos.y);return true;}
+    if(tutorialPanel && !userManual.error() && !documents.dialog && event){
+        const p=event.mousePos;
+        if(event.eventType===pdg.eventType_MouseUp && tutorialPanel.mouseUp(p.x,p.y))return true;
+        if(event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const c=tutorialPanelContext();if(tutorialPanel.mouseDown(p.x,p.y,c.screen,c.measure,c.targets)){tutorialPointerCapture=true;return true;}}
+    }
     const foreground=foregroundApplicationWindow();
     if(foreground && event && event.eventType===pdg.eventType_MouseDown){
         const area=port.getDrawingArea(),p=event.mousePos;
@@ -919,6 +942,9 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse wheel handler for zooming
 const mouseWheelHandler = new pdg.IEventHandler(function(event) {
+    if(tutorialPanel && !userManual.error() && !documents.dialog && event && event.eventType===pdg.eventType_ScrollWheel){
+        const p=pdg.gfx.getMouse(),c=tutorialPanelContext();if(tutorialPanel.wheel(p.x,p.y,event.vertDelta || 0,c.screen,c.measure,c.targets))return true;
+    }
     if(userManual.error() || documents.dialog)return true;
     if (sessions.starting || !game) {
         return true;
@@ -941,6 +967,8 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse move handler for drag scrolling
 const mouseMoveHandler = new pdg.IEventHandler(function(event) {
+    if(tutorialPointerCapture && event && event.eventType===pdg.eventType_MouseMove && event.leftButton===false)tutorialPointerCapture=false;
+    if(tutorialPanel && event && event.eventType===pdg.eventType_MouseMove && tutorialPanel.mouseMove(event.mousePos.x,event.mousePos.y,event.leftButton))return true;
     if(event && event.eventType===pdg.eventType_MouseMove && windowPlacement.drag){
         if(event.leftButton===false)windowPlacement.end();else windowPlacement.move(event.mousePos.x,event.mousePos.y);return true;
     }

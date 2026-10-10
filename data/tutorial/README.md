@@ -3,7 +3,7 @@
 `galaxy.json` is decoded from the data fork of the shipped Galactica tutorial
 plugin, not from a procedural v4 map. It supplies the controller/session fixture through `src/js/tutorial-game.js`;
 ordinary new-game startup does not use it. The tutorial launch API is still
-hidden until the localized instruction UI is ready.
+hidden until the guided tutorial integration has been verified.
 
 ```sh
 python3 tools/import-v3-tutorial-game.py '/path/to/v3/release/shareware/Galactica.app/Contents/MacOS/Plug-ins/Galactica Tutorial'
@@ -103,6 +103,7 @@ The original macOS resource variants share modern platform-neutral text.
 `src/js/tutorial-lessons.js` validates and assembles the selected language without
 loading the docs reference or silently filling missing translations with English.
 Its packaged-resource path is used by the hidden session entry. These resources
-complete the lesson-text dependency; they are not a visible instruction panel or
-a finished tutorial. Full save/resume, illustrations, language-switch refresh and
-the public menu entry remain separate integration work.
+complete the lesson-text dependency. The floating instruction panel now renders
+them and refreshes them after language changes without restarting progress.
+Full save/resume, illustrations, the complete guided walkthrough and the public
+menu entry remain separate integration work.

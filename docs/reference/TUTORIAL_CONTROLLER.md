@@ -2,10 +2,10 @@
 
 `src/js/tutorial-controller.js` implements the progression model for the sixty
 original lessons. It is connected to an explicitly bound tutorial game through
-`src/js/tutorial-runtime.js`, but has no startup entry or rendered instruction
-panel. A successful model walkthrough is not proof of a
-playable tutorial. Session preservation and localized runtime lessons are implemented below;
-the public launch UI and instruction renderer remain required work in `V3_V4_FEATURE_STATUS.md`.
+`src/js/tutorial-runtime.js`, and rendered by a floating localized instruction panel. There is no public startup
+entry yet. A successful model walkthrough is not proof of a playable tutorial.
+The public launch UI, illustrations, complete saves and full guided walkthrough
+remain required work in `V3_V4_FEATURE_STATUS.md`.
 
 The constructor accepts decoded page metadata and callbacks. Use `tutorial-lessons.js::load(dataDirectory, language)` for runtime pages;
 `v3-tutorial.json` is a source reference,
@@ -95,7 +95,7 @@ complete tutorial save: the session owner must also preserve the game graph,
 renderer/camera, file association, previous game and progress in setup. Normal
 Save/restore does not install or persist the runtime automatically. The startup actions for lessons 1–4 are connected by the session owner below.
 All sixty lesson texts are now available in six languages, with recovery pages
-and platform variants. Visible instructions and the full walkthrough remain unfinished. No startup/menu
+and platform variants. The visible instruction panel is implemented below; the full walkthrough remains unfinished. No startup/menu
 command advertises this partial tutorial yet.
 
 
@@ -164,6 +164,43 @@ packaged runtime files. A missing/blank translation fails validation rather than
 silently substituting English. Unsupported language codes use the application's
 ordinary English default. It validates headings/buttons/IDs, action destinations,
 exceptions and presentation metadata, then returns independent page objects.
-The still-hidden application entry now defaults to this loader. Runtime reload
-when changing language, the visible instruction panel, illustrations and the
-public launch action still need integration and an actual guided walkthrough.
+The still-hidden application entry now defaults to this loader. Runtime reload when changing language and the visible panel are implemented
+below. Illustrations and the public launch action still need integration and
+an actual guided walkthrough.
+
+
+## Floating instruction panel
+
+`src/js/tutorial-panel.js` renders the active localized heading, wrapped text,
+Close tutorial and only the button supplied by the source page. Action waits
+have no forward control. The application draws instructions after setup/map UI
+and routes their pointer input before modal setup handling. Clicks and wheel
+events inside instructions are consumed; outside input continues to the lesson
+controls. Page changes and cancellation retain mouse-up capture so a button
+click cannot deselect the underlying map object. File/error dialogs retain
+foreground priority. Keyboard input continues to setup and gameplay rather than
+providing a shortcut around required actions.
+
+The bright neutral gradient and gold edging reuse shared window Attributes.
+Unlike ordinary system windows, these instructions float without blocking the
+actions they teach, matching `GalacticaTutorial.cp::LoadPage`. Source edge
+preferences guide placement; current setup, inspectors, reports and system
+windows guide collision avoidance. Where there is room, instructions narrow
+to fit beside a centered system window. Text wraps at Unicode boundaries and
+scrolls when the port cannot show the full lesson. Wrapping is cached between
+page/width changes. Dragging the title constrains the window to the port and
+persists its position through drawing preferences.
+
+Language changes reload validated runtime pages and use
+`TutorialController.replacePresentation`. They preserve the active page,
+next destination, rendezvous identity and pending delay without replaying entry
+callbacks, sound or gameplay effects. Changed control destinations, exception
+records or button presence are rejected. All six languages are supported.
+
+Browser verification uses the hidden test entry to click real instruction,
+setup and name buttons, advance the zoom lesson through the normal renderer
+clock, drag and reopen instructions, cancel a running practice game and switch
+language through Settings. Finale lifecycle checks still use a fixture jump to
+page 60; they do not prove a complete guided playthrough. There is no public
+Tutorial menu item yet. Lesson illustrations and complete tutorial save/resume
+remain separate unfinished requirements.

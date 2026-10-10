@@ -35,6 +35,19 @@ class TutorialController {
         return this.pages.get(this.macOS && this.pages.has(this.pageId+1000)?this.pageId+1000:this.pageId) || null;
     }
 
+    replacePresentation(pages) {
+        const replacement=new TutorialController(pages,{macOS:this.macOS});
+        if(replacement.pages.size!==this.pages.size)throw new Error('Changed tutorial controls');
+        for(const [id,page] of this.pages){
+            const next=replacement.pages.get(id);
+            if(!next || next.nextPage!==page.nextPage || !!next.button!==!!page.button || JSON.stringify(next.exceptions)!==JSON.stringify(page.exceptions))
+                throw new Error('Changed tutorial controls');
+        }
+        // No entry callbacks: language changes cannot replay a sound, reset a
+        // wait, select home, or modify the practice document.
+        this.pages=replacement.pages;
+    }
+
     start(context={}) {
         this.alphaId=null;
         if(context.modal && [22,32].includes(context.window)) {
