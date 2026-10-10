@@ -1,3 +1,4 @@
+const WindowBehavior=require('./window-behavior.js');
 // Game class for Galactica-4
 // Contains main game logic and state management
 
@@ -1867,6 +1868,7 @@ class Game {
                 this.overlay.page=action.page;return true;
             case 'replayOutcome':return this.replayOutcome(action.event);
             case 'consume':
+                if(action.blocked && this.sound)this.sound.play(1012);
                 return true;
             case 'setMapDisplayMode':
                 if(!MapDisplayModes.valid(action.mode))return false;
@@ -2313,8 +2315,21 @@ class Game {
 
     beginUIWindowDrag(x,y) {
         this.endUIWindowDrag();
-        const state=this.getTableWindowState();
-        if(!state || !Number.isFinite(x) || !Number.isFinite(y))return false;
+        const state=this.overlay?null:this.getTableWindowState();
+        if(!Number.isFinite(x) || !Number.isFinite(y))return false;
+        if(!state){
+            const overlay=this.overlay && ['outcome','report'].includes(this.overlay.type) && !this.overlay.animationOnly?this.overlay:null;
+            const active=this.display && (overlay?(overlay.type==='report'?this.display.getReportLayout(overlay):this.display.getOutcomeLayout(overlay)).rect:this.display.getActiveWindowRect());
+            let name=overlay?overlay.type:this.uiWindow,rect=active;
+            if(!rect || !this.display.containsPoint(rect,x,y)){
+                if(overlay || WindowBehavior.isSystem(name))return false;
+                name='inspector';rect=this.selectedObject && this.display.getSelectedObjectPanelRect(this.selectedObject);
+            }
+            if(!rect || !this.display.containsPoint({...rect,height:28},x,y))return false;
+            const screen=this.display.getScreenSize();
+            this.uiWindowDrag={mode:'move',x,y,rect:{...rect},width:screen.width,height:screen.height,window:this.uiWindow,positionName:name};
+            return true;
+        }
         const region=this.display.getTableWindowDragRegions().find(region=>this.display.containsPoint(region.rect,x,y));
         if(!region)return false;
         const screen=this.display.getScreenSize();
@@ -2331,6 +2346,10 @@ class Game {
         }
         if(!Number.isFinite(x) || !Number.isFinite(y))return true;
         const rect=drag.rect;
+        if(drag.positionName){
+            const moved=WindowBehavior.constrain({...rect,x:rect.x+x-drag.x,y:rect.y+y-drag.y},screen);
+            const positions=this.windowPositions || (this.windowPositions={});positions[drag.positionName]={x:moved.x,y:moved.y};return true;
+        }
         if(drag.mode==='move')this[drag.geometry]={
             x:Math.max(10,Math.min(screen.width-rect.width-10,rect.x+x-drag.x)),
             y:Math.max(10,Math.min(screen.height-rect.height-10,rect.y+y-drag.y)),height:rect.height};
@@ -2344,6 +2363,8 @@ class Game {
         if(Number.isFinite(x) && Number.isFinite(y))this.updateUIWindowDrag(x,y);
         if(!this.uiWindowDrag)return true;
         const drag=this.uiWindowDrag;this.uiWindowDrag=null;
+        if(drag.positionName && WindowBehavior.isSystem(drag.positionName) && this.drawingPreferences && this.drawingPreferences.writeWindowPosition)
+            this.drawingPreferences.writeWindowPosition(drag.positionName,this.windowPositions[drag.positionName]);
         if(this.uiWindow===drag.window && this[drag.geometry])this.saveTableWindowGeometry();
         return true;
     }
@@ -2557,7 +2578,8 @@ class Game {
     }
     
     handleMouseRightClick(x, y, options={}) {
-        if(['mapPick','games','fleets','systemComparison','comparison'].includes(this.uiWindow))return true;
+        if(WindowBehavior.isSystem(this.uiWindow)){if(this.sound)this.sound.play(1012);return true;}
+        if(this.uiWindow==='mapPick')return true;
         if(this.pendingMapOrderObject || this.pendingRendezvousPlacement)return this.handleMouseClick(x,y,options);
         if(!options.resolved && this.beginMapSelection(x,y,'order'))return true;
         this.pendingMapOrderObject = null;

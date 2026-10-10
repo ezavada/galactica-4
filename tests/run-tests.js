@@ -198,6 +198,7 @@ runTutorialGameTests();
 runTutorialSimulationTests();
 runTutorialControllerTests();
 runTutorialRuntimeTests();
+require('./window-behavior.test.js')();
 runReusableColonyTests();
 runNeutralColonyReportTests();
 runRendezvousFormationReportTests();

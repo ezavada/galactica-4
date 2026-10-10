@@ -17,7 +17,19 @@ function createPreferences(env=globalThis) {
             else if(config)config.setConfigString(key,String(show));
         } catch(error) { /* The current drawing choice still applies. */ }
     };
+    const readWindowPosition=name=>{
+        try {const key='windowPosition.'+name,value=storage?storage.getItem('galactica.'+key):config?config.getConfigString(key):null;
+            return require('./window-behavior.js').validPosition(JSON.parse(value));
+        } catch(error){return null;}
+    };
+    const writeWindowPosition=(name,position)=>{
+        const value=require('./window-behavior.js').validPosition(position);if(!value)return;
+        try {const key='windowPosition.'+name,text=JSON.stringify(value);
+            if(storage)storage.setItem('galactica.'+key,text);else if(config)config.setConfigString(key,text);
+        } catch(error){ /* Window remains draggable without configuration storage. */ }
+    };
     return {
+        readWindowPosition,writeWindowPosition,
         readSound:()=>read('playSound'),writeSound:enabled=>write('playSound',enabled),
         readEnemyEvents:()=>read('showEnemyEvents'),writeEnemyEvents:show=>write('showEnemyEvents',show),
         readControlHelp:()=>read('showControlHelp'),writeControlHelp:show=>write('showControlHelp',show),

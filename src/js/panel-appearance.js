@@ -23,4 +23,14 @@ function ownerBorder(owner) {
         base.blue * 0.8 + owner.blue * 0.2, base.alpha);
 }
 
-module.exports = { colors, color, applySurface, ownerBorder };
+function applySystemSurface(attrs,rect){
+    attrs.fillGradient(new pdg.Point(rect.x,rect.y),new pdg.Color(.98,.98,.96,.97),
+        new pdg.Point(rect.x,rect.y+rect.height),new pdg.Color(.76,.77,.78,.97))
+        .lineColor(new pdg.Color(.75,.53,.12,1)).lineStyle(pdg.lineStyle_Solid).lineThickness(2);
+}
+function drawGoldEdges(port,rect,highlight,shade){
+    port.drawLine(new pdg.Point(rect.x+16,rect.y+2),new pdg.Point(rect.x+rect.width-16,rect.y+2),highlight);
+    port.drawLine(new pdg.Point(rect.x+2,rect.y+16),new pdg.Point(rect.x+2,rect.y+rect.height*.55),highlight);
+    port.drawLine(new pdg.Point(rect.x+16,rect.y+rect.height-2),new pdg.Point(rect.x+rect.width-16,rect.y+rect.height-2),shade);
+}
+module.exports = { colors, color, applySurface, ownerBorder,applySystemSurface,drawGoldEdges };

@@ -152,10 +152,30 @@ function createStartupAttributes(definition = {}) {
     return attrs;
 }
 
+const windowPlacement=new (require('./src/js/window-placement.js'))(drawingPreferences);
+for(const [object,method,name] of [[StartupSetup,'panelRect','startup'],[StartupSetup,'skillMenu','startupSkill'],
+    [PlayerName,'layout','textEntry'],[documents,'layout','documents'],[userManual,'layout','manualError']]){
+    const original=object[method];object[method]=function(width,height,...args){
+        const layout=original.call(this,width,height,...args);
+        return name==='documents' && documents.dialog && documents.dialog.kind==='editor'?layout:windowPlacement.layout(name,layout,{width,height});
+    };
+}
+function foregroundApplicationWindow(){
+    const area=port.getDrawingArea(),width=area.width(),height=area.height();
+    if(userManual.error())return {name:'manualError',rect:userManual.layout(width,height,text=>port.getTextWidth(text,13)).rect};
+    if(documents.dialog)return {name:documents.dialog.kind==='editor'?'textEntry':'documents',rect:documents.dialog.kind==='editor'?PlayerName.layout(width,height).rect:documents.layout(width,height).rect};
+    if(sessions.starting || !game){
+        if(startupAISkill)return {name:'startupSkill',rect:StartupSetup.skillMenu(width,height,pendingConfig).rect};
+        if(startupComputerCount || startupGameTitle || startupPlayerName)return {name:'textEntry',rect:PlayerName.layout(width,height).rect};
+        return {name:'startup',rect:StartupSetup.panelRect(width,height)};
+    }
+    return null;
+}
+
 // Startup dialog drawing uses Attributes like CSS classes: define once, reuse at draw sites.
 const startupStyles = {
     dim:createStartupAttributes({fillColor:new pdg.Color(0,0,0,0.5)}),
-    checkboxMark:createStartupAttributes({lineColor:new pdg.Color('white')}),
+    checkboxMark:createStartupAttributes({lineColor:new pdg.Color('black')}),
     background: createStartupAttributes({ fillColor: startupUIColor('background') }),
     panel: createStartupAttributes({
         fillColor: startupUIColor('panelFill'),
@@ -163,31 +183,31 @@ const startupStyles = {
     }),
     divider: createStartupAttributes({ lineColor: startupUIColor('divider') }),
     titleText: createStartupAttributes({
-        fillColor: startupUIColor('textLight'),
+        fillColor: new pdg.Color('black'),
         textSize: 24,
         textStyle: pdg.textStyle_Centered
     }),
     subtitleText: createStartupAttributes({
-        fillColor: startupUIColor('textMuted'),
+        fillColor: new pdg.Color('black'),
         textSize: 13,
         textStyle: pdg.textStyle_Centered
     }),
     lineText: createStartupAttributes({
-        fillColor: startupUIColor('textLight'),
+        fillColor: new pdg.Color('black'),
         textSize: 13,
         textStyle: pdg.textStyle_Plain
     }),
     hintText: createStartupAttributes({
-        fillColor: startupUIColor('textLight'),
+        fillColor: new pdg.Color('black'),
         textSize: 12,
         textStyle: pdg.textStyle_Plain
     }),
-    advantageButton: createStartupAttributes({fillColor:new pdg.Color(0.16,0.21,0.27,0.98),lineColor:new pdg.Color(0.45,0.58,0.68,0.65)}),
-    advantageButtonActive: createStartupAttributes({fillColor:new pdg.Color(0.24,0.35,0.42,1),lineColor:new pdg.Color(0.55,0.68,0.78,0.8)}),
-    advantageText: createStartupAttributes({fillColor:startupUIColor('textLight'),textSize:13,textStyle:pdg.textStyle_Centered}),
-    advantageSummary: createStartupAttributes({fillColor:startupUIColor('textMuted'),textSize:12,textStyle:pdg.textStyle_RightJustified}),
+    advantageButton: createStartupAttributes({fillColor:new pdg.Color(.86,.86,.85,1),lineColor:new pdg.Color(0.45,0.58,0.68,0.65)}),
+    advantageButtonActive: createStartupAttributes({fillColor:new pdg.Color(.70,.73,.75,1),lineColor:new pdg.Color(0.55,0.68,0.78,0.8)}),
+    advantageText: createStartupAttributes({fillColor:new pdg.Color('black'),textSize:13,textStyle:pdg.textStyle_Centered}),
+    advantageSummary: createStartupAttributes({fillColor:new pdg.Color('black'),textSize:12,textStyle:pdg.textStyle_RightJustified}),
     startText: createStartupAttributes({
-        fillColor: startupUIColor('textLight'),
+        fillColor: new pdg.Color('black'),
         textSize: 14,
         textStyle: pdg.textStyle_Centered
     })
@@ -205,6 +225,11 @@ function drawStartupRoundedRect(rect, radius = 14, attrs = startupStyles.panel) 
         attrs.roundedCorners(radius);
     }
     port.drawRect(toStartupPDGRect(rect), attrs);
+    if(attrs===startupStyles.panel){
+        const light=startupStyles.goldLight || (startupStyles.goldLight=createStartupAttributes({lineColor:new pdg.Color(1,.91,.58,.95)}).lineThickness(1));
+        const shade=startupStyles.goldShade || (startupStyles.goldShade=createStartupAttributes({lineColor:new pdg.Color(.52,.33,.06,.9)}).lineThickness(1));
+        PanelAppearance.drawGoldEdges(port,rect,light,shade);
+    }
 }
 
 function drawStartupDivider(x, y, width) {
@@ -244,7 +269,7 @@ function submitGameTitle() {
 function drawStartupTextDialog(editor,labels) {
     const area=port.getDrawingArea(),layout=PlayerName.layout(area.width(),area.height(),labels.submit),{rect,field}=layout;
     port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),labels.dim?startupStyles.dim:startupStyles.background);
-    PanelAppearance.applySurface(startupStyles.panel,rect,startupUIColor('panelFill'));drawStartupRoundedRect(rect,14,startupStyles.panel);
+    PanelAppearance.applySystemSurface(startupStyles.panel,rect);drawStartupRoundedRect(rect,14,startupStyles.panel);
     startupStyles.subtitleText.textSize(16);startupStyles.lineText.textSize(14);startupStyles.hintText.textSize(12);startupStyles.advantageText.textSize(13);
     port.drawText(labels.title,new pdg.Point(rect.x+rect.width/2,rect.y+40),startupStyles.subtitleText);
     port.drawText(labels.prompt,new pdg.Point(rect.x+24,rect.y+78),startupStyles.lineText);
@@ -261,7 +286,7 @@ function drawStartupCheckbox(rect,label,checked,scale) {
     const step=value=>value*scale;
     drawStartupRoundedRect(rect,6,checked?startupStyles.advantageButtonActive:startupStyles.advantageButton);
     const box={x:rect.x+step(8),y:rect.y+step(5),width:step(16),height:step(16)};
-    drawStartupRoundedRect(box,3,startupStyles.background);
+    drawStartupRoundedRect(box,3,startupStyles.advantageButton);
     if(checked) {
         port.drawLine(new pdg.Point(box.x+box.width*.2,box.y+box.height*.5),new pdg.Point(box.x+box.width*.43,box.y+box.height*.75),startupStyles.checkboxMark);
         port.drawLine(new pdg.Point(box.x+box.width*.43,box.y+box.height*.75),new pdg.Point(box.x+box.width*.82,box.y+box.height*.22),startupStyles.checkboxMark);
@@ -275,7 +300,7 @@ function drawStartupCheckbox(rect,label,checked,scale) {
 function drawStartupSkillMenu() {
     const area=port.getDrawingArea(),layout=StartupSetup.skillMenu(area.width(),area.height(),pendingConfig),rect=layout.rect;
     port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.background);
-    PanelAppearance.applySurface(startupStyles.panel,rect,startupUIColor('panelFill'));drawStartupRoundedRect(rect,14,startupStyles.panel);
+    PanelAppearance.applySystemSurface(startupStyles.panel,rect);drawStartupRoundedRect(rect,14,startupStyles.panel);
     startupStyles.subtitleText.textSize(16);startupStyles.advantageText.textSize(14);
     port.drawText(I18n.formatString(522,'AI skill: {0} ({1})',pendingConfig.getDifficultyName(),pendingConfig.compSkill),new pdg.Point(rect.x+rect.width/2,rect.y+36),startupStyles.subtitleText);
     for(const choice of layout.choices) {
@@ -302,10 +327,10 @@ function drawStartupDialog() {
     const {x:panelX,y:panelY,width:panelWidth}=panelRect;
     const scale=panelRect.height/540,step=value=>value*scale;
     for(const [style,size] of [['titleText',24],['subtitleText',13],['lineText',13],['hintText',12],['startText',14],['advantageText',13],['advantageSummary',12]])startupStyles[style].textSize(Math.max(9,size*scale));
-    PanelAppearance.applySurface(startupStyles.panel,panelRect,startupUIColor('panelFill'));
+    PanelAppearance.applySystemSurface(startupStyles.panel,panelRect);
     drawStartupRoundedRect(panelRect, 14, startupStyles.panel);
 
-    port.drawText(I18n.getString(568, 'Galactica-4'), new pdg.Point(screenWidth / 2, panelY + step(44)), startupStyles.titleText);
+    port.drawText(I18n.getString(568, 'Galactica-4'), new pdg.Point(panelX+panelWidth/2, panelY + step(44)), startupStyles.titleText);
     const titleRect=StartupSetup.titleRegion(panelRect),titleLabel=I18n.formatString(828,'Title: {0} <T>',pendingConfig.gameTitle);
     drawStartupRoundedRect(titleRect,6,startupStyles.advantageButton);
     let titleSize=Math.max(9,13*scale);
@@ -394,7 +419,7 @@ function drawStartupControlHelp() {
     const candidate=hit?{...hit,text:ControlHelp.describe(hit.action),key:scope+':'+hit.action.type+':'+hit.rect.x+':'+hit.rect.y}:null;
     const hint=startupHelp.sample(candidate,pdg.tm.getMilliseconds(),screen,text=>port.getTextWidth(text,11));
     if(!hint)return;
-    PanelAppearance.applySurface(startupStyles.panel,hint.rect,startupUIColor('panelFill'));
+    PanelAppearance.applySystemSurface(startupStyles.panel,hint.rect);
     drawStartupRoundedRect(hint.rect,8,startupStyles.panel);startupStyles.lineText.textSize(11);
     hint.lines.forEach((line,index)=>port.drawText(line,new pdg.Point(hint.rect.x+12,hint.rect.y+16+index*15),startupStyles.lineText));
 }
@@ -476,6 +501,7 @@ function handleStartupKey(key) {
 }
 
 function clearSessionInput() {
+    windowPlacement.end();
     isDragging=false;isLeftClickDragging=false;hasDragged=false;
     if(game){game.endUIWindowDrag();game.endMapScrollDrag();game.endUISliderDrag();}
 }
@@ -548,7 +574,7 @@ function revertSavedGame(nextGame,reference) {
 function drawManualFailure() {
     const area=port.getDrawingArea(),layout=userManual.layout(area.width(),area.height(),text=>port.getTextWidth(text,13)),r=layout.rect;
     port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.dim);
-    PanelAppearance.applySurface(startupStyles.panel,r,startupUIColor('panelFill'));drawStartupRoundedRect(r,14,startupStyles.panel);
+    PanelAppearance.applySystemSurface(startupStyles.panel,r);drawStartupRoundedRect(r,14,startupStyles.panel);
     startupStyles.subtitleText.textSize(16);startupStyles.lineText.textSize(13);startupStyles.startText.textSize(13);
     port.drawText(I18n.getString(943),new pdg.Point(r.x+r.width/2,r.y+32),startupStyles.subtitleText);
     layout.lines.forEach((line,index)=>port.drawText(line,new pdg.Point(r.x+24,r.y+60+index*18),startupStyles.lineText));
@@ -563,7 +589,7 @@ function drawDocumentDialog() {
     }
     const area=port.getDrawingArea(),layout=documents.layout(area.width(),area.height()),r=layout.rect;
     port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.dim);
-    PanelAppearance.applySurface(startupStyles.panel,r,startupUIColor('panelFill'));drawStartupRoundedRect(r,14,startupStyles.panel);
+    PanelAppearance.applySystemSurface(startupStyles.panel,r);drawStartupRoundedRect(r,14,startupStyles.panel);
     startupStyles.subtitleText.textSize(16);startupStyles.lineText.textSize(13);startupStyles.advantageText.textSize(13);
     port.drawText(layout.title,new pdg.Point(r.x+r.width/2,r.y+34),startupStyles.subtitleText);
     if(layout.message) {
@@ -697,6 +723,13 @@ let hasDragged = false; // Track if user has dragged during left click
 const mouseHandler = new pdg.IEventHandler(function(event) {
     startupHelp.clear();startupHoverPoint=null;
     if(game && game.display)game.display.clearControlHelp();
+    if(event && event.eventType===pdg.eventType_MouseUp && windowPlacement.end(event.mousePos.x,event.mousePos.y))return true;
+    const foreground=foregroundApplicationWindow();
+    if(foreground && event && event.eventType===pdg.eventType_MouseDown){
+        const area=port.getDrawingArea(),p=event.mousePos;
+        if(event.buttonNumber===0 && windowPlacement.begin(foreground.name,foreground.rect,p.x,p.y,{width:area.width(),height:area.height()}))return true;
+        if(p.x<foreground.rect.x || p.x>foreground.rect.x+foreground.rect.width || p.y<foreground.rect.y || p.y>foreground.rect.y+foreground.rect.height){sound.play(1012);return true;}
+    }
     if(userManual.error()) {
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0) {
             const area=port.getDrawingArea(),r=userManual.layout(area.width(),area.height(),text=>port.getTextWidth(text,13)).button,p=event.mousePos;
@@ -756,12 +789,13 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     // Message dialogs are modal above map and table drag handlers.
     if(game.overlay && ['outcome','report'].includes(game.overlay.type) && event && event.eventType===pdg.eventType_MouseDown) {
         isDragging=false;isLeftClickDragging=false;hasDragged=false;
-        if(event.buttonNumber===0)game.handleUIClick(event.mousePos.x,event.mousePos.y);
+        if(event.buttonNumber===0 && !game.beginUIWindowDrag(event.mousePos.x,event.mousePos.y))game.handleUIClick(event.mousePos.x,event.mousePos.y);
         return true;
     }
     // Check if this is a mouse down event
     if (event && event.eventType === pdg.eventType_MouseDown) {
-        if(['mapPick','games','fleets','systemComparison','comparison'].includes(game.uiWindow) && event.buttonNumber!==0)return true;
+        if(require('./src/js/window-behavior.js').isSystem(game.uiWindow) && event.buttonNumber!==0){if(game.sound)game.sound.play(1012);return true;}
+        if(game.uiWindow==='mapPick' && event.buttonNumber!==0)return true;
         // Check which button was pressed
         // PDG uses buttonNumber: 0=left, 1=right, 2=middle
         if (event.buttonNumber === 0) {
@@ -841,7 +875,7 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
         return true;
     }
     if (event && event.eventType === pdg.eventType_ScrollWheel) {
-        if(['mapPick','games'].includes(game.uiWindow) || game.overlay && ['outcome','report'].includes(game.overlay.type))return true;
+        if(require('./src/js/window-behavior.js').isSystem(game.uiWindow) || game.uiWindow==='mapPick' || game.overlay && ['outcome','report'].includes(game.overlay.type))return true;
         const delta = event.vertDelta || 0;
         if (delta < 0) {
             // Get current mouse position for zoom target
@@ -858,13 +892,16 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse move handler for drag scrolling
 const mouseMoveHandler = new pdg.IEventHandler(function(event) {
+    if(event && event.eventType===pdg.eventType_MouseMove && windowPlacement.drag){
+        if(event.leftButton===false)windowPlacement.end();else windowPlacement.move(event.mousePos.x,event.mousePos.y);return true;
+    }
     if(userManual.error() || documents.dialog || sessions.starting || !game) {
         if(event && event.eventType===pdg.eventType_MouseMove)startupHoverPoint={x:event.mousePos.x,y:event.mousePos.y};
         return true;
     }
     if (event && event.eventType === pdg.eventType_MouseMove) {
         game.display.setHoverPoint(event.mousePos.x, event.mousePos.y);
-        if(game.overlay && ['outcome','report'].includes(game.overlay.type)){isDragging=false;isLeftClickDragging=false;return true;}
+        if(game.overlay && ['outcome','report'].includes(game.overlay.type) && !game.uiWindowDrag){isDragging=false;isLeftClickDragging=false;return true;}
         // Recover if the button was released outside the game window.
         if(game.uiWindowDrag && event.leftButton===false){game.endUIWindowDrag();return true;}
         if(game.updateUIWindowDrag(event.mousePos.x,event.mousePos.y))return true;
@@ -910,6 +947,7 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
 });
 
 const keyHandler = new pdg.IEventHandler(function(event) {
+    if(windowPlacement.drag && event && event.eventType===pdg.eventType_KeyPress && event.unicode===pdg.key_Escape){windowPlacement.end();return true;}
     if(event && event.eventType===pdg.eventType_KeyPress){startupHelp.clear();startupHoverPoint=null;}
     if(userManual.error()){if(event && event.eventType===pdg.eventType_KeyPress && [pdg.key_Escape,13,3,32].includes(event.unicode))userManual.clearError();return true;}
     if(event && event.eventType===pdg.eventType_KeyPress && event.unicode===pdg.key_Help){userManual.open(pdg.res.getLanguage());return true;}

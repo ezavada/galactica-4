@@ -334,6 +334,9 @@ module.exports = function runCommandUITests() {
             createOwnedStar(game, 1, 'Sol');
             createOwnedStar(game, 2, 'Rigel');
             const turnBefore = game.turn;
+            game.handleUIClick(endTurnButton.rect.x + 5, endTurnButton.rect.y + 5);
+            test.assertEqual(game.turn,turnBefore,'Menu must block the map End Turn button');
+            game.uiWindow=null;
             const handledEndTurn = game.handleUIClick(endTurnButton.rect.x + 5, endTurnButton.rect.y + 5);
 
             test.assertTrue(handledEndTurn, 'End Turn button click should be consumed');

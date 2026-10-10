@@ -12,6 +12,7 @@ const DestructionEffect = require('./destruction-effect.js');
 const UIIcons = require('./ui-icons.js');
 const ScannerLayer = require('./scanner-layer.js');
 const PanelAppearance = require('./panel-appearance.js');
+const WindowBehavior = require('./window-behavior.js');
 const LanguageSettings = require('./language-settings.js');
 const MapDisplayModes = require('./map-display-modes.js');
 const ControlHelp = require('./hover-help.js');
@@ -1152,7 +1153,7 @@ class Display {
     }
 
     drawTextLine(text, x, y, color = 'lightgray', size = 12, style = pdg.textStyle_Plain) {
-        this.port.drawText(text, new pdg.Point(x, y), this.getTextAttributes(color, size, style));
+        this.port.drawText(text, new pdg.Point(x, y), this.getTextAttributes(this.isSystemWindowDrawing()?'black':color, size, style));
     }
 
     drawRightTextLine(text, rightX, y, color = 'lightgray', size = 12) {
@@ -1208,7 +1209,15 @@ class Display {
     }
 
     drawWindowPanel(rect, title) {
-        this.drawPanel(rect, title, null, this.styles.windowPanel);
+        if(!this.isSystemWindowDrawing()){this.drawPanel(rect,title,null,this.styles.windowPanel);return;}
+        const attrs=this.systemPanelStyle || (this.systemPanelStyle=this.createAttributes({lineColor:new pdg.Color(.75,.53,.12,1)}));
+        PanelAppearance.applySystemSurface(attrs,rect);
+        this.drawRoundedRect(rect,14,attrs);
+        const highlight=this.systemGoldHighlight || (this.systemGoldHighlight=this.createAttributes({lineColor:new pdg.Color(1,.91,.58,.95)}).lineThickness(1));
+        const shade=this.systemGoldShade || (this.systemGoldShade=this.createAttributes({lineColor:new pdg.Color(.52,.33,.06,.9)}).lineThickness(1));
+        PanelAppearance.drawGoldEdges(this.port,rect,highlight,shade);
+        if(title){this.drawTextLine(title,rect.x+16,rect.y+22,'black',14);this.drawDivider(rect.x+14,rect.y+28,rect.width-28);}
+
     }
 
     getPanelPointer(object, rect) {
@@ -1269,6 +1278,17 @@ class Display {
         this.drawPanel(rect,title,borderColor,this.getOwnerPanelStyle(object));
     }
 
+    fitWindowToScreen(name,rect) {
+        const positions=this.game.windowPositions || (this.game.windowPositions={});
+        if(!Object.prototype.hasOwnProperty.call(positions,name))positions[name]=WindowBehavior.isSystem(name) && this.game.drawingPreferences && this.game.drawingPreferences.readWindowPosition?
+            this.game.drawingPreferences.readWindowPosition(name):null;
+        const position=positions[name];
+        if(position)rect={...rect,x:position.x,y:position.y};
+        return WindowBehavior.constrain(rect,this.getScreenSize());
+    }
+
+    isSystemWindowDrawing(){return this.drawingActiveWindow && WindowBehavior.isSystem(this.game.uiWindow);}
+
     fitPanelToScreen(rect) {
         const screen = this.getScreenSize();
         const maxX = Math.max(10, screen.width - rect.width - 10);
@@ -1323,7 +1343,7 @@ class Display {
         }
 
         const y = position.y - (height / 2);
-        return this.fitPanelToScreen({ x, y, width, height });
+        return this.fitWindowToScreen('inspector',{ x, y, width, height });
     }
 
     formatPopulation(star) {
@@ -1358,7 +1378,7 @@ class Display {
     }
 
     drawUIIcon(name,x,y,size=14) {
-        this.uiIcons.draw(this.port,name,x,y,size,this.getUIColor('textLight'));
+        this.uiIcons.draw(this.port,name,x,y,size,this.isSystemWindowDrawing()?new pdg.Color('black'):this.getUIColor('textLight'));
     }
 
     getButtonWidth(label,hotkey=null,options={}) {
@@ -1390,7 +1410,9 @@ class Display {
         if (hovered) {
             fillColorName = active ? 'buttonFillActiveHover' : 'buttonFillHover';
         }
-        const style=this.styles[fillColorName],color=this.getUIColor(fillColorName);
+        const light=this.isSystemWindowDrawing();
+        const style=light?(this.systemButtonStyle || (this.systemButtonStyle=this.createAttributes({lineColor:new pdg.Color(.32,.29,.20,1)}))):this.styles[fillColorName];
+        const color=light?new pdg.Color(active ? .70 : hovered ? .94 : .86,active ? .73 : hovered ? .94 : .86,active ? .75 : hovered ? .92 : .85,1):this.getUIColor(fillColorName);
         style.fillGradient(new pdg.Point(drawRect.x,drawRect.y),new pdg.Color(color.red+0.016,color.green+0.016,color.blue+0.016,color.alpha),new pdg.Point(drawRect.x,drawRect.y+drawRect.height),color);
         style.lineStyle(pdg.lineStyle_Solid).lineThickness(0.6);
         this.drawRoundedRect(drawRect, options.radius || 10, style);
@@ -1724,7 +1746,7 @@ class Display {
 
     getEndTurnConfirmRect() {
         const screen=this.getScreenSize();
-        return this.fitPanelToScreen({x:(screen.width-440)/2,y:120,width:440,height:160});
+        return this.fitWindowToScreen('endTurnConfirm',{x:(screen.width-440)/2,y:120,width:440,height:160});
     }
     getEndTurnConfirmActions() {
         const r=this.getEndTurnConfirmRect();
@@ -1744,17 +1766,17 @@ class Display {
 
     getCommandWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: Math.min(300,screen.width-20), height: Math.min(screen.height-20,this.getCommandWindowHeight()) });
+        return this.fitWindowToScreen('menu',{ x: screen.width - 320, y: 54, width: Math.min(300,screen.width-20), height: Math.min(screen.height-20,this.getCommandWindowHeight()) });
     }
 
     getProductionWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({ x: screen.width - 440, y: 84, width: 420, height: 184 });
+        return this.fitWindowToScreen('production',{ x: screen.width - 440, y: 84, width: 420, height: 184 });
     }
 
     getEventWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(480,screen.width-40);
-        return this.fitPanelToScreen({x:screen.width-width-20,y:64,width,height:Math.min(500,screen.height-80)});
+        return this.fitWindowToScreen('events',{x:screen.width-width-20,y:64,width,height:Math.min(500,screen.height-80)});
     }
 
     wrapEventMessage(message,width,size=11) {
@@ -1814,7 +1836,7 @@ class Display {
         const pageSize=Math.max(1,Math.floor((screen.height-210)/26)),pages=Math.max(1,Math.ceil(rows.length/pageSize));
         const page=this.clamp(this.game.playerComparisonPage,0,pages-1);this.game.playerComparisonPage=page;
         const visibleRows=rows.slice(page*pageSize,(page+1)*pageSize);
-        const rect=this.fitPanelToScreen({x:(screen.width-width)/2,y:82,width,height:156+Math.max(1,visibleRows.length)*26});
+        const rect=this.fitWindowToScreen('comparison',{x:(screen.width-width)/2,y:82,width,height:156+Math.max(1,visibleRows.length)*26});
         let offset=14;
         const fields=[['name',537,'Player',160],['stars',null,this.STR.stars.replace(/:$/,''),45],
             ['population',711,'Population|×1000',100],['production',712,'Production',75],
@@ -1927,7 +1949,7 @@ class Display {
     getMapSelectionRect() {
         const screen=this.getScreenSize(),count=Math.min(6,this.game.getMapSelectionRows().length);
         const picker=this.game.mapSelectionPicker,width=Math.min(380,screen.width-40);
-        return this.fitPanelToScreen({x:picker.x+16,y:picker.y+16,width,height:130+Math.max(1,count)*32});
+        return this.fitWindowToScreen('mapPick',{x:picker.x+16,y:picker.y+16,width,height:130+Math.max(1,count)*32});
     }
 
     getMapSelectionLabel(object) {
@@ -1975,7 +1997,7 @@ class Display {
 
     getViewWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(340,screen.width-40);
-        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:294});
+        return this.fitWindowToScreen('view',{x:(screen.width-width)/2,y:84,width,height:294});
     }
 
     getViewActionRegions() {
@@ -2000,7 +2022,7 @@ class Display {
 
     getMapDisplayWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(340,screen.width-40);
-        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:352});
+        return this.fitWindowToScreen('mapDisplay',{x:(screen.width-width)/2,y:84,width,height:352});
     }
 
     getMapDisplayActionRegions() {
@@ -2050,7 +2072,7 @@ class Display {
 
     getSettingsWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(320,screen.width-40);
-        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:Math.min(540,screen.height-20)});
+        return this.fitWindowToScreen('settings',{x:(screen.width-width)/2,y:84,width,height:Math.min(540,screen.height-20)});
     }
 
     getSettingsActionRegions() {
@@ -2105,7 +2127,7 @@ class Display {
     getColonyDefaultsWindowRect() {
         const screen = this.getScreenSize();
         const width = Math.min(520,screen.width-40);
-        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:310});
+        return this.fitWindowToScreen('colonyDefaults',{x:(screen.width-width)/2,y:84,width,height:310});
     }
 
     getColonyDefaultSliderRegions() {
@@ -2165,7 +2187,7 @@ class Display {
         const rows=this.game.getCourseRows(),pageSize=Math.max(1,Math.min(9,Math.floor((screen.height-270-extraHeight)/26)));
         const pages=Math.max(1,Math.ceil(rows.length/pageSize)),page=Math.min(this.game.coursePage,pages-1);
         const visibleRows=rows.slice(page*pageSize,(page+1)*pageSize);
-        const rect=this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:194+Math.max(1,visibleRows.length)*26+extraHeight});
+        const rect=this.fitWindowToScreen('course',{x:(screen.width-width)/2,y:84,width,height:194+Math.max(1,visibleRows.length)*26+extraHeight});
         return {rect,rows,page,pages,visibleRows,pageSize,commandRows,modeRows};
     }
 
@@ -2192,7 +2214,7 @@ class Display {
         const defaultPageSize=Math.max(1,Math.min(12,Math.floor((screen.height-240)/26)));
         const height=this.clamp(preferred?preferred.height:150+Math.max(1,Math.min(rows.length,defaultPageSize))*26,
             176,Math.max(176,screen.height-20));
-        const rect=this.fitPanelToScreen({x:preferred?preferred.x:(screen.width-width)/2,
+        const rect=this.fitWindowToScreen('systemComparison',{x:preferred?preferred.x:(screen.width-width)/2,
             y:preferred?preferred.y:84,width,height});
         const pageSize=Math.max(1,Math.floor((height-150)/26)),pages=Math.max(1,Math.ceil(rows.length/pageSize));
         const page=this.clamp(this.game.systemComparisonPage,0,pages-1);this.game.systemComparisonPage=page;
@@ -2232,7 +2254,7 @@ class Display {
     getFleetExchangeLayout() {
         const state=this.game.getFleetExchangeState(),screen=this.getScreenSize();
         const width=Math.min(760,screen.width-32),pageSize=Math.max(1,Math.min(9,Math.floor((screen.height-350)/38)));
-        const rect=this.fitPanelToScreen({x:(screen.width-width)/2,y:80,width,height:234+pageSize*38});
+        const rect=this.fitWindowToScreen('fleetExchange',{x:(screen.width-width)/2,y:80,width,height:234+pageSize*38});
         const half=(width-42)/2;
         const lists=['main','sub'].map((side,index)=>{
             const objects=state?state[side]:[];
@@ -2321,7 +2343,7 @@ class Display {
         const pages = Math.max(1, Math.ceil(rows.length / pageSize));
         const page = Math.min(this.game.systemShipPage, pages - 1);
         const visibleRows = rows.slice(page * pageSize, (page + 1) * pageSize);
-        const rect = this.fitPanelToScreen({x: (screen.width - width)/2, y: 84, width,
+        const rect = this.fitWindowToScreen('systemShips',{x: (screen.width - width)/2, y: 84, width,
             height: 142 + Math.max(1,visibleRows.length) * 26});
         const scrapWidth=Math.max(98,...[754,755].map(id=>this.getButtonWidth(I18n.getString(id,id===754?'Scrap':'Cancel scrap'),null,{size:10})));
         const tableWidth=width-scrapWidth-14;
@@ -2367,7 +2389,7 @@ class Display {
 
     getRenameWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({
+        return this.fitWindowToScreen('rename',{
             x: (screen.width - 340) / 2,
             y: 96,
             width: 340,
@@ -2647,7 +2669,8 @@ class Display {
             return control?control.action:{type:'consume'};
         }
 
-        if(['mapPick','games'].includes(this.game.uiWindow))return this.getActiveWindowActionAt(x,y) || {type:'consume'};
+        if(WindowBehavior.isSystem(this.game.uiWindow))return this.getActiveWindowActionAt(x,y) || {type:'consume',blocked:true};
+        if(this.game.uiWindow==='mapPick')return this.getActiveWindowActionAt(x,y) || {type:'consume'};
         if(this.game.pendingCourseEdit) {
             const screen=this.getScreenSize(),hint={x:20,y:78,width:screen.width-40,height:40};
             if(this.containsPoint(hint,x,y) || this.getMapButtonRegions().some(button=>this.containsPoint(button.rect,x,y)))return {type:'consume'};
@@ -3156,7 +3179,7 @@ class Display {
 
     getGameSessionLayout() {
         const screen=this.getScreenSize(),width=Math.min(480,screen.width-40),height=Math.min(460,screen.height-60);
-        const rect=this.fitPanelToScreen({x:(screen.width-width)/2,y:(screen.height-height)/2,width,height});
+        const rect=this.fitWindowToScreen('games',{x:(screen.width-width)/2,y:(screen.height-height)/2,width,height});
         const rows=this.game.sessionCommands?this.game.sessionCommands.rows():[];
         const capacity=Math.max(1,Math.floor((height-140)/44)),pages=Math.max(1,Math.ceil(rows.length/capacity));
         const page=this.clamp(this.game.gameSessionPage || 0,0,pages-1);this.game.gameSessionPage=page;
@@ -3272,8 +3295,14 @@ class Display {
             columns.slice(1).forEach(column=>{
                 const hidden=!row.isAlive || row.playerNum===0 && ['ships','power','minimumShipTech','maximumShipTech','averageShipTech'].includes(column.key);
                 const text=hidden?'—':I18n.formatInteger(row[column.key]);
+                const cellColor=this.getPlayerComparisonCellColor(row,column.key,extrema);
                 this.drawTextLine(this.fitShipDiagnosticText(text,column.width-6,10),rect.x+column.offset+column.width/2,y,
-                    this.getPlayerComparisonCellColor(row,column.key,extrema),10,pdg.textStyle_Centered);
+                    cellColor,10,pdg.textStyle_Centered);
+                // Preserve the blue-best/red-worst legend while keeping system-window text black.
+                if(this.isSystemWindowDrawing() && ['comparisonBest','comparisonWorst'].includes(cellColor)){
+                    const center=rect.x+column.offset+column.width/2,width=Math.min(column.width-10,this.port.getTextWidth(text,10)+4);
+                    this.port.drawLine(new pdg.Point(center-width/2,y+3),new pdg.Point(center+width/2,y+3),this.getLineAttributes(cellColor).lineThickness(1.5));
+                }
             });
             if(this.isHovered(rowRect))this.iconHint={rect:rowRect,inWindow:true,label:row.name};
         });
@@ -3765,7 +3794,7 @@ class Display {
 
     getOutcomeLayout(overlay) {
         const screen=this.getScreenSize(),width=Math.min(640,screen.width-40),height=Math.min(460,screen.height-40);
-        const rect={x:(screen.width-width)/2,y:(screen.height-height)/2,width,height};
+        const rect=this.fitWindowToScreen('outcome',{x:(screen.width-width)/2,y:(screen.height-height)/2,width,height});
         const viewer=this.game.getCurrentHumanPlayer(),local=viewer===overlay.playerNum;
         const title=I18n.getString(overlay.kind==='win'?614:overlay.kind==='defeat'?613:615);
         const summary=overlay.kind==='win'?I18n.formatString(644,'{0} wins on turn {1}',overlay.name,overlay.turn):
@@ -3800,7 +3829,7 @@ class Display {
         const footer=this.layoutButtonRow([...controls,previous,next],{x:0,y:0,width:width-40,height:28,size:11,gap:8,minWidth:90});
         const lines=this.wrapEventMessage(event?event.message:'',width-40,13);
         const height=Math.min(400,screen.height-40,Math.max(180,58+lines.length*18+14+20+footer.rows*36-8));
-        const rect={x:(screen.width-width)/2,y:(screen.height-height)/2,width,height};
+        const rect=this.fitWindowToScreen('report',{x:(screen.width-width)/2,y:(screen.height-height)/2,width,height});
         const footerY=rect.y+height-20-(footer.rows*36-8),bodyY=rect.y+58;
         const capacity=Math.max(1,Math.floor((footerY-14-bodyY)/18)),pages=Math.max(1,Math.ceil(lines.length/capacity));
         const page=this.clamp(overlay.page || 0,0,pages-1);
