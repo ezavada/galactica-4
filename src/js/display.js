@@ -1280,6 +1280,26 @@ class Display {
         this.uiIcons.draw(this.port,name,x,y,size,this.getUIColor('textLight'));
     }
 
+    getButtonWidth(label,hotkey=null,options={}) {
+        if(options.iconOnly)return options.minWidth || 44;
+        const text=hotkey?`${label} <${hotkey}>`:String(label || '');
+        const size=options.size || 11;
+        const measured=typeof this.port.getTextWidth==='function'?this.port.getTextWidth(text,size):Array.from(text).length*size*.62;
+        return Math.max(options.minWidth || 0,Math.ceil(measured)+24+(options.icon?26:0));
+    }
+
+    layoutButtonRow(buttons,{x,y,width,height=26,size=11,gap=8,minWidth=50}) {
+        let offset=0,row=0;
+        const regions=buttons.map(button=>{
+            const buttonWidth=this.getButtonWidth(button.label,button.key,{size,minWidth,icon:button.icon});
+            if(offset && offset+buttonWidth>width){offset=0;row++;}
+            const rect={x:x+offset,y:y+row*(height+gap),width:buttonWidth,height};
+            offset+=buttonWidth+gap;
+            return {...button,rect};
+        });
+        return {regions,rows:buttons.length?row+1:0};
+    }
+
     drawUIButton(rect, label, hotkey = null, options = {}) {
         const drawRect = this.snapRectToPixels(rect);
         const active = !!options.active;
@@ -1338,25 +1358,18 @@ class Display {
         const screen = this.getScreenSize();
         const buttons = this.getMapButtonDefinitions();
 
-        const cols = 2;
-        const buttonWidth = 98;
-        const buttonHeight = 30;
-        const gap = 8;
-        const rows = Math.ceil(buttons.length / cols);
-        const startX = Math.round(screen.width - (cols * buttonWidth) - ((cols - 1) * gap) - 16);
-        const startY = Math.round(screen.height - (rows * buttonHeight) - ((rows - 1) * gap) - 16);
-
-        return buttons.map((button, i) => {
-            const col = i % cols;
-            const row = Math.floor(i / cols);
-            const rect = {
-                x: startX + col * (buttonWidth + gap),
-                y: startY + row * (buttonHeight + gap),
-                width: i===buttons.length-1 && buttons.length%cols===1 ? buttonWidth*cols+gap : buttonWidth,
-                height: buttonHeight
-            };
-            return { ...button, rect };
-        });
+        const gap=8,buttonHeight=30;
+        let widths=[0,0];
+        buttons.forEach((button,index)=>widths[index%2]=Math.max(widths[index%2],
+            this.getButtonWidth(button.label,button.key,{minWidth:98,iconOnly:!!button.icon})));
+        const cols=widths[0]+widths[1]+gap>screen.width-32?1:2;
+        if(cols===1)widths=[Math.max(...widths)];
+        const rows=Math.ceil(buttons.length/cols),totalWidth=widths.reduce((a,b)=>a+b,0)+(cols-1)*gap;
+        const startX=screen.width-totalWidth-16,startY=screen.height-rows*buttonHeight-(rows-1)*gap-16;
+        return buttons.map((button,index)=>({ ...button,rect:{
+            x:Math.round(startX+(index%cols?widths[0]+gap:0)),
+            y:Math.round(startY+Math.floor(index/cols)*(buttonHeight+gap)),
+            width:widths[index%cols],height:buttonHeight}}));
     }
 
     drawMapButtons() {
@@ -1428,8 +1441,9 @@ class Display {
         const position = this.getObjectScreenPosition(object);
         const panelIsLeftOfObject = (panelRect.x + panelRect.width / 2) < position.x;
         const direction = panelIsLeftOfObject ? 1 : -1;
-        const baseDistance = 116;
-        const buttonWidth = 96;
+        const widths=actions.map(action=>this.getButtonWidth(action.label,action.key,{size:10,minWidth:96}));
+        const baseDistance=Math.max(116,Math.max(...widths)/2+50);
+        const screen=this.getScreenSize();
         const buttonHeight = 28;
         const verticalSpacing = 36;
         const curveDepth = 3;
@@ -1437,7 +1451,9 @@ class Display {
 
         return actions.map((action, index) => {
             const offsetIndex = index - middle;
-            const centerX = Math.round(position.x + direction * (baseDistance - Math.abs(offsetIndex) * curveDepth));
+            const buttonWidth=widths[index];
+            const centerX = Math.round(this.clamp(position.x + direction * (baseDistance - Math.abs(offsetIndex) * curveDepth),
+                10+buttonWidth/2,screen.width-10-buttonWidth/2));
             const centerY = Math.round(position.y + offsetIndex * verticalSpacing);
             const rect = this.snapRectToPixels({
                 x: centerX - buttonWidth / 2,
@@ -1747,13 +1763,37 @@ class Display {
         return regions;
     }
 
+    getCourseCommandButtons() {
+        const object=this.game.courseWindowObject,selection=this.game.courseSelection;
+        if(!this.game.canEditCourse(object))return [];
+        return [['addWaypoint',729,'Add','A'],['editWaypoint',730,'Edit','E'],['deleteWaypoint',731,'Delete','D'],
+            ['clearOrders',732,'Clear course','X'],['togglePatrol',577,'Patrol','P']]
+            .filter(([type])=>!(['editWaypoint','deleteWaypoint'].includes(type)&&!object.course.waypoints[selection]) &&
+                !(type==='clearOrders'&&!object.course.waypoints.length) && !(type==='togglePatrol'&&!this.game.canTogglePatrol(object)))
+            .map(([type,id,fallback,key])=>({label:I18n.getString(id,fallback),key,
+                active:type==='togglePatrol'&&object.isOnPatrol(),action:{type,object}}));
+    }
+
+    getCourseModeButtons() {
+        const object=this.game.courseWindowObject;
+        if(!this.game.canEditCourse(object))return [];
+        const buttons=[{label:I18n.getString(733,'Loop'),key:'L',active:object.course.loop,action:{type:'toggleCourseLoop'}}];
+        if(object.course.waypoints.length || object.course.hasMemory)buttons.push({label:I18n.getString(740,'Memory'),key:'M',active:object.course.hasMemory,action:{type:'swapCourseMemory'}});
+        if(this.game.canToggleCourseHunt(object))buttons.push({label:I18n.getString(741,'Hunt'),key:'H',active:object.course.hunt,action:{type:'toggleCourseHunt'}});
+        if(this.game.canToggleCallIn(object))buttons.push({label:I18n.getString(742,'Call in'),key:'C',active:!!object.userCallIn,action:{type:'toggleCallIn',object}});
+        return buttons;
+    }
+
     getCourseWindowLayout() {
         const screen=this.getScreenSize(),width=Math.min(620,screen.width-40);
-        const rows=this.game.getCourseRows(),pageSize=Math.max(1,Math.min(9,Math.floor((screen.height-270)/26)));
+        const commandRows=this.layoutButtonRow(this.getCourseCommandButtons(),{x:0,y:0,width:width-28,size:10}).rows;
+        const modeRows=this.layoutButtonRow(this.getCourseModeButtons(),{x:0,y:0,width:width-150,size:10}).rows;
+        const extraHeight=(Math.max(1,commandRows)-1+Math.max(1,modeRows)-1)*34;
+        const rows=this.game.getCourseRows(),pageSize=Math.max(1,Math.min(9,Math.floor((screen.height-270-extraHeight)/26)));
         const pages=Math.max(1,Math.ceil(rows.length/pageSize)),page=Math.min(this.game.coursePage,pages-1);
         const visibleRows=rows.slice(page*pageSize,(page+1)*pageSize);
-        const rect=this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:194+Math.max(1,visibleRows.length)*26});
-        return {rect,rows,page,pages,visibleRows,pageSize};
+        const rect=this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:194+Math.max(1,visibleRows.length)*26+extraHeight});
+        return {rect,rows,page,pages,visibleRows,pageSize,commandRows,modeRows};
     }
 
     getCourseActionRegions() {
@@ -1761,32 +1801,11 @@ class Display {
         const layout=this.getCourseWindowLayout(),r=layout.rect,object=this.game.courseWindowObject;
         const regions=layout.visibleRows.map((row,index)=>({rect:{x:r.x+14,y:r.y+66+index*26,width:r.width-28,height:24},
             action:{type:'selectWaypoint',index:row.index}}));
-        const selection=this.game.courseSelection;
-        if(this.game.canEditCourse(object)) {
-            const definitions=[['addWaypoint',729,'Add','A'],['editWaypoint',730,'Edit','E'],
-                ['deleteWaypoint',731,'Delete','D'],['clearOrders',732,'Clear course','X'],
-                ['togglePatrol',577,'Patrol','P']];
-            definitions.forEach(([type,id,fallback,key],index)=> {
-                if(['editWaypoint','deleteWaypoint'].includes(type) && !object.course.waypoints[selection])return;
-                if(type==='clearOrders' && !object.course.waypoints.length)return;
-                if(type==='togglePatrol' && !this.game.canTogglePatrol(object))return;
-                const width=(r.width-28)/5;
-                regions.push({rect:{x:r.x+14+index*width,y:r.y+r.height-96,width:width-5,height:26},
-                    label:I18n.getString(id,fallback),key,active:type==='togglePatrol' && object.isOnPatrol(),action:{type,object}});
-            });
-            const modeWidth=(r.width-150)/4,modeRect=index=>({
-                x:r.x+14+index*(modeWidth+8),y:r.y+r.height-64,width:modeWidth,height:24});
-            regions.push({rect:modeRect(0),label:I18n.getString(733,'Loop'),
-                key:'L',active:object.course.loop,action:{type:'toggleCourseLoop'}});
-            if(object.course.waypoints.length || object.course.hasMemory)regions.push({
-                rect:modeRect(1),label:I18n.getString(740,'Memory'),
-                key:'M',active:object.course.hasMemory,action:{type:'swapCourseMemory'}});
-            if(this.game.canToggleCourseHunt(object))regions.push({
-                rect:modeRect(2),label:I18n.getString(741,'Hunt'),
-                key:'H',active:object.course.hunt,action:{type:'toggleCourseHunt'}});
-            if(this.game.canToggleCallIn(object))regions.push({rect:modeRect(3),label:I18n.getString(742,'Call in'),
-                key:'C',active:!!object.userCallIn,action:{type:'toggleCallIn',object}});
-        }
+        const modeExtra=(Math.max(1,layout.modeRows)-1)*34;
+        regions.push(...this.layoutButtonRow(this.getCourseCommandButtons(),{x:r.x+14,
+            y:r.y+r.height-96-modeExtra-(Math.max(1,layout.commandRows)-1)*34,width:r.width-28,height:26,size:10}).regions);
+        regions.push(...this.layoutButtonRow(this.getCourseModeButtons(),{x:r.x+14,
+            y:r.y+r.height-64-modeExtra,width:r.width-150,height:24,size:10}).regions);
         if(layout.page>0)regions.push({rect:{x:r.x+14,y:r.y+r.height-32,width:130,height:22},
             label:I18n.getString(690,'Previous'),action:{type:'coursePage',page:layout.page-1}});
         if(layout.page<layout.pages-1)regions.push({rect:{x:r.x+r.width-144,y:r.y+r.height-32,width:130,height:22},
@@ -1842,15 +1861,17 @@ class Display {
         const visibleRows = rows.slice(page * pageSize, (page + 1) * pageSize);
         const rect = this.fitPanelToScreen({x: (screen.width - width)/2, y: 84, width,
             height: 142 + Math.max(1,visibleRows.length) * 26});
-        const tableWidth=width-112;
-        const columns = [
-            { key: 'name', label: this.STR.name.replace(/:$/, ''), offset: 14, width: tableWidth*.40-14 },
-            { key: 'tech', label: this.STR.tech.replace(/:$/, ''), offset: tableWidth*.40, width: tableWidth*.14 },
-            { key: 'power', label: this.STR.power.replace(/:$/, ''), offset: tableWidth*.54, width: tableWidth*.14 },
-            { key: 'damage', label: this.STR.damage.replace(/:$/, ''), offset: tableWidth*.68, width: tableWidth*.16 },
-            { key: 'speed', label: this.STR.speed.replace(/:$/, ''), offset: tableWidth*.84, width: tableWidth*.16-14 }
-        ];
-        return { rect, page, pages, pageSize, visibleRows, columns };
+        const scrapWidth=Math.max(98,...[754,755].map(id=>this.getButtonWidth(I18n.getString(id,id===754?'Scrap':'Cancel scrap'),null,{size:10})));
+        const tableWidth=width-scrapWidth-14;
+        const definitions=[['name',this.STR.name.replace(/:$/,''),.40],['tech',this.STR.tech.replace(/:$/,''),.14],
+            ['power',this.STR.power.replace(/:$/,''),.14],['damage',this.STR.damage.replace(/:$/,''),.16],['speed',this.STR.speed.replace(/:$/,''),.16]];
+        const minimums=definitions.map(([,label])=>this.getButtonWidth(label,null,{size:10}));
+        const extra=Math.max(0,tableWidth-28-minimums.reduce((a,b)=>a+b,0));
+        let offset=14;
+        const columns=definitions.map(([key,label,weight],index)=>{
+            const column={key,label,offset,width:minimums[index]+extra*weight};offset+=column.width;return column;
+        });
+        return { rect, page, pages, pageSize, visibleRows, columns, scrapWidth };
     }
 
     getSystemShipActionRegions() {
@@ -1861,10 +1882,10 @@ class Display {
             action: { type: 'sortSystemShips', key: column.key } }));
         layout.visibleRows.forEach((row,index) => {
             if(this.game.canToggleScrap(row.object))regions.push({
-                rect:{x:rect.x+rect.width-112,y:rect.y+68+index*26,width:98,height:24},
+                rect:{x:rect.x+rect.width-layout.scrapWidth-14,y:rect.y+68+index*26,width:layout.scrapWidth,height:24},
                 label:I18n.getString(row.object.isToBeScrapped()?755:754,row.object.isToBeScrapped()?'Cancel scrap':'Scrap'),
                 active:row.object.isToBeScrapped(),action:{type:'toggleScrap',object:row.object}});
-            regions.push({rect:{x:rect.x+14,y:rect.y+68+index*26,width:rect.width-128,height:24},
+            regions.push({rect:{x:rect.x+14,y:rect.y+68+index*26,width:rect.width-layout.scrapWidth-30,height:24},
                 action:{type:'selectObject',object:row.object,center:true,closeWindow:true}});
         });
         if (layout.page > 0) regions.push({rect:{x:rect.x+14,y:rect.y+rect.height-36,width:150,height:24},
@@ -2047,16 +2068,18 @@ class Display {
         const primaryTransferTarget = transferTargets.length > 0 ? transferTargets[0] : null;
         const regions = [];
 
+        const removeWidth=this.getButtonWidth(this.STR.remove,null,{size:9,minWidth:58});
+        const transferWidth=this.getButtonWidth(this.STR.transfer,null,{size:9,minWidth:58});
         for (const ship of layout.visibleShips) {
             const rowRect = { x, y: y - 14, width: rect.width - 24, height: 20 };
             if (primaryTransferTarget) {
                 regions.push({
-                    rect: { x: rect.x + rect.width - 136, y: y - 16, width: 58, height: 20 },
+                    rect: { x: rect.x + rect.width - 14 - removeWidth - 6 - transferWidth, y: y - 16, width: transferWidth, height: 20 },
                     action: { type: 'transferFleetShip', ship, targetFleet: primaryTransferTarget }
                 });
             }
             regions.push({
-                rect: { x: rect.x + rect.width - 72, y: y - 16, width: 58, height: 20 },
+                rect: { x: rect.x + rect.width - 14 - removeWidth, y: y - 16, width: removeWidth, height: 20 },
                 action: { type: 'removeFleetShip', fleet, ship }
             });
             regions.push({

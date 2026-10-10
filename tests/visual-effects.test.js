@@ -3,6 +3,49 @@ const Factory=require('../src/js/factory.js'),Game=require('../src/js/game.js'),
 function fixture(){const game=new Game(new Factory(),new Rules(false),new GameConfig({numHumans:1,numComputers:1,skipMapGeneration:true}));
     game.port={getDrawingArea:()=>new pdg.Rect(800,600)};return {game,display:new Display(game)};}
 module.exports=function(){test.describe('Subtle presentation effects',()=>{
+    test.it('measures button labels, shortcuts and inline icons at their actual font size',()=>{
+        const {display:d}=fixture();let text,size;d.port.getTextWidth=(t,s)=>{text=t;size=s;return t.length*s;};
+        test.assertEqual(d.getButtonWidth('Long label','Enter',{size:10}),204);test.assertEqual(text,'Long label <Enter>');test.assertEqual(size,10);
+        test.assertEqual(d.getButtonWidth('Settings',null,{size:10,icon:'gear'}),130);
+        test.assertEqual(d.getButtonWidth('Very long icon label','H',{iconOnly:true,minWidth:98}),98);
+    });
+    test.it('keeps expanded map buttons separate, onscreen and clickable at their new edges',()=>{
+        const {game,display:d}=fixture();d.port.getTextWidth=(text,size)=>Array.from(text).length*size*.8;
+        d.STR.endTurn='A much longer translated end-turn label';
+        const buttons=d.getMapButtonRegions();
+        for(const b of buttons){test.assertTrue(b.rect.x>=0&&b.rect.x+b.rect.width<=800);test.assertTrue(b.rect.width>=d.getButtonWidth(b.label,b.key,{iconOnly:!!b.icon}));}
+        for(let i=0;i<buttons.length;i++)for(let j=i+1;j<buttons.length;j++){
+            const a=buttons[i].rect,b=buttons[j].rect;test.assertFalse(a.x<b.x+b.width&&b.x<a.x+a.width&&a.y<b.y+b.height&&b.y<a.y+a.height);
+        }
+        const button=buttons.find(b=>b.action.type==='endTurn');test.assertEqual(d.getUIActionAt(button.rect.x+button.rect.width-2,button.rect.y+3).type,'endTurn');
+        d.port.getDrawingArea=()=>new pdg.Rect(480,600);const narrow=d.getMapButtonRegions();test.assertTrue(narrow.every(b=>b.rect.x===narrow[0].rect.x));
+    });
+    test.it('expands popup buttons together with their click areas and connectors',()=>{
+        const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Home');star.owner=1;game.setSelectedObject(star);
+        d.port.getTextWidth=(text,size)=>text.length*size*.6;d.STR.rename='A longer localized rename action';
+        d.toScreenX=()=>400;d.toScreenY=()=>300;
+        const button=d.getContextButtonRegions(star).find(b=>b.action.type==='beginRename');
+        test.assertTrue(button.rect.width>96);test.assertEqual(d.getUIActionAt(button.rect.x+2,button.centerY).type,'beginRename');
+        const end=d.getButtonConnectorPoint(star,button);test.assertTrue(end.x===button.rect.x||end.x===button.rect.x+button.rect.width);
+    });
+    test.it('wraps command-button rows instead of overlapping long labels',()=>{
+        const {display:d}=fixture();d.port.getTextWidth=(text,size)=>text.length*size*.6;
+        const buttons=['A long command','Another command','Third command'].map(label=>({label,key:'X'}));
+        const layout=d.layoutButtonRow(buttons,{x:10,y:20,width:220,size:10});test.assertTrue(layout.rows>1);
+        for(const button of layout.regions){test.assertTrue(button.rect.x+button.rect.width<=230);test.assertTrue(button.rect.width>=d.getButtonWidth(button.label,button.key,{size:10}));}
+    });
+    test.it('reserves course-window space for wrapped controls on smaller screens',()=>{
+        const {game,display:d}=fixture();d.port.getDrawingArea=()=>new pdg.Rect(480,400);
+        d.port.getTextWidth=(text,size)=>text.length*size*.8;
+        const star=game.factory.createStar(0,0,'Home');star.owner=1;star.techLevel=3;
+        const ship=game.factory.createShip(0,0,'scout',star);ship.complete();
+        game.courseWindowObject=ship;game.uiWindow='course';game.issuePlayerWaypoint(ship,{x:1000,y:1000});game.courseSelection=0;
+        const layout=d.getCourseWindowLayout();test.assertTrue(layout.rect.y+layout.rect.height<=400);
+        for(const button of d.getCourseActionRegions().filter(b=>b.label)){
+            test.assertTrue(button.rect.y>=layout.rect.y&&button.rect.y+button.rect.height<=layout.rect.y+layout.rect.height);
+            test.assertTrue(button.rect.x+button.rect.width<=layout.rect.x+layout.rect.width);
+        }
+    });
     test.it('twinkles one visible star every 1.8 seconds with a quiet interval between pulses',()=>{
         const v=new VisualEffects(),ids=[3,19,200];
         for(let slot=0;slot<20;slot++){
