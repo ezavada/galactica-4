@@ -59,3 +59,10 @@ Controller work still required:
 No unavailable external dependency has been established for the tutorial.
 Decoding and integration work remain to be done; this reference does not close
 the tutorial checklist item.
+
+## Startup and About source evidence
+
+See [STARTUP_ABOUT.md](STARTUP_ABOUT.md) and `v3-presentation.json` for the
+shipped windows, attribution, artwork provenance and scrolling parameters.
+This reference supports an unfinished runtime port; it does not close the
+presentation/preferences checklist.

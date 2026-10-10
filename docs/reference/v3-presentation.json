@@ -1,0 +1,466 @@
+{
+  "format": 1,
+  "purpose": "Source evidence; startup/About runtime port remains unfinished",
+  "variants": {
+    "en-shareware": {
+      "source": "Resources/gal-en-shareware.r",
+      "sha256": "3049dcc342413f3c9d41792fa5de02d311d2841a1e0e7d8f83cee7ae11879804",
+      "windows": {
+        "about": {
+          "resource": 22,
+          "sha256": "24ec120b468ed1170e362cdc5a4bb51fa9bf329760a9a8d3841ae11af434930d",
+          "captions": [
+            "Edmund R. Zavada\nJames Whitehouse",
+            "by",
+            "^0\n",
+            "version"
+          ],
+          "pictures": [
+            {
+              "resource": 131
+            },
+            {
+              "resource": 132,
+              "scroll": {
+                "startTicks": 120,
+                "ticksPerMove": 3,
+                "horizontalPixels": 0,
+                "verticalPixels": 1
+              }
+            },
+            {
+              "resource": 135
+            },
+            {
+              "resource": 136
+            }
+          ]
+        },
+        "startup": {
+          "resource": 32,
+          "sha256": "ecca63b98938c821a81b67feaca9665cff8392bef50697b715f85694da46d888",
+          "captions": [
+            "by",
+            "Edmund Zavada\nJames Whitehouse\nClaudio Berni"
+          ],
+          "pictures": [
+            {
+              "resource": 131
+            },
+            {
+              "resource": 134,
+              "scroll": {
+                "startTicks": 60,
+                "ticksPerMove": 4,
+                "horizontalPixels": 0,
+                "verticalPixels": 1
+              }
+            }
+          ]
+        }
+      },
+      "pictures": {
+        "131": {
+          "source": "Resources/gal-non-module.r",
+          "sha256": "676a474999607d78c002ecaafc3816b1b08f583482a8de4a97844a0f208d2422",
+          "bytes": 127760,
+          "frame": [
+            0,
+            0,
+            465,
+            360
+          ]
+        },
+        "132": {
+          "source": "Resources/gal-en-shareware.r",
+          "sha256": "55180c3bb756d10fadb79e34db449058a61e1ba8302baa9ada231b49b9c76f74",
+          "bytes": 2094,
+          "frame": [
+            0,
+            0,
+            1318,
+            164
+          ]
+        },
+        "135": {
+          "source": "Resources/gal-non-module.r",
+          "sha256": "771a4c4f5cab204f81e74886d05b5fbae54e9fa8c550994026d5542e4dbd777e",
+          "bytes": 8804,
+          "frame": [
+            0,
+            0,
+            69,
+            60
+          ]
+        },
+        "136": {
+          "source": "Resources/gal-non-module.r",
+          "sha256": "905feaadfff1f7071bdba2fecff6c653160adf06c4914c30e0ab68a45999649f",
+          "bytes": 10528,
+          "frame": [
+            0,
+            0,
+            74,
+            96
+          ]
+        },
+        "134": {
+          "source": "Resources/gal-en-shareware.r",
+          "sha256": "2482154c11a155362f47abb3b84eb9ae4b9dec87cb8dabf97f8b6385c0425307",
+          "bytes": 3190,
+          "frame": [
+            0,
+            0,
+            1404,
+            145
+          ]
+        }
+      }
+    },
+    "en-cdrom": {
+      "source": "Resources/gal-en-cdrom.r",
+      "sha256": "d6870450cda370048bd19da66ce3c65168b8a5aeb5d52680ff59cf164678d402",
+      "windows": {
+        "about": {
+          "resource": 22,
+          "sha256": "24ec120b468ed1170e362cdc5a4bb51fa9bf329760a9a8d3841ae11af434930d",
+          "captions": [
+            "Edmund R. Zavada\nJames Whitehouse",
+            "by",
+            "^0\n",
+            "version"
+          ],
+          "pictures": [
+            {
+              "resource": 131
+            },
+            {
+              "resource": 132,
+              "scroll": {
+                "startTicks": 120,
+                "ticksPerMove": 3,
+                "horizontalPixels": 0,
+                "verticalPixels": 1
+              }
+            },
+            {
+              "resource": 135
+            },
+            {
+              "resource": 136
+            }
+          ]
+        },
+        "startup": {
+          "resource": 32,
+          "sha256": "ecca63b98938c821a81b67feaca9665cff8392bef50697b715f85694da46d888",
+          "captions": [
+            "by",
+            "Edmund Zavada\nJames Whitehouse\nClaudio Berni"
+          ],
+          "pictures": [
+            {
+              "resource": 131
+            },
+            {
+              "resource": 134,
+              "scroll": {
+                "startTicks": 60,
+                "ticksPerMove": 4,
+                "horizontalPixels": 0,
+                "verticalPixels": 1
+              }
+            }
+          ]
+        }
+      },
+      "pictures": {
+        "131": {
+          "source": "Resources/gal-non-module.r",
+          "sha256": "676a474999607d78c002ecaafc3816b1b08f583482a8de4a97844a0f208d2422",
+          "bytes": 127760,
+          "frame": [
+            0,
+            0,
+            465,
+            360
+          ]
+        },
+        "132": {
+          "source": "Resources/gal-en-cdrom.r",
+          "sha256": "55180c3bb756d10fadb79e34db449058a61e1ba8302baa9ada231b49b9c76f74",
+          "bytes": 2094,
+          "frame": [
+            0,
+            0,
+            1318,
+            164
+          ]
+        },
+        "135": {
+          "source": "Resources/gal-non-module.r",
+          "sha256": "771a4c4f5cab204f81e74886d05b5fbae54e9fa8c550994026d5542e4dbd777e",
+          "bytes": 8804,
+          "frame": [
+            0,
+            0,
+            69,
+            60
+          ]
+        },
+        "136": {
+          "source": "Resources/gal-non-module.r",
+          "sha256": "905feaadfff1f7071bdba2fecff6c653160adf06c4914c30e0ab68a45999649f",
+          "bytes": 10528,
+          "frame": [
+            0,
+            0,
+            74,
+            96
+          ]
+        },
+        "134": {
+          "source": "Resources/gal-en-cdrom.r",
+          "sha256": "2482154c11a155362f47abb3b84eb9ae4b9dec87cb8dabf97f8b6385c0425307",
+          "bytes": 3190,
+          "frame": [
+            0,
+            0,
+            1404,
+            145
+          ]
+        }
+      }
+    },
+    "de-shareware": {
+      "source": "Resources/gal-de-shareware.r",
+      "sha256": "ee9509e822744a61aaca207a9142c67c86c078fe4593a169b914d905dc575bb7",
+      "windows": {
+        "about": {
+          "resource": 22,
+          "sha256": "24ec120b468ed1170e362cdc5a4bb51fa9bf329760a9a8d3841ae11af434930d",
+          "captions": [
+            "Edmund R. Zavada\nJames Whitehouse",
+            "by",
+            "^0\n",
+            "version"
+          ],
+          "pictures": [
+            {
+              "resource": 131
+            },
+            {
+              "resource": 132,
+              "scroll": {
+                "startTicks": 120,
+                "ticksPerMove": 3,
+                "horizontalPixels": 0,
+                "verticalPixels": 1
+              }
+            },
+            {
+              "resource": 135
+            },
+            {
+              "resource": 136
+            }
+          ]
+        },
+        "startup": {
+          "resource": 32,
+          "sha256": "ecca63b98938c821a81b67feaca9665cff8392bef50697b715f85694da46d888",
+          "captions": [
+            "by",
+            "Edmund Zavada\nJames Whitehouse\nClaudio Berni"
+          ],
+          "pictures": [
+            {
+              "resource": 131
+            },
+            {
+              "resource": 134,
+              "scroll": {
+                "startTicks": 60,
+                "ticksPerMove": 4,
+                "horizontalPixels": 0,
+                "verticalPixels": 1
+              }
+            }
+          ]
+        }
+      },
+      "pictures": {
+        "131": {
+          "source": "Resources/gal-non-module.r",
+          "sha256": "676a474999607d78c002ecaafc3816b1b08f583482a8de4a97844a0f208d2422",
+          "bytes": 127760,
+          "frame": [
+            0,
+            0,
+            465,
+            360
+          ]
+        },
+        "132": {
+          "source": "Resources/gal-de-shareware.r",
+          "sha256": "89e544aebd247c92fda91af2417d972d2d17d63aa48757db6c19e2d267c98ab4",
+          "bytes": 2136,
+          "frame": [
+            0,
+            0,
+            1332,
+            155
+          ]
+        },
+        "135": {
+          "source": "Resources/gal-non-module.r",
+          "sha256": "771a4c4f5cab204f81e74886d05b5fbae54e9fa8c550994026d5542e4dbd777e",
+          "bytes": 8804,
+          "frame": [
+            0,
+            0,
+            69,
+            60
+          ]
+        },
+        "136": {
+          "source": "Resources/gal-non-module.r",
+          "sha256": "905feaadfff1f7071bdba2fecff6c653160adf06c4914c30e0ab68a45999649f",
+          "bytes": 10528,
+          "frame": [
+            0,
+            0,
+            74,
+            96
+          ]
+        },
+        "134": {
+          "source": "Resources/gal-de-shareware.r",
+          "sha256": "eaa091d6a2b5331791ec29e786fac059f767d02be3a97a823ca9a4b90d794ca2",
+          "bytes": 4256,
+          "frame": [
+            0,
+            0,
+            1768,
+            155
+          ]
+        }
+      }
+    },
+    "de-cdrom": {
+      "source": "Resources/gal-de-cdrom.r",
+      "sha256": "befd32a9c39d4ce925bfd4d2616ebc88d4d024f2080028c41ff4ce21cfd5e5fe",
+      "windows": {
+        "about": {
+          "resource": 22,
+          "sha256": "24ec120b468ed1170e362cdc5a4bb51fa9bf329760a9a8d3841ae11af434930d",
+          "captions": [
+            "Edmund R. Zavada\nJames Whitehouse",
+            "by",
+            "^0\n",
+            "version"
+          ],
+          "pictures": [
+            {
+              "resource": 131
+            },
+            {
+              "resource": 132,
+              "scroll": {
+                "startTicks": 120,
+                "ticksPerMove": 3,
+                "horizontalPixels": 0,
+                "verticalPixels": 1
+              }
+            },
+            {
+              "resource": 135
+            },
+            {
+              "resource": 136
+            }
+          ]
+        },
+        "startup": {
+          "resource": 32,
+          "sha256": "ecca63b98938c821a81b67feaca9665cff8392bef50697b715f85694da46d888",
+          "captions": [
+            "by",
+            "Edmund Zavada\nJames Whitehouse\nClaudio Berni"
+          ],
+          "pictures": [
+            {
+              "resource": 131
+            },
+            {
+              "resource": 134,
+              "scroll": {
+                "startTicks": 60,
+                "ticksPerMove": 4,
+                "horizontalPixels": 0,
+                "verticalPixels": 1
+              }
+            }
+          ]
+        }
+      },
+      "pictures": {
+        "131": {
+          "source": "Resources/gal-non-module.r",
+          "sha256": "676a474999607d78c002ecaafc3816b1b08f583482a8de4a97844a0f208d2422",
+          "bytes": 127760,
+          "frame": [
+            0,
+            0,
+            465,
+            360
+          ]
+        },
+        "132": {
+          "source": "Resources/gal-de-cdrom.r",
+          "sha256": "89e544aebd247c92fda91af2417d972d2d17d63aa48757db6c19e2d267c98ab4",
+          "bytes": 2136,
+          "frame": [
+            0,
+            0,
+            1332,
+            155
+          ]
+        },
+        "135": {
+          "source": "Resources/gal-non-module.r",
+          "sha256": "771a4c4f5cab204f81e74886d05b5fbae54e9fa8c550994026d5542e4dbd777e",
+          "bytes": 8804,
+          "frame": [
+            0,
+            0,
+            69,
+            60
+          ]
+        },
+        "136": {
+          "source": "Resources/gal-non-module.r",
+          "sha256": "905feaadfff1f7071bdba2fecff6c653160adf06c4914c30e0ab68a45999649f",
+          "bytes": 10528,
+          "frame": [
+            0,
+            0,
+            74,
+            96
+          ]
+        },
+        "134": {
+          "source": "Resources/gal-de-cdrom.r",
+          "sha256": "eaa091d6a2b5331791ec29e786fac059f767d02be3a97a823ca9a4b90d794ca2",
+          "bytes": 4256,
+          "frame": [
+            0,
+            0,
+            1768,
+            155
+          ]
+        }
+      }
+    }
+  }
+}

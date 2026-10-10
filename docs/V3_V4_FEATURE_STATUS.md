@@ -1702,3 +1702,20 @@ Evidence: `/private/tmp/pdg-public-fullscreen-{build,spec-runtime,ctest,release}
 `/private/tmp/galactica-private-fullscreen-current.log`, and
 `/private/tmp/galactica-fullscreen-backport-{tests,public-tests}.log`.
 Broader parity and Map Generation work remain active.
+
+
+### Startup/About source audit for the next preference item
+
+Decoded PPob 22/32 and their referenced picture metadata from all four shipped
+English/German shareware/CD-ROM modules. The reproducible importer and reference
+retain static attribution, source hashes, shared artwork provenance and distinct
+startup/About scrolling timing. Inspected the original splash screenshot: startup
+includes a scrolling origin narrative, not just authors and a title. The runtime
+port must preserve this narrative and About credits, remember default-on
+`ShowSplash`, and integrate actual tutorial recovery. Details and remaining
+verification are in `docs/reference/STARTUP_ABOUT.md`. Five importer checks pass
+and re-import is byte-identical. Full suites pass against both the pinned release
+and rebuilt public PDG runtime (1,325 tests each); logs are
+`/private/tmp/galactica-presentation-reference-{tests,public-tests}.log`. No runtime UI or localization changed; the
+startup/About presentation and its preference remain unfinished. The music asset
+blocker is independent of this implementable presentation work.
