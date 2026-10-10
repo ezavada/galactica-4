@@ -69,6 +69,7 @@ class Documents {
     }
     action(action) {
         if(action==='cancel' || action==='ack')return this.cancel();
+        if(action==='openHost')return !!(this.openHost && this.openHost());
         if(action==='host')return !!(this.host && this.host());
         if(action==='join')return !!(this.join && this.join());
         if(action==='quit')return !!(this.quit && this.quit());
@@ -96,7 +97,7 @@ class Documents {
         const dialogHeight=dialog.kind==='menu'?Math.min(384,height-20):300,rect={x:(width-Math.min(480,width-40))/2,y:(height-dialogHeight)/2,width:Math.min(480,width-40),height:dialogHeight};
         let title=I18n.getString(838),message=dialog.message || '',buttons=[];
         if(dialog.kind==='menu'){
-            const rows=[...(this.host?[['host',1050]]:[]),...(this.join?[['join',1005]]:[]),['save',839],['saveAs',840],['open',841],['revert',842],['close',989],...(this.quit?[['quit',996]]:[]),['cancel',683]];
+            const rows=[...(this.host?[['host',1050]]:[]),...(this.openHost?[['openHost',1083]]:[]),...(this.join?[['join',1005]]:[]),['save',839],['saveAs',840],['open',841],['revert',842],['close',989],...(this.quit?[['quit',996]]:[]),['cancel',683]];
             const pitch=Math.min(42,(rect.height-70)/rows.length),buttonHeight=Math.min(32,pitch-6);
             buttons=rows.map(([action,id],index)=>({action,label:I18n.getString(id),key:action==='host'?'H':action==='join'?'J':action==='close'?'W':action==='quit'?'Q':action==='cancel'?'Esc':null,rect:{x:rect.x+24,y:rect.y+54+index*pitch,width:rect.width-48,height:buttonHeight}}));
         }

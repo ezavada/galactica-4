@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1476
-Passed: 1476 ✓
+Total: 1478
+Passed: 1478 ✓
 Failed: 0 ✗
 ```
 
@@ -470,3 +470,49 @@ The adapter adds no production remote host-creation or administration endpoint.
 All audio output is muted. Before/after screenshots are under
 `/private/tmp/galactica-parity/host-setup-{before,after}/<language>`.
 Full native suites on both runtimes: 1,476 passed, 0 failed.
+
+
+### Saved hosts and dedicated hosting
+
+```bash
+./gad4 tools/test-host-reopen.js
+./gad4 tools/host-game.js HOST_FILE 0 en
+```
+
+The awaited integration verifies galaxy/turn/identity/password/paused-clock
+preservation, normal authenticated rejoining, same-path/symlink reuse,
+independent-process exclusive leases, duplicate game identities, malformed file
+preservation, failed-bind recovery with the lease retained, dedicated listener
+startup and save-before-SIGTERM shutdown, and stale lease recovery after a
+real SIGKILL. It passes on both native PDG runtimes. The dedicated command
+opens an existing host; local-turn conversion and new-game command options are
+separate pending work.
+
+`tools/test-web-host-setup.cjs` also covers File Open as host, localized missing
+file errors, preserved timed turn/claims, ordinary saved-player rejoining, and
+Stop. As above, the shared UI uses a test-only adapter to actual native hosts;
+production browser hosting remains unavailable. Run the focused final dialog flow with:
+
+```bash
+node tools/test-web-host-setup.cjs BUILD_DIR SCREENSHOT_DIR en reopen
+```
+
+Repeat in de/es/fr/ja/ru. Before screenshots are under
+`/private/tmp/galactica-parity/host-reopen-before/<language>` and final compact
+dialog/error/rejoin screenshots under
+`/private/tmp/galactica-parity/host-reopen-final/<language>`. The focused runner
+prepares a real native two-human saved turn, then uses actual Host/File actions,
+filename editing, Enter, missing-file errors, rejoining and Stop. The complete
+flow also checks creating a new host, timer units, normal posting and save-safe
+Quit. Native SIGTERM tests include a real write-permission failure followed by
+successful retry.
+
+
+The saved-host browser runner also makes the already-loaded network module URL
+return HTTP 503 and verifies that cached exports remain available without
+another source request. The production CommonJS loader now checks its cache
+before fetching. The runner records input and frame counters before dispatch,
+and keeps the Chrome page focused/active with background throttling disabled;
+this avoids a hidden automated page ceasing to draw during lengthy client/Quit
+flows. Render failures include page visibility and controller state in the log.
+These settings affect automation only, and audio remains muted.

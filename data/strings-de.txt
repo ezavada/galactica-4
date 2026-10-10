@@ -768,3 +768,12 @@
 1080	Dichte
 1081	Kein Listener aktiv
 1082	Hosten
+
+# Saved host reopening and dedicated hosting
+1083	Als Host öffnen…
+1084	Host öffnen
+1085	Host wird geöffnet…
+1086	Dieser Host läuft oder ist durch einen anderen Prozess gesperrt. Schließe ihn vor einem erneuten Versuch.
+1087	Die Host-Datei konnte nicht geöffnet werden. Prüfe Pfad und Format.
+1088	Host gestoppt.
+1089	Aufruf: ./gad4 tools/host-game.js HOST_DATEI [PORT] [SPRACHE]

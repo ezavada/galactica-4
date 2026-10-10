@@ -768,3 +768,12 @@
 1080	Densidad
 1081	Sin servidor activo
 1082	Alojar
+
+# Saved host reopening and dedicated hosting
+1083	Abrir como anfitrión…
+1084	Abrir anfitrión
+1085	Abriendo anfitrión…
+1086	Este anfitrión está activo o bloqueado por otro proceso. Ciérralo antes de reintentar.
+1087	No se pudo abrir el archivo del anfitrión. Comprueba la ruta y el formato.
+1088	Anfitrión detenido.
+1089	Uso: ./gad4 tools/host-game.js ARCHIVO_ANFITRIÓN [PUERTO] [IDIOMA]

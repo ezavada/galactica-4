@@ -185,6 +185,9 @@
             ? [resolved]
             : [resolved + '.js', resolved.replace(/\/$/, '') + '/index.js'];
         for (var index = 0; index < candidates.length; index++) {
+            // CommonJS cached exports (including in-progress circular imports)
+            // must not depend on another successful source request.
+            if (moduleCache[candidates[index]]) return { url: candidates[index] };
             try {
                 return {
                     url: candidates[index],

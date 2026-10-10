@@ -117,8 +117,27 @@ you dismiss that window or close a client game; accepted Quit saves and stops
 all hosts before exiting. A failed save keeps the application and listener open.
 Browsers can join games but require the desktop application to host.
 
-Multiplayer remains incomplete: reopening hosts through the application,
-administration UI, discovery, chat and network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
+Use **File → Open as host**, or **Open as host** in the startup Host form, to
+resume an existing hosted `.gad4.json` file. The host keeps its galaxy, turn,
+claimed players/passwords and remaining time; stopped time does not consume the
+countdown. You may leave it running without joining a local player.
+
+For a dedicated host with no game window or local player:
+
+```bash
+./gad4 tools/host-game.js /path/to/host.gad4.json 0 en
+```
+
+The optional port defaults to 0; the final argument selects en/de/es/fr/ja/ru.
+The command prints the bound local address. Ctrl+C or SIGTERM saves and stops
+the host. Application and dedicated hosts use an exclusive `.host-lock`
+sidecar directory across atomic saves; a lease from a terminated process is
+retired on the next open. An incomplete or unreadable lease is retained for
+manual inspection rather than risking an active host file.
+
+Multiplayer remains incomplete: converting local saved turns to new hosts,
+dedicated new-game creation options, administration UI, discovery, chat and
+network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
 
@@ -127,7 +146,7 @@ administration UI, discovery, chat and network-game saving are still being porte
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1476 passed, 0 failed.
+Current expected result: 1478 passed, 0 failed.
 
 AI-only parity observer:
 

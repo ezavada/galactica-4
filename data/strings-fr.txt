@@ -768,3 +768,12 @@
 1080	Densité
 1081	Aucun serveur actif
 1082	Héberger
+
+# Saved host reopening and dedicated hosting
+1083	Ouvrir comme hôte…
+1084	Ouvrir l’hôte
+1085	Ouverture de l’hôte…
+1086	Cet hôte est actif ou verrouillé par un autre processus. Fermez-le avant de réessayer.
+1087	Impossible d’ouvrir ce fichier hôte. Vérifiez le chemin et le format.
+1088	Hôte arrêté.
+1089	Utilisation : ./gad4 tools/host-game.js FICHIER_HÔTE [PORT] [LANGUE]

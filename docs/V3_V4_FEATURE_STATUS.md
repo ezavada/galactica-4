@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1476 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1478 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -275,7 +275,7 @@ The largest blockers to a complete game are:
 | Close game | File-menu Close Game/W closes the active document; game changes mark it modified, save/load clears that state, and closing stops tutorial instructions. | ✅ Implemented | ✅ Implemented | File → Close game/W offers localized Save and close/Discard/Cancel for changed or new documents, closes clean saved games directly, waits for successful writes and preserves other open games. Navigation/report review does not dirty the document. Closing the last game returns to setup; tutorial closure restores the original and releases bindings. Both full suites pass 1,358 tests; dedicated async decisions and actual six-language browser paths are verified below. Application Quit and browser-tab protection are verified separately below; native OS/window-close interception remains pending. |
 | Quit application | Quit checks modified documents before exiting; Cancel prevents exit. | 🟡 Partial | 🟡 Partial | File → Quit/Q, Command/Ctrl+Q, startup Quit and configured command 10 now check every retained game, wait for writes and preserve remaining documents on Cancel. Browser unload warns for unsaved games; accepted Quit offers a localized restart screen. Both full suites pass 1,369 tests; actual all-six-language browser and real native shutdown checks pass. Native window-close/OS Quit requests still bypass save decisions in the pinned PDG runtime and require engine integration. Joined client documents log out on accepted Close/Quit. Host creation/stop defers Quit while busy; accepted Quit awaits saved shutdown of every application host. A failed host save leaves its listener active and the application open for retry. Native OS/window-close interception remains the separate engine blocker. |
 | Host new network game | Creates host data, starts server, and presents join flow. | ✅ Implemented | ✅ Implemented | Desktop startup Host/H and File → Host create an exclusive durable host file and independent listener. The localized modal offers player/map/timer options, actual port/address/status, ordinary Join, Stop, another host and retry after bind failure. Dismissing the status or closing a client keeps hosting alive. Browser hosting is explicitly unavailable. All six shared-UI flows against real native hosts and both native integration suites pass; see the audit below. |
-| Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | 🟡 Partial | 🟡 Partial | Created desktop hosts can run without joining a local player and independently of retained game documents. Native NetworkHost.open resumes saved hosts, but application Open as host and dedicated command-line entry remain missing. |
+| Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | 🟡 Partial | 🟡 Partial | Created desktop hosts can run without joining a local player and independently of retained game documents. File → Open as host and the startup Host form reopen existing hosts with their galaxy, turn, claims/passwords and remaining/paused clock intact. A dedicated command opens the same host without a graphics window or local player. Exclusive application/dedicated file leases prevent concurrent writers; ordinary authenticated rejoin is available. The v3 local-saved-turn conversion branch and dedicated new-game command options remain missing. |
 | LAN/Internet discovery | Browse advertised games and query the matchmaker. | ❌ Missing | ❌ Missing | No equivalent. |
 | Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | 🟡 Partial | 🟡 Partial | Startup Join/J and File → Join open a localized modal address/name/masked-password form with public game/slot information and paged player selection. Native HTTP/browser CORS admission installs the authenticated client as a retained game document; same-player rejoin reuses that document. Automatic refresh preserves same-turn orders and updates authoritative turns. Title dragging stays in the port and remembers its position. Six-language actual-control browser tests pass. Saved host lists/discovery remain missing; untimed order submission and authoritative turn resolution are now wired. |
 | Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🟡 Partial | 🟡 Partial | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit policy, optional saved-password preferences and host administration remain forthcoming. |
@@ -2756,3 +2756,72 @@ administration including pause/resume, discovery/saved host lists, private
 admission and password preferences, chat, network-document saving and
 cross-language host-generated reports still require work. Hosting tutorial
 recovery 103 and the Map Generation checklist remain pending.
+
+
+### Saved host reopening and dedicated resume — 2026-10-10
+
+Audited `GalacticaHostDoc.cp:193–224`: exclusive host open, saved game information,
+server initialization, existing game data, resumed clock and host-window display.
+`Galactica.cpp:2266–2280` exposes Open as host; its single-player-file branch calls
+`GalacticaHostDoc.cp:112–188`, which creates a new host file and chooses how many
+existing players become humans. That conversion branch is a separate remaining
+requirement, not implemented by simply reopening existing multiplayer files.
+The dedicated v3 entry (`Galactica.cpp:537–558`) supports loadgame, a chosen port
+and newgame/options. V4 implements the existing-host load/port/language command;
+dedicated new-game creation options remain pending.
+
+V4 now exposes File → Open as host and Open as host in the startup Host form.
+The shared localized modal edits a filename and port, rejects missing/malformed
+files without changing documents, and opens the independent host status/join
+flow. Existing file/symlink opens reuse the application host; a copied document
+with the same game identity cannot be started twice in one application. Reopening
+does not regenerate the galaxy or reset claimed players/passwords. Timed turn
+remaining time and paused state restore; elapsed stopped time does not count.
+A failed port bind retains the restored host and lease for editing/retry.
+
+`tools/host-game.js HOST_FILE [PORT] [LANGUAGE]` creates no graphics port or local
+player. It uses the same host registry and real listener; Ctrl+C/SIGTERM saves and
+closes it. Save failure keeps it running and prints a localized retry message.
+The application and dedicated command hold an exclusive canonical-path lease
+across atomic save replacements. A killed process's lease is retired only after
+proving its PID is absent, taking an exclusive retirement marker and rechecking
+ownership. A live, unreadable or incomplete lease is preserved. Direct low-level
+NetworkHost users do not acquire application leases automatically; this audit
+claims exclusivity for the application and dedicated command.
+
+Both full unit suites pass 1,478 tests. Awaited native reopening/process checks
+pass on both pinned/public runtimes; real SIGTERM and SIGKILL runs verify saved
+shutdown and dead-owner recovery. Shared-UI tests cover actual path editing,
+missing-file errors, saved identity/turn/claims/countdown, normal rejoin and Stop.
+Before/after artifacts: `/private/tmp/galactica-parity/host-reopen-before` and
+`/private/tmp/galactica-parity/host-reopen-final`;
+logs: `/private/tmp/galactica-host-reopen-{unit,public-unit,native,public-native}.log`
+and `/private/tmp/galactica-host-reopen-final-ui-<language>.log`.
+Final compact dialogs and readable error placement are inspected in all six
+languages; the first screenshot review caught errors covered by buttons, which
+was corrected before the final reruns. Dedicated SIGTERM checks additionally
+prove that actual write-permission failure preserves the listener and lease
+until a successful save retry.
+
+The broader Open as host/dedicated row remains partial for conversion and
+command-based creation. Host administration, discovery/saved lists, private
+admission/password preferences, chat, network-document saving, host report
+localization, hosting tutorial recovery 103 and Map Generation are still pending.
+
+
+Reopening verification also exposed a browser loader defect: cached CommonJS
+imports still depended on another source fetch. The loader now resolves cached
+exports before HTTP; the actual browser fixture returns 503 for the cached
+network module and verifies identical exports with no further GET. A separate
+render-gate stall was diagnosed with handled input but a hidden Chrome page.
+The runner now emulates an active focused page and disables background
+throttling, retaining muted audio and frame/input checks. This is automation
+configuration, not a gameplay timeout increase.
+
+
+Final complete English create/post/stop/reopen/rejoin/failed-save-Quit/retry flow
+passes with the corrected active-page harness. Ordinary production-browser
+Quit also passes. Logs:
+`/private/tmp/galactica-host-reopen-final-full-en.log` and
+`/private/tmp/galactica-host-reopen-normal-quit.log`; screenshots:
+`/private/tmp/galactica-parity/host-reopen-final-full/en`.

@@ -768,3 +768,12 @@
 1080	Density
 1081	Not listening
 1082	Host
+
+# Saved host reopening and dedicated hosting
+1083	Open as host…
+1084	Open host
+1085	Opening host…
+1086	This host is running or locked by another process. Close it before retrying.
+1087	Could not open this host file. Check its path and format.
+1088	Host stopped.
+1089	Usage: ./gad4 tools/host-game.js HOST_FILE [PORT] [LANGUAGE]

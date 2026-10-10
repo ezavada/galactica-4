@@ -10,14 +10,26 @@ function createService(env=globalThis){
  }
  async function create(options,file,listen){
   if(!supported)throw {code:'desktop_host_required'};
-  const path=require('path'),host=require('./network-host.js').NetworkHost.create(options,path.resolve(file));
-  const record={host,file:host.file,port:listen.port,address:null};records.push(record);return retry(record);
+  const lease=require('./host-file-lease.js'),target=lease.canonical(file,false);if(require('fs').existsSync(target))throw {code:'EEXIST'};const release=lease.acquire(target);let host;
+  try{host=require('./network-host.js').NetworkHost.create(options,target);}catch(error){release();throw error;}
+  const record={host,file:host.file,port:listen.port,address:null,release};records.push(record);return retry(record);
+ }
+ async function open(file,listen={port:0}){
+  if(!supported)throw {code:'desktop_host_required'};
+  const lease=require('./host-file-lease.js'),target=lease.canonical(file,true);
+  const existing=records.find(r=>r.file===target);if(existing)return existing;
+  const release=lease.acquire(target);let host;
+  try{
+   host=require('./network-host.js').NetworkHost.open(target);
+   if(records.some(r=>r.host.game.config.networkHost.id===host.game.config.networkHost.id))throw {code:'host_file_busy'};
+  }catch(error){release();throw error;}
+  const record={host,file:target,port:listen.port,address:null,release};records.push(record);return retry(record);
  }
  async function stop(record){
   if(!records.includes(record))return false;
-  await record.host.close();record.address=null;records.splice(records.indexOf(record),1);return true;
+  await record.host.close();record.address=null;record.release();records.splice(records.indexOf(record),1);return true;
  }
  async function closeAll(){for(const record of [...records])await stop(record);}
- return {supported,records,describe,create,retry,stop,closeAll,latest:()=>records.at(-1) || null};
+ return {supported,records,describe,create,open,retry,stop,closeAll,latest:()=>records.at(-1) || null};
 }
 module.exports={createService};

@@ -32,4 +32,13 @@ module.exports=()=>test.describe('Multiplayer Host setup controls',()=>{
  test.it('routes File Host/H and protects hosted-game shutdown dialogs from cancellation',()=>{
   let opened=0;const docs=new Documents({cancelPick:()=>{}},()=>null,()=>{},()=>{});docs.host=()=>{opened++;return true;};docs.menu();test.assertTrue(docs.layout(800,600).buttons.some(b=>b.action==='host' && b.key==='H'));docs.action('host');docs.key(104);test.assertEqual(opened,2);docs.dialog={kind:'busy',operation:'hostStop',message:'Saving'};test.assertFalse(docs.cancel());test.assertEqual(docs.layout(800,600).buttons.length,0);test.assertEqual(docs.dialog.operation,'hostStop');
  });
+ test.it('opens an independent saved-host filename/port editor and offers File Open as host',()=>{
+  const w=form();w.cancel();test.assertTrue(w.openSaved());test.assertEqual(w.stage,'open');test.assertEqual(w.focus,'file');test.assertEqual(w.file.text,'');w.key(pdg.key_Tab);test.assertEqual(w.focus,'port');w.key(53);test.assertEqual(w.port.text,'5');w.key(pdg.key_Tab);test.assertEqual(w.focus,'file');w.key(pdg.key_Escape);test.assertFalse(w.active);
+  let opened=0;const docs=new Documents({cancelPick:()=>{}},()=>null,()=>{},()=>{});docs.openHost=()=>{opened++;return true;};docs.menu();test.assertTrue(docs.layout(800,600).buttons.some(b=>b.action==='openHost' && b.label===pdg.res.getString(1083)));test.assertTrue(docs.action('openHost'));test.assertEqual(opened,1);
+ });
+ test.it('keeps saved-host controls in the modal in all languages and disables browser reopening',()=>{
+  const language=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);const w=form();test.assertTrue(w.layout(800,600).buttons.some(b=>b.action==='openSaved' && b.label===pdg.res.getString(1083)));w.cancel();w.openSaved();const layout=w.layout(800,600),r=layout.rect;test.assertEqual(layout.title,pdg.res.getString(1083));test.assertEqual(r.height,300);test.assertTrue(layout.messageY>layout.fields[1].rect.y-r.y+layout.fields[1].rect.height && layout.messageY<layout.buttons[0].rect.y-r.y);for(const item of [...layout.fields,...layout.buttons])test.assertTrue(item.rect.x>=r.x && item.rect.y>=r.y && item.rect.x+item.rect.width<=r.x+r.width && item.rect.y+item.rect.height<=r.y+r.height);w.backend.supported=false;test.assertTrue(w.layout(800,600).buttons.find(b=>b.action==='resume').disabled);w.busy=true;test.assertFalse(w.cancel());}}
+  finally{pdg.res.setLanguage(language);}
+ });
+
 });

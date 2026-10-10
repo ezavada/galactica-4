@@ -92,12 +92,13 @@ const networkHosting=new (require('./src/js/network-host-setup.js')).HostWindow(
     if(!networkJoin.open())return false;networkJoin.address=PlayerName.createEditor(info.address,256);networkJoin.expectedId=info.id;networkJoin.focus='name';networkJoin.inspect();return true;
 });
 documents.host=openNetworkHosting;
-function openNetworkHosting(){
+documents.openHost=()=>openNetworkHosting(true);
+function openNetworkHosting(saved=false){
     if(tutorialSession || quitDocuments.state!=='idle' || networkJoin.active)return false;
     clearSessionInput();startupHelp.clear();if(game)game.uiWindow=null;
     const identity=sessions.active && sessions.active.network && sessions.active.network.identity;
     const record=identity?hostedGames.records.find(r=>hostedGames.describe(r).id===identity.gameId) || hostedGames.latest():hostedGames.latest();
-    if(!networkHosting.open(pendingConfig,record))return false;documents.dialog=null;return true;
+    if(!(saved?networkHosting.openSaved(pendingConfig):networkHosting.open(pendingConfig,record)))return false;documents.dialog=null;return true;
 }
 function requestApplicationQuit(){if(networkHosting.busy)return false;networkHosting.cancel();return quitDocuments.request();}
 
@@ -400,7 +401,7 @@ function drawNetworkHosting(){
     }
     const message=networkHosting.message;if(message){let size=fit(message,r.width-48,11);startupStyles.hintText.textSize(size);const display=game && game.display;
         const text=display?display.fitShipDiagnosticText(message,r.width-48,size):PlayerName.visibleText({...PlayerName.createEditor(message,1024),caret:0},r.width-48,t=>port.getTextWidth(t,size)).text;
-        port.drawText(text,new pdg.Point(r.x+24,r.y+520*scale),startupStyles.hintText);}
+        port.drawText(text,new pdg.Point(r.x+24,r.y+(layout.messageY || 520)*scale),startupStyles.hintText);}
     for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,buttonStyle);const disabled=button.disabled || networkHosting.busy,attrs=disabled?(startupStyles.hostDisabledText || (startupStyles.hostDisabledText=createStartupAttributes({fillColor:new pdg.Color(.35,.35,.35,.65)}))):startupStyles.advantageText;drawStartupButtonCaption(button.rect,button.label,attrs,12,disabled?null:button.key);}
 }
 
