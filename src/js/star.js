@@ -336,6 +336,16 @@ class Star {
         } else this.unassignedShipCredit=(this.unassignedShipCredit || 0)+amount;
     }
 
+    refreshSelectedHullPrice() {
+        if(!this.currentShip)return false;
+        // CShip::Arriving reselects the star's existing hull after library transfer.
+        // Keep paid effort and the selected type; only its current-tech price changes.
+        this.currentShip.techLevel=this.techLevel;
+        this.currentShip.cost=this.game.rules.getShipBuildCost(this.currentShip,this);
+        this.currentShip.progress=Math.min(100,this.paidTowardShipBuilding/this.currentShip.cost*100);
+        return true;
+    }
+
     startBuildingShip(shipType, commissionCredit = true) {
         if (!['scout', 'defense', 'colony', 'battleship'].includes(shipType)) return false;
         if (this.currentShip && this.currentShip.type === shipType) return false;

@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 1001 passed, 0 failed.
+Current expected full-suite result: 1006 passed, 0 failed.
 
 ## Future work
 
@@ -169,3 +169,5 @@ Local game documents add IDs 836–837 for New Game and Open Games in en/de/es/f
 Local Save/Save As/Open/Revert adds IDs 838–855 in en/de/es/fr/ja/ru. Commands, filename/path prompts, confirmation, progress, success and failure messages use localized resources; user filenames retain native Unicode. Browser download/upload, existing-file Save, cancellation, revert, malformed-file rejection and startup import after a fresh-page reload passed in every language. Translated file menus, filename editors, confirmations, errors and restored games were inspected under `/private/tmp/galactica-parity/save-after`. Native file/controller integration and six-language bounds checks pass. Current resources: 390 IDs per language; full suites: 992 passed on release/current native PDG.
 
 New-colony setup reports add ID 856 in all six languages. The private report and inspector guidance ask the owner to name the new colony and adjust production, matching v3 STR#500/45. Actual browser End Turn, Tab navigation, Unicode Rename/Save, production clicks, report Go to and recapture suppression pass in every language. Before/after inspectors and reports, translated naming dialogs and recaptured-system screens were inspected under `/private/tmp/galactica-parity/colony-setup-{before,after}`. Current resources: 391 IDs per language; full suites: 1001 passed on release/current native PDG.
+
+Technology-transfer repricing uses the existing localized technology, construction completion, ETA, Production and Pause/Resume controls. Actual browser delivery and inspector/pause/resume flows pass in all six languages; before/after screenshots were inspected under `/private/tmp/galactica-parity/transfer-{before,after}`. Resource counts remain 391 per language. Full suites: 1006 passed on release/current native PDG.

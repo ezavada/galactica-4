@@ -189,6 +189,7 @@ function runGameRuleTests() {
             const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 7);
             const lowTechTarget = createOwnedStar(game, 100, 0, 'Low Tech Target', 1, 3);
             const highTechTarget = createOwnedStar(game, 200, 0, 'High Tech Target', 1, 9);
+            lowTechTarget.startBuildingShip('battleship');lowTechTarget.paidTowardShipBuilding=.5;
             const battleship = createCompletedShip(game, origin, 'battleship', 7);
             const scout = createCompletedShip(game, origin, 'scout', 2);
 
@@ -203,6 +204,7 @@ function runGameRuleTests() {
             scoutFleet.move();
 
             test.assertEqual(lowTechTarget.techLevel, 7, 'Fleet should transfer its highest ship technology to an allied star');
+            test.assertEqual(lowTechTarget.currentShip.cost,4.5);test.assertApproximately(lowTechTarget.currentShip.progress,.5/4.5*100,.000001);test.assertEqual(lowTechTarget.paidTowardShipBuilding,.5);
             test.assertEqual(scout.techLevel, 2, 'Scout inside a fleet should not refresh from the destination star');
             test.assertEqual(highTechTarget.techLevel, 9, 'Destination star should keep its higher technology');
         });

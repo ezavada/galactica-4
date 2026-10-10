@@ -510,20 +510,20 @@ class Game {
         const carrierTechLevel = Number.isFinite(carrier.techLevel) ? carrier.techLevel : 0;
         const starTechLevel = Number.isFinite(star.techLevel) ? star.techLevel : 0;
 
+        let changed=false;
         if (carrierTechLevel > starTechLevel) {
             star.techLevel = carrierTechLevel;
             if (typeof star.setScannerRange === 'function' && this.rules && typeof this.rules.getScanRangeForTechLevel === 'function') {
                 star.setScannerRange(this.rules.getScanRangeForTechLevel(star.techLevel));
             }
-            return true;
-        }
-
-        if (carrier.type === 'scout' && starTechLevel > carrierTechLevel) {
+            changed=true;
+        } else if (carrier.type === 'scout' && starTechLevel > carrierTechLevel) {
             carrier.techLevel = starTechLevel;
-            return true;
+            changed=true;
         }
-
-        return false;
+        // v3 reselects the current hull even when no library level changed.
+        star.refreshSelectedHullPrice();
+        return changed;
     }
 
     applyTechnologyTransferToDestination(carrier, destination) {

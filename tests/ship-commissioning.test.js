@@ -45,11 +45,42 @@ module.exports=function() {
             test.assertEqual(ship.scannerRange,game.rules.getShipScanRange(ship));
             test.assertEqual(ship.classIndex,2);test.assertFalse(ship.underConstruction());
         });
-        test.it('keeps the price through technology transfer and uses received tech at commissioning',()=>{
+        test.it('reprices through technology transfer and uses received tech at commissioning',()=>{
             const {game,star}=fixture();star.startBuildingShip('battleship');
             test.assertTrue(game.applyTechnologyTransferToStar({owner:1,techLevel:8,type:'battleship'},star));
-            test.assertEqual(star.currentShip.cost,3);const ship=star.completeShip();
+            test.assertEqual(star.currentShip.cost,5);const ship=star.completeShip();
             test.assertEqual(ship.techLevel,8);test.assertEqual(ship.speed,23000);
+        });
+        test.it('reprices every hull while retaining fractional paid and banked credits without commissioning',()=>{
+            for(const type of ['scout','colony','defense','battleship']) {
+                const {game,star}=fixture();star.startBuildingShip(type);star.paidTowardShipBuilding=.125;star.buildCredits[type]=.125;star.buildCredits.colony=1.75;
+                const pending=star.currentShip,events=game.eventLog.length;
+                game.applyTechnologyTransferToStar({owner:1,type:'scout',techLevel:8},star);
+                test.assertTrue(star.currentShip===pending);test.assertEqual(pending.type,type);test.assertEqual(pending.techLevel,8);test.assertEqual(pending.cost,game.rules.getShipBuildCost(pending,star));test.assertApproximately(pending.progress,.125/pending.cost*100,.000001);test.assertEqual(star.paidTowardShipBuilding,.125);test.assertEqual(star.buildCredits.colony,1.75);test.assertEqual(game.allShips.length,0);test.assertEqual(game.eventLog.length,events);
+            }
+        });
+        test.it('refreshes research-stale prices on allied arrival even if no technology changes',()=>{
+            const {game,star}=fixture();star.startBuildingShip('battleship');star.techLevel=8;star.paidTowardShipBuilding=1;
+            test.assertFalse(game.applyTechnologyTransferToStar({owner:1,type:'battleship',techLevel:8},star));
+            test.assertEqual(star.currentShip.cost,5);test.assertEqual(star.currentShip.progress,20);
+        });
+        test.it('does not touch enemy production or restart a paused hull',()=>{
+            const {game,star}=fixture();star.startBuildingShip('battleship');star.paidTowardShipBuilding=1;
+            test.assertFalse(game.applyTechnologyTransferToStar({owner:2,type:'scout',techLevel:8},star));test.assertEqual(star.currentShip.cost,3);
+            star.pauseShipBuilding();game.applyTechnologyTransferToStar({owner:1,type:'scout',techLevel:8},star);test.assertNull(star.currentShip);test.assertEqual(star.buildCredits.battleship,1);
+        });
+        test.it('refreshes price and inspector progress through an actual standalone arrival',()=>{
+            const {game,star}=fixture();star.startBuildingShip('battleship');star.paidTowardShipBuilding=1;
+            const origin=game.factory.createStar(-100,0,'Origin');origin.owner=1;origin.techLevel=8;
+            const scout=game.factory.createShip(origin.x,origin.y,'scout',origin,true);origin.shipArrived(scout);scout.setDestination(star);scout.move();
+            test.assertEqual(star.techLevel,8);test.assertEqual(star.currentShip.cost,5);test.assertEqual(star.currentShip.progress,20);test.assertTrue(scout.star===star);test.assertEqual(star.paidTowardShipBuilding,1);
+        });
+        test.it('retains refreshed hull price, progress and banked credit through a local save',()=>{
+            const {game,star}=fixture();star.startBuildingShip('battleship');star.paidTowardShipBuilding=1.25;
+            game.applyTechnologyTransferToStar({owner:1,type:'scout',techLevel:8},star);
+            delete game.rules.getStarResearchAmount;
+            const loaded=require('../src/js/game-save.js').restore(require('../src/js/game-save.js').serialize(game));
+            test.assertEqual(loaded.stars[0].currentShip.cost,5);test.assertEqual(loaded.stars[0].currentShip.progress,25);test.assertEqual(loaded.stars[0].paidTowardShipBuilding,1.25);
         });
         test.it('commissions for the current owner after system ownership changes',()=>{
             const {game,star}=fixture();star.startBuildingShip('scout');star.owner=2;
@@ -62,10 +93,11 @@ module.exports=function() {
             test.assertEqual(star.currentShip.cost,5);test.assertEqual(star.currentShip.progress,40);
             test.assertEqual(star.paidTowardShipBuilding,2);
         });
-        test.it('uses the cached price for ETA even after technology transfer',()=>{
-            const {star}=fixture();star.startBuildingShip('battleship');star.techLevel=8;
+        test.it('uses the refreshed price for ETA after technology transfer',()=>{
+            const {game,star}=fixture();star.startBuildingShip('battleship');
+            game.applyTechnologyTransferToStar({owner:1,type:'scout',techLevel:8},star);
             star.shipBuilding.setDesired(10);star.shipBuilding.setPerUnitBenefit(166.5);
-            star.paidTowardShipBuilding=1;test.assertEqual(star.getEstimatedTurnsToNextShip(),2);
+            star.paidTowardShipBuilding=1;test.assertEqual(star.getEstimatedTurnsToNextShip(),4);
         });
     });
 };
