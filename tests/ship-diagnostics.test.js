@@ -88,7 +88,7 @@ module.exports=function() {
             display.camera={zoom:1};display.selectedObject=ship;display.scaledStarRadius=8;display.scaledShipRadius=5;
             display.toScreenX=x=>x;display.toScreenY=y=>y;display.createAttributes=()=>({});
             display.ownerColors=[];display.styles={};display.selectionPulse={sample:()=>0};
-            display.port={drawPolygon:()=>{},drawCircle:()=>{},drawLine:(...args)=>lines.push(args)};
+            display.port={getTextWidth:text=>text.length*6,drawText:()=>{},drawPolygon:()=>{},drawCircle:()=>{},drawLine:(...args)=>lines.push(args)};
             display.drawBar=(...args)=>bars.push(args);ship.destination={x:30000,y:40000};ship.owner=2;
             ship.setVisibilityTo(1,Common.VisibilityLevel.SPEED);display.drawShip(ship);
             test.assertEqual(lines.length,0);test.assertEqual(bars.length,0);

@@ -21,6 +21,17 @@ module.exports=()=>test.describe('Language settings',()=>{
         native.writeGrid(false);test.assertFalse(native.readGrid());test.assertEqual(namespace,'Galactica');
         const denied=Drawing.createPreferences({window:{get localStorage(){throw Error('denied');}}});test.assertTrue(denied.readGrid());denied.writeGrid(false);
     });
+    test.it('toggles star names through settings and F2 and keeps preferences separate from grid',()=>{
+        const {game,display}=fixture();game.uiWindow='settings';
+        const Drawing=require('../src/js/drawing-preferences.js'),values=new Map();
+        game.drawingPreferences=Drawing.createPreferences({window:{localStorage:{getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)}}});
+        const row=display.getSettingsActionRegions().find(row=>row.action.type==='toggleMapNames');test.assertTrue(row.active);
+        game.handleUIClick(row.rect.x+5,row.rect.y+5);test.assertFalse(game.showMapNames);test.assertTrue(game.showGrid);
+        test.assertFalse(game.drawingPreferences.readMapNames());test.assertTrue(game.drawingPreferences.readGrid());
+        test.assertTrue(game.handleKeyPress(pdg.key_F2));test.assertTrue(game.showMapNames);test.assertTrue(game.drawingPreferences.readMapNames());
+        let key,value;const native=Drawing.createPreferences({pdg:{cfg:{useConfig:()=>{},getConfigString:()=>value,setConfigString:(k,v)=>{key=k;value=v;}}}});
+        native.writeMapNames(false);test.assertEqual(key,'showMapNames');test.assertFalse(native.readMapNames());
+    });
     test.it('always presents native names in their native scripts',()=>restoreLanguage(()=>{
         const {game,display}=fixture();game.uiWindow='settings';
         const names=['English','Deutsch','Español','Français','日本語','Русский'];

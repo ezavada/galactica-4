@@ -368,3 +368,4 @@
 
 # Map drawing preferences
 765	Show grid
+766	Show map names

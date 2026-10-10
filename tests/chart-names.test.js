@@ -5,6 +5,25 @@ function fixture(){const game=new Game(new Factory(),new Rules(),new Config({num
     for(const [i,s] of [[1,own],[2,enemy],[3,other]])game.players[i].homeStarId=s.id;
     game.players[2].name='Sirius Alliance';return {game,own,enemy,other,ordinary};}
 module.exports=()=>test.describe('Public star-chart names and disguised homeworlds',()=>{
+    test.it('hides chart labels without hiding stars or changing fog aliases and diagnostic names',()=>{
+        const {game,enemy}=fixture();game.port={getDrawingArea:()=>new pdg.Rect(800,600),drawPolygon:()=>polygons++,drawCircle:()=>{},drawText:text=>labels.push(text),getTextWidth:text=>text.length*6};
+        let polygons=0,labels=[];const d=new Display(game);d.scaledStarRadius=3;d.mapEntityNameOpacity=1;
+        const alias=game.getStarDisplayName(enemy);d.drawStar(enemy);test.assertEqual(labels[0],alias);
+        game.showMapNames=false;labels=[];d.drawStar(enemy);test.assertEqual(labels.length,0);test.assertEqual(polygons,2);
+        test.assertEqual(game.getStarDisplayName(enemy),alias);test.assertEqual(enemy.name,'Sirius');test.assertEqual(game.players[2].name,'Sirius Alliance');
+        game.showMapNames=true;d.drawStar(enemy);test.assertEqual(labels[0],alias);
+    });
+    test.it('gates mobile map labels by docked selection, zoom, Class visibility and the global name switch',()=>{
+        const {game}=fixture();let labels=[];game.port={getDrawingArea:()=>new pdg.Rect(800,600),drawText:text=>labels.push(text),getTextWidth:text=>text.length*6};
+        const d=new Display(game);d.mapEntityNameOpacity=1;const object={owner:2,name:'Enemy',getVisibilityTo:()=>1};
+        game.getObjectDisplayName=obj=>obj.name;
+        d.drawMobileMapName(object,100,100,5,false);test.assertEqual(labels.length,0);
+        object.getVisibilityTo=()=>3;d.drawMobileMapName(object,100,100,5,false);test.assertEqual(labels[0],'Enemy');
+        labels=[];d.drawMobileMapName(object,100,100,5,true);test.assertEqual(labels.length,0);
+        d.selectedObject=object;d.drawMobileMapName(object,100,100,5,true);test.assertEqual(labels[0],'Enemy');
+        labels=[];game.showMapNames=false;d.drawMobileMapName(object,100,100,5,false);test.assertEqual(labels.length,0);
+        game.showMapNames=true;d.camera.zoom=.4;d.drawMobileMapName(object,100,100,5,false);test.assertEqual(labels.length,0);
+    });
     test.it('shows real names of yellow ordinary stars through fog while retaining private diagnostic fields',()=>{
         const {game,ordinary}=fixture();test.assertEqual(game.getStarDisplayName(ordinary),'Altair');test.assertEqual(game.getObjectDisplayName(ordinary),'Altair');
         const d=Object.create(Display.prototype);d.game=game;test.assertEqual(d.getStarDisplayName(ordinary),'Altair');test.assertFalse(d.isStarOwnerKnown(ordinary));

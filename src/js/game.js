@@ -33,6 +33,7 @@ class Game {
         this.overlay = null; // UI overlay for lab/stardock events
         this.overlayQueue = [];
         this.showGrid = true;
+        this.showMapNames = true;
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
         this.nextEventId = 0;
@@ -1575,6 +1576,10 @@ class Game {
         switch (action.type) {
             case 'consume':
                 return true;
+            case 'toggleMapNames':
+                this.showMapNames=!this.showMapNames;
+                if(this.drawingPreferences)this.drawingPreferences.writeMapNames(this.showMapNames);
+                return true;
             case 'toggleGrid':
                 this.showGrid=!this.showGrid;
                 if(this.drawingPreferences)this.drawingPreferences.writeGrid(this.showGrid);
@@ -2127,6 +2132,7 @@ class Game {
     }
     
     handleKeyPress(key) {
+        if(key === pdg.key_F2)return this.executeUIAction({type:'toggleMapNames'});
         if(key === pdg.key_F3)return this.executeUIAction({type:'toggleGrid'});
         if (['rename','colonyDefaults','settings'].includes(this.uiWindow) && key === pdg.key_Tab) return true;
         if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}

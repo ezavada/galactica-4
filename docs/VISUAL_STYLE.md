@@ -76,3 +76,9 @@ Full suite: 769 passed, including fill/marker checks in both adjustment directio
 Settings → Show grid and F3 control sector-grid visibility, with active button styling indicating the current state. The default is on, matching v3. The choice is remembered in browser localStorage or native PDG configuration and survives a new game. Storage denial leaves the drawing control usable. Game objects, decorative stars and simulation state are unaffected.
 
 Full suite: 771 passed. Browser clicks, F3 and new-game persistence passed in all six languages. Inspected translated settings and grid-on/off screenshots. Evidence: `/private/tmp/galactica-parity/grid-{before,after}` and `/private/tmp/galactica-grid-tests.log`.
+
+### Map-name visibility and mobile labels (2026-10-09)
+
+Settings → Show map names and F2 toggle star, ship, fleet and rendezvous map labels. The choice defaults on and persists independently of grid visibility in browser/native preferences. Inspectors, lists, orders and player comparison continue to show names. Fogged yellow-star aliases retain their existing behavior when map names are enabled; comparison still uses real faction names.
+
+Ship/fleet labels now follow v3 drawing rules: at least half zoom, unselected docked labels suppressed, and Class visibility required for non-allied objects unless omniscient. Existing label fading remains; fleet counts and object symbols remain visible when names are hidden. Full suite: 774 passed. Native controls and translated screenshots passed in all six languages, with map-name on/off and French settings views inspected. Evidence: `/private/tmp/galactica-parity/names-{before,after}` and `/private/tmp/galactica-names-tests.log`.

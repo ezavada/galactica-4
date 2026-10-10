@@ -368,3 +368,4 @@
 
 # Map drawing preferences
 765	Afficher la grille
+766	Afficher les noms sur la carte

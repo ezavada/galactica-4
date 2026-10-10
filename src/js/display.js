@@ -698,7 +698,7 @@ class Display {
 
         // Draw star name with fading based on star size, but never dim home system names
         const nameOpacity = isHomeSystem || star.namedStar ? 1.0 : this.mapEntityNameOpacity;
-        if (nameOpacity > 0) {
+        if (nameOpacity > 0 && this.game.showMapNames!==false) {
             color = 'gray';
             if (star.population > 0 && visibilityLevel > Common.VisibilityLevel.NONE) {
                 color = 'white';
@@ -766,6 +766,18 @@ class Display {
             object.isOnPatrol() && !object.destination;
     }
 
+    drawMobileMapName(object,x,y,radius,docked) {
+        if(this.game.showMapNames===false || this.camera.zoom<.5 || docked && object!==this.selectedObject)return;
+        const viewer=this.game.getCurrentHumanPlayer() || 1;
+        if(!this.isOmniscientMode() && !this.game.isOwnerAlliedWith(viewer,object.owner)
+            && this.getVisibilityLevelForPlayer(object,viewer)<Common.VisibilityLevel.CLASS)return;
+        const opacity=object===this.selectedObject?1:this.mapEntityNameOpacity;
+        if(opacity<=0)return;
+        const color=new pdg.Color('white');color.alpha=opacity;
+        this.port.drawText(this.fitShipDiagnosticText(this.game.getObjectDisplayName(object),160,10),
+            new pdg.Point(x,y+radius+12),this.createAttributes({fillColor:color,textSize:10,textStyle:pdg.textStyle_Centered}));
+    }
+
     // Draw a single ship
     drawShip(ship) {
         if(this.isPatrolHiddenOnMap(ship))return;
@@ -828,6 +840,7 @@ class Display {
             }
         }
 
+        this.drawMobileMapName(ship,x,y,frameRadius,!!ship.star);
         // Draw destination line (convert destination to screen coordinates)
         this.drawCourseLines(ship,x,y,this.styles.shipDestinationLine);
 
@@ -936,6 +949,7 @@ class Display {
             this.port.drawText(fleetSize.toString(), new pdg.Point(x, y + 2), textAttrs);
         }
         
+        this.drawMobileMapName(fleet,x,y,hexRadius,!!fleetAtStar);
         // Draw destination line (convert destination to screen coordinates)
         this.drawCourseLines(fleet,x,y,this.styles.fleetDestinationLine);
 
@@ -990,7 +1004,7 @@ class Display {
             this.port.drawCircle(new pdg.Point(x, y), radius + 6 + pulse, this.styles.selectionFrame);
         }
 
-        if (opacity > 0.3) {
+        if (opacity > 0.3 && this.game.showMapNames!==false) {
             const textColor = new pdg.Color('white');
             textColor.alpha = opacity;
             this.port.drawText(
@@ -1739,7 +1753,7 @@ class Display {
 
     getSettingsWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(320,screen.width-40);
-        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:366});
+        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:398});
     }
 
     getSettingsActionRegions() {
@@ -1750,7 +1764,9 @@ class Display {
             label:language.name,active:LanguageSettings.current()===language.code,
             action:{type:'setLanguage',language:language.code}
         })).concat([{rect:{x:rect.x+14,y:rect.y+284,width:rect.width-28,height:28},
-            label:I18n.getString(765,'Show grid'),key:'F3',active:this.game.showGrid,action:{type:'toggleGrid'}}]);
+            label:I18n.getString(765,'Show grid'),key:'F3',active:this.game.showGrid,action:{type:'toggleGrid'}},
+            {rect:{x:rect.x+14,y:rect.y+316,width:rect.width-28,height:28},
+            label:I18n.getString(766,'Show map names'),key:'F2',active:this.game.showMapNames,action:{type:'toggleMapNames'}}]);
     }
 
     drawSettingsWindow() {

@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 302 IDs
-- localized files: 302 IDs each
+- `strings.txt`: 303 IDs
+- localized files: 303 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 771 passed, 0 failed.
+Current expected full-suite result: 774 passed, 0 failed.
 
 ## Future work
 
@@ -108,4 +108,6 @@ Sector-size setup restores the v3 Tiny/Small/Average/Large/Huge scale in IDs 350
 
 Public yellow-star chart names and undiscovered-homeworld aliases reuse existing localized star-name/numeral/catalog resources; no IDs were added (301 per language). Aliases retain their proper names across language changes. Player comparison keeps actual home-derived faction names, while map labels use different aliases until discovery. Chart/inspector/detection/history/no-fog screenshots and browser checks passed in all six languages. Full suite: 748 passed.
 
-Grid visibility uses ID 765 in all six languages. Settings shows the localized label with the F3 shortcut; native clicking, keyboard toggling and persistence were verified in every language. Current resources contain 302 IDs per language; full suite: 771 passed.
+Grid visibility uses ID 765 in all six languages. Settings shows the localized label with the F3 shortcut; native clicking, keyboard toggling and persistence were verified in every language. Current resources contain 302 IDs per language; full suite: 774 passed.
+
+Map-name visibility uses ID 766 in all six languages. Settings offers the localized label and F2 shortcut. Native toggling and new-game persistence passed in every language; existing chart-alias and comparison naming resources are unchanged. Current resource counts: 303 IDs per language. Full suite: 774 passed.

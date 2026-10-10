@@ -368,3 +368,4 @@
 
 # Map drawing preferences
 765	Raster anzeigen
+766	Namen auf der Karte anzeigen
