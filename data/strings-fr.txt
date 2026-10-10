@@ -372,3 +372,4 @@
 767	Afficher les vaisseaux
 768	Afficher tous les trajets
 769	Afficher les trajets des courriers
+770	Afficher les portées des scanners

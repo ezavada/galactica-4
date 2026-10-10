@@ -84,7 +84,7 @@ use the same paths as the desktop launcher.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 780 passed, 0 failed.
+Current expected result: 783 passed, 0 failed.
 
 AI-only parity observer:
 

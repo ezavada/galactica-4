@@ -372,3 +372,4 @@
 767	Schiffe anzeigen
 768	Alle Kurse anzeigen
 769	Kurierkurse anzeigen
+770	Scannerreichweiten anzeigen

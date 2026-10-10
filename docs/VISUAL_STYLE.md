@@ -94,3 +94,11 @@ Full suite: 777 passed. Browser settings/F1, selected ship/fleet exceptions, hid
 Settings → Show all courses/F4 controls ordinary ship/fleet routes; Show courier courses/F5 independently controls looping scout routes, matching v3. Both default on and persist in browser/native preferences. A selected object's route remains visible when its own setting is off. Enemy routes stay private through the existing course-visibility rules. These controls only change rendering; waypoint state, movement and ship visibility are unaffected.
 
 Full suite: 780 passed. Native settings/keyboard controls, independent route counts, selected-course exceptions and new-game persistence passed in all six languages. Inspected translated settings and route-on/off screenshots. Evidence: `/private/tmp/galactica-parity/courses-{before,after}` and `/private/tmp/galactica-courses-tests.log`.
+
+### Scanner ranges and system influence (2026-10-09)
+
+Settings → Show scanner ranges/F6 controls scanner presentation, default on and persisted independently of other drawing choices. Owned systems with known scanner information contribute three low-opacity influence bands at 4×/2×/1× scanner range. Opaque offscreen masks union circles by owner and band, so overlap within one band does not compound its tint. Copied images are cached until viewport, position, range or ownership/visibility changes, and freed when hidden or replaced.
+
+Selected systems/mobile scanners retain three 1×/2×/4× rings even with F6 off. Ordinary unselected mobile scanners show only the first ring; looping couriers suppress unselected rings. System range requires allied/omniscient or Tech visibility. Mobile rings follow v3 visible-ship eligibility, including visible enemies; invisible ships and hidden unselected ships stay excluded. Tint opacity is 10%/15%/30% from outer to inner band. Rendering sits beneath the grid and objects; it does not alter scanners or visibility calculations.
+
+Full suite: 783 passed. Native F6/settings, selected exceptions, system disclosure gates, mask caching and new-game persistence passed in all six languages. Inspected before/after influence regions, selected courier rings and French settings. Evidence: `/private/tmp/galactica-parity/scanners-{before,after}` and `/private/tmp/galactica-scanners-tests.log`.

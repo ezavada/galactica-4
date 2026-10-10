@@ -32,6 +32,7 @@ class Game {
         this.display = null;
         this.overlay = null; // UI overlay for lab/stardock events
         this.overlayQueue = [];
+        this.showScannerRanges = true;
         this.showAllCourses = true;
         this.showCourierCourses = true;
         this.showShips = true;
@@ -1579,6 +1580,10 @@ class Game {
         switch (action.type) {
             case 'consume':
                 return true;
+            case 'toggleScannerRanges':
+                this.showScannerRanges=!this.showScannerRanges;
+                if(this.drawingPreferences)this.drawingPreferences.writeScannerRanges(this.showScannerRanges);
+                return true;
             case 'toggleAllCourses':
                 this.showAllCourses=!this.showAllCourses;
                 if(this.drawingPreferences)this.drawingPreferences.writeAllCourses(this.showAllCourses);
@@ -2149,6 +2154,7 @@ class Game {
     }
     
     handleKeyPress(key) {
+        if(key === pdg.key_F6)return this.executeUIAction({type:'toggleScannerRanges'});
         if(key === pdg.key_F4)return this.executeUIAction({type:'toggleAllCourses'});
         if(key === pdg.key_F5)return this.executeUIAction({type:'toggleCourierCourses'});
         if(key === pdg.key_F1)return this.executeUIAction({type:'toggleShips'});

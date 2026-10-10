@@ -8,6 +8,7 @@ const SelectionPulse = require('./selection-pulse.js');
 const I18n = require('./i18n.js');
 const VisualEffects = require('./visual-effects.js');
 const UIIcons = require('./ui-icons.js');
+const ScannerLayer = require('./scanner-layer.js');
 const PanelAppearance = require('./panel-appearance.js');
 const LanguageSettings = require('./language-settings.js');
 
@@ -37,6 +38,7 @@ class Display {
         this.ownerPanelStyles=new Map();
         this.panelStyleColors=new WeakMap();
         this.uiIcons=new UIIcons();
+        this.scannerLayer=new ScannerLayer();
         
         // Overlay images (loaded lazily)
         this.images = {
@@ -764,6 +766,42 @@ class Display {
     isPatrolHiddenOnMap(object) {
         return object!==this.selectedObject && !!object.star && object.isOnPatrol &&
             object.isOnPatrol() && !object.destination;
+    }
+
+    getScannerPresentation() {
+        const viewer=this.game.getCurrentHumanPlayer() || 1,screen=this.getScreenSize(),groups=new Map(),rings=[];
+        const objects=[...this.game.stars,...this.game.allShips.filter(ship=>!ship.fleet),...this.game.allFleets];
+        for(const object of objects) {
+            const isStar=this.game.getObjectType(object)===Common.ObjectType.STAR;
+            if(!object.owner || !isStar && !this.isMobileVisibleOnMap(object))continue;
+            const full=this.isOmniscientMode() || this.game.isOwnerAlliedWith(viewer,object.owner);
+            const level=this.getVisibilityLevelForPlayer(object,viewer);
+            if(!full && level<(isStar?Common.VisibilityLevel.TECH:Common.VisibilityLevel.SPEED))continue;
+            const radius=object.getScannerRange()*this.camera.scale*this.camera.zoom;
+            if(!Number.isFinite(radius) || radius<=0)continue;
+            const x=this.toScreenX(object.x),y=this.toScreenY(object.y);
+            if(x+radius*4<0 || x-radius*4>screen.width || y+radius*4<0 || y-radius*4>screen.height)continue;
+            const selected=object===this.selectedObject,color=this.ownerColors[object.owner] || new pdg.Color('white');
+            if(isStar && this.game.showScannerRanges!==false) {
+                if(!groups.has(object.owner))groups.set(object.owner,{owner:object.owner,color,circles:[]});
+                groups.get(object.owner).circles.push({x,y,radius});
+            }
+            const ordinary=!isStar && !(object.course && object.course.loop);
+            if(selected || ordinary && this.game.showScannerRanges!==false) {
+                for(let index=0;index<(selected?3:1);index++)rings.push({object,x,y,radius:radius*2**index,color,opacity:(selected?.4:.1)/2**index});
+            }
+        }
+        return {groups:[...groups.values()],rings};
+    }
+
+    drawScannerRanges() {
+        const {groups,rings}=this.getScannerPresentation(),screen=this.getScreenSize();
+        this.scannerLayer.draw(this.port,groups,screen.width,screen.height);
+        if(!this.scannerRingStyle)this.scannerRingStyle=this.createAttributes({lineStyle:pdg.lineStyle_Solid,lineThickness:1,fillOpacity:0});
+        for(const ring of rings) {
+            this.scannerRingStyle.lineColor(new pdg.Color(ring.color.red,ring.color.green,ring.color.blue,1)).lineOpacity(ring.opacity);
+            this.port.drawCircle(new pdg.Point(ring.x,ring.y),ring.radius,this.scannerRingStyle);
+        }
     }
 
     isMobileVisibleOnMap(object) {
@@ -1760,7 +1798,7 @@ class Display {
 
     getSettingsWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(320,screen.width-40);
-        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:494});
+        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:526});
     }
 
     getSettingsActionRegions() {
@@ -1779,7 +1817,9 @@ class Display {
             {rect:{x:rect.x+14,y:rect.y+380,width:rect.width-28,height:28},
             label:I18n.getString(768,'Show all courses'),key:'F4',active:this.game.showAllCourses,action:{type:'toggleAllCourses'}},
             {rect:{x:rect.x+14,y:rect.y+412,width:rect.width-28,height:28},
-            label:I18n.getString(769,'Show courier courses'),key:'F5',active:this.game.showCourierCourses,action:{type:'toggleCourierCourses'}}]);
+            label:I18n.getString(769,'Show courier courses'),key:'F5',active:this.game.showCourierCourses,action:{type:'toggleCourierCourses'}},
+            {rect:{x:rect.x+14,y:rect.y+444,width:rect.width-28,height:28},
+            label:I18n.getString(770,'Show scanner ranges'),key:'F6',active:this.game.showScannerRanges,action:{type:'toggleScannerRanges'}}]);
     }
 
     drawSettingsWindow() {
@@ -3098,6 +3138,9 @@ class Display {
 
     dispose() {
         this.uiIcons.dispose();
+        this.scannerLayer.dispose();
+        if(this.scannerRingStyle && typeof this.scannerRingStyle.delete==='function')this.scannerRingStyle.delete();
+        this.scannerRingStyle=null;
         for(const layer of this.uiSurfaces.values())this.releaseUISurface(layer);
         this.uiSurfaces.clear();
     }
@@ -3150,6 +3193,7 @@ class Display {
         const factory = this.factory;
 
         // Draw grid (behind game objects but above background)
+        this.drawScannerRanges();
         this.drawGrid();
         this.drawDecorativeStars();
 

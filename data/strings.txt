@@ -372,3 +372,4 @@
 767	Show ships
 768	Show all courses
 769	Show courier courses
+770	Show scanner ranges

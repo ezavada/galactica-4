@@ -69,6 +69,41 @@ module.exports=()=>test.describe('Language settings',()=>{
         }
         test.assertTrue(game.showShips);test.assertTrue(game.showGrid);test.assertTrue(game.showMapNames);
     });
+    test.it('offers persistent scanner-range visibility and the F6 shortcut',()=>{
+        const {game,display}=fixture();game.uiWindow='settings';const values=new Map();
+        game.drawingPreferences=require('../src/js/drawing-preferences.js').createPreferences({window:{localStorage:{getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)}}});
+        const row=display.getSettingsActionRegions().find(row=>row.action.type==='toggleScannerRanges');test.assertTrue(row.active);
+        game.handleUIClick(row.rect.x+5,row.rect.y+5);test.assertFalse(game.showScannerRanges);test.assertFalse(game.drawingPreferences.readScannerRanges());
+        game.handleKeyPress(pdg.key_F6);test.assertTrue(game.showScannerRanges);test.assertTrue(game.drawingPreferences.readScannerRanges());
+    });
+    test.it('shows selected scanner rings independently of the switch and excludes private enemy ranges',()=>{
+        const {game,display}=fixture(),home=game.factory.createStar(0,0,'Home');home.owner=1;home.setScannerRange(32768);
+        display.camera.centerOn(0,0);game.setSelectedObject(home);
+        let data=display.getScannerPresentation();test.assertEqual(data.groups.length,1);test.assertEqual(data.rings.length,3);test.assertEqual(data.rings.map(r=>r.radius).join(','),'32,64,128');
+        display.camera.setZoom(.5);display.camera.centerOn(0,0);test.assertEqual(display.getScannerPresentation().rings.map(r=>r.radius).join(','),'16,32,64');display.camera.setZoom(1);display.camera.centerOn(0,0);
+        game.showScannerRanges=false;data=display.getScannerPresentation();test.assertEqual(data.groups.length,0);test.assertEqual(data.rings.length,3);
+        home.owner=2;home.setVisibilityTo(1,1);test.assertEqual(display.getScannerPresentation().rings.length,0);
+        home.setVisibilityTo(1,2);test.assertEqual(display.getScannerPresentation().rings.length,3);
+        const scout=game.factory.createShip(0,0,'scout',home);scout.complete();scout.setScannerRange(32768);scout.star=null;scout.owner=1;
+        game.setSelectedObject(null);game.showScannerRanges=true;scout.course.loop=true;
+        test.assertFalse(display.getScannerPresentation().rings.some(r=>r.object===scout));
+        game.setSelectedObject(scout);test.assertEqual(display.getScannerPresentation().rings.filter(r=>r.object===scout).length,3);
+        scout.owner=2;scout.setVisibilityTo(1,0);test.assertFalse(display.getScannerPresentation().rings.some(r=>r.object===scout));
+        scout.setVisibilityTo(1,1);test.assertEqual(display.getScannerPresentation().rings.filter(r=>r.object===scout).length,3);
+    });
+    test.it('unions overlapping influence circles with opaque cached masks and disposes replaced layers',()=>{
+        const ScannerLayer=require('../src/js/scanner-layer.js');let closed=0,deleted=0,allocated=0,drawn=0;
+        class Attributes {fillColor(c){this.color=c;return this;}fillOpacity(a){this.opacity=a;return this;}lineStyle(){return this;}delete(){deleted++;}}
+        class Image {constructor(port){this.circles=port.circles.slice();}delete(){deleted++;}}
+        class Rect {} class Point {constructor(x,y){this.x=x;this.y=y;}} class Color {constructor(r,g,b,a){this.red=r;this.green=g;this.blue=b;this.alpha=a;}}
+        const backend={Attributes,Image,Rect,Point,Color,CopyPixels:1,lineStyle_None:0,gfx:{createOffscreenPort:()=>{allocated++;return {circles:[],clear(){},drawCircle(p,r,a){test.assertEqual(a.opacity,1);test.assertEqual(a.color.alpha,1);this.circles.push({p,r});}};},closeGraphicsPort:()=>closed++}};
+        const layer=new ScannerLayer(backend),group={owner:1,color:new Color(0,0,1,1),circles:[{x:100,y:100,radius:30},{x:120,y:100,radius:30}]};
+        layer.draw({drawImage:()=>drawn++},[group],800,600);test.assertEqual(allocated,3);test.assertEqual(closed,3);test.assertEqual(drawn,3);
+        for(const mask of layer.layers.values())test.assertEqual(mask.image.circles.length,2);
+        layer.draw({drawImage:()=>{}},[group],800,600);test.assertEqual(allocated,3);
+        group.circles[0].x++;layer.draw({drawImage:()=>{}},[group],800,600);test.assertEqual(deleted,12);
+        layer.draw({drawImage:()=>{}},[],800,600);test.assertEqual(layer.layers.size,0);test.assertEqual(deleted,18);layer.dispose();
+    });
     test.it('always presents native names in their native scripts',()=>restoreLanguage(()=>{
         const {game,display}=fixture();game.uiWindow='settings';
         const names=['English','Deutsch','Español','Français','日本語','Русский'];
