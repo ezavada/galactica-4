@@ -563,3 +563,4 @@
 922	Scout/Courier: fast and unarmed, with a scanner. Explore space and carry technology between allied systems; couriers learn the technology of systems they visit.
 923	Colony ship: costly and slow. It is consumed when colonizing a neutral system or capturing a defeated enemy system. Escort it through hostile space.
 924	Battleship: a mobile combat ship for attacking and escorting. Higher technology increases its combat power and unlocks stronger named classes. It has no scanner.
+925	First {0} commissioned at {1}.

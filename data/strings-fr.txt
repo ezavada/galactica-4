@@ -563,3 +563,4 @@
 922	Éclaireur/Courrier : rapide et sans armes, avec un scanner. Explorez l’espace et transportez la technologie entre les systèmes alliés ; les courriers acquièrent la technologie des systèmes visités.
 923	Vaisseau colonial : coûteux et lent. Il est consommé lors de la colonisation d’un système neutre ou de la capture d’un système ennemi vaincu. Escortez-le dans l’espace hostile.
 924	Cuirassé : vaisseau de combat mobile pour l’attaque et l’escorte. Une technologie supérieure augmente sa puissance et débloque des classes nommées plus fortes. Il ne possède pas de scanner.
+925	Première unité de type {0} mise en service à {1}.

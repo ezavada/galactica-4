@@ -3791,7 +3791,8 @@ class Display {
         } else if (overlay.type === 'stardock') {
             const back = this.getImageCached('stardock', 'events/newstardock.png');
             const front = this.getImageCached('stardockfront', 'events/newstardockfront.png');
-            const base = this.getShipArtNameForClass(overlay.classIndex);
+            const hull=overlay.shipType || overlay.ship && overlay.ship.type;
+            const base = hull && hull!=='battleship' ? {defense:'satellite',scout:'scout',colony:'colony'}[hull] : this.getShipArtNameForClass(overlay.classIndex);
             let shipImg = null;
             try { shipImg = pdg.res.getImage(`ships/${base}.png`); } catch (e) {}
             const centerRect = this.toPDGRect({
@@ -3803,7 +3804,8 @@ class Display {
             if (back) this.port.drawImage(back, centerRect, this.styles.image);
             if (shipImg) this.port.drawImage(shipImg, centerRect, this.styles.image);
             if (front) this.port.drawImage(front, centerRect, this.styles.image);
-            const name = overlay.ship && overlay.ship.name ? overlay.ship.name.split('\t')[0] : this.getShipArtNameForClass(overlay.classIndex);
+            const name = hull && hull!=='battleship' ? I18n.getShipTypeName(hull,{capitalized:true}) :
+                overlay.ship && overlay.ship.name ? overlay.ship.name.split('\t')[0] : this.getShipArtNameForClass(overlay.classIndex);
             this.port.drawText(I18n.formatString(571, 'New {0} Class Commissioned', name), new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.2), this.getTextAttributes('cyan', 16, pdg.textStyle_Centered));
         }
         // Footer hint

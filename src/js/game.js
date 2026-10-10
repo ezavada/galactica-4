@@ -3213,9 +3213,12 @@ class Game {
             }
             case Common.EventType.NEW_SHIP_CLASS: {
                 const classIndex = where || (who.classIndex || 1);
-                this.queueEventOverlay({ type: 'stardock', classIndex, ship: who });
+                if (who.owner===this.getCurrentHumanPlayer())
+                    this.queueEventOverlay({ type: 'stardock', classIndex, shipType: who.type, ship: who, origin: who.star });
                 eventTitle = I18n.getString(611, 'Stardock');
-                eventMessage = I18n.formatString(634, 'New ship class commissioned: {0}', classIndex);
+                const name=who.type==='battleship'?who.name.split('\t')[0]:I18n.getShipTypeName(who.type,{capitalized:true});
+                eventMessage = I18n.formatString(925, 'First {0} commissioned at {1}.', name, who.star ? who.star.name : '')+'\n\n'+
+                    I18n.getString({defense:921,scout:922,colony:923,battleship:924}[who.type]);
                 console.log(`🏭 ${eventMessage}`);
                 break;
             }
@@ -3241,7 +3244,8 @@ class Game {
         }
 
         if (eventMessage) {
-            const subject=[Common.EventType.STAR_COLONIZED,Common.EventType.STAR_CAPTURED].includes(what)?where:
+            const subject=what===Common.EventType.NEW_SHIP_CLASS && who.star?who.star:
+                [Common.EventType.STAR_COLONIZED,Common.EventType.STAR_CAPTURED].includes(what)?where:
                 who && [Common.ObjectType.STAR,Common.ObjectType.SHIP,Common.ObjectType.FLEET].includes(this.getObjectType(who))?who:null;
             const event=this.recordEvent(eventTitle,eventMessage,{type:what,subject,
                 recipient:subject?subject.owner:undefined,position:what===Common.EventType.SHIP_DESTROYED?where:subject});

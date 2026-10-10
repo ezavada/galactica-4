@@ -228,9 +228,11 @@ class Star {
         
         // Update player info for new ship type and tech level
         const playerInfo = this.game.players ? this.game.players[this.owner] : null;
+        let firstHull = false;
         if (playerInfo) {
             // Track if this is a new ship type for this player
-            if (playerInfo.markShipTypeBuilt(ship.type)) {
+            firstHull = playerInfo.markShipTypeBuilt(ship.type);
+            if (firstHull) {
                 console.log(`${playerInfo.name} built their first ${ship.type} ship!`);
             }
             
@@ -256,6 +258,7 @@ class Star {
                 }
             } else {
                 ship.name = `${I18n.getShipTypeName(ship.type, { capitalized: true })} S${this.id}T${this.game.turn}-${ship.id}`;
+                if (firstHull) this.game.noteworthyEvent(ship, Common.EventType.NEW_SHIP_CLASS);
             }
         } catch (err) {
             ship.name = `${I18n.getShipTypeName(ship.type, { capitalized: true })} S${this.id}T${this.game.turn}-${ship.id}`;
