@@ -6,6 +6,7 @@ The map and controls use small presentation effects to add life without distract
 - The background moves gently opposite camera scrolling, bounded to 8 pixels in each direction. Overscan keeps the viewport covered at all aspect ratios.
 - Panels and buttons use quiet blue-gray vertical gradients, thin outlines and brighter hover states. Human-controlled system panels mix in 6% of the owner color; unknown and enemy systems keep the neutral surface.
 - Inspector and runtime-window entrances settle in 120 ms, moving 2 pixels and becoming fully opaque. Closed windows fade out over 85 ms. Controls remain immediately usable.
+- Allocation locks use open/closed padlock icons for the current state, with localized Lock/Unlock action hints in both system and production panels.
 - Menu, Home and Fit use vector icons with localized hover labels and their existing shortcuts. Colony defaults use a gear alongside the localized label.
 
 Browser `prefers-reduced-motion: reduce`, sampled when the display starts, disables twinkle, parallax and transitions. Native callers can set `game.config.reducedMotion` before creating the display. A settings toggle has not yet been added.

@@ -1257,7 +1257,14 @@ class Display {
             home:[[-7,0,0,-6],[0,-6,7,0],[-5,-1,-5,6],[-5,6,5,6],[5,6,5,-1],[-1,6,-1,2],[-1,2,2,2],[2,2,2,6]],
             fit:[[-6,-2,-6,-6],[-6,-6,-2,-6],[2,-6,6,-6],[6,-6,6,-2],[-6,2,-6,6],[-6,6,-2,6],[2,6,6,6],[6,6,6,2]]};
         const attrs=this.iconAttributes;attrs.lineThickness(1.2);
-        if(name==='gear') {
+        if(name==='lock' || name==='unlock') {
+            const scale=size/14,line=(a,b,c,d)=>this.port.drawLine(new pdg.Point(x+a*scale,y+b*scale),new pdg.Point(x+c*scale,y+d*scale),attrs);
+            for(const points of [[-4,-1,4,-1],[4,-1,4,6],[4,6,-4,6],[-4,6,-4,-1],[0,1,0,3]])line(...points);
+            // A closed/open shackle shows the current allocation state.
+            const shift=name==='unlock'?3:0;
+            for(const points of [[-3+shift,-1,-3+shift,-4],[-3+shift,-4,-1+shift,-6],[-1+shift,-6,1+shift,-6],[1+shift,-6,3+shift,-4]])line(...points);
+            if(name==='lock')line(3,-4,3,-1);
+        } else if(name==='gear') {
             this.port.drawCircle(new pdg.Point(x,y),size*0.25,attrs);
             for(let i=0;i<8;i++){const a=i*Math.PI/4;this.port.drawLine(new pdg.Point(x+Math.cos(a)*size*.33,y+Math.sin(a)*size*.33),new pdg.Point(x+Math.cos(a)*size*.46,y+Math.sin(a)*size*.46),attrs);}
         } else for(const [a,b,c,d] of paths[name] || [])this.port.drawLine(new pdg.Point(x+a*size/14,y+b*size/14),new pdg.Point(x+c*size/14,y+d*size/14),attrs);
@@ -1279,7 +1286,7 @@ class Display {
             this.drawUIIcon(options.icon,drawRect.x+(options.iconOnly?drawRect.width/2:18),drawRect.y+drawRect.height/2);
             if(options.iconOnly) {
                 if(hotkey)this.drawTextLine(hotkey,drawRect.x+drawRect.width-12,drawRect.y+drawRect.height/2+3,'labelgray',9,pdg.textStyle_RightJustified);
-                if(hovered)this.iconHint={rect:drawRect,label:hotkey?`${label} <${hotkey}>`:label};
+                if(hovered)this.iconHint={rect:drawRect,inWindow:!!this.drawingActiveWindow,label:hotkey?`${label} <${hotkey}>`:label};
                 return;
             }
         }
@@ -2168,7 +2175,7 @@ class Display {
 
         if (options.interactive !== false) this.drawUIButton({ x: rects.track.x + width + 48, y: y - 13, width: 68, height: 18 },
             allocation.locked ? I18n.getString(675, 'Unlock') : I18n.getString(674, 'Lock'), null,
-            { size: 9, radius: 6, active: allocation.locked });
+            { size: 9, radius: 6, icon: allocation.locked ? 'lock' : 'unlock', iconOnly: true, active: allocation.locked });
 
         const currentMarkerX = rects.track.x + this.clamp(Math.round(width * current / 100.0), 0, width);
         this.port.drawLine(new pdg.Point(currentMarkerX, y - 11), new pdg.Point(currentMarkerX, y + 1), this.getLineAttributes(valueColor));
@@ -2987,7 +2994,7 @@ class Display {
     }
 
     drawIconHint() {
-        if(!this.iconHint || this.game.uiWindow)return;
+        if(!this.iconHint || this.game.uiWindow && !this.iconHint.inWindow)return;
         const {rect,label}=this.iconHint,screen=this.getScreenSize();
         const width=Math.min(screen.width-20,this.port.getTextWidth(label,11)+24);
         const box=this.fitPanelToScreen({x:rect.x+rect.width-width,y:rect.y-32,width,height:26});
@@ -3044,7 +3051,10 @@ class Display {
             const screen=this.getScreenSize(),r={x:20,y:78,width:screen.width-40,height:40};
             this.drawWindowPanel(r,this.fitShipDiagnosticText(I18n.getString(734,'Click a destination; Esc cancels'),r.width-32,14));
         }
-        this.drawTransitionLayer('window',game.uiWindow,()=>this.drawActiveWindow());
+        this.drawTransitionLayer('window',game.uiWindow,()=>{
+            this.drawingActiveWindow=true;
+            try{this.drawActiveWindow();}finally{this.drawingActiveWindow=false;}
+        });
         this.drawIconHint();
         this.drawRendezvousPlacementPrompt();
         
