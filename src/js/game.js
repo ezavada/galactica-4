@@ -55,6 +55,7 @@ class Game {
         this.coursePage = 0;
         this.uiSliderDrag = null;
         this.uiMapScrollDrag = null;
+        this.mapSelectionPicker = null;
         this.colonyDefaultsDraft = null;
         this.systemShipWindowStar = null;
         this.systemShipPage = 0;
@@ -805,14 +806,14 @@ class Game {
         return changed;
     }
 
-    finishRendezvousPlacementAt(screenX, screenY) {
+    finishRendezvousPlacementAt(screenX, screenY, target) {
         if (!this.pendingRendezvousPlacement || !this.display) {
             return false;
         }
 
         const placement = this.pendingRendezvousPlacement;
         this.pendingRendezvousPlacement = null;
-        const clickedObject = this.findObjectAtPosition(screenX, screenY);
+        const clickedObject = target || this.findObjectAtPosition(screenX, screenY);
         const anchorType = clickedObject ? this.getObjectType(clickedObject) : Common.ObjectType.UNKNOWN;
         const anchor = (
             anchorType === Common.ObjectType.STAR ||
@@ -894,11 +895,13 @@ class Game {
     }
 
     openUIWindow(windowName) {
+        if (this.mapSelectionPicker) this.cancelMapSelection();
         this.uiWindow = windowName;
         return true;
     }
 
     toggleUIWindow(windowName) {
+        if (this.mapSelectionPicker) this.cancelMapSelection();
         this.uiWindow = (this.uiWindow === windowName) ? null : windowName;
         return true;
     }
@@ -964,7 +967,7 @@ class Game {
     }
 
     closeEventWindowsForTurnAdvance() {
-        let closedAny = false;
+        let closedAny = this.cancelMapSelection();
 
         if (this.clearEventPresentations()) {
             closedAny = true;
@@ -1194,6 +1197,15 @@ class Game {
     }
 
     handleCommandWindowKey(key, char) {
+        if(this.uiWindow==='mapPick') {
+            if(key===pdg.key_Escape)return this.cancelMapSelection();
+            const index=Number(char)-1;
+            if(Number.isInteger(index) && index>=0 && index<6) {
+                const object=this.getMapSelectionRows().slice(this.mapSelectionPicker.page*6)[index];
+                if(object)return this.chooseMapSelection(object);
+            }
+            return true;
+        }
         if (!this.uiWindow) {
             return false;
         }
@@ -1652,6 +1664,11 @@ class Game {
                     this.setStarAllocation(action.star, action.allocationKey, action.desired, {silent:!!action.silent});
                 }
                 return true;
+            case 'chooseMapObject':
+                return this.chooseMapSelection(action.object);
+            case 'mapSelectionPage':
+                if(!this.mapSelectionPicker)return false;
+                this.mapSelectionPicker.page=Math.max(0,Math.min(Math.ceil(this.getMapSelectionRows().length/6)-1,action.page));return true;
             case 'mapScroll':
                 return this.applyMapScrollAction(action);
             case 'zoomIn':
@@ -2017,7 +2034,7 @@ class Game {
     }
 
     requestEndTurn() {
-        if(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag)return false;
+        if(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag || this.mapSelectionPicker)return false;
         if(this.attention.pending().length || this.hasEventPresentation()) {this.uiWindow='endTurnConfirm';return false;}
         this.endTurn();return true;
     }
@@ -2056,9 +2073,38 @@ class Game {
         return true;
     }
     
-    handleMouseClick(x, y) {
+    beginMapSelection(x,y,mode,force=false) {
+        if(this.mapSelectionPicker)return true;
+        const candidates=this.findObjectsAtPosition(x,y,force);
+        if(!candidates.length || !force && candidates.length<2)return false;
+        this.mapSelectionPicker={candidates,x,y,mode,page:0,previousWindow:this.uiWindow};
+        this.uiWindow='mapPick';return true;
+    }
+
+    getMapSelectionRows() {
+        if(!this.mapSelectionPicker)return [];
+        const live=new Set(this.getMapObjects());
+        return this.mapSelectionPicker.candidates.filter(object=>live.has(object) && this.display.getMapMarker(object));
+    }
+
+    cancelMapSelection() {
+        const picker=this.mapSelectionPicker;
+        if(!picker)return false;
+        this.mapSelectionPicker=null;this.uiWindow=picker.previousWindow;return true;
+    }
+
+    chooseMapSelection(object) {
+        if(!this.getMapSelectionRows().includes(object))return false;
+        const picker=this.mapSelectionPicker;this.cancelMapSelection();
+        const options={resolved:true,target:object};
+        if(picker.mode==='order')return this.handleMouseRightClick(picker.x,picker.y,options);
+        return this.handleMouseClick(picker.x,picker.y,options);
+    }
+
+    handleMouseClick(x, y, options={}) {
+        if(!options.resolved && this.beginMapSelection(x,y,'select',!!options.forcePicker))return true;
         if (this.pendingRendezvousPlacement) {
-            return this.finishRendezvousPlacementAt(x, y);
+            return this.finishRendezvousPlacementAt(x, y, options.target);
         }
 
         if (this.pendingMapOrderObject) {
@@ -2067,23 +2113,26 @@ class Game {
             this.setSelectedObject(orderObject);
             if (edit) {
                 if (this.canEditCourse(orderObject) && edit.revision===orderObject.course.revision) {
-                    const target=this.findObjectAtPosition(x,y) || {x:this.display.toGalacticX(x),y:this.display.toGalacticY(y)};
+                    const target=options.target || this.findObjectAtPosition(x,y) || {x:this.display.toGalacticX(x),y:this.display.toGalacticY(y)};
                     this.issuePlayerWaypoint(orderObject,target,edit.index,edit.replace);
                 }
                 this.uiWindow='course';return true;
             }
-            return this.handleMouseRightClick(x,y);
+            return this.handleMouseRightClick(x,y,options);
         }
 
         // Left click - select object to view information
-        var clickedObject = this.findObjectAtPosition(x, y);
+        var clickedObject = options.target || this.findObjectAtPosition(x, y);
         
         // Allow selecting any object to view information
         this.setSelectedObject(clickedObject);
         return true;
     }
     
-    handleMouseRightClick(x, y) {
+    handleMouseRightClick(x, y, options={}) {
+        if(this.uiWindow==='mapPick')return true;
+        if(this.pendingMapOrderObject || this.pendingRendezvousPlacement)return this.handleMouseClick(x,y,options);
+        if(!options.resolved && this.beginMapSelection(x,y,'order'))return true;
         this.pendingMapOrderObject = null;
 
         // Right click - give orders to selected ship or set default destination for selected star
@@ -2103,7 +2152,7 @@ class Game {
             }
             
             // Find what was right-clicked on
-            var clickedObject = this.findObjectAtPosition(x, y);
+            var clickedObject = options.target || this.findObjectAtPosition(x, y);
             
             // Set default destination - either to an object or to coordinates
             if (clickedObject) {
@@ -2129,7 +2178,7 @@ class Game {
             }
             
             // Find what was right-clicked on
-            var clickedObject = this.findObjectAtPosition(x, y);
+            var clickedObject = options.target || this.findObjectAtPosition(x, y);
             
             // Set destination - either to an object or to coordinates
             if (clickedObject) {
@@ -2152,104 +2201,27 @@ class Game {
         return true;
     }
     
-    findObjectAtPosition(x, y) {
-        // Helper method to find what object is at a given screen position
-        var clickedObject = null;
-        
-        // Check for ship clicks (using screen-space radius for consistent UI feel)
-        const shipRadiusSquared = Common.ShipRadius * Common.ShipRadius;
-        for (const ship of this.allShips) {
-            if(ship.fleet)continue; // Fleet members are not independent map markers.
-            if(this.display.isMobileVisibleOnMap && !this.display.isMobileVisibleOnMap(ship))continue;
-            if(this.display.isPatrolHiddenOnMap && this.display.isPatrolHiddenOnMap(ship))continue;
-            // Convert ship position to screen for distance check
-            const shipScreenX = this.display.toScreenX(ship.x);
-            const shipScreenY = this.display.toScreenY(ship.y);
-            
-            let dx = x - shipScreenX;
-            let dy = y - shipScreenY;
-            if (ship.star) {
-                // adjust for parking orbit around star
-                dx -= 10;
-                dy += 6;
-            }
-            const distSquared = dx * dx + dy * dy;
-            
-            if (distSquared <= shipRadiusSquared) {
-                clickedObject = ship;
-                console.log(`Clicked on ship: ${ship.type}`);
-             }
-        }
-
-        // Check for fleet clicks (using screen-space radius for consistent UI feel)
-        const fleetRadiusSquared = Common.ShipRadius * Common.ShipRadius * 2.25; // Fleet hexagons are larger than ships
-        for (const fleet of this.allFleets) {
-            if(this.display.isMobileVisibleOnMap && !this.display.isMobileVisibleOnMap(fleet))continue;
-            if(this.display.isPatrolHiddenOnMap && this.display.isPatrolHiddenOnMap(fleet))continue;
-            // Convert fleet position to screen for distance check
-            let fleetScreenX = this.display.toScreenX(fleet.x);
-            let fleetScreenY = this.display.toScreenY(fleet.y);
-            
-            // Adjust for fleet offset when at star (same as ships)
-            const fleetAtStar = this.stars.find(star => 
-                Math.abs(star.x - fleet.x) < 5 && Math.abs(star.y - fleet.y) < 5
-            );
-            if (fleetAtStar) {
-                fleetScreenX += this.display.scaledStarRadius * 1.25;
-                fleetScreenY -= this.display.scaledStarRadius * 0.75;
-            }
-            
-            const dx = x - fleetScreenX;
-            const dy = y - fleetScreenY;
-            const distSquared = dx * dx + dy * dy;
-            
-            if (distSquared <= fleetRadiusSquared) {
-                clickedObject = fleet;
-                console.log(`Clicked on fleet: ${fleet.getSize()} ships`);
-                break; // Fleet takes priority over ships/stars
-            }
-        }
-
-        // Check for rendezvous clicks. Player-owned rendezvous points are private
-        // planning markers; in omniscient/debug mode this also supports inspection.
-        const rendezvousRadiusSquared = 8 * 8;
-        const humanPlayer = this.getCurrentHumanPlayer() || 1;
-        for (const rendezvous of this.allRendezvous || []) {
-            if (rendezvous.owner !== humanPlayer && !(this.config && this.config.omniscient)) {
-                continue;
-            }
-            const rendezvousScreenX = this.display.toScreenX(rendezvous.x);
-            const rendezvousScreenY = this.display.toScreenY(rendezvous.y);
-            const dx = x - rendezvousScreenX;
-            const dy = y - rendezvousScreenY;
-            const distSquared = dx * dx + dy * dy;
-            if (distSquared <= rendezvousRadiusSquared) {
-                clickedObject = rendezvous;
-                console.log(`Clicked on rendezvous: ${rendezvous.name}`);
-                break;
-            }
-        }
-
-        // Check for star clicks (using screen-space radius for consistent UI feel)
-        const starRadiusSquared = Common.StarRadius * Common.StarRadius;
-        for (const star of this.stars) {
-            // Convert star position to screen for distance check
-            const starScreenX = this.display.toScreenX(star.x);
-            const starScreenY = this.display.toScreenY(star.y);
-            
-            const dx = x - starScreenX;
-            const dy = y - starScreenY;
-            const distSquared = dx * dx + dy * dy;
-            
-            if (distSquared <= starRadiusSquared && !clickedObject) {
-                clickedObject = star;
-                console.log(`Clicked on star: ${star.name}`);
-            }
-        }
-        
-        return clickedObject;
+    getMapObjects() {
+        // Match marker drawing order; topmost/last-drawn candidates come first.
+        return [...this.stars,...this.allShips,...this.allRendezvous || [],...this.allFleets].reverse();
     }
-    
+
+    findObjectsAtPosition(x,y,nearby=false) {
+        if(!this.display || !this.display.getMapMarker)return [];
+        this.display.updateMapRenderingCalculations();
+        return this.getMapObjects().filter(object=>{
+            const marker=this.display.getMapMarker(object);
+            if(!marker)return false;
+            if(nearby && object.isOnPatrol && object.isOnPatrol())return false;
+            return Math.abs(x-marker.x)<=Math.max(marker.radius,nearby?10:0) &&
+                Math.abs(y-marker.y)<=Math.max(marker.height,nearby?10:0);
+        });
+    }
+
+    findObjectAtPosition(x,y) {
+        return this.findObjectsAtPosition(x,y)[0] || null;
+    }
+
     handleKeyPress(key) {
         if(key === pdg.key_F6)return this.executeUIAction({type:'toggleScannerRanges'});
         if(key === pdg.key_F4)return this.executeUIAction({type:'toggleAllCourses'});
@@ -2257,8 +2229,9 @@ class Game {
         if(key === pdg.key_F1)return this.executeUIAction({type:'toggleShips'});
         if(key === pdg.key_F2)return this.executeUIAction({type:'toggleMapNames'});
         if(key === pdg.key_F3)return this.executeUIAction({type:'toggleGrid'});
-        if (['rename','colonyDefaults','settings','mapDisplay','view'].includes(this.uiWindow) && key===pdg.key_Tab) return true;
-        if (['settings','mapDisplay','view'].includes(this.uiWindow) && (key===13 || key===3)) return true;
+        if(this.uiWindow==='mapPick')return this.handleCommandWindowKey(key,this.getKeyChar(key));
+        if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && key===pdg.key_Tab) return true;
+        if (['settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && (key===13 || key===3)) return true;
         if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}
         if ((key===13 || key===3) && !['rename','colonyDefaults','settings','systemComparison','events','endTurnConfirm'].includes(this.uiWindow)) {this.requestEndTurn();return true;}
         if (key === pdg.key_Tab) {

@@ -639,7 +639,7 @@ class Display {
 
     // Draw a single star
     drawStar(star) {
-        const humanPlayer = 1; // Player 1 is the human player
+        const humanPlayer = this.game.getCurrentHumanPlayer() || 1;
         
         // Convert galactic coordinates to screen coordinates
         const screenX = this.toScreenX(star.x);
@@ -814,6 +814,11 @@ class Display {
     }
 
     isMobileVisibleOnMap(object) {
+        const ship=this.factory.isShip(object);
+        if(ship && (object.fleet || object.isDead() || object.underConstruction() || object.type==='defense'))return false;
+        if(!ship && this.factory.isFleet(object) && object.isEmpty())return false;
+        const threshold=ship?.20:.15;
+        if(this.camera.zoom<threshold && object!==this.selectedObject)return false;
         const viewer=this.game.getCurrentHumanPlayer() || 1;
         if(!this.isEntityVisibleToPlayer(object,viewer) && !this.game.isOwnerAlliedWith(viewer,object.owner))return false;
         if(this.game.showShips===false && object!==this.selectedObject)return false;
@@ -835,25 +840,11 @@ class Display {
     // Draw a single ship
     drawShip(ship) {
         if(!this.isMobileVisibleOnMap(ship))return;
-        // Convert galactic coordinates to screen coordinates
-        let x = this.toScreenX(ship.x);
-        let y = this.toScreenY(ship.y);
-
-        const zoom = this.camera.zoom;
-        const selected = (ship === this.selectedObject);
-        if (zoom < 0.20 && !selected) {
-            // too small to draw, skip
-            return;
-        }
-        const shipOpacity = (selected ? 1.0 : this.mapEntityNameOpacity)*this.getMapDisplayBrightness(ship);
-        
-        // Offset for ships parked at stars
-        if (ship.star) {
-            x += this.scaledStarRadius * 1.25;
-            y -= this.scaledStarRadius * 0.75;
-        }
-        
-        const frameRadius = this.scaledShipRadius + 1;
+        const marker=this.getMapMarker(ship);
+        const {x,y}=marker;
+        const zoom=this.camera.zoom,selected=ship===this.selectedObject;
+        const shipOpacity=(selected?1:this.mapEntityNameOpacity)*this.getMapDisplayBrightness(ship);
+        const frameRadius = marker.radius;
         var triangle = new pdg.Polygon(
             new pdg.Point(x-frameRadius, y-frameRadius),
             new pdg.Point(x+frameRadius, y),
@@ -908,7 +899,7 @@ class Display {
     
     // Draw all ships
     drawShips(ships) {
-        const humanPlayer = 1; // Player 1 is the human player
+        const humanPlayer = this.game.getCurrentHumanPlayer() || 1;
         let shipsUnderConstructionDrawn = 0;
         let shipsUnderConstructionSkipped = 0;
         
@@ -945,34 +936,11 @@ class Display {
     // Draw a single fleet
     drawFleet(fleet) {
         if(!this.isMobileVisibleOnMap(fleet))return;
-        // Convert galactic coordinates to screen coordinates
-        let x = this.toScreenX(fleet.x);
-        let y = this.toScreenY(fleet.y);
-
-        const zoom = this.camera.zoom;
-        const selected = (fleet === this.selectedObject);
-        if (zoom < 0.15 && !selected) {
-            // too small to draw, skip
-            return;
-        }
-        
-        const fleetOpacity = (selected ? 1.0 : this.mapEntityNameOpacity)*this.getMapDisplayBrightness(fleet);
-        
-        // Offset for fleets parked at stars (same as ships)
-        // Check if fleet is at a star by comparing positions
-        const fleetAtStar = this.game.stars.find(star => 
-            Math.abs(star.x - fleet.x) < 5 && Math.abs(star.y - fleet.y) < 5
-        );
-        if (fleetAtStar) {
-            x += this.scaledStarRadius * 1.25;
-            y -= this.scaledStarRadius * 0.75;
-        }
-        
-        // Fleet size determines hexagon size
-        const fleetSize = fleet.getSize();
-        const baseRadius = this.scaledShipRadius * 1.5; // Larger than ships
-        const hexRadius = baseRadius + (fleetSize * 0.5); // Scale with ship count
-        
+        const marker=this.getMapMarker(fleet);
+        const {x,y}=marker,selected=fleet===this.selectedObject;
+        const fleetOpacity=(selected?1:this.mapEntityNameOpacity)*this.getMapDisplayBrightness(fleet);
+        const fleetAtStar=!!fleet.star || this.game.stars.some(star=>Math.abs(star.x-fleet.x)<5 && Math.abs(star.y-fleet.y)<5);
+        const fleetSize=fleet.getSize(),hexRadius=marker.radius;
         // Create hexagon points
         const hexPoints = [];
         for (let i = 0; i < 6; i++) {
@@ -1016,7 +984,7 @@ class Display {
     
     // Draw all fleets
     drawFleets(fleets) {
-        const humanPlayer = 1; // Player 1 is the human player
+        const humanPlayer = this.game.getCurrentHumanPlayer() || 1;
         
         for (const fleet of fleets) {
             // Always show own fleets, only show enemy fleets if visible
@@ -1301,6 +1269,17 @@ class Display {
         };
     }
 
+    getMapMarker(object) {
+        const type=this.game.getObjectType(object);
+        if([Common.ObjectType.SHIP,Common.ObjectType.FLEET].includes(type) && !this.isMobileVisibleOnMap(object))return null;
+        if(type===Common.ObjectType.RENDEZVOUS && object.owner!==(this.game.getCurrentHumanPlayer() || 1) && !this.isOmniscientMode())return null;
+        const position=this.getObjectScreenPosition(object);
+        const starRadius=this.scaledStarRadius || Common.StarRadius,shipRadius=this.scaledShipRadius || Common.ShipRadius;
+        const radius=type===Common.ObjectType.STAR?starRadius:type===Common.ObjectType.SHIP?shipRadius+1:
+            type===Common.ObjectType.FLEET?shipRadius*1.5+object.getSize()*.5:8;
+        return {...position,radius,type,height:radius*(type===Common.ObjectType.STAR?1.25:1)};
+    }
+
     getObjectScreenPosition(object) {
         let x = this.toScreenX(object.x);
         let y = this.toScreenY(object.y);
@@ -1420,7 +1399,7 @@ class Display {
             Math.round(drawRect.y + drawRect.height / 2 + 4),
             hovered ? 'hovergray' : 'lightgray',
             size,
-            pdg.textStyle_Centered
+            pdg.textStyle_Centered | (options.bold?pdg.textStyle_Bold:0)
         );
     }
 
@@ -1817,6 +1796,53 @@ class Display {
             settings,mapDisplay,view,...fullscreen];
     }
 
+    getMapSelectionRect() {
+        const screen=this.getScreenSize(),count=Math.min(6,this.game.getMapSelectionRows().length);
+        const picker=this.game.mapSelectionPicker,width=Math.min(380,screen.width-40);
+        return this.fitPanelToScreen({x:picker.x+16,y:picker.y+16,width,height:130+Math.max(1,count)*32});
+    }
+
+    getMapSelectionLabel(object) {
+        const type=this.game.getObjectType(object),viewer=this.game.getCurrentHumanPlayer() || 1;
+        const known=this.isOmniscientMode() || this.game.isOwnerAlliedWith(viewer,object.owner) ||
+            this.getVisibilityLevelForPlayer(object,viewer)>=Common.VisibilityLevel.CLASS;
+        const name=!known && type===Common.ObjectType.SHIP?I18n.getString(12,'Ship'):
+            !known && type===Common.ObjectType.FLEET?I18n.getString(591,'Fleet'):this.game.getObjectDisplayName(object);
+        const allied=this.game.isOwnerAlliedWith(viewer,object.owner);
+        const scrap=allied && object.isToBeScrapped && object.isToBeScrapped();
+        return scrap?`${name} · ${I18n.getString(756,'Marked for scrap')}`:name;
+    }
+
+    getMapSelectionActions() {
+        const picker=this.game.mapSelectionPicker;
+        if(!picker || this.game.uiWindow!=='mapPick')return [];
+        const rect=this.getMapSelectionRect(),rows=this.game.getMapSelectionRows(),pages=Math.max(1,Math.ceil(rows.length/6));
+        picker.page=this.clamp(picker.page,0,pages-1);
+        const actions=rows.slice(picker.page*6,picker.page*6+6).map((object,index)=>({
+            rect:{x:rect.x+14,y:rect.y+64+index*32,width:rect.width-28,height:28},key:String(index+1),
+            label:this.fitShipDiagnosticText(this.getMapSelectionLabel(object),rect.width-64,11),
+            fullLabel:this.getMapSelectionLabel(object),active:object===this.game.selectedObject,
+            bold:this.game.isOwnerAlliedWith(this.game.getCurrentHumanPlayer() || 1,object.owner) && !!object.course && object.course.waypoints.length>1,
+            icon:this.game.getObjectType(object)===Common.ObjectType.STAR?'star':this.game.getObjectType(object)===Common.ObjectType.SHIP?'ship':
+                this.game.getObjectType(object)===Common.ObjectType.FLEET?'fleet':'rendezvous',
+            action:{type:'chooseMapObject',object}}));
+        if(picker.page>0)actions.push({rect:{x:rect.x+14,y:rect.y+rect.height-48,width:110,height:26},
+            label:I18n.getString(690,'Previous'),action:{type:'mapSelectionPage',page:picker.page-1}});
+        if(picker.page+1<pages)actions.push({rect:{x:rect.x+rect.width-124,y:rect.y+rect.height-48,width:110,height:26},
+            label:I18n.getString(691,'Next'),action:{type:'mapSelectionPage',page:picker.page+1}});
+        return actions;
+    }
+
+    drawMapSelectionWindow() {
+        const rect=this.getMapSelectionRect();this.drawWindowPanel(rect,I18n.getString(793,'Choose an object'));
+        this.getMapSelectionActions().forEach(row=>{
+            this.drawUIButton(row.rect,row.label,row.key,{icon:row.icon,active:row.active,bold:row.bold});
+            if(row.fullLabel && this.isHovered(row.rect))this.iconHint={rect:row.rect,inWindow:true,label:row.fullLabel};
+        });
+        this.drawTextLine(this.fitShipDiagnosticText(I18n.getString(794,'Select an item; Esc cancels'),rect.width-28,11),
+            rect.x+14,rect.y+rect.height-14,'gray',11);
+    }
+
     getViewWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(340,screen.width-40);
         return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:294});
@@ -2136,6 +2162,7 @@ class Display {
                 return this.getComparisonWindowRect();
             case 'fleets':
                 return this.getFleetWindowRect();
+            case 'mapPick':return this.getMapSelectionRect();
             case 'view':
                 return this.getViewWindowRect();
             case 'mapDisplay':
@@ -2346,6 +2373,7 @@ class Display {
         if (this.game.uiWindow==='settings') controls=this.getSettingsActionRegions();
         if (this.game.uiWindow==='mapDisplay') controls=this.getMapDisplayActionRegions();
         if (this.game.uiWindow==='view') controls=this.getViewActionRegions();
+        if (this.game.uiWindow==='mapPick') controls=this.getMapSelectionActions();
         if (this.game.uiWindow==='colonyDefaults') {
             controls=this.getColonyDefaultActionRegions();
             const slider=this.getColonyDefaultSliderRegions().find(region=>this.containsPoint(region.rect,x,y));
@@ -2370,6 +2398,7 @@ class Display {
     }
 
     getUIActionAt(x, y) {
+        if(this.game.uiWindow==='mapPick')return this.getActiveWindowActionAt(x,y) || {type:'consume'};
         if(this.game.pendingCourseEdit) {
             const screen=this.getScreenSize(),hint={x:20,y:78,width:screen.width-40,height:40};
             if(this.containsPoint(hint,x,y) || this.getMapButtonRegions().some(button=>this.containsPoint(button.rect,x,y)))return {type:'consume'};
@@ -2378,7 +2407,7 @@ class Display {
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
-        if (['rename','colonyDefaults','settings','mapDisplay','view','endTurnConfirm'].includes(this.game.uiWindow)) return { type: 'consume' };
+        if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick','endTurnConfirm'].includes(this.game.uiWindow)) return { type: 'consume' };
         const scrollAction=this.getMapScrollActionAt(x,y);
         if(scrollAction)return scrollAction;
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
@@ -3158,7 +3187,7 @@ class Display {
     }
 
     drawRendezvousPlacementPrompt() {
-        if (!this.game.pendingRendezvousPlacement) {
+        if (!this.game.pendingRendezvousPlacement || this.game.mapSelectionPicker) {
             return;
         }
         const placement = this.game.pendingRendezvousPlacement;
@@ -3193,6 +3222,7 @@ class Display {
             case 'fleets':
                 this.drawFleetWindow();
                 break;
+            case 'mapPick':this.drawMapSelectionWindow();break;
             case 'view':
                 this.drawViewWindow();
                 break;
@@ -3375,7 +3405,7 @@ class Display {
         this.drawMapScrollbars();
 
         // Draw command UI windows above the map/help layer
-        if(this.game.pendingCourseEdit) {
+        if(this.game.pendingCourseEdit && !this.game.mapSelectionPicker) {
             const screen=this.getScreenSize(),r={x:20,y:78,width:screen.width-40,height:40};
             this.drawWindowPanel(r,this.fitShipDiagnosticText(I18n.getString(734,'Click a destination; Esc cancels'),r.width-32,14));
         }

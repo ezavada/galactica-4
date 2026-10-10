@@ -433,6 +433,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     }
     // Check if this is a mouse down event
     if (event && event.eventType === pdg.eventType_MouseDown) {
+        if(game.uiWindow==='mapPick' && event.buttonNumber!==0)return true;
         // Check which button was pressed
         // PDG uses buttonNumber: 0=left, 1=right, 2=middle
         if (event.buttonNumber === 0) {
@@ -459,6 +460,8 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
                 game.handleMouseClick(event.mousePos.x, event.mousePos.y);
                 return true;
             }
+
+            if(event.ctrl) {game.handleMouseClick(event.mousePos.x,event.mousePos.y,{forcePicker:true});return true;}
 
             // Left click - check if it's on an entity or empty space
             const clickedObject = game.findObjectAtPosition(event.mousePos.x, event.mousePos.y);
@@ -509,6 +512,7 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
         return true;
     }
     if (event && event.eventType === pdg.eventType_ScrollWheel) {
+        if(game.uiWindow==='mapPick')return true;
         const delta = event.vertDelta || 0;
         if (delta < 0) {
             // Get current mouse position for zoom target

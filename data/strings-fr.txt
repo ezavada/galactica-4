@@ -405,3 +405,7 @@
 # Map scroll bars
 791	Défiler horizontalement
 792	Défiler verticalement
+
+# Overlapping map objects
+793	Choisir un objet
+794	Choisissez un élément ; Échap annule

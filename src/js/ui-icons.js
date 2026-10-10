@@ -1,5 +1,5 @@
 // Small UI glyphs rasterized once at twice their display resolution.
-const names=new Set(['menu','home','fit','gear','lock','unlock','zoom-in','zoom-out']);
+const names=new Set(['menu','home','fit','gear','lock','unlock','zoom-in','zoom-out','star','ship','fleet','rendezvous']);
 class UIIcons {
     constructor(backend=pdg) {
         this.backend=backend;
@@ -76,7 +76,9 @@ class UIIcons {
                 line(Math.cos(a)*2,Math.sin(a)*2,Math.cos(b)*2,Math.sin(b)*2);
             }
         } else {
-            const paths={'zoom-in':[[-5,0,5,0],[0,-5,0,5]],'zoom-out':[[-5,0,5,0]],menu:[[-6,-4,6,-4],[-6,0,6,0],[-6,4,6,4]],
+            const paths={star:[[0,-6,5,0],[5,0,0,6],[0,6,-5,0],[-5,0,0,-6]],ship:[[-5,-5,6,0],[6,0,-5,5],[-5,5,-5,-5]],
+                fleet:[[6,0,3,5],[3,5,-3,5],[-3,5,-6,0],[-6,0,-3,-5],[-3,-5,3,-5],[3,-5,6,0]],
+                rendezvous:[[-5,-5,5,5],[-5,5,5,-5]],'zoom-in':[[-5,0,5,0],[0,-5,0,5]],'zoom-out':[[-5,0,5,0]],menu:[[-6,-4,6,-4],[-6,0,6,0],[-6,4,6,4]],
                 home:[[-6,0,0,-5],[0,-5,6,0],[-4,-1,-4,5],[-4,5,4,5],[4,5,4,-1],[-1,5,-1,2],[-1,2,1,2],[1,2,1,5]],
                 fit:[[-6,-2,-6,-6],[-6,-6,-2,-6],[2,-6,6,-6],[6,-6,6,-2],[-6,2,-6,6],[-6,6,-2,6],[2,6,6,6],[6,6,6,2]]};
             for(const segment of paths[name])line(...segment);

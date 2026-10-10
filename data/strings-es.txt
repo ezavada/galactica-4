@@ -405,3 +405,7 @@
 # Map scroll bars
 791	Desplazar horizontalmente
 792	Desplazar verticalmente
+
+# Overlapping map objects
+793	Elegir un objeto
+794	Elige un elemento; Esc cancela

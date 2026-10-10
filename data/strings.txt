@@ -405,3 +405,7 @@
 # Map scroll bars
 791	Scroll horizontally
 792	Scroll vertically
+
+# Overlapping map objects
+793	Choose an object
+794	Select an item; Esc cancels

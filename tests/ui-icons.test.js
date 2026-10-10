@@ -30,9 +30,9 @@ module.exports=()=>test.describe('Cached UI icons',()=>{
         test.assertEqual(calls.curves[2][0].x-calls.curves[0][0].x,6);
     });
     test.it('keeps state, size and color variants separate while rendering every supported glyph',()=>{
-        const {icons,port,color,calls}=fixture();for(const name of ['menu','home','fit','gear','lock','unlock','zoom-in','zoom-out'])icons.draw(port,name,0,0,14,color);
-        icons.draw(port,'lock',0,0,20,color);icons.draw(port,'lock',0,0,14,new pdg.Color('red'));test.assertEqual(calls.images.length,10);
-        test.assertTrue(calls.ports.every(p=>p.ops.length>0));icons.draw(port,'gear',20,20,14,color);test.assertEqual(calls.images.length,10);
+        const {icons,port,color,calls}=fixture();for(const name of ['menu','home','fit','gear','lock','unlock','zoom-in','zoom-out','star','ship','fleet','rendezvous'])icons.draw(port,name,0,0,14,color);
+        icons.draw(port,'lock',0,0,20,color);icons.draw(port,'lock',0,0,14,new pdg.Color('red'));test.assertEqual(calls.images.length,14);
+        test.assertTrue(calls.ports.every(p=>p.ops.length>0));icons.draw(port,'gear',20,20,14,color);test.assertEqual(calls.images.length,14);
     });
     test.it('releases cached images and attributes on disposal without keeping source ports open',()=>{
         const {icons,port,color,calls}=fixture();icons.draw(port,'gear',0,0,14,color);const attrs=icons.imageAttributes;

@@ -9,7 +9,7 @@ function fixture(type='battleship') {
     const game=new Game(new Factory(),new Rules(false),new GameConfig({numHumans:1,numComputers:1,skipMapGeneration:true,omniscient:false}));
     const star=game.factory.createStar(1024,2048,'Home');star.owner=1;star.techLevel=5;
     star.startBuildingShip(type);const ship=star.completeShip();
-    const display=Object.create(Display.prototype);display.game=game;display.STR={ship:'Ship',none:'None',owner:'Owner:',techLevel:'Tech Level:',speed:'Speed:',power:'Power:',damage:'Damage:'};
+    const display=Object.create(Display.prototype);display.game=game;display.factory=game.factory;display.STR={ship:'Ship',none:'None',owner:'Owner:',techLevel:'Tech Level:',speed:'Speed:',power:'Power:',damage:'Damage:'};
     return {game,star,ship,display};
 }
 module.exports=function() {

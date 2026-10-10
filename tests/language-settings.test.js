@@ -74,12 +74,12 @@ module.exports=()=>test.describe('Language settings',()=>{
     test.it('excludes hidden ships and fleets from map hits and rendering without changing object collections',()=>{
         const {game,display}=fixture(),home=game.factory.createStar(1000,1000,'Home');home.owner=1;
         const ship=game.factory.createShip(200,200,'scout',home);ship.complete();ship.star=null;
-        const fleet=game.factory.createFleet(400,200,1,'Fleet');display.toScreenX=x=>x;display.toScreenY=y=>y;
+        const fleet=game.factory.createFleet(400,200,1,'Fleet');const member=game.factory.createShip(400,200,'scout',home);member.complete();fleet.addShip(member);display.toScreenX=x=>x;display.toScreenY=y=>y;
         let ships=0,fleets=0;display.drawShip=()=>ships++;display.drawFleet=()=>fleets++;
         game.showShips=false;test.assertNull(game.findObjectAtPosition(200,200));test.assertNull(game.findObjectAtPosition(400,200));
         display.drawShips(game.allShips);display.drawFleets(game.allFleets);test.assertEqual(ships,0);test.assertEqual(fleets,0);
         game.setSelectedObject(fleet);display.drawFleets(game.allFleets);test.assertEqual(fleets,1);test.assertTrue(game.findObjectAtPosition(400,200)===fleet);
-        game.showShips=true;test.assertTrue(game.findObjectAtPosition(200,200)===ship);test.assertEqual(game.allShips.length,1);test.assertEqual(game.allFleets.length,1);
+        game.showShips=true;test.assertTrue(game.findObjectAtPosition(200,200)===ship);test.assertEqual(game.allShips.length,2);test.assertEqual(game.allFleets.length,1);
     });
     test.it('toggles ordinary and courier courses through settings and F4/F5 with independent preferences',()=>{
         const {game,display}=fixture();game.uiWindow='settings';const values=new Map();

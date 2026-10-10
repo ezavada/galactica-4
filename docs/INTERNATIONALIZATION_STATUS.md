@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 329 IDs
-- localized files: 329 IDs each
+- `strings.txt`: 331 IDs
+- localized files: 331 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 815 passed, 0 failed.
+Current expected full-suite result: 830 passed, 0 failed.
 
 ## Future work
 
@@ -127,3 +127,5 @@ The persisted Show nebula background setting uses ID 785 in all six languages. I
 Camera commands use IDs 786–790 for View, Zoom in/out, Reset view and Center selected item in en/de/es/fr/ja/ru. Help ID 547 now describes zero as Fit. Native browser clicks and screenshots verify all six translated dialogs. Current resources: 327 IDs per language; current full suite: 803 passed.
 
 Map scroll bars use IDs 791–792 for horizontal/vertical hover hints in all six supported languages. Help ID 548 now includes Alt dragging and retains middle dragging/wheel zoom. Browser interactions and translated hint/help screenshots passed in en/de/es/fr/ja/ru. Current resources: 329 IDs per language; full suite: 815 passed.
+
+The overlapping-map-object chooser uses IDs 793–794 for its heading and selection/cancel help in en/de/es/fr/ja/ru. Previous/Next, unknown Ship/Fleet labels and marked-for-scrap status reuse translated resources. Object names remain user content; hidden enemy names are never substituted into chooser rows/tooltips. Actual translated chooser/page/target screenshots and interactions passed in all six languages. Current resources: 331 IDs per language; full suite: 830 passed.

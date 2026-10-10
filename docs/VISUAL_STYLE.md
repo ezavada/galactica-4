@@ -122,3 +122,7 @@ Compact zoom minus/plus icons join Menu/Home/Fit in the existing 44×30 grouped 
 ### Map scroll bars
 
 Twelve-pixel neutral scroll tracks sit at the bottom/right edges without moving the compact map controls. Proportional thumbs use the existing subdued button style; small geometric arrows show both directions, with translated hover hints. Thumb/track state follows the camera and disabled fitted axes remain visible. Offscreen selected objects keep their inspector but suppress map action arcs, preventing edge-clamped buttons from covering the panel. Before/after maps, panned axes, translated hints and smaller CSS viewport screenshots were inspected in all six languages. Evidence: `/private/tmp/galactica-parity/scrollbars-{before,after}`.
+
+### Overlapping map objects
+
+A neutral gradient chooser sits near the click and fits the screen. Up to six measured rows per page show cached 2× star/ship/fleet/rendezvous icons and numbered shortcuts. Full names remain available in hover hints. The current selection is highlighted; allied plotted courses use bold labels and allied scrap orders show a localized status. Unknown mobile names stay generic. Pending target hints do not cover the chooser, and Escape leaves the command ready for another target. Translated chooser, paging, scaled docked markers, rendezvous target and smaller CSS viewport screenshots were inspected. Ordinary system before/after images match exactly. Evidence: `/private/tmp/galactica-parity/selection-{before,after}`.

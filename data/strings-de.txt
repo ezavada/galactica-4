@@ -405,3 +405,7 @@
 # Map scroll bars
 791	Horizontal scrollen
 792	Vertikal scrollen
+
+# Overlapping map objects
+793	Objekt auswählen
+794	Eintrag wählen; Esc bricht ab
