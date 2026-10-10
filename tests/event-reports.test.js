@@ -63,8 +63,8 @@ module.exports=function(){test.describe('V3 last-turn event reports and subjects
     });
     test.it('focuses a newly colonized star after the colony ship has been consumed',()=>{
         const {game,home}=fixture();const colony=game.factory.createShip(0,0,'colony',home,true),star=game.factory.createStar(100,0,'New colony');star.owner=0;
-        test.assertTrue(game.colonizeStar(star,colony));test.assertFalse(game.allShips.includes(colony));test.assertEqual(game.attention.pending().length,1);
-        game.attention.next();test.assertTrue(game.selectedObject===star);test.assertEqual(game.attention.pending().length,0);
+        test.assertTrue(game.colonizeStar(star,colony));test.assertFalse(game.allShips.includes(colony));test.assertEqual(game.attention.pending().length,2);test.assertEqual(game.overlay.type,'report');game.handleKeyPress(pdg.key_Escape);test.assertEqual(game.attention.pending().length,0);
+        test.assertFalse(game.attention.next());test.assertTrue(game.selectedObject===star);test.assertEqual(game.attention.pending().length,0);
     });
     test.it('lets a system report select its star without inventing another automatic request',()=>{
         const {game,home}=fixture();game.noteworthyEvent(home,Common.EventType.TECH_LEVEL_UP,home.techLevel);

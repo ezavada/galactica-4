@@ -602,3 +602,7 @@
 # Rendezvous fleet formation notices
 950	Tu nueva flota ha comenzado a formarse en {0}. Dale un nombre.
 951	{0} ha comenzado a formar una nueva flota en {1}.
+
+# Neutral colony reports
+952	¡Has colonizado el sistema estelar deshabitado {0}!
+953	{0} ha colonizado el sistema estelar deshabitado {1}.

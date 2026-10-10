@@ -602,3 +602,7 @@
 # Rendezvous fleet formation notices
 950	Ihre neue Flotte beginnt sich bei {0} zu sammeln. Bitte benennen Sie sie.
 951	{0} beginnt bei {1} eine neue Flotte zu bilden.
+
+# Neutral colony reports
+952	Sie haben das unbewohnte Sternsystem {0} kolonisiert!
+953	{0} hat das unbewohnte Sternsystem {1} kolonisiert.

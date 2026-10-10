@@ -75,7 +75,7 @@ module.exports=()=>test.describe('V3 individual destruction reports',()=>{
  });
  test.it('does not report consumed colonies or repeat a ship removal, and honors reduced motion',()=>{
   const f=fixture(),neutral=f.game.factory.createStar(1000,1000,'Neutral'),colony=f.game.factory.createShip(0,0,'colony',f.homes[0],true);
-  f.game.colonizeStar(neutral,colony);test.assertFalse(f.game.eventLog.some(e=>e.destruction));
+  f.game.colonizeStar(neutral,colony);test.assertFalse(f.game.eventLog.some(e=>e.destruction));test.assertNull(f.game.getReportDestructionPosition(f.game.eventLog.find(e=>e.colonization)));f.game.handleKeyPress(pdg.key_Escape);
   f.game.removeDestroyedShip(f.weak,1);const count=f.game.eventLog.length;f.game.removeDestroyedShip(f.weak,1);test.assertEqual(f.game.eventLog.length,count);
   f.display.visualEffects.reducedMotion=true;f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);test.assertEqual(f.game.turn,1);
  });

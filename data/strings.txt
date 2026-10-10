@@ -602,3 +602,7 @@
 # Rendezvous fleet formation notices
 950	Your new fleet has begun to form at {0}. Please name it.
 951	{0} has begun forming a new fleet at {1}.
+
+# Neutral colony reports
+952	You have colonized the uninhabited star system {0}!
+953	{0} colonized the uninhabited star system {1}.

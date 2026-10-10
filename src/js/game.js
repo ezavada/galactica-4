@@ -1014,7 +1014,7 @@ class Game {
     }
 
     hasReplayableReport(event) {
-        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair || event.rendezvousFormation));
+        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair || event.rendezvousFormation || event.colonization));
     }
 
     queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense)), manual = false) {
@@ -3210,12 +3210,26 @@ class Game {
         star.setScannerRange(this.rules.getScanRangeForTechLevel(star.techLevel));
         this.applyNewColonyDefaults(star, previousOwner);
 
-        const eventType = previousOwner ? Common.EventType.STAR_CAPTURED : Common.EventType.STAR_COLONIZED;
         if(previousOwner)this.recordOccupationReports(star, colonyShip.owner, previousOwner, 'capture');
-        else this.noteworthyEvent(colonyShip, eventType, star);
+        else this.recordColonizationReports(star);
         if(!previousOwner)this.requestColonySetup(star);
         this.removeDestroyedShip(colonyShip, colonyShip.owner, false);
         return true;
+    }
+
+    recordColonizationReports(star) {
+        const owner=star.owner,ownerName=this.players[owner] && this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
+        return Object.keys(this.players).map(Number).filter(recipient=>recipient>0 && this.players[recipient]).map(recipient=>{
+            const observer=recipient!==owner;
+            const event=this.recordEvent(I18n.getString(612,'Colonization'),observer?
+                I18n.formatString(953,'{0} colonized the uninhabited star system {1}.',ownerName,star.name):
+                I18n.formatString(952,'You have colonized the uninhabited star system {0}!',star.name),
+                {type:Common.EventType.STAR_COLONIZED,subject:star,position:star,recipient});
+            event.colonization={owner,ownerName,starName:star.name};event.observer=observer;
+            this.attention.requestEvent(event);
+            if(!observer || this.showEnemyEvents && !this.movementTurn)this.queueReport(event);
+            return event;
+        });
     }
 
     recordSystemDefenseLosses(star, attackerOwner, defenderOwner, shipsLost) {
