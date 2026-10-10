@@ -1633,27 +1633,43 @@ class Display {
 
     getFleetDetailsLayout(fleet) {
         const knowledge = this.getFleetKnowledge(fleet);
-        const visibleShips = knowledge.contents ? (fleet.ships || []).slice(0, 6) : [];
+        const members = knowledge.contents ? fleet.ships || [] : [];
         const transferTargets = this.game.getFleetTransferTargets ? this.game.getFleetTransferTargets(fleet) : [];
         const shipTypes = {};
-        for (const ship of knowledge.contents ? fleet.ships || [] : []) {
-            shipTypes[ship.type] = (shipTypes[ship.type] || 0) + 1;
-        }
+        for (const ship of members) shipTypes[ship.type] = (shipTypes[ship.type] || 0) + 1;
         const compositionRows = Object.entries(shipTypes);
-        const memberRowHeight = 22;
-        const extraMemberHeight = visibleShips.length > 0 ? 16 + (visibleShips.length * memberRowHeight) : 0;
-        const transferHeight = transferTargets.length > 0 ? 8 : 0;
+        const memberRowHeight = 34;
         const destinationHeight = knowledge.full && fleet.destination ? 18 : 0;
         const patrolHeight=(fleet.isOnPatrol() || fleet.isToBeScrapped()) && this.game.canViewCourse(fleet)?18:0;
-        const height = 170 + (compositionRows.length * 16) + extraMemberHeight + transferHeight + destinationHeight + patrolHeight;
+        const baseHeight = 170 + compositionRows.length*16 + destinationHeight + patrolHeight;
+        const screen=this.getScreenSize();
+        const pageSize=Math.max(1,Math.min(6,Math.floor((screen.height-90-baseHeight-32-36)/memberRowHeight)));
+        const pages=Math.max(1,Math.ceil(members.length/pageSize));
+        const page=Math.max(0,Math.min(Number.isInteger(this.game.fleetMemberPage)?this.game.fleetMemberPage:0,pages-1));
+        const visibleShips=members.slice(page*pageSize,(page+1)*pageSize);
+        const memberHeight=visibleShips.length ? 32+visibleShips.length*memberRowHeight : 0;
+        const height=baseHeight+memberHeight+(pages>1?36:0);
+        const rect=this.getAnchoredPanelRect(fleet,Math.min(350,screen.width-40),height);
+        rect.y=this.clamp(rect.y,80,screen.height-height-10);
         return {
-            rect: this.getAnchoredPanelRect(fleet, 310, height),
-            visibleShips,
-            transferTargets,
-            compositionRows,
-            memberRowHeight,patrolHeight,knowledge,
-            memberStartOffset: 18 + 18 + 18 + 22 + (compositionRows.length * 16) + destinationHeight + patrolHeight + 30
+            rect,
+            visibleShips,transferTargets,compositionRows,memberRowHeight,patrolHeight,knowledge,
+            page,pageSize,pages,
+            memberStartOffset:18+18+18+22+compositionRows.length*16+destinationHeight+patrolHeight+46
         };
+    }
+
+    getFleetMemberPageRegions(fleet,layout=this.getFleetDetailsLayout(fleet)) {
+        if(layout.pages<2)return [];
+        const rect=layout.rect,y=rect.y+rect.height-34;
+        const regions=[];
+        if(layout.page>0)regions.push({rect:{x:rect.x+12,y,width:this.getButtonWidth(I18n.getString(690,'Previous'),null,{size:10,minWidth:80}),height:24},
+            label:I18n.getString(690,'Previous'),action:{type:'fleetMemberPage',fleet,page:layout.page-1}});
+        if(layout.page<layout.pages-1){
+            const label=I18n.getString(691,'Next'),width=this.getButtonWidth(label,null,{size:10,minWidth:80});
+            regions.push({rect:{x:rect.x+rect.width-12-width,y,width,height:24},label,action:{type:'fleetMemberPage',fleet,page:layout.page+1}});
+        }
+        return regions;
     }
 
     getRendezvousDetailsLayout(rendezvous) {
@@ -2309,9 +2325,7 @@ class Display {
     }
 
     getFleetMemberActionRegions(fleet = this.game.getSelectedFleet ? this.game.getSelectedFleet() : null) {
-        if (!fleet || !this.game.canHumanControl(fleet)) {
-            return [];
-        }
+        if (!fleet) return [];
 
         const layout = this.getFleetDetailsLayout(fleet);
         const rect = layout.rect;
@@ -2319,25 +2333,26 @@ class Display {
         let y = this.getPanelContentStartY(rect) + layout.memberStartOffset;
         const transferTargets = layout.transferTargets;
         const primaryTransferTarget = transferTargets.length > 0 ? transferTargets[0] : null;
-        const regions = [];
+        const regions = this.getFleetMemberPageRegions(fleet,layout);
+        const owned=this.game.canHumanControl(fleet);
 
         const removeWidth=this.getButtonWidth(this.STR.remove,null,{size:9,minWidth:58});
         const transferWidth=this.getButtonWidth(this.STR.transfer,null,{size:9,minWidth:58});
         for (const ship of layout.visibleShips) {
-            const rowRect = { x, y: y - 14, width: rect.width - 24, height: 20 };
-            if (primaryTransferTarget) {
+            const rowRect = { x, y: y - 14, width: rect.width - 24, height: layout.memberRowHeight-2 };
+            if (owned && primaryTransferTarget) {
                 regions.push({
                     rect: { x: rect.x + rect.width - 14 - removeWidth - 6 - transferWidth, y: y - 16, width: transferWidth, height: 20 },
                     action: { type: 'transferFleetShip', ship, targetFleet: primaryTransferTarget }
                 });
             }
-            regions.push({
-                rect: { x: rect.x + rect.width - 14 - removeWidth, y: y - 16, width: removeWidth, height: 20 },
+            if(owned)regions.push({
+                rect: { x: rect.x + rect.width - 14 - removeWidth, y: y - 14, width: removeWidth, height: 20 },
                 action: { type: 'removeFleetShip', fleet, ship }
             });
             regions.push({
                 rect: rowRect,
-                action: { type: 'selectObject', object: ship }
+                action: { type: 'selectFleetMember', fleet, ship }
             });
             y += layout.memberRowHeight;
         }
@@ -2857,13 +2872,13 @@ class Display {
             y += 2;
             this.drawDivider(x, y - 8, rect.width - 24);
             this.drawTextLine(this.STR.contents, x, y + 7, 'lightgray', 12);
-            y += 28;
+            this.drawTextLine(this.fitShipDiagnosticText(`${this.STR.techLevel} / ${this.STR.speed} / ${this.STR.power}`,rect.width-24,9),x,y+22,'gray',9);
+            y += 44;
 
             const transferTargets = layout.transferTargets;
             const memberRegions = this.getFleetMemberActionRegions(fleet);
             for (const ship of layout.visibleShips) {
-                const shipName = this.getShipDiagnostics(ship).title;
-                this.drawTextLine(this.trimText(shipName, 24), x, y, 'lightgray', 10);
+                const member = this.getShipDiagnostics(ship);
                 const removeRegion = memberRegions.find(region =>
                     region.action.type === 'removeFleetShip' &&
                     region.action.ship === ship
@@ -2872,6 +2887,13 @@ class Display {
                     region.action.type === 'transferFleetShip' &&
                     region.action.ship === ship
                 );
+                const nameRight=Math.min(rect.x+rect.width-12,removeRegion?removeRegion.rect.x-6:Infinity,transferRegion?transferRegion.rect.x-6:Infinity);
+                this.drawTextLine(this.fitShipDiagnosticText(member.title,nameRight-x,10),x,y,'lightgray',10);
+                this.drawTextLine(`${member.tech} / ${member.speed} / ${member.power}`,x,y+13,'gray',9);
+                const healthText=I18n.getString(698,'Health:')+' '+member.health;
+                const healthX=x+140;
+                this.drawTextLine(healthText,healthX,y+13,'gray',9);
+                if(member.healthRatio!==null)this.drawBar(healthX+this.port.getTextWidth(healthText,9)+8,y+8,40,4,member.healthRatio,'green');
                 if (transferTargets.length > 0 && transferRegion) {
                     this.drawUIButton(transferRegion.rect, this.STR.transfer, null, { size: 9, radius: 7 });
                 }
@@ -2881,9 +2903,10 @@ class Display {
                 y += layout.memberRowHeight;
             }
 
-            if ((fleet.ships || []).length > layout.visibleShips.length) {
-                this.drawTextLine(I18n.formatString(657, '+{0} more', (fleet.ships || []).length - layout.visibleShips.length), x, y, 'gray', 10);
-            }
+        }
+        if(layout.pages>1) {
+            for(const button of this.getFleetMemberPageRegions(fleet,layout))this.drawUIButton(button.rect,button.label,null,{size:10});
+            this.drawTextLine(`${layout.page+1} / ${layout.pages}`,rect.x+rect.width/2-14,rect.y+rect.height-17,'gray',10);
         }
         this.drawContextButtonArc(fleet, rect);
     }
@@ -3411,6 +3434,9 @@ class Display {
         this.drawMainUI(game.turn, game.stars.length, game.allShips.length);
         this.drawMapDisplayLegend();
         
+        // Map help belongs behind inspectors so tall panels remain readable.
+        this.drawInstructions();
+
         // Draw selected object details
         this.drawTransitionLayer('inspector',game.selectedObject && !game.pendingCourseEdit?game.selectedObject:null,()=>{
         if (game.selectedObject && !game.pendingCourseEdit) {
@@ -3427,8 +3453,6 @@ class Display {
         }
         
         });
-        // Draw instructions
-        this.drawInstructions();
         this.drawMapScrollbars();
 
         // Draw command UI windows above the map/help layer

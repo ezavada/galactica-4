@@ -20,6 +20,7 @@ const runVisibilityCalculatorTests = require('./visibility-calculator.test.js');
 const runSpatialPartitionTests = require('./spatial-partition.test.js');
 const runFogOfWarIntegrationTests = require('./fog-of-war-integration.test.js');
 const runSpatialPartitioningPerformanceTests = require('./spatial-partitioning-performance.test.js');
+const runFleetMemberTests=require('./fleet-members.test.js');
 const runFleetVisibilityTests=require('./fleet-visibility.test.js');
 const runFleetTests = require('./fleet.test.js');
 const runCombatTests = require('./combat.test.js');
@@ -104,6 +105,7 @@ try {
     console.log('\n🚢 Running Fleet Mechanics Tests...');
     runFleetTests();
     runFleetVisibilityTests();
+    runFleetMemberTests();
 
     console.log('\n⚔️ Running Combat System Tests...');
     runCombatTests();

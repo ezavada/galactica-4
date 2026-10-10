@@ -30,8 +30,8 @@ module.exports=()=>test.describe('V3 fleet information visibility',()=>{
         const data=display.getFleetDiagnostics(fleet),layout=display.getFleetDetailsLayout(fleet);
         test.assertEqual(data.title,'Private Fleet');test.assertEqual(data.count,'2');test.assertTrue(data.power!=='?');
         test.assertEqual(layout.visibleShips.length,2);test.assertEqual(layout.compositionRows.length,2);
-        test.assertFalse(layout.knowledge.full);test.assertEqual(display.getFleetMemberActionRegions(fleet).length,0);
-        test.assertEqual(layout.memberStartOffset,18+18+18+22+32+30);
+        test.assertFalse(layout.knowledge.full);test.assertEqual(display.getFleetMemberActionRegions(fleet).filter(r=>['removeFleetShip','transferFleetShip'].includes(r.action.type)).length,0);
+        test.assertEqual(layout.memberStartOffset,18+18+18+22+32+46);
     });
     test.it('does not render hidden fleet names, members, stats, composition or orders',()=>{
         const {display,fleet}=fixture();const text=[];
@@ -61,7 +61,7 @@ module.exports=()=>test.describe('V3 fleet information visibility',()=>{
         fleet.setVisibilityTo(1,Common.VisibilityLevel.TECH);test.assertNotNull(display.getOwnerPanelStyle(fleet));
         game.config.omniscient=true;layout=display.getFleetDetailsLayout(fleet);
         test.assertTrue(layout.knowledge.full);test.assertEqual(layout.visibleShips.length,2);
-        test.assertEqual(display.getFleetMemberActionRegions(fleet).length,0);
+        test.assertEqual(display.getFleetMemberActionRegions(fleet).filter(r=>['removeFleetShip','transferFleetShip'].includes(r.action.type)).length,0);
     });
     test.it('uses the active human and translated generic names and formatted speed in all six languages',()=>{
         const {display,fleet,game}=fixture(),language=pdg.res.getLanguage();

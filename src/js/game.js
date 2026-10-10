@@ -56,6 +56,7 @@ class Game {
         this.uiSliderDrag = null;
         this.uiMapScrollDrag = null;
         this.mapSelectionPicker = null;
+        this.fleetMemberPage = 0;
         this.colonyDefaultsDraft = null;
         this.systemShipWindowStar = null;
         this.systemShipPage = 0;
@@ -1378,6 +1379,7 @@ class Game {
     }
 
     setSelectedObject(object) {
+        if (this.selectedObject !== object) this.fleetMemberPage = 0;
         this.selectedObject = object;
         this.attention.attend(object);
         if (this.display) {
@@ -1865,6 +1867,20 @@ class Game {
                 return true;
             case 'beginRename':
                 return this.beginRenameObject(action.object);
+            case 'fleetMemberPage': {
+                const fleet=this.getSelectedFleet();
+                if (!fleet || fleet!==action.fleet || !this.display || !Number.isInteger(action.page)) return false;
+                const layout=this.display.getFleetDetailsLayout(fleet);
+                if (!layout.knowledge.contents || action.page<0 || action.page>=layout.pages) return false;
+                this.fleetMemberPage=action.page;
+                return true;
+            }
+            case 'selectFleetMember': {
+                const fleet=this.getSelectedFleet();
+                if (!fleet || fleet!==action.fleet || !this.display || !this.display.getFleetDetailsLayout(fleet).visibleShips.includes(action.ship)) return false;
+                this.setSelectedObject(action.ship);
+                return true;
+            }
             case 'removeFleetShip':
                 return this.separateShipFromFleet(action.fleet, action.ship);
             case 'transferFleetShip':
