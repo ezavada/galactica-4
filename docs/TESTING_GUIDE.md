@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1073
-Passed: 1073 ✓
+Total: 1079
+Passed: 1079 ✓
 Failed: 0 ✗
 ```
 
@@ -232,3 +232,5 @@ Destruction feedback: six regressions in `tests/destruction-feedback.test.js` co
 Fleet casualty attribution: two regressions in `tests/combat.test.js` execute actual arrivals and assert that space/ground attacker losses are attributed to the opposing player and defender losses to the attacker. Both full native suites pass (1063 tests); logs `/private/tmp/galactica-fleet-attribution-{tests,native-tests}.log`. No rendering or localized strings changed.
 
 Individual destruction reports: ten regressions in tests/destruction-reports.test.js cover actual standalone/fleet/nested arrivals, suppressed own-system defenders and members, partial fleet survival, actual multi-owner killers, opponent attribution, animation-only completion, retained narrative replay, private saves, quiet autoplay, consumed colonies, duplicate removal, reduced motion and all six translations. Both full suites pass (1073 tests). Actual browser before/after ship/fleet/nested winner and loser flows pass in all six languages; reviewed captures /private/tmp/galactica-parity/destruction-notices-{before,after}. Logs /private/tmp/galactica-destruction-notices-{tests,native-tests}.log and /private/tmp/galactica-destruction-notices-{before,after}-<language>.log.
+
+Observer capture reports: six regressions in tests/capture-observers.test.js execute actual third-party invasions and verify hidden/detected/allied/all-visible access, private resistance/destruction, saved snapshots and replay, no automatic modal/attention request, failed/neutral/resistance-only outcomes and six-language layouts at 320×340. Full native suites pass (1079 tests). Actual before/after browser hidden/detected/all-visible Events, lost detection, View report and Go to pass in all six languages; reviewed captures /private/tmp/galactica-parity/capture-observers-{before,after}. Logs /private/tmp/galactica-capture-observers-{tests,native-tests}.log and /private/tmp/galactica-capture-observers-{before,after}-<language>.log.

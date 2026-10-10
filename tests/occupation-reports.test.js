@@ -20,7 +20,7 @@ module.exports=()=>test.describe('V3 system resistance and capture reports',()=>
   test.assertEqual(f.game.overlay.eventId,events[0].id);test.assertFalse(f.game.eventLog.some(e=>e.type===Common.EventType.STAR_CAPTURED));
  });
  test.it('queues resistance then capture reports after actual fleet arrival, retains the old owner and consumes the colony',()=>{
-  const f=fixture(),events=invade(f);test.assertEqual(f.target.owner,1);test.assertEqual(events.length,4);test.assertFalse(f.game.allShips.includes(f.colonyShip));
+  const f=fixture(),events=invade(f);test.assertEqual(f.target.owner,1);test.assertEqual(events.length,5);test.assertFalse(f.game.allShips.includes(f.colonyShip));
   test.assertEqual(events[0].occupation.kind,'defendersLost');test.assertEqual(events[2].occupation.kind,'capture');
   test.assertContains(events[2].message,'You took');test.assertContains(events[2].message,'Defender 星');test.assertContains(events[3].message,'You lost');test.assertContains(events[3].message,'Attacker Д');
   for(const e of events){test.assertEqual(e.occupation.previousOwner,2);test.assertEqual(e.occupation.attackerOwner,1);test.assertTrue(e.subject===f.target);}
@@ -40,8 +40,8 @@ module.exports=()=>test.describe('V3 system resistance and capture reports',()=>
   f=fixture();f.target.owner=0;f.fleet.move();test.assertEqual(f.target.owner,1);test.assertFalse(f.game.eventLog.some(e=>e.occupation));
   test.assertTrue(f.game.eventLog.some(e=>e.type===Common.EventType.RENAME_COLONY));
  });
- test.it('keeps unrelated players private even in all-visible mode and preserves report snapshots and queues in saves',()=>{
-  const outsider=fixture(2,3);outsider.game.config.omniscient=true;invade(outsider);test.assertFalse(outsider.game.getEventRows().some(e=>e.occupation));test.assertEqual(outsider.game.overlay,null);
+ test.it('keeps resistance private while saving public capture and participant snapshots',()=>{
+  const outsider=fixture(2,3);outsider.game.config.omniscient=true;invade(outsider);test.assertFalse(outsider.game.getEventRows().some(e=>e.occupation&&e.occupation.kind==='defendersLost'));test.assertEqual(outsider.game.getEventRows().filter(e=>e.occupation&&e.occupation.side==='observer').length,1);test.assertEqual(outsider.game.overlay,null);
   const f=fixture();invade(f);const snapshot=JSON.stringify(f.game.eventLog.filter(e=>e.occupation).map(e=>[e.message,e.occupation]));
   f.target.name='Renamed';f.game.players[2].name='Changed';const loaded=Save.restore(Save.serialize(f.game));
   test.assertEqual(JSON.stringify(loaded.eventLog.filter(e=>e.occupation).map(e=>[e.message,e.occupation])),snapshot);

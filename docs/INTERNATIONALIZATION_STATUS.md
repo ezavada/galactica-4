@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 1073 passed, 0 failed.
+Current expected full-suite result: 1079 passed, 0 failed.
 
 ## Future work
 
@@ -191,3 +191,5 @@ First-detection ownership rendering reuses existing translated inspectors and co
 Destruction effects introduce no new strings or bitmap assets. Existing participant battle/resistance messages and report controls remain translated (467 IDs per language). Actual browser eight-frame winner/loser playback, completed messages, Events replay and ground resistance pass in en/de/es/fr/ja/ru. Frame sequences and translated final dialogs were inspected under `/private/tmp/galactica-parity/destruction-{before,after}`. Full suites: 1061 passed on release/current native PDG. Individual destruction narrative variants and sound remain separate parity work.
 
 Individual ship/fleet destruction notices add IDs 933–936 in all six languages (471 IDs per file). Separate winner/loser narratives preserve literal ship/fleet/faction names and localize coordinate decimals. Existing translated Events, replay and navigation controls are reused. Actual browser ship/fleet/nested winner and loser report layouts were inspected in en/de/es/fr/ja/ru alongside before/after comparisons and automatic animation peaks. Evidence: /private/tmp/galactica-parity/destruction-notices-{before,after}; both native suites pass (1073 tests). Other event variants and sound remain pending.
+
+Observer capture narrative ID 937 is translated in en/de/es/fr/ja/ru (472 IDs per file). It preserves literal system and attacker/previous-owner names, reusing translated Events, replay and navigation controls. Complete layouts at 320×340 pass unit checks; actual browser hidden/detected/all-visible capture, Events replay, Go to and lost-detection flows pass in all languages. Before/after, event lists and complete translated reports were inspected under /private/tmp/galactica-parity/capture-observers-{before,after}. Both native suites pass (1079 tests). Enemy-move playback and other event variants remain pending.

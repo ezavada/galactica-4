@@ -577,3 +577,4 @@
 934	Vous avez perdu votre vaisseau {0} dans une bataille contre {1} à {2}.
 935	Vous avez vaincu {1} dans une bataille à {2}, détruisant la flotte {0} !
 936	Vous avez perdu votre flotte {0}, anéantie dans une bataille contre {1} à {2}.
+937	{1} a pris le système stellaire {0} à {2}.

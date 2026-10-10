@@ -577,3 +577,4 @@
 934	Du hast dein Raumschiff {0} in einer Schlacht gegen {1} bei {2} verloren.
 935	Du hast {1} in einer Schlacht bei {2} besiegt und die Flotte {0} zerstört!
 936	Deine Flotte {0} wurde in einer Schlacht gegen {1} bei {2} vernichtet.
+937	{1} hat das Sternsystem {0} von {2} erobert.

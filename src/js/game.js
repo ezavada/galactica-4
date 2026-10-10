@@ -1097,7 +1097,8 @@ class Game {
         if(event.recipient!==undefined && event.recipient!==player)return false;
         if(event.type===Common.EventType.RENAME_COLONY && (!this.stars.includes(event.subject) || event.subject.owner!==player))return false;
         const subject=event.subject;
-        return !subject || event.recipient===player || this.config.omniscient ||
+        // Broadcast observer copies must still satisfy fog; participant copies bypass it.
+        return !subject || (event.recipient===player && !event.observer) || this.config.omniscient ||
             subject.owner===player || subject.isAllyOf && subject.isAllyOf(player) ||
             subject.getVisibilityTo && subject.getVisibilityTo(player)>Common.VisibilityLevel.NONE;
     }
@@ -3185,16 +3186,20 @@ class Game {
         const playerName=owner=>this.players[owner] && this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
         const snapshot={kind,starName:star.name,attackerOwner,previousOwner,
             attackerName:playerName(attackerOwner),defenderName:playerName(previousOwner)};
-        return [attackerOwner,previousOwner].map(recipient=>{
-            const winner=recipient===attackerOwner;
-            const id=kind==='capture'?(winner?929:930):(winner?931:932);
+        const recipients=[attackerOwner,previousOwner];
+        if(kind==='capture')recipients.push(...Object.keys(this.players).map(Number).filter(owner=>
+            owner>0 && this.players[owner] && !recipients.includes(owner)));
+        return recipients.map(recipient=>{
+            const winner=recipient===attackerOwner, observer=recipient!==attackerOwner && recipient!==previousOwner;
+            const id=observer?937:kind==='capture'?(winner?929:930):(winner?931:932);
             const event=this.recordEvent(I18n.getString(607,'Combat'),
-                I18n.formatString(id, '',snapshot.starName,winner?snapshot.defenderName:snapshot.attackerName),
+                I18n.formatString(id, '',snapshot.starName,observer?snapshot.attackerName:winner?snapshot.defenderName:snapshot.attackerName,
+                    snapshot.defenderName),
                 {type:kind==='capture'?Common.EventType.STAR_CAPTURED:Common.EventType.DEFENDERS_LOST,
                     subject:star,recipient,position:star});
-            event.occupation={...snapshot,side:winner?'attacker':'defender'};
-            this.queueReport(event);
-            this.attention.requestEvent(event);
+            event.occupation={...snapshot,side:observer?'observer':winner?'attacker':'defender'};
+            if(observer)event.observer=true;
+            else {this.queueReport(event);this.attention.requestEvent(event);}
             return event;
         });
     }
