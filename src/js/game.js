@@ -969,8 +969,16 @@ class Game {
             return false;
         }
 
-        if(overlay.automaticObserver && (!this.showEnemyEvents ||
-                !this.isEventAccessible(this.eventLog.find(event=>event.id===overlay.eventId))))return false;
+        if(overlay.automaticObserver) {
+            const event=this.eventLog.find(event=>event.id===overlay.eventId);
+            if(!this.showEnemyEvents) {
+                // V3 processes skipped enemy autoshow messages without selecting
+                // their subjects. Keep the report available for manual replay.
+                if(event){event.handled=true;this.attention.handleEvent(event);}
+                return false;
+            }
+            if(!this.isEventAccessible(event))return false;
+        }
         if(['outcome','report'].includes(overlay.type)){this.endUIWindowDrag();this.endMapScrollDrag();this.endUISliderDrag();if(this.uiWindow==='endTurnConfirm')this.uiWindow=null;}
         this.overlay = {
             ...overlay,
@@ -1034,13 +1042,16 @@ class Game {
     }
 
     queueObserverReports() {
-        if(!this.showEnemyEvents)return false;
         let queued=false;
         const retained=new Set(this.getEventRows());
         for(const event of this.eventLog) {
             if(event.turn!==this.turn && !retained.has(event))continue;
             if(!event.observer || event.automatic===false || event.handled || this.overlay && this.overlay.eventId===event.id ||
                     this.overlayQueue.some(overlay=>overlay.eventId===event.id))continue;
+            if(!this.showEnemyEvents) {
+                if(this.isEventAccessible(event)){event.handled=true;this.attention.handleEvent(event);}
+                continue;
+            }
             queued=this.queueReport(event) || queued;
         }
         return queued;

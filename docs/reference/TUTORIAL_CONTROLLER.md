@@ -260,3 +260,29 @@ that exact rendezvous. They verify every unrelated star retains its original
 name. The corrected longer English walkthrough reaches lesson 57 but does not
 yet select the newly built fleet for its contents instruction. That transition
 still needs source verification; the full tutorial remains unfinished.
+
+
+### Skipped enemy playback and a complete guided route
+
+V3 processes disabled enemy autoshow reports by calling `MessageHandled`
+without selecting their subjects (`GalacticaDoc.cp:1629–1633`). V4 now does
+that when draining already queued observer reports and when processing a turn
+with enemy playback disabled. The reports remain accessible for manual replay;
+manual-only fleet notices are not skipped by this autoshow rule.
+
+The tutorial's lesson-55 acknowledgment now skips the remaining enemy reports
+before the first automatic attention request. That request selects the player's
+new Alpha fleet, rather than an enemy colony, and the real Exchange ships action
+advances lesson 57. Both native lanes pass 1,290 tests, including an actual
+formation/report/attention/contents regression and save/manual-replay checks.
+
+The full normal guided route is verified in en/de/es/fr/ja/ru using real setup,
+name entry, map/production controls, order and destination selection (including
+the overlapping-object picker), reports, attention, comparison, fleet contents
+and instruction buttons through Finish. Browser input uses the hidden internal
+entry only to launch; it does not jump lesson pages or force game/simulation
+state. Startup's page-2 exception and optional wrong-course recovery page 18
+are covered separately by model/runtime tests. Screenshots are under
+`/private/tmp/galactica-parity/tutorial-skipped-observers/<language>` and logs
+are `/private/tmp/galactica-tutorial-skipped-observers-<language>.log`.
+Public launch, illustrations and complete tutorial save/resume remain open.

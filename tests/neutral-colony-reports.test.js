@@ -28,6 +28,16 @@ module.exports=()=>test.describe('V3 neutral-colony owner and observer reports',
   const update=f.game.visibilityCalculator.updateAllVisibility.bind(f.game.visibilityCalculator);let refreshed=false;f.game.visibilityCalculator.updateAllVisibility=()=>{test.assertNull(f.game.overlay);refreshed=true;return update();};
   f.game.endTurn();test.assertTrue(refreshed);test.assertEqual(f.game.turn,2);test.assertDefined(f.game.eventLog.find(e=>e.id===f.game.overlay.eventId).colonization);test.assertTrue(f.game.overlay.automaticObserver);
  });
+ test.it('processes disabled automatic observer reports without stealing attention and retains manual replay',()=>{
+  const f=fixture(2);f.target.setVisibilityTo(1,Common.VisibilityLevel.SPEED);f.game.showEnemyEvents=false;const selected=f.game.stars[0];f.game.setSelectedObject(selected);
+  const event=arrive(f).find(e=>e.recipient===1);test.assertFalse(event.handled);test.assertFalse(f.game.queueObserverReports());test.assertTrue(event.handled);test.assertEqual(f.game.attention.pending().length,0);test.assertTrue(f.game.selectedObject===selected);test.assertNull(f.game.overlay);
+  const loaded=Save.restore(Save.serialize(f.game)),saved=loaded.eventLog.find(e=>e.id===event.id);test.assertTrue(saved.handled);loaded.turn=2;loaded.showEnemyEvents=true;test.assertFalse(loaded.queueObserverReports());test.assertTrue(loaded.replayReport(saved));test.assertFalse(loaded.overlay.automaticObserver);
+ });
+ test.it('finishes queued enemy reports silently when playback is disabled during an owned report',()=>{
+  const f=fixture(2);f.target.setVisibilityTo(1,Common.VisibilityLevel.SPEED);f.game.setSelectedObject(f.game.stars[0]);f.game.overlay={type:'lab',classIndex:1};
+  const event=arrive(f).find(e=>e.recipient===1);test.assertEqual(f.game.overlayQueue.length,1);f.game.showEnemyEvents=false;test.assertTrue(f.game.dismissEventPresentation());test.assertNull(f.game.overlay);test.assertEqual(f.game.overlayQueue.length,0);test.assertTrue(event.handled);test.assertEqual(f.game.attention.pending().length,0);test.assertTrue(f.game.selectedObject===f.game.stars[0]);
+  f.game.turn=2;test.assertTrue(f.game.replayReport(event));test.assertFalse(f.game.overlay.automaticObserver);
+ });
  test.it('preserves pending presentation, literal names and recipient privacy through saves and replay',()=>{
   const f=fixture(),event=arrive(f).find(e=>e.recipient===1),message=event.message;f.target.name='Renamed';f.game.players[1].name='Changed';const loaded=Save.restore(Save.serialize(f.game)),saved=loaded.eventLog.find(e=>e.id===event.id);test.assertEqual(saved.message,message);test.assertEqual(saved.colonization.starName,'New 星 $&');test.assertTrue(saved.subject===loaded.stars[3]);test.assertEqual(loaded.overlay.eventId,saved.id);loaded.handleKeyPress(pdg.key_Escape);test.assertTrue(saved.handled);test.assertEqual(loaded.attention.pending().length,1);test.assertEqual(loaded.attention.pending()[0].event.type,Common.EventType.RENAME_COLONY);test.assertTrue(loaded.attention.next());test.assertEqual(loaded.attention.pending().length,0);loaded.turn=2;test.assertTrue(loaded.replayReport(saved));loaded.handleKeyPress(pdg.key_Escape);test.assertEqual(loaded.turn,2);
  });

@@ -20,8 +20,9 @@ module.exports=()=>test.describe('Enemy event playback preference',()=>{
  });
  test.it('queues retained accessible observers once when enabled and skips disabled or hidden queued copies',()=>{
   const f=fixture();f.game.showEnemyEvents=false;const event=capture(f);f.game.executeUIAction({type:'toggleEnemyEvents'});test.assertEqual(f.game.overlay.eventId,event.id);test.assertFalse(f.game.queueObserverReports());
-  const second=capture(f);test.assertEqual(f.game.overlayQueue.length,1);f.game.showEnemyEvents=false;f.game.dismissEventPresentation();test.assertNull(f.game.overlay);test.assertFalse(second.handled);
-  f.game.showEnemyEvents=true;f.target.setVisibilityTo(1,0);test.assertFalse(f.game.queueObserverReports());f.target.setVisibilityTo(1,1);test.assertTrue(f.game.queueObserverReports());
+  const second=capture(f);test.assertEqual(f.game.overlayQueue.length,1);f.game.showEnemyEvents=false;f.game.dismissEventPresentation();test.assertNull(f.game.overlay);test.assertTrue(second.handled);
+  f.game.showEnemyEvents=true;test.assertFalse(f.game.queueObserverReports());test.assertTrue(f.game.replayReport(second));test.assertFalse(f.game.overlay.automaticObserver);f.game.dismissEventPresentation();
+  f.target.setVisibilityTo(1,0);const hidden=capture(f);test.assertFalse(hidden.handled);test.assertFalse(f.game.queueObserverReports());f.target.setVisibilityTo(1,1);test.assertTrue(f.game.queueObserverReports());test.assertEqual(f.game.overlay.eventId,hidden.id);
   f.target.setVisibilityTo(1,0);f.game.dismissEventPresentation();test.assertEqual(f.game.turn,1);
  });
  test.it('defers current-turn observer playback until movement and visibility processing finish',()=>{
