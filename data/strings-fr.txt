@@ -417,3 +417,10 @@
 796	Grouper
 797	Groupe {0}
 798	Flotte parente
+
+# Fleet exchange window
+801	Échanger les vaisseaux
+802	Vaisseaux et flottes
+803	Contenu de la flotte
+804	Nouvelle flotte
+805	Inspecter

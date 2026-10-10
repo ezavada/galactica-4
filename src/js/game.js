@@ -1226,6 +1226,10 @@ class Game {
             return true;
         }
         if(key===pdg.key_Home && this.uiWindow==='menu')return this.executeUIAction({type:'selectHomeStar'});
+        if(this.uiWindow==='fleetExchange') {
+            if(key===pdg.key_Escape)this.uiWindow=null;
+            return true;
+        }
         if(this.uiWindow==='settings' || this.uiWindow==='mapDisplay') {
             if(key===pdg.key_Escape)this.uiWindow=null;
             return true;
@@ -1518,6 +1522,83 @@ class Game {
         return rows;
     }
 
+    canViewFleetExchange(container) {
+        if(this.factory.isStar(container))return this.stars.includes(container) && this.canViewSystemShips(container);
+        return this.factory.isFleet(container) && this.allFleets.includes(container) &&
+            !!this.display && this.display.getFleetKnowledge(container).contents;
+    }
+
+    showFleetExchange(container) {
+        if(!this.canViewFleetExchange(container) || this.mapSelectionPicker || this.pendingMapOrderObject ||
+            this.pendingCourseEdit || this.pendingRendezvousPlacement)return false;
+        this.fleetExchange={container,active:null,selection:null,side:'main',pages:{main:0,sub:0},
+            sort:{key:'name',ascending:true}};
+        this.uiWindow='fleetExchange';return true;
+    }
+
+    getFleetExchangeMembers(container) {
+        if(!this.canViewFleetExchange(container))return [];
+        const members=this.factory.isFleet(container)?container.ships:
+            this.getSystemShipRows(container).filter(row=>!row.member).map(row=>row.object);
+        return members.filter(object=>(this.factory.isFleet(object)?this.allFleets:this.allShips).includes(object) &&
+            !object.isDead() && !object.underConstruction() &&
+            (!this.factory.isFleet(container) || object.fleet===container));
+    }
+
+    getFleetExchangeState() {
+        const state=this.fleetExchange;
+        if(!state || !this.canViewFleetExchange(state.container))return null;
+        const main=this.getFleetExchangeMembers(state.container);
+        if(state.active && (!main.includes(state.active) || !this.factory.isFleet(state.active) || !this.canViewFleetExchange(state.active))) {
+            state.active=null;state.selection=null;
+        }
+        const sub=state.active?this.getFleetExchangeMembers(state.active):[];
+        if(!(state.side==='sub'?sub:main).includes(state.selection))state.selection=null;
+        return {...state,main,sub};
+    }
+
+    selectFleetExchangeMember(side,object) {
+        const state=this.getFleetExchangeState();
+        if(!state || !['main','sub'].includes(side) || !state[side].includes(object))return false;
+        this.fleetExchange.selection=object;this.fleetExchange.side=side;
+        if(side==='main' && this.factory.isFleet(object) && this.canViewFleetExchange(object)) {
+            this.fleetExchange.active=object;this.fleetExchange.pages.sub=0;
+        }
+        return true;
+    }
+
+    canExchangeFleetMember() {
+        const state=this.getFleetExchangeState(),object=state && state.selection;
+        if(!object || !this.canHumanControl(object) || object.isOnPatrol() || object.type==='defense')return false;
+        if(state.side==='main')return state.active?this.canTransferShipToFleet(object,state.active):
+            (this.factory.isStar(state.container) || this.canHumanControl(state.container));
+        if(this.factory.isFleet(state.container))return this.canTransferShipToFleet(object,state.container);
+        return this.canHumanControl(state.active) && !state.active.destination &&
+            state.active.getDockedStar()===state.container;
+    }
+
+    exchangeFleetMember() {
+        if(!this.canExchangeFleetMember())return false;
+        const state=this.getFleetExchangeState(),object=state.selection;
+        let moved=false;
+        if(state.side==='sub') {
+            moved=this.factory.isFleet(state.container)?this.transferShipToFleet(object,state.container):
+                this.separateShipFromFleet(state.active,object);
+        } else if(state.active)moved=this.transferShipToFleet(object,state.active);
+        else {
+            const fleet=this.factory.createFleet(object.x,object.y,object.owner);
+            fleet.star=this.factory.isStar(state.container)?state.container:null;
+            if(!fleet.addShip(object)){this.entityRemoved(fleet);return false;}
+            if(this.factory.isFleet(state.container))state.container.addShip(fleet);
+            this.fleetExchange.active=fleet;
+            this.recordEvent(I18n.getString(566,'Fleets'),I18n.formatString(669,'{0} formed at {1}',
+                this.getObjectDisplayName(fleet),this.getObjectDisplayName(state.container)),{type:Common.EventType.FLEET_FORMED});
+            moved=true;
+        }
+        if(moved)this.fleetExchange.selection=null;
+        this.getFleetExchangeState();return moved;
+    }
+
     canViewCourse(object) {
         const type = this.getObjectType(object);
         return !!object && [Common.ObjectType.SHIP,Common.ObjectType.FLEET].includes(type) &&
@@ -1777,6 +1858,40 @@ class Game {
                 }
                 this.systemComparisonLastClick = { star: action.star, time };
                 return true;
+            }
+            case 'showFleetExchange':return this.showFleetExchange(action.container || this.selectedObject);
+            case 'fleetExchangeSelect':return this.selectFleetExchangeMember(action.side,action.object);
+            case 'exchangeFleetMember':return this.exchangeFleetMember();
+            case 'fleetExchangeNew': {
+                if(!this.getFleetExchangeState())return false;
+                this.fleetExchange.active=null;if(this.fleetExchange.side==='sub')this.fleetExchange.selection=null;this.fleetExchange.pages.sub=0;return true;
+            }
+            case 'fleetExchangePage': {
+                if(!this.getFleetExchangeState() || !['main','sub'].includes(action.side))return false;
+                this.fleetExchange.pages[action.side]=Math.max(0,Math.trunc(action.page));return true;
+            }
+            case 'fleetExchangeSort': {
+                if(!this.getFleetExchangeState() || !['name','tech','speed','power','health'].includes(action.key))return false;
+                const sort=this.fleetExchange.sort;
+                this.fleetExchange.sort={key:action.key,ascending:sort.key===action.key?!sort.ascending:true};
+                this.fleetExchange.pages={main:0,sub:0};return true;
+            }
+            case 'fleetExchangeClose':this.uiWindow=null;return true;
+            case 'fleetExchangeScrap': {
+                const state=this.getFleetExchangeState();return !!state && !!state.selection && this.toggleScrap(state.selection);
+            }
+            case 'fleetExchangePatrol': {
+                const state=this.getFleetExchangeState();return !!state && !!state.selection && this.togglePatrol(state.selection);
+            }
+            case 'fleetExchangeOpen': {
+                const state=this.getFleetExchangeState(),object=state && state.selection;
+                if(!object)return false;
+                if(this.factory.isFleet(object))return this.showFleetExchange(object);
+                this.setSelectedObject(object);this.uiWindow=null;return true;
+            }
+            case 'fleetExchangeParent': {
+                const state=this.getFleetExchangeState(),parent=state && (state.container.fleet || state.container.getDockedStar && state.container.getDockedStar());
+                return this.showFleetExchange(parent);
             }
             case 'showSystemShips':
                 if (!this.canViewSystemShips(action.star)) return false;
@@ -2261,7 +2376,7 @@ class Game {
         if(key === pdg.key_F1)return this.executeUIAction({type:'toggleShips'});
         if(key === pdg.key_F2)return this.executeUIAction({type:'toggleMapNames'});
         if(key === pdg.key_F3)return this.executeUIAction({type:'toggleGrid'});
-        if(this.uiWindow==='mapPick')return this.handleCommandWindowKey(key,this.getKeyChar(key));
+        if(['mapPick','fleetExchange'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
         if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && key===pdg.key_Tab) return true;
         if (['settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && (key===13 || key===3)) return true;
         if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}

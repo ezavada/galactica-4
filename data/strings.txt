@@ -417,3 +417,10 @@
 796	Group
 797	Group {0}
 798	Parent fleet
+
+# Fleet exchange window
+801	Exchange ships
+802	Ships and fleets
+803	Fleet contents
+804	New fleet
+805	Inspect

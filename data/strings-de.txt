@@ -417,3 +417,10 @@
 796	Gruppe
 797	Gruppe {0}
 798	Übergeordnete Flotte
+
+# Fleet exchange window
+801	Schiffe austauschen
+802	Schiffe und Flotten
+803	Flotteninhalt
+804	Neue Flotte
+805	Ansehen

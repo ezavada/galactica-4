@@ -1464,6 +1464,7 @@ class Display {
     getContextActions(object) {
         const objectType = this.game.getObjectType(object);
         const actions = [];
+        if(this.game.canViewFleetExchange(object))actions.push({key:null,label:I18n.getString(801,'Exchange ships'),action:{type:'showFleetExchange',container:object}});
 
         if (objectType === Common.ObjectType.STAR && this.game.canHumanControl(object)) {
             actions.push({ key: 'N', label: this.STR.rename, action: { type: 'beginRename' } });
@@ -2120,6 +2121,88 @@ class Display {
         return regions;
     }
 
+    getFleetExchangeLayout() {
+        const state=this.game.getFleetExchangeState(),screen=this.getScreenSize();
+        const width=Math.min(760,screen.width-32),pageSize=Math.max(1,Math.min(9,Math.floor((screen.height-350)/38)));
+        const rect=this.fitPanelToScreen({x:(screen.width-width)/2,y:80,width,height:234+pageSize*38});
+        const half=(width-42)/2;
+        const lists=['main','sub'].map((side,index)=>{
+            const objects=state?state[side]:[];
+            const rows=objects.map(object=>({object,data:this.getShipDiagnostics(object)}));
+            if(state)rows.sort((a,b)=>{
+                const key=state.sort.key,values=key==='name'?[a.data.title,b.data.title]:[a.data[key],b.data[key]];
+                const order=String(values[0]).localeCompare(String(values[1]),undefined,{numeric:true});
+                return (state.sort.ascending?order:-order)||a.object.id-b.object.id;
+            });
+            const pages=Math.max(1,Math.ceil(rows.length/pageSize)),page=Math.min(state?state.pages[side]:0,pages-1);
+            if(state)this.game.fleetExchange.pages[side]=page;
+            return {side,x:rect.x+14+index*(half+14),width:half,page,pages,rows:rows.slice(page*pageSize,(page+1)*pageSize)};
+        });
+        return {state,rect,lists,pageSize};
+    }
+
+    getFleetExchangeActions() {
+        const {state,rect,lists,pageSize}=this.getFleetExchangeLayout();if(!state)return [];
+        const regions=[];
+        let headerX=rect.x+14;
+        [['name',this.STR.name],['tech',this.STR.tech],['speed',this.STR.speed],['power',this.STR.power],['health',I18n.getString(698,'Health:')]].forEach(([key,label])=>{
+            label=label.replace(/:$/,'')+(state.sort.key===key?(state.sort.ascending?' ↑':' ↓'):'');
+            const width=this.getButtonWidth(label,null,{size:9});
+            regions.push({rect:{x:headerX,y:rect.y+58,width,height:24},label,action:{type:'fleetExchangeSort',key}});headerX+=width+6;
+        });
+        lists.forEach(list=>{
+            list.rows.forEach((row,index)=>regions.push({rect:{x:list.x,y:rect.y+114+index*38,width:list.width,height:36},
+                action:{type:'fleetExchangeSelect',side:list.side,object:row.object}}));
+            const y=rect.y+114+pageSize*38;
+            if(list.page>0)regions.push({rect:{x:list.x,y,width:this.getButtonWidth(I18n.getString(690,'Previous'),null,{size:9}),height:24},
+                label:I18n.getString(690,'Previous'),action:{type:'fleetExchangePage',side:list.side,page:list.page-1}});
+            if(list.page<list.pages-1) {
+                const width=this.getButtonWidth(I18n.getString(691,'Next'),null,{size:9});
+                regions.push({rect:{x:list.x+list.width-width,y,width,height:24},label:I18n.getString(691,'Next'),action:{type:'fleetExchangePage',side:list.side,page:list.page+1}});
+            }
+        });
+        let x=rect.x+14,y=rect.y+rect.height-66;
+        const buttons=[];
+        if(this.game.canExchangeFleetMember())buttons.push([801,'Exchange ships','exchangeFleetMember']);
+        if(state.selection)buttons.push([805,'Inspect','fleetExchangeOpen']);
+        if(this.game.canHumanControl(state.container) || this.game.factory.isStar(state.container))buttons.push([804,'New fleet','fleetExchangeNew']);
+        if(state.selection && this.game.canToggleScrap(state.selection))buttons.push([state.selection.isToBeScrapped()?755:754,'Scrap','fleetExchangeScrap']);
+        if(state.selection && this.game.canTogglePatrol(state.selection))buttons.push([577,'Patrol','fleetExchangePatrol']);
+        buttons.push([531,'<Esc> Close','fleetExchangeClose']);
+        const parent=state.container.fleet || state.container.getDockedStar && state.container.getDockedStar();
+        if(parent && this.game.canViewFleetExchange(parent))buttons.push([798,'Parent fleet','fleetExchangeParent']);
+        buttons.forEach(([id,fallback,type])=>{
+            const label=I18n.getString(id,fallback),width=this.getButtonWidth(label,null,{size:10});
+            if(x+width>rect.x+rect.width-14){x=rect.x+14;y+=30;}
+            regions.push({rect:{x,y,width,height:24},label,action:{type}});x+=width+8;
+        });
+        return regions;
+    }
+
+    drawFleetExchangeWindow() {
+        const layout=this.getFleetExchangeLayout(),{state,rect,lists}=layout;
+        this.drawWindowPanel(rect,I18n.getString(801,'Exchange ships'));
+        if(!state)return;
+        this.drawTextLine(this.fitShipDiagnosticText(this.game.getObjectDisplayName(state.container),rect.width-28,11),rect.x+14,rect.y+49,'lightgray',11);
+        lists.forEach(list=>{
+            const title=list.side==='main'?I18n.getString(802,'Ships and fleets'):
+                state.active?I18n.getString(803,'Fleet contents')+': '+this.game.getObjectDisplayName(state.active):I18n.getString(804,'New fleet');
+            this.drawTextLine(this.fitShipDiagnosticText(title,list.width,11),list.x,rect.y+101,'lightgray',11);
+            list.rows.forEach((row,index)=>{
+                const y=rect.y+114+index*38,selected=state.selection===row.object;
+                if(selected || this.isHovered({x:list.x,y,width:list.width,height:36}))
+                    this.drawRoundedRect({x:list.x,y,width:list.width,height:36},5,selected?this.styles.buttonFillActive:this.styles.buttonFillHover);
+                if(list.side==='main' && row.object===state.active)this.drawRoundedRect({x:list.x,y,width:3,height:36},1,this.styles.buttonFillActive);
+                const data=row.data;
+                this.drawTextLine(this.fitShipDiagnosticText(data.title,list.width-12,11),list.x+6,y+14,'lightgray',11);
+                const metrics=`${data.tech} / ${data.speed} / ${data.power}   ${I18n.getString(698,'Health:')} ${data.health}`;
+                this.drawTextLine(this.fitShipDiagnosticText(metrics,list.width-12,9),list.x+6,y+29,'gray',9);
+            });
+            this.drawTextLine(`${list.page+1} / ${list.pages}`,list.x+list.width/2,rect.y+128+layout.pageSize*38,'gray',10,pdg.textStyle_Centered);
+        });
+        this.getFleetExchangeActions().filter(row=>row.label).forEach(row=>this.drawUIButton(row.rect,row.label,null,{size:10}));
+    }
+
     getSystemShipWindowLayout() {
         const screen = this.getScreenSize();
         const width = Math.min(720, screen.width - 40);
@@ -2215,6 +2298,7 @@ class Display {
                 return this.getSettingsWindowRect();
             case 'colonyDefaults':
                 return this.getColonyDefaultsWindowRect();
+            case 'fleetExchange':return this.getFleetExchangeLayout().rect;
             case 'systemShips':
                 return this.getSystemShipWindowLayout().rect;
             case 'systemComparison':
@@ -2430,6 +2514,7 @@ class Display {
         }
         if (this.game.uiWindow === 'course') controls = this.getCourseActionRegions();
         if (this.game.uiWindow === 'systemComparison') controls = this.getSystemComparisonActionRegions();
+        if (this.game.uiWindow === 'fleetExchange') controls = this.getFleetExchangeActions();
         if (this.game.uiWindow === 'systemShips') controls = this.getSystemShipActionRegions();
         if (this.game.uiWindow === 'rename') controls = this.getRenameActionRegions();
         if (this.game.uiWindow === 'fleets') controls = this.getFleetListActionRegions();
@@ -2455,7 +2540,7 @@ class Display {
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
-        if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick','endTurnConfirm'].includes(this.game.uiWindow)) return { type: 'consume' };
+        if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick','endTurnConfirm','fleetExchange'].includes(this.game.uiWindow)) return { type: 'consume' };
         const scrollAction=this.getMapScrollActionAt(x,y);
         if(scrollAction)return scrollAction;
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
@@ -3303,6 +3388,7 @@ class Display {
             case 'systemComparison':
                 this.drawSystemComparisonWindow();
                 break;
+            case 'fleetExchange':this.drawFleetExchangeWindow();break;
             case 'systemShips':
                 this.drawSystemShipWindow();
                 break;

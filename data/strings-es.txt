@@ -417,3 +417,10 @@
 796	Agrupar
 797	Grupo {0}
 798	Flota superior
+
+# Fleet exchange window
+801	Intercambiar naves
+802	Naves y flotas
+803	Contenido de flota
+804	Nueva flota
+805	Inspeccionar
