@@ -2137,9 +2137,11 @@ class Display {
             label:I18n.getString(857,'Control help'),active:this.game.showControlHelp!==false,action:{type:'toggleControlHelp'}},
             {label:I18n.getString(938,'Show enemy events'),active:this.game.showEnemyEvents,action:{type:'toggleEnemyEvents'}},
             {label:I18n.getString(954,'Sound'),active:!!this.game.sound && this.game.sound.isEnabled(),action:{type:'toggleSound'}},
+            ...(this.game.fullscreen && this.game.fullscreen.supported?[{label:I18n.getString(771,'Full screen'),active:this.game.fullscreen.active(),action:{type:'toggleFullscreen'}}]:[]),
             ...(this.game.newGameDefaultsPreferences?[{label:I18n.getString(965,'New game defaults'),action:{type:'openNewGameDefaults'}}]:[]),
             ...(this.game.colonyDefaultsPreferences?[{label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}}]:[])]);
-        const capacity=Math.max(1,Math.floor((rect.height-112)/28)),pages=Math.ceil(rows.length/capacity);
+        const failureHeight=this.getSettingsFullscreenFailureLines().length*15;
+        const capacity=Math.max(1,Math.floor((rect.height-112-failureHeight)/28)),pages=Math.ceil(rows.length/capacity);
         const page=this.clamp(this.game.settingsPage||0,0,pages-1);this.game.settingsPage=page;
         const visible=rows.slice(page*capacity,(page+1)*capacity).map((row,index)=>({...row,
             rect:{x:rect.x+14,y:rect.y+76+index*28,width:rect.width-28,height:24}}));
@@ -2153,6 +2155,10 @@ class Display {
         return visible;
     }
 
+    getSettingsFullscreenFailureLines(){
+        return this.game.fullscreen && this.game.fullscreen.error?this.wrapEventMessage(I18n.getString(772,'Could not change full screen. Please try again.'),this.getSettingsWindowRect().width-28,11).slice(0,3):[];
+    }
+
     drawSettingsWindow() {
         const rect=this.getSettingsWindowRect();
         this.drawWindowPanel(rect,I18n.getString(759,'Settings'));
@@ -2160,6 +2166,8 @@ class Display {
         if(regions.some(region=>region.action.type==='setLanguage'))
             this.drawTextLine(I18n.getString(760,'Language'),rect.x+14,rect.y+57,'lightgray',12);
         for(const region of regions)this.drawUIButton(region.rect,region.label,region.key || null,{active:region.active});
+        const failures=this.getSettingsFullscreenFailureLines();
+        failures.forEach((line,index)=>this.drawTextLine(line,rect.x+14,rect.y+rect.height-54-(failures.length-index-1)*15,'gray',11));
         this.drawTextLine(this.STR.escClose,rect.x+14,rect.y+rect.height-16,'gray',10);
     }
 

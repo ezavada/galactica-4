@@ -1921,7 +1921,8 @@ class Game {
                 this.mapDisplayMode=action.mode;
                 return true;
             case 'toggleFullscreen':
-                return !!(this.fullscreen && this.fullscreen.toggle());
+                if(!this.fullscreen || !this.fullscreen.supported)return false;
+                this.fullscreen.toggle();return true;
             case 'toggleNebula':
                 this.showNebula=!this.showNebula;
                 if(this.drawingPreferences)this.drawingPreferences.writeNebula(this.showNebula);

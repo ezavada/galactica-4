@@ -96,7 +96,7 @@ console.log(`Random seed set to: ${randomSeed}${launchOptions.aiAutoplay ? ' (AI
 const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), I18n.getString(568, 'Galactica-4'));
 const fullscreen = require('./src/js/fullscreen.js').createController(pdg,port,globalThis,drawingPreferences);
 fullscreen.restore();
-const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,colonyDefaultsPreferences,sound});
+const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,colonyDefaultsPreferences,sound,fullscreen});
 
 function createDefaultConfig(usePreferences=true) {
     if(usePreferences)return NewGameDefaults.createConfig(newGameDefaultsPreferences);

@@ -2,6 +2,33 @@ const test=require('./test-framework.js');
 const {createController}=require('../src/js/fullscreen.js');
 module.exports=function(){
     test.describe('Fullscreen window control',()=>{
+        test.it('exposes fullscreen in Settings and consumes failures without leaving the modal',()=>{
+            const Game=require('../src/js/game.js'),Factory=require('../src/js/factory.js'),Rules=require('../src/js/rules.js'),Config=require('../src/js/game-config.js'),Display=require('../src/js/display.js');
+            const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true}));game.port={getDrawingArea:()=>new pdg.Rect(800,600),getTextWidth:(text,size)=>Array.from(text).length*size*.6};new Display(game);
+            let active=false,fail=true,writes=[];game.fullscreen=createController({gfx:{inFullScreenMode:()=>active,switchToFullScreenMode:()=>{if(!fail)active=true;return true;},switchToWindowMode:()=>{active=false;return true;}}},game.port,{}, {writeFullscreen:value=>writes.push(value)});game.uiWindow='settings';
+            const find=()=>{for(let i=0;i<10;i++){const row=game.display.getSettingsActionRegions().find(r=>r.action.type==='toggleFullscreen');if(row)return row;game.executeUIAction({type:'settingsPage',delta:1});}};
+            let row=find();test.assertDefined(row);test.assertFalse(row.active);test.assertTrue(game.handleUIClick(row.rect.x+10,row.rect.y+10));test.assertTrue(game.fullscreen.error);test.assertEqual(writes.length,0);test.assertEqual(game.uiWindow,'settings');test.assertEqual(game.turn,1);test.assertTrue(game.display.getSettingsFullscreenFailureLines().length>0);
+            fail=false;row=find();test.assertTrue(game.handleUIClick(row.rect.x+10,row.rect.y+10));test.assertTrue(find().active);test.assertEqual(writes.join(','),'true');test.assertEqual(game.display.getSettingsFullscreenFailureLines().length,0);
+            active=false;test.assertFalse(find().active);game.fullscreen.supported=false;game.settingsPage=0;const seen=[];for(let i=0;i<10;i++){seen.push(...game.display.getSettingsActionRegions());game.executeUIAction({type:'settingsPage',delta:1});}test.assertFalse(seen.some(r=>r.action.type==='toggleFullscreen'));
+        });
+        test.it('shares the fullscreen controller with startup Settings without creating a document',()=>{
+            const values={},env={window:{localStorage:{getItem:key=>values[key],setItem:(key,value)=>values[key]=value}}},drawingPreferences=require('../src/js/drawing-preferences.js').createPreferences(env);
+            let active=false;const port={getDrawingArea:()=>new pdg.Rect(800,600)},fullscreen={supported:true,active:()=>active,toggle:()=>{active=!active;drawingPreferences.writeFullscreen(active);return true;}};
+            const settings=new (require('../src/js/startup-settings.js'))(port,{fullscreen,drawingPreferences,sound:{play:()=>{},isEnabled:()=>true}});settings.open();let row;
+            for(let i=0;i<10;i++){row=settings.model.display.getSettingsActionRegions().find(r=>r.action.type==='toggleFullscreen');if(row)break;settings.model.executeUIAction({type:'settingsPage',delta:1});}
+            test.assertDefined(row);settings.mouse({eventType:pdg.eventType_MouseDown,buttonNumber:0,mousePos:{x:row.rect.x+10,y:row.rect.y+10}});test.assertTrue(active);test.assertTrue(settings.active);test.assertTrue(drawingPreferences.readFullscreen());test.assertEqual(settings.model.stars.length,0);settings.key(pdg.key_Escape);test.assertFalse(settings.active);
+        });
+        test.it('fits localized fullscreen failure messages and paged controls in compact Settings',()=>{
+            const Game=require('../src/js/game.js'),Factory=require('../src/js/factory.js'),Rules=require('../src/js/rules.js'),Config=require('../src/js/game-config.js'),Display=require('../src/js/display.js'),Help=require('../src/js/hover-help.js');
+            const old=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);for(const [width,height] of [[800,600],[320,340]]){
+                const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true}));game.port={getDrawingArea:()=>new pdg.Rect(width,height),getTextWidth:(text,size)=>Array.from(text).length*size*.6};new Display(game);game.uiWindow='settings';game.fullscreen={supported:true,error:true,active:()=>false,toggle:()=>false};
+                const rect=game.display.getSettingsWindowRect(),lines=game.display.getSettingsFullscreenFailureLines();test.assertTrue(lines.length>0);for(const line of lines)test.assertTrue(game.port.getTextWidth(line,11)<=rect.width-28);
+                const failureTop=rect.y+rect.height-54-(lines.length-1)*15;let found=false;
+                for(let i=0;i<20;i++){const rows=game.display.getSettingsActionRegions();for(const row of rows){test.assertTrue(row.rect.y>=rect.y && row.rect.y+row.rect.height<=rect.y+rect.height);if(row.action.type!=='settingsPage')test.assertTrue(row.rect.y+row.rect.height<failureTop);if(row.action.type==='toggleFullscreen'){found=true;test.assertTrue(!!Help.describe(row.action));}}if(!rows.some(r=>r.action.type==='settingsPage' && r.action.delta===1))break;game.executeUIAction({type:'settingsPage',delta:1});}
+                test.assertTrue(found);
+            }}}finally{pdg.res.setLanguage(old);}
+        });
+
         test.it('uses the existing screen mode and restores the same native port',()=>{
             let active=false,calls=[];const port={};
             const gfx={inFullScreenMode:()=>active,switchToFullScreenMode:(change,p)=>{calls.push([change,p]);active=true;return true;},switchToWindowMode:p=>{calls.push(p);active=false;return true;}};

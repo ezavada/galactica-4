@@ -113,7 +113,7 @@ The largest blockers to a complete game are:
 | Map display modes | Ownership, production, tech, defense, growth, shipbuilding and research brightness modes. | ✅ Implemented | ✅ Implemented | Command Menu → Map display offers all seven working modes to players and observers. Ownership retains existing visuals; numeric modes normalize brightness over known owned systems, with a localized range legend. Defense includes docked allied ships/fleets/satellites; economic allocation modes use target levels. Tech/defense also shade visible ships/fleets using the system range; economic modes de-emphasize mobiles. Unknown enemy metrics cannot alter shading or normalization. Equal/empty ranges are finite. Mode is per-game and is retained by local file saves, matching v3. |
 | Danger display | Dormant button/command in v3. | ❌ Missing / not a parity blocker | ❌ Missing / not a parity blocker | Audited `CStar::GetDangerLevel`, `CShip::GetDangerLevel` and base implementation all return zero; `GalacticaDoc::RecalcHighestValues` comments out danger statistics. There is no functioning v3 danger metric to port. V4 offers the seven working modes and does not invent a danger calculation. |
 | Scanner/range circles | v3 UI can render ranges/spheres of influence. | ✅ Implemented | ✅ Implemented | Settings/F6 controls default-on, persistent scanner overlays. Systems form three owner-colored unioned influence bands (4×/2×/1× range); selected scanners show three rings (1×/2×/4×) even when the setting is off. Ordinary unselected mobile scanners show one ring; looping couriers only show rings when selected. System coverage requires allied/omniscient or Tech knowledge, while mobile rings follow v3 visible-ship eligibility. |
-| Full screen | Window menu toggle. | 🟡 Partial | 🟡 Partial | Localized command-menu toggle uses actual browser fullscreen state and native PDG APIs. Browser entry/exit, external exit, rejection/retry and wide-screen click coordinates verified in all six languages. Native GLFW monitor switching and default-port restoration are fixed in both PDG repos. Current native PDG now passes real entry/exit/restoration cycles on three connected displays. Fullscreen preferences persist; native launch restores immediately and browser launch waits for the first click/key gesture. The pinned v1.2.0 archive still lacks the engine fix: v4 detects its unchanged actual state, reports failure and retains the saved preference. Updating the packaged runtime remains unfinished. |
+| Full screen | Window menu toggle. | 🟡 Partial | 🟡 Partial | Localized command-menu and startup/in-game Settings toggles use actual browser fullscreen state and native PDG APIs; Settings shows localized failure feedback without closing or overwriting the saved choice. Browser entry/exit, external exit, rejection/retry and wide-screen click coordinates verified in all six languages. Native GLFW monitor switching and default-port restoration are fixed in both PDG repos. Current native PDG now passes real entry/exit/restoration cycles on three connected displays. Fullscreen preferences persist; native launch restores immediately and browser launch waits for the first click/key gesture. The pinned v1.2.0 archive still lacks the engine fix: v4 detects its unchanged actual state, reports failure and retains the saved preference. Updating the packaged runtime remains unfinished. |
 | Nebula/background art | Persisted, default-on nebula preference; black map when disabled. | ✅ Implemented | ✅ Implemented | Settings → Show nebula background retains the choice through browser/native preferences and new games. On uses existing zoom-scaled parallax art and a missing-image gradient fallback; off clears the entire viewport black without drawing/loading another background. Influence bands dim to the v3 black-background levels (0.0625/0.09375/0.1875 versus 0.1/0.15/0.3) by updating cached drawing attributes; geometry masks are reused. Star animation, decorative exterior stars, grid, rings, controls and simulation remain independent. |
 
 ### Possible map/display enhancements beyond v3, not counted in Section 2
@@ -1616,3 +1616,50 @@ manual files are byte-identical in the packaged app at
 
 Other v3 preferences, the packaged fullscreen runtime, remaining gameplay/UI
 parity and Map Generation are still unfinished.
+
+
+### Fullscreen preference control in Settings
+
+V3 `Galactica.cpp:765` lists the fullscreen preference, and the shipped
+English Preferences `PPob` 36 (`Resources/gal-en-shareware.r`) contains its
+Full Screen checkbox. `GalacticaDoc.cp:1342–1345` applies the preference and
+adjusts windows. V4 now exposes the existing fullscreen controller in startup
+and in-game Settings as well as the command menu. Selection reflects actual
+native/browser state, including external browser exits. Pending/failed requests
+are consumed as UI actions, keeping Settings modal. A localized failure message
+reserves space above the page controls, preserves the saved preference and
+clears after a successful retry. Unsupported backends omit the control. The
+existing title dragging, styling, localized caption/help and startup restoration
+remain shared; all six manuals describe the new entry and feedback.
+
+A candidate preference Equalize gap was checked before implementation:
+`Galactica.cpp:799–811` links and equalizes the sliders while preparing the
+dialog. The four shipped English/German shareware/CD Preferences PPob 36
+resources contain no `msg_SetSlidersEven` (1001) button. The source confirms
+initialization, not a separate preference button to port. Production-panel
+equalization remains implemented through the existing = action.
+
+Three added regressions cover Settings entry/state, failed native transitions
+and retry without preference writes or modal escape, external state changes,
+unsupported controls, startup sharing and six-language error/paging geometry
+at 800×600 and 320×340. Both full unit lanes pass all 1,325 tests; logs are
+`/private/tmp/galactica-fullscreen-settings-{tests,native-tests}.log`.
+
+Actual Chromium runs passed in en/de/es/fr/ja/ru without runtime exceptions.
+They use the startup Settings control for real browser entry/exit and saved
+state, verify external exit updates the highlight, inject a rejected request
+to exercise the translated failure UI and retry through the same control,
+and confirm the unfinished setup remains unchanged. In-game Settings entry/exit
+leaves the complete serialized current game unchanged. Fresh-page startup
+restores the saved windowed choice and can enter fullscreen through Settings.
+Before/after startup Settings, normal-size translated failures/retry and
+320×340 logical error layouts were inspected; the compact fixture overrides
+port dimensions rather than resizing the native window. Screenshots are under
+`/private/tmp/galactica-parity/fullscreen-settings/<language>` and baseline
+`/private/tmp/galactica-parity/fullscreen-settings-before/en`; logs are
+`/private/tmp/galactica-fullscreen-settings-<language>.log`. The updated manuals
+are included in `/private/tmp/galactica-fullscreen-settings-packaged-app`.
+
+The pinned native release still lacks the previously fixed fullscreen engine
+behavior. Its packaging update, other preferences, remaining v3 parity and
+Map Generation are not complete.
