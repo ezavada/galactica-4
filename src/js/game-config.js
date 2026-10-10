@@ -160,6 +160,7 @@ class GameConfig {
     // Validate configuration
     validate() {
         const errors = [];
+        if(!PlayerName.validName(this.gameTitle,27))errors.push('gameTitle must contain 1–27 characters without control characters');
         for(const [key,name] of Object.entries(this.humanPlayerNames)) {
             const player=Number(key);
             if(!Number.isInteger(player) || player<1 || player>this.numHumans || !PlayerName.validName(name))

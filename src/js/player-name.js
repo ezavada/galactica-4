@@ -1,11 +1,11 @@
 const I18n=require('./i18n.js');
 const maximumLength=32;
-function validName(value) {
-    return typeof value==='string' && value.trim().length>0 && Array.from(value).length<=maximumLength && !/[\u0000-\u001f\u007f-\u009f]/.test(value);
+function validName(value, limit=maximumLength) {
+    return typeof value==='string' && value.trim().length>0 && Array.from(value).length<=limit && !/[\u0000-\u001f\u007f-\u009f]/.test(value);
 }
-function createEditor(value='') {
-    const text=Array.from(typeof value==='string'?value:'').slice(0,maximumLength).join('');
-    return {text,caret:Array.from(text).length,selected:true,error:false};
+function createEditor(value='', limit=maximumLength) {
+    const text=Array.from(typeof value==='string'?value:'').slice(0,limit).join('');
+    return {text,caret:Array.from(text).length,selected:true,error:false,maximumLength:limit};
 }
 function edit(editor,key,pdgRef=globalThis.pdg) {
     if(key===13 || key===10)return 'submit';
@@ -30,15 +30,15 @@ function edit(editor,key,pdgRef=globalThis.pdg) {
     const character=typeof key==='number' && key>=32 && key<=0x10ffff?String.fromCodePoint(key):typeof key==='string'?key:'';
     if(Array.from(character).length!==1 || /[\u0000-\u001f\u007f-\u009f]/.test(character))return 'edit';
     if(editor.selected){characters.length=0;editor.caret=0;}
-    if(characters.length<maximumLength){characters.splice(editor.caret++,0,character);editor.text=characters.join('');}
+    if(characters.length<(editor.maximumLength || maximumLength)){characters.splice(editor.caret++,0,character);editor.text=characters.join('');}
     editor.selected=false;editor.error=false;return 'edit';
 }
-function layout(width,height) {
+function layout(width,height,submitLabel=I18n.getString(528,'<Enter> Start')) {
     const rect={x:(width-Math.min(480,width-40))/2,y:(height-280)/2,width:Math.min(480,width-40),height:280};
     const field={x:rect.x+24,y:rect.y+106,width:rect.width-48,height:36};
     return {rect,field,buttons:[
         {action:'cancel',label:I18n.getString(683,'Cancel'),rect:{x:rect.x+24,y:rect.y+224,width:150,height:30}},
-        {action:'submit',label:I18n.getString(528,'<Enter> Start'),rect:{x:rect.x+rect.width-174,y:rect.y+224,width:150,height:30}}]};
+        {action:'submit',label:submitLabel,rect:{x:rect.x+rect.width-174,y:rect.y+224,width:150,height:30}}]};
 }
 function visibleText(editor,width,measure) {
     const characters=Array.from(editor.text);let start=0,end=characters.length;

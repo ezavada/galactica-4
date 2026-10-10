@@ -451,3 +451,9 @@
 822	Nom du joueur
 823	Saisissez votre nom de joueur.
 824	Saisissez un nom avant de commencer.
+
+# Startup game title
+825	Titre de la partie
+826	Saisissez un titre pour la partie.
+827	Saisissez un titre avant de sauvegarder.
+828	Titre : {0} <T>

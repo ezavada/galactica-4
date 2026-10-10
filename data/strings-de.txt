@@ -451,3 +451,9 @@
 822	Spielername
 823	Geben Sie Ihren Spielernamen ein.
 824	Geben Sie vor dem Start einen Namen ein.
+
+# Startup game title
+825	Spieltitel
+826	Geben Sie einen Spieltitel ein.
+827	Geben Sie vor dem Speichern einen Titel ein.
+828	Titel: {0} <T>

@@ -103,6 +103,7 @@ let pendingConfig = launchOptions.aiAutoplay ?
     }) :
     createDefaultConfig();
 let startupPlayerName=null;
+let startupGameTitle=null;
 let game = null;
 let display = null;
 let autoplayController = null;
@@ -213,24 +214,35 @@ function submitPlayerName() {
     if(game){playerNamePreferences.write(name);startupPlayerName=null;}
 }
 
-function drawPlayerNameDialog() {
-    const area=port.getDrawingArea(),layout=PlayerName.layout(area.width(),area.height()),{rect,field}=layout;
+function beginGameTitle() {
+    startupGameTitle=PlayerName.createEditor(pendingConfig.gameTitle,StartupSetup.maximumTitleLength);
+}
+
+function submitGameTitle() {
+    if(!startupGameTitle)return;
+    if(!StartupSetup.setGameTitle(pendingConfig,startupGameTitle.text)){startupGameTitle.error=true;return;}
+    startupGameTitle=null;
+}
+
+function drawStartupTextDialog(editor,labels) {
+    const area=port.getDrawingArea(),layout=PlayerName.layout(area.width(),area.height(),labels.submit),{rect,field}=layout;
     port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.background);
     PanelAppearance.applySurface(startupStyles.panel,rect,startupUIColor('panelFill'));drawStartupRoundedRect(rect,14,startupStyles.panel);
     startupStyles.subtitleText.textSize(16);startupStyles.lineText.textSize(14);startupStyles.hintText.textSize(12);startupStyles.advantageText.textSize(13);
-    port.drawText(I18n.getString(822,'Player name'),new pdg.Point(rect.x+rect.width/2,rect.y+40),startupStyles.subtitleText);
-    port.drawText(I18n.getString(823,'Enter your player name.'),new pdg.Point(rect.x+24,rect.y+78),startupStyles.lineText);
+    port.drawText(labels.title,new pdg.Point(rect.x+rect.width/2,rect.y+40),startupStyles.subtitleText);
+    port.drawText(labels.prompt,new pdg.Point(rect.x+24,rect.y+78),startupStyles.lineText);
     drawStartupRoundedRect(field,6,startupStyles.advantageButton);
-    const visible=PlayerName.visibleText(startupPlayerName,field.width-24,text=>port.getTextWidth(text,14));
-    if(startupPlayerName.selected)drawStartupRoundedRect({x:field.x+9,y:field.y+5,width:Math.min(field.width-18,port.getTextWidth(visible.text,14)+6),height:26},3,startupStyles.advantageButtonActive);
+    const visible=PlayerName.visibleText(editor,field.width-24,text=>port.getTextWidth(text,14));
+    if(editor.selected)drawStartupRoundedRect({x:field.x+9,y:field.y+5,width:Math.min(field.width-18,port.getTextWidth(visible.text,14)+6),height:26},3,startupStyles.advantageButtonActive);
     port.drawText(visible.text,new pdg.Point(field.x+12,field.y+24),startupStyles.lineText);
-    if(!startupPlayerName.selected)port.drawLine(new pdg.Point(field.x+12+visible.caret,field.y+7),new pdg.Point(field.x+12+visible.caret,field.y+28),startupStyles.divider);
-    port.drawText(startupPlayerName.error?I18n.getString(824,'Enter a name before starting.'):'',new pdg.Point(rect.x+24,rect.y+178),startupStyles.hintText);
+    if(!editor.selected)port.drawLine(new pdg.Point(field.x+12+visible.caret,field.y+7),new pdg.Point(field.x+12+visible.caret,field.y+28),startupStyles.divider);
+    port.drawText(editor.error?labels.error:'',new pdg.Point(rect.x+24,rect.y+178),startupStyles.hintText);
     for(const button of layout.buttons){drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);port.drawText(button.label,new pdg.Point(button.rect.x+button.rect.width/2,button.rect.y+20),startupStyles.advantageText);}
 }
 
 function drawStartupDialog() {
-    if(startupPlayerName){drawPlayerNameDialog();return;}
+    if(startupGameTitle){drawStartupTextDialog(startupGameTitle,{title:I18n.getString(825,'Game title'),prompt:I18n.getString(826,'Enter a game title.'),error:I18n.getString(827,'Enter a title before saving.'),submit:I18n.getString(682,'Save')});return;}
+    if(startupPlayerName){drawStartupTextDialog(startupPlayerName,{title:I18n.getString(822,'Player name'),prompt:I18n.getString(823,'Enter your player name.'),error:I18n.getString(824,'Enter a name before starting.'),submit:I18n.getString(528,'<Enter> Start')});return;}
 
     const drawingArea = port.getDrawingArea();
     const screenWidth = drawingArea.width();
@@ -246,7 +258,12 @@ function drawStartupDialog() {
     drawStartupRoundedRect(panelRect, 14, startupStyles.panel);
 
     port.drawText(I18n.getString(568, 'Galactica-4'), new pdg.Point(screenWidth / 2, panelY + step(44)), startupStyles.titleText);
-    port.drawText(I18n.getString(520, 'New Game Setup'), new pdg.Point(screenWidth / 2, panelY + step(72)), startupStyles.subtitleText);
+    const titleRect=StartupSetup.titleRegion(panelRect),titleLabel=I18n.formatString(828,'Title: {0} <T>',pendingConfig.gameTitle);
+    drawStartupRoundedRect(titleRect,6,startupStyles.advantageButton);
+    let titleSize=Math.max(9,13*scale);
+    while(titleSize>9 && port.getTextWidth(titleLabel,titleSize)>titleRect.width-16)titleSize--;
+    startupStyles.subtitleText.textSize(titleSize);
+    port.drawText(titleLabel,new pdg.Point(screenWidth/2,titleRect.y+titleRect.height*.72),startupStyles.subtitleText);
     drawStartupDivider(panelX + 28, panelY + step(88), panelWidth - 56);
 
     const x = panelX + 34;
@@ -303,6 +320,13 @@ function drawStartupDialog() {
 }
 
 function handleStartupKey(key) {
+    if(startupGameTitle) {
+        const action=PlayerName.edit(startupGameTitle,key);
+        if(action==='submit')submitGameTitle();
+        if(action==='cancel')startupGameTitle=null;
+        return true;
+    }
+
     if(startupPlayerName) {
         const action=PlayerName.edit(startupPlayerName,key);
         if(action==='submit')submitPlayerName();
@@ -342,6 +366,7 @@ function handleStartupKey(key) {
         case 'o':
             pendingConfig.omniscient = !pendingConfig.omniscient;
             return true;
+        case 't':beginGameTitle();return true;
         case 'r':
             pendingConfig = createDefaultConfig();
             return true;
@@ -479,15 +504,18 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     if (!game) {
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0) {
             const area=port.getDrawingArea();
-            if(startupPlayerName) {
+            if(startupGameTitle || startupPlayerName) {
+                const title=!!startupGameTitle,editor=startupGameTitle || startupPlayerName;
                 const layout=PlayerName.layout(area.width(),area.height()),x=event.mousePos.x,y=event.mousePos.y;
                 const contains=r=>x>=r.x && x<=r.x+r.width && y>=r.y && y<=r.y+r.height;
                 const button=layout.buttons.find(button=>contains(button.rect));
-                if(button && button.action==='submit')submitPlayerName();
-                else if(button && button.action==='cancel')startupPlayerName=null;
-                else if(contains(layout.field)){startupPlayerName.selected=true;startupPlayerName.caret=Array.from(startupPlayerName.text).length;}
+                if(button && button.action==='submit'){if(title)submitGameTitle();else submitPlayerName();}
+                else if(button && button.action==='cancel'){if(title)startupGameTitle=null;else startupPlayerName=null;}
+                else if(contains(layout.field)){editor.selected=true;editor.caret=Array.from(editor.text).length;}
                 return true;
             }
+            const title=StartupSetup.titleRegion(StartupSetup.panelRect(area.width(),area.height()));
+            if(event.mousePos.x>=title.x && event.mousePos.x<=title.x+title.width && event.mousePos.y>=title.y && event.mousePos.y<=title.y+title.height){beginGameTitle();return true;}
             const start=StartupSetup.startRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(event.mousePos.x>=start.x && event.mousePos.x<=start.x+start.width && event.mousePos.y>=start.y && event.mousePos.y<=start.y+start.height){beginPlayerName();return true;}
             StartupSetup.clickAdvantage(pendingConfig,StartupSetup.panelRect(area.width(),area.height()),event.mousePos.x,event.mousePos.y);

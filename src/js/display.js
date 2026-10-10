@@ -2826,7 +2826,9 @@ class Display {
         }
 
         this.drawPanelSurface(rect,this.styles.topInfoPanel);
-        this.drawTextLine(headline, screen.width / 2, rect.y + 24, 'lightgray', 15, pdg.textStyle_Centered);
+        let headlineSize=15;
+        while(headlineSize>11 && this.port.getTextWidth(headline,headlineSize)>headerWidth-28)headlineSize--;
+        this.drawTextLine(this.fitShipDiagnosticText(headline,headerWidth-28,headlineSize),screen.width/2,rect.y+24,'lightgray',headlineSize,pdg.textStyle_Centered);
         this.drawTextLine(`${this.STR.stars} ${starCount}   ${this.STR.ships} ${shipCount}   ${this.STR.zoom} ${this.getZoomPercentage()}%`, screen.width / 2, rect.y + 44, 'gray', 11, pdg.textStyle_Centered);
         this.drawMapButtons();
     }

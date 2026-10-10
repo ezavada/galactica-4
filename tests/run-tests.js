@@ -61,6 +61,7 @@ const runSystemDiagnosticsTests = require('./system-diagnostics.test.js');
 const runSystemComparisonTests = require('./system-comparison.test.js');
 const runPlayerComparisonTests=require('./player-comparison.test.js');
 const runPlayerNameTests=require('./player-name.test.js');
+const runGameTitleTests=require('./game-title.test.js');
 const runSystemShipsTests = require('./system-ships.test.js');
 const runProductionControlTests = require('./production-controls.test.js');
 const runPdgV12DisplayTests = require('./pdg-v12-display.test.js');
@@ -146,6 +147,7 @@ try {
     runSystemComparisonTests();
 runPlayerComparisonTests();
 runPlayerNameTests();
+runGameTitleTests();
     runSystemDiagnosticsTests();
     runWaypointCourseTests();
     runCourseMemoryTests();

@@ -451,3 +451,9 @@
 822	Player name
 823	Enter your player name.
 824	Enter a name before starting.
+
+# Startup game title
+825	Game title
+826	Enter a game title.
+827	Enter a title before saving.
+828	Title: {0} <T>

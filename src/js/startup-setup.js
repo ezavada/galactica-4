@@ -1,3 +1,11 @@
+const PlayerName=require('./player-name.js');
+const maximumTitleLength=27;
+function setGameTitle(config,value) {
+    if(!PlayerName.validName(value,maximumTitleLength))return false;
+    config.gameTitle=value.trim();return true;
+}
+function titleRegion(rect) {return {x:rect.x+28,y:rect.y+56*rect.height/540,width:rect.width-56,height:26*rect.height/540};}
+
 // The seven choices and menu order are from v3 CGameSetupAttach.cpp.
 const advantages=Object.freeze([3,2,1,0,-1,-2,-3]);
 function panelRect(width,height) {
@@ -57,4 +65,4 @@ function clickSectorSize(config,rect,x,y) {
     return choice?setSectorSize(config,choice.value):false;
 }
 function startRegion(rect) {return {x:rect.x+rect.width/2-90,y:rect.y+467*rect.height/540,width:180,height:30*rect.height/540};}
-module.exports={startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};
+module.exports={maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};
