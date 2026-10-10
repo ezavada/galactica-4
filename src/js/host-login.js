@@ -1,7 +1,7 @@
 // Server-side player admission. V3's rejoin key identifies the game; the
 // optional player password verifies rejoining, and the last successful login wins.
 const crypto=require('crypto'),PlayerName=require('./player-name.js');
-const protocol=1;
+const {protocol}=require('./network-protocol.js');
 function failure(code){const error=new Error(code);error.code=code;return error;}
 const random=()=>crypto.randomBytes(32).toString('hex');
 function passwordHash(password,salt){return crypto.pbkdf2Sync(password,salt,100000,32,'sha256').toString('hex');}

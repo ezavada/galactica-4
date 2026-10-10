@@ -1,6 +1,6 @@
 # Testing Guide for Galactica-4
 
-Last reviewed: 2026-08-25
+Last reviewed: 2026-10-10
 
 ## Running the suite
 
@@ -16,14 +16,42 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1424
-Passed: 1424 ✓
+Total: 1430
+Passed: 1430 ✓
 Failed: 0 ✗
 ```
 
 The output is intentionally verbose because several game systems still log turn, combat, movement, and construction diagnostics.
 
 Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and runtime use PDG globals and APIs, including `pdg.res`, `pdg.srand()`, `pdg.rand()`, `pdg.Point`, and drawing attributes.
+
+## Live multiplayer transport checks
+
+The unit framework runs synchronous assertions. Real asynchronous HTTP behavior
+is tested separately under the PDG runtime:
+
+```bash
+./gad4 tools/test-network-host.js
+./gad4 tools/test-network-client.js
+```
+
+These scripts create temporary localhost hosts and documents, check admission,
+authenticated state, reconnecting, cancellation, and request failures, then close
+listeners and remove their fixtures. They do not upload data or change game
+preferences.
+
+For a packaged web app, run the browser/native-host regression with Chrome:
+
+```bash
+node tools/test-web-network-client.cjs /path/to/web-build /tmp/live-client-shots en
+```
+
+Repeat for `de`, `es`, `fr`, `ja`, and `ru`. The script starts its own temporary
+native host, exercises real browser fetch/CORS traffic and production controls,
+and captures the manually-fed client baseline, live client, preserved same-turn
+edits, and authoritative next turn. It stops Chrome and the host afterward. This
+is transport/renderer coverage; the player-facing host/join dialogs remain to
+be wired into the application.
 
 ## Test runner
 

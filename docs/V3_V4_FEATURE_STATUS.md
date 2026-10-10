@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1424 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1430 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -274,11 +274,11 @@ The largest blockers to a complete game are:
 | Revert to saved turn | Restores the last saved state. | ✅ Implemented | ✅ Implemented | File → Revert asks before discarding changes, then restores the saved graph, turn, selection and camera under the same local document identity. Cancel preserves the running game. Native/file-handle backends reread the file; download-only browsers revert to the last successfully saved/imported snapshot. No-saved-file and load failures are localized. |
 | Close game | File-menu Close Game/W closes the active document; game changes mark it modified, save/load clears that state, and closing stops tutorial instructions. | ✅ Implemented | ✅ Implemented | File → Close game/W offers localized Save and close/Discard/Cancel for changed or new documents, closes clean saved games directly, waits for successful writes and preserves other open games. Navigation/report review does not dirty the document. Closing the last game returns to setup; tutorial closure restores the original and releases bindings. Both full suites pass 1,358 tests; dedicated async decisions and actual six-language browser paths are verified below. Application Quit and browser-tab protection are verified separately below; native OS/window-close interception remains pending. |
 | Quit application | Quit checks modified documents before exiting; Cancel prevents exit. | 🟡 Partial | 🟡 Partial | File → Quit/Q, Command/Ctrl+Q, startup Quit and configured command 10 now check every retained game, wait for writes and preserve remaining documents on Cancel. Browser unload warns for unsaved games; accepted Quit offers a localized restart screen. Both full suites pass 1,369 tests; actual all-six-language browser and real native shutdown checks pass. Native window-close/OS Quit requests still bypass save decisions in the pinned PDG runtime and require engine integration. Network logout/host-work deferral remain pending with multiplayer. |
-| Host new network game | Creates host data, starts server, and presents join flow. | 🧱 Scaffold only | ❌ Missing | The tested native host service now creates/reopens a durable multiplayer galaxy and listens over HTTP for read-only lobby information. It is not yet connected to startup/game commands. Durable authenticated slot admission now exists in the host service; An authenticated player-state endpoint now supplies map entities, comparison totals, private player defaults and accessible reports under the existing knowledge gates. A tested visibility-limited client model reconstructs that state for the existing renderer. Host setup/join UI, live client integration and turn synchronization remain missing. See the prerequisite audits below. |
+| Host new network game | Creates host data, starts server, and presents join flow. | 🧱 Scaffold only | ❌ Missing | The native host service creates/reopens a durable multiplayer galaxy and serves public lobby information, durable authenticated slot admission and recipient-specific state over HTTP. A tested native/browser client now inspects, joins/rejoins, reconstructs and refreshes that state for the existing renderer. Host setup/join dialogs, application-session integration and turn posting remain missing. See the prerequisite audits below. |
 | Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | ❌ Missing | ❌ Missing | No equivalent. |
 | LAN/Internet discovery | Browse advertised games and query the matchmaker. | ❌ Missing | ❌ Missing | No equivalent. |
-| Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | ❌ Missing | ❌ Missing | No equivalent. |
-| Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🧱 Scaffold only | ❌ Missing | The native host admission service now assigns human slots, verifies optional passwords on rejoin, persists claims/game identity, replaces old sessions and rejects duplicate/full/incompatible requests through actual HTTP. An authenticated HTTP state projection now exists, but the state now reconstructs a tested client model, but there is no startup/join UI or live client integration yet. Private/admit policy, host administration and player-facing error localization remain forthcoming with those flows. |
+| Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | 🧱 Scaffold only | ❌ Missing | The tested live client accepts hostname/IP origins, inspects game/slot information and joins or rejoins through actual native HTTP and browser fetch/CORS. It preserves pending local edits during same-turn refreshes and accepts the next host turn. Host discovery, saved game-list UI, player/host dialogs and application-session integration remain missing. |
+| Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🧱 Scaffold only | ❌ Missing | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Private/admit policy, password preference UI, host administration and player-facing error localization remain forthcoming. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ❌ Missing | ❌ Missing | v4 directly mutates one local game and advances immediately. |
 | Timed turns | Host clock, time remaining, pause/resume, automatic completion. | ❌ Missing | ❌ Missing | No runtime timer. |
 | Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | ❌ Missing | ❌ Missing | No host/admin mode. |
@@ -2458,3 +2458,50 @@ installation/refresh, localized network errors and cross-language report
 rendering, order submission and turn coordination, network saves, private/admit
 policy and administration still need implementation. No blocked dependency was
 found for the next networking item.
+
+### Live native/browser client transport prerequisite
+
+Audited v3 `Classes/GalacticaClient.cpp:250–275,2276–2311,2334–2394` for
+manual hostname/port entry, private-player/posted state and game-identity checks.
+`src/js/network-client.js` now inspects, joins, receives the initial player
+state, refreshes, logs out and rejoins through actual HTTP. Native PDG uses
+Node HTTP/HTTPS; browsers use fetch with the host's CORS policy. A shared
+protocol constant avoids loading server-side credential/crypto code in the
+browser. Endpoint parsing accepts hostname, IPv4, IPv6 and HTTPS origins while
+rejecting embedded credentials and unexpected paths/query parameters.
+
+Requests have a total timeout, bounded response size, cancellation and no
+redirect following. Lobby/admission responses and the received player state
+are checked against the inspected game and admitted slot. Descriptors contain
+only endpoint, game ID and player identity; passwords are not retained by the
+transport and tokens remain transient. Failed or cancelled state acquisition
+after admission logs out the temporary session while preserving the reserved
+identity so a subsequent explicit rejoin can recover.
+
+Same-turn refresh is single-flight and preserves the current model's local
+production/name/course edits, selection and review state while updating public
+player totals/names. It does not pretend to submit those orders. When the host
+advances the turn or changes posted/terminal state, the authoritative snapshot
+replaces the simulation view while retaining camera, surviving selected-object
+identity, drawing preferences and acknowledged reports. Older-turn responses
+are rejected. Invalidated tokens leave the view available for explicit rejoin
+without accepting a late response from an abandoned connection.
+
+Both native runtimes passed **1,430 unit tests, 0 failures** and separate real
+asynchronous socket tests. Those tests cover two players, token replacement,
+wrong passwords/game IDs, host reopening, pending orders, new-turn presentation,
+stale state, malformed/oversize responses, timeouts, redirects, and cancellation
+both before and after admission. All six languages passed real browser
+fetch/CORS traffic against temporary native hosts, including actual owned-system
+selection and production controls, refresh preservation, password rejection,
+authoritative new turns and logout. Baseline/live screenshots and the six
+translated production views were inspected. The baseline uses the previously
+committed client-model consumer fed manually from real HTTP; the live transport
+then rejoins the same player/game.
+
+This remains a prerequisite, not a completed player-facing join flow. Startup
+and menu dialogs, real application-session installation/refresh scheduling,
+network saves, localized network errors and cross-language report presentation,
+order submission/turn coordination, discovery, private/admit policy and host
+administration remain unfinished. The test-only advance route exists solely
+in the temporary browser fixture, not in the production host service.
