@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1052
-Passed: 1052 ✓
+Total: 1055
+Passed: 1055 ✓
 Failed: 0 ✗
 ```
 
@@ -222,3 +222,5 @@ Participant battle reports: four new regressions in `tests/combat.test.js` check
 Automatic combat report windows: five new regressions in `tests/outcome-reports.test.js` cover actual combat presentation/privacy, modal input isolation, retained Events replay, measured Unicode pages and button rows in all six languages at 320×340, queued complete-save identities and quiet autoplay. Full suites: 1045 passed on release/current native PDG. Actual browser winner/loser battles verify automatic dialogs, Continue/Go to, Events replay, blocked keyboard shortcuts/map clicks/wheel zoom and smaller-window paging in en/de/es/fr/ja/ru. Final before/after and translated screenshots inspected under `/private/tmp/galactica-parity/message-windows-{before,after}`. Logs: `/private/tmp/galactica-message-windows-{tests,native-tests}.log` and `/private/tmp/galactica-message-windows-{before,after}-<language>.log`.
 
 Occupation reports: seven new regressions in `tests/occupation-reports.test.js` exercise actual invasions with and without colony ships, participant-specific resistance/capture reports, hidden lost-system focus, failed invasions and neutral colonies, immutable snapshots, unrelated-player privacy, queued complete saves, final-turn Events replay and translated layouts. Full suites: 1052 passed on release/current native PDG. Actual browser before/after fleet invasions, Continue/Go to, Events replay and smaller windows pass in all six languages; inspected screenshots: `/private/tmp/galactica-parity/occupation-{before,after}`. Logs: `/private/tmp/galactica-occupation-{tests,native-tests}.log` and `/private/tmp/galactica-occupation-{before,after}-<language>.log`.
+
+First-detection ownership: three new regressions in `tests/system-diagnostics.test.js` exercise actual halo drawing at all visibility levels, retained last-seen history with hidden current ownership/mobile markers after a visibility reset, allied/all-visible ownership and neutral stars. Full suites: 1055 passed on release/current native PDG. Actual browser star clicks and before/after knowledge-threshold, lost-detection, allied and all-visible views pass in all six languages; reviewed screenshots: `/private/tmp/galactica-parity/star-ownership-{before,after}`. Logs: `/private/tmp/galactica-star-ownership-{tests,native-tests}.log` and `/private/tmp/galactica-star-ownership-{before,after}-<language>.log`.

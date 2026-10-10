@@ -34,6 +34,38 @@ module.exports=function() {
             const data=display.getStarDiagnostics(star);test.assertEqual(data.owner,'2');test.assertEqual(data.tech,'?');
             test.assertFalse(data.title==='Atlas');test.assertEqual(data.population,'?');
         });
+        test.it('draws ownership from first detection while keeping name, technology and population gated',()=>{
+            const {game,star,display}=fixture();star.owner=2;game.showMapNames=false;game.setSelectedObject(null);
+            display.scaledStarRadius=8;const halos=[];display.createAttributes=value=>value;
+            display.port.drawCircle=(point,radius,attributes)=>{if(attributes.fillColor===display.ownerColors[2])halos.push(radius);};
+            display.port.drawPolygon=()=>{};
+            for(const level of [Common.VisibilityLevel.NONE,Common.VisibilityLevel.SPEED,Common.VisibilityLevel.TECH,Common.VisibilityLevel.CLASS,Common.VisibilityLevel.DETAILS]) {
+                star.setVisibilityTo(1,level);halos.length=0;display.drawStar(star);
+                test.assertEqual(halos.length,level===Common.VisibilityLevel.NONE?0:1);
+                const data=display.getStarDiagnostics(star);test.assertEqual(data.owner,level===Common.VisibilityLevel.NONE?'?':'2');
+                if(level<Common.VisibilityLevel.TECH)test.assertEqual(data.tech,'?');
+                if(level<Common.VisibilityLevel.CLASS){test.assertEqual(data.population,'?');test.assertFalse(data.title==='Atlas');}
+            }
+        });
+        test.it('removes live ownership and mobile markers after detection is lost without clearing last-seen history',()=>{
+            const {game,star,display}=fixture();star.owner=2;game.showMapNames=false;game.setSelectedObject(null);
+            const ship=game.factory.createShip(star.x,star.y,'scout',star,true);ship.star=null;ship.setVisibilityTo(1,Common.VisibilityLevel.DETAILS);
+            game.turn=4;star.setVisibilityTo(1,Common.VisibilityLevel.DETAILS);star.setLastSeen(1,3);ship.setLastSeen(1,3);
+            test.assertTrue(display.isMobileVisibleOnMap(ship));game.visibilityCalculator.resetCurrentVisibilityForPlayer(1);
+            test.assertFalse(display.isMobileVisibleOnMap(ship));test.assertEqual(ship.getLastSeen(1),3);test.assertEqual(star.getLastSeen(1),3);
+            display.scaledStarRadius=8;let halos=0;display.createAttributes=value=>value;display.port.drawPolygon=()=>{};
+            display.port.drawCircle=(p,r,a)=>{if(a.fillColor===display.ownerColors[2])halos++;};display.drawStar(star);
+            test.assertEqual(halos,0);test.assertEqual(display.getStarDiagnostics(star).owner,'?');
+        });
+        test.it('draws known allied and omniscient ownership without scanners but leaves neutral stars untinted',()=>{
+            const {game,star,display}=fixture();star.owner=2;game.showMapNames=false;game.setSelectedObject(null);display.scaledStarRadius=8;
+            let halos=0;display.createAttributes=value=>value;display.port.drawPolygon=()=>{};
+            display.port.drawCircle=(p,r,a)=>{if(a.fillColor===display.ownerColors[2])halos++;};
+            game.players[1].isAllyOf=owner=>owner===2;game.players[2].isAllyOf=owner=>owner===1;
+            display.drawStar(star);test.assertEqual(halos,1);
+            game.players[1].isAllyOf=()=>false;game.players[2].isAllyOf=()=>false;game.config.omniscient=true;
+            display.drawStar(star);test.assertEqual(halos,2);star.owner=0;display.drawStar(star);test.assertEqual(halos,2);
+        });
         test.it('reveals integer technology at tech visibility while population and name remain unknown',()=>{
             const {star,display}=fixture();star.owner=2;star.setVisibilityTo(1,Common.VisibilityLevel.TECH);
             const data=display.getStarDiagnostics(star);test.assertEqual(data.tech,'8');test.assertEqual(data.population,'?');test.assertFalse(data.title==='Atlas');

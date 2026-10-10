@@ -664,7 +664,7 @@ class Display {
         }
         
         // Only show ownership color if we can see ownership details
-        if (star.owner && visibilityLevel >= Common.VisibilityLevel.CLASS) {
+        if (star.owner && this.isStarOwnerKnown(star)) {
             const ownerColor = this.ownerColors[star.owner];
             const attrs = this.createAttributes({
                 fillColor: ownerColor,
