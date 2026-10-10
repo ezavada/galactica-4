@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1275 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1278 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -1054,3 +1054,38 @@ before the colony ship, although satellites cannot receive movement orders.
 That is the next repair, not an unavailable-help blocker. The full guided
 walkthrough, public launch, illustrations, complete tutorial saves, broader
 parity and Map Generation remain unfinished.
+
+
+### Construction notifications for ships that need orders
+
+Audited v3 `CStar.cpp:801–803, 823–828, 899–908, 916–931`: satellites set
+`notify=false`; a mobile ship with the system's automatic destination also
+suppresses the built-ship request. First-class stardock announcements remain
+independent. Updated ordinary construction to use those same rules. The notify
+choice is captured before immediate movement, so arriving at a nearby automatic
+destination does not accidentally turn into a build-time order request. Mobile
+ships without automatic destinations still appear in attention. Normal course
+completion and other arrival events retain their separate attention rules.
+
+The old satellite-build attention regression asserted behavior contradicted by
+the shipped source. It now commissions a real satellite, verifies its first-class
+report, acknowledges that report and verifies no stationary ship requests orders.
+Three additional regressions cover repeated satellites, far/near automatic
+destinations and mobile ships without automatic destinations. Both complete
+native lanes pass all 1,278 tests.
+
+Actual six-language browser runs follow the tutorial from setup through report
+acknowledgment, first colony orders, defense construction, colony naming and
+New Terra's building controls. Next item now selects the original colony ship
+at lesson 28, on turn 4, with no satellite request preceding it. Before/after
+screenshots are reviewed under `/private/tmp/galactica-parity/tutorial-guided-after`
+and `/private/tmp/galactica-parity/tutorial-build-notify`; logs are
+`/private/tmp/galactica-tutorial-build-notify-{tests,native-tests,<language>}.log`.
+There are no changed visible strings; existing en/de/es/fr/ja/ru reports remain
+resource-driven.
+
+Continuing the actual English walkthrough reaches lesson 34, where acknowledging
+the new Scout class leaves Andromeda selected rather than the Scout. That next
+action-selection repair still needs source verification. These construction
+checks do not prove a full guided tutorial. Public launch, illustrations, full
+tutorial saves, the remaining parity inventory and Map Generation remain open.

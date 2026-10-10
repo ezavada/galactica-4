@@ -55,10 +55,13 @@ module.exports=function(){test.describe('V3 last-turn event reports and subjects
         const {game,ship}=fixture();game.attention.request(ship);const event=game.eventLog[0];game.setSelectedObject(ship);
         test.assertTrue(event.handled);test.assertEqual(game.attention.pending().length,0);
     });
-    test.it('puts completed satellite builds in the event attention queue despite mandatory Patrol',()=>{
-        const {game,home,display}=fixture();const satellite=game.factory.createShip(0,0,'defense',home,true);home.shipArrived(satellite);satellite.setPatrol(true);
-        game.noteworthyEvent(satellite,Common.EventType.SHIP_BUILT,home);test.assertEqual(game.attention.pending().length,1);
-        game.attention.next();test.assertTrue(game.selectedObject===satellite);test.assertFalse(display.isPatrolHiddenOnMap(satellite));
+    test.it('reports the first satellite class without queuing stationary satellites for orders',()=>{
+        const {game,home}=fixture();home.startBuildingShip('defense');home.paidTowardShipBuilding=home.currentShip.cost;home.commissionPaidHulls();
+        const satellite=home.defenseSatellites[0];test.assertTrue(satellite.isOnPatrol());test.assertEqual(satellite.speed,0);
+        test.assertTrue(game.eventLog.some(e=>e.commissioning && e.commissioning.shipType==='defense'));
+        test.assertFalse(game.eventLog.some(e=>e.type===Common.EventType.SHIP_BUILT));
+        test.assertEqual(game.attention.pending().length,1);test.assertTrue(game.attention.pending()[0].object===home);
+        game.handleKeyPress(13);test.assertEqual(game.attention.pending().length,0);test.assertFalse(game.attention.next());
         test.assertFalse(game.canToggleCallIn(satellite));test.assertFalse(game.canTogglePatrol(satellite));
     });
     test.it('focuses a newly colonized star while the colony ship remains available',()=>{

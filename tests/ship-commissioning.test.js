@@ -4,6 +4,7 @@ const Game=require('../src/js/game.js');
 const GameConfig=require('../src/js/game-config.js');
 const Rules=require('../src/js/rules.js');
 const Ship=require('../src/js/ship.js');
+const Common=require('../src/js/common.js');
 function fixture() {
     const game=new Game(new Factory(),new Rules(false),new GameConfig({numHumans:1,numComputers:1,skipMapGeneration:true}));
     const star=game.factory.createStar(0,0,'Home');star.owner=1;star.population=1000;star.techLevel=4;
@@ -20,6 +21,30 @@ module.exports=function() {
                 test.assertEqual(star.currentShip.progress,99);test.assertEqual(star.currentShip.type,'colony');
                 test.assertEqual(star.ships.length,0);test.assertFalse(game.factory.isShip(star.currentShip));
             });
+        });
+        test.it('suppresses repeated satellite order requests while retaining first-class commissioning reports',()=>{
+            const {game,star}=fixture();star.startBuildingShip('defense');star.paidTowardShipBuilding=star.currentShip.cost;star.commissionPaidHulls();
+            while(game.overlay)game.handleKeyPress(13);
+            star.paidTowardShipBuilding=star.currentShip.cost;star.commissionPaidHulls();
+            test.assertEqual(star.defenseSatellites.length,2);test.assertEqual(game.attention.pending().length,0);
+            test.assertEqual(game.eventLog.filter(e=>e.commissioning && e.recipient===1).length,1);
+            test.assertFalse(game.eventLog.some(e=>e.type===Common.EventType.SHIP_BUILT));
+        });
+        test.it('does not request orders for automatic deliveries even when their first movement reaches the destination',()=>{
+            for(const distance of [1,1000000]) {
+                const {game,star}=fixture();const destination={x:distance,y:0};star.setDefaultDestination(destination);star.startBuildingShip('scout');
+                star.paidTowardShipBuilding=star.currentShip.cost;star.commissionPaidHulls();
+                test.assertEqual(game.allShips.length,1);test.assertTrue(game.eventLog.some(e=>e.commissioning));
+                test.assertFalse(game.eventLog.some(e=>e.type===Common.EventType.SHIP_BUILT));
+                while(game.overlay)game.handleKeyPress(13);test.assertEqual(game.attention.pending().length,0);
+                if(distance===1000000)test.assertNotNull(game.allShips[0].destination);
+            }
+        });
+        test.it('still requests orders for a completed mobile ship without an automatic destination',()=>{
+            const {game,star}=fixture();star.startBuildingShip('scout');star.paidTowardShipBuilding=star.currentShip.cost;star.commissionPaidHulls();
+            const ship=game.allShips[0];test.assertTrue(game.eventLog.some(e=>e.type===Common.EventType.SHIP_BUILT && e.subject===ship));
+            while(game.overlay)game.handleKeyPress(13);test.assertEqual(game.attention.pending().length,1);
+            test.assertTrue(game.attention.next());test.assertTrue(game.selectedObject===ship);
         });
         test.it('keeps construction out of ship counts, ship identity and docked fleets',()=>{
             const {game,star}=fixture();const nextId=Ship.nextId;star.startBuildingShip('battleship');

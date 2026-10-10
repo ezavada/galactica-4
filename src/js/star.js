@@ -296,10 +296,14 @@ class Star {
             if (!Number.isFinite(cost) || cost <= 0) break;
             this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / cost * 100);
             if (this.paidTowardShipBuilding < cost) break;
+            // V3 CStar::BuildNewShip only asks for orders for mobile hulls
+            // without an automatic destination. Capture before immediate move
+            // can finish a route and clear the newly built ship's destination.
+            const notify=this.currentShip.type!=='defense' && !this.getDefaultDestination();
             const newShip = this.completeShip();
             this.paidTowardShipBuilding -= cost;
             this.buildCredits[newShip.type] = this.paidTowardShipBuilding;
-            this.game.noteworthyEvent(newShip, Common.EventType.SHIP_BUILT, this);
+            if(notify)this.game.noteworthyEvent(newShip, Common.EventType.SHIP_BUILT, this);
             let nextType = newShip.type;
             const computer = this.game.aiManager.getAIPlayer(this.owner);
             if (computer) {

@@ -214,3 +214,11 @@ actual six-language browser runs reach the first colony ship on turn 2. The
 longer walkthrough still needs repairs after lesson 27: a defense-build entry
 can precede the colony ship in attention. This verification does not establish
 a full guided playthrough.
+
+
+Ordinary construction now follows v3's notification rules: first-class stardock
+reports remain, but satellites and mobile hulls assigned an automatic destination
+do not add a built-ship order request. Real six-language tutorial walks now select
+the original colony ship at lesson 28. Continued English input reaches lesson 34,
+where Scout-class acknowledgment still leaves the home system selected; this
+remaining selection integration is not yet repaired.
