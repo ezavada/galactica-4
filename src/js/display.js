@@ -1600,11 +1600,16 @@ class Display {
                 regions.push({rect:{x:r.x+14+index*width,y:r.y+r.height-96,width:width-5,height:26},
                     label:I18n.getString(id,fallback),key,action:{type,object}});
             });
-            regions.push({rect:{x:r.x+14,y:r.y+r.height-64,width:190,height:24},label:I18n.getString(733,'Loop'),
+            const modeWidth=(r.width-150)/3,modeRect=index=>({
+                x:r.x+14+index*(modeWidth+8),y:r.y+r.height-64,width:modeWidth,height:24});
+            regions.push({rect:modeRect(0),label:I18n.getString(733,'Loop'),
                 key:'L',active:object.course.loop,action:{type:'toggleCourseLoop'}});
             if(object.course.waypoints.length || object.course.hasMemory)regions.push({
-                rect:{x:r.x+214,y:r.y+r.height-64,width:190,height:24},label:I18n.getString(740,'Memory'),
+                rect:modeRect(1),label:I18n.getString(740,'Memory'),
                 key:'M',active:object.course.hasMemory,action:{type:'swapCourseMemory'}});
+            if(this.game.canToggleCourseHunt(object))regions.push({
+                rect:modeRect(2),label:I18n.getString(741,'Hunt'),
+                key:'H',active:object.course.hunt,action:{type:'toggleCourseHunt'}});
         }
         if(layout.page>0)regions.push({rect:{x:r.x+14,y:r.y+r.height-32,width:130,height:22},
             label:I18n.getString(690,'Previous'),action:{type:'coursePage',page:layout.page-1}});

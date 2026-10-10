@@ -327,3 +327,6 @@
 
 # Course memory
 740	Mémoire
+
+# V3 course hunt mode
+741	Chasse

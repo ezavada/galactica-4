@@ -1158,6 +1158,7 @@ class Game {
             else if (lower==='x') this.clearOrders(this.courseWindowObject);
             else if (lower==='l') this.executeUIAction({type:'toggleCourseLoop'});
             else if (lower==='m') this.executeUIAction({type:'swapCourseMemory'});
+            else if (lower==='h') this.executeUIAction({type:'toggleCourseHunt'});
             return true;
         }
 
@@ -1406,6 +1407,11 @@ class Game {
                 : this.allShips.includes(object) && !object.isDead() && !object.underConstruction() && !object.fleet && object.type!=='defense');
     }
 
+    canToggleCourseHunt(object=this.courseWindowObject) {
+        const speed=this.factory.isFleet(object)?object.totalSpeed:object && object.speed;
+        return this.canEditCourse(object) && object.course.waypoints.length>0 && speed>0;
+    }
+
     getCourseRows(object=this.courseWindowObject) {
         if (!this.canViewCourse(object) || !object.course) return [];
         const course=object.course, speed=this.factory.isFleet(object)?object.totalSpeed:object.speed;
@@ -1617,6 +1623,11 @@ class Game {
                 }
                 return true;
             }
+            case 'toggleCourseHunt':
+                if(!this.canToggleCourseHunt())return false;
+                // v3 stores the mode without changing waypoints or movement.
+                this.courseWindowObject.course.hunt=!this.courseWindowObject.course.hunt;
+                return true;
             case 'toggleCourseLoop':
                 if (!this.canEditCourse(this.courseWindowObject)) return false;
                 this.courseWindowObject.course.loop=!this.courseWindowObject.course.loop;

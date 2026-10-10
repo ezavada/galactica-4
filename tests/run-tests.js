@@ -34,6 +34,7 @@ const runAllocationPrecisionTests = require('./allocation-precision.test.js');
 const runSliderDragTests = require('./slider-drag.test.js');
 const runColonyDefaultsTests = require('./colony-defaults.test.js');
 const runPursuitMovementTests = require('./pursuit-movement.test.js');
+const runCourseHuntTests = require('./course-hunt.test.js');
 const runCourseMemoryTests = require('./course-memory.test.js');
 const runWaypointCourseTests = require('./waypoint-course.test.js');
 const runSystemDiagnosticsTests = require('./system-diagnostics.test.js');
@@ -117,6 +118,7 @@ try {
     runSystemDiagnosticsTests();
     runWaypointCourseTests();
     runCourseMemoryTests();
+    runCourseHuntTests();
     runPursuitMovementTests();
     runColonyDefaultsTests();
     runSliderDragTests();

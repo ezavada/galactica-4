@@ -327,3 +327,6 @@
 
 # Course memory
 740	Kursspeicher
+
+# V3 course hunt mode
+741	Jagd
