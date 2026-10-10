@@ -609,6 +609,7 @@ class CombatSystem {
             // Retain the battle-time figures, independent of later repairs, grouping or destruction.
             event.combat={side:force.side,result:won?'won':lost?'lost':'inconclusive',forceName:force.name,
                 ownShipsLost:ownLosses,enemyShipsLost:enemyLosses,location};
+            if(typeof this.game.queueReport==='function')this.game.queueReport(event);
         }
     }
 

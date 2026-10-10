@@ -720,8 +720,8 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
         }
         return true;
     }
-    // Outcome dialogs are modal above map and table drag handlers.
-    if(game.overlay && game.overlay.type==='outcome' && event && event.eventType===pdg.eventType_MouseDown) {
+    // Message dialogs are modal above map and table drag handlers.
+    if(game.overlay && ['outcome','report'].includes(game.overlay.type) && event && event.eventType===pdg.eventType_MouseDown) {
         isDragging=false;isLeftClickDragging=false;hasDragged=false;
         if(event.buttonNumber===0)game.handleUIClick(event.mousePos.x,event.mousePos.y);
         return true;
@@ -808,7 +808,7 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
         return true;
     }
     if (event && event.eventType === pdg.eventType_ScrollWheel) {
-        if(['mapPick','games'].includes(game.uiWindow) || game.overlay && game.overlay.type==='outcome')return true;
+        if(['mapPick','games'].includes(game.uiWindow) || game.overlay && ['outcome','report'].includes(game.overlay.type))return true;
         const delta = event.vertDelta || 0;
         if (delta < 0) {
             // Get current mouse position for zoom target
@@ -831,7 +831,7 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
     }
     if (event && event.eventType === pdg.eventType_MouseMove) {
         game.display.setHoverPoint(event.mousePos.x, event.mousePos.y);
-        if(game.overlay && game.overlay.type==='outcome'){isDragging=false;isLeftClickDragging=false;return true;}
+        if(game.overlay && ['outcome','report'].includes(game.overlay.type)){isDragging=false;isLeftClickDragging=false;return true;}
         // Recover if the button was released outside the game window.
         if(game.uiWindowDrag && event.leftButton===false){game.endUIWindowDrag();return true;}
         if(game.updateUIWindowDrag(event.mousePos.x,event.mousePos.y))return true;

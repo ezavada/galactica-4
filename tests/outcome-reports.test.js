@@ -57,6 +57,45 @@ module.exports=()=>test.describe('Victory and defeat reports',()=>{
   game.dismissEventPresentation();let heading;display.drawWindowPanel=(rect,title)=>{heading=title;};display.drawTextLine=()=>{};display.drawDivider=()=>{};display.drawRoundedRect=()=>{};display.drawUIButton=()=>{};display.drawEventWindow();test.assertTrue(heading.endsWith('6–7'));
   game.turn=8;display.drawEventWindow();test.assertTrue(heading.endsWith('7'));test.assertTrue(game.getEventRows().includes(result));game.turn=9;test.assertFalse(game.getEventRows().includes(result));
  });
+ test.it('automatically presents only the local battle report and blocks underlying controls until acknowledgement',()=>{
+  const {game,display}=fixture(),home=ownStar(game,1),enemy=ownStar(game,2);home.techLevel=20;enemy.techLevel=1;
+  const attacker=game.factory.createShip(home.x,home.y,'battleship',home,true),defender=game.factory.createShip(enemy.x,enemy.y,'battleship',enemy,true);
+  pdg.srand(42);game.combatSystem.resolveCombat(attacker,defender);
+  test.assertEqual(game.overlay.type,'report');const event=game.eventLog.find(e=>e.id===game.overlay.eventId);
+  test.assertEqual(event.recipient,1);test.assertFalse(game.overlayQueue.some(o=>o.type==='report'));
+  const turn=game.turn,names=game.showMapNames;game.handleKeyPress(pdg.key_F2);test.assertEqual(game.showMapNames,names);test.assertEqual(game.overlay.type,'report');
+  test.assertEqual(display.getUIActionAt(1,1).type,'consume');const r=display.getReportLayout(game.overlay).buttons.find(b=>b.action.type==='dismissReport').rect;
+  test.assertTrue(game.handleUIClick(r.x+2,r.y+2));test.assertEqual(game.overlay,null);test.assertTrue(event.handled);test.assertTrue(game.selectedObject===attacker);test.assertEqual(game.turn,turn);
+ });
+ test.it('reopens a retained combat message from Events without duplicating reports or advancing the turn',()=>{
+  const {game,display}=fixture(),home=ownStar(game,1),event=game.recordEvent('Combat','Battle at 星',{recipient:1,subject:home});event.combat={result:'won'};
+  test.assertTrue(game.queueReport(event));game.handleKeyPress(32);const turn=game.turn,count=game.eventLog.length;game.uiWindow='events';game.eventSelection=event.id;
+  test.assertTrue(display.getEventActionRegions().some(b=>b.action.type==='replayReport'));game.handleKeyPress(13);test.assertEqual(game.overlay.eventId,event.id);test.assertEqual(game.uiWindow,null);test.assertEqual(game.eventLog.length,count);
+  game.handleKeyPress(pdg.key_Escape);test.assertEqual(game.turn,turn);test.assertFalse(game.replayReport({combat:{result:'won'}}));
+  const privateEvent=game.recordEvent('Combat','Hidden',{recipient:2});privateEvent.combat={result:'won'};test.assertFalse(game.queueReport(privateEvent));test.assertFalse(game.replayReport(privateEvent));
+ });
+ test.it('pages complete translated message text in small windows with measured nonoverlapping controls',()=>{
+  const language=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']) {
+   pdg.res.setLanguage(lang);const {game,display}=fixture({},320,340),home=ownStar(game,1);
+   const text=(I18n.getString(926)+' 星 $& Д\n\n').repeat(16),event=game.recordEvent(I18n.getString(607),text,{recipient:1,subject:home});event.combat={result:'won'};game.queueReport(event);
+   let layout=display.getReportLayout(game.overlay),all=[];test.assertTrue(layout.pages>1);
+   for(let page=0;page<layout.pages;page++) {game.overlay.page=page;layout=display.getReportLayout(game.overlay);all.push(...layout.visibleLines);
+    const bottom=layout.bodyY+layout.visibleLines.length*18;test.assertTrue(bottom<=Math.min(...layout.buttons.map(b=>b.rect.y)));
+    for(const b of layout.buttons){test.assertTrue(b.rect.x>=layout.rect.x&&b.rect.x+b.rect.width<=layout.rect.x+layout.rect.width);test.assertTrue(b.rect.y+b.rect.height<=layout.rect.y+layout.rect.height);test.assertTrue(b.rect.width>=game.port.getTextWidth(b.label,11));}
+    for(let i=0;i<layout.buttons.length;i++)for(let j=i+1;j<layout.buttons.length;j++){const a=layout.buttons[i].rect,b=layout.buttons[j].rect;test.assertFalse(a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y);}
+   }
+   test.assertEqual(all.join('\n'),layout.lines.join('\n'));game.overlay.page=0;game.handleKeyPress(pdg.key_RightArrow);test.assertEqual(game.overlay.page,1);game.handleKeyPress(pdg.key_LeftArrow);test.assertEqual(game.overlay.page,0);
+  }}finally{pdg.res.setLanguage(language);}
+ });
+ test.it('preserves queued ordinary messages and their identities through complete-game saves',()=>{
+  const {game}=fixture(),home=ownStar(game,1);for(const message of ['First 星','Second Д']){const event=game.recordEvent('Combat',message,{recipient:1,subject:home});event.combat={result:'won'};game.queueReport(event);}
+  const Save=require('../src/js/game-save.js'),loaded=Save.restore(Save.serialize(game));test.assertEqual(loaded.overlay.type,'report');test.assertEqual(loaded.overlayQueue.length,1);
+  const first=loaded.eventLog.find(e=>e.id===loaded.overlay.eventId);loaded.dismissEventPresentation();test.assertTrue(first.handled);test.assertEqual(loaded.overlay.type,'report');test.assertEqual(loaded.eventLog.find(e=>e.id===loaded.overlay.eventId).message,'Second Д');
+ });
+ test.it('keeps autoplay message windows disabled while retaining reports for later review',()=>{
+  const {game}=fixture({autoplay:{enabled:true,showEventWindows:false}}),event=game.recordEvent('Combat','Review later',{recipient:1});event.combat={result:'won'};
+  test.assertFalse(game.queueReport(event));test.assertEqual(game.overlay,null);test.assertTrue(game.getEventRows().includes(event));
+ });
  test.it('renders acknowledgement text without displaying internal action objects',()=>{
   const {game,display}=fixture();const labels=[];game.port.drawRect=()=>{};game.port.drawLine=()=>{};game.port.drawText=text=>labels.push(text);game.markGameWon(1);display.drawOverlay(game.overlay);
   test.assertTrue(labels.includes(I18n.getString(834)));test.assertFalse(labels.some(text=>String(text).includes('[object Object]')));

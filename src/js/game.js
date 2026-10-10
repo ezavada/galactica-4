@@ -956,7 +956,7 @@ class Game {
             return false;
         }
 
-        if(overlay.type==='outcome'){this.endUIWindowDrag();this.endMapScrollDrag();this.endUISliderDrag();if(this.uiWindow==='endTurnConfirm')this.uiWindow=null;}
+        if(['outcome','report'].includes(overlay.type)){this.endUIWindowDrag();this.endMapScrollDrag();this.endUISliderDrag();if(this.uiWindow==='endTurnConfirm')this.uiWindow=null;}
         this.overlay = {
             ...overlay,
             createdAt: this.getCurrentMilliseconds()
@@ -993,12 +993,23 @@ class Game {
         return this.queueEventOverlay({type:'outcome',...event.outcome,eventId:event.id,page:0});
     }
 
+    queueReport(event) {
+        if (!event || !event.combat || !this.isEventAccessible(event)) return false;
+        return this.queueEventOverlay({type:'report',eventId:event.id,page:0});
+    }
+
+    replayReport(event) {
+        if (!this.getEventRows().includes(event) || !event.combat || !this.isEventAccessible(event)) return false;
+        this.uiWindow=null;
+        return this.queueReport(event);
+    }
+
     dismissEventPresentation() {
         if (!this.hasEventPresentation()) {
             return false;
         }
 
-        if(this.overlay && this.overlay.type==='outcome') {
+        if(this.overlay && ['outcome','report'].includes(this.overlay.type)) {
             const event=this.eventLog.find(event=>event.id===this.overlay.eventId);
             if(event)this.focusEvent(event);
         }
@@ -1334,7 +1345,7 @@ class Game {
         if(this.uiWindow==='events') {
             if(key===13 || key===3) {
                 const event=this.getEventRows().find(event=>event.id===this.eventSelection);
-                if(event && event.outcome)this.replayOutcome(event);else if(event)this.focusEvent(event,true);else this.requestEndTurn();
+                if(event && event.outcome)this.replayOutcome(event);else if(event && event.combat)this.replayReport(event);else if(event)this.focusEvent(event,true);else this.requestEndTurn();
                 return true;
             }
         }
@@ -1772,6 +1783,17 @@ class Game {
                 this.gameSessionPage=0;this.uiWindow='games';return true;
             case 'selectGame':return !!(this.uiWindow==='games' && this.sessionCommands && this.sessionCommands.select(action.id));
             case 'gameSessionPage':this.gameSessionPage=Math.max(0,action.page);return true;
+            case 'dismissReport':return !!(this.overlay && this.overlay.type==='report' && this.dismissEventPresentation());
+            case 'replayReport':return this.replayReport(action.event);
+            case 'reportPage':
+                if(!this.overlay || this.overlay.type!=='report' || !Number.isInteger(action.page) || action.page<0)return false;
+                this.overlay.page=action.page;return true;
+            case 'reportGoTo': {
+                if(!this.overlay || this.overlay.type!=='report')return false;
+                const event=this.eventLog.find(e=>e.id===this.overlay.eventId);
+                if(!event || !this.getEventFocus(event))return false;
+                this.dismissEventPresentation();return true;
+            }
             case 'dismissOutcome':
                 return !!(this.overlay && this.overlay.type==='outcome' && this.dismissEventPresentation());
             case 'outcomePage':
@@ -2544,9 +2566,9 @@ class Game {
 
     handleKeyPress(key) {
         if(this.display && this.display.clearControlHelp)this.display.clearControlHelp();
-        if(this.overlay && this.overlay.type==='outcome') {
+        if(this.overlay && ['outcome','report'].includes(this.overlay.type)) {
             if(key===pdg.key_LeftArrow || key===pdg.key_RightArrow) {
-                const layout=this.display && this.display.getOutcomeLayout(this.overlay);
+                const layout=this.display && (this.overlay.type==='report'?this.display.getReportLayout(this.overlay):this.display.getOutcomeLayout(this.overlay));
                 if(layout)this.overlay.page=Math.max(0,Math.min(layout.pages-1,layout.page+(key===pdg.key_LeftArrow?-1:1)));
             } else if(key===13 || key===3 || key===32 || key===pdg.key_Escape)this.dismissEventPresentation();
             return true;

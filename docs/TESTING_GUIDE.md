@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1040
-Passed: 1040 ✓
+Total: 1045
+Passed: 1045 ✓
 Failed: 0 ✗
 ```
 
@@ -217,3 +217,5 @@ Hull-choice help: `tests/control-help.test.js` checks all four actual build/defa
 First-hull commissioning: four regressions in `tests/ship-naming-events.test.js` cover each nonfighter hull, source-system report/presentation identity after default departure, enemy privacy in all-visible mode, duplicate and lower-class suppression, and save/restoration of milestones/queued presentations. Full suites: 1036 passed on release/current native PDG. Actual browser before/after checks and inspected translated screenshots cover each hull, dismissal and system-focused reports in all six languages. Artifacts: `/private/tmp/galactica-parity/first-hulls-{before,after}`. Logs: `/private/tmp/galactica-first-hulls-{tests,native-tests}.log` and `/private/tmp/galactica-first-hulls-{before,after}-<language>.log`.
 
 Participant battle reports: four new regressions in `tests/combat.test.js` check actual fleet combat, private/mirrored recipient perspectives, immutable force/loss snapshots, real unarmed inconclusive results, exclusion of planets/consumed colonies from ship casualties, complete-save persistence and translated human-defender focus. The existing runtime summary regression now checks the owner-relative report. Full suites: 1040 passed on release/current native PDG. Actual browser fleet arrival battles cover winner/loser Events and Go to selection or remembered location in all six languages. Reviewed artifacts: `/private/tmp/galactica-parity/battle-reports-{before,after}`. Logs: `/private/tmp/galactica-battle-reports-{tests,native-tests}.log` and `/private/tmp/galactica-battle-reports-{before,after}-<language>.log`.
+
+Automatic combat report windows: five new regressions in `tests/outcome-reports.test.js` cover actual combat presentation/privacy, modal input isolation, retained Events replay, measured Unicode pages and button rows in all six languages at 320×340, queued complete-save identities and quiet autoplay. Full suites: 1045 passed on release/current native PDG. Actual browser winner/loser battles verify automatic dialogs, Continue/Go to, Events replay, blocked keyboard shortcuts/map clicks/wheel zoom and smaller-window paging in en/de/es/fr/ja/ru. Final before/after and translated screenshots inspected under `/private/tmp/galactica-parity/message-windows-{before,after}`. Logs: `/private/tmp/galactica-message-windows-{tests,native-tests}.log` and `/private/tmp/galactica-message-windows-{before,after}-<language>.log`.

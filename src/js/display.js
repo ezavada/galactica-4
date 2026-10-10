@@ -1799,6 +1799,8 @@ class Display {
         if(l.page<l.pages-1)controls.push({rect:{x:r.x+110,y:r.y+r.height-36,width:90,height:24},label:I18n.getString(691,'Next'),action:{type:'eventPage',page:l.page+1}});
         if(l.selected && l.selected.outcome)controls.push({rect:{x:r.x+r.width-174,y:r.y+r.height-36,width:160,height:24},
             label:I18n.getString(835,'View report'),key:'Enter',action:{type:'replayOutcome',event:l.selected}});
+        else if(l.selected && l.selected.combat)controls.push({rect:{x:r.x+r.width-174,y:r.y+r.height-36,width:160,height:24},
+            label:I18n.getString(835,'View report'),key:'Enter',action:{type:'replayReport',event:l.selected}});
         else if(l.selected && this.game.getEventFocus(l.selected))controls.push({rect:{x:r.x+r.width-174,y:r.y+r.height-36,width:160,height:24},
             label:I18n.getString(749,'Go to'),key:'Enter',action:{type:'goToEvent',event:l.selected}});
         if(l.detailPage>0)controls.push({rect:{x:r.x+14,y:r.y+r.height-70,width:90,height:24},label:I18n.getString(690,'Previous'),action:{type:'eventDetailPage',page:l.detailPage-1}});
@@ -2618,8 +2620,8 @@ class Display {
     }
 
     getUIActionAt(x, y) {
-        if(this.game.overlay && this.game.overlay.type==='outcome') {
-            const layout=this.getOutcomeLayout(this.game.overlay);
+        if(this.game.overlay && ['outcome','report'].includes(this.game.overlay.type)) {
+            const layout=this.game.overlay.type==='report'?this.getReportLayout(this.game.overlay):this.getOutcomeLayout(this.game.overlay);
             const control=layout.buttons.find(button=>this.containsPoint(button.rect,x,y));
             return control?control.action:{type:'consume'};
         }
@@ -3697,7 +3699,7 @@ class Display {
     getControlHelpCandidate() {
         const game=this.game,point=this.hoverPoint;
         if (!point || game.showControlHelp===false || game.uiSliderDrag || game.uiWindowDrag || game.uiMapScrollDrag ||
-                game.pendingCourseEdit || game.overlay && game.overlay.type!=='outcome') return null;
+                game.pendingCourseEdit || game.overlay && !['outcome','report'].includes(game.overlay.type)) return null;
         const action=this.getUIActionAt(point.x,point.y),text=ControlHelp.describe(action);
         if (!text) return null;
         const control=this.hoverControl || {rect:{x:point.x,y:point.y,width:1,height:1},label:''};
@@ -3765,12 +3767,40 @@ class Display {
         layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,null));
     }
 
+    getReportLayout(overlay) {
+        const screen=this.getScreenSize(),width=Math.min(600,screen.width-40);
+        const event=this.game.eventLog.find(e=>e.id===overlay.eventId && this.game.isEventAccessible(e));
+        const controls=[{label:I18n.getString(834,'Continue'),action:{type:'dismissReport'}}];
+        if(event && this.game.getEventFocus(event))controls.push({label:I18n.getString(749,'Go to'),action:{type:'reportGoTo'}});
+        const previous={label:I18n.getString(690,'Previous'),action:{type:'reportPage',page:0}};
+        const next={label:I18n.getString(691,'Next'),action:{type:'reportPage',page:0}};
+        const footer=this.layoutButtonRow([...controls,previous,next],{x:0,y:0,width:width-40,height:28,size:11,gap:8,minWidth:90});
+        const lines=this.wrapEventMessage(event?event.message:'',width-40,13);
+        const height=Math.min(400,screen.height-40,Math.max(180,58+lines.length*18+14+20+footer.rows*36-8));
+        const rect={x:(screen.width-width)/2,y:(screen.height-height)/2,width,height};
+        const footerY=rect.y+height-20-(footer.rows*36-8),bodyY=rect.y+58;
+        const capacity=Math.max(1,Math.floor((footerY-14-bodyY)/18)),pages=Math.max(1,Math.ceil(lines.length/capacity));
+        const page=this.clamp(overlay.page || 0,0,pages-1);
+        if(page>0)controls.push({...previous,action:{type:'reportPage',page:page-1}});
+        if(page<pages-1)controls.push({...next,action:{type:'reportPage',page:page+1}});
+        const buttons=this.layoutButtonRow(controls,{x:rect.x+20,y:footerY,width:width-40,height:28,size:11,gap:8,minWidth:90}).regions;
+        return {rect,title:event?event.title:'',event,lines,bodyY,capacity,pages,page,visibleLines:lines.slice(page*capacity,(page+1)*capacity),buttons};
+    }
+
+    drawReport(overlay) {
+        const layout=this.getReportLayout(overlay),r=layout.rect;
+        this.drawWindowPanel(r,layout.title);
+        layout.visibleLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,layout.bodyY+index*18,'lightgray',13));
+        layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,null,{size:11}));
+    }
+
     drawOverlay(overlay) {
         const drawingArea = this.port.getDrawingArea();
         // Dim the scene
         this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), this.styles.overlayDim);
         
         if(overlay.type==='outcome'){this.drawOutcome(overlay);return;}
+        if(overlay.type==='report'){this.drawReport(overlay);return;}
         if (overlay.type === 'lab') {
             const back = this.getImageCached('labback', 'events/labback.png');
             const top = this.getImageCached('labtop', 'events/labtop.png');
