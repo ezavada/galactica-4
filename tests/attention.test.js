@@ -74,6 +74,24 @@ module.exports=function(){test.describe('V3 human call-ins and attention',()=>{
         const button=g.display.getMapButtonRegions().find(r=>r.action.type==='nextAttention');
         test.assertTrue(g.handleUIClick(button.rect.x+5,button.rect.y+5));test.assertEqual(g.turn,turn);
     });
+    test.it('plays the shipped No more cue on empty Tab and Next item without advancing or changing selection',()=>{
+        const {g,ship}=fixture(),files=[],started=[];
+        const Sound=require('../src/js/sound.js');
+        g.sound=Sound.createSound({getSound:file=>{files.push(file);return {setLooping:()=>{},stop:()=>{},start:()=>started.push(file)};}},{readSound:()=>true,writeSound:()=>{}});
+        g.uiWindow=null;g.attention.queue=[];const turn=g.turn;g.handleKeyPress(pdg.key_Tab);
+        test.assertEqual(started.join(','),'sounds/1012.wav');test.assertTrue(g.selectedObject===ship);test.assertEqual(g.turn,turn);
+        const button=g.display.getMapButtonRegions().find(r=>r.action.type==='nextAttention');
+        test.assertTrue(g.handleUIClick(button.rect.x+5,button.rect.y+5));test.assertEqual(started.length,2);test.assertEqual(files.length,1);test.assertEqual(g.turn,turn);test.assertTrue(g.selectedObject===ship);
+        g.sound.setEnabled(false);g.handleKeyPress(pdg.key_Tab);test.assertEqual(started.length,2);
+    });
+    test.it('does not play an exhausted-list sound for a pending call-in or during map orders and quiet autoplay',()=>{
+        const {g,ship}=fixture(),started=[];const Sound=require('../src/js/sound.js');
+        g.sound=Sound.createSound({getSound:file=>({setLooping:()=>{},stop:()=>{},start:()=>started.push(file)})},{readSound:()=>true,writeSound:()=>{}});
+        g.uiWindow=null;g.attention.request(ship);g.handleKeyPress(pdg.key_Tab);test.assertEqual(started.join(','),'sounds/1001.wav');
+        for(const field of ['pendingMapOrderObject','pendingRendezvousPlacement','uiSliderDrag','uiMapScrollDrag']){g[field]={};g.handleKeyPress(pdg.key_Tab);test.assertEqual(started.length,1);g[field]=null;}
+        g.config.autoplay={enabled:true,showEventWindows:false};g.handleKeyPress(pdg.key_Tab);test.assertEqual(started.length,1);
+        g.config.autoplay=null;g.overlay={type:'lab',classIndex:1};g.sound.noMore(g);test.assertEqual(started.length,1);
+    });
     test.it('does not navigate attention while awaiting a destination click',()=>{
         const {g,ship}=fixture();g.attention.request(ship);g.pendingMapOrderObject=ship;g.handleKeyPress(pdg.key_Tab);
         test.assertEqual(g.attention.pending().length,1);test.assertTrue(g.pendingMapOrderObject===ship);

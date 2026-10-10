@@ -37,6 +37,11 @@ function createSound(resourceManager,preferences) {
         setEnabled(value){enabled=!!value;preferences.writeSound(enabled);if(!enabled)stop();return enabled;},
         stop,play,
         isPending:overlay=>enabled && presentations.has(overlay) && !presentations.get(overlay).cue,
+        noMore(game){
+            if(!game.shouldShowEventWindows() || game.hasEventPresentation() || game.pendingMapOrderObject ||
+                    game.pendingRendezvousPlacement || game.uiSliderDrag || game.uiMapScrollDrag)return false;
+            return play(1012);
+        },
         attention(game,event){
             if(!game.shouldShowEventWindows() || event && !game.isEventAccessible(event))return false;
             return play(event?eventCue(event):1001);

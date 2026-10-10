@@ -28,7 +28,8 @@ class Attention {
     }
     attend(object) { const entry=this.pending().find(entry=>entry.object===object);if(entry){entry.handled=true;if(entry.event)entry.event.handled=true;} }
     next() {
-        const entry=this.pending()[0];if(!entry)return false;
+        const entry=this.pending()[0];
+        if(!entry){if(this.game.sound)this.game.sound.noMore(this.game);return false;}
         entry.handled=true;if(entry.event) {
             this.game.focusEvent(entry.event,true);
             if(entry.event.automatic===false && this.game.hasReplayableReport(entry.event))this.game.queueReport(entry.event,false,true);
