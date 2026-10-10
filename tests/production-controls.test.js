@@ -260,6 +260,8 @@ module.exports = function() {
             game.port = {getDrawingArea: () => new pdg.Rect(800,600)};
             const display = new Display(game);
             const region = display.getAllocationLockRegions()[0];
+            const locks = display.getAllocationLockRegions();
+            test.assertTrue(locks.every(lock => lock.rect.width === 26 && lock.rect.x === region.rect.x));
             const action = display.getUIActionAt(region.rect.x + 10, region.rect.y + 8);
             test.assertEqual(action.type, 'toggleAllocationLock'); game.executeUIAction(action);
             test.assertTrue(star.growth.locked);

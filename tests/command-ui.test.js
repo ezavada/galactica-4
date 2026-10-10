@@ -320,7 +320,7 @@ module.exports = function runCommandUITests() {
 
             const menuButton = display.getMapButtonRegions().find(button => button.label === 'Menu');
             test.assertNotNull(menuButton, 'Menu button should exist');
-            test.assertTrue(menuButton.rect.width >= 98);
+            test.assertEqual(menuButton.rect.width, 44);
             const productionButton = display.getMapButtonRegions().find(button => button.label === 'Production');
             test.assertUndefined(productionButton, 'Production should not be a permanent map button');
 

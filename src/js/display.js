@@ -1317,9 +1317,9 @@ class Display {
         style.lineStyle(pdg.lineStyle_Solid).lineThickness(0.6);
         this.drawRoundedRect(drawRect, options.radius || 10, style);
         if(options.icon) {
-            this.drawUIIcon(options.icon,drawRect.x+(options.iconOnly?drawRect.width/2:18),drawRect.y+drawRect.height/2);
+            this.drawUIIcon(options.icon,drawRect.x+(options.iconOnly?drawRect.width/2-(hotkey?4:0):18),drawRect.y+drawRect.height/2);
             if(options.iconOnly) {
-                if(hotkey)this.drawTextLine(hotkey,drawRect.x+drawRect.width-12,drawRect.y+drawRect.height/2+3,'labelgray',9,pdg.textStyle_RightJustified);
+                if(hotkey)this.drawTextLine(hotkey,drawRect.x+drawRect.width-8,drawRect.y+drawRect.height/2+3,'labelgray',9,pdg.textStyle_RightJustified);
                 if(hovered)this.iconHint={rect:drawRect,inWindow:!!this.drawingActiveWindow,label:hotkey?`${label} <${hotkey}>`:label};
                 return;
             }
@@ -1362,18 +1362,27 @@ class Display {
         const screen = this.getScreenSize();
         const buttons = this.getMapButtonDefinitions();
 
-        const gap=8,buttonHeight=30;
+        const gap=8,buttonHeight=30,iconWidth=44,iconGap=6;
+        const textButtons=buttons.filter(button=>!button.icon);
+        const iconButtons=buttons.filter(button=>button.icon);
         let widths=[0,0];
-        buttons.forEach((button,index)=>widths[index%2]=Math.max(widths[index%2],
-            this.getButtonWidth(button.label,button.key,{minWidth:98,iconOnly:!!button.icon})));
+        textButtons.forEach((button,index)=>widths[index%2]=Math.max(widths[index%2],
+            this.getButtonWidth(button.label,button.key,{minWidth:98})));
         const cols=widths[0]+widths[1]+gap>screen.width-32?1:2;
         if(cols===1)widths=[Math.max(...widths)];
-        const rows=Math.ceil(buttons.length/cols),totalWidth=widths.reduce((a,b)=>a+b,0)+(cols-1)*gap;
-        const startX=screen.width-totalWidth-16,startY=screen.height-rows*buttonHeight-(rows-1)*gap-16;
-        return buttons.map((button,index)=>({ ...button,rect:{
+        const rows=Math.ceil(textButtons.length/cols),totalWidth=widths.reduce((a,b)=>a+b,0)+(cols-1)*gap;
+        const iconY=screen.height-buttonHeight-16;
+        const startX=screen.width-totalWidth-16,startY=iconY-rows*(buttonHeight+gap);
+        const rectangles=new Map();
+        textButtons.forEach((button,index)=>rectangles.set(button,{
             x:Math.round(startX+(index%cols?widths[0]+gap:0)),
             y:Math.round(startY+Math.floor(index/cols)*(buttonHeight+gap)),
-            width:widths[index%cols],height:buttonHeight}}));
+            width:index===textButtons.length-1 && index%cols===0?totalWidth:widths[index%cols],
+            height:buttonHeight}));
+        const iconStartX=screen.width-iconButtons.length*iconWidth-(iconButtons.length-1)*iconGap-16;
+        iconButtons.forEach((button,index)=>rectangles.set(button,{
+            x:iconStartX+index*(iconWidth+iconGap),y:iconY,width:iconWidth,height:buttonHeight}));
+        return buttons.map(button=>({...button,rect:rectangles.get(button)}));
     }
 
     drawMapButtons() {
@@ -2022,7 +2031,7 @@ class Display {
 
     getAllocationLockRegions(sliders = this.getAllocationSliderRegions()) {
         return sliders.map(slider => ({
-            rect: { x: slider.trackRect.x + slider.trackRect.width + 48, y: slider.rect.y + 1, width: 68, height: 18 },
+            rect: { x: slider.trackRect.x + slider.trackRect.width + 48, y: slider.rect.y + 1, width: 26, height: 18 },
             action: { type: 'toggleAllocationLock', star: slider.star, allocationKey: slider.key }
         }));
     }
@@ -2239,7 +2248,7 @@ class Display {
         this.drawBar(rects.track.x, rects.track.y, rects.track.width, rects.track.height, desired / 100.0, color);
         this.drawTextLine(options.unknown ? '?' : `${I18n.formatPercentage(desired)}%`, rects.percent.x, y, valueColor, 11);
 
-        if (options.interactive !== false) this.drawUIButton({ x: rects.track.x + width + 48, y: y - 13, width: 68, height: 18 },
+        if (options.interactive !== false) this.drawUIButton({ x: rects.track.x + width + 48, y: y - 13, width: 26, height: 18 },
             allocation.locked ? I18n.getString(675, 'Unlock') : I18n.getString(674, 'Lock'), null,
             { size: 9, radius: 6, icon: allocation.locked ? 'lock' : 'unlock', iconOnly: true, active: allocation.locked });
 

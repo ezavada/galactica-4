@@ -17,8 +17,16 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         for(let i=0;i<buttons.length;i++)for(let j=i+1;j<buttons.length;j++){
             const a=buttons[i].rect,b=buttons[j].rect;test.assertFalse(a.x<b.x+b.width&&b.x<a.x+a.width&&a.y<b.y+b.height&&b.y<a.y+a.height);
         }
+        const icons=buttons.filter(b=>b.icon);test.assertEqual(icons.map(b=>b.icon).join(','),'menu,home,fit');
+        icons.forEach((button,index)=>{
+            test.assertEqual(button.rect.width,44);test.assertEqual(button.rect.height,30);
+            test.assertEqual(button.rect.y,icons[0].rect.y);
+            if(index)test.assertEqual(button.rect.x,icons[index-1].rect.x+50);
+            test.assertEqual(d.getUIActionAt(button.rect.x+2,button.rect.y+2).type,button.action.type);
+        });
+        test.assertTrue(buttons.filter(b=>!b.icon).every(b=>b.rect.y+b.rect.height<icons[0].rect.y));
         const button=buttons.find(b=>b.action.type==='endTurn');test.assertEqual(d.getUIActionAt(button.rect.x+button.rect.width-2,button.rect.y+3).type,'endTurn');
-        d.port.getDrawingArea=()=>new pdg.Rect(480,600);const narrow=d.getMapButtonRegions();test.assertTrue(narrow.every(b=>b.rect.x===narrow[0].rect.x));
+        d.port.getDrawingArea=()=>new pdg.Rect(480,600);const narrow=d.getMapButtonRegions();test.assertTrue(narrow.filter(b=>!b.icon).every(b=>b.rect.x===narrow.find(b=>!b.icon).rect.x));
     });
     test.it('expands popup buttons together with their click areas and connectors',()=>{
         const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Home');star.owner=1;game.setSelectedObject(star);
