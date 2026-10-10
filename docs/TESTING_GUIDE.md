@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1079
-Passed: 1079 ✓
+Total: 1086
+Passed: 1086 ✓
 Failed: 0 ✗
 ```
 
@@ -234,3 +234,5 @@ Fleet casualty attribution: two regressions in `tests/combat.test.js` execute ac
 Individual destruction reports: ten regressions in tests/destruction-reports.test.js cover actual standalone/fleet/nested arrivals, suppressed own-system defenders and members, partial fleet survival, actual multi-owner killers, opponent attribution, animation-only completion, retained narrative replay, private saves, quiet autoplay, consumed colonies, duplicate removal, reduced motion and all six translations. Both full suites pass (1073 tests). Actual browser before/after ship/fleet/nested winner and loser flows pass in all six languages; reviewed captures /private/tmp/galactica-parity/destruction-notices-{before,after}. Logs /private/tmp/galactica-destruction-notices-{tests,native-tests}.log and /private/tmp/galactica-destruction-notices-{before,after}-<language>.log.
 
 Observer capture reports: six regressions in tests/capture-observers.test.js execute actual third-party invasions and verify hidden/detected/allied/all-visible access, private resistance/destruction, saved snapshots and replay, no automatic modal/attention request, failed/neutral/resistance-only outcomes and six-language layouts at 320×340. Full native suites pass (1079 tests). Actual before/after browser hidden/detected/all-visible Events, lost detection, View report and Go to pass in all six languages; reviewed captures /private/tmp/galactica-parity/capture-observers-{before,after}. Logs /private/tmp/galactica-capture-observers-{tests,native-tests}.log and /private/tmp/galactica-capture-observers-{before,after}-<language>.log.
+
+Enemy-event playback: seven regressions in tests/enemy-events.test.js cover Settings hit targets, automatic observer focus, off/manual replay, duplicate and disabled/hidden queues, post-movement current-turn visibility, private/quiet playback, browser/native defaults, per-game saves and legacy compatibility, and localized viewport paging/help. Both full suites pass (1086 tests). Actual browser menu/Settings clicks, hover help, reload persistence and real third-party capture playback pass in all six languages. The short-panel browser fixture sets logical layout dimensions to 320×340, verifies all pages with real clicks/arrows and does not resize the native port. Reviewed captures /private/tmp/galactica-parity/enemy-events-{before,after}; logs /private/tmp/galactica-enemy-events-{tests,native-tests}.log and /private/tmp/galactica-enemy-events-{before,after}-<language>.log.

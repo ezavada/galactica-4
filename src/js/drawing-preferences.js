@@ -1,4 +1,4 @@
-// Persist drawing choices independently of saved simulation state.
+// Persist drawing and playback defaults independently of saved simulation state.
 function createPreferences(env=globalThis) {
     let storage=null,config=null;
     try {
@@ -18,6 +18,7 @@ function createPreferences(env=globalThis) {
         } catch(error) { /* The current drawing choice still applies. */ }
     };
     return {
+        readEnemyEvents:()=>read('showEnemyEvents'),writeEnemyEvents:show=>write('showEnemyEvents',show),
         readControlHelp:()=>read('showControlHelp'),writeControlHelp:show=>write('showControlHelp',show),
         readNebula:()=>read('showNebula'),writeNebula:show=>write('showNebula',show),
         readScannerRanges:()=>read('showScannerRanges'),writeScannerRanges:show=>write('showScannerRanges',show),

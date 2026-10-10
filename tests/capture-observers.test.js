@@ -1,6 +1,7 @@
 const test=require('./test-framework.js'),Game=require('../src/js/game.js'),Factory=require('../src/js/factory.js'),Config=require('../src/js/game-config.js'),Rules=require('../src/js/rules.js'),Display=require('../src/js/display.js'),Common=require('../src/js/common.js'),Save=require('../src/js/game-save.js'),I18n=require('../src/js/i18n.js');
 function fixture() {
  const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true,numHumans:1,numComputers:2}));
+ game.showEnemyEvents=false;
  const homes=[1,2,3].map(owner=>{const star=game.factory.createStar(owner*1000000,0,'Home '+owner);star.owner=owner;star.population=100;star.techLevel=20;return star;});
  game.players[2].name='Invader Д $&';game.players[3].name='Defender 星';
  const target=game.factory.createStar(0,0,'Captured 星 $&');target.owner=3;target.population=1;target.techLevel=1;target.setVisibilityTo(1,Common.VisibilityLevel.NONE);

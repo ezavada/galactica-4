@@ -578,3 +578,7 @@
 935	Du hast {1} in einer Schlacht bei {2} besiegt und die Flotte {0} zerstört!
 936	Deine Flotte {0} wurde in einer Schlacht gegen {1} bei {2} vernichtet.
 937	{1} hat das Sternsystem {0} von {2} erobert.
+
+# Enemy event playback
+938	Fremde Ereignisse anzeigen
+939	Berichte über andere Spieler automatisch anzeigen, wenn ihre Ziele entdeckt, verbündet oder ohne Kriegsnebel sichtbar sind. Ausgeschaltet bleiben diese Berichte zur manuellen Ansicht in der Ereignisliste.

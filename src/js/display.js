@@ -2049,13 +2049,13 @@ class Display {
 
     getSettingsWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(320,screen.width-40);
-        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:558});
+        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:Math.min(540,screen.height-20)});
     }
 
     getSettingsActionRegions() {
         if(this.game.uiWindow!=='settings')return [];
         const rect=this.getSettingsWindowRect();
-        return LanguageSettings.languages.map((language,index)=>({
+        const rows=LanguageSettings.languages.map((language,index)=>({
             rect:{x:rect.x+14,y:rect.y+76+index*32,width:rect.width-28,height:28},
             label:language.name,active:LanguageSettings.current()===language.code,
             action:{type:'setLanguage',language:language.code}
@@ -2074,14 +2074,29 @@ class Display {
             {rect:{x:rect.x+14,y:rect.y+476,width:rect.width-28,height:28},
             label:I18n.getString(785,'Show nebula background'),active:this.game.showNebula,action:{type:'toggleNebula'}},
             {rect:{x:rect.x+14,y:rect.y+508,width:rect.width-28,height:28},
-            label:I18n.getString(857,'Control help'),active:this.game.showControlHelp!==false,action:{type:'toggleControlHelp'}}]);
+            label:I18n.getString(857,'Control help'),active:this.game.showControlHelp!==false,action:{type:'toggleControlHelp'}},
+            {label:I18n.getString(938,'Show enemy events'),active:this.game.showEnemyEvents,action:{type:'toggleEnemyEvents'}}]);
+        const capacity=Math.max(1,Math.floor((rect.height-112)/28)),pages=Math.ceil(rows.length/capacity);
+        const page=this.clamp(this.game.settingsPage||0,0,pages-1);this.game.settingsPage=page;
+        const visible=rows.slice(page*capacity,(page+1)*capacity).map((row,index)=>({...row,
+            rect:{x:rect.x+14,y:rect.y+76+index*28,width:rect.width-28,height:24}}));
+        if(pages>1) {
+            const width=(rect.width-36)/2;
+            if(page>0)visible.push({rect:{x:rect.x+14,y:rect.y+rect.height-46,width,height:24},
+                label:I18n.getString(690,'Previous'),action:{type:'settingsPage',delta:-1}});
+            if(page<pages-1)visible.push({rect:{x:rect.x+22+width,y:rect.y+rect.height-46,width,height:24},
+                label:I18n.getString(691,'Next'),action:{type:'settingsPage',delta:1}});
+        }
+        return visible;
     }
 
     drawSettingsWindow() {
         const rect=this.getSettingsWindowRect();
         this.drawWindowPanel(rect,I18n.getString(759,'Settings'));
-        this.drawTextLine(I18n.getString(760,'Language'),rect.x+14,rect.y+57,'lightgray',12);
-        for(const region of this.getSettingsActionRegions())this.drawUIButton(region.rect,region.label,region.key || null,{active:region.active});
+        const regions=this.getSettingsActionRegions();
+        if(regions.some(region=>region.action.type==='setLanguage'))
+            this.drawTextLine(I18n.getString(760,'Language'),rect.x+14,rect.y+57,'lightgray',12);
+        for(const region of regions)this.drawUIButton(region.rect,region.label,region.key || null,{active:region.active});
         this.drawTextLine(this.STR.escClose,rect.x+14,rect.y+rect.height-16,'gray',10);
     }
 

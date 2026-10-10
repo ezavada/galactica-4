@@ -42,6 +42,8 @@ class Game {
         this.showNebula = true;
         this.mapDisplayMode = 'ownership';
         this.showMapNames = true;
+        this.showEnemyEvents = true;
+        this.settingsPage = 0;
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
         this.nextEventId = 0;
@@ -956,6 +958,8 @@ class Game {
             return false;
         }
 
+        if(overlay.automaticObserver && (!this.showEnemyEvents ||
+                !this.isEventAccessible(this.eventLog.find(event=>event.id===overlay.eventId))))return false;
         if(['outcome','report'].includes(overlay.type)){this.endUIWindowDrag();this.endMapScrollDrag();this.endUISliderDrag();if(this.uiWindow==='endTurnConfirm')this.uiWindow=null;}
         this.overlay = {
             ...overlay,
@@ -965,6 +969,10 @@ class Game {
             const event=this.eventLog.find(event=>event.id===overlay.eventId);
             const position=this.getReportDestructionPosition(event);
             if(position)this.display.centerOn(position.x,position.y);
+            else if(event && event.observer) {
+                const focus=this.getEventFocus(event);
+                if(focus){this.setSelectedObject(focus.object);this.display.centerOn(focus.x,focus.y);}
+            }
         }
         return true;
     }
@@ -1009,15 +1017,28 @@ class Game {
         return !!(event && (event.combat || event.occupation || event.destruction));
     }
 
-    queueReport(event, animationOnly = !!(event && event.destruction)) {
+    queueReport(event, animationOnly = !!(event && event.destruction), manual = false) {
         if (!this.hasReplayableReport(event) || !this.isEventAccessible(event)) return false;
-        return this.queueEventOverlay({type:'report',eventId:event.id,page:0,animationOnly});
+        return this.queueEventOverlay({type:'report',eventId:event.id,page:0,animationOnly,automaticObserver:!!event.observer && !manual});
+    }
+
+    queueObserverReports() {
+        if(!this.showEnemyEvents)return false;
+        let queued=false;
+        const retained=new Set(this.getEventRows());
+        for(const event of this.eventLog) {
+            if(event.turn!==this.turn && !retained.has(event))continue;
+            if(!event.observer || event.handled || this.overlay && this.overlay.eventId===event.id ||
+                    this.overlayQueue.some(overlay=>overlay.eventId===event.id))continue;
+            queued=this.queueReport(event) || queued;
+        }
+        return queued;
     }
 
     replayReport(event) {
         if (!this.getEventRows().includes(event) || !this.hasReplayableReport(event) || !this.isEventAccessible(event)) return false;
         this.uiWindow=null;
-        return this.queueReport(event, false);
+        return this.queueReport(event, false, true);
     }
 
     dismissEventPresentation() {
@@ -1030,8 +1051,8 @@ class Game {
             if(event)this.focusEvent(event);
         }
         this.overlay = null;
-        if (this.overlayQueue && this.overlayQueue.length > 0) {
-            this.showEventOverlay(this.overlayQueue.shift());
+        while (this.overlayQueue && this.overlayQueue.length > 0) {
+            if(this.showEventOverlay(this.overlayQueue.shift()))break;
         }
         return true;
     }
@@ -1329,6 +1350,8 @@ class Game {
             return true;
         }
         if(this.uiWindow==='settings' || this.uiWindow==='mapDisplay') {
+            if(this.uiWindow==='settings' && [pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))
+                return this.executeUIAction({type:'settingsPage',delta:key===pdg.key_RightArrow?1:-1});
             if(key===pdg.key_Escape)this.uiWindow=null;
             return true;
         }
@@ -1852,6 +1875,14 @@ class Game {
             case 'toggleGrid':
                 this.showGrid=!this.showGrid;
                 if(this.drawingPreferences)this.drawingPreferences.writeGrid(this.showGrid);
+                return true;
+            case 'settingsPage':
+                if(this.uiWindow!=='settings')return false;
+                this.settingsPage=Math.max(0,(this.settingsPage||0)+(action.delta||0));return true;
+            case 'toggleEnemyEvents':
+                this.showEnemyEvents=!this.showEnemyEvents;
+                if(this.drawingPreferences)this.drawingPreferences.writeEnemyEvents(this.showEnemyEvents);
+                if(this.showEnemyEvents)this.queueObserverReports();
                 return true;
             case 'toggleControlHelp':
                 this.showControlHelp=this.showControlHelp===false;
@@ -2912,6 +2943,7 @@ class Game {
 
         // Update visibility after all movements and changes
         this.visibilityCalculator.updateAllVisibility();
+        this.queueObserverReports();
         
         // Update player piece counts and check for defeats
         this.updatePlayerPieceCounts();
@@ -3198,7 +3230,10 @@ class Game {
                 {type:kind==='capture'?Common.EventType.STAR_CAPTURED:Common.EventType.DEFENDERS_LOST,
                     subject:star,recipient,position:star});
             event.occupation={...snapshot,side:observer?'observer':winner?'attacker':'defender'};
-            if(observer)event.observer=true;
+            if(observer) {
+                event.observer=true;
+                if(this.showEnemyEvents && !this.movementTurn)this.queueReport(event);
+            }
             else {this.queueReport(event);this.attention.requestEvent(event);}
             return event;
         });

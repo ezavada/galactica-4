@@ -41,7 +41,7 @@ module.exports=()=>test.describe('V3 system resistance and capture reports',()=>
   test.assertTrue(f.game.eventLog.some(e=>e.type===Common.EventType.RENAME_COLONY));
  });
  test.it('keeps resistance private while saving public capture and participant snapshots',()=>{
-  const outsider=fixture(2,3);outsider.game.config.omniscient=true;invade(outsider);test.assertFalse(outsider.game.getEventRows().some(e=>e.occupation&&e.occupation.kind==='defendersLost'));test.assertEqual(outsider.game.getEventRows().filter(e=>e.occupation&&e.occupation.side==='observer').length,1);test.assertEqual(outsider.game.overlay,null);
+  const outsider=fixture(2,3);outsider.game.showEnemyEvents=false;outsider.game.config.omniscient=true;invade(outsider);test.assertFalse(outsider.game.getEventRows().some(e=>e.occupation&&e.occupation.kind==='defendersLost'));test.assertEqual(outsider.game.getEventRows().filter(e=>e.occupation&&e.occupation.side==='observer').length,1);test.assertEqual(outsider.game.overlay,null);
   const f=fixture();invade(f);const snapshot=JSON.stringify(f.game.eventLog.filter(e=>e.occupation).map(e=>[e.message,e.occupation]));
   f.target.name='Renamed';f.game.players[2].name='Changed';const loaded=Save.restore(Save.serialize(f.game));
   test.assertEqual(JSON.stringify(loaded.eventLog.filter(e=>e.occupation).map(e=>[e.message,e.occupation])),snapshot);

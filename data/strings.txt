@@ -578,3 +578,7 @@
 935	You defeated {1} in a battle at {2}, destroying the fleet {0}!
 936	You lost your fleet {0}, wiped out in a battle with {1} at {2}.
 937	{1} took the star system {0} from {2}.
+
+# Enemy event playback
+938	Show enemy events
+939	Automatically show reports about other players when their subjects are detected, allied or visible with fog disabled. Turning this off keeps those reports in Events for manual review.

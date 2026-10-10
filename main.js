@@ -508,6 +508,7 @@ function attachGameServices(nextGame) {
     nextGame.fleetRosterSort = rosterPreferences.read();
     nextGame.fleetRosterGeometry = rosterPreferences.readGeometry();
     nextGame.fullscreen = fullscreen;
+    if(!nextGame.restoredFromSave)nextGame.showEnemyEvents=drawingPreferences.readEnemyEvents();
     if(!nextGame.restoredFromSave)nextGame.showGrid = drawingPreferences.readGrid();
     if(!nextGame.restoredFromSave)nextGame.showNebula = drawingPreferences.readNebula();
     if(!nextGame.restoredFromSave)nextGame.showShips = drawingPreferences.readShips();
