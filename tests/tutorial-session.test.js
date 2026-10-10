@@ -69,6 +69,41 @@ module.exports=()=>test.describe('Temporary tutorial document lifecycle',()=>{
   test.assertEqual(f.sessions.rows().length,2);test.assertNull(f.sessions.transient);test.assertFalse(f.sessions.starting);test.assertEqual(Save.serialize(f.original),original);test.assertTrue(f.session.file.name==='Original.gad4');
   test.assertTrue(f.sessions.select(f.session.id)===f.session);test.assertTrue(f.sessions.select(transient.id).game===game);test.assertFalse(f.owner.stop());test.assertEqual(f.events.filter(x=>x==='restore').length,0);
  });
+ test.it('opens independent saved documents during instructions and retains all documents after cancellation',()=>{
+  const f=setup();enter(f.owner);const {game,view}=install(f.owner),practice=f.sessions.active;
+  let disposed=0;view.dispose=()=>disposed++;
+  const loaded=Save.restore(Save.serialize(f.original)),nextView=display(loaded),file={name:'Other.gad4'};
+  const opened=f.owner.open(loaded,nextView,file);
+  test.assertTrue(opened.id>practice.id && practice.id>0);test.assertEqual(f.sessions.sessions.length,3);
+  test.assertEqual(disposed,0);test.assertUndefined(game.tutorialRuntime);test.assertUndefined(game.tutorialSimulation);
+  test.assertTrue(f.owner.game===loaded);test.assertTrue(f.owner.display===nextView);test.assertTrue(opened.file===file);
+  test.assertEqual(f.owner.controller.pageId,5);test.assertTrue(loaded.tutorialRuntime===f.owner.runtime);
+  f.owner.pressButton();f.owner.pressButton();nextView.zoomIn();f.owner.controller.tick(loaded.getCurrentMilliseconds()+4000);test.assertEqual(f.owner.controller.pageId,8);
+  f.owner.stop();test.assertTrue(f.visible()===f.application);test.assertTrue(f.sessions.active===f.session);
+  test.assertUndefined(loaded.tutorialRuntime);test.assertUndefined(loaded.tutorialSimulation);test.assertTrue(f.sessions.select(opened.id)===opened);test.assertTrue(f.sessions.select(practice.id).display===view);
+ });
+ test.it('finishes on an opened and then reverted saved document without duplicating sessions',()=>{
+  const f=setup();enter(f.owner);const {game}=install(f.owner),loaded=Save.restore(Save.serialize(game)),file={name:'Opened.gad4'};
+  const session=f.owner.open(loaded,display(loaded),file),count=f.sessions.sessions.length;
+  const reverted=Save.restore(Save.serialize(loaded)),view=display(reverted);test.assertTrue(f.owner.revert(reverted,view,file)===session);
+  f.owner.controller.goto(60);f.owner.pressButton();test.assertTrue(f.sessions.active===session);test.assertTrue(session.game===reverted);
+  test.assertEqual(f.sessions.sessions.length,count);test.assertNull(f.sessions.transient);test.assertTrue(session.file===file);test.assertUndefined(reverted.tutorialRuntime);test.assertUndefined(reverted.tutorialSimulation);
+ });
+ test.it('rolls back Open after a failing application installation without consuming document IDs',()=>{
+  const f=setup();enter(f.owner);const {game,view}=install(f.owner),session=f.sessions.active,nextId=f.sessions.nextId;
+  const loaded=Save.restore(Save.serialize(game)),nextView=display(loaded);f.owner.options.installApplication=()=>{throw Error('Install failed');};let failed=false;
+  try{f.owner.open(loaded,nextView,{name:'Other.gad4'});}catch(error){failed=true;}
+  test.assertTrue(failed);test.assertTrue(f.sessions.active===session);test.assertEqual(session.id,0);test.assertEqual(f.sessions.nextId,nextId);test.assertEqual(f.sessions.sessions.length,1);
+  test.assertTrue(f.owner.game===game);test.assertTrue(f.owner.display===view);test.assertTrue(game.tutorialRuntime===f.owner.runtime);test.assertTrue(f.visible().game===game);test.assertUndefined(loaded.tutorialRuntime);
+  f.owner.stop();test.assertTrue(f.sessions.active===f.session);
+ });
+ test.it('rolls back failed Open binding without publishing a new document or promoting practice',()=>{
+  const f=setup();enter(f.owner);const {game}=install(f.owner),session=f.sessions.active,nextId=f.sessions.nextId;
+  const loaded=Save.restore(Save.serialize(game)),view=display(loaded);view.zoomIn=null;let failed=false;
+  try{f.owner.open(loaded,view,{name:'Other.gad4'});}catch(error){failed=true;}
+  test.assertTrue(failed);test.assertTrue(f.sessions.active===session);test.assertEqual(session.id,0);test.assertEqual(f.sessions.nextId,nextId);test.assertEqual(f.sessions.sessions.length,1);
+  test.assertTrue(f.owner.game===game);test.assertTrue(game.tutorialRuntime===f.owner.runtime);test.assertTrue(!!game.tutorialSimulation);f.owner.stop();
+ });
  test.it('reverts a saved practice graph while retaining the current lesson and binding only the restored document',()=>{
   const f=setup();enter(f.owner);const {game,view}=install(f.owner),session=f.sessions.active;
   f.owner.pressButton();f.owner.pressButton();test.assertEqual(f.owner.controller.pageId,7);

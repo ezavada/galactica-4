@@ -16,6 +16,18 @@ class GameSessions {
         session.id=this.nextId++;this.sessions.push(session);this.transient=null;
         return session;
     }
+    openDuringTransient(game,display) {
+        if(!this.transient || this.starting || !this.active || !game || !display)return false;
+        if(this.active.id===0){this.active.id=this.nextId++;this.sessions.push(this.active);}
+        const session={id:this.nextId++,game,display,autoplay:null};
+        this.sessions.push(session);this.active=session;return session;
+    }
+    finishTransient(game,display) {
+        if(!this.transient || this.starting || !this.active || this.active.game!==game || this.active.display!==display)return false;
+        if(this.active.id===0)return this.promoteTransient(game,display);
+        if(!this.sessions.includes(this.active))return false;
+        this.transient=null;return this.active;
+    }
     begin() {if(this.starting)return false;this.starting=true;return true;}
     cancel() {if(!this.starting || !this.active)return false;this.starting=false;return true;}
     accept(game,display) {

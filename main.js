@@ -620,6 +620,10 @@ function attachGameServices(nextGame) {
 function installSavedGame(nextGame,reference) {
     attachGameServices(nextGame);const nextDisplay=new Display(nextGame);
     clearSessionInput();stopAutoplayTimer();
+    if(tutorialSession && tutorialSession.runtime){
+        if(!tutorialSession.open(nextGame,nextDisplay,reference))throw new Error('Tutorial document could not be opened');
+        return;
+    }
     if(!sessions.starting)sessions.begin();
     const session=sessions.accept(nextGame,nextDisplay);session.file=reference;
     game=nextGame;display=nextDisplay;autoplayController=null;

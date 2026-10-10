@@ -44,10 +44,38 @@ class TutorialSession {
             return session;
         }catch(error){if(runtime && runtime!==this.runtime)runtime.dispose();this.stop('error');throw error;}
     }
+    open(game,display,reference){
+        const current=this.sessions.active;
+        if(!this.engaged || !this.runtime || !this.controller.active || !current ||
+                current.game!==this.game || current.display!==this.display || !game || !display)return false;
+        const previous={game:this.game,display:this.display,runtime:this.runtime};
+        const state={sessions:this.sessions.sessions.slice(),nextId:this.sessions.nextId,id:current.id};
+        previous.runtime.dispose();
+        let runtime;
+        try{
+            runtime=new Runtime(game,this.controller);
+            if(previous.game.tutorialSimulation)game.tutorialSimulation=previous.game.tutorialSimulation;
+            const session=this.sessions.openDuringTransient(game,display);
+            if(!session)throw new Error('Tutorial document could not be opened');
+            session.file=reference;this.game=game;this.display=display;this.runtime=runtime;
+            this.options.installApplication(game,display,session);
+            delete previous.game.tutorialSimulation;
+            return session;
+        }catch(error){
+            if(runtime)runtime.dispose();delete game.tutorialSimulation;
+            this.sessions.sessions=state.sessions;this.sessions.nextId=state.nextId;
+            this.sessions.active=current;current.id=state.id;
+            this.game=previous.game;this.display=previous.display;
+            this.runtime=new Runtime(previous.game,this.controller);
+            this.runtime.roleIds={...previous.runtime.roleIds};
+            if(display.dispose)display.dispose();
+            throw error;
+        }
+    }
     revert(game,display,reference){
         const session=this.sessions.active;
         if(!this.engaged || !this.runtime || !this.controller.active || !session ||
-                session.id!==0 || session.game!==this.game || session.display!==this.display ||
+                session.game!==this.game || session.display!==this.display ||
                 !game || !display)return false;
         const previous={game:this.game,display:this.display,runtime:this.runtime,file:session.file};
         const roles={...previous.runtime.roleIds};
@@ -78,20 +106,19 @@ class TutorialSession {
     release(reason){
         if(this.finished)return;this.finished=true;
         const application=this.application,engaged=this.engaged,game=this.game,display=this.display,runtime=this.runtime;
+        const ordinary=this.sessions.sessions.some(session=>session.game===game && session.display===display);
         let retained=false;
         this.engaged=false;this.application=null;this.runtime=null;this.game=null;this.display=null;
         try{
             if(this.options.sound)this.options.sound.stop();
             if(runtime)runtime.dispose();
+            if(game)delete game.tutorialSimulation;
             // V3 stops the instructions, not the practice game. Keep its graph,
-            // camera and file-free document; its scripted simulation ends here.
-            if(reason==='complete' && game && display && this.sessions.promoteTransient(game,display)){
-                delete game.tutorialSimulation;
-                retained=true;
-            }
+            // camera and file association; its scripted simulation ends here.
+            if(reason==='complete' && game && display && this.sessions.finishTransient(game,display))retained=true;
         }
         finally{
-            try{if(!retained && display && display.dispose)display.dispose();}
+            try{if(!retained && !ordinary && display && display.dispose)display.dispose();}
             finally{
                 if(engaged && !retained)this.sessions.endTransient();
                 try{if(engaged && !retained)this.options.restoreApplication(application,reason);}

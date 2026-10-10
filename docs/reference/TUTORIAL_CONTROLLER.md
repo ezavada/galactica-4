@@ -7,8 +7,8 @@ panel. Launch it with Tutorial on the start screen or in-game command menu.
 The full normal guided route is verified through real UI input in all six
 languages; public launch/cancellation is also verified in each language, with a
 complete English run from the visible launch button. V3 saves the practice game
-without persisting instruction progress. Active-tutorial Revert now retains bindings; Open ownership remains open. See
-the source audit and Revert verification below.
+without persisting instruction progress. Active-tutorial Open and Revert retain bindings and preserve independent
+documents. See the source audit and lifecycle verification below.
 
 The constructor accepts decoded page metadata and callbacks. Use `tutorial-lessons.js::load(dataDirectory, language)` for runtime pages;
 `v3-tutorial.json` is a source reference,
@@ -413,3 +413,42 @@ are reused; no new user-facing text was introduced.
 Opening another saved document during active instructions remains a separate
 ownership item. This change does not establish cross-launch tutorial resume or
 mark tutorial, broader v3 parity, or Map Generation complete.
+
+
+### Open retains documents and rebinds active instructions
+
+Source audit: v3 `Galactica.cpp:1971–1976` creates another single-player document
+for a saved game. Its Open path calls ShowWindow (`GalacticaSingleDoc.cp:251–271`),
+which reassigns the active tutorial commander (`GalacticaDoc.cp:2638–2651`).
+Opening a save therefore must not leave instructions attached to the previous
+map or overwrite the previous document.
+
+V4 now transfers the active runtime to the newly opened saved graph/display
+without changing the instruction controller or lesson. The previous practice
+session becomes an ordinary retained document, keeping its renderer and any
+file association. The opened save receives a distinct ordinary session ID and
+retains its file reference. Scripted production applies only to the currently
+bound game. Revert on that opened document also rebinds correctly. Finish keeps
+the active document without creating a duplicate; Close tutorial restores the
+original view while both practice and opened documents remain selectable through
+Open Games. Tutorial action bindings and production safeguards are removed from
+retained documents when instructions stop. Failed Open binding or application
+installation rolls back the active document, retained list and ID allocation.
+
+Four regressions cover independent Open/cancel/selection, Open/Revert/Finish,
+binding failure and application-installation failure. Both full native-runtime
+lanes pass all 1,302 tests; logs are
+`/private/tmp/galactica-tutorial-open-{tests,native-tests}.log`.
+Actual browser input in en/de/es/fr/ja/ru launches Tutorial from an existing game,
+uses File/Open, reverts the opened save, advances its zoom lesson, closes the
+instructions, and selects the retained save through Open Games. The file-picker
+adapter provides serialized save bytes; production parsing, installation,
+confirmation, action bindings and document selection remain unchanged. Reviewed
+before/after and retained-document screenshots are under
+`/private/tmp/galactica-parity/tutorial-open/<language>`; logs are
+`/private/tmp/galactica-tutorial-open-<language>.log`. No new user-facing strings
+were introduced; all existing controls remain localized.
+
+This resolves the previously documented active-tutorial Open ownership defect.
+It does not add cross-launch lesson resume or claim that every tutorial exception,
+broader parity requirement or Map Generation item has completed its final audit.
