@@ -97,10 +97,9 @@ first trusted pointer/key gesture if startup lacks activation, consume that
 input before it reaches setup and remove both listeners before opening.
 
 This is not full arbitrary-command parity. Hosting (4020), Open as Host (4002)
-and Joining (4021) require the unported multiplayer flows. Community (8000),
-Check for New Version (8001) and other inherited/window commands still need
-individual source and runtime audits.
-They are pending work, not unavailable-help blockers. Music and the pinned
+and Joining (4021) require the unported multiplayer flows. Community (8000) and Check for New Version (8001) have individually audited
+external destination blockers below. Other inherited/window commands remain
+pending source and runtime audits. Music and the pinned
 native fullscreen runtime remain the separately documented limitations.
 
 ### Application preferences startup commands
@@ -137,5 +136,43 @@ Community is blocked on a working, approved replacement community destination
 or restoration of the original service. V4 should not claim a working community
 feature by sending players to a known missing page. No guessed replacement
 service, public issue tracker or discussion URL has been introduced. This
-external-service blocker does not block other parity work. Check for New Version
-is still pending its own endpoint/version audit, not covered by this result.
+external-service blocker does not block other parity work. Check for New Version has its own independent audit below; its blocker is
+not inferred from the Community result.
+
+
+### Check for New Version requires a v4 release destination (2026-10-10)
+
+The shipped command is 8001 (`GalacticaConsts.h:712`). Its application command
+status is enabled independently of document state (`Galactica.cpp:1913`), and
+its handler calls `CheckForNewVersion` (`Galactica.cpp:2173–2175`). The function
+at `Galactica.cpp:1761–1774` opens
+`http://www.annodominari.com/v` + `gVersionString` + `/` in the system browser.
+It does not fetch or compare versions locally. Failure to launch the browser
+uses the normal source browser-error alert.
+
+Direct HTTP GETs on 2026-10-10 returned:
+
+- `/v3.0/`: HTTP 200, a **New Version Available** page offering v3.0.2 downloads.
+- `/v3.0.2/`: HTTP 200, a **No Update Needed** page describing v3.0.2.
+- `/v4.0/`: HTTP 404. This is a candidate v4 endpoint probe, not a claim that the
+  development build currently declares a 4.0 release version.
+
+Recorded response bodies and headers are
+`/private/tmp/galactica-version-{3.0,3.0.2,4.0}.html` and matching
+`-headers.txt` files. The authenticated GitHub API request
+`GET /repos/ezavada/galactica-4/releases` returned `[]`: no released, draft or
+prerelease entries exist there. V4 currently identifies development builds by
+source revision (`src/js/application-version.js`), separately from PDG's
+runtime version. The legacy website is therefore not a v4 updater, and no
+published GitHub release channel currently supplies a replacement.
+
+This item is blocked on the release owner designating a working v4 update
+page/channel and its version identity, or publishing/restoring that service.
+After that decision, implement command 8001 independently of an open document,
+provide the normal visible command entry, respect browser user-activation
+requirements, localize browser-launch failures in all six languages, and test
+both startup and in-game launches. Do not open the v3 download page as a v4
+update check or claim that a missing page proves the development build is
+current. No guessed release policy, release publication or obsolete download
+link has been added. Other application commands and multiplayer remain
+unfinished work; this is an individual external publication blocker.

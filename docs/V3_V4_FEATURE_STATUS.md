@@ -1940,8 +1940,9 @@ Nation's missing `community_GA.html`, confirmed by a direct HTTP 404 GET on
 2026-10-10. That feature requires a replacement destination or restored legacy
 service; details/evidence are in `docs/reference/STARTUP_ABOUT.md`. This is an
 individual external-service blocker, not a reason to stop the broader goal.
-Check for New Version, other application/window commands, multiplayer and Map
-Generation remain pending alongside the existing specific blockers.
+Check for New Version was independently audited below. Other application/window
+commands, multiplayer and Map Generation remain pending alongside the existing
+specific blockers.
 
 
 ### Existing-game Hide/Close recovery: actual input audit (2026-10-10)
@@ -1981,3 +1982,24 @@ This verifies recovery page 100. Modal recovery 101 still needs an actual
 application-command entry path and rendered verification. Hosting recovery 103
 still depends on the unported multiplayer setup. No runtime or localization
 resource changes were needed for page 100.
+
+
+### Check for New Version: independent release-service audit (2026-10-10)
+
+V3 command 8001 opens a version-specific website in the system browser; it does
+not implement a local version comparison. Audited the enabled command status,
+handler and URL construction against `Galactica.cpp:1761–1774,1913,2173–2175`.
+The legacy v3.0 and v3.0.2 pages return HTTP 200 and describe v3 releases.
+A candidate v4.0 page returns HTTP 404, and the authenticated GitHub releases
+API for `ezavada/galactica-4` returns an empty list. The current application
+identifies development builds by revision rather than a declared release
+version. Details and response evidence are in
+`docs/reference/STARTUP_ABOUT.md`.
+
+The update-check item requires the release owner to designate/publish a v4
+update destination and version policy. Opening the legacy v3 download page
+would not satisfy that requirement. This concrete publication blocker is
+independent of the Community site's missing redirect target. Runtime command
+entry, activated browser launch and localized failure handling remain pending
+that decision; no runtime/UI completion is claimed. Other actionable parity
+and Map Generation work continues.
