@@ -635,3 +635,6 @@
 # New-game preference controls
 965	Valores para nuevas partidas
 966	Establece los valores de futuras partidas. Pulsa una opción para cambiarla; Guardar recuerda tus elecciones y Cancelar descarta estos cambios. Las partidas actuales no cambian.
+
+# Direct numeric preference choices
+967	Elige un valor directamente. Las flechas resaltan una opción y Intro la selecciona. Escape vuelve a los valores sin cambiar esta opción.

@@ -14,4 +14,6 @@ function createPreferences(env=globalThis){
 }
 function createConfig(preferences){return new GameConfig({numComputers:2,...preferences.read()});}
 function cycle(draft,key){if(!draft || !Object.hasOwn(defaults(),key))return false;const range=ranges[key];draft[key]=range?(draft[key]>=range[1]?range[0]:draft[key]+1):!draft[key];return true;}
-module.exports={defaults,normalize,createPreferences,createConfig,cycle};
+function choices(key){const range=Object.hasOwn(ranges,key)?ranges[key]:null;return range?Array.from({length:range[1]-range[0]+1},(_,index)=>range[0]+index):[];}
+function set(draft,key,value){if(!draft || !Object.hasOwn(defaults(),key) || !valid(key,value))return false;draft[key]=value;return true;}
+module.exports={defaults,normalize,createPreferences,createConfig,cycle,choices,set};

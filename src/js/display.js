@@ -2,6 +2,8 @@
 // Contains all rendering and UI display logic
 
 const Common = require('./common.js');
+const NewGameDefaults=require('./new-game-defaults.js');
+const GameConfig=require('./game-config.js');
 const Camera = require('./camera.js');
 const MapScrollbars = require('./map-scrollbars.js');
 const RetainedPanel = require('./retained-panel.js');
@@ -2163,16 +2165,27 @@ class Display {
     getNewGameDefaultsWindowRect(){
         const screen=this.getScreenSize();return this.fitWindowToScreen('newGameDefaults',{x:40,y:40,width:Math.min(480,screen.width-40),height:Math.min(330,screen.height-30)});
     }
-    getNewGameDefaultsActionRegions(){
-        if(this.game.uiWindow!=='newGameDefaults' || !this.game.newGameDefaultsDraft)return [];
-        const r=this.getNewGameDefaultsWindowRect(),draft=this.game.newGameDefaultsDraft,config=new (require('./game-config.js'))(draft);
-        const labels={sectorSize:I18n.formatString(523,'Map size: {0}',config.getMapSizeDescription()),density:config.getDensityDescription(),
+    getNewGameDefaultLabel(field,value){
+        const draft={...this.game.newGameDefaultsDraft,[field]:value},config=new GameConfig(draft);
+        return {sectorSize:I18n.formatString(523,'Map size: {0}',config.getMapSizeDescription()),density:config.getDensityDescription(),
             compSkill:I18n.formatString(522,'AI skill: {0} ({1})',config.getDifficultyName(),draft.compSkill),
             compAdvantage:I18n.getString(761,'Computer advantage')+': '+(draft.compAdvantage>0?'+':'')+draft.compAdvantage,
-            fastGame:I18n.getString(505,'Fast Game'),omniscient:I18n.getString(508,'Fog of War')};
+            fastGame:I18n.getString(505,'Fast Game'),omniscient:I18n.getString(508,'Fog of War')}[field];
+    }
+    getNewGameDefaultsActionRegions(){
+        if(this.game.uiWindow!=='newGameDefaults' || !this.game.newGameDefaultsDraft)return [];
+        const r=this.getNewGameDefaultsWindowRect(),draft=this.game.newGameDefaultsDraft,choice=this.game.newGameDefaultsChoice;
+        if(choice){
+            const values=NewGameDefaults.choices(choice),columns=values.length>7?2:1;
+            const step=Math.min(34,(r.height-112)/Math.ceil(values.length/columns)),width=(r.width-28-(columns-1)*8)/columns;
+            const rows=values.map((value,index)=>({rect:{x:r.x+14+(index%columns)*(width+8),y:r.y+52+Math.floor(index/columns)*step,width,height:step-4},
+                label:this.getNewGameDefaultLabel(choice,value),active:index===this.game.newGameDefaultsChoiceIndex,action:{type:'setNewGameDefault',field:choice,value}}));
+            rows.push({rect:{x:r.x+r.width/2-70,y:r.y+r.height-44,width:140,height:26},label:I18n.getString(683,'Cancel'),key:'Esc',action:{type:'cancelNewGameDefaultChoice'}});return rows;
+        }
         const step=Math.min(34,(r.height-112)/6);
-        const rows=Object.keys(labels).map((field,index)=>({rect:{x:r.x+14,y:r.y+52+index*step,width:r.width-28,height:step-4},
-            label:labels[field],active:field==='fastGame'?draft.fastGame:field==='omniscient'?!draft.omniscient:false,action:{type:'cycleNewGameDefault',field}}));
+        const rows=Object.keys(draft).map((field,index)=>({rect:{x:r.x+14,y:r.y+52+index*step,width:r.width-28,height:step-4},
+            label:this.getNewGameDefaultLabel(field,draft[field])+(NewGameDefaults.choices(field).length?' ▾':''),active:field==='fastGame'?draft.fastGame:field==='omniscient'?!draft.omniscient:false,
+            action:{type:NewGameDefaults.choices(field).length?'openNewGameDefaultChoice':'cycleNewGameDefault',field}}));
         rows.push({rect:{x:r.x+14,y:r.y+r.height-44,width:(r.width-36)/2,height:26},label:I18n.getString(682,'Save'),key:'Enter',action:{type:'saveNewGameDefaults'}},
             {rect:{x:r.x+22+(r.width-36)/2,y:r.y+r.height-44,width:(r.width-36)/2,height:26},label:I18n.getString(683,'Cancel'),key:'Esc',action:{type:'cancelNewGameDefaults'}});
         return rows;

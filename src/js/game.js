@@ -7,6 +7,7 @@ const Common = require('./common.js');
 const MapDisplayModes = require('./map-display-modes.js');
 const MapGenerator = require('./map-generator.js');
 const GameConfig = require('./game-config.js');
+const NewGameDefaults=require('./new-game-defaults.js');
 const PlayerInfo = require('./player-info.js');
 const { AIManager } = require('./ai-manager.js');
 const { SpatialPartition } = require('./spatial-partition.js');
@@ -1379,6 +1380,16 @@ class Game {
             return true;
         }
         if(this.uiWindow==='newGameDefaults'){
+            if(this.newGameDefaultsChoice){
+                const choices=NewGameDefaults.choices(this.newGameDefaultsChoice);
+                if(key===pdg.key_Escape)return this.executeUIAction({type:'cancelNewGameDefaultChoice'});
+                if([pdg.key_UpArrow,pdg.key_LeftArrow,pdg.key_DownArrow,pdg.key_RightArrow].includes(key)){
+                    const columns=choices.length>7?2:1;
+                    const delta=key===pdg.key_UpArrow?-columns:key===pdg.key_DownArrow?columns:key===pdg.key_LeftArrow?-1:1;this.newGameDefaultsChoiceIndex=(this.newGameDefaultsChoiceIndex+delta+choices.length)%choices.length;return true;
+                }
+                if(key===13)return this.executeUIAction({type:'setNewGameDefault',field:this.newGameDefaultsChoice,value:choices[this.newGameDefaultsChoiceIndex]});
+                return true;
+            }
             if(key===pdg.key_Escape)return this.executeUIAction({type:'cancelNewGameDefaults'});
             if(key===13)return this.executeUIAction({type:'saveNewGameDefaults'});
             return true;
@@ -1938,11 +1949,22 @@ class Game {
                 return true;
             case 'openNewGameDefaults':
                 if(this.uiWindow!=='settings' || !this.newGameDefaultsPreferences)return false;
-                this.newGameDefaultsDraft=this.newGameDefaultsPreferences.read();this.uiWindow='newGameDefaults';return true;
+                this.newGameDefaultsDraft=this.newGameDefaultsPreferences.read();this.newGameDefaultsChoice=null;this.uiWindow='newGameDefaults';return true;
+            case 'openNewGameDefaultChoice':{
+                const choices=NewGameDefaults.choices(action.field);
+                if(this.uiWindow!=='newGameDefaults' || !this.newGameDefaultsDraft || !choices.length)return false;
+                this.newGameDefaultsChoice=action.field;this.newGameDefaultsChoiceIndex=choices.indexOf(this.newGameDefaultsDraft[action.field]);return true;
+            }
+            case 'setNewGameDefault':
+                if(this.uiWindow!=='newGameDefaults' || this.newGameDefaultsChoice!==action.field || !NewGameDefaults.set(this.newGameDefaultsDraft,action.field,action.value))return false;
+                this.newGameDefaultsChoice=null;return true;
+            case 'cancelNewGameDefaultChoice':
+                if(this.uiWindow!=='newGameDefaults' || !this.newGameDefaultsChoice)return false;
+                this.newGameDefaultsChoice=null;return true;
             case 'cycleNewGameDefault':
-                return this.uiWindow==='newGameDefaults' && require('./new-game-defaults.js').cycle(this.newGameDefaultsDraft,action.field);
+                return this.uiWindow==='newGameDefaults' && !this.newGameDefaultsChoice && ['fastGame','omniscient'].includes(action.field) && NewGameDefaults.cycle(this.newGameDefaultsDraft,action.field);
             case 'saveNewGameDefaults':
-                if(this.uiWindow!=='newGameDefaults' || !this.newGameDefaultsDraft || !this.newGameDefaultsPreferences)return false;
+                if(this.uiWindow!=='newGameDefaults' || this.newGameDefaultsChoice || !this.newGameDefaultsDraft || !this.newGameDefaultsPreferences)return false;
                 this.newGameDefaultsPreferences.write(this.newGameDefaultsDraft);
                 this.newGameDefaultsDraft=null;this.uiWindow='settings';return true;
             case 'cancelNewGameDefaults':

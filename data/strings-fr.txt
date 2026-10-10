@@ -635,3 +635,6 @@
 # New-game preference controls
 965	Valeurs des nouvelles parties
 966	Définissez les valeurs des futures parties. Cliquez sur une option pour la modifier ; Enregistrer mémorise vos choix et Annuler abandonne ces modifications. Les parties en cours restent inchangées.
+
+# Direct numeric preference choices
+967	Choisissez une valeur directement. Les flèches surlignent un choix ; Entrée le sélectionne. Échap revient aux valeurs sans modifier cette option.

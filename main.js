@@ -51,7 +51,8 @@ const systemComparisonPreferences = require('./src/js/roster-preferences.js').cr
     prefix:'systemComparison', minimumHeight:176, keys:['name','tech','population','production','buildName','completion',
         'totalDefense','satelliteDefense','shipDefense']
 });
-const newGameDefaultsPreferences=require('./src/js/new-game-defaults.js').createPreferences();
+const NewGameDefaults=require('./src/js/new-game-defaults.js');
+const newGameDefaultsPreferences=NewGameDefaults.createPreferences();
 const drawingPreferences = require('./src/js/drawing-preferences.js').createPreferences();
 const sound=require('./src/js/sound.js').createSound(pdg.res,drawingPreferences);
 const languagePreferences = LanguageSettings.createPreferences();
@@ -95,7 +96,7 @@ const fullscreen = require('./src/js/fullscreen.js').createController(pdg,port,g
 fullscreen.restore();
 
 function createDefaultConfig(usePreferences=true) {
-    if(usePreferences)return require('./src/js/new-game-defaults.js').createConfig(newGameDefaultsPreferences);
+    if(usePreferences)return NewGameDefaults.createConfig(newGameDefaultsPreferences);
     const config = GameConfig.createSinglePlayer(2, 2); // 2 computers, Good difficulty
     config.sectorSize = 5;
     return config;

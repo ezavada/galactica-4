@@ -635,3 +635,6 @@
 # New-game preference controls
 965	Vorgaben für neue Spiele
 966	Lege Vorgaben für zukünftige Spiele fest. Klicke auf eine Option, um sie zu ändern. Speichern merkt sich deine Auswahl; Abbrechen verwirft diese Änderungen. Laufende Spiele bleiben unverändert.
+
+# Direct numeric preference choices
+967	Wähle einen Wert direkt aus. Pfeiltasten markieren eine Auswahl; Eingabe übernimmt sie. Escape kehrt zu den Vorgaben zurück, ohne diese Option zu ändern.

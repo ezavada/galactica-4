@@ -16,14 +16,37 @@ module.exports=()=>test.describe('Application new-game defaults',()=>{
  });
  test.it('saves an edited draft for future games without changing the active simulation and cancels edits',()=>{
   const {preferences,game,display}=fixture(),before=Save.serialize(game);test.assertTrue(game.executeUIAction({type:'openNewGameDefaults'}));
-  const region=display.getNewGameDefaultsActionRegions().find(r=>r.action.field==='density');test.assertTrue(game.handleUIClick(region.rect.x+5,region.rect.y+5));test.assertEqual(game.newGameDefaultsDraft.density,2);test.assertEqual(preferences.read().density,1);
+  const region=display.getNewGameDefaultsActionRegions().find(r=>r.action.field==='density');test.assertTrue(game.handleUIClick(region.rect.x+5,region.rect.y+5));test.assertEqual(game.newGameDefaultsChoice,'density');game.executeUIAction({type:'setNewGameDefault',field:'density',value:2});test.assertEqual(game.newGameDefaultsDraft.density,2);test.assertEqual(preferences.read().density,1);
   game.handleKeyPress(pdg.key_Escape);test.assertEqual(game.uiWindow,'settings');test.assertEqual(preferences.read().density,1);test.assertNull(game.newGameDefaultsDraft);
-  game.executeUIAction({type:'openNewGameDefaults'});game.executeUIAction({type:'cycleNewGameDefault',field:'density'});game.executeUIAction({type:'cycleNewGameDefault',field:'fastGame'});game.handleKeyPress(13);
+  game.executeUIAction({type:'openNewGameDefaults'});game.executeUIAction({type:'openNewGameDefaultChoice',field:'density'});game.executeUIAction({type:'setNewGameDefault',field:'density',value:2});game.executeUIAction({type:'cycleNewGameDefault',field:'fastGame'});game.handleKeyPress(13);
   test.assertEqual(preferences.read().density,2);test.assertFalse(preferences.read().fastGame);test.assertEqual(Save.serialize(game),before);test.assertEqual(Defaults.createConfig(preferences).density,2);
  });
  test.it('cycles every supported choice and refuses unrelated fields or out-of-window actions',()=>{
   const draft=Defaults.defaults();for(const [field,maximum,minimum] of [['sectorSize',5,1],['density',10,1],['compSkill',5,1],['compAdvantage',3,-3]]){draft[field]=maximum;test.assertTrue(Defaults.cycle(draft,field));test.assertEqual(draft[field],minimum);}
   test.assertFalse(Defaults.cycle(draft,'gameTitle'));const {game}=fixture();test.assertFalse(game.executeUIAction({type:'saveNewGameDefaults'}));test.assertFalse(game.executeUIAction({type:'cycleNewGameDefault',field:'density'}));
+ });
+ test.it('selects numeric defaults directly while Escape dismisses only the choice menu',()=>{
+  const {game,preferences,display}=fixture();game.executeUIAction({type:'openNewGameDefaults'});
+  for(const [field,value] of [['sectorSize',4],['density',10],['compSkill',1],['compAdvantage',-3]]){
+   const before=game.newGameDefaultsDraft[field];game.executeUIAction({type:'openNewGameDefaultChoice',field});
+   test.assertFalse(game.executeUIAction({type:'setNewGameDefault',field,value:99}));test.assertEqual(game.newGameDefaultsDraft[field],before);
+   const row=display.getNewGameDefaultsActionRegions().find(r=>r.action.value===value);test.assertDefined(row);game.handleUIClick(row.rect.x+5,row.rect.y+5);test.assertEqual(game.newGameDefaultsDraft[field],value);test.assertNull(game.newGameDefaultsChoice);
+  }
+  game.executeUIAction({type:'openNewGameDefaultChoice',field:'density'});game.handleKeyPress(pdg.key_DownArrow);test.assertEqual(game.newGameDefaultsChoiceIndex,1);test.assertEqual(game.newGameDefaultsDraft.density,10);game.handleKeyPress(pdg.key_Escape);
+  test.assertEqual(game.uiWindow,'newGameDefaults');test.assertNull(game.newGameDefaultsChoice);test.assertEqual(game.newGameDefaultsDraft.density,10);
+  game.executeUIAction({type:'openNewGameDefaultChoice',field:'density'});game.handleKeyPress(pdg.key_RightArrow);game.handleKeyPress(13);test.assertEqual(game.newGameDefaultsDraft.density,1);test.assertEqual(game.uiWindow,'newGameDefaults');
+  test.assertEqual(preferences.read().compSkill,2);game.handleKeyPress(13);test.assertEqual(preferences.read().compSkill,1);test.assertEqual(preferences.read().compAdvantage,-3);
+ });
+ test.it('shows every numeric choice with localized captions and compact reachable bounds',()=>{
+  const language=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);for(const [width,height] of [[800,600],[320,340]]){
+   const {game,display}=fixture();game.port.getDrawingArea=()=>new pdg.Rect(width,height);game.executeUIAction({type:'openNewGameDefaults'});
+   for(const field of ['sectorSize','density','compSkill','compAdvantage']){
+    game.executeUIAction({type:'openNewGameDefaultChoice',field});const rect=display.getNewGameDefaultsWindowRect(),rows=display.getNewGameDefaultsActionRegions();test.assertEqual(rows.length,Defaults.choices(field).length+1);
+    for(const row of rows){test.assertTrue(row.rect.x>=rect.x && row.rect.y>=rect.y && row.rect.x+row.rect.width<=rect.x+rect.width && row.rect.y+row.rect.height<=rect.y+rect.height);test.assertTrue(!!Help.describe(row.action));}
+    for(let i=0;i<rows.length;i++)for(let j=i+1;j<rows.length;j++)test.assertFalse(rows[i].rect.x<rows[j].rect.x+rows[j].rect.width && rows[j].rect.x<rows[i].rect.x+rows[i].rect.width && rows[i].rect.y<rows[j].rect.y+rows[j].rect.height && rows[j].rect.y<rows[i].rect.y+rows[i].rect.height);
+    game.executeUIAction({type:'cancelNewGameDefaultChoice'});
+   }
+  }}}finally{pdg.res.setLanguage(language);}
  });
  test.it('localizes reachable modal controls and their help in normal and narrow viewports',()=>{
   const language=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);for(const [width,height] of [[800,600],[320,340]]){

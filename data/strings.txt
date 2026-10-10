@@ -635,3 +635,6 @@
 # New-game preference controls
 965	New game defaults
 966	Set defaults for future games. Click an option to change it; Save remembers your choices and Cancel discards these edits. Current games stay unchanged.
+
+# Direct numeric preference choices
+967	Choose a value directly. Arrow keys highlight a choice; Enter selects it. Escape returns to the defaults without changing this option.
