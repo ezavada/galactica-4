@@ -58,6 +58,7 @@ class NetworkClient {
   if(old && old.clientGameId===fresh.clientGameId && old.clientPlayerNum===fresh.clientPlayerNum){
    if(fresh.turn<old.turn)throw fail('stale_server_state');
    if(fresh.turn===old.turn && fresh.clientTurnPosted===old.clientTurnPosted && fresh.isGameOver===old.isGameOver && !discardOrders){
+    old.clientClock=fresh.clientClock;
     old.remoteComparisons=fresh.remoteComparisons;
     for(let i=1;i<old.players.length;i++){old.players[i].name=fresh.players[i].name;old.players[i].isAlive=fresh.players[i].isAlive;old.players[i].numPiecesRemaining=fresh.players[i].numPiecesRemaining;}
     return old;

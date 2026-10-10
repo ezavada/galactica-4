@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1459
-Passed: 1459 ✓
+Total: 1467
+Passed: 1467 ✓
 Failed: 0 ✗
 ```
 
@@ -429,3 +429,23 @@ and documents are removed. Run it with both pinned and current public runtimes.
 Clock state is currently transport/service functionality. Host setup controls,
 visible countdowns and remote administration are still pending; this regression
 does not claim those UI requirements are implemented.
+
+### Visible multiplayer countdown
+
+Run against the packaged application with the normal muted Chrome/native host
+fixture:
+
+```bash
+node tools/test-web-network-countdown.cjs /path/to/web-build /tmp/countdown-shots en
+```
+
+Repeat in de/es/fr/ja/ru. Passing `before` after the language captures the old
+countdown-less application baseline for comparison. The regression joins through
+actual controls, inspects paused/seconds/hours/day labels, retains edited targets
+and selection during same-turn refresh, posts through actual End Turn, and
+checks that a local zero countdown waits for the real native scheduler's new
+turn. Screenshots include baseline, paused/running, posted, awaiting-host and
+next-turn states. Fixture clock controls exist only in the temporary test host.
+
+The earlier runtime-clock item has since gained this client countdown UI. Host
+setup widgets and remote administration controls remain pending.

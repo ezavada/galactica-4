@@ -34,6 +34,7 @@ function restore(input){
   byId.set(key,{row,entity:null});
  }
  const game=new Game(new Factory(),new Rules(config.fastGame),config);
+ game.clientClock=require('./client-clock.js').receive(state.clock,{config,turn,isGameOver:state.isGameOver});
  game.clientPlayerNum=viewer;game.clientGameId=state.gameId;game.turn=turn;game.gameWidth=map.width;game.gameHeight=map.height;game.isGameOver=state.isGameOver;
  game.eventLog=[];game.overlay=null;game.overlayQueue=[];game.attention.queue=[];game.remoteComparisons=[];
  const comparisonFields=['stars','ships','shipsBuilding','population','production','productionRaw','power','minimumTech','maxTech','averageTech','minimumShipTech','maximumShipTech','averageShipTech','pieces'];

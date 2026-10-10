@@ -726,3 +726,10 @@
 1042	Ce tour a déjà été envoyé.
 1043	Cette partie est terminée.
 1044	Ces ordres dépassent la taille maximale.
+
+# Multiplayer host countdown
+1045	Temps restant : {0}
+1046	En pause : {0}
+1047	En attente du prochain tour…
+1048	{0} jours
+1049	En pause

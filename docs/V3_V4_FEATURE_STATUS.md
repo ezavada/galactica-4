@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1459 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1467 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -43,7 +43,7 @@ The largest blockers to a complete game are:
 1. **Combat runtime rules are now at v3 parity for Section 6, but presentation is still thin.** Enemy ship/star/fleet arrivals invoke `CombatSystem`, remove destroyed ships, use v3-style ship/star combat formulas, run ground combat, let surviving colony ships capture stars, repair docked mobile ships/fleets, recalculate fog each turn, and record localized battle summaries. Missing v3 pieces are UI/presentation: remaining observer/other recipient-relative reports, sound and remaining illustrated event coverage. Participant combat, defeated-resistance and capture messages now have automatic windows and replay. A distinct last-seen ghost rendering mode was not found in the shipped v3 drawing paths.
 2. **The v3 command UI now has a first clickable runtime path, but not full parity.** v4 has a startup setup dialog, charcoal rounded windows, bottom-right permanent map buttons, a top-center turn/game header, clickable popup action buttons, directly clickable production sliders, retained event list, player comparison window, a paged sortable fleet/ship roster, fleet/rendezvous panels, and anchored selection panels. Missing v3 pieces remain: remaining attention-event coverage, map replay, help, sound, and the remaining drawing/sound/game preferences.
 3. **Navigation now supports v3 waypoint editing and looping.** Broader attention-event coverage and full arrival presentation remain incomplete; ship/fleet scrapping is implemented.
-4. **Local file persistence, direct multiplayer joining and untimed turn posting are implemented; multiplayer setup/supporting features remain incomplete.** Versioned Save/Save As, Open and confirmed Revert preserve the game graph, visibility, courses, events, selection and camera. Direct hostname/IP inspection and authenticated joining/rejoining now have localized application dialogs and retained sessions. Host setup, saved host lists/discovery, optional password persistence, clock/setup UI, chat, network saves and host administration remain unfinished. Client End Turn now posts decision records and the host resolves an untimed turn once every assigned living human has posted.
+4. **Local file persistence, direct multiplayer joining and untimed turn posting are implemented; multiplayer setup/supporting features remain incomplete.** Versioned Save/Save As, Open and confirmed Revert preserve the game graph, visibility, courses, events, selection and camera. Direct hostname/IP inspection and authenticated joining/rejoining now have localized application dialogs and retained sessions. Host setup, saved host lists/discovery, optional password persistence, host setup/admin UI, chat, network saves and host administration remain unfinished. Client End Turn now posts decision records and the host resolves an untimed turn once every assigned living human has posted.
 5. **Several systems are present but incomplete or incorrectly wired.** Examples include fog-of-war presentation, remaining attention-event coverage, event depth, setup/default-settings UI, and richer list/command UI polish.
 
 ## Easy wins applied on 2026-08-25
@@ -280,7 +280,7 @@ The largest blockers to a complete game are:
 | Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | 🟡 Partial | 🟡 Partial | Startup Join/J and File → Join open a localized modal address/name/masked-password form with public game/slot information and paged player selection. Native HTTP/browser CORS admission installs the authenticated client as a retained game document; same-player rejoin reuses that document. Automatic refresh preserves same-turn orders and updates authoritative turns. Title dragging stays in the port and remembers its position. Six-language actual-control browser tests pass. Saved host lists/discovery remain missing; untimed order submission and authoritative turn resolution are now wired. |
 | Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🟡 Partial | 🟡 Partial | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit policy, optional saved-password preferences and host administration remain forthcoming. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ✅ Implemented | ✅ Implemented | Client End Turn submits owned decision records through authenticated HTTP, shows localized Posting/Posted/Retry states and locks posted orders. The host stages and validates production targets/build choices, destinations/courses/memory, names, fleet membership, private rendezvous and player defaults; it derives simulation values and permanent IDs. Untimed turns resolve once every assigned living human posts. Durable receipts make retries idempotent after lost replies/reopening. Authoritative next-turn refresh unlocks client orders. Both full suites pass 1,459 tests; posting controls are verified in all six languages, with an English browser rerun after the host-clock addition. Timed host scheduling is implemented separately; countdown/setup/admin UI remains unfinished. |
-| Timed turns | Host clock, time remaining, pause/resume, automatic completion. | 🟡 Partial | 🟡 Partial | Native host listener runs a monotonic countdown after untimed turn 1, resolves expired turns even with unposted/offline humans, and preserves remaining time while stopped/reopened. Local host-service pause/resume and public/authenticated countdown records are implemented. Nine unit regressions and awaited real scheduler/socket checks cover expiration, endEarly, persistence, save rollback/retry and shutdown. Host setup, visible countdowns and remote admin controls remain missing. |
+| Timed turns | Host clock, time remaining, pause/resume, automatic completion. | 🟡 Partial | 🟡 Partial | Native host listener runs a monotonic countdown after untimed turn 1, resolves expired turns even with unposted/offline humans, and preserves remaining time while stopped/reopened. Local host-service pause/resume and public/authenticated countdown records are implemented. Joined games display validated countdowns in the map header, including localized paused and awaiting-next-turn states; the countdown remains visible after posting and never resolves a turn locally. Nine unit regressions and awaited real scheduler/socket checks cover expiration, endEarly, persistence, save rollback/retry and shutdown. Host setup and remote admin controls remain missing. |
 | Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | ❌ Missing | ❌ Missing | No host/admin mode. |
 | Multiplayer chat | Player-to-player/all/admin messages. | ❌ Missing | ❌ Missing | No chat protocol or UI. |
 
@@ -2664,3 +2664,47 @@ posting views. Countdown UI is explicitly not asserted by these captures.
 Timed-turn functionality remains partial until host setup controls, visible
 remaining-time presentation and remote administration are implemented. Other
 Section 9 items and the subsequent Map Generation checklist remain active.
+
+
+### Visible authoritative client countdown — 2026-10-10
+
+Audited v3 `GalacticaClient.cpp:2340–2345, 2393–2397`: incoming game information
+resets the client timer, a new turn clears the POSTED mark, and timed games
+resume the display. Posting marks the countdown instead of clearing it at
+`GalacticaClient.cpp:1526–1532`. `GalacticaUtils.cpp:1089–1108` displays whole days
+above one day, otherwise hours/minutes or minutes/seconds below five minutes;
+`GenericUtils.cpp:316–375` specifies the threshold. V4 preserves these duration
+boundaries without v3's modulo-100 hour truncation.
+
+`client-clock.js` validates the public countdown and records its receipt time.
+The client ticks running samples between refreshes, holds paused/stopped samples,
+and clamps at zero. At zero the localized label says it is awaiting the next
+turn; no production, movement, AI or local turn increment occurs. Same-turn
+network refresh replaces the clock while preserving local targets, selection
+and camera. A new authoritative turn resets the countdown and unlocks orders
+through the existing transport. Older states with no clock remain supported.
+Initial/unlimited/completed views have no countdown.
+
+The map header expands by one text line for active client countdowns. Paused,
+running and awaiting-host labels plus day units (1045–1049) are localized in
+English, German, Spanish, French, Japanese and Russian. The existing Posted
+button remains visible alongside the timer. Local games keep their previous
+header size. Host setup and remote pause/resume administration remain separate
+unimplemented requirements.
+
+Verification: **1,467 passed, 0 failed** on both pinned and current public PDG.
+Eight new regressions cover transport validation, isolated metadata, local
+ticking, paused/stopped/zero states, duration boundaries, same-turn edits,
+legacy/initial/unlimited/completed states, authoritative new turns and all-six
+language header layout. Existing awaited native client/host-clock regressions
+pass on both runtimes. Actual browser controls pass in all six languages with
+real native timed hosts: Join, production edits, clock refresh, localized paused
+seconds/hours/days, actual End Turn and Posted countdown, waiting at local zero,
+and real automatic timed-turn refresh/unlocking. Before/after screenshots under
+`/private/tmp/galactica-parity/countdown-{before,after}/{en,de,es,fr,ja,ru}` were
+reviewed, including translated long labels and posted/new-turn views. All audio
+output remains muted.
+
+This completes visible time remaining for joined games. The timed-turn row
+remains partial until host setup and administration are implemented; the wider
+Section 9 and Map Generation requirements remain active.

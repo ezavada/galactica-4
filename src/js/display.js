@@ -1,6 +1,7 @@
 // Display functions for Galactica-4
 // Contains all rendering and UI display logic
 
+const ClientClock=require('./client-clock.js');
 const ApplicationVersion=require('./application-version.js');
 const Common = require('./common.js');
 const NewGameDefaults=require('./new-game-defaults.js');
@@ -3054,12 +3055,13 @@ class Display {
         const screen = this.getScreenSize();
         const player = this.game.players ? this.game.players[this.game.getCurrentHumanPlayer()] : null;
         const gameName = (this.game.config && this.game.config.gameTitle) ? this.game.config.gameTitle : (player && player.name) || I18n.getString(568, 'Galactica-4');
+        const countdown=ClientClock.label(this.game,this.getVisualTime());
         const headerWidth = Math.min(420, screen.width - 40);
         const rect = {
             x: (screen.width - headerWidth) / 2,
             y: 12,
             width: headerWidth,
-            height: 56
+            height: countdown?76:56
         };
 
         let headline = `${gameName}  •  ${this.STR.turn} ${turn}`;
@@ -3075,6 +3077,8 @@ class Display {
         while(headlineSize>11 && this.port.getTextWidth(headline,headlineSize)>headerWidth-28)headlineSize--;
         this.drawTextLine(this.fitShipDiagnosticText(headline,headerWidth-28,headlineSize),screen.width/2,rect.y+24,'lightgray',headlineSize,pdg.textStyle_Centered);
         this.drawTextLine(`${this.STR.stars} ${starCount}   ${this.STR.ships} ${shipCount}   ${this.STR.zoom} ${this.getZoomPercentage()}%`, screen.width / 2, rect.y + 44, 'gray', 11, pdg.textStyle_Centered);
+        if(countdown){let size=11;while(size>9 && this.port.getTextWidth(countdown,size)>headerWidth-28)size--;
+            this.drawTextLine(this.fitShipDiagnosticText(countdown,headerWidth-28,size),screen.width/2,rect.y+64,'lightgray',size,pdg.textStyle_Centered);}
         this.drawMapButtons();
     }
 

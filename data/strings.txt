@@ -726,3 +726,10 @@
 1042	This turn is already posted.
 1043	This game is complete.
 1044	These orders exceed the size limit.
+
+# Multiplayer host countdown
+1045	Time remaining: {0}
+1046	Paused: {0}
+1047	Awaiting next turn…
+1048	{0} days
+1049	Paused

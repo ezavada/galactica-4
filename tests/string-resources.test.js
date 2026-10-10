@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 
 const REQUIRED_RUNTIME_STRING_IDS = [
+    1045, 1046, 1047, 1048, 1049,
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
     11, 12, 13, 14, 15, 16, 17, 18,
     20, 21, 22, 23,

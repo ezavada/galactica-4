@@ -105,9 +105,11 @@ resolves it and the client refreshes automatically. Retry posting resends the
 same submission after a connection failure.
 
 The native host service now supports timed turns after the untimed first turn,
-including pause/resume and saved time remaining across reopening.
+including pause/resume and saved time remaining across reopening. Joined games
+show a localized countdown that stays visible after posting and waits for the
+host to announce the next turn.
 
-Multiplayer remains incomplete: host setup and clock UI, discovery, chat and
+Multiplayer remains incomplete: host setup and administration UI, discovery, chat and
 network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
@@ -117,7 +119,7 @@ network-game saving are still being ported. See [the parity checklist](docs/V3_V
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1459 passed, 0 failed.
+Current expected result: 1467 passed, 0 failed.
 
 AI-only parity observer:
 

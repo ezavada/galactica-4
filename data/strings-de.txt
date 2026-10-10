@@ -726,3 +726,10 @@
 1042	Diese Runde wurde bereits übermittelt.
 1043	Dieses Spiel ist beendet.
 1044	Diese Befehle überschreiten die Größenbegrenzung.
+
+# Multiplayer host countdown
+1045	Verbleibende Zeit: {0}
+1046	Pausiert: {0}
+1047	Warte auf den nächsten Zug…
+1048	{0} Tage
+1049	Pausiert

@@ -726,3 +726,10 @@
 1042	Este turno ya se ha enviado.
 1043	Esta partida ha terminado.
 1044	Estas órdenes superan el límite de tamaño.
+
+# Multiplayer host countdown
+1045	Tiempo restante: {0}
+1046	En pausa: {0}
+1047	Esperando el siguiente turno…
+1048	{0} días
+1049	En pausa
