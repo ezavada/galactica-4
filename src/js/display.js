@@ -1828,11 +1828,21 @@ class Display {
         return {rect,page,pages,pageSize,visibleRows,columns,headerSize};
     }
 
-    getFleetRosterDragRegions() {
-        if(this.game.uiWindow!=='fleets')return [];
-        const rect=this.getFleetWindowRect();
+    getTableWindowDragRegions() {
+        const state=this.game.getTableWindowState();if(!state)return [];
+        const rect=state.rect;
         return [{mode:'move',rect:{x:rect.x+10,y:rect.y+2,width:rect.width-20,height:28}},
             {mode:'resize',rect:{x:rect.x+rect.width-28,y:rect.y+rect.height-26,width:24,height:22}}];
+    }
+
+    getFleetRosterDragRegions() {return this.game.uiWindow==='fleets'?this.getTableWindowDragRegions():[];}
+
+    drawTableWindowResizeGrip(rect) {
+        const right=rect.x+rect.width-8,bottom=rect.y+rect.height-8;
+        for(const length of [5,10,15])this.port.drawLine(new pdg.Point(right-length,bottom),new pdg.Point(right,bottom-length),this.styles.divider);
+        const hovered=this.getTableWindowDragRegions().find(region=>this.isHovered(region.rect));
+        if(hovered)this.iconHint={rect:hovered.rect,inWindow:true,label:I18n.getString(810,
+            'Drag title to move; drag lower-right corner to resize.')};
     }
 
     getFleetWindowRect() {return this.getFleetRosterLayout().rect;}
@@ -2109,12 +2119,15 @@ class Display {
 
     getSystemComparisonLayout() {
         const screen = this.getScreenSize(), width = Math.min(760, screen.width - 40);
-        const pageSize = Math.max(1, Math.min(12, Math.floor((screen.height - 240) / 26)));
-        const rows = this.game.getSystemComparisonRows(), pages = Math.max(1, Math.ceil(rows.length / pageSize));
-        const page = Math.min(this.game.systemComparisonPage, pages - 1);
-        const visibleRows = rows.slice(page * pageSize, (page + 1) * pageSize);
-        const rect = this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,
-            height:150 + Math.max(1,visibleRows.length) * 26});
+        const rows=this.game.getSystemComparisonRows(),preferred=this.game.systemComparisonGeometry;
+        const defaultPageSize=Math.max(1,Math.min(12,Math.floor((screen.height-240)/26)));
+        const height=this.clamp(preferred?preferred.height:150+Math.max(1,Math.min(rows.length,defaultPageSize))*26,
+            176,Math.max(176,screen.height-20));
+        const rect=this.fitPanelToScreen({x:preferred?preferred.x:(screen.width-width)/2,
+            y:preferred?preferred.y:84,width,height});
+        const pageSize=Math.max(1,Math.floor((height-150)/26)),pages=Math.max(1,Math.ceil(rows.length/pageSize));
+        const page=this.clamp(this.game.systemComparisonPage,0,pages-1);this.game.systemComparisonPage=page;
+        const visibleRows=rows.slice(page*pageSize,(page+1)*pageSize);
         let offset = 14;
         const columns = [
             ['name',709,'Name',.21], ['tech',710,'Tech',.07], ['population',711,'Population|×1000',.12],
@@ -2140,8 +2153,10 @@ class Display {
             action:{type:'systemComparisonRow',star:row.star}}));
         if (layout.page > 0) regions.push({rect:{x:rect.x+14,y:rect.y+rect.height-36,width:150,height:24},
             label:I18n.getString(690,'Previous'),action:{type:'systemComparisonPage',page:layout.page-1}});
-        if (layout.page < layout.pages-1) regions.push({rect:{x:rect.x+rect.width-164,y:rect.y+rect.height-36,width:150,height:24},
+        if (layout.page < layout.pages-1) regions.push({rect:{x:rect.x+rect.width-184,y:rect.y+rect.height-36,width:150,height:24},
             label:I18n.getString(691,'Next'),action:{type:'systemComparisonPage',page:layout.page+1}});
+        regions.push({rect:{x:rect.x+rect.width/2-75,y:rect.y+rect.height-36,width:150,height:24},
+            label:this.STR.escClose,action:{type:'closeSystemComparison'}});
         return regions;
     }
 
@@ -2560,7 +2575,7 @@ class Display {
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
-        if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick','endTurnConfirm','fleetExchange','fleets'].includes(this.game.uiWindow)) return { type: 'consume' };
+        if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick','endTurnConfirm','fleetExchange','fleets','systemComparison'].includes(this.game.uiWindow)) return { type: 'consume' };
         const scrollAction=this.getMapScrollActionAt(x,y);
         if(scrollAction)return scrollAction;
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
@@ -3180,11 +3195,7 @@ class Display {
         const hint=I18n.getString(809,'Double-click a row to inspect it.')+`   ${layout.page+1} / ${layout.pages}`;
         this.drawTextLine(this.fitShipDiagnosticText(hint,rect.width-28,10),rect.x+rect.width/2,rect.y+rect.height-43,'gray',10,pdg.textStyle_Centered);
         this.getFleetListActionRegions().filter(row=>row.label).forEach(row=>this.drawUIButton(row.rect,row.label,null,{size:10}));
-        const right=rect.x+rect.width-8,bottom=rect.y+rect.height-8;
-        for(const length of [5,10,15])this.port.drawLine(new pdg.Point(right-length,bottom),new pdg.Point(right,bottom-length),this.styles.divider);
-        const hovered=this.getFleetRosterDragRegions().find(region=>this.isHovered(region.rect));
-        if(hovered)this.iconHint={rect:hovered.rect,inWindow:true,label:I18n.getString(810,
-            'Drag title to move; drag lower-right corner to resize.')};
+        this.drawTableWindowResizeGrip(rect);
     }
 
     getRenameActionRegions() {
@@ -3297,10 +3308,10 @@ class Display {
                 rowRect.y+17,'lightgray',11));
             this.drawDivider(rect.x+14,rowRect.y+24,rect.width-28);
         });
-        this.drawTextLine(I18n.getString(718,'Double-click a system, or select it and press Enter'),rect.x+rect.width/2,
+        this.drawTextLine(this.fitShipDiagnosticText(I18n.getString(718,'Double-click a system, or select it and press Enter')+`   ${layout.page+1} / ${layout.pages}`,rect.width-28,10),rect.x+rect.width/2,
             rect.y+rect.height-48,'gray',10,pdg.textStyle_Centered);
         this.getSystemComparisonActionRegions().filter(region=>region.label).forEach(region=>this.drawUIButton(region.rect,region.label));
-        this.drawTextLine(`${layout.page+1} / ${layout.pages}`,rect.x+rect.width/2,rect.y+rect.height-19,'gray',11,pdg.textStyle_Centered);
+        this.drawTableWindowResizeGrip(rect);
     }
 
     drawSystemShipWindow() {

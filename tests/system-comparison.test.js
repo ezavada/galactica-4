@@ -137,6 +137,72 @@ module.exports = function() {
             const unavailable={window:{get localStorage(){throw Error('Unavailable');}}};
             const prefs=Preferences.createPreferences(unavailable,options);prefs.write({key:'population',ascending:false});test.assertEqual(prefs.read().key,'name');
         });
+        test.it('moves and resizes the system table with captured input and keeps every row accessible',()=>{
+            const {game,display}=fixture();game.uiWindow='systemComparison';
+            for(let i=0;i<25;i++)game.factory.createStar(i,i,'System '+i).owner=1;
+            const writes=[];game.systemComparisonPreferences={writeGeometry:rect=>writes.push({...rect})};
+            let rect=display.getSystemComparisonLayout().rect,region=display.getTableWindowDragRegions()[0].rect;
+            test.assertTrue(game.beginUIWindowDrag(region.x+20,region.y+10));game.endUIWindowDrag(region.x+25,region.y+30);
+            test.assertEqual(game.systemComparisonGeometry.x,rect.x+5);test.assertEqual(game.systemComparisonGeometry.y,rect.y+20);test.assertEqual(writes.length,1);
+            region=display.getTableWindowDragRegions()[1].rect;game.beginUIWindowDrag(region.x+12,region.y+10);game.endUIWindowDrag(region.x+12,region.y-70);
+            test.assertEqual(writes.length,2);const layout=display.getSystemComparisonLayout(),seen=[];
+            for(let page=0;page<layout.pages;page++){game.systemComparisonPage=page;seen.push(...display.getSystemComparisonLayout().visibleRows.map(row=>row.star));}
+            test.assertEqual(seen.length,26);test.assertEqual(new Set(seen).size,26);
+            const lastPage=game.systemComparisonPage;game.executeUIAction({type:'closeSystemComparison'});game.executeUIAction({type:'showSystemComparison'});test.assertEqual(game.systemComparisonPage,lastPage);
+            test.assertNull(game.fleetRosterGeometry);
+        });
+        test.it('clamps table geometry and preserves preferred bounds through temporary viewport contraction',()=>{
+            const {game,display}=fixture();game.uiWindow='systemComparison';game.systemComparisonGeometry={x:20,y:100,height:450};
+            game.port.getDrawingArea=()=>new pdg.Rect(640,400);let layout=display.getSystemComparisonLayout();
+            test.assertTrue(layout.rect.y+layout.rect.height<=390);test.assertEqual(game.systemComparisonGeometry.height,450);
+            game.port.getDrawingArea=()=>new pdg.Rect(800,600);test.assertEqual(display.getSystemComparisonLayout().rect.height,450);
+            let region=display.getTableWindowDragRegions()[1].rect;game.beginUIWindowDrag(region.x+12,region.y+10);game.endUIWindowDrag(region.x+12,-10000);
+            test.assertEqual(display.getSystemComparisonLayout().rect.height,176);
+            region=display.getTableWindowDragRegions()[0].rect;game.beginUIWindowDrag(region.x+20,region.y+10);game.endUIWindowDrag(-10000,-10000);
+            layout=display.getSystemComparisonLayout();test.assertEqual(layout.rect.x,10);test.assertEqual(layout.rect.y,10);
+            game.systemComparisonPage=999;test.assertEqual(display.getSystemComparisonLayout().page,0);test.assertEqual(game.systemComparisonPage,0);
+        });
+        test.it('saves on Escape, close, switching windows and Enter inspection while consuming map shortcuts',()=>{
+            const {game,star,display}=fixture(),writes=[];game.systemComparisonPreferences={writeGeometry:rect=>writes.push(rect)};
+            for(const close of ['escape','button','switch','enter']) {
+                game.uiWindow='systemComparison';game.systemComparisonGeometry=null;
+                if(close==='escape')game.handleKeyPress(pdg.key_Escape);
+                if(close==='button')game.executeUIAction({type:'closeSystemComparison'});
+                if(close==='switch')game.openUIWindow('events');
+                if(close==='enter'){game.systemComparisonSelection=star;game.handleKeyPress(13);}
+                test.assertTrue(game.uiWindow!=='systemComparison');test.assertTrue(writes.length>0);
+            }
+            game.uiWindow='systemComparison';let advances=0;game.attention.next=()=>advances++;game.handleKeyPress(pdg.key_Tab);
+            test.assertEqual(advances,0);const shown=game.showShips;game.handleKeyPress(pdg.key_F1);test.assertEqual(game.showShips,shown);test.assertEqual(display.getUIActionAt(1,1).type,'consume');test.assertTrue(game.handleMouseRightClick(1,1));
+        });
+        test.it('stops stale captures on Escape, window and viewport changes and rejects invalid input',()=>{
+            const {game,display}=fixture();game.uiWindow='systemComparison';const region=display.getTableWindowDragRegions()[0].rect;
+            test.assertFalse(game.beginUIWindowDrag(NaN,region.y));test.assertFalse(game.beginUIWindowDrag(region.x,region.y+100));
+            game.beginUIWindowDrag(region.x+20,region.y+10);game.handleKeyPress(pdg.key_Escape);test.assertNull(game.uiWindowDrag);test.assertEqual(game.uiWindow,'systemComparison');
+            game.beginUIWindowDrag(region.x+20,region.y+10);game.updateUIWindowDrag(region.x+30,region.y+20);const preferred={...game.systemComparisonGeometry};
+            game.port.getDrawingArea=()=>new pdg.Rect(640,480);game.updateUIWindowDrag(500,500);test.assertNull(game.uiWindowDrag);test.assertEqual(game.systemComparisonGeometry.x,preferred.x);
+            const r=display.getTableWindowDragRegions()[0].rect;game.beginUIWindowDrag(r.x+20,r.y+10);game.openUIWindow('fleets');test.assertNull(game.uiWindowDrag);test.assertFalse(game.updateUIWindowDrag(500,500));
+        });
+        test.it('persists separate system geometry with its own minimum and leaves fleet bounds intact',()=>{
+            const P=require('../src/js/roster-preferences.js'),data={},store={getItem:key=>data[key],setItem:(key,value)=>data[key]=value};
+            for(const native of [false,true]) {
+                const env=native?{pdg:{cfg:{useConfig:()=>{},getConfigString:store.getItem,setConfigString:store.setItem}}}:{window:{localStorage:store}};
+                const fleet=P.createPreferences(env),options={prefix:'systemComparison',minimumHeight:176},system=P.createPreferences(env,options);
+                fleet.writeGeometry({x:10,y:20,height:158});system.writeGeometry({x:30,y:40,height:200});
+                test.assertEqual(P.createPreferences(env,options).readGeometry().height,200);test.assertEqual(fleet.readGeometry().height,158);
+                system.writeGeometry({x:0,y:0,height:158});test.assertEqual(system.readGeometry().height,200);
+                data[(native?'':'galactica.')+'systemComparisonGeometry']='broken';test.assertNull(system.readGeometry());
+            }
+        });
+        test.it('keeps localized close and paging controls clear of the resize grip',()=>{
+            const previous=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']) {
+                pdg.res.setLanguage(lang);const {game,display}=fixture();display.reloadUIStrings();game.uiWindow='systemComparison';
+                for(let i=0;i<20;i++)game.factory.createStar(i,i,'Star '+i).owner=1;
+                game.systemComparisonGeometry={x:20,y:90,height:254};const corner=display.getTableWindowDragRegions()[1].rect;
+                for(const region of display.getSystemComparisonActionRegions().filter(r=>r.label))test.assertFalse(display.containsPoint(region.rect,corner.x+12,corner.y+11));
+                test.assertTrue(display.getSystemComparisonActionRegions().some(r=>r.action.type==='closeSystemComparison'));
+            }}finally{pdg.res.setLanguage(previous);}
+        });
         test.it('paginates inside the viewport and clamps the last page after system loss',()=>{
             const {game,display}=fixture();for(let i=0;i<30;i++)game.factory.createStar(0,0,'System '+i).owner=1;
             game.systemComparisonPage=99;const layout=display.getSystemComparisonLayout();
@@ -147,7 +213,7 @@ module.exports = function() {
             const {game,display}=fixture();game.uiWindow='menu';game.systemComparisonPage=3;
             const region=display.getCommandActionRegions().find(r=>r.action.type==='showSystemComparison');
             game.executeUIAction(display.getUIActionAt(region.rect.x+5,region.rect.y+5));
-            test.assertEqual(game.uiWindow,'systemComparison');test.assertEqual(game.systemComparisonPage,0);
+            test.assertEqual(game.uiWindow,'systemComparison');display.getSystemComparisonLayout();test.assertEqual(game.systemComparisonPage,0);
             const r=display.getSystemComparisonActionRegions()[0].rect;
             test.assertEqual(display.getUIActionAt(r.x+5,r.y+5).type,'sortSystemComparison');
             const w=display.getActiveWindowRect();test.assertEqual(display.getUIActionAt(w.x+5,w.y+5).type,'consume');

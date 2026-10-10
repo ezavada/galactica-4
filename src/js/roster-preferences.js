@@ -4,13 +4,14 @@ function normalizeSort(sort, allowedKeys=keys) {
     return sort && allowedKeys.includes(sort.key) && typeof sort.ascending==='boolean'?
         {key:sort.key,ascending:sort.ascending}:{key:'name',ascending:true};
 }
-function normalizeGeometry(value) {
-    return value && ['x','y','height'].every(key=>Number.isFinite(value[key]) && Math.abs(value[key])<=1000000) && value.height>=158?
+function normalizeGeometry(value, minimumHeight=158) {
+    return value && ['x','y','height'].every(key=>Number.isFinite(value[key]) && Math.abs(value[key])<=1000000) && value.height>=minimumHeight?
         {x:value.x,y:value.y,height:value.height}:null;
 }
 function createPreferences(env=globalThis, options={}) {
     const prefix=options.prefix || 'fleet';
     const sortKey=prefix+"Sort", geometryKey=prefix+"Geometry";
+    const geometry=value=>normalizeGeometry(value,options.minimumHeight || 158);
     const normalize=value=>normalizeSort(value,options.keys || keys);
     let storage=null,config=null;
     try {
@@ -24,12 +25,12 @@ function createPreferences(env=globalThis, options={}) {
             catch(error){return normalize(null);}
         },
         readGeometry:()=>{
-            try {return normalizeGeometry(JSON.parse(storage?storage.getItem('galactica.'+geometryKey):
+            try {return geometry(JSON.parse(storage?storage.getItem('galactica.'+geometryKey):
                 config?config.getConfigString(geometryKey):null));}
             catch(error){return null;}
         },
         writeGeometry:geometry=>{
-            const bounds=normalizeGeometry(geometry);if(!bounds)return;
+            const bounds=normalizeGeometry(geometry,options.minimumHeight || 158);if(!bounds)return;
             try {
                 const value=JSON.stringify(bounds);
                 if(storage)storage.setItem('galactica.'+geometryKey,value);

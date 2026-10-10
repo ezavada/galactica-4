@@ -42,7 +42,7 @@ const LanguageSettings = require('./src/js/language-settings.js');
 const StartupSetup = require('./src/js/startup-setup.js');
 const rosterPreferences = require('./src/js/roster-preferences.js').createPreferences();
 const systemComparisonPreferences = require('./src/js/roster-preferences.js').createPreferences(globalThis, {
-    prefix:'systemComparison', keys:['name','tech','population','production','buildName','completion',
+    prefix:'systemComparison', minimumHeight:176, keys:['name','tech','population','production','buildName','completion',
         'totalDefense','satelliteDefense','shipDefense']
 });
 const drawingPreferences = require('./src/js/drawing-preferences.js').createPreferences();
@@ -336,6 +336,7 @@ function startGame() {
     game.drawingPreferences = drawingPreferences;
     game.systemComparisonPreferences = systemComparisonPreferences;
     game.systemComparisonSort = systemComparisonPreferences.read();
+    game.systemComparisonGeometry = systemComparisonPreferences.readGeometry();
     game.rosterPreferences = rosterPreferences;
     game.fleetRosterSort = rosterPreferences.read();
     game.fleetRosterGeometry = rosterPreferences.readGeometry();
@@ -443,7 +444,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     }
     // Check if this is a mouse down event
     if (event && event.eventType === pdg.eventType_MouseDown) {
-        if(['mapPick','fleets'].includes(game.uiWindow) && event.buttonNumber!==0)return true;
+        if(['mapPick','fleets','systemComparison'].includes(game.uiWindow) && event.buttonNumber!==0)return true;
         // Check which button was pressed
         // PDG uses buttonNumber: 0=left, 1=right, 2=middle
         if (event.buttonNumber === 0) {
@@ -547,7 +548,7 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
         // Recover if the button was released outside the game window.
         if(game.uiWindowDrag && event.leftButton===false){game.endUIWindowDrag();return true;}
         if(game.updateUIWindowDrag(event.mousePos.x,event.mousePos.y))return true;
-        if(game.uiWindow==='fleets') {
+        if(['fleets','systemComparison'].includes(game.uiWindow)) {
             game.endMapScrollDrag();game.endUISliderDrag();
             isDragging=false;isLeftClickDragging=false;return true;
         }

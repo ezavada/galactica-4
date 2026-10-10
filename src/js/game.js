@@ -71,6 +71,7 @@ class Game {
         this.systemComparisonSort = { key: 'name', ascending: true };
         this.systemComparisonSelection = null;
         this.systemComparisonLastClick = null;
+        this.systemComparisonGeometry = null;
         this.pendingRendezvousPlacement = null;
         this.renameTarget = null;
         this.renameText = '';
@@ -668,7 +669,7 @@ class Game {
         this.setSelectedObject(object);
         if(this.display)this.display.centerOn(object.x,object.y);
         if(previous && previous.object===object && now>=previous.time && now-previous.time<=500) {
-            this.saveFleetRosterGeometry();this.uiWindow=null;this.fleetRosterLastClick=null;
+            this.saveTableWindowGeometry();this.uiWindow=null;this.fleetRosterLastClick=null;
         } else this.fleetRosterLastClick={object,time:now};
         return true;
     }
@@ -918,19 +919,21 @@ class Game {
 
     openUIWindow(windowName) {
         this.endUIWindowDrag();
-        this.saveFleetRosterGeometry();
+        this.saveTableWindowGeometry();
         if (this.mapSelectionPicker) this.cancelMapSelection();
         this.uiWindow = windowName;
         if(windowName==='fleets')this.fleetRosterLastClick=null;
+        if(windowName==='systemComparison')this.systemComparisonLastClick=null;
         return true;
     }
 
     toggleUIWindow(windowName) {
         this.endUIWindowDrag();
-        this.saveFleetRosterGeometry();
+        this.saveTableWindowGeometry();
         if (this.mapSelectionPicker) this.cancelMapSelection();
         this.uiWindow = (this.uiWindow === windowName) ? null : windowName;
         if(windowName==='fleets')this.fleetRosterLastClick=null;
+        if(windowName==='systemComparison')this.systemComparisonLastClick=null;
         return true;
     }
 
@@ -1251,8 +1254,13 @@ class Game {
             return true;
         }
         if(key===pdg.key_Home && this.uiWindow==='menu')return this.executeUIAction({type:'selectHomeStar'});
+        if(this.uiWindow==='systemComparison') {
+            if(key===pdg.key_Escape){this.saveTableWindowGeometry();this.uiWindow=null;}
+            else if(key===13 || key===3)this.openSystemComparisonSelection();
+            return true;
+        }
         if(this.uiWindow==='fleetExchange' || this.uiWindow==='fleets') {
-            if(key===pdg.key_Escape){this.saveFleetRosterGeometry();this.uiWindow=null;}
+            if(key===pdg.key_Escape){this.saveTableWindowGeometry();this.uiWindow=null;}
             return true;
         }
         if(this.uiWindow==='settings' || this.uiWindow==='mapDisplay') {
@@ -1307,10 +1315,6 @@ class Game {
             return true;
         }
 
-        if (this.uiWindow === 'systemComparison') {
-            if (key === 13 || key === 3) this.openSystemComparisonSelection();
-            return true;
-        }
 
         if (this.uiWindow === 'production') {
             switch (lower) {
@@ -1518,6 +1522,8 @@ class Game {
         if (!star || !this.getSystemComparisonRows().some(row => row.star === star)) return false;
         this.setSelectedObject(star);
         if (this.display) this.display.centerOn(star.x, star.y);
+        this.endUIWindowDrag();
+        this.saveTableWindowGeometry();
         this.uiWindow = null;
         this.systemComparisonLastClick = null;
         return true;
@@ -1857,9 +1863,9 @@ class Game {
                 return this.saveColonyDefaults();
             case 'cancelColonyDefaults':
                 return this.cancelColonyDefaults();
+            case 'closeSystemComparison':this.endUIWindowDrag();this.saveTableWindowGeometry();this.uiWindow=null;this.systemComparisonLastClick=null;return true;
             case 'showSystemComparison':
                 if (!this.getCurrentHumanPlayer()) return false;
-                this.systemComparisonPage = 0;
                 this.systemComparisonSelection = null;
                 this.systemComparisonLastClick = null;
                 this.uiWindow = 'systemComparison';
@@ -1900,7 +1906,7 @@ class Game {
                 if(this.rosterPreferences)this.rosterPreferences.write(this.fleetRosterSort);
                 return true;
             }
-            case 'closeFleetRoster':this.endUIWindowDrag();this.saveFleetRosterGeometry();this.uiWindow=null;this.fleetRosterLastClick=null;return true;
+            case 'closeFleetRoster':this.endUIWindowDrag();this.saveTableWindowGeometry();this.uiWindow=null;this.fleetRosterLastClick=null;return true;
             case 'showFleetExchange':return this.showFleetExchange(action.container || this.selectedObject);
             case 'fleetExchangeSelect':return this.selectFleetExchangeMember(action.side,action.object);
             case 'exchangeFleetMember':return this.exchangeFleetMember();
@@ -2117,39 +2123,49 @@ class Game {
         this.uiMapScrollDrag=null;return true;
     }
 
-    saveFleetRosterGeometry() {
-        if(this.uiWindow!=='fleets' || !this.display)return;
-        if(!this.fleetRosterGeometry) {
-            const rect=this.display.getFleetWindowRect();
-            this.fleetRosterGeometry={x:rect.x,y:rect.y,height:rect.height};
-        }
-        if(this.rosterPreferences && this.rosterPreferences.writeGeometry)
-            this.rosterPreferences.writeGeometry(this.fleetRosterGeometry);
+    getTableWindowState() {
+        if(!this.display)return null;
+        if(this.uiWindow==='fleets')return {geometry:'fleetRosterGeometry',preferences:this.rosterPreferences,
+            minimumHeight:158,lastClick:'fleetRosterLastClick',rect:this.display.getFleetWindowRect()};
+        if(this.uiWindow==='systemComparison')return {geometry:'systemComparisonGeometry',preferences:this.systemComparisonPreferences,
+            minimumHeight:176,lastClick:'systemComparisonLastClick',rect:this.display.getSystemComparisonLayout().rect};
+        return null;
     }
+
+    saveTableWindowGeometry() {
+        const state=this.getTableWindowState();if(!state)return;
+        if(!this[state.geometry])this[state.geometry]={x:state.rect.x,y:state.rect.y,height:state.rect.height};
+        if(state.preferences && state.preferences.writeGeometry)state.preferences.writeGeometry(this[state.geometry]);
+    }
+
+    // Retain the roster helper for callers that explicitly save that window.
+    saveFleetRosterGeometry() {if(this.uiWindow==='fleets')this.saveTableWindowGeometry();}
 
     beginUIWindowDrag(x,y) {
         this.endUIWindowDrag();
-        if(this.uiWindow!=='fleets' || !this.display || !Number.isFinite(x) || !Number.isFinite(y))return false;
-        const region=this.display.getFleetRosterDragRegions().find(region=>this.display.containsPoint(region.rect,x,y));
+        const state=this.getTableWindowState();
+        if(!state || !Number.isFinite(x) || !Number.isFinite(y))return false;
+        const region=this.display.getTableWindowDragRegions().find(region=>this.display.containsPoint(region.rect,x,y));
         if(!region)return false;
-        const screen=this.display.getScreenSize(),rect=this.display.getFleetWindowRect();
-        this.uiWindowDrag={mode:region.mode,x,y,rect:{...rect},width:screen.width,height:screen.height};
-        this.fleetRosterLastClick=null;return true;
+        const screen=this.display.getScreenSize();
+        this.uiWindowDrag={mode:region.mode,x,y,rect:{...state.rect},width:screen.width,height:screen.height,
+            window:this.uiWindow,geometry:state.geometry,minimumHeight:state.minimumHeight};
+        this[state.lastClick]=null;return true;
     }
 
     updateUIWindowDrag(x,y) {
         const drag=this.uiWindowDrag;if(!drag)return false;
         const screen=this.display.getScreenSize();
-        if(this.uiWindow!=='fleets' || screen.width!==drag.width || screen.height!==drag.height) {
+        if(this.uiWindow!==drag.window || screen.width!==drag.width || screen.height!==drag.height) {
             this.endUIWindowDrag();return true;
         }
         if(!Number.isFinite(x) || !Number.isFinite(y))return true;
         const rect=drag.rect;
-        if(drag.mode==='move')this.fleetRosterGeometry={
+        if(drag.mode==='move')this[drag.geometry]={
             x:Math.max(10,Math.min(screen.width-rect.width-10,rect.x+x-drag.x)),
             y:Math.max(10,Math.min(screen.height-rect.height-10,rect.y+y-drag.y)),height:rect.height};
-        else this.fleetRosterGeometry={x:rect.x,y:rect.y,
-            height:Math.max(158,Math.min(screen.height-rect.y-10,rect.height+y-drag.y))};
+        else this[drag.geometry]={x:rect.x,y:rect.y,
+            height:Math.max(drag.minimumHeight,Math.min(screen.height-rect.y-10,rect.height+y-drag.y))};
         return true;
     }
 
@@ -2157,8 +2173,8 @@ class Game {
         if(!this.uiWindowDrag)return false;
         if(Number.isFinite(x) && Number.isFinite(y))this.updateUIWindowDrag(x,y);
         if(!this.uiWindowDrag)return true;
-        this.uiWindowDrag=null;
-        if(this.fleetRosterGeometry)this.saveFleetRosterGeometry();
+        const drag=this.uiWindowDrag;this.uiWindowDrag=null;
+        if(this.uiWindow===drag.window && this[drag.geometry])this.saveTableWindowGeometry();
         return true;
     }
 
@@ -2364,7 +2380,7 @@ class Game {
     }
     
     handleMouseRightClick(x, y, options={}) {
-        if(['mapPick','fleets'].includes(this.uiWindow))return true;
+        if(['mapPick','fleets','systemComparison'].includes(this.uiWindow))return true;
         if(this.pendingMapOrderObject || this.pendingRendezvousPlacement)return this.handleMouseClick(x,y,options);
         if(!options.resolved && this.beginMapSelection(x,y,'order'))return true;
         this.pendingMapOrderObject = null;
@@ -2457,6 +2473,7 @@ class Game {
     }
 
     handleKeyPress(key) {
+        if(this.uiWindow==='systemComparison')return this.handleCommandWindowKey(key,this.getKeyChar(key));
         if(key === pdg.key_F6)return this.executeUIAction({type:'toggleScannerRanges'});
         if(key === pdg.key_F4)return this.executeUIAction({type:'toggleAllCourses'});
         if(key === pdg.key_F5)return this.executeUIAction({type:'toggleCourierCourses'});
