@@ -122,6 +122,14 @@ resume an existing hosted `.gad4.json` file. The host keeps its galaxy, turn,
 claimed players/passwords and remaining time; stopped time does not consume the
 countdown. You may leave it running without joining a local player.
 
+Opening a local saved turn with **Open as host** offers conversion to a separate
+host file. Choose how many players become human (the first N; the rest remain
+AI). The default is all players. Conversion preserves the galaxy, economy and
+current turn, opens fresh human slots, and starts with no turn time limit. It
+uses the inspected snapshot and leaves the source file and open local game
+unchanged. Cancel or a failed write creates no host; an existing filename is
+never overwritten. Ordinary **Open** rejects host files; use **Open as host**.
+
 For a dedicated host with no game window or local player:
 
 ```bash
@@ -135,8 +143,8 @@ sidecar directory across atomic saves; a lease from a terminated process is
 retired on the next open. An incomplete or unreadable lease is retained for
 manual inspection rather than risking an active host file.
 
-Multiplayer remains incomplete: converting local saved turns to new hosts,
-dedicated new-game creation options, administration UI, discovery, chat and
+Multiplayer remains incomplete: dedicated new-game creation options,
+administration UI, discovery, chat and
 network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
@@ -146,7 +154,7 @@ network-game saving are still being ported. See [the parity checklist](docs/V3_V
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1478 passed, 0 failed.
+Current expected result: 1487 passed, 0 failed.
 
 AI-only parity observer:
 

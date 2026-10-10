@@ -18,6 +18,11 @@ class NetworkHost {
         const config=new Config({...options,hosting:true,skipMapGeneration:false,autoplay:{enabled:false}});validate(config);
         if(typeof file!=='string' || !file)throw failure('invalid_host_file');
         const game=new Game(new Factory(),new Rules(config.fastGame),config);
+        return NetworkHost.publish(game,file,fs);
+    }
+    static fromLocal(text,numHumans,file,fs=require('fs')){return NetworkHost.publish(require('./host-conversion.js').prepare(text,numHumans),file,fs);}
+    static publish(game,file,fs){
+        if(typeof file!=='string' || !file)throw failure('invalid_host_file');
         // Publish a complete document atomically without replacing an existing
         // path. Failed writes leave neither a partial host nor a temporary file.
         const host=new NetworkHost(game,file,fs);game.config.networkHost.clock=host.clock.snapshot();
@@ -30,7 +35,7 @@ class NetworkHost {
         } finally {fs.rmSync(temporary,{recursive:true,force:true});}
         return host;
     }
-    static open(file,fs=require('fs')){const game=Save.restore(fs.readFileSync(file,'utf8')),migrate=game.config.networkHost===undefined;const host=new NetworkHost(game,file,fs);if(migrate)host.persist();return host;}
+    static open(file,fs=require('fs')){const text=fs.readFileSync(file,'utf8'),game=Save.restore(text);if(!game.config.hosting){if(game.config.networkHost!==undefined)throw failure('invalid_host_config');const error=failure('local_turn_file');error.sourceText=text;error.local={title:game.config.gameTitle,totalPlayers:game.config.totalPlayers,turn:game.turn};throw error;}const migrate=game.config.networkHost===undefined;const host=new NetworkHost(game,file,fs);if(migrate)host.persist();return host;}
     persist(){
         const path=require('path'),temporary=this.fs.mkdtempSync(path.join(path.dirname(this.file),'.galactica-host-'));
         const host=this.game.config.networkHost,previous=host.clock;host.clock=this.clock.snapshot();

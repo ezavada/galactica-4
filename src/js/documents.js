@@ -57,7 +57,7 @@ class Documents {
         let reference;
         try{reference=await this.files.chooseOpen(name);}catch(error){if(token===this.sequence)this.status(846);return false;}
         if(token!==this.sequence)return false;if(!reference){this.dialog=null;return false;}
-        let game;try{game=Save.restore(reference.text);}catch(error){this.status(847);return false;}
+        let game;try{game=Save.restore(reference.text);if(game.config.hosting){this.status(1098);return false;}}catch(error){this.status(847);return false;}
         try{this.install(game,reference);if(this.active())this.active().savedContent=Save.contentSignature(game);this.dialog=null;return true;}catch(error){this.status(846);return false;}
     }
     async revert() {

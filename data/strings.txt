@@ -777,3 +777,15 @@
 1087	Could not open this host file. Check its path and format.
 1088	Host stopped.
 1089	Usage: ./gad4 tools/host-game.js HOST_FILE [PORT] [LANGUAGE]
+
+# Local saved-turn conversion
+1090	Convert saved turn to host
+1091	New host file
+1092	Saved turn: {0} · Turn {1} · {2} players
+1093	Create from saved turn
+1094	Creating host from saved turn…
+1095	Choose 1–{0} human players and a new host filename.
+1096	Source unchanged; open human slots; no turn time limit.
+1097	This saved turn is no longer available. Open it again.
+1098	This is a host file. Use Open as host in the desktop application.
+1099	Could not create this host file. Check the filename and write permissions.

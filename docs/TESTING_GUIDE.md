@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1478
-Passed: 1478 ✓
+Total: 1487
+Passed: 1487 ✓
 Failed: 0 ✗
 ```
 
@@ -485,8 +485,8 @@ independent-process exclusive leases, duplicate game identities, malformed file
 preservation, failed-bind recovery with the lease retained, dedicated listener
 startup and save-before-SIGTERM shutdown, and stale lease recovery after a
 real SIGKILL. It passes on both native PDG runtimes. The dedicated command
-opens an existing host; local-turn conversion and new-game command options are
-separate pending work.
+opens an existing host; new-game command options remain pending. Local-turn
+conversion is available in the desktop Open as host flow described below.
 
 `tools/test-web-host-setup.cjs` also covers File Open as host, localized missing
 file errors, preserved timed turn/claims, ordinary saved-player rejoining, and
@@ -516,3 +516,32 @@ and keeps the Chrome page focused/active with background throttling disabled;
 this avoids a hidden automated page ceasing to draw during lengthy client/Quit
 flows. Render failures include page visibility and controller state in the log.
 These settings affect automation only, and audio remains muted.
+
+
+### Local saved-turn conversion
+
+```bash
+./gad4 tools/test-host-conversion.js
+node tools/test-web-host-setup.cjs BUILD_DIR SCREENSHOT_DIR en convert
+```
+
+Repeat the shared UI run in de/es/fr/ja/ru. The browser uses a test-only localhost
+adapter to the real native desktop host service; production browser hosting
+remains unavailable. `before-convert` captures the committed pre-conversion UI.
+All audio output stays muted.
+
+The awaited native test covers snapshot inspection/cancel, human count bounds,
+first-N human roles, preserved galaxy/economy/turn, exclusive output publication,
+real write-permission failure and retry, unchanged source and live document,
+untimed open human slots, authenticated former-AI posting, authoritative next
+turn, and saved-host rejoin. Ordinary Open rejects host files with localized
+messages in all six languages. Unit regressions also verify graph references,
+private destinations, AI skill preservation, completed-game outcomes and failed
+partial-write cleanup. The UI flow uses actual File/Open as host, filename/count
+editing, Enter/Escape, localized validation, exclusive filename errors, Join,
+Stop and reopening with the former-AI human claim retained.
+
+Native results: `/private/tmp/galactica-host-conversion-{native,public-native}.log`.
+Full suites: `/private/tmp/galactica-host-conversion-{unit,public-unit}.log`.
+Before/after screenshots: `/private/tmp/galactica-parity/host-conversion-{before,after}/<language>`.
+UI logs: `/private/tmp/galactica-host-conversion-ui-<language>.log`.

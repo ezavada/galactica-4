@@ -777,3 +777,15 @@
 1087	Impossible d’ouvrir ce fichier hôte. Vérifiez le chemin et le format.
 1088	Hôte arrêté.
 1089	Utilisation : ./gad4 tools/host-game.js FICHIER_HÔTE [PORT] [LANGUE]
+
+# Local saved-turn conversion
+1090	Convertir une sauvegarde en hôte
+1091	Nouveau fichier hôte
+1092	Sauvegarde : {0} · Tour {1} · {2} joueurs
+1093	Créer depuis la sauvegarde
+1094	Création de l’hôte depuis la sauvegarde…
+1095	Choisissez 1–{0} joueurs humains et un nouveau nom de fichier.
+1096	Source inchangée ; places libres ; pas de limite de temps.
+1097	Cette sauvegarde n’est plus disponible. Ouvrez-la à nouveau.
+1098	C’est un fichier hôte. Utilisez Ouvrir comme hôte dans l’application de bureau.
+1099	Impossible de créer ce fichier hôte. Vérifiez le nom et les droits d’écriture.

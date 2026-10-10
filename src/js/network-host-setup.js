@@ -1,11 +1,11 @@
 const Name=require('./player-name.js'),I18n=require('./i18n.js'),Config=require('./game-config.js'),Setup=require('./startup-setup.js'),Files=require('./document-files.js');
 const units=[{id:1056,multiplier:60},{id:1057,multiplier:3600},{id:1058,multiplier:86400},{id:1059,multiplier:604800}];
 function whole(text,min,max){return typeof text==='string' && /^\d+$/.test(text.trim()) && Number.isSafeInteger(Number(text)) && Number(text)>=min && Number(text)<=max?Number(text):null;}
-function errorText(error){return I18n.getString(error && error.code==='invalid_host_port'?1067:error && error.code==='host_file_busy'?1086:error && error.code==='EEXIST'?1068:error && error.code==='host_listen_failed'?1069:error && error.code==='desktop_host_required'?1066:1030);}
+function errorText(error){return I18n.getString(error && error.code==='invalid_host_port'?1067:error && error.code==='host_file_busy'?1086:error && error.code==='EEXIST'?1068:error && error.code==='host_listen_failed'?1069:error && error.code==='desktop_host_required'?1066:error && ['EACCES','EPERM','EIO','ENOSPC','ENOENT','ENOTDIR','EINVAL','EROFS'].includes(error.code)?1099:1030);}
 class HostWindow {
  constructor(backend,join){this.backend=backend;this.join=join;this.active=false;this.busy=false;}
  open(options={},record=this.backend.latest()){
-  if(this.active || this.busy)return false;this.active=true;this.message='';this.record=record;this.stage=record?'hosting':'form';
+  if(this.active || this.busy)return false;this.conversion=null;this.active=true;this.message='';this.record=record;this.stage=record?'hosting':'form';
   const numHumans=Math.max(2,Math.min(99,options.numHumans || 2));
   this.config=new Config({...options,numHumans,numComputers:Math.min(99-numHumans,options.numComputers || 0),hosting:true});
   this.title=Name.createEditor(this.config.gameTitle,Setup.maximumTitleLength);this.humans=Name.createEditor(String(this.config.numHumans),2);this.computers=Name.createEditor(String(this.config.numComputers),2);
@@ -18,10 +18,18 @@ class HostWindow {
   const port=whole(this.port.text,0,65535);if(port===null || !Name.validName(this.file.text,1024)){this.message=I18n.getString(1067);return false;}
   this.busy=true;this.message=I18n.getString(1085);
   try{this.record=await this.backend.open(this.file.text.trim(),{port});this.stage='hosting';this.port=Name.createEditor(String(this.backend.describe(this.record).port),5);this.message='';return true;}
-  catch(error){if(error.record){this.record=error.record;this.stage='hosting';}this.message=error.code==='host_listen_failed' || error.code==='host_file_busy'?errorText(error):I18n.getString(1087);return false;}
+  catch(error){if(error.conversion){this.conversion=error.conversion;this.stage='conversion';this.humans=Name.createEditor(String(error.conversion.totalPlayers),2);this.file=Name.createEditor(error.conversion.suggestedFile,1024);this.focus='file';this.message='';return false;}if(error.record){this.record=error.record;this.stage='hosting';}this.message=error.code==='host_listen_failed' || error.code==='host_file_busy'?errorText(error):I18n.getString(1087);return false;}
   finally{this.busy=false;}
  }
- cancel(){if(!this.active || this.busy)return false;this.active=false;return true;}
+ async convert(){
+  if(this.busy || !this.conversion)return false;const numHumans=whole(this.humans.text,1,this.conversion.totalPlayers),port=whole(this.port.text,0,65535);
+  if(numHumans===null || port===null || !Name.validName(this.file.text,1024)){this.message=I18n.formatString(1095,'',this.conversion.totalPlayers);return false;}
+  this.busy=true;this.message=I18n.getString(1094);
+  try{this.record=await this.backend.convert(this.conversion.token,this.file.text.trim(),numHumans,{port});this.conversion=null;this.stage='hosting';this.port=Name.createEditor(String(this.backend.describe(this.record).port),5);this.message='';return true;}
+  catch(error){if(error.record){this.record=error.record;this.conversion=null;this.stage='hosting';}this.message=error.code==='invalid_conversion_offer'?I18n.getString(1097):error.code==='invalid_conversion'?I18n.formatString(1095,'',this.conversion.totalPlayers):errorText(error);return false;}
+  finally{this.busy=false;}
+ }
+ cancel(){if(!this.active || this.busy)return false;if(this.conversion && this.backend.discardConversion)this.backend.discardConversion(this.conversion.token);this.conversion=null;this.active=false;return true;}
  options(){
   const numHumans=whole(this.humans.text,1,99),numComputers=whole(this.computers.text,0,98),port=whole(this.port.text,0,65535),time=this.timed?whole(this.time.text,1,Math.min(99999999,Math.floor(Number.MAX_SAFE_INTEGER/(1000*units[this.unit].multiplier)))):0;
   if(numHumans===null || numComputers===null || numHumans+numComputers>99 || port===null || time===null || !Name.validName(this.title.text,Setup.maximumTitleLength) || !Name.validName(this.file.text,1024))return null;
@@ -43,7 +51,7 @@ class HostWindow {
  async retry(){if(this.busy || !this.record)return false;this.busy=true;this.message=I18n.getString(1061);try{const port=whole(this.port.text,0,65535);if(port===null)throw {code:'invalid_host_port'};await this.backend.retry(this.record,port);this.port=Name.createEditor(String(this.backend.describe(this.record).port),5);this.message='';return true;}catch(error){this.message=errorText(error);return false;}finally{this.busy=false;}}
  action(action,value){
   if(action==='cancel')return this.cancel();if(this.busy)return false;
-  if(action==='resume')return this.resume();if(action==='openSaved'){this.active=false;return this.openSaved(this.config);}if(action==='create')return this.create();if(action==='stop')return this.stop();if(action==='retry')return this.retry();
+  if(action==='convert')return this.convert();if(action==='resume')return this.resume();if(action==='openSaved'){this.active=false;return this.openSaved(this.config);}if(action==='create')return this.create();if(action==='stop')return this.stop();if(action==='retry')return this.retry();
   if(action==='join' && this.record){const info=this.backend.describe(this.record);if(!info.address)return false;this.active=false;return this.join(info);}
   if(action==='another'){this.active=false;return this.open(this.config,null);}
   if(action==='unit'){if(!Number.isInteger(value) || value<0 || value>=units.length)return false;this.unit=value;this.config.endEarly=value===0;}
@@ -60,16 +68,20 @@ class HostWindow {
  key(key,pdgRef=globalThis.pdg){
   if(key===pdgRef.key_Escape)return this.cancel();if(this.busy)return true;
   if(this.stage==='hosting'){if(key===pdgRef.key_Tab && !this.backend.describe(this.record).address){this.focus='port';this.port.selected=true;}else if([13,10,3].includes(key))this.action(this.backend.describe(this.record).address?'join':'retry');else if(this.focus==='port')Name.edit(this.port,key,pdgRef);return true;}
-  const fields=this.stage==='open'?['file','port']:['title','humans','computers',...(this.timed?['time']:[]),'file','port'];
+  const fields=this.stage==='conversion'?['file','humans','port']:this.stage==='open'?['file','port']:['title','humans','computers',...(this.timed?['time']:[]),'file','port'];
   if(key===pdgRef.key_Tab){this.focus=fields[(fields.indexOf(this.focus)+1)%fields.length];this[this.focus].selected=true;return true;}
-  if([13,10,3].includes(key)){this.stage==='open'?this.resume():this.create();return true;}const before=this[this.focus].text;Name.edit(this[this.focus],key,pdgRef);
+  if([13,10,3].includes(key)){this.stage==='conversion'?this.convert():this.stage==='open'?this.resume():this.create();return true;}const before=this[this.focus].text;Name.edit(this[this.focus],key,pdgRef);
   if(this.focus==='file' && this.file.text!==before)this.customFile=true;
   if(this.focus==='title' && this.title.text!==before && !this.customFile)this.file=Name.createEditor(Files.suggestedName(this.title.text),1024);
   this.message='';return true;
  }
  layout(width,height){
-  if(!this.active)return null;const baseHeight=this.stage==='open'?300:568,rect={width:Math.min(600,width-24),height:Math.min(baseHeight,height-24)};rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;
+  if(!this.active)return null;const baseHeight=this.stage==='conversion'?380:this.stage==='open'?300:568,rect={width:Math.min(600,width-24),height:Math.min(baseHeight,height-24)};rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;
   const scale=rect.height/baseHeight,at=(x,y,w,h=26)=>({x:rect.x+x,y:rect.y+y*scale,width:w,height:h*scale});
+  if(this.stage==='conversion'){
+   const inner=rect.width-48,source=this.conversion;
+   return {rect,scale,title:I18n.getString(1090),messageY:290,fields:[{name:'file',label:I18n.getString(1091),rect:at(180,106,rect.width-204),labelRect:at(24,106,140)},{name:'humans',label:I18n.getString(1052),rect:at(180,152,80),labelRect:at(24,152,140)},{name:'port',label:I18n.getString(1053),rect:at(180,198,rect.width-204),labelRect:at(24,198,140)}],choices:[],checks:[],labels:[{text:I18n.formatString(1092,'',source.title,source.turn,source.totalPlayers),rect:at(24,58,inner)},{text:I18n.getString(1096),rect:at(24,242,inner)}],buttons:[{action:'cancel',id:683,key:'Esc',rect:at(24,322,inner/2-4)},{action:'convert',id:1093,key:'Enter',rect:at(28+inner/2,322,inner/2-4)}].map(b=>({...b,label:I18n.getString(b.id)}))};
+  }
   if(this.stage==='open'){
    const inner=rect.width-48;
    return {rect,scale,title:I18n.getString(1083),messageY:194,fields:[{name:'file',label:I18n.getString(1051),rect:at(180,70,rect.width-204),labelRect:at(24,70,140)},{name:'port',label:I18n.getString(1053),rect:at(180,116,rect.width-204),labelRect:at(24,116,140)}],choices:[],checks:[],labels:[],buttons:[{action:'cancel',id:683,key:'Esc',rect:at(24,240,inner/2-4)},{action:'resume',id:1084,key:'Enter',disabled:!this.backend.supported,rect:at(28+inner/2,240,inner/2-4)}].map(b=>({...b,label:I18n.getString(b.id)}))};

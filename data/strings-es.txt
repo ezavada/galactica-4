@@ -777,3 +777,15 @@
 1087	No se pudo abrir el archivo del anfitrión. Comprueba la ruta y el formato.
 1088	Anfitrión detenido.
 1089	Uso: ./gad4 tools/host-game.js ARCHIVO_ANFITRIÓN [PUERTO] [IDIOMA]
+
+# Local saved-turn conversion
+1090	Convertir turno guardado en anfitrión
+1091	Nuevo archivo del anfitrión
+1092	Turno guardado: {0} · Turno {1} · {2} jugadores
+1093	Crear desde turno guardado
+1094	Creando anfitrión desde turno guardado…
+1095	Elige 1–{0} jugadores humanos y un nuevo nombre de archivo.
+1096	Origen intacto; plazas humanas libres; sin límite de tiempo.
+1097	Este turno guardado ya no está disponible. Ábrelo de nuevo.
+1098	Es un archivo de anfitrión. Usa Abrir como anfitrión en la aplicación de escritorio.
+1099	No se pudo crear el archivo del anfitrión. Comprueba el nombre y los permisos de escritura.

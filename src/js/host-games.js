@@ -1,6 +1,6 @@
 // Desktop listeners live independently of client/local documents.
 function createService(env=globalThis){
- const records=[];const supported=!env.document;
+ const records=[],conversions=new Map();const supported=!env.document;
  function describe(record){return {id:record.host.game.config.networkHost.id,title:record.host.game.config.gameTitle,file:record.file,port:record.port,address:record.address,info:record.host.info()};}
  async function retry(record,port=record.port){
   if(!records.includes(record))throw {code:'invalid_host_record'};
@@ -22,14 +22,27 @@ function createService(env=globalThis){
   try{
    host=require('./network-host.js').NetworkHost.open(target);
    if(records.some(r=>r.host.game.config.networkHost.id===host.game.config.networkHost.id))throw {code:'host_file_busy'};
-  }catch(error){release();throw error;}
+  }catch(error){
+   release();if(error.code==='local_turn_file'){
+    const token=require('crypto').randomBytes(16).toString('hex'),path=require('path'),name=require('./document-files.js').suggestedName(error.local.title).replace(/\.gad4\.json$/,'.host.gad4.json');
+    conversions.set(token,{text:error.sourceText,file:target});error.conversion={...error.local,token,file:target,suggestedFile:path.join(path.dirname(target),name)};delete error.sourceText;
+   }throw error;
+  }
   const record={host,file:target,port:listen.port,address:null,release};records.push(record);return retry(record);
  }
+ async function convert(token,file,numHumans,listen={port:0}){
+  if(!supported)throw {code:'desktop_host_required'};
+  const source=conversions.get(token);if(!source)throw {code:'invalid_conversion_offer'};
+  const lease=require('./host-file-lease.js'),target=lease.canonical(file,false);if(require('fs').existsSync(target))throw {code:'EEXIST'};const release=lease.acquire(target);let host;
+  try{host=require('./network-host.js').NetworkHost.fromLocal(source.text,numHumans,target);}catch(error){release();throw error;}
+  conversions.delete(token);const record={host,file:target,port:listen.port,address:null,release};records.push(record);return retry(record);
+ }
+ function discardConversion(token){return conversions.delete(token);}
  async function stop(record){
   if(!records.includes(record))return false;
   await record.host.close();record.address=null;record.release();records.splice(records.indexOf(record),1);return true;
  }
  async function closeAll(){for(const record of [...records])await stop(record);}
- return {supported,records,describe,create,open,retry,stop,closeAll,latest:()=>records.at(-1) || null};
+ return {supported,records,describe,create,open,convert,discardConversion,retry,stop,closeAll,latest:()=>records.at(-1) || null};
 }
 module.exports={createService};

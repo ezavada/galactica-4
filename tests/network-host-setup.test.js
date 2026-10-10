@@ -41,4 +41,12 @@ module.exports=()=>test.describe('Multiplayer Host setup controls',()=>{
   finally{pdg.res.setLanguage(language);}
  });
 
+ test.it('lays out translated source/turn/player confirmation and independent conversion fields',()=>{
+  const language=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);const w=form();w.stage='conversion';w.conversion={token:'offer',title:'Save 星',totalPlayers:3,turn:8};const layout=w.layout(800,600),r=layout.rect;test.assertEqual(layout.title,pdg.res.getString(1090));test.assertEqual(r.height,380);test.assertDeepEqual(layout.fields.map(f=>f.name),['file','humans','port']);test.assertTrue(layout.labels[0].text.includes('8'));for(const item of [...layout.fields,...layout.buttons])test.assertTrue(item.rect.x>=r.x && item.rect.y>=r.y && item.rect.x+item.rect.width<=r.x+r.width && item.rect.y+item.rect.height<=r.y+r.height);test.assertTrue(layout.messageY<layout.buttons[0].rect.y-r.y);w.key(pdg.key_Tab);test.assertEqual(w.focus,'file');}}
+  finally{pdg.res.setLanguage(language);}
+ });
+ test.it('discards the captured conversion on Cancel but keeps it while a conversion is busy',()=>{
+  const w=form();let discarded=null;w.backend.discardConversion=token=>{discarded=token;};w.stage='conversion';w.conversion={token:'snapshot'};w.busy=true;test.assertFalse(w.cancel());test.assertEqual(discarded,null);w.busy=false;test.assertTrue(w.cancel());test.assertEqual(discarded,'snapshot');test.assertEqual(w.conversion,null);test.assertFalse(w.active);
+ });
+
 });

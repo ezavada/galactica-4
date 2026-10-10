@@ -777,3 +777,15 @@
 1087	Die Host-Datei konnte nicht geöffnet werden. Prüfe Pfad und Format.
 1088	Host gestoppt.
 1089	Aufruf: ./gad4 tools/host-game.js HOST_DATEI [PORT] [SPRACHE]
+
+# Local saved-turn conversion
+1090	Gespeicherten Zug zum Host machen
+1091	Neue Host-Datei
+1092	Spielstand: {0} · Runde {1} · {2} Spieler
+1093	Aus Spielstand erstellen
+1094	Host wird aus Spielstand erstellt…
+1095	Wähle 1–{0} menschliche Spieler und einen neuen Host-Dateinamen.
+1096	Quelle unverändert; freie Plätze; kein Zeitlimit.
+1097	Dieser Spielstand ist nicht mehr verfügbar. Öffne ihn erneut.
+1098	Dies ist eine Host-Datei. Nutze Als Host öffnen in der Desktop-App.
+1099	Die Host-Datei konnte nicht erstellt werden. Prüfe Namen und Schreibrechte.

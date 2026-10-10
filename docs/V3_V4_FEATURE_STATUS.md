@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1478 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1487 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -275,7 +275,7 @@ The largest blockers to a complete game are:
 | Close game | File-menu Close Game/W closes the active document; game changes mark it modified, save/load clears that state, and closing stops tutorial instructions. | ✅ Implemented | ✅ Implemented | File → Close game/W offers localized Save and close/Discard/Cancel for changed or new documents, closes clean saved games directly, waits for successful writes and preserves other open games. Navigation/report review does not dirty the document. Closing the last game returns to setup; tutorial closure restores the original and releases bindings. Both full suites pass 1,358 tests; dedicated async decisions and actual six-language browser paths are verified below. Application Quit and browser-tab protection are verified separately below; native OS/window-close interception remains pending. |
 | Quit application | Quit checks modified documents before exiting; Cancel prevents exit. | 🟡 Partial | 🟡 Partial | File → Quit/Q, Command/Ctrl+Q, startup Quit and configured command 10 now check every retained game, wait for writes and preserve remaining documents on Cancel. Browser unload warns for unsaved games; accepted Quit offers a localized restart screen. Both full suites pass 1,369 tests; actual all-six-language browser and real native shutdown checks pass. Native window-close/OS Quit requests still bypass save decisions in the pinned PDG runtime and require engine integration. Joined client documents log out on accepted Close/Quit. Host creation/stop defers Quit while busy; accepted Quit awaits saved shutdown of every application host. A failed host save leaves its listener active and the application open for retry. Native OS/window-close interception remains the separate engine blocker. |
 | Host new network game | Creates host data, starts server, and presents join flow. | ✅ Implemented | ✅ Implemented | Desktop startup Host/H and File → Host create an exclusive durable host file and independent listener. The localized modal offers player/map/timer options, actual port/address/status, ordinary Join, Stop, another host and retry after bind failure. Dismissing the status or closing a client keeps hosting alive. Browser hosting is explicitly unavailable. All six shared-UI flows against real native hosts and both native integration suites pass; see the audit below. |
-| Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | 🟡 Partial | 🟡 Partial | Created desktop hosts can run without joining a local player and independently of retained game documents. File → Open as host and the startup Host form reopen existing hosts with their galaxy, turn, claims/passwords and remaining/paused clock intact. A dedicated command opens the same host without a graphics window or local player. Exclusive application/dedicated file leases prevent concurrent writers; ordinary authenticated rejoin is available. The v3 local-saved-turn conversion branch and dedicated new-game command options remain missing. |
+| Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | 🟡 Partial | 🟡 Partial | Created desktop hosts can run without joining a local player and independently of retained game documents. File → Open as host and the startup Host form reopen existing hosts with their galaxy, turn, claims/passwords and remaining/paused clock intact. A dedicated command opens the same host without a graphics window or local player. Exclusive application/dedicated file leases prevent concurrent writers; ordinary authenticated rejoin is available. Local saved turns can be converted into a separate host with first-N human roles, fresh open slots and no turn limit, preserving the inspected galaxy/turn and source. Dedicated new-game command options remain missing. |
 | LAN/Internet discovery | Browse advertised games and query the matchmaker. | ❌ Missing | ❌ Missing | No equivalent. |
 | Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | 🟡 Partial | 🟡 Partial | Startup Join/J and File → Join open a localized modal address/name/masked-password form with public game/slot information and paged player selection. Native HTTP/browser CORS admission installs the authenticated client as a retained game document; same-player rejoin reuses that document. Automatic refresh preserves same-turn orders and updates authoritative turns. Title dragging stays in the port and remembers its position. Six-language actual-control browser tests pass. Saved host lists/discovery remain missing; untimed order submission and authoritative turn resolution are now wired. |
 | Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🟡 Partial | 🟡 Partial | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit policy, optional saved-password preferences and host administration remain forthcoming. |
@@ -2825,3 +2825,42 @@ Quit also passes. Logs:
 `/private/tmp/galactica-host-reopen-final-full-en.log` and
 `/private/tmp/galactica-host-reopen-normal-quit.log`; screenshots:
 `/private/tmp/galactica-parity/host-reopen-final-full/en`.
+
+
+### Convert local saved turns to multiplayer hosts — 2026-10-10
+
+Audited the local-file branch in shipped v3 `Galactica.cpp:2266–2280` and
+`GalacticaHostDoc.cp:112–188`: load the saved galaxy, request a new host database,
+default the human count to all players, assign the first N players to humans,
+leave the rest computer-controlled, and disable turn time limits. Cancellation
+leaves the original save. V3's record-ID reassignment/drop workarounds concern
+its binary database; v4 preserves the complete saved graph and IDs instead.
+
+Desktop Open as host now inspects a local save and offers a localized conversion
+confirmation. No listener starts before confirmation. A new filename is required;
+existing source/output paths cannot be overwritten. The captured snapshot supplies
+the galaxy, turn, economy, entity references, private destinations and random
+stream; subsequent external edits to the source are not overwritten. The open
+local document also remains unchanged. Human roles cover the first N players;
+remaining AI skills are retained. New human slots have no claims or passwords,
+all players start offline/unposted, and the host is untimed. Conversion requires
+one to totalPlayers humans, defaults to all, and preserves completed outcomes.
+
+The desktop host registry owns the preview token, discards it on Cancel, and
+retains it after failed validation/publication for retry. Complete new host
+publication is exclusive/atomic and acquires the application lease. Failed bind
+retains the published host for listener retry. Ordinary document Open now rejects
+host files rather than installing an authoritative host as an editable local game.
+
+Awaited integration passes on both native PDG runtimes, including real denied
+write/retry, source changes after inspection, former-AI human authentication and
+posting, authoritative next-turn resolution, saved identity/claim rejoin, and
+ordinary-Open rejection in all six languages. Full suites pass 1,487 tests.
+Shared UI conversion passes in all six languages using actual controls and real
+native listeners. Compared each localized pre-conversion rejection with the new
+confirmation; inspected readable field labels, buttons and validation placement.
+Before/after screenshot and log evidence are recorded in the Testing Guide. Dedicated new-game creation options, host administration, discovery,
+private admission/password preferences, chat, network-document saving, host report
+localization and hosting tutorial recovery 103 remain pending. The Open as host /
+dedicated row therefore remains partial; Map Generation is still a separate
+unfinished checklist.
