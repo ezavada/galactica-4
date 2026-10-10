@@ -1,0 +1,99 @@
+// Transport records are deliberately independent of the save graph. In v3,
+// SendGameDataTo sends a private player record and visibility-tagged entities.
+// Here the existing inspector knowledge gates also constrain transmitted data.
+const Common=require('./common.js'),Names=require('./chart-names.js');
+const V=Common.VisibilityLevel;
+function pick(source,keys){const result={};for(const key of keys)if(source[key]!==undefined && (source[key]===null || ['string','boolean','number'].includes(typeof source[key])))result[key]=source[key];return result;}
+const reports={
+ combat:['side','result','forceName','ownShipsLost','enemyShipsLost','location'],
+ occupation:['kind','starName','attackerOwner','previousOwner','attackerName','defenderName','side'],
+ destruction:['kind','name','owner','opponentOwner','ownerName','opponentName','location','side'],
+ systemDefense:['starName','attackerOwner','defenderOwner','shipsLost','attackerName','defenderName','side'],
+ repair:['name','fleet'],rendezvousFormation:['owner','ownerName','location'],
+ colonization:['owner','ownerName','starName'],
+ commissioning:['owner','ownerName','name','shipType','classIndex','techLevel','starName'],
+ discovery:['owner','ownerName','starName','techLevel','classIndex'],
+ callIn:['name','location','fleet'],builtShip:['name','starName','shipType','techLevel'],
+ outcome:['kind','playerNum','name','turn']
+};
+function snapshot(game,viewer){
+ if(!Number.isInteger(viewer) || viewer<1 || viewer>game.config.numHumans)throw new Error('invalid_viewer');
+ // Alias allocation is deterministic, but its cache belongs to the host UI.
+ // Isolate it so even the first remote request cannot modify a saved document.
+ const prior=Names.snapshot(game);
+ Names.restore(game,prior?{names:new Map(prior.names),pool:[...prior.pool],numerals:[...prior.numerals]}:null);
+ try{return project(game,viewer);}finally{Names.restore(game,prior);}
+}
+function project(game,viewer){
+ const full=e=>game.config.omniscient || game.isOwnerAlliedWith(viewer,e.owner);
+ const level=e=>full(e)?V.DETAILS:e.getVisibilityTo(viewer);
+ const known=new Map(),kinds=new Map();
+ for(const [kind,list] of [['star',game.stars],['ship',game.allShips],['fleet',game.allFleets],['rendezvous',game.allRendezvous]])for(const entity of list){
+  kinds.set(entity,kind);
+  const visibility=kind==='rendezvous'?(entity.owner===viewer?V.DETAILS:V.NONE):level(entity);
+  if(kind==='star' || visibility>V.NONE)known.set(entity,visibility);
+ }
+ // Class-level fleet inspection exposes its members even when they have no
+ // independent scanner visibility. Below Class it must not expose their IDs.
+ function members(fleet,inherited){for(const member of fleet.ships){
+  const visibility=Math.max(known.get(member)||0,inherited);
+  known.set(member,visibility);
+  if(kinds.get(member)==='fleet' && visibility>=V.CLASS)members(member,visibility);
+ }}
+ for(const fleet of game.allFleets)if((known.get(fleet)||0)>=V.CLASS)members(fleet,known.get(fleet));
+ const ref=e=>known.has(e)?{kind:kinds.get(e),id:e.id}:null;
+ const point=p=>p?{x:p.x,y:p.y,target:ref(p.target || p)}:null;
+ const course=c=>c?{...pick(c,['current','previous','loop','hunt','hasOrigin','revision']),
+  waypoints:c.waypoints.map(point),memory:c.memory?{...pick(c.memory,['current','previous','loop','hunt','hasOrigin','patrol']),waypoints:c.memory.waypoints.map(point)}:null}:null;
+ const entities=[];
+ for(const [e,visibility] of known){
+  const kind=kinds.get(e),all=full(e),row={kind,id:e.id,x:e.x,y:e.y,visibility};
+  if(kind==='star'){
+   row.name=Names.displayName(game,e,viewer);row.namedStar=!!e.namedStar;
+   if(all || visibility>V.NONE)row.owner=e.owner;
+   if(visibility>=V.TECH)row.techLevel=e.techLevel;
+   if(visibility>=V.CLASS)row.population=e.population;
+   if(visibility>=V.DETAILS){
+    row.defense=pick(e.getDefenseBreakdown({resolveCourses:false}),['totalDefense','satelliteDefense','shipDefense']);
+    row.currentShip=e.currentShip?pick(e.currentShip,all?['type','techLevel','cost','progress']:['type']):null;
+    for(const key of ['growth','shipBuilding','research'])row[key]=pick(e[key],all?['value','desired','rate','benefit','locked']:['value']);
+   }
+   if(all){Object.assign(row,pick(e,['paidTowardShipBuilding','unassignedShipCredit','paidTowardResearch','damage','scannerRange']));
+    row.buildCredits=pick(e.buildCredits,Object.keys(e.buildCredits));row.defaultDestination=point(e.defaultDestination);
+    row.ships=e.ships.map(ref).filter(Boolean);row.defenseSatellites=e.defenseSatellites.map(ref).filter(Boolean);}
+  }else if(kind==='rendezvous'){
+   Object.assign(row,pick(e,['owner','name']));row.anchor=ref(e.anchor);row.fleet=ref(e.fleet);
+  }else{
+   // Ship triangles already use faction colors at Speed; fleet markers only
+   // identify their owner at Tech. Keep those distinct map rules intact.
+   if(kind==='ship' || visibility>=V.TECH)row.owner=e.owner;
+   if(visibility>=V.SPEED)row.speed=kind==='fleet'?e.totalSpeed:e.speed;
+   if(visibility>=V.TECH)row.techLevel=e.techLevel;
+   if(visibility>=V.CLASS){Object.assign(row,pick(e,['name','type','classIndex','progress']));
+    row.power=kind==='fleet'?e.totalPower:e.power;row.damage=kind==='fleet'?e.totalDamage:e.damage;
+    if(kind==='fleet')row.ships=e.ships.map(ref).filter(Boolean);
+   }
+   if(visibility>=V.DETAILS){Object.assign(row,pick(e,['scannerRange','onPatrol']));row.star=ref(e.star);row.fleet=ref(e.fleet);}
+   if(all){Object.assign(row,pick(e,['toBeScrapped','userCallIn','lastCallInTurn']));row.course=course(e.course);}
+  }
+  entities.push(row);
+ }
+ const player=game.players[viewer],privatePlayer={...pick(player,['playerNum','homeStarId','hiStarTech','hiShipTech','builtColony','builtScout','builtSatellite','lastTurnPosted','defaultBuildType','defaultGrowth','defaultTech','defaultShips']),builtFighterClasses:[...player.builtFighterClasses]};
+ const comparisons=game.getPlayerComparisonRows().map(source=>{
+  const row=pick(source,['playerNum','isAlive','stars','ships','shipsBuilding','population','production','productionRaw','power','minimumTech','maxTech','averageTech','minimumShipTech','maximumShipTech','averageShipTech','pieces']);
+  const p=game.players[row.playerNum],claim=p && !p.isComputer?game.config.networkHost.players[row.playerNum-1]:null;
+  row.isComputer=!!(p && p.isComputer);row.name=p?(p.isComputer?p.name:claim?claim.name:''):'';row.assigned=!!(p && (p.isComputer || claim));
+  return row;
+ });
+ const events=game.eventLog.filter(event=>game.isEventAccessible(event,viewer)).map(event=>{
+  const row=pick(event,['id','turn','title','message','type','recipient','handled','observer','automatic']);
+  row.subject=ref(event.subject);row.position=event.position?pick(event.position,['x','y']):null;
+  for(const [key,keys] of Object.entries(reports))if(event[key])row[key]=pick(event[key],keys);
+  return row;
+ });
+ return {format:'Galactica-4-player-state',version:1,viewer,turn:game.turn,
+  map:{width:game.gameWidth,height:game.gameHeight},
+  config:pick(game.config,['gameTitle','numHumans','numComputers','totalPlayers','sectorSize','density','fastGame','omniscient','compSkill','compAdvantage','maxTimePerTurn','endEarly']),
+  isGameOver:game.isGameOver,privatePlayer,comparisons,entities,events};
+}
+module.exports={snapshot};

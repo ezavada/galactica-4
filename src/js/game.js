@@ -1135,9 +1135,8 @@ class Game {
         return event;
     }
 
-    isEventAccessible(event) {
+    isEventAccessible(event, player=this.getCurrentHumanPlayer()) {
         if(!event || !this.eventLog.includes(event))return false;
-        const player=this.getCurrentHumanPlayer();
         if(event.recipient!==undefined && event.recipient!==player)return false;
         if(event.type===Common.EventType.RENAME_COLONY && (!this.stars.includes(event.subject) || event.subject.owner!==player))return false;
         const subject=event.subject;

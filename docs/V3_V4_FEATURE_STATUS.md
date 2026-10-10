@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1407 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1416 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -274,11 +274,11 @@ The largest blockers to a complete game are:
 | Revert to saved turn | Restores the last saved state. | ✅ Implemented | ✅ Implemented | File → Revert asks before discarding changes, then restores the saved graph, turn, selection and camera under the same local document identity. Cancel preserves the running game. Native/file-handle backends reread the file; download-only browsers revert to the last successfully saved/imported snapshot. No-saved-file and load failures are localized. |
 | Close game | File-menu Close Game/W closes the active document; game changes mark it modified, save/load clears that state, and closing stops tutorial instructions. | ✅ Implemented | ✅ Implemented | File → Close game/W offers localized Save and close/Discard/Cancel for changed or new documents, closes clean saved games directly, waits for successful writes and preserves other open games. Navigation/report review does not dirty the document. Closing the last game returns to setup; tutorial closure restores the original and releases bindings. Both full suites pass 1,358 tests; dedicated async decisions and actual six-language browser paths are verified below. Application Quit and browser-tab protection are verified separately below; native OS/window-close interception remains pending. |
 | Quit application | Quit checks modified documents before exiting; Cancel prevents exit. | 🟡 Partial | 🟡 Partial | File → Quit/Q, Command/Ctrl+Q, startup Quit and configured command 10 now check every retained game, wait for writes and preserve remaining documents on Cancel. Browser unload warns for unsaved games; accepted Quit offers a localized restart screen. Both full suites pass 1,369 tests; actual all-six-language browser and real native shutdown checks pass. Native window-close/OS Quit requests still bypass save decisions in the pinned PDG runtime and require engine integration. Network logout/host-work deferral remain pending with multiplayer. |
-| Host new network game | Creates host data, starts server, and presents join flow. | 🧱 Scaffold only | ❌ Missing | The tested native host service now creates/reopens a durable multiplayer galaxy and listens over HTTP for read-only lobby information. It is not yet connected to startup/game commands. Durable authenticated slot admission now exists in the host service; host setup/join UI, client state and turn synchronization remain missing. See the prerequisite audits below. |
+| Host new network game | Creates host data, starts server, and presents join flow. | 🧱 Scaffold only | ❌ Missing | The tested native host service now creates/reopens a durable multiplayer galaxy and listens over HTTP for read-only lobby information. It is not yet connected to startup/game commands. Durable authenticated slot admission now exists in the host service; An authenticated player-state endpoint now supplies map entities, comparison totals, private player defaults and accessible reports under the existing knowledge gates. Host setup/join UI, a client consumer and turn synchronization remain missing. See the prerequisite audits below. |
 | Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | ❌ Missing | ❌ Missing | No equivalent. |
 | LAN/Internet discovery | Browse advertised games and query the matchmaker. | ❌ Missing | ❌ Missing | No equivalent. |
 | Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | ❌ Missing | ❌ Missing | No equivalent. |
-| Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🧱 Scaffold only | ❌ Missing | The native host admission service now assigns human slots, verifies optional passwords on rejoin, persists claims/game identity, replaces old sessions and rejects duplicate/full/incompatible requests through actual HTTP. It has no startup/join UI or client game projection yet. Private/admit policy, host administration and player-facing error localization remain forthcoming with those flows. |
+| Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🧱 Scaffold only | ❌ Missing | The native host admission service now assigns human slots, verifies optional passwords on rejoin, persists claims/game identity, replaces old sessions and rejects duplicate/full/incompatible requests through actual HTTP. An authenticated HTTP state projection now exists, but there is no startup/join UI or client consumer yet. Private/admit policy, host administration and player-facing error localization remain forthcoming with those flows. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ❌ Missing | ❌ Missing | v4 directly mutates one local game and advances immediately. |
 | Timed turns | Host clock, time remaining, pause/resume, automatic completion. | ❌ Missing | ❌ Missing | No runtime timer. |
 | Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | ❌ Missing | ❌ Missing | No host/admin mode. |
@@ -2371,3 +2371,43 @@ admission policy, recipient-filtered client state, orders/turn posting, timed
 resolution, discovery, chat and administration remain required. No UI is changed
 in this backend item, so screenshot comparison awaits those actual UI surfaces.
 The v3 parity and Map Generation goals remain active.
+
+
+### Authenticated player-state transport prerequisite
+
+Audited v3 `Classes/GalacticaHost.cpp:2504–2538` and
+`Classes/AGalacticThingy.cpp:497–534`: joining sends the recipient's private
+player record, living entities with recipient visibility flags, and the current
+turn. V3 writes the same underlying entity stream for each recipient; it does
+not redact object fields on the wire. V4's new explicit transport records also
+apply its existing map/inspector knowledge gates at the host boundary, rather
+than sending the complete save graph. This is a modern transport implementation,
+not binary compatibility with the old OpenPlay packets.
+
+`GET /state` authenticates the bearer token and binds the view to that human
+slot. It returns the current turn/map/setup, public comparison aggregates, that
+player's private colony/build defaults, visible entities and accessible report
+snapshots. Yellow chart names remain public, unknown enemy homes use the existing
+stable aliases, and Compare Players retains real faction names. Open human slots
+are unassigned rather than advertised under constructor placeholder names.
+Mobile knowledge follows Speed/Tech/Class/Details; Class-level fleets expose
+their nested members. Owned/omniscient courses remain available as in the current
+UI, while ordinary enemy orders and other owners' rendezvous markers stay private.
+Whitelisted fields and typed references exclude credentials, tokens, other
+players' private records, AI internals and recursive host graphs.
+
+Projection isolates the chart cache and does not resolve navigation waypoints.
+A read-only defense calculation prevents the preexisting destination getter
+from updating courses during a remote read. Regression tests cover save/RNG/cache
+stability, all knowledge levels, nested fleets, private reports, historical
+positions, two authenticated players, logout and Unicode snapshots in all six
+languages. Both the pinned release and current public native runtimes passed
+**1,416 tests, 0 failures**. Real HTTP checks passed on both runtimes. No new UI
+was introduced, so screenshot comparison does not apply to this prerequisite.
+
+The host/join checklist rows remain **Scaffold only / Missing UI**. A client
+consumer, localized join/errors/report rendering, order submission, turn
+coordination, host/private admission policy and administration remain unfinished.
+Report text is currently the host's already-localized snapshot; cross-language
+client presentation still needs the report metadata consumer. This endpoint
+alone does not constitute playable multiplayer or complete Section 9.

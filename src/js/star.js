@@ -523,13 +523,15 @@ class Star {
         return Math.trunc(this.shipBuilding.benefit + this.research.benefit) * (100 + advantage * 20);
     }
 
-    getDefenseBreakdown() {
+    getDefenseBreakdown({resolveCourses=true}={}) {
         const allied = ship => !this.owner || ship.owner === this.owner ||
             (typeof ship.isAllyOf === 'function' && ship.isAllyOf(this.owner));
         const completed = ship => !ship.underConstruction || !ship.underConstruction();
-        const docked = ship => ship.star === this && !ship.destination;
+        // Remote snapshots must not resolve live navigation targets as a side effect.
+        const destination = ship => resolveCourses ? ship.destination : ship.course && ship.course.waypoints.length>0;
+        const docked = ship => ship.star === this && !destination(ship);
         const satellites = new Set(this.defenseSatellites.filter(ship => !ship.fleet && completed(ship) &&
-            (docked(ship) && allied(ship) || !ship.owner && !ship.star && !ship.destination)));
+            (docked(ship) && allied(ship) || !ship.owner && !ship.star && !destination(ship))));
         const satelliteDefense = [...satellites].reduce((sum, ship) => sum +
             (typeof ship.power === 'number' ? ship.power * 100 - (ship.damage || 0) : ship.strength || 0), 0);
         const ships = new Set(this.ships.concat(this.game && this.game.allShips || []));

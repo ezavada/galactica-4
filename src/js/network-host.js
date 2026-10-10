@@ -2,6 +2,7 @@
 // build on this service; public game information never includes the game graph.
 const Game=require('./game.js'),Config=require('./game-config.js'),Factory=require('./factory.js'),Rules=require('./rules.js'),Save=require('./game-save.js');
 const {HostLogin,protocol}=require('./host-login.js');
+const HostView=require('./host-view.js');
 function failure(code){const error=new Error(code);error.code=code;return error;}
 function validate(config){
     if(!(config instanceof Config) || config.validate().length || !config.hosting || config.numHumans<1 || config.skipMapGeneration ||
@@ -40,11 +41,16 @@ class NetworkHost {
             'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Content-Type, Authorization',
             'Access-Control-Allow-Methods':'GET, POST, OPTIONS'};
         const respond=(status,body)=>{res.writeHead(status,headers);res.end(body===undefined?'':JSON.stringify(body));};
-        const routes=['/info','/login','/session','/logout'];
+        const routes=['/info','/login','/session','/logout','/state'];
         if(!routes.includes(req.url)){respond(404,{error:'not_found'});return;}
         if(req.method==='OPTIONS'){respond(204);return;}
         if(req.url==='/info'){respond(req.method==='GET'?200:405,req.method==='GET'?this.info():{error:'method_not_allowed'});return;}
         const token=()=>{const value=req.headers && req.headers.authorization;return typeof value==='string' && value.startsWith('Bearer ')?value.slice(7):null;};
+        if(req.url==='/state' && req.method==='GET'){
+            let session;try{session=this.login.authenticate(token());}catch(error){respond(401,{error:'not_logged_in'});return;}
+            try{respond(200,{...HostView.snapshot(this.game,session.player),gameId:this.game.config.networkHost.id});}
+            catch(error){respond(500,{error:'host_state_failed'});}return;
+        }
         if(req.url==='/session' && req.method==='GET'){
             try{respond(200,{...this.login.authenticate(token()),gameId:this.game.config.networkHost.id,turn:this.game.turn});}
             catch(error){respond(401,{error:error.code || 'not_logged_in'});}return;
