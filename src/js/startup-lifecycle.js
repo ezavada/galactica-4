@@ -15,7 +15,7 @@ function createInstallation(env=globalThis){
     };
 }
 class StartupLifecycle {
-    constructor(installation,tutorial,manual){this.installation=installation;this.tutorial=tutorial;this.manual=manual;this.pending=installation.first;this.started=false;}
+    constructor(installation,tutorial,manual,action=()=>{}){this.installation=installation;this.tutorial=tutorial;this.manual=manual;this.pending=installation.first;this.started=false;this.finished=false;this.action=action;}
     start(showIntroduction){
         if(this.started)return false;
         this.started=true;this.installation.remember();
@@ -24,10 +24,17 @@ class StartupLifecycle {
     }
     consume(){this.pending=false;}
     finishIntroduction(){
-        if(!this.started || !this.pending)return false;
-        this.consume();
-        try{if(this.tutorial())return true;}catch(error){/* As in v3, try the manual when tutorial startup fails. */}
-        this.manual();return true;
+        if(!this.started || this.finished)return false;
+        this.finished=true;
+        const onboarding=this.pending;this.consume();
+        try{
+            if(onboarding){
+                let active=false;
+                try{active=!!this.tutorial();}catch(error){/* As in v3, try the manual when tutorial startup fails. */}
+                if(!active)this.manual();
+            }
+        }finally{this.action();}
+        return onboarding;
     }
 }
 module.exports={createInstallation,StartupLifecycle};

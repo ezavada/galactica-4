@@ -64,3 +64,38 @@ About now identifies the actual development application build independently of
 the PDG dependency. Configured startup commands remain unfinished. Original music still needs intact composition metadata. These source
 references remain requirements for the remaining port; resource extraction alone
 is not runtime completion evidence.
+
+## Configured startup command dispatch
+
+`Classes/Galactica.cpp:1713–1718` reads the numeric `StartAction` and passes it
+to `ObeyCommand`; only an absent/unreadable preference defaults to New Game.
+The only other source reference is its definition in `GalacticaConsts.h`.
+No shipped preference control or writer was found, so v4 adds no chooser.
+
+Decoded `Mcmd` 128 and 129 in the English/German shareware and CD-ROM resources
+confirm About=1, New=2, Open=3, Close=4, Save=5, Save As=6, Revert=7 and Quit=10.
+The English CD-ROM File menu additionally includes command 27; the other three
+variants do not. This difference does not change these shared command IDs.
+The header defines Fullscreen=4016, Help=0x4069FFFA and Tutorial=0x4069FFF9.
+`xmnu` extension data does not supply these command IDs.
+
+V4 reads native `cfg.getConfigLong("StartAction")` after selecting Galactica
+configuration; its missing value is `undefined`, as verified in PDG's binding
+source. Browser storage uses `galactica.StartAction`. Unknown valid integers,
+including zero, remain unknown commands instead of silently becoming New Game.
+The application lifecycle dispatches once after introduction/onboarding,
+including when the introduction is disabled or the tutorial was requested
+explicitly. Closing About cannot replay it.
+
+Available application handlers are About, New, Open, Save, Save As, Revert,
+Quit, Fullscreen, Help and Tutorial. Document commands depend on an active
+document; a normal launch has none. Browser Open/Help/Fullscreen wait for the
+first trusted pointer/key gesture if startup lacks activation, consume that
+input before it reaches setup and remove both listeners before opening.
+
+This is not full arbitrary-command parity. Hosting (4020), Open as Host (4002)
+and Joining (4021) require the unported multiplayer flows. Community (8000),
+Check for New Version (8001), the edition-specific command 27 and other
+inherited/window commands still need individual source and runtime audits.
+They are pending work, not unavailable-help blockers. Music and the pinned
+native fullscreen runtime remain the separately documented limitations.

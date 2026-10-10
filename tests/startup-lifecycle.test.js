@@ -32,4 +32,42 @@ module.exports=()=>test.describe('First-install startup lifecycle',()=>{
  test.it('does not interrupt launch when installation storage is unavailable',()=>{
   const installation=Startup.createInstallation({window:{get localStorage(){throw Error('denied');}}});test.assertFalse(installation.first);installation.remember();
  });
+ test.it('dispatches the configured command once after first-install onboarding or manual fallback',()=>{
+  for(const first of [false,true])for(const works of [false,true]){
+   const calls=[],lifecycle=new Startup.StartupLifecycle({first,remember:()=>calls.push('remember')},()=>{calls.push('tutorial');return works;},()=>calls.push('manual'),()=>calls.push('action'));
+   lifecycle.start(true);test.assertEqual(calls.join(','),'remember');lifecycle.finishIntroduction();lifecycle.finishIntroduction();
+   test.assertEqual(calls.join(','),first?'remember,tutorial,'+(works?'':'manual,')+'action':'remember,action');
+  }
+ });
+ test.it('keeps explicit tutorial consumption independent from the once-only startup command',()=>{
+  let actions=0,tutorials=0;const lifecycle=new Startup.StartupLifecycle({first:true,remember:()=>{}},()=>tutorials++,()=>{},()=>actions++);
+  lifecycle.start(true);lifecycle.consume();lifecycle.finishIntroduction();lifecycle.finishIntroduction();test.assertEqual(actions,1);test.assertEqual(tutorials,0);
+ });
+ test.it('reads native numeric StartAction and preserves zero and unknown commands',()=>{
+  const Actions=require('../src/js/startup-actions.js');
+  for(const value of [undefined,0,1,3,10,0x4069FFF9,4020,-1])test.assertEqual(Actions.read({pdg:{cfg:{getConfigLong:key=>{test.assertEqual(key,'StartAction');return value;}}}}),value===undefined?2:value);
+ });
+ test.it('reads browser numeric StartAction without changing preferences and defaults invalid or unavailable storage',()=>{
+  const Actions=require('../src/js/startup-actions.js');
+  for(const [value,expected] of [['3',3],['0',0],['4021',4021],['-1',-1],['',2],['3.5',2],['true',2],['2147483648',2],['NaN',2]]){
+   const env=browser({'galactica.StartAction':value});test.assertEqual(Actions.read(env),expected);test.assertEqual(env.values.get('galactica.StartAction'),value);
+  }
+  test.assertEqual(Actions.read(browser()),2);test.assertEqual(Actions.read({window:{get localStorage(){throw Error('denied');}}}),2);
+ });
+ test.it('routes available numeric app commands without substituting New for unknown or missing handlers',()=>{
+  const Actions=require('../src/js/startup-actions.js'),calls=[],services={};
+  for(const [name,value] of Object.entries(Actions.commands)){
+   services[name]=()=>{calls.push(name);return true;};test.assertTrue(Actions.dispatch(value,services,{}));test.assertEqual(calls[calls.length-1],name);
+  }
+  const count=calls.length;for(const value of [0,-1,4020,4002,4021,987654])test.assertFalse(Actions.dispatch(value,services,{}));test.assertFalse(Actions.dispatch(1,{},{}));test.assertEqual(calls.length,count);
+ });
+ test.it('defers browser Open to trusted input, consumes it, and removes both gesture listeners',()=>{
+  const Actions=require('../src/js/startup-actions.js'),listeners=new Map();let opens=0,prevented=0,stopped=0;
+  const env={document:{addEventListener:(type,handler,capture)=>{test.assertTrue(capture);listeners.set(type,handler);},removeEventListener:(type,handler,capture)=>{test.assertTrue(capture);test.assertEqual(listeners.get(type),handler);listeners.delete(type);}},navigator:{userActivation:{isActive:false}}};
+  test.assertTrue(Actions.dispatch(3,{open:()=>{opens++;return true;}},env));test.assertEqual(opens,0);
+  const handler=listeners.get('pointerdown');handler({isTrusted:false});test.assertEqual(opens,0);test.assertEqual(listeners.size,2);
+  handler({isTrusted:true,preventDefault:()=>prevented++,stopImmediatePropagation:()=>stopped++});test.assertEqual(opens,1);test.assertEqual(prevented,1);test.assertEqual(stopped,1);test.assertEqual(listeners.size,0);
+  env.navigator.userActivation.isActive=true;test.assertTrue(Actions.dispatch(3,{open:()=>{opens++;return true;}},env));test.assertEqual(opens,2);test.assertEqual(listeners.size,0);
+ });
+
 });

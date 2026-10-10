@@ -8,6 +8,8 @@ const PanelAppearance = require('./src/js/panel-appearance.js');
 globalThis.pdg = pdg;
 const StartupLifecycle=require('./src/js/startup-lifecycle.js');
 const installation=StartupLifecycle.createInstallation();
+const StartupActions=require('./src/js/startup-actions.js');
+const configuredStartupAction=StartupActions.read();
 
 console.log("=== Galactica-4 PDG Game Starting ===");
 
@@ -99,9 +101,13 @@ const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), I18n.getStri
 const fullscreen = require('./src/js/fullscreen.js').createController(pdg,port,globalThis,drawingPreferences);
 fullscreen.restore();
 const presentation=new (require('./src/js/presentation.js'))(drawingPreferences);
-const startupLifecycle=new StartupLifecycle.StartupLifecycle(installation,()=>beginTutorial(),()=>userManual.open(pdg.res.getLanguage()));
+const startupLifecycle=new StartupLifecycle.StartupLifecycle(installation,()=>beginTutorial(),()=>userManual.open(pdg.res.getLanguage()),()=>StartupActions.dispatch(configuredStartupAction,{
+    about:openAbout,newGame:()=>sessions.starting?true:beginNewGame(),open:()=>documents.beginOpen(),
+    save:()=>documents.beginSave(),saveAs:()=>documents.beginSave(true),revert:()=>sessions.active?documents.beginRevert():false,
+    quit:()=>pdg.quit(),fullscreen:()=>fullscreen.toggle(),help:()=>userManual.open(pdg.res.getLanguage()),tutorial:()=>beginTutorial()
+}));
 const openAbout=()=>startupSettings.open('about');
-const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,colonyDefaultsPreferences,sound,fullscreen,presentation,openAbout,presentationClosed:kind=>{if(kind==='startup')startupLifecycle.finishIntroduction();},presentationTutorial:()=>{if(tutorialSession)return false;presentation.close();startupSettings.model.uiWindow=null;return beginTutorial();}});
+const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,colonyDefaultsPreferences,sound,fullscreen,presentation,openAbout,presentationClosed:kind=>{if(kind==='startup')startupLifecycle.finishIntroduction();},presentationTutorial:()=>{if(tutorialSession)return false;const kind=presentation.kind;presentation.close();startupSettings.model.uiWindow=null;const result=beginTutorial();if(kind==='startup')startupLifecycle.finishIntroduction();return result;}});
 
 function createDefaultConfig(usePreferences=true) {
     if(usePreferences)return NewGameDefaults.createConfig(newGameDefaultsPreferences);
