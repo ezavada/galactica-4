@@ -48,7 +48,7 @@ class RetainedPanel {
     draw(rect) {
         // Drawing rectangles replay as quads in PDG 1.2; keep the rounded
         // background on Port.drawRect so its corner styling is preserved.
-        this.display.drawRoundedRect(rect, 14);
+        this.display.drawPanelSurface(rect);
         this.display.port.drawDrawing(this.drawing, new pdg.Point(rect.x, rect.y), this.parentAttributes);
     }
 }

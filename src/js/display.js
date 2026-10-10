@@ -6,6 +6,7 @@ const Camera = require('./camera.js');
 const RetainedPanel = require('./retained-panel.js');
 const SelectionPulse = require('./selection-pulse.js');
 const I18n = require('./i18n.js');
+const VisualEffects = require('./visual-effects.js');
 
 const debugSelectedObject = true;
 
@@ -27,6 +28,12 @@ class Display {
         this.fillAttributes = {};
         this.lineAttributes = {};
         this.styles = this.createDrawingStyles();
+        const reduced=!!game.config.reducedMotion || typeof window!=='undefined' && typeof window.matchMedia==='function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        this.visualEffects=new VisualEffects(reduced);
+        this.uiSurfaces=new Map();
+        this.ownerPanelStyles=new Map();
+        this.panelStyleColors=new WeakMap();
+        this.iconAttributes=this.createAttributes({lineColor:this.getUIColor('textLight'),lineStyle:pdg.lineStyle_Solid,fillOpacity:0});
         
         // Overlay images (loaded lazily)
         this.images = {
@@ -153,19 +160,19 @@ class Display {
 
     createUIColorPalette() {
         const colors = {
-            panelFill: [0.13, 0.13, 0.14, 0.92],
-            windowFill: [0.13, 0.13, 0.14, 1.0],
-            panelBorder: [0.42, 0.42, 0.44, 0.95],
-            buttonFill: [0.18, 0.18, 0.19, 0.92],
-            buttonFillHover: [0.14, 0.14, 0.15, 0.96],
-            buttonFillActive: [0.24, 0.24, 0.25, 0.95],
-            buttonFillActiveHover: [0.20, 0.20, 0.21, 0.98],
-            buttonBorder: [0.50, 0.50, 0.52, 0.95],
+            panelFill: [0.105, 0.135, 0.17, 0.96],
+            windowFill: [0.105, 0.135, 0.17, 1.0],
+            panelBorder: [0.38, 0.50, 0.61, 0.55],
+            buttonFill: [0.16, 0.21, 0.27, 0.98],
+            buttonFillHover: [0.23, 0.31, 0.39, 1.0],
+            buttonFillActive: [0.18, 0.29, 0.35, 1.0],
+            buttonFillActiveHover: [0.24, 0.35, 0.42, 1.0],
+            buttonBorder: [0.45, 0.58, 0.68, 0.65],
             divider: [0.34, 0.34, 0.36, 0.85],
             connector: [0.56, 0.56, 0.58, 0.50],
             barTrack: [0.22, 0.22, 0.23, 0.95],
             topInfoFill: [0.11, 0.11, 0.12, 0.86],
-            textLight: [0.78, 0.78, 0.80, 1.0],
+            textLight: [0.86, 0.89, 0.92, 1.0],
             textLabel: [0.64, 0.64, 0.66, 1.0],
             textHover: [0.96, 0.96, 0.98, 1.0],
             textMuted: [0.56, 0.56, 0.58, 1.0],
@@ -422,7 +429,7 @@ class Display {
         this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), this.styles.clear);
     }
     
-    // Draw fixed background image that maintains aspect ratio
+    // Cover the viewport with a little overscan for subtle parallax.
     drawBackground() {
         const drawingArea = this.port.getDrawingArea();
         const screenWidth = drawingArea.width();
@@ -434,8 +441,8 @@ class Display {
             const imageHeight = this.backgroundImage.getHeight();
             
             // Calculate scaling to maintain aspect ratio while covering the screen
-            const scaleX = screenWidth / imageWidth;
-            const scaleY = screenHeight / imageHeight;
+            const scaleX = (screenWidth+24) / imageWidth;
+            const scaleY = (screenHeight+24) / imageHeight;
             const scale = Math.max(scaleX, scaleY); // Use max to ensure image covers entire screen
             
             // Calculate the scaled dimensions
@@ -443,8 +450,9 @@ class Display {
             const scaledHeight = imageHeight * scale;
             
             // Center the image on the screen
-            const offsetX = (screenWidth - scaledWidth) / 2;
-            const offsetY = (screenHeight - scaledHeight) / 2;
+            const drift=this.visualEffects.parallax(this.camera);
+            const offsetX = (screenWidth - scaledWidth) / 2+drift.x;
+            const offsetY = (screenHeight - scaledHeight) / 2+drift.y;
             
             // Create rectangle for the background image (may extend beyond screen bounds)
             const backgroundRect = this.toPDGRect({ x: offsetX, y: offsetY, width: scaledWidth, height: scaledHeight });
@@ -655,6 +663,15 @@ class Display {
         });
         this.port.drawPolygon(diamond, attrs);
         
+        const twinkle=this.visualEffects.twinkle(star.id,this.getVisualTime());
+        if(twinkle>0) {
+            const glow=this.styles.selectionFrame;
+            glow.lineOpacity(0.18*twinkle);
+            const reach=scaledRadius+3;
+            this.port.drawLine(new pdg.Point(screenX-reach,screenY),new pdg.Point(screenX+reach,screenY),glow);
+            this.port.drawLine(new pdg.Point(screenX,screenY-reach),new pdg.Point(screenX,screenY+reach),glow);
+            glow.lineOpacity(1);
+        }
         const isHomeSystem = this.isHomeSystem(star);
 
         // Draw star name with fading based on star size, but never dim home system names
@@ -1078,6 +1095,15 @@ class Display {
         this.port.drawRect(this.toPDGRect(rect), attrs);
     }
 
+    drawPanelSurface(rect,attrs=this.styles.panel) {
+        const base=attrs===this.styles.windowPanel?this.getUIColor('windowFill'):this.getUIColor('panelFill');
+        const color=this.panelStyleColors.get(attrs) || base;
+        attrs.fillGradient(new pdg.Point(rect.x,rect.y),new pdg.Color(color.red+0.022,color.green+0.022,color.blue+0.022,color.alpha),
+            new pdg.Point(rect.x,rect.y+rect.height),color);
+        attrs.lineStyle(pdg.lineStyle_Solid).lineThickness(0.7);
+        this.drawRoundedRect(rect,14,attrs);
+    }
+
     drawDivider(x, y, width) {
         this.port.drawLine(new pdg.Point(x, y), new pdg.Point(x + width, y), this.styles.divider);
     }
@@ -1086,7 +1112,7 @@ class Display {
         const attrs = appearance || (borderColor
             ? this.createAttributes({ fillColor: this.getUIColor('panelFill'), lineColor: new pdg.Color(borderColor) })
             : this.styles.panel);
-        this.drawRoundedRect(rect, 14, attrs);
+        this.drawPanelSurface(rect,attrs);
 
         if (title) {
             this.drawTextLine(title, rect.x + 16, rect.y + 22, 'lightgray', 14);
@@ -1137,7 +1163,16 @@ class Display {
 
     drawAnchoredPanel(object, rect, title = null, borderColor = null) {
         this.drawPanelPointer(object, rect, borderColor);
-        this.drawPanel(rect, title, borderColor);
+        let style=null;
+        if(this.game.factory.isStar(object) && this.game.canHumanControl(object)) {
+            if(!this.ownerPanelStyles.has(object.owner))this.ownerPanelStyles.set(object.owner,this.createAttributes({lineColor:this.getUIColor('panelBorder')}));
+            style=this.ownerPanelStyles.get(object.owner);
+            const base=this.getUIColor('panelFill'),owner=this.ownerColors[object.owner] || this.getUIColor('panelBorder');
+            const tint=new pdg.Color(base.red*0.94+owner.red*0.06,base.green*0.94+owner.green*0.06,base.blue*0.94+owner.blue*0.06,base.alpha);
+            style.fillColor(tint);
+            this.panelStyleColors.set(style,tint);
+        }
+        this.drawPanel(rect, title, borderColor,style);
     }
 
     fitPanelToScreen(rect) {
@@ -1217,6 +1252,17 @@ class Display {
         };
     }
 
+    drawUIIcon(name,x,y,size=14) {
+        const paths={menu:[[-6,-4,6,-4],[-6,0,6,0],[-6,4,6,4]],
+            home:[[-7,0,0,-6],[0,-6,7,0],[-5,-1,-5,6],[-5,6,5,6],[5,6,5,-1],[-1,6,-1,2],[-1,2,2,2],[2,2,2,6]],
+            fit:[[-6,-2,-6,-6],[-6,-6,-2,-6],[2,-6,6,-6],[6,-6,6,-2],[-6,2,-6,6],[-6,6,-2,6],[2,6,6,6],[6,6,6,2]]};
+        const attrs=this.iconAttributes;attrs.lineThickness(1.2);
+        if(name==='gear') {
+            this.port.drawCircle(new pdg.Point(x,y),size*0.25,attrs);
+            for(let i=0;i<8;i++){const a=i*Math.PI/4;this.port.drawLine(new pdg.Point(x+Math.cos(a)*size*.33,y+Math.sin(a)*size*.33),new pdg.Point(x+Math.cos(a)*size*.46,y+Math.sin(a)*size*.46),attrs);}
+        } else for(const [a,b,c,d] of paths[name] || [])this.port.drawLine(new pdg.Point(x+a*size/14,y+b*size/14),new pdg.Point(x+c*size/14,y+d*size/14),attrs);
+    }
+
     drawUIButton(rect, label, hotkey = null, options = {}) {
         const drawRect = this.snapRectToPixels(rect);
         const active = !!options.active;
@@ -1225,7 +1271,18 @@ class Display {
         if (hovered) {
             fillColorName = active ? 'buttonFillActiveHover' : 'buttonFillHover';
         }
-        this.drawRoundedRect(drawRect, options.radius || 10, this.styles[fillColorName]);
+        const style=this.styles[fillColorName],color=this.getUIColor(fillColorName);
+        style.fillGradient(new pdg.Point(drawRect.x,drawRect.y),new pdg.Color(color.red+0.016,color.green+0.016,color.blue+0.016,color.alpha),new pdg.Point(drawRect.x,drawRect.y+drawRect.height),color);
+        style.lineStyle(pdg.lineStyle_Solid).lineThickness(0.6);
+        this.drawRoundedRect(drawRect, options.radius || 10, style);
+        if(options.icon) {
+            this.drawUIIcon(options.icon,drawRect.x+(options.iconOnly?drawRect.width/2:18),drawRect.y+drawRect.height/2);
+            if(options.iconOnly) {
+                if(hotkey)this.drawTextLine(hotkey,drawRect.x+drawRect.width-12,drawRect.y+drawRect.height/2+3,'labelgray',9,pdg.textStyle_RightJustified);
+                if(hovered)this.iconHint={rect:drawRect,label:hotkey?`${label} <${hotkey}>`:label};
+                return;
+            }
+        }
 
         const buttonText = hotkey ? `${label} <${hotkey}>` : label;
         const size = options.size || 11;
@@ -1249,15 +1306,15 @@ class Display {
 
     getMapButtonDefinitions() {
         return [
-            { key: 'M', label: this.STR.menu, window: 'menu', action: { type: 'toggleWindow', window: 'menu' } },
+            { key: 'M', icon:'menu', label: this.STR.menu, window: 'menu', action: { type: 'toggleWindow', window: 'menu' } },
             { key: 'E', label: this.STR.events, window: 'events', action: { type: 'toggleWindow', window: 'events' } },
             { key: 'V', label: this.STR.compare, window: 'comparison', action: { type: 'toggleWindow', window: 'comparison' } },
             { key: 'L', label: this.STR.fleets, window: 'fleets', action: { type: 'toggleWindow', window: 'fleets' } },
             { key: 'U', label: this.STR.rendezvous, action: { type: 'beginRendezvousPlacement' } },
             { key: 'Tab', label: I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`, action: { type: 'nextAttention' } },
             { key: 'Enter', label: this.STR.endTurn, action: { type: 'endTurn' } },
-            { key: 'H', label: this.STR.home, action: { type: 'selectHomeStar' } },
-            { key: 'F', label: this.STR.fit, action: { type: 'zoomToFit' } }
+            { key: 'H', icon:'home', label: this.STR.home, action: { type: 'selectHomeStar' } },
+            { key: 'F', icon:'fit', label: this.STR.fit, action: { type: 'zoomToFit' } }
         ];
     }
 
@@ -1289,7 +1346,7 @@ class Display {
     drawMapButtons() {
         const buttons = this.getMapButtonRegions();
         for (const button of buttons) {
-            this.drawUIButton(button.rect, button.label, button.key, { active: button.action.type==='nextAttention' ? this.game.attention.pending().length>0 : button.window && this.game.uiWindow === button.window });
+            this.drawUIButton(button.rect, button.label, button.key, {icon:button.icon,iconOnly:!!button.icon, active: button.action.type==='nextAttention' ? this.game.attention.pending().length>0 : button.window && this.game.uiWindow === button.window });
         }
     }
 
@@ -1606,7 +1663,7 @@ class Display {
         if (this.game.uiWindow!=='menu' || !this.game.getCurrentHumanPlayer()) return [];
         const rect = this.getCommandWindowRect();
         return [{rect:{x:rect.x+14,y:rect.y+80,width:rect.width-28,height:28},
-            label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}},
+            icon:'gear',label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}},
             {rect:{x:rect.x+14,y:rect.y+114,width:rect.width-28,height:28},
             label:I18n.getString(708,'Your Star Systems'),action:{type:'showSystemComparison'}},
             {rect:{x:rect.x+14,y:rect.y+148,width:rect.width-28,height:28},
@@ -2494,7 +2551,7 @@ class Display {
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
         this.drawTextLine(this.STR.keyboardShortcutsActive, x, y, 'gray', 11);
-        this.getCommandActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,region.key,{active:!!region.active}));
+        this.getCommandActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,region.key,{icon:region.icon,active:!!region.active}));
         this.drawTextLine(this.STR.escClose,x,rect.y+rect.height-16,'gray',10);
     }
 
@@ -2891,12 +2948,61 @@ class Display {
         }
     }
 
+    getVisualTime() {return this.visualTime===undefined?pdg.tm.getMilliseconds():this.visualTime;}
+
+    releaseUISurface(layer) {
+        pdg.gfx.closeGraphicsPort(layer.port);
+        if(typeof layer.image.delete==='function')layer.image.delete();
+        if(typeof layer.attrs.delete==='function')layer.attrs.delete();
+    }
+
+    dispose() {
+        for(const layer of this.uiSurfaces.values())this.releaseUISurface(layer);
+        this.uiSurfaces.clear();
+    }
+
+    drawTransitionLayer(channel,key,draw) {
+        const real=this.port,screen=this.getScreenSize(),now=this.getVisualTime();
+        const motion=this.visualEffects.transition(channel,key,now);
+        let layer=this.uiSurfaces.get(channel);
+        if(layer && (layer.width!==screen.width || layer.height!==screen.height)) {
+            this.releaseUISurface(layer);this.uiSurfaces.delete(channel);layer=null;
+        }
+        if(!layer && key && typeof pdg.gfx.createOffscreenPort==='function') {
+            const surface=pdg.gfx.createOffscreenPort(new pdg.Rect(screen.width,screen.height));
+            if(surface) {layer={port:surface,image:new pdg.Image(surface,pdg.SharedSurface),width:screen.width,height:screen.height,attrs:new pdg.Attributes()};this.uiSurfaces.set(channel,layer);}
+        }
+        if(!layer){if(key)draw();return;}
+        if(key) {
+            layer.port.clear();
+            layer.port.setFont(real.getCurrentFont());
+            this.port=layer.port;
+            try{draw();}finally{this.port=real;}
+            layer.hasContent=true;
+        }
+        if(layer.hasContent && motion.opacity>0) {
+            layer.attrs.fillOpacity(motion.opacity);
+            real.drawImage(layer.image,new pdg.Rect(new pdg.Point(0,motion.offset),screen.width,screen.height),layer.attrs);
+        }
+    }
+
+    drawIconHint() {
+        if(!this.iconHint || this.game.uiWindow)return;
+        const {rect,label}=this.iconHint,screen=this.getScreenSize();
+        const width=Math.min(screen.width-20,this.port.getTextWidth(label,11)+24);
+        const box=this.fitPanelToScreen({x:rect.x+rect.width-width,y:rect.y-32,width,height:26});
+        this.drawPanelSurface(box,this.styles.windowPanel);
+        this.drawTextLine(label,box.x+12,box.y+17,'lightgray',11);
+    }
+
     // Main draw function that orchestrates all drawing
     drawGame() {
+        this.visualTime=pdg.tm.getMilliseconds();
+        this.iconHint=null;
         // Update star rendering cache once per frame
         this.updateMapRenderingCalculations();
         
-        // Draw fixed background first (behind everything else)
+        // Draw the distant background first.
         this.drawBackground();
         
         const game = this.game;
@@ -2915,6 +3021,7 @@ class Display {
         this.drawMainUI(game.turn, game.stars.length, game.allShips.length);
         
         // Draw selected object details
+        this.drawTransitionLayer('inspector',game.selectedObject && !game.pendingCourseEdit?game.selectedObject:null,()=>{
         if (game.selectedObject && !game.pendingCourseEdit) {
             const objectType = game.getObjectType(game.selectedObject);
             if (objectType === Common.ObjectType.STAR) {
@@ -2928,6 +3035,7 @@ class Display {
             }
         }
         
+        });
         // Draw instructions
         this.drawInstructions();
 
@@ -2936,7 +3044,8 @@ class Display {
             const screen=this.getScreenSize(),r={x:20,y:78,width:screen.width-40,height:40};
             this.drawWindowPanel(r,this.fitShipDiagnosticText(I18n.getString(734,'Click a destination; Esc cancels'),r.width-32,14));
         }
-        this.drawActiveWindow();
+        this.drawTransitionLayer('window',game.uiWindow,()=>this.drawActiveWindow());
+        this.drawIconHint();
         this.drawRendezvousPlacementPrompt();
         
         // Draw event overlay last

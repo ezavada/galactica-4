@@ -62,6 +62,7 @@ use the same paths as the desktop launcher.
 - **Turn-based core**: Build ships, colonize stars, move ships/fleets, resolve v3-style combat/capture, repair docked ships/fleets, and update fog-of-war state.
 - **AI players**: Computer opponents participate in turns, use v3-backed economy/build rules, and send ships/fleets to destinations with v3-style decision scoring.
 - **Command UI**: Simple runtime windows, event list, comparison window, permanent map buttons, popup action buttons, and production sliders.
+- **Subtle visual effects**: Occasional star twinkles, gentle background parallax, shaded and outlined controls, owned-system tint, brief window transitions, and familiar icons with localized hints. Browser reduced-motion preferences are respected.
 - **Internationalization**: Current runtime UI/event strings are resource-driven for English, German, Spanish, French, Japanese, and Russian.
 - **WebAssembly build**: Browser bootstrap and build script for running the game with PDG's Emscripten runtime.
 
@@ -69,6 +70,7 @@ use the same paths as the desktop launcher.
 
 - [V3 to V4 Feature Status](docs/V3_V4_FEATURE_STATUS.md) - Current feature/UI parity inventory
 - [Map Generation Port Status](docs/MAP_GENERATION_PORT_STATUS.md) - Current map generation implementation status
+- [Visual Style](docs/VISUAL_STYLE.md) - Presentation choices and reduced motion
 - [Testing Guide](docs/TESTING_GUIDE.md) - Running and writing tests
 - [AI Integration Status](docs/AI_INTEGRATION_STATUS.md) - Current AI architecture and gaps
 - [AI Integration TODO](docs/AI_INTEGRATION_TODO.md) - Recommended next AI work
@@ -82,7 +84,7 @@ use the same paths as the desktop launcher.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 678 passed, 0 failed.
+Current expected result: 692 passed, 0 failed.
 
 AI-only parity observer:
 
