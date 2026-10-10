@@ -381,6 +381,7 @@ class Game {
             return false; // Unowned or invalid entity
         }
         
+        if(this.clientPlayerNum)return entity.owner===this.clientPlayerNum && !this.clientTurnPosted;
         // Human players are numbered 1 to numHumans
         return entity.owner > 0 && entity.owner <= this.config.numHumans;
     }
@@ -388,6 +389,7 @@ class Game {
     // Get the player number for the current human (for single player, this is 1)
     // In multiplayer, this would need to be tracked differently
     getCurrentHumanPlayer() {
+        if(this.clientPlayerNum)return this.clientPlayerNum;
         if (!this.players) {
             return null;
         }
@@ -2507,7 +2509,16 @@ class Game {
         return this.executeUIAction(this.display.getUIActionAt(x, y));
     }
 
+    getMapShipCount() {
+        return this.remoteComparisons?this.remoteComparisons.reduce((total,row)=>total+row.ships+row.shipsBuilding,0):this.allShips.length;
+    }
+
     getPlayerComparisonRows() {
+        if(this.remoteComparisons)return this.remoteComparisons.map(row=>{
+            const name=row.playerNum===0?I18n.getString(811,'Unowned systems'):row.assigned?row.name:I18n.getString(306,'Unknown');
+            return {...row,name:row.playerNum>0 && row.assigned && !row.isAlive?I18n.formatString(819,'{0} (defeated)',name):name,
+                italicizeName:row.playerNum===0 || !row.assigned,type:I18n.getString(row.isComputer?504:300,row.isComputer?'AI':'Human')};
+        });
         if(!this.players || !this.config)return [];
         const rows=[];
         for(let i=0;i<=this.config.totalPlayers;i++) {
@@ -3062,6 +3073,8 @@ class Game {
     }
 
     endTurn() {
+        // Client turns are resolved by the host after order submission.
+        if(this.clientPlayerNum)return false;
         if (this.isGameOver) {
             console.log(`Game already complete on turn ${this.victoryTurn}`);
             return this.getGameResult();

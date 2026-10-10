@@ -81,6 +81,7 @@ function decodeGraph(graph) {
     return {root:value(graph.root),nodes};
 }
 function snapshot(game,contentOnly=false) {
+    if(game.clientPlayerNum)invalid();
     const state={};for(const key of fields)state[key]=game[key];
     // v3 retains the Events window; command menus and order editors are transient.
     state.uiWindow=game.uiWindow==='events'?'events':null;

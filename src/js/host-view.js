@@ -47,7 +47,7 @@ function project(game,viewer){
   waypoints:c.waypoints.map(point),memory:c.memory?{...pick(c.memory,['current','previous','loop','hunt','hasOrigin','patrol']),waypoints:c.memory.waypoints.map(point)}:null}:null;
  const entities=[];
  for(const [e,visibility] of known){
-  const kind=kinds.get(e),all=full(e),row={kind,id:e.id,x:e.x,y:e.y,visibility};
+  const kind=kinds.get(e),all=full(e),row={kind,id:e.id,x:e.x,y:e.y,visibility:kind==='rendezvous'?visibility:level(e)};
   if(kind==='star'){
    row.name=Names.displayName(game,e,viewer);row.namedStar=!!e.namedStar;
    if(all || visibility>V.NONE)row.owner=e.owner;
@@ -69,7 +69,7 @@ function project(game,viewer){
    if(kind==='ship' || visibility>=V.TECH)row.owner=e.owner;
    if(visibility>=V.SPEED)row.speed=kind==='fleet'?e.totalSpeed:e.speed;
    if(visibility>=V.TECH)row.techLevel=e.techLevel;
-   if(visibility>=V.CLASS){Object.assign(row,pick(e,['name','type','classIndex','progress']));
+   if(visibility>=V.CLASS){Object.assign(row,pick(e,['type','classIndex','progress']));if(level(e)>=V.CLASS)row.name=e.name;
     row.power=kind==='fleet'?e.totalPower:e.power;row.damage=kind==='fleet'?e.totalDamage:e.damage;
     if(kind==='fleet')row.ships=e.ships.map(ref).filter(Boolean);
    }
@@ -92,8 +92,8 @@ function project(game,viewer){
   return row;
  });
  return {format:'Galactica-4-player-state',version:1,viewer,turn:game.turn,
-  map:{width:game.gameWidth,height:game.gameHeight},
+  map:{width:1024*1024*game.config.sectorSize,height:1024*1024*game.config.sectorSize},
   config:pick(game.config,['gameTitle','numHumans','numComputers','totalPlayers','sectorSize','density','fastGame','omniscient','compSkill','compAdvantage','maxTimePerTurn','endEarly']),
   isGameOver:game.isGameOver,privatePlayer,comparisons,entities,events};
 }
-module.exports={snapshot};
+module.exports={snapshot,reports};

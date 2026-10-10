@@ -146,6 +146,7 @@ class Fleet {
     
     // Calculate fleet statistics from constituent ships
     calculateFleetStats(propagate=true) {
+        if(this.game.clientPlayerNum && this.owner!==this.game.clientPlayerNum)return;
         this.totalPower = 0;
         this.totalSpeed = 0;
         this.totalDamage = 0;
@@ -249,6 +250,7 @@ class Fleet {
     
     // Check if fleet is empty
     isEmpty() {
+        if(this.remoteUnknownContents)return false;
         return this.ships.length === 0;
     }
     
@@ -578,10 +580,6 @@ class Fleet {
     // Display and interaction methods
     getSize() {
         return this.ships.length;
-    }
-    
-    isEmpty() {
-        return this.ships.length === 0;
     }
     
     isDead() {

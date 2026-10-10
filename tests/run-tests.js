@@ -4,6 +4,7 @@
 // Uses PDG's built-in pdg.srand() and pdg.rand() for deterministic testing
 
 const test = require('./test-framework.js');
+const runClientStateTests=require('./client-state.test.js');
 const runHostViewTests=require('./host-view.test.js');
 const runHostLoginTests=require('./host-login.test.js');
 const runNetworkHostTests=require('./network-host.test.js');
@@ -274,6 +275,7 @@ runStardockArtTests();
 runNetworkHostTests();
 runHostLoginTests();
 runHostViewTests();
+runClientStateTests();
     runMapDisplayModeTests();
 
     // Print summary

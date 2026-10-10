@@ -524,6 +524,7 @@ class Star {
     }
 
     getDefenseBreakdown({resolveCourses=true}={}) {
+        if(this.remoteDefense && this.game.clientPlayerNum && this.owner!==this.game.clientPlayerNum)return {...this.remoteDefense};
         const allied = ship => !this.owner || ship.owner === this.owner ||
             (typeof ship.isAllyOf === 'function' && ship.isAllyOf(this.owner));
         const completed = ship => !ship.underConstruction || !ship.underConstruction();

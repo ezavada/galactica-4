@@ -3876,7 +3876,7 @@ class Display {
         this.drawMapTargetPreview();
         
         // Draw UI
-        this.drawMainUI(game.turn, game.stars.length, game.allShips.length);
+        this.drawMainUI(game.turn, game.stars.length, game.getMapShipCount());
         this.drawMapDisplayLegend();
         
         // Map help belongs behind inspectors so tall panels remain readable.

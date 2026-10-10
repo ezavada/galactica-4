@@ -16,7 +16,7 @@ module.exports=()=>test.describe('Authenticated player-state transport',()=>{
  test.it('keeps hidden homeworld aliases distinct from comparison names and leaves the host graph and RNG untouched',()=>fixture(({game,enemy,host})=>{
   const before=Save.serialize(game),prior=Names.snapshot(game);pdg.srand(87);const expected=pdg.rand();pdg.srand(87);
   const a=View.snapshot(game,1),b=View.snapshot(game,1),star=entity(a,'star',enemy);
-  test.assertTrue(star.name!==enemy.name);test.assertEqual(star.name,entity(b,'star',enemy).name);test.assertFalse('owner' in star);test.assertFalse('techLevel' in star);
+  test.assertEqual(a.map.width,1024*1024*game.config.sectorSize);test.assertEqual(a.map.height,a.map.width);test.assertTrue(star.name!==enemy.name);test.assertEqual(star.name,entity(b,'star',enemy).name);test.assertFalse('owner' in star);test.assertFalse('techLevel' in star);
   test.assertEqual(a.comparisons.find(p=>p.playerNum===2).name,'');test.assertFalse(a.comparisons.find(p=>p.playerNum===2).assigned);
   test.assertEqual(Save.serialize(game),before);test.assertTrue(Names.snapshot(game)===prior);test.assertEqual(pdg.rand(),expected);
   host.login.login({protocol:1,mode:'join',name:enemy.name+' Alliance'});const c=View.snapshot(game,1);
@@ -35,7 +35,7 @@ module.exports=()=>test.describe('Authenticated player-state transport',()=>{
   const child=game.factory.createFleet(enemy.x,enemy.y,2,'Child fleet');child.addShip(ship);fleet.addShip(child);child.setVisibilityTo(1,0);
   let view=View.snapshot(game,1);test.assertFalse(!!entity(view,'fleet',fleet));test.assertFalse(!!entity(view,'ship',ship));test.assertFalse(!!entity(view,'rendezvous',marker));
   fleet.setVisibilityTo(1,1);view=View.snapshot(game,1);const speed=entity(view,'fleet',fleet);test.assertFalse('ships' in speed);test.assertFalse('name' in speed);test.assertFalse('owner' in speed);test.assertFalse(!!entity(view,'fleet',child));
-  fleet.setVisibilityTo(1,3);view=View.snapshot(game,1);test.assertEqual(entity(view,'fleet',fleet).ships[0].id,child.id);test.assertEqual(entity(view,'fleet',child).ships[0].id,ship.id);test.assertEqual(entity(view,'ship',ship).name,'Private ship');test.assertFalse('course' in entity(view,'ship',ship));
+  fleet.setVisibilityTo(1,3);view=View.snapshot(game,1);test.assertEqual(entity(view,'fleet',fleet).ships[0].id,child.id);test.assertEqual(entity(view,'fleet',child).ships[0].id,ship.id);test.assertFalse('name' in entity(view,'ship',ship));test.assertEqual(entity(view,'ship',ship).visibility,0);test.assertEqual(entity(view,'ship',ship).type,'battleship');test.assertFalse('course' in entity(view,'ship',ship));
  }));
  test.it('keeps the existing ship faction marker at Speed while gating inspector fields and enemy courses',()=>fixture(({game,ship,fleet})=>{
   fleet.removeShip(ship);ship.course.replace({x:1234,y:5678,name:'Secret order'});

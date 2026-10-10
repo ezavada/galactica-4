@@ -42,6 +42,7 @@ function alias(game,star) {
     return chart.names.get(star.id);
 }
 function displayName(game,star,viewer) {
+    if(game.clientPlayerNum && typeof star.chartLabel==='string')return star.owner===viewer?star.name:star.chartLabel;
     if(undiscoveredHome(game,star,viewer))return alias(game,star);
     if(!viewer||game.config.omniscient||star.owner===viewer||star.isAllyOf(viewer)||star.namedStar||isHome(game,star)||
         star.getVisibilityTo(viewer)>=Common.VisibilityLevel.CLASS)return star.name;

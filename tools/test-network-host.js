@@ -2,7 +2,7 @@
 const pdg=require('pdg');globalThis.pdg=pdg;if(pdg.snd)pdg.snd.setMute(true);
 const fs=require('fs'),os=require('os'),path=require('path'),http=require('http'),assert=require('assert');
 pdg.res.openResourceFile(path.join(__dirname,'../data'));
-const {NetworkHost}=require('../src/js/network-host.js');
+const {NetworkHost}=require('../src/js/network-host.js');const Client=require('../src/js/client-state.js');
 const directory=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-host-socket-'));
 let first,second;
 function request(port,method,url,body,token,split=false){return new Promise((resolve,reject)=>{
@@ -19,7 +19,7 @@ function request(port,method,url,body,token,split=false){return new Promise((res
  assert.equal((await request(address.port,'OPTIONS','/login')).status,204);
  const login=await request(address.port,'POST','/login',{protocol:1,mode:'join',name:'Voyager 星',password:'秘密 Д'},null,true);
  assert.equal(login.status,200);assert.equal(login.body.player,1);assert.equal(login.body.name,'Voyager 星');assert.equal(login.cors,'*');
- const state=await request(address.port,'GET','/state',undefined,login.body.token);assert.equal(state.status,200);assert.equal(state.body.viewer,1);assert.equal(state.body.privatePlayer.playerNum,1);assert.equal(state.cache,'no-store');assert(!JSON.stringify(state.body).includes('秘密'));assert(!JSON.stringify(state.body).includes(login.body.token));
+ const state=await request(address.port,'GET','/state',undefined,login.body.token);assert.equal(state.status,200);assert.equal(state.body.viewer,1);assert.equal(state.body.privatePlayer.playerNum,1);assert.equal(state.cache,'no-store');assert(!JSON.stringify(state.body).includes('秘密'));assert(!JSON.stringify(state.body).includes(login.body.token));const client=Client.restore(state.body);assert.equal(client.getCurrentHumanPlayer(),1);assert.equal(client.endTurn(),false);
  const token=login.body.token,gameId=login.body.gameId;assert.equal((await request(address.port,'GET','/session',undefined,token)).body.player,1);
  assert.equal((await request(address.port,'GET','/session',undefined,'invalid')).status,401);
  assert.equal((await request(address.port,'POST','/login',{protocol:2,mode:'join',name:'Other'})).status,400);
@@ -32,7 +32,7 @@ function request(port,method,url,body,token,split=false){return new Promise((res
  assert.equal((await request(address.port,'POST','/logout',undefined,replacement.body.token)).status,200);
  const visitor=await request(address.port,'POST','/login',{protocol:1,mode:'join',name:'Visitor'});assert.equal(visitor.body.player,2);
  assert.equal((await request(address.port,'POST','/login',{protocol:1,mode:'join',name:'Third'})).body.error,'game_full');
- const visitorState=await request(address.port,'GET','/state',undefined,visitor.body.token);assert.equal(visitorState.status,200);assert.equal(visitorState.body.viewer,2);assert.equal(visitorState.body.privatePlayer.playerNum,2);assert.equal((await request(address.port,'GET','/state?viewer=1',undefined,visitor.body.token)).status,404);assert.equal((await request(address.port,'GET','/state',undefined,token)).status,401);
+ const visitorState=await request(address.port,'GET','/state',undefined,visitor.body.token);assert.equal(visitorState.status,200);assert.equal(visitorState.body.viewer,2);assert.equal(visitorState.body.privatePlayer.playerNum,2);const visitorClient=Client.restore(visitorState.body);assert.equal(visitorClient.getCurrentHumanPlayer(),2);assert(visitorClient.stars.some(s=>visitorClient.canHumanControl(s)));assert.equal(visitorClient.endTurn(),false);assert.equal((await request(address.port,'GET','/state?viewer=1',undefined,visitor.body.token)).status,404);assert.equal((await request(address.port,'GET','/state',undefined,token)).status,401);
  const publicInfo=(await request(address.port,'GET','/info')).body;assert.equal(publicInfo.slots[0].name,'Voyager 星');assert.equal(publicInfo.slots[0].online,false);assert.equal(publicInfo.slots[1].online,true);assert(!JSON.stringify(publicInfo).includes(visitor.body.token));assert(!JSON.stringify(publicInfo).includes('秘密'));
 
  second=NetworkHost.create({numHumans:2,numComputers:0},path.join(directory,'second.gad4.json'));
