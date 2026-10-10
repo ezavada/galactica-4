@@ -70,3 +70,9 @@ Full suite: 767 passed. Regressions cover zoom scaling, zero minimum/reduced-mot
 The solid colored fill now represents actual output (`value`), and the vertical marker represents the requested target (`desired`). The adjacent percentage continues to show the editable target. Clicking or dragging the track changes the target only; actual output follows the existing per-turn adjustment rules. This shared rendering applies to both system information and production windows, including read-only allocation summaries. Locking, coupled allocation totals and localized percentage formatting are preserved.
 
 Full suite: 769 passed, including fill/marker checks in both adjustment directions and click tests confirming actual output stays unchanged. Native track clicks and before/after screenshots were checked for both allocation views in all six languages. Evidence: `/private/tmp/galactica-parity/slider-{before,after}` and `/private/tmp/galactica-slider-tests.log`.
+
+### Grid visibility preference (2026-10-09)
+
+Settings → Show grid and F3 control sector-grid visibility, with active button styling indicating the current state. The default is on, matching v3. The choice is remembered in browser localStorage or native PDG configuration and survives a new game. Storage denial leaves the drawing control usable. Game objects, decorative stars and simulation state are unaffected.
+
+Full suite: 771 passed. Browser clicks, F3 and new-game persistence passed in all six languages. Inspected translated settings and grid-on/off screenshots. Evidence: `/private/tmp/galactica-parity/grid-{before,after}` and `/private/tmp/galactica-grid-tests.log`.

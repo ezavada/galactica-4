@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 301 IDs
-- localized files: 301 IDs each
+- `strings.txt`: 302 IDs
+- localized files: 302 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 769 passed, 0 failed.
+Current expected full-suite result: 771 passed, 0 failed.
 
 ## Future work
 
@@ -107,3 +107,5 @@ Stellar-density setup now uses a localized numeric label (ID 764) in all six lan
 Sector-size setup restores the v3 Tiny/Small/Average/Large/Huge scale in IDs 350–354 across all six languages. ID 523 now labels map size alone, alongside a separate density row. All five dimension choices, S cycling/reset, launch and screenshot checks passed in all six languages; the smaller Russian layout was inspected. Resource counts remain 301 per language; the full unit suite has 737 passing tests.
 
 Public yellow-star chart names and undiscovered-homeworld aliases reuse existing localized star-name/numeral/catalog resources; no IDs were added (301 per language). Aliases retain their proper names across language changes. Player comparison keeps actual home-derived faction names, while map labels use different aliases until discovery. Chart/inspector/detection/history/no-fog screenshots and browser checks passed in all six languages. Full suite: 748 passed.
+
+Grid visibility uses ID 765 in all six languages. Settings shows the localized label with the F3 shortcut; native clicking, keyboard toggling and persistence were verified in every language. Current resources contain 302 IDs per language; full suite: 771 passed.

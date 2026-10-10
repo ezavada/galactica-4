@@ -32,6 +32,7 @@ class Game {
         this.display = null;
         this.overlay = null; // UI overlay for lab/stardock events
         this.overlayQueue = [];
+        this.showGrid = true;
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
         this.nextEventId = 0;
@@ -1574,6 +1575,10 @@ class Game {
         switch (action.type) {
             case 'consume':
                 return true;
+            case 'toggleGrid':
+                this.showGrid=!this.showGrid;
+                if(this.drawingPreferences)this.drawingPreferences.writeGrid(this.showGrid);
+                return true;
             case 'setLanguage':
                 if(this.uiWindow!=='settings' || !LanguageSettings.supported(action.language))return false;
                 pdg.res.setLanguage(action.language);
@@ -2122,6 +2127,7 @@ class Game {
     }
     
     handleKeyPress(key) {
+        if(key === pdg.key_F3)return this.executeUIAction({type:'toggleGrid'});
         if (['rename','colonyDefaults','settings'].includes(this.uiWindow) && key === pdg.key_Tab) return true;
         if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}
         if ((key===13 || key===3) && !['rename','colonyDefaults','settings','systemComparison','events','endTurnConfirm'].includes(this.uiWindow)) {this.requestEndTurn();return true;}

@@ -3,10 +3,28 @@ const Factory=require('../src/js/factory.js'),Game=require('../src/js/game.js'),
 function fixture(){const game=new Game(new Factory(),new Rules(false),new Config({numHumans:1,numComputers:1,skipMapGeneration:true}));game.port={getDrawingArea:()=>new pdg.Rect(800,600)};return {game,display:new Display(game)};}
 function restoreLanguage(fn){const previous=pdg.res.getLanguage();try{fn();}finally{pdg.res.setLanguage(previous);}}
 module.exports=()=>test.describe('Language settings',()=>{
+    test.it('toggles grid drawing from settings and F3 without changing simulation state',()=>{
+        const {game,display}=fixture();game.uiWindow='settings';let saved;
+        game.drawingPreferences={writeGrid:value=>saved=value};
+        const row=display.getSettingsActionRegions().find(row=>row.action.type==='toggleGrid');
+        test.assertTrue(row.active);const turn=game.turn;
+        test.assertTrue(game.handleUIClick(row.rect.x+5,row.rect.y+5));test.assertFalse(game.showGrid);test.assertFalse(saved);
+        display.camera.centerOn(0,0);let lines=0;display.port.drawLine=()=>lines++;display.drawGrid();test.assertEqual(lines,0);
+        test.assertTrue(game.handleKeyPress(pdg.key_F3));test.assertTrue(game.showGrid);test.assertTrue(saved);
+        display.drawGrid();test.assertTrue(lines>0);test.assertEqual(game.turn,turn);test.assertEqual(game.uiWindow,'settings');
+    });
+    test.it('persists grid choices in browser and native preferences with safe defaults',()=>{
+        const Drawing=require('../src/js/drawing-preferences.js'),values=new Map();
+        const browser=Drawing.createPreferences({window:{localStorage:{getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)}}});
+        test.assertTrue(browser.readGrid());browser.writeGrid(false);test.assertFalse(browser.readGrid());test.assertEqual(values.get('galactica.showGrid'),'false');browser.writeGrid(true);test.assertTrue(browser.readGrid());
+        let namespace,saved;const native=Drawing.createPreferences({pdg:{cfg:{useConfig:name=>namespace=name,getConfigString:()=>saved,setConfigString:(key,value)=>{test.assertEqual(key,'showGrid');saved=value;}}}});
+        native.writeGrid(false);test.assertFalse(native.readGrid());test.assertEqual(namespace,'Galactica');
+        const denied=Drawing.createPreferences({window:{get localStorage(){throw Error('denied');}}});test.assertTrue(denied.readGrid());denied.writeGrid(false);
+    });
     test.it('always presents native names in their native scripts',()=>restoreLanguage(()=>{
         const {game,display}=fixture();game.uiWindow='settings';
         const names=['English','Deutsch','Español','Français','日本語','Русский'];
-        for(const language of Language.languages){pdg.res.setLanguage(language.code);test.assertEqual(display.getSettingsActionRegions().map(row=>row.label).join('|'),names.join('|'));}
+        for(const language of Language.languages){pdg.res.setLanguage(language.code);test.assertEqual(display.getSettingsActionRegions().filter(row=>row.action.type==='setLanguage').map(row=>row.label).join('|'),names.join('|'));}
     }));
     test.it('switches cached UI labels and numeric formatting live without changing game state',()=>restoreLanguage(()=>{
         const {game,display}=fixture();game.uiWindow='settings';const turn=game.turn,selection=game.selectedObject;
@@ -14,7 +32,7 @@ module.exports=()=>test.describe('Language settings',()=>{
         for(const [code,turnLabel,decimal] of [['en','Turn','.'],['de','Runde',','],['es','Turno',','],['fr','Tour',','],['ja','ターン','.'],['ru','Ход',',']]){
             test.assertTrue(game.executeUIAction({type:'setLanguage',language:code}));test.assertEqual(display.STR.turn,turnLabel);test.assertEqual(require('../src/js/i18n.js').formatDecimal(1.5),'1'+decimal+'5');
             test.assertEqual(game.uiWindow,'settings');test.assertEqual(game.turn,turn);test.assertTrue(game.selectedObject===selection);
-            const active=display.getSettingsActionRegions().filter(row=>row.active);test.assertEqual(active.length,1);test.assertEqual(active[0].action.language,code);
+            const active=display.getSettingsActionRegions().filter(row=>row.action.type==='setLanguage' && row.active);test.assertEqual(active.length,1);test.assertEqual(active[0].action.language,code);
         }test.assertEqual(pdg.rand(),expected);
     }));
     test.it('rejects unsupported codes and actions outside settings',()=>restoreLanguage(()=>{

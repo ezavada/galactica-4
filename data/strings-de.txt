@@ -365,3 +365,6 @@
 
 # Stellar density setup
 764	Sterndichte {0}
+
+# Map drawing preferences
+765	Raster anzeigen

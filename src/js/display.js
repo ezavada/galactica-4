@@ -1739,7 +1739,7 @@ class Display {
 
     getSettingsWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(320,screen.width-40);
-        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:322});
+        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:366});
     }
 
     getSettingsActionRegions() {
@@ -1749,14 +1749,15 @@ class Display {
             rect:{x:rect.x+14,y:rect.y+76+index*32,width:rect.width-28,height:28},
             label:language.name,active:LanguageSettings.current()===language.code,
             action:{type:'setLanguage',language:language.code}
-        }));
+        })).concat([{rect:{x:rect.x+14,y:rect.y+284,width:rect.width-28,height:28},
+            label:I18n.getString(765,'Show grid'),key:'F3',active:this.game.showGrid,action:{type:'toggleGrid'}}]);
     }
 
     drawSettingsWindow() {
         const rect=this.getSettingsWindowRect();
         this.drawWindowPanel(rect,I18n.getString(759,'Settings'));
         this.drawTextLine(I18n.getString(760,'Language'),rect.x+14,rect.y+57,'lightgray',12);
-        for(const region of this.getSettingsActionRegions())this.drawUIButton(region.rect,region.label,null,{active:region.active});
+        for(const region of this.getSettingsActionRegions())this.drawUIButton(region.rect,region.label,region.key || null,{active:region.active});
         this.drawTextLine(this.STR.escClose,rect.x+14,rect.y+rect.height-16,'gray',10);
     }
 
@@ -3015,6 +3016,7 @@ class Display {
     
     // Draw grid lines based on sector boundaries
     drawGrid() {
+        if(this.game.showGrid===false)return;
         const drawingArea = this.port.getDrawingArea();
         // Use original C++ grid spacing - full sectors only (no subgrid)
         const sectorSize = 1024 * 1024; // PIXELS_PER_SECTOR * COORDINATE_SCALE

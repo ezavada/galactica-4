@@ -365,3 +365,6 @@
 
 # Stellar density setup
 764	Densité {0}
+
+# Map drawing preferences
+765	Afficher la grille
