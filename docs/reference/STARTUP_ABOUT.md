@@ -224,3 +224,58 @@ Evidence: `/private/tmp/galactica-close-{tests,public-tests,async,public-async,d
 Other application/window commands, modal tutorial recovery, multiplayer and
 Map Generation remain pending. This item does not claim Quit/browser-tab close
 confirmation or complete arbitrary-command parity.
+
+
+### Application Quit decisions and browser unload protection
+
+Shipped v3 command resources identify Quit as command 10. `GalacticaDoc.cp:237`
+uses `LSingleDoc`, and its unhandled document commands fall through to that
+framework at line 912. `GalacticaClient.cpp:1482–1495` explicitly describes
+cancellation when saving a modified document; its network override sends changed
+objects. `GalacticaHostDoc.cp:406–419` delays Quit while host work is in progress.
+The inherited PowerPlant GUI implementation is not present in this checkout;
+the server-only `Galactica::Quit` is not evidence for GUI save decisions.
+
+V4 now provides File → Quit/Q, Command/Ctrl+Q, startup Quit and configured startup
+command 10 through the same all-document coordinator. The active game is checked
+first, followed by retained games. Clean saved games close directly. New/changed
+games offer localized Save and close, Discard and Cancel. Save completion is
+required before exit. Deferred/failed/canceled writes and edits during a write
+cannot silently discard progress. First Cancel restores the previous setup/menu;
+later Cancel preserves the games still open without resurrecting closed ones.
+Tutorial practice is checked before its original; closure removes instructions
+and scripted simulation. Quit during tutorial welcome also checks the original.
+Only after all documents close does the application invoke actual `pdg.quit()`.
+
+Browsers warn through their own beforeunload dialog when any retained game or
+unsaved tutorial has changes, including during a pending save. This warning
+requires browser activation and cannot provide the application's Save buttons.
+After accepted application Quit, a localized terminal panel offers Start again;
+reload does not warn once the games have been handled. Configured startup Quit
+keeps this panel rather than replacing it with the bootstrap's ready state.
+
+Both native runtime full suites pass 1,369 tests. Dedicated async decisions and
+real native processes verify both files are written before actual PDG exit.
+`tools/test-web-quit.cjs` drives actual browser clicks/keys, observes the PDG
+shutdown event, dismisses an actual browser unload confirmation, and verifies
+Cancel, every retained document, failed/canceled saves, restart and empty setup.
+All six languages pass ordinary, tutorial-practice and configured-startup Quit.
+Actual File-menu Quit during tutorial welcome also passes in English. Modifier-Q
+recognition is covered by unit tests; physical native GUI shortcut testing is
+still pending. The translated
+prompts, terminal panels and before/after startup views were inspected.
+Evidence: `/private/tmp/galactica-quit-{tests,public-tests,async,public-async,runtime,public-runtime,<language>,startup-<language>}.log`,
+`/private/tmp/galactica-parity/quit`, and the
+`/private/tmp/galactica-quit-{languages,startup,before-after}-review.png` images.
+Automation mutes audio without changing saved preferences.
+
+Remaining native integration: the pinned public PDG GLFW main-window close
+callback (`src/sys/glfw/platform-graphics-glfw.cpp:96–105`) calls `pdg_LibQuit`
+directly. Cocoa `applicationShouldTerminate` returns `NSTerminateNow` and
+last-window close returns YES (`src/sys/macosx/pdg-lib-macosx.mm:255–262`). The
+public JS Shutdown event is a final notification, not a vetoable Quit request.
+These paths need an engine request/deferral API and validated runtime packaging;
+application commands alone do not establish OS/window-close parity. Network
+logout, pending host-work decisions, other application/window commands,
+multiplayer and Map Generation remain pending. This is actionable follow-up,
+not a claim that the entire parity goal is blocked or completed.

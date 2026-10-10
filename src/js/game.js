@@ -1350,6 +1350,7 @@ class Game {
             else if(key===pdg.key_RightArrow)this.gameSessionPage=(this.gameSessionPage || 0)+1;
             return true;
         }
+        if(this.uiWindow==='menu' && lower==='q')return this.executeUIAction({type:'quit'});
         if(this.uiWindow==='menu' && lower==='h')return this.executeUIAction({type:'openManual'});
         if(this.uiWindow==='menu' && this.sessionCommands) {
             if(lower==='n')return this.executeUIAction({type:'newGame'});
@@ -1894,6 +1895,7 @@ class Game {
             case 'openManual':
                 if(!this.manualCommands)return false;
                 this.manualCommands.open(pdg.res.getLanguage());return true;
+            case 'quit':return !!(this.fileCommands && this.fileCommands.quit && this.fileCommands.quit());
             case 'fileMenu':return !!(this.fileCommands && this.fileCommands.menu());
             case 'newGame':return !!(this.sessionCommands && this.sessionCommands.begin());
             case 'showGames':

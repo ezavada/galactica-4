@@ -74,7 +74,7 @@ use the same paths as the desktop launcher.
 - **Command UI**: Startup player-name dialog with remembered Unicode names, runtime windows, event list, full v3 player comparison with production/power and system/ship technology statistics, best/worst highlighting, paged rosters, permanent map buttons, popup action buttons, and production sliders.
 - **New colony defaults**: Settings and the game menu remember the hull and coupled production allocations for future colonies and games. Existing systems keep their allocations; fixed tutorial practice is isolated.
 - **New-colony guidance**: Neutral human colonies request attention to name the colony and set production. Tab or report Go to centers the colony and shows the instruction beside its existing controls.
-- **Multiple local games**: Menu → New Game reopens setup without discarding your current game. Cancel returns to it; Menu → Open Games switches among retained games, preserving each turn, selection and camera. Menu → File provides Save, Save As, Open and Revert for versioned `.gad4.json` documents. File → Close game offers Save and close, Discard and Cancel for unsaved changes; other games stay open, and closing the last game returns to setup. Native saves use atomic file replacement; browsers use file handles where available, or downloads/uploads. Open Game is also available on the startup screen.
+- **Multiple local games**: Menu → New Game reopens setup without discarding your current game. Cancel returns to it; Menu → Open Games switches among retained games, preserving each turn, selection and camera. Menu → File provides Save, Save As, Open and Revert for versioned `.gad4.json` documents. File → Close game offers Save and close, Discard and Cancel for unsaved changes; other games stay open, and closing the last game returns to setup. Native saves use atomic file replacement; browsers use file handles where available, or downloads/uploads. Open Game and Quit are also available on the startup screen. File → Quit checks all open games and waits for successful saves; Cancel preserves remaining games. Browsers warn before leaving unsaved games and offer a restart screen after Quit. Native window-close/OS Quit integration remains pending.
 - **Conclusion reports**: Localized v3 victory and defeat narratives, opponent defeat notices, and stalemate reports. Acknowledge without advancing the turn; reopen a retained outcome from the event list.
 - **Subtle visual effects**: Occasional star twinkles, gentle background parallax, shaded and outlined controls, known-owner system tint, brief window transitions, and familiar icons with localized hints. Browser reduced-motion preferences are respected.
 - **Internationalization**: Current runtime UI/event strings are resource-driven for English, German, Spanish, French, Japanese, and Russian. Menu → Settings → Language switches the UI immediately and remembers the choice; language names always appear in their native scripts.
@@ -98,7 +98,7 @@ use the same paths as the desktop launcher.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1358 passed, 0 failed.
+Current expected result: 1369 passed, 0 failed.
 
 AI-only parity observer:
 

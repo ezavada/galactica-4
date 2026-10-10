@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1358
-Passed: 1358 ✓
+Total: 1369
+Passed: 1369 ✓
 Failed: 0 ✗
 ```
 
@@ -292,3 +292,27 @@ node tools/test-web-close-game.cjs /path/to/web-build /path/to/screenshots en
 Repeat for all six languages. Chrome is muted, and `GALACTICA_CHROME` overrides
 its executable. Save/Open pickers use in-memory fixtures, including canceled
 picks and failed writes. Temporary browser profiles are removed at completion.
+
+
+## Application Quit
+
+```bash
+./gad4 tests/quit-documents-async.js
+./gad4 tests/quit-runtime.js
+node tools/test-web-quit.cjs /path/to/web-build /path/to/screenshots en
+node tools/test-web-quit.cjs /path/to/web-build /path/to/startup-screenshots en startup
+node tools/test-web-quit.cjs /path/to/web-build /path/to/tutorial-screenshots en tutorial
+node tools/test-web-quit.cjs /path/to/web-build /path/to/welcome-screenshots en welcome
+```
+
+The full suite includes `tests/quit-documents.test.js`. Async checks cover every
+open document, save failures/cancellation, deferred writes and changes during
+save. The separate native process writes two real files, verifies their content
+and exits using the actual PDG Quit API; it must not run inside the shared suite.
+The browser runner uses actual clicks/keys and a shutdown event observer. It
+checks first/later Cancel, every retained document, failed/canceled pickers,
+modal isolation, the actual browser unload confirmation, restart, empty-setup
+Quit and configured startup command 10. Repeat ordinary, startup and tutorial browser modes in all six
+languages. Chrome is muted; file pickers use in-memory handles. Native window
+close and OS Quit integration are still pending and are not covered by these
+application-command tests.

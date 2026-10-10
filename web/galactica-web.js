@@ -276,6 +276,7 @@
             if (code) throw new Error('Galactica-4 exited with status ' + code);
         };
         browserRequire('./main.js', appBaseUrl.href);
+        if (document.documentElement.getAttribute('data-status') === 'closed') return;
         document.documentElement.setAttribute('data-status', 'ready');
         if (statusNode) {
             statusNode.remove();

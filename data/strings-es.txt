@@ -667,3 +667,11 @@
 993	Cerrar esta partida. Puedes guardar o descartar los cambios; las demás partidas siguen abiertas.
 994	Guardar los cambios y cerrar esta partida. Si se cancela o falla el guardado, permanece abierta.
 995	Cerrar esta partida sin guardar los cambios. Su archivo guardado no se modifica.
+
+# Application Quit
+996	Salir
+997	¿Guardar los cambios de «{0}» antes de salir?
+998	Galactica cerrado
+999	Puedes cerrar esta pestaña o iniciar Galactica otra vez.
+1000	Iniciar otra vez
+1001	Salir de Galactica tras revisar los cambios sin guardar de cada partida abierta. Cancelar deja abiertas las partidas restantes.

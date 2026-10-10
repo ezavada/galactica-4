@@ -1,8 +1,8 @@
 const Save=require('./game-save.js'),Files=require('./document-files.js'),Name=require('./player-name.js'),I18n=require('./i18n.js');
 class Documents {
-    constructor(files,active,install,replace,close=()=>false) {this.files=files;this.active=active;this.install=install;this.replace=replace;this.close=close;this.pendingClose=null;this.dialog=null;this.sequence=0;}
+    constructor(files,active,install,replace,close=()=>false) {this.files=files;this.active=active;this.install=install;this.replace=replace;this.close=close;this.pendingClose=null;this.dialog=null;this.sequence=0;this.onClosed=()=>{};this.onCanceled=()=>{};this.quitPending=false;}
     menu(){this.dialog={kind:'menu'};return true;}
-    cancel(){if(this.dialog && this.dialog.kind==='busy' && this.dialog.operation==='save')return false;this.pendingClose=null;this.sequence++;this.files.cancelPick();this.dialog=null;return true;}
+    cancel(){if(this.dialog && this.dialog.kind==='busy' && this.dialog.operation==='save')return false;this.pendingClose=null;this.sequence++;this.files.cancelPick();this.dialog=null;this.onCanceled();return true;}
     status(id,...values){this.dialog={kind:'status',message:I18n.formatString(id,'',...values)};return true;}
     beginClose() {
         const session=this.active();if(!session || this.dialog && this.dialog.kind==='busy')return false;
@@ -12,7 +12,7 @@ class Documents {
     finishClose(session) {
         if(this.active()!==session)return false;
         if(!this.close(session))return false;
-        this.pendingClose=null;this.dialog=null;return true;
+        this.pendingClose=null;this.dialog=null;this.onClosed(session);return true;
     }
     beginSave(saveAs=false) {
         const session=this.active();if(!session)return false;
@@ -42,14 +42,14 @@ class Documents {
         try {
             const text=Save.serialize(session.game),content=Save.contentSignature(session.game),reference=await this.files.save(text,name,session.file,saveAs);
             if(token!==this.sequence)return false;
-            if(this.active()!==session){this.pendingClose=null;this.dialog=null;return false;}
-            if(!reference){this.pendingClose=null;this.dialog=null;return false;}session.file=reference;session.savedContent=content;
+            if(this.active()!==session){this.pendingClose=null;this.dialog=null;this.onCanceled();return false;}
+            if(!reference){this.pendingClose=null;this.dialog=null;this.onCanceled();return false;}session.file=reference;session.savedContent=content;
             if(this.pendingClose===session){
                 if(Save.contentSignature(session.game)===content)return this.finishClose(session);
                 this.dialog={kind:'close'};return true;
             }
             this.status(848,reference.name);return true;
-        }catch(error){if(token===this.sequence){if(this.active()===session)this.status(845);else{this.pendingClose=null;this.dialog=null;}}return false;}
+        }catch(error){if(token===this.sequence){if(this.active()===session)this.status(845);else{this.pendingClose=null;this.dialog=null;this.onCanceled();}}return false;}
     }
     async open(name=null) {
         const token=++this.sequence;this.dialog={kind:'busy',message:I18n.getString(851)};
@@ -68,6 +68,7 @@ class Documents {
     }
     action(action) {
         if(action==='cancel' || action==='ack')return this.cancel();
+        if(action==='quit')return !!(this.quit && this.quit());
         if(action==='close')return this.beginClose();
         if(action==='discardClose' && this.dialog && this.dialog.kind==='close')return this.finishClose(this.pendingClose);
         if(action==='saveClose' && this.dialog && this.dialog.kind==='close')return this.beginSave();
@@ -78,6 +79,7 @@ class Documents {
     key(key) {
         const dialog=this.dialog;if(!dialog)return false;
         if(key===pdg.key_Escape)return this.cancel();
+        if(dialog.kind==='menu' && (key===81 || key===113))return !!(this.quit && this.quit());
         if(dialog.kind==='menu' && (key===87 || key===119))return this.beginClose();
         if(dialog.kind==='editor'){const action=Name.edit(dialog.editor,key);if(action==='submit')this.submit();return true;}
         if(key===13 || key===3){if(dialog.kind==='close')this.beginSave();else if(dialog.kind==='revert')this.revert();else if(dialog.kind==='overwrite')this.save(dialog.name,true);else if(dialog.kind==='status')this.cancel();}
@@ -86,11 +88,15 @@ class Documents {
     layout(width,height) {
         const dialog=this.dialog;if(!dialog)return null;
         if(dialog.kind==='editor')return Name.layout(width,height,dialog.operation==='save'?I18n.getString(839):I18n.getString(841));
-        const dialogHeight=dialog.kind==='menu'?342:300,rect={x:(width-Math.min(480,width-40))/2,y:(height-dialogHeight)/2,width:Math.min(480,width-40),height:dialogHeight};
+        const dialogHeight=dialog.kind==='menu'?Math.min(384,height-20):300,rect={x:(width-Math.min(480,width-40))/2,y:(height-dialogHeight)/2,width:Math.min(480,width-40),height:dialogHeight};
         let title=I18n.getString(838),message=dialog.message || '',buttons=[];
-        if(dialog.kind==='menu')buttons=[['save',839],['saveAs',840],['open',841],['revert',842],['close',989],['cancel',683]].map(([action,id],index)=>({action,label:I18n.getString(id),key:action==='close'?'W':action==='cancel'?'Esc':null,rect:{x:rect.x+24,y:rect.y+54+index*42,width:rect.width-48,height:32}}));
+        if(dialog.kind==='menu'){
+            const rows=[['save',839],['saveAs',840],['open',841],['revert',842],['close',989],...(this.quit?[['quit',996]]:[]),['cancel',683]];
+            const pitch=Math.min(42,(rect.height-70)/rows.length),buttonHeight=Math.min(32,pitch-6);
+            buttons=rows.map(([action,id],index)=>({action,label:I18n.getString(id),key:action==='close'?'W':action==='quit'?'Q':action==='cancel'?'Esc':null,rect:{x:rect.x+24,y:rect.y+54+index*pitch,width:rect.width-48,height:buttonHeight}}));
+        }
         else {
-            if(dialog.kind==='close'){title=I18n.getString(989);message=I18n.formatString(990,'',this.pendingClose.game.config.gameTitle);buttons.push({action:'saveClose',label:I18n.getString(991)},{action:'discardClose',label:I18n.getString(992)});}
+            if(dialog.kind==='close'){title=I18n.getString(this.quitPending?996:989);message=I18n.formatString(this.quitPending?997:990,'',this.pendingClose.game.config.gameTitle);buttons.push({action:'saveClose',label:I18n.getString(991)},{action:'discardClose',label:I18n.getString(992)});}
             if(dialog.kind==='revert'){title=I18n.getString(842);message=I18n.getString(849);buttons.push({action:'confirmRevert',label:I18n.getString(842)});}
             if(dialog.kind==='overwrite'){title=I18n.getString(840);message=I18n.formatString(855,'',dialog.name);buttons.push({action:'confirmOverwrite',label:I18n.getString(839)});}
             if(dialog.kind!=='busy' || dialog.operation!=='save')buttons.push({action:dialog.kind==='status'?'ack':'cancel',label:I18n.getString(dialog.kind==='status'?834:683)});

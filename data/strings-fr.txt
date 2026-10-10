@@ -667,3 +667,11 @@
 993	Fermer cette partie. Les modifications peuvent être enregistrées ou abandonnées ; les autres parties restent ouvertes.
 994	Enregistrer les modifications puis fermer cette partie. Une sauvegarde annulée ou échouée la laisse ouverte.
 995	Fermer cette partie sans enregistrer les modifications. Son fichier enregistré reste inchangé.
+
+# Application Quit
+996	Quitter
+997	Enregistrer les modifications de « {0} » avant de quitter ?
+998	Galactica fermé
+999	Tu peux fermer cet onglet ou relancer Galactica.
+1000	Relancer
+1001	Quitter Galactica après vérification des modifications de chaque partie ouverte. Annuler laisse les parties restantes ouvertes.

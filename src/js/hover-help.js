@@ -145,7 +145,8 @@ const helpIds=Object.freeze({
   "openFileName": 920,
   "close": 993,
   "saveClose": 994,
-  "discardClose": 995
+  "discardClose": 995,
+  "quit": 1001
 });
 
 const hullHelpIds=Object.freeze({defense:921,scout:922,colony:923,battleship:924});
