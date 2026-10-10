@@ -1,6 +1,7 @@
 const Tooltip=require('./tooltip.js');
 const I18n=require('./i18n.js');
 const helpIds=Object.freeze({
+  "startupSettings":888,
   "openNewGameDefaults":966,
   "openNewGameDefaultChoice":967,
   "setNewGameDefault":967,

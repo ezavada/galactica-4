@@ -94,6 +94,7 @@ console.log(`Random seed set to: ${randomSeed}${launchOptions.aiAutoplay ? ' (AI
 const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), I18n.getString(568, 'Galactica-4'));
 const fullscreen = require('./src/js/fullscreen.js').createController(pdg,port,globalThis,drawingPreferences);
 fullscreen.restore();
+const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,sound});
 
 function createDefaultConfig(usePreferences=true) {
     if(usePreferences)return NewGameDefaults.createConfig(newGameDefaultsPreferences);
@@ -171,6 +172,7 @@ function foregroundApplicationWindow(){
     const area=port.getDrawingArea(),width=area.width(),height=area.height();
     if(userManual.error())return {name:'manualError',rect:userManual.layout(width,height,text=>port.getTextWidth(text,13)).rect};
     if(documents.dialog)return {name:documents.dialog.kind==='editor'?'textEntry':'documents',rect:documents.dialog.kind==='editor'?PlayerName.layout(width,height).rect:documents.layout(width,height).rect};
+    if(startupSettings.active)return null;
     if(sessions.starting || !game){
         if(startupAISkill)return {name:'startupSkill',rect:StartupSetup.skillMenu(width,height,pendingConfig).rect};
         if(startupComputerCount || startupGameTitle || startupPlayerName)return {name:'textEntry',rect:PlayerName.layout(width,height).rect};
@@ -408,6 +410,7 @@ function drawStartupDialog() {
 
     if(!sessions.active){const open=StartupSetup.cancelRegion(panelRect);drawStartupRoundedRect(open,7,startupStyles.advantageButton);port.drawText(I18n.getString(841,'Open Game…'),new pdg.Point(open.x+open.width/2,open.y+step(20)),startupStyles.startText);}
     if(sessions.active){const cancel=StartupSetup.cancelRegion(panelRect);drawStartupRoundedRect(cancel,7,startupStyles.advantageButton);port.drawText(I18n.getString(683,'Cancel'),new pdg.Point(cancel.x+cancel.width/2,cancel.y+step(20)),startupStyles.startText);}
+    const settings=StartupSetup.settingsRegion(panelRect);drawStartupRoundedRect(settings,7,startupStyles.advantageButton);drawStartupButtonCaption(settings,I18n.getString(759,'Settings'),startupStyles.startText,Math.max(9,14*scale));
     if(!tutorialSession){const tutorial=StartupSetup.tutorialRegion(panelRect);drawStartupRoundedRect(tutorial,7,startupStyles.advantageButton);drawStartupButtonCaption(tutorial,I18n.getString(960,'Tutorial'),startupStyles.startText,Math.max(9,14*scale));}
     drawStartupRoundedRect(StartupSetup.startRegion(panelRect),7,startupStyles.advantageButton);
     const start=StartupSetup.startRegion(panelRect),manual=StartupSetup.manualRegion(panelRect);
@@ -769,6 +772,7 @@ if (launchOptions.aiAutoplay) {
 
 // Create event handlers using the correct PDG syntax
 const drawHandler = new pdg.IEventHandler(function(event) {
+    if(startupSettings.active){drawStartupDialog();startupSettings.draw();return true;}
     if(userManual.error()){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawManualFailure();return true;}
     if(documents.dialog){if(game && !sessions.starting){game.display.clearControlHelp();game.draw();}else drawStartupDialog();drawDocumentDialog();drawStartupControlHelp();return true;}
     if (!sessions.starting && game) {
@@ -805,6 +809,7 @@ let hasDragged = false; // Track if user has dragged during left click
 
 const mouseHandler = new pdg.IEventHandler(function(event) {
     startupHelp.clear();startupHoverPoint=null;
+    if(startupSettings.active)return startupSettings.mouse(event);
     if(game && game.display)game.display.clearControlHelp();
     if(event && event.eventType===pdg.eventType_MouseUp && windowPlacement.end(event.mousePos.x,event.mousePos.y))return true;
     if(event && event.eventType===pdg.eventType_MouseUp && event.buttonNumber===0 && tutorialPointerCapture){tutorialPointerCapture=false;if(tutorialPanel)tutorialPanel.mouseUp(event.mousePos.x,event.mousePos.y);return true;}
@@ -852,6 +857,8 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
                 else if(contains(layout.field)){editor.selected=true;editor.caret=Array.from(editor.text).length;}
                 return true;
             }
+            const settings=StartupSetup.settingsRegion(StartupSetup.panelRect(area.width(),area.height()));
+            if(event.mousePos.x>=settings.x && event.mousePos.x<settings.x+settings.width && event.mousePos.y>=settings.y && event.mousePos.y<settings.y+settings.height){startupSettings.open();return true;}
             const tutorial=StartupSetup.tutorialRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(!tutorialSession && event.mousePos.x>=tutorial.x && event.mousePos.x<tutorial.x+tutorial.width && event.mousePos.y>=tutorial.y && event.mousePos.y<tutorial.y+tutorial.height){beginTutorial();return true;}
             const manual=StartupSetup.manualRegion(StartupSetup.panelRect(area.width(),area.height()));
@@ -961,6 +968,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse wheel handler for zooming
 const mouseWheelHandler = new pdg.IEventHandler(function(event) {
+    if(startupSettings.active)return true;
     if(tutorialPanel && !userManual.error() && !documents.dialog && event && event.eventType===pdg.eventType_ScrollWheel){
         const p=pdg.gfx.getMouse(),c=tutorialPanelContext();if(tutorialPanel.wheel(p.x,p.y,event.vertDelta || 0,c.screen,c.measure,c.targets))return true;
     }
@@ -986,6 +994,7 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse move handler for drag scrolling
 const mouseMoveHandler = new pdg.IEventHandler(function(event) {
+    if(startupSettings.active)return startupSettings.move(event);
     if(tutorialPointerCapture && event && event.eventType===pdg.eventType_MouseMove && event.leftButton===false)tutorialPointerCapture=false;
     if(tutorialPanel && event && event.eventType===pdg.eventType_MouseMove && tutorialPanel.mouseMove(event.mousePos.x,event.mousePos.y,event.leftButton))return true;
     if(event && event.eventType===pdg.eventType_MouseMove && windowPlacement.drag){
@@ -1043,6 +1052,7 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
 });
 
 const keyHandler = new pdg.IEventHandler(function(event) {
+    if(startupSettings.active){if(event && event.eventType===pdg.eventType_KeyPress){startupSettings.key(event.unicode);if(!startupSettings.active && game)game.display.reloadUIStrings();}return true;}
     if(windowPlacement.drag && event && event.eventType===pdg.eventType_KeyPress && event.unicode===pdg.key_Escape){windowPlacement.end();return true;}
     if(event && event.eventType===pdg.eventType_KeyPress){startupHelp.clear();startupHoverPoint=null;}
     if(userManual.error()){if(event && event.eventType===pdg.eventType_KeyPress && [pdg.key_Escape,13,3,32].includes(event.unicode))userManual.clearError();return true;}

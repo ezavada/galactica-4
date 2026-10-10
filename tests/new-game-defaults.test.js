@@ -2,6 +2,28 @@ const test=require('./test-framework.js'),Defaults=require('../src/js/new-game-d
 function fixture(){const values={},env={window:{localStorage:{getItem:key=>values[key],setItem:(key,value)=>values[key]=value}}},preferences=Defaults.createPreferences(env);
  const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true}));game.port={getDrawingArea:()=>new pdg.Rect(800,600)};const display=new Display(game);game.newGameDefaultsPreferences=preferences;game.uiWindow='settings';return {values,env,preferences,game,display};}
 module.exports=()=>test.describe('Application new-game defaults',()=>{
+ test.it('offers distinct startup settings, tutorial and open/cancel controls with localized help',()=>{
+  const setup=require('../src/js/startup-setup.js');
+  for(const [width,height] of [[800,600],[320,340]]){const rect=setup.panelRect(width,height),rows=[setup.tutorialRegion(rect),setup.settingsRegion(rect),setup.cancelRegion(rect)];
+   for(let i=0;i<rows.length;i++){const row=rows[i];test.assertTrue(row.x>=rect.x && row.x+row.width<=rect.x+rect.width);test.assertTrue(row.y+row.height<=rect.y+rect.height);if(i)test.assertTrue(rows[i-1].x+rows[i-1].width<row.x);}
+   test.assertDefined(setup.helpRegions(width,height,new Config()).find(row=>row.action.type==='startupSettings'));test.assertTrue(!!Help.describe({type:'startupSettings'}));
+  }
+ });
+ test.it('edits startup preferences without creating map objects or mutating an existing setup/game',()=>{
+  const {env,preferences,game}=fixture(),before=Save.serialize(game),pending=new Config({density:7}),setupBefore=JSON.stringify(pending);
+  const drawingPreferences=require('../src/js/drawing-preferences.js').createPreferences(env),sounds=[];
+  const window=new (require('../src/js/startup-settings.js'))(game.port,{newGameDefaultsPreferences:preferences,drawingPreferences,sound:{play:id=>sounds.push(id),isEnabled:()=>true}});
+  test.assertFalse(window.active);window.open();const model=window.model;test.assertTrue(window.active);test.assertEqual(model.stars.length,0);test.assertEqual(model.allShips.length,0);test.assertEqual(model.config.numComputers,0);
+  const rect=model.display.getActiveWindowRect();window.mouse({eventType:pdg.eventType_MouseDown,buttonNumber:0,mousePos:{x:rect.x+50,y:rect.y+12}});
+  window.move({mousePos:{x:900,y:700},leftButton:true});window.key(pdg.key_Escape);test.assertTrue(window.active);test.assertNull(model.uiWindowDrag);test.assertDefined(drawingPreferences.readWindowPosition('settings'));
+  window.key(13);window.key(pdg.key_Tab);window.key('n'.charCodeAt(0));test.assertEqual(model.turn,1);test.assertEqual(model.uiWindow,'settings');
+  window.mouse({eventType:pdg.eventType_MouseDown,buttonNumber:0,mousePos:{x:0,y:0}});test.assertEqual(sounds.at(-1),1012);
+  model.executeUIAction({type:'openNewGameDefaults'});model.executeUIAction({type:'openNewGameDefaultChoice',field:'density'});model.executeUIAction({type:'setNewGameDefault',field:'density',value:10});window.key(13);test.assertEqual(preferences.read().density,10);test.assertEqual(model.uiWindow,'settings');
+  window.key(pdg.key_F3);test.assertFalse(drawingPreferences.readGrid());window.key(pdg.key_Escape);test.assertFalse(window.active);
+  test.assertEqual(JSON.stringify(pending),setupBefore);test.assertEqual(Save.serialize(game),before);
+  window.open();test.assertEqual(window.model,model);test.assertFalse(model.showGrid);model.executeUIAction({type:'openNewGameDefaults'});model.executeUIAction({type:'cycleNewGameDefault',field:'fastGame'});window.key(pdg.key_Escape);window.key(pdg.key_Escape);test.assertTrue(preferences.read().fastGame);
+ });
+
  test.it('restores separate preferences in both adapters without storing title, players or autoplay',()=>{
   for(const native of [false,true]){const values={},storage={getItem:key=>values[key],setItem:(key,value)=>values[key]=value},cfg={useConfig:()=>{},getConfigString:storage.getItem,setConfigString:storage.setItem},env=native?{pdg:{cfg}}:{window:{localStorage:storage}};
    const p=Defaults.createPreferences(env),wanted={sectorSize:2,density:4,compSkill:5,compAdvantage:-2,fastGame:false,omniscient:true};p.write({...wanted,gameTitle:'Private',numComputers:77,autoplay:{enabled:true}});
