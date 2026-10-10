@@ -36,6 +36,27 @@ module.exports=()=>test.describe('V3 delayed control help',()=>{
  test.it('provides front setup controls with help at regular and smaller sizes',()=>{
   const config=new Config();for(const size of [screen,{width:640,height:480}]){const regions=Setup.helpRegions(size.width,size.height,config);for(const region of regions){test.assertTrue(!!Help.describe(region.action));test.assertTrue(region.rect.y>=0&&region.rect.y+region.rect.height<=size.height);}test.assertEqual(regions.filter(r=>r.action.type==='startupDensity').length,10);}
  });
+ test.it('explains each hull in build and colony defaults without changing production',()=>{
+  const language=pdg.res.getLanguage();
+  try{for(const code of ['en','de','es','fr','ja','ru']) {
+   pdg.res.setLanguage(code);const {game,display,home}=fixture();const before=JSON.stringify({hull:home.currentShip,defaults:game.players[1].defaultBuildType});
+   for(const [index,type] of ['defense','scout','colony','battleship'].entries()) {
+    const action=display.getContextActions(home).find(a=>a.action.type==='buildShip'&&a.action.shipType===type).action;
+    const role=pdg.res.getString(921+index);const build=Help.describe(action);
+    test.assertTrue(build.startsWith(role));test.assertTrue(build.includes(pdg.res.getString(861)));
+    game.beginColonyDefaults();const defaults=display.getColonyDefaultActionRegions().find(a=>a.action.type==='setColonyDefaultHull'&&a.action.hull===index+1).action;
+    const text=Help.describe(defaults);test.assertTrue(text.startsWith(role));test.assertTrue(text.includes(pdg.res.getString(890)));
+    game.uiWindow=null;
+    for(const explanation of [build,text]) {
+     const help=new Help.HoverHelp(),c=candidate(type,explanation);help.sample(c,0,{width:320,height:420},measure);
+     const hint=help.sample(c,1000,{width:320,height:420},measure);test.assertDefined(hint);
+     test.assertTrue(hint.rect.y>=0&&hint.rect.y+hint.rect.height<=420);
+     test.assertEqual(hint.lines.join('').replace(/\s/g,''),explanation.replace(/\s/g,''));
+    }
+   }
+   test.assertEqual(JSON.stringify({hull:home.currentShip,defaults:game.players[1].defaultBuildType}),before);
+  }}finally{pdg.res.setLanguage(language);}
+ });
  test.it('fits complete translated help for every action in all supported languages',()=>{
   const lang=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);for(const type of Object.keys(Help.helpIds)){const text=Help.describe({type});test.assertTrue(text.length>10);const help=new Help.HoverHelp(),c=candidate(type,text);help.sample(c,0,{width:320,height:420},measure);const hint=help.sample(c,1000,{width:320,height:420},measure);test.assertDefined(hint);for(const line of hint.lines)test.assertTrue(measure(line)<=hint.rect.width-24);test.assertEqual(hint.lines.join('').replace(/\s/g,''),text.replace(/\s/g,''));}}}finally{pdg.res.setLanguage(lang);}
  });

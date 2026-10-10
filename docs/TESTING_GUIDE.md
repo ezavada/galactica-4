@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1031
-Passed: 1031 ✓
+Total: 1032
+Passed: 1032 ✓
 Failed: 0 ✗
 ```
 
@@ -211,3 +211,5 @@ Arrival container parity: `tests/arrival-containers.test.js` adds twelve regress
 Control flyby help: `tests/control-help.test.js` adds eleven regressions for linger/change/leave/resize, complete Unicode and mixed-width glyph wrapping, actual-vs-target allocation semantics, star default-destination identity, front-window input isolation, drag/targeting/illustrated suppression, keyboard/click dismissal, native/browser/failing storage, coverage of current actions and setup controls, and all translated explanations. Full suites: 1029 passed on release/current native PDG. Browser before/after checks in all six languages cover startup, sliders/locks/default destinations, End Turn, modal Settings/language, disabling/re-enabling/reload, course Add/click-through, saved-game menu/name editors, resumed-game global preference and smaller windows. Reviewed artifacts: `/private/tmp/galactica-parity/help-{before,after}`. Final browser logs: `/private/tmp/galactica-help-complete-<language>.log`; full-suite logs: `/private/tmp/galactica-help-{tests,native-tests}.log`.
 
 Hull order eligibility: `tests/waypoint-course.test.js` now verifies destination-entry controls and direct/keyboard orders for all four hulls, unfinished ships and fleet members, while retaining independent fleet orders, star default destinations and read-only satellite courses. Full suites: 1031 passed on release/current native PDG. Actual browser before/after checks and reviewed screenshots cover all four hull inspectors and Orders clicks in English, German, Spanish, French, Japanese and Russian. Artifacts: `/private/tmp/galactica-parity/hull-orders-{before,after}`; logs: `/private/tmp/galactica-hull-orders-{tests,native-tests}.log` and `/private/tmp/galactica-hull-orders-{before,after}-<language>.log`.
+
+Hull-choice help: `tests/control-help.test.js` checks all four actual build/default actions in all six languages, untouched production on hover, complete descriptions, and smaller viewport bounds. Full suites: 1032 passed on release/current native PDG. Browser before/after checks click through every hull choice in both windows; screenshots inspected under `/private/tmp/galactica-parity/hull-help-{before,after}`. Logs: `/private/tmp/galactica-hull-help-{tests,native-tests}.log` and `/private/tmp/galactica-hull-help-{before,after}-<language>.log`.

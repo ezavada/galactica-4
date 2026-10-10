@@ -559,3 +559,7 @@
 918	Return to the last saved turn after confirmation. Unsaved changes will be discarded.
 919	Enter the name of the file that will hold this saved game. Cancel leaves the current save unchanged.
 920	Enter the path of a saved Galactica-4 game to open. Cancel leaves the current game unchanged.
+921	Satellite: inexpensive stationary defense. It always patrols its system and cannot travel or join a fleet. It has no scanner.
+922	Scout/Courier: fast and unarmed, with a scanner. Explore space and carry technology between allied systems; couriers learn the technology of systems they visit.
+923	Colony ship: costly and slow. It is consumed when colonizing a neutral system or capturing a defeated enemy system. Escort it through hostile space.
+924	Battleship: a mobile combat ship for attacking and escorting. Higher technology increases its combat power and unlocks stronger named classes. It has no scanner.

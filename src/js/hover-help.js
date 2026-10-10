@@ -121,10 +121,14 @@ const helpIds=Object.freeze({
   "openFileName": 920
 });
 
+const hullHelpIds=Object.freeze({defense:921,scout:922,colony:923,battleship:924});
+const hullTypes=['defense','scout','colony','battleship'];
 const delay=750;
 function describe(action) {
  if (action && action.type==='beginOrders' && action.object && typeof action.object.isStar==='function' && action.object.isStar()) return I18n.getString(912);
- return action && helpIds[action.type] ? I18n.getString(helpIds[action.type]) : '';
+ const generic=action && helpIds[action.type] ? I18n.getString(helpIds[action.type]) : '';
+ const hull=action && (action.type==='buildShip'?action.shipType:action.type==='setColonyDefaultHull'?hullTypes[action.hull-1]:null);
+ return hullHelpIds[hull] ? I18n.getString(hullHelpIds[hull])+'\n'+generic : generic;
 }
 function wrap(text,width,measure) {
  const lines=[];let line='';

@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 455 IDs
-- localized files: 455 IDs each
+- `strings.txt`: 459 IDs
+- localized files: 459 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 1031 passed, 0 failed.
+Current expected full-suite result: 1032 passed, 0 failed.
 
 ## Future work
 
@@ -175,3 +175,5 @@ Technology-transfer repricing uses the existing localized technology, constructi
 Highest-container arrivals retain existing localized inspector, docking, fleet-content, order and combat-summary resources. Actual browser nested arrivals, satellite docking and planetary interception/report flows pass in all six languages; translated group/report screenshots were inspected under `/private/tmp/galactica-parity/arrival-{before,after}`. Resource counts remain 391 per language. Full suites: 1018 passed on release/current native PDG.
 
 Control flyby help adds IDs 857–920 in English, German, Spanish, French, Japanese and Russian, bringing each resource file to 455 IDs. Explanations cover runtime controls, actual/target allocation semantics, system default destinations, all startup options, text editors and action-specific local file commands/confirmations. Measured Unicode wrapping retains every character without truncation; language switching updates descriptions immediately, while native-script language names remain unchanged. Actual browser help, Settings, persistence/reload, file editors, course commands, resumed games and smaller-window checks pass in all six languages; before/after and translated screenshots were inspected under `/private/tmp/galactica-parity/help-{before,after}`. Full suites: 1029 passed on release/current native PDG. Manual/tutorial, multiplayer and richer report translations remain future port work.
+
+Hull-role explanations add IDs 921–924 in all six languages (459 IDs per file). Build choices and new-colony default hull choices explain satellite immobility/mandatory patrol, scout scanning and technology delivery, colony consumption and escort needs, and battleship combat/class progression. Existing build-credit and future-colony explanations are retained. All translated descriptions wrap completely at smaller test widths without changing production on hover. Actual browser before/after screenshots and build/default click-through checks pass in en/de/es/fr/ja/ru; reviewed artifacts: `/private/tmp/galactica-parity/hull-help-{before,after}`. Full suites: 1032 passed on release/current native PDG.

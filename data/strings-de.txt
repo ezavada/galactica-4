@@ -559,3 +559,7 @@
 918	Nach Bestätigung zum zuletzt gespeicherten Zug zurückkehren. Ungespeicherte Änderungen gehen verloren.
 919	Den Namen der Datei für diesen Spielstand eingeben. Abbrechen lässt die bisherige Speicherung unverändert.
 920	Den Pfad eines gespeicherten Galactica-4-Spiels zum Öffnen eingeben. Abbrechen lässt das aktuelle Spiel unverändert.
+921	Satellit: preiswerte stationäre Verteidigung. Er patrouilliert immer in seinem System und kann weder reisen noch einer Flotte beitreten. Er hat keinen Scanner.
+922	Späher/Kurier: schnell und unbewaffnet, mit einem Scanner. Erkunde den Weltraum und transportiere Technologie zwischen verbündeten Systemen; Kuriere übernehmen die Technologie besuchter Systeme.
+923	Kolonieschiff: teuer und langsam. Es wird beim Besiedeln eines neutralen Systems oder Erobern eines besiegten feindlichen Systems verbraucht. Gib ihm Geleitschutz in feindlichem Raum.
+924	Schlachtschiff: ein mobiles Kampfschiff für Angriffe und Geleitschutz. Höhere Technologie steigert seine Kampfkraft und schaltet stärkere benannte Klassen frei. Es hat keinen Scanner.
