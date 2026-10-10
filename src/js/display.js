@@ -706,8 +706,14 @@ class Display {
         }
     }
     
+    isPatrolHiddenOnMap(object) {
+        return object!==this.selectedObject && !!object.star && object.isOnPatrol &&
+            object.isOnPatrol() && !object.destination;
+    }
+
     // Draw a single ship
     drawShip(ship) {
+        if(this.isPatrolHiddenOnMap(ship))return;
         // Convert galactic coordinates to screen coordinates
         let x = this.toScreenX(ship.x);
         let y = this.toScreenY(ship.y);
@@ -816,6 +822,7 @@ class Display {
     
     // Draw a single fleet
     drawFleet(fleet) {
+        if(this.isPatrolHiddenOnMap(fleet))return;
         // Convert galactic coordinates to screen coordinates
         let x = this.toScreenX(fleet.x);
         let y = this.toScreenY(fleet.y);
@@ -1305,7 +1312,7 @@ class Display {
                 if (object.destination) {
                     actions.push({ key: 'X', label: this.STR.clear, action: { type: 'clearOrders' } });
                 }
-                actions.push({ key: 'P', label: this.STR.patrol, action: { type: 'togglePatrol' } });
+                if(this.game.canTogglePatrol(object))actions.push({ key: 'P', label: this.STR.patrol, action: { type: 'togglePatrol' } });
                 if (objectType === Common.ObjectType.FLEET) {
                     actions.push(
                         { key: 'N', label: this.STR.rename, action: { type: 'beginRename' } },
@@ -1425,7 +1432,8 @@ class Display {
         }
         for (const button of buttons) {
             this.drawUIButton(button.rect, button.label, button.key, { size: 10, radius: 14,
-                active: button.action.type === 'buildShip' && !!object.currentShip &&
+                active: button.action.type==='togglePatrol'?object.isOnPatrol():
+                    button.action.type === 'buildShip' && !!object.currentShip &&
                     object.currentShip.type === button.action.shipType });
         }
     }
@@ -1442,14 +1450,15 @@ class Display {
         const extraMemberHeight = visibleShips.length > 0 ? 16 + (visibleShips.length * memberRowHeight) : 0;
         const transferHeight = transferTargets.length > 0 ? 8 : 0;
         const destinationHeight = fleet.destination ? 18 : 0;
-        const height = 170 + (compositionRows.length * 16) + extraMemberHeight + transferHeight + destinationHeight;
+        const patrolHeight=fleet.isOnPatrol() && this.game.canViewCourse(fleet)?18:0;
+        const height = 170 + (compositionRows.length * 16) + extraMemberHeight + transferHeight + destinationHeight + patrolHeight;
         return {
             rect: this.getAnchoredPanelRect(fleet, 310, height),
             visibleShips,
             transferTargets,
             compositionRows,
-            memberRowHeight,
-            memberStartOffset: 18 + 18 + 18 + 22 + (compositionRows.length * 16) + destinationHeight + 30
+            memberRowHeight,patrolHeight,
+            memberStartOffset: 18 + 18 + 18 + 22 + (compositionRows.length * 16) + destinationHeight + patrolHeight + 30
         };
     }
 
@@ -1592,13 +1601,15 @@ class Display {
         const selection=this.game.courseSelection;
         if(this.game.canEditCourse(object)) {
             const definitions=[['addWaypoint',729,'Add','A'],['editWaypoint',730,'Edit','E'],
-                ['deleteWaypoint',731,'Delete','D'],['clearOrders',732,'Clear course','X']];
+                ['deleteWaypoint',731,'Delete','D'],['clearOrders',732,'Clear course','X'],
+                ['togglePatrol',577,'Patrol','P']];
             definitions.forEach(([type,id,fallback,key],index)=> {
                 if(['editWaypoint','deleteWaypoint'].includes(type) && !object.course.waypoints[selection])return;
                 if(type==='clearOrders' && !object.course.waypoints.length)return;
-                const width=(r.width-28)/4;
+                if(type==='togglePatrol' && !this.game.canTogglePatrol(object))return;
+                const width=(r.width-28)/5;
                 regions.push({rect:{x:r.x+14+index*width,y:r.y+r.height-96,width:width-5,height:26},
-                    label:I18n.getString(id,fallback),key,action:{type,object}});
+                    label:I18n.getString(id,fallback),key,active:type==='togglePatrol' && object.isOnPatrol(),action:{type,object}});
             });
             const modeWidth=(r.width-150)/3,modeRect=index=>({
                 x:r.x+14+index*(modeWidth+8),y:r.y+r.height-64,width:modeWidth,height:24});
@@ -2326,6 +2337,11 @@ class Display {
         y += 18;
         this.drawLabelValue(this.STR.techLevel, fleet.techLevel.toString(), x, y, { labelWidth: 92 });
         y += 22;
+
+        if(layout.patrolHeight) {
+            this.drawLabelValue(I18n.getString(699,'Status:'),I18n.getString(703,'Patrolling'),x,y,{labelWidth:92,size:11});
+            y+=18;
+        }
 
         for (const [shipType, count] of compositionRows) {
             this.drawLabelValue(`${this.getShipTypeName(shipType, { capitalized: true })}:`, count.toString(), x, y, { labelWidth: 92, size: 11, valueColor: 'gray' });

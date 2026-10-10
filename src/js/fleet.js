@@ -307,6 +307,7 @@ class Fleet {
     
     // Move the fleet one turn
     move() {
+        if(this.destination && this.totalSpeed>0)this.star=null;
         if(this.destination && this.game && this.game.movePursuedTargetFirst)this.game.movePursuedTargetFirst(this);
         if(this.game && this.game.movementTurn && (!this.game.allFleets.includes(this) || this.isEmpty()))return false;
         if (this.destination) this.calculateMovement();
@@ -488,7 +489,7 @@ class Fleet {
     setPatrol(onPatrol) {
         this.onPatrol = !!onPatrol;
         for (const ship of this.ships) {
-            if (ship.setPatrol) {
+            if (ship.setPatrol && !ship.destination) {
                 ship.setPatrol(this.onPatrol);
             }
         }

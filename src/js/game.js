@@ -1159,6 +1159,7 @@ class Game {
             else if (lower==='l') this.executeUIAction({type:'toggleCourseLoop'});
             else if (lower==='m') this.executeUIAction({type:'swapCourseMemory'});
             else if (lower==='h') this.executeUIAction({type:'toggleCourseHunt'});
+            else if (lower==='p') this.togglePatrol(this.courseWindowObject);
             return true;
         }
 
@@ -1247,8 +1248,13 @@ class Game {
                 return this.toggleUIWindow('menu');
             case 'e':
                 return this.toggleUIWindow('events');
-            case 'p':
+            case 'p': {
+                const type=this.getObjectType(this.selectedObject);
+                if([Common.ObjectType.SHIP,Common.ObjectType.FLEET].includes(type)) {
+                    this.togglePatrol(this.selectedObject);return true;
+                }
                 return this.toggleProductionWindow();
+            }
             case 'v':
                 return this.toggleUIWindow('comparison');
             case 'l':
@@ -1771,18 +1777,17 @@ class Game {
         return true;
     }
 
+    canTogglePatrol(object=this.selectedObject) {
+        return this.canEditCourse(object) && !!object.star;
+    }
+
     togglePatrol(object = this.selectedObject) {
-        if (!object || !this.canHumanControl(object) || !object.setPatrol) {
-            return false;
-        }
-        const objectType = this.getObjectType(object);
-        if (objectType !== Common.ObjectType.SHIP && objectType !== Common.ObjectType.FLEET) {
-            return false;
-        }
+        if(!this.canTogglePatrol(object))return false;
         const newPatrol = !(object.isOnPatrol && object.isOnPatrol());
         object.setPatrol(newPatrol);
-        if (newPatrol && object.setDestination) {
-            object.setDestination(null);
+        if(newPatrol) {
+            object.course.clear();
+            if(this.courseWindowObject===object) {this.courseSelection=null;this.coursePage=0;}
         }
         this.recordEvent(
             I18n.getString(604, 'Orders'),
@@ -1897,6 +1902,8 @@ class Game {
         // Check for ship clicks (using screen-space radius for consistent UI feel)
         const shipRadiusSquared = Common.ShipRadius * Common.ShipRadius;
         for (const ship of this.allShips) {
+            if(ship.fleet)continue; // Fleet members are not independent map markers.
+            if(this.display.isPatrolHiddenOnMap && this.display.isPatrolHiddenOnMap(ship))continue;
             // Convert ship position to screen for distance check
             const shipScreenX = this.display.toScreenX(ship.x);
             const shipScreenY = this.display.toScreenY(ship.y);
@@ -1919,6 +1926,7 @@ class Game {
         // Check for fleet clicks (using screen-space radius for consistent UI feel)
         const fleetRadiusSquared = Common.ShipRadius * Common.ShipRadius * 2.25; // Fleet hexagons are larger than ships
         for (const fleet of this.allFleets) {
+            if(this.display.isPatrolHiddenOnMap && this.display.isPatrolHiddenOnMap(fleet))continue;
             // Convert fleet position to screen for distance check
             let fleetScreenX = this.display.toScreenX(fleet.x);
             let fleetScreenY = this.display.toScreenY(fleet.y);
