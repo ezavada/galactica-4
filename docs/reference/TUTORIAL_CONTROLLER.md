@@ -6,8 +6,9 @@ original lessons. It is connected to an explicitly bound tutorial game through
 panel. Launch it with Tutorial on the start screen or in-game command menu.
 The full normal guided route is verified through real UI input in all six
 languages; public launch/cancellation is also verified in each language, with a
-complete English run from the visible launch button. Complete
-tutorial save/resume remains required work in `V3_V4_FEATURE_STATUS.md`.
+complete English run from the visible launch button. V3 saves the practice game
+without persisting instruction progress. Active-tutorial Open/Revert ownership
+remains open; see the source audit below.
 
 The constructor accepts decoded page metadata and callbacks. Use `tutorial-lessons.js::load(dataDirectory, language)` for runtime pages;
 `v3-tutorial.json` is a source reference,
@@ -93,8 +94,8 @@ callbacks and is idempotent. Attachment failures roll back partial wrappers.
 
 Runtime `snapshot()` includes actor IDs and controller progress; `restore()`
 validates hull/owner identities and progress before applying them. This is not a
-complete tutorial save: the session owner must also preserve the game graph,
-renderer/camera, file association, previous game and progress in setup. Normal
+complete tutorial save. These internal snapshots are not evidence that v3
+persisted tutorial progress. Normal
 Save/restore does not install or persist the runtime automatically. The startup actions for lessons 1–4 are connected by the session owner below.
 All sixty lesson texts are now available in six languages, with recovery pages
 and platform variants. The visible instruction panel is implemented below; the full walkthrough remains unfinished. No startup/menu
@@ -355,4 +356,26 @@ six languages, including ordinary practice-document promotion. Reviewed lesson
 screenshots are under `/private/tmp/galactica-parity/tutorial-illustrations/<language>`;
 separate rendered galleries cover all picture IDs, including startup exceptions,
 under `/private/tmp/galactica-parity/tutorial-illustration-gallery/<language>`.
-Full tutorial save/resume remains unfinished.
+Active-tutorial Open/Revert ownership remains unfinished.
+
+
+### Save scope and active-document binding audit
+
+V3 `Classes/GalacticaSingleDoc.cp::DoSave` (350–478) and
+`ReadSavedTurnFile` (482–827) serialize the ordinary practice game, not the
+instruction page or wait timer. Reserved expansion space is zeroed on write
+and skipped on read. `GalacticaTutorial.h` keeps page numbers in runtime fields
+and exposes no save/load API. `Galactica.cpp::OpenDocument` (1945–1981) opens
+saved games as ordinary documents; only a tutorial resource launches instructions.
+Consequently cross-launch tutorial resume is not a shipped-v3 parity requirement.
+Older progress entries in this document calling it required are superseded by
+this audit.
+
+Within the running application, `GalacticaDoc::ShowWindow` (2638–2651) calls
+`ReassignControlTo(this)` whenever instructions are active. Revert rebuilds the
+map then calls ShowWindow (`GalacticaSingleDoc.cp:832–858`). V4's corresponding
+load/revert paths currently leave the tutorial owner bound to the previous game.
+That defect requires a separate implementation and verification item. Ordinary
+practice saves preserve the graph and private RNG; they do not reactivate the
+instruction runtime when opened. This source audit changes documentation only
+and does not claim full tutorial or project parity.
