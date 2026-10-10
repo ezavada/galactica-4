@@ -4,6 +4,7 @@
 // Uses PDG's built-in pdg.srand() and pdg.rand() for deterministic testing
 
 const test = require('./test-framework.js');
+const runStardockArtTests=require('./stardock-art.test.js');
 const runBuiltShipReportsTests=require('./built-ship-reports.test.js');
 const runCallInReportsTests=require('./callin-reports.test.js');
 const runTutorialModalTests=require('./tutorial-modal.test.js');
@@ -266,6 +267,7 @@ runDocumentFileTests();
 runTutorialModalTests();
 runCallInReportsTests();
 runBuiltShipReportsTests();
+runStardockArtTests();
     runMapDisplayModeTests();
 
     // Print summary

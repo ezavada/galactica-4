@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1278 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1391 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -2244,3 +2244,41 @@ Evidence: `/private/tmp/galactica-built-report-{tests,public-tests,<language>,be
 This completes the ordinary owner notice alongside the prior call-in item. The
 remaining recipient/event matrix, other v3 parity items and Map Generation
 checklist still require implementation or individual verified blocker evidence.
+
+### High-class Lab and Stardock artwork
+
+Verified the shipped class enum (`Classes/GalacticaConsts.h:796–816`), image
+limit constants (65–66), and `CShip::GetViewLayrResIDOffset` (650–666). V3's
+selected-item image offset is capped at 12; battleship classes start at offset
+3, so that cap corresponds to the tenth battleship illustration. V4 supplies
+those ten images through Banshee, but its class-name list continues beyond them.
+The Stardock renderer previously requested absent Talon and later image files.
+It now caps the illustration at Banshee while retaining actual class names,
+technology, statistics, commissioning flags and recipient-private presentation.
+This applies the source's finite-image policy to V4's Stardock asset lookup; it
+does not introduce another class-name or simulation limit.
+
+Lab blueprint lookups previously added a literal zero before every index, so
+indices 10–12 requested absent `blue-010.png` through `blue-012.png`. They now
+use two-digit formatting and the supplied assets. The blueprint PNGs contain
+opaque black backgrounds: the renderer applies PDG `Image.setTransparentColor`
+to black when loading, preserving the lab background and foreground artwork.
+Blueprint and ship images reuse the renderer cache rather than being fetched
+on every frame. Existing credits and source assets stay intact.
+
+Six regressions cover all ten ship pictures, higher/malformed indices, actual
+tech-75 commissioning with retained Viper class/technology, every reachable lab
+blueprint, native transparent pixels/cache identity and all supported languages.
+Both native runtimes pass 1,391 tests. The actual-input browser runner
+`tools/test-web-high-class-art.cjs` sets deterministic production/research credit,
+then clicks Battleship production and End Turn to advance tech 49 to 50. It
+checks and captures the real Lab followed by Talon Stardock, acknowledges them,
+then uses Events and Go to without changing the turn. All six languages pass.
+Reviewed before/after images show the previously absent blueprint and battleship,
+correct transparent lab composition and unchanged localized class labels.
+Automated audio output remains muted.
+
+Evidence: `/private/tmp/galactica-high-art-{tests,public-tests,<language>,before}.log`,
+`/private/tmp/galactica-parity/high-art` and
+`/private/tmp/galactica-high-art-{before-after,languages}.png`.
+The remaining v3 parity and Map Generation checklist remain active.

@@ -3942,10 +3942,12 @@ class Display {
     }
 
     // Helper to load an image once
-    getImageCached(key, filename) {
+    getImageCached(key, filename, transparentColor) {
         if (!this.images[key]) {
             try {
-                this.images[key] = pdg.res.getImage(filename);
+                const image = pdg.res.getImage(filename);
+                if (image && transparentColor) image.setTransparentColor(transparentColor);
+                this.images[key] = image;
             } catch (e) {
                 console.log(`Failed to load image ${filename}:`, e);
             }
@@ -3953,16 +3955,12 @@ class Display {
         return this.images[key];
     }
 
-    // Map class index to ship art filename base
+    // V3 caps the image offset at hull types + available battleship pictures
+    // (CShip::GetViewLayrResIDOffset). Class names and statistics keep advancing.
     getShipArtNameForClass(classIndex) {
-        try {
-            const namesStr = I18n.getString(800, 'Traveller');
-            const list = namesStr.split('|');
-            const name = list[Math.max(0, Math.min(list.length - 1, classIndex - 1))];
-            return name.toLowerCase();
-        } catch (e) {
-            return 'unknown';
-        }
+        const art = ['traveller','rama','hawk','falcon','riviel','raven','valkyrie','wolven','avenger','banshee'];
+        const index = Number.isFinite(classIndex) ? Math.trunc(classIndex) : 1;
+        return art[Math.max(0, Math.min(art.length - 1, index - 1))];
     }
 
     getOutcomeLayout(overlay) {
@@ -4070,9 +4068,8 @@ class Display {
             const back = this.getImageCached('labback', 'events/labback.png');
             const top = this.getImageCached('labtop', 'events/labtop.png');
             const blueprintIdx = Math.max(1, Math.min(12, overlay.classIndex + 1));
-            const blueprintName = `tech/blue-0${blueprintIdx}.png`;
-            let blueprint = null;
-            try { blueprint = pdg.res.getImage(blueprintName); } catch (e) { }
+            const blueprintName = `tech/blue-${String(blueprintIdx).padStart(2, '0')}.png`;
+            const blueprint = this.getImageCached(blueprintName, blueprintName, new pdg.Color('black'));
             const centerRect = this.toPDGRect({
                 x: drawingArea.width() * 0.1,
                 y: drawingArea.height() * 0.05,
@@ -4088,8 +4085,7 @@ class Display {
             const front = this.getImageCached('stardockfront', 'events/newstardockfront.png');
             const hull=overlay.shipType || overlay.ship && overlay.ship.type;
             const base = hull && hull!=='battleship' ? {defense:'satellite',scout:'scout',colony:'colony'}[hull] : this.getShipArtNameForClass(overlay.classIndex);
-            let shipImg = null;
-            try { shipImg = pdg.res.getImage(`ships/${base}.png`); } catch (e) {}
+            const shipImg = this.getImageCached(`ship:${base}`, `ships/${base}.png`);
             const centerRect = this.toPDGRect({
                 x: drawingArea.width() * 0.05,
                 y: drawingArea.height() * 0.15,
