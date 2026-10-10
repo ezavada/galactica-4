@@ -648,4 +648,5 @@ class Star {
 Star.nextId = 1;
 
 // Export the class
+Star.Allocation=Allocation;
 module.exports = Star;

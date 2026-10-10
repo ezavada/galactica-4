@@ -341,7 +341,7 @@ class Game {
         // Select the player's home star after display is set
         // Use setTimeout to ensure the display is fully constructed
         setTimeout(() => {
-            this.selectHomeStar();
+            if(!this.restoredFromSave)this.selectHomeStar();
         }, 0);
     }
     setRules(rules) {
@@ -1759,6 +1759,7 @@ class Game {
         }
 
         switch (action.type) {
+            case 'fileMenu':return !!(this.fileCommands && this.fileCommands.menu());
             case 'newGame':return !!(this.sessionCommands && this.sessionCommands.begin());
             case 'showGames':
                 if(!this.sessionCommands)return false;

@@ -6,7 +6,7 @@ Run the full suite from the project root with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 979 passed, 0 failed.
+Current expected result: 992 passed, 0 failed.
 
 The launcher downloads the checksum-pinned public PDG release on first use;
 no sibling `pdg` or `pdg-devel` checkout is required.
@@ -69,3 +69,15 @@ Use `docs/TESTING_GUIDE.md` for details on adding or debugging tests.
 - `startup-fast-game.test.js`: checkbox/key state isolation, boolean validation, actual fast scan/speed/shipbuilding rates, smaller layout separation and all six native-language labels.
 
 - `startup-fog.test.js`: inverse checkbox/omniscient state, setup isolation, strict boolean validation, enemy detail/mobile visibility, public yellow-star and disguised-homeworld names, comparison metadata, separated hit areas and six-language labels.
+
+- `game-save.test.js`: complete graph, shared/historical references, economy, visibility, camera/selection/Events state, spatial services, ID continuity and malformed saves.
+- `document-files.test.js`: portable suggested filenames.
+
+Run real file transactions and asynchronous document-controller integration separately:
+
+```bash
+./gad4 tests/document-files-async.js
+./gad4 tests/documents-async.js
+```
+
+These cover atomic writes, failure preservation, browser file handles/download/upload/cancellation, Save/Save As/Open/Revert, overwrite confirmation, session identity, malformed files and translated dialog bounds.

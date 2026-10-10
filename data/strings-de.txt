@@ -472,3 +472,23 @@
 // Local game documents
 836	Neues Spiel…
 837	Offene Spiele
+
+// Local saved-game documents
+838	Datei
+839	Spiel speichern
+840	Speichern unter…
+841	Spiel öffnen…
+842	Gespeicherten Stand laden
+843	Dateipfad
+844	Dateiname
+845	Das Spiel konnte nicht gespeichert werden.
+846	Das Spiel konnte nicht geöffnet werden.
+847	Diese Datei ist kein unterstützter Galactica-4-Spielstand.
+848	Spiel gespeichert: {0}
+849	Änderungen verwerfen und zur zuletzt gespeicherten Runde zurückkehren?
+850	Spiel wird gespeichert…
+851	Spiel wird geöffnet…
+852	Spielstand wird wiederhergestellt…
+853	Wählen Sie eine Datei zum Öffnen.
+854	Es ist kein gespeicherter Spielstand verfügbar.
+855	Vorhandene Datei ersetzen: {0}?

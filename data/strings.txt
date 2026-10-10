@@ -472,3 +472,23 @@
 // Local game documents
 836	New Game…
 837	Open Games
+
+// Local saved-game documents
+838	File
+839	Save game
+840	Save As…
+841	Open Game…
+842	Revert to Saved
+843	File path
+844	File name
+845	Could not save this game.
+846	Could not open this game.
+847	This file is not a supported Galactica-4 save.
+848	Game saved: {0}
+849	Discard changes and return to the last saved turn?
+850	Saving game…
+851	Opening game…
+852	Reverting game…
+853	Choose a file to open.
+854	No saved version is available.
+855	Replace the existing file: {0}?

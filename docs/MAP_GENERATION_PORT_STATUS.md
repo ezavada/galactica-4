@@ -31,7 +31,7 @@ This document used to be a forward-looking port plan. The core map-generation wo
 - `compAdvantage` now affects AI research and shipbuilding output, while `endEarly`, `maxTimePerTurn`, and `hosting` are stored but not active in the local turn loop.
 - `GameConfig.toMapGeneratorConfig()` intentionally passes only the map/player values needed by `MapGenerator`; other setup values are consumed by `Game`, `Rules`, AI, or future multiplayer systems.
 - The map generator creates mostly `S-##` unnamed systems and uses translated numerals for repeated named systems. Homeworld reservations share name-use accounting; translated name pools are deduplicated. Exhausted/repeated numeral entries fall back to unique `S-##` names.
-- Save/load, multiplayer host setup, turn posting, and timed-turn behavior are not part of the current map-generation implementation.
+- Local save/open/revert is implemented independently of map generation and restores the saved galaxy without regenerating it. Multiplayer host setup, turn posting and timed-turn behavior remain unimplemented.
 - Display modes, starlanes, scanner circles, and map overlays are rendering/UI work, not map-generation work.
 
 ## Test coverage
@@ -49,7 +49,7 @@ The full suite was last verified with:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 979 passed, 0 failed.
+Current expected result: 992 passed, 0 failed.
 
 ## Maintenance notes
 

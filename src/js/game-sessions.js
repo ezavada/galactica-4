@@ -14,6 +14,10 @@ class GameSessions {
         if(!session)return false;
         this.active=session;return session;
     }
+    replace(game,display) {
+        if(this.starting || !this.active)return false;
+        const session=this.active;session.game=game;session.display=display;session.autoplay=null;return session;
+    }
     rows() {return this.sessions.map(session=>({id:session.id,title:session.game.config.gameTitle,
         turn:session.game.turn,active:session===this.active}));}
 }

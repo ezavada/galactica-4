@@ -47,4 +47,6 @@ function displayName(game,star,viewer) {
         star.getVisibilityTo(viewer)>=Common.VisibilityLevel.CLASS)return star.name;
     return I18n.formatString(725,'S-{0}',star.id);
 }
-module.exports={isHome,undiscoveredHome,displayName};
+function snapshot(game) {return charts.get(game) || null;}
+function restore(game,chart) {if(chart)charts.set(game,chart);else charts.delete(game);}
+module.exports={isHome,undiscoveredHome,displayName,snapshot,restore};

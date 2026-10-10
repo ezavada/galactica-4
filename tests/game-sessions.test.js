@@ -17,7 +17,7 @@ module.exports=()=>test.describe('Local game documents and New Game lifecycle',(
  test.it('creates independent games and switches back without resetting either simulation',()=>{
   const {sessions,game,display}=fixture();game.turn=7;sessions.begin();const second=document('Second');const active=sessions.accept(second.game,second.display);second.game.turn=3;
   test.assertFalse(second.game.factory===game.factory);test.assertFalse(second.game.rules===game.rules);test.assertFalse(second.game.config===game.config);
-  test.assertTrue(sessions.select(1).game===game);test.assertEqual(game.turn,7);test.assertTrue(sessions.active.display===display);test.assertTrue(sessions.select(active.id).game===second.game);test.assertEqual(second.game.turn,3);
+  test.assertTrue(sessions.select(1).game===game);test.assertEqual(game.turn,7);test.assertTrue(sessions.active.display===display);test.assertTrue(sessions.select(active.id).game===second.game);test.assertEqual(second.game.turn,3);const replacement=document('Restored');const replaced=sessions.replace(replacement.game,replacement.display);test.assertEqual(replaced.id,active.id);test.assertEqual(sessions.sessions.length,2);test.assertTrue(sessions.active.game===replacement.game);
  });
  test.it('keeps document IDs stable even when titles match and rejects unknown IDs',()=>{
   const {sessions}=fixture();sessions.begin();const second=document();const accepted=sessions.accept(second.game,second.display);test.assertFalse(sessions.rows()[0].id===accepted.id);test.assertEqual(sessions.rows()[0].title,sessions.rows()[1].title);

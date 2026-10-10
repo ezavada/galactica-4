@@ -472,3 +472,23 @@
 // Local game documents
 836	Nueva partida…
 837	Partidas abiertas
+
+// Local saved-game documents
+838	Archivo
+839	Guardar partida
+840	Guardar como…
+841	Abrir partida…
+842	Volver a lo guardado
+843	Ruta del archivo
+844	Nombre del archivo
+845	No se pudo guardar la partida.
+846	No se pudo abrir la partida.
+847	Este archivo no es una partida compatible de Galactica-4.
+848	Partida guardada: {0}
+849	¿Descartar los cambios y volver al último turno guardado?
+850	Guardando partida…
+851	Abriendo partida…
+852	Restaurando partida…
+853	Elige un archivo para abrir.
+854	No hay ninguna versión guardada.
+855	¿Reemplazar el archivo existente: {0}?

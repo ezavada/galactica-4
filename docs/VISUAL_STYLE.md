@@ -176,3 +176,5 @@ Victory, defeat and stalemate use the shared neutral gradient/border panel over 
 ## Local game documents
 
 New Game and Open Games share the existing command menu. Opening setup retains the previous map and simulation; Cancel/Escape returns to that document, while cancelling the player-name dialog returns to setup. The neutral Open Games panel lists titles and turn numbers, highlights the active document and pages long lists. Its pointer/keyboard input stays above the map. The expanded command menu reduces row spacing in smaller drawing areas. All six languages reuse the shared styles and localized controls.
+
+File documents use the existing neutral gradient/bordered panel and dimmed modal background. Save As and native Open reuse the measured Unicode text editor; browser Open invokes a file chooser. File commands, confirmation and status/error panels use localized buttons, and modal input cannot advance a turn or move/zoom the map. Revert and Open restore camera and selection before the next drawing frame. Six-language before/after captures are recorded under `/private/tmp/galactica-parity/save-{before,after}`.

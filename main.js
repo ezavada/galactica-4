@@ -60,6 +60,7 @@ const GameConfig = require('./src/js/game-config.js');
 const I18n = require('./src/js/i18n.js');
 const Autoplay = require('./src/js/autoplay.js');
 const sessions=new (require('./src/js/game-sessions.js'))();
+const documents=new (require('./src/js/documents.js'))(require('./src/js/document-files.js').createFiles(),()=>sessions.active,installSavedGame,revertSavedGame);
 
 const launchOptions = {
     aiAutoplay: hasArg('--ai-autoplay', '--autoplay-ai-skills'),
@@ -148,6 +149,7 @@ function createStartupAttributes(definition = {}) {
 
 // Startup dialog drawing uses Attributes like CSS classes: define once, reuse at draw sites.
 const startupStyles = {
+    dim:createStartupAttributes({fillColor:new pdg.Color(0,0,0,0.5)}),
     checkboxMark:createStartupAttributes({lineColor:new pdg.Color('white')}),
     background: createStartupAttributes({ fillColor: startupUIColor('background') }),
     panel: createStartupAttributes({
@@ -236,7 +238,7 @@ function submitGameTitle() {
 
 function drawStartupTextDialog(editor,labels) {
     const area=port.getDrawingArea(),layout=PlayerName.layout(area.width(),area.height(),labels.submit),{rect,field}=layout;
-    port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.background);
+    port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),labels.dim?startupStyles.dim:startupStyles.background);
     PanelAppearance.applySurface(startupStyles.panel,rect,startupUIColor('panelFill'));drawStartupRoundedRect(rect,14,startupStyles.panel);
     startupStyles.subtitleText.textSize(16);startupStyles.lineText.textSize(14);startupStyles.hintText.textSize(12);startupStyles.advantageText.textSize(13);
     port.drawText(labels.title,new pdg.Point(rect.x+rect.width/2,rect.y+40),startupStyles.subtitleText);
@@ -354,6 +356,7 @@ function drawStartupDialog() {
     port.drawText(I18n.getString(527, '<F> fast game   <O> fog/all visible   <R> defaults'), new pdg.Point(x, y), startupStyles.hintText);
     y += step(42);
 
+    if(!sessions.active){const open=StartupSetup.cancelRegion(panelRect);drawStartupRoundedRect(open,7,startupStyles.advantageButton);port.drawText(I18n.getString(841,'Open Game…'),new pdg.Point(open.x+open.width/2,open.y+step(20)),startupStyles.startText);}
     if(sessions.active){const cancel=StartupSetup.cancelRegion(panelRect);drawStartupRoundedRect(cancel,7,startupStyles.advantageButton);port.drawText(I18n.getString(683,'Cancel'),new pdg.Point(cancel.x+cancel.width/2,cancel.y+step(20)),startupStyles.startText);}
     drawStartupRoundedRect(StartupSetup.startRegion(panelRect),7,startupStyles.advantageButton);
     port.drawText(I18n.getString(528, '<Enter> Start'), new pdg.Point(screenWidth / 2, y), startupStyles.startText);
@@ -462,6 +465,68 @@ function switchGameSession(id) {
     return true;
 }
 
+function attachGameServices(nextGame) {
+    nextGame.languagePreferences = languagePreferences;
+    nextGame.drawingPreferences = drawingPreferences;
+    nextGame.systemComparisonPreferences = systemComparisonPreferences;
+    nextGame.systemComparisonSort = systemComparisonPreferences.read();
+    nextGame.systemComparisonGeometry = systemComparisonPreferences.readGeometry();
+    nextGame.rosterPreferences = rosterPreferences;
+    nextGame.fleetRosterSort = rosterPreferences.read();
+    nextGame.fleetRosterGeometry = rosterPreferences.readGeometry();
+    nextGame.fullscreen = fullscreen;
+    if(!nextGame.restoredFromSave)nextGame.showGrid = drawingPreferences.readGrid();
+    if(!nextGame.restoredFromSave)nextGame.showNebula = drawingPreferences.readNebula();
+    if(!nextGame.restoredFromSave)nextGame.showShips = drawingPreferences.readShips();
+    if(!nextGame.restoredFromSave)nextGame.showAllCourses = drawingPreferences.readAllCourses();
+    if(!nextGame.restoredFromSave)nextGame.showScannerRanges = drawingPreferences.readScannerRanges();
+    if(!nextGame.restoredFromSave)nextGame.showCourierCourses = drawingPreferences.readCourierCourses();
+    if(!nextGame.restoredFromSave)nextGame.showMapNames = drawingPreferences.readMapNames();
+    nextGame.port = port;
+    nextGame.fileCommands={menu:()=>{clearSessionInput();return documents.menu();}};
+    nextGame.sessionCommands={begin:beginNewGame,rows:()=>sessions.rows(),select:switchGameSession};
+}
+function installSavedGame(nextGame,reference) {
+    attachGameServices(nextGame);const nextDisplay=new Display(nextGame);
+    clearSessionInput();stopAutoplayTimer();
+    if(!sessions.starting)sessions.begin();
+    const session=sessions.accept(nextGame,nextDisplay);session.file=reference;
+    game=nextGame;display=nextDisplay;autoplayController=null;
+    startupPlayerName=null;startupGameTitle=null;startupComputerCount=null;startupAISkill=false;
+}
+function revertSavedGame(nextGame,reference) {
+    attachGameServices(nextGame);const nextDisplay=new Display(nextGame),previous=display;
+    clearSessionInput();stopAutoplayTimer();const session=sessions.replace(nextGame,nextDisplay);session.file=reference;
+    game=nextGame;display=nextDisplay;autoplayController=null;if(previous)previous.dispose();
+}
+function drawDocumentDialog() {
+    const dialog=documents.dialog;if(!dialog)return;
+    if(dialog.kind==='editor') {
+        drawStartupTextDialog(dialog.editor,{title:I18n.getString(dialog.operation==='save'?840:841),prompt:I18n.getString(documents.files.browser?844:843),error:dialog.error?I18n.getString(dialog.operation==='save'?845:846):'',submit:I18n.getString(dialog.operation==='save'?839:841),dim:!!game});return;
+    }
+    const area=port.getDrawingArea(),layout=documents.layout(area.width(),area.height()),r=layout.rect;
+    port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.dim);
+    PanelAppearance.applySurface(startupStyles.panel,r,startupUIColor('panelFill'));drawStartupRoundedRect(r,14,startupStyles.panel);
+    startupStyles.subtitleText.textSize(16);startupStyles.lineText.textSize(13);startupStyles.advantageText.textSize(13);
+    port.drawText(layout.title,new pdg.Point(r.x+r.width/2,r.y+34),startupStyles.subtitleText);
+    if(layout.message) {
+        const lines=[];let remaining=Array.from(layout.message);
+        while(remaining.length) {
+            let count=remaining.length;
+            while(count>1 && port.getTextWidth(remaining.slice(0,count).join(''),13)>r.width-48)count--;
+            if(count<remaining.length) {
+                let boundary=count;
+                while(boundary>0 && !/\s/.test(remaining[boundary]))boundary--;
+                if(boundary>0)count=boundary;
+            }
+            lines.push(remaining.splice(0,count).join('').trim());
+            while(remaining.length && /\s/.test(remaining[0]))remaining.shift();
+        }
+        lines.slice(0,8).forEach((line,index)=>port.drawText(line,new pdg.Point(r.x+24,r.y+78+index*19),startupStyles.lineText));
+    }
+    layout.buttons.forEach(button=>{drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);port.drawText(button.label,new pdg.Point(button.rect.x+button.rect.width/2,button.rect.y+21),startupStyles.advantageText);});
+}
+
 function startGame() {
     if (!sessions.starting) {
         return false;
@@ -478,23 +543,7 @@ function startGame() {
     const factory = new Factory();
     const rules = new Rules(pendingConfig.fastGame);
     const nextGame = new Game(factory, rules, pendingConfig);
-    nextGame.languagePreferences = languagePreferences;
-    nextGame.drawingPreferences = drawingPreferences;
-    nextGame.systemComparisonPreferences = systemComparisonPreferences;
-    nextGame.systemComparisonSort = systemComparisonPreferences.read();
-    nextGame.systemComparisonGeometry = systemComparisonPreferences.readGeometry();
-    nextGame.rosterPreferences = rosterPreferences;
-    nextGame.fleetRosterSort = rosterPreferences.read();
-    nextGame.fleetRosterGeometry = rosterPreferences.readGeometry();
-    nextGame.fullscreen = fullscreen;
-    nextGame.showGrid = drawingPreferences.readGrid();
-    nextGame.showNebula = drawingPreferences.readNebula();
-    nextGame.showShips = drawingPreferences.readShips();
-    nextGame.showAllCourses = drawingPreferences.readAllCourses();
-    nextGame.showScannerRanges = drawingPreferences.readScannerRanges();
-    nextGame.showCourierCourses = drawingPreferences.readCourierCourses();
-    nextGame.showMapNames = drawingPreferences.readMapNames();
-    nextGame.port = port;
+    attachGameServices(nextGame);
     const nextDisplay = new Display(nextGame);
     sessions.accept(nextGame,nextDisplay);
     game=nextGame;display=nextDisplay;
@@ -555,6 +604,7 @@ if (launchOptions.aiAutoplay) {
 
 // Create event handlers using the correct PDG syntax
 const drawHandler = new pdg.IEventHandler(function(event) {
+    if(documents.dialog){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawDocumentDialog();return true;}
     if (!sessions.starting && game) {
         game.draw();
     } else {
@@ -568,7 +618,7 @@ const autoplayTimerHandler = new pdg.IEventHandler(function(event) {
         return false;
     }
 
-    if(sessions.starting || !sessions.active || sessions.active.autoplay!==autoplayController)return true;
+    if(documents.dialog || sessions.starting || !sessions.active || sessions.active.autoplay!==autoplayController)return true;
     const status = autoplayController.step();
     if (!status.running) {
         stopAutoplayTimer();
@@ -586,6 +636,12 @@ let leftClickStartY = 0;
 let hasDragged = false; // Track if user has dragged during left click
 
 const mouseHandler = new pdg.IEventHandler(function(event) {
+    if(documents.dialog){
+        if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const area=port.getDrawingArea(),layout=documents.layout(area.width(),area.height()),p=event.mousePos;
+            const contains=r=>p.x>=r.x&&p.x<=r.x+r.width&&p.y>=r.y&&p.y<=r.y+r.height;const button=layout.buttons.find(b=>contains(b.rect));
+            if(button)documents.action(button.action==='cancel'?'cancel':button.action);else if(layout.field&&contains(layout.field))documents.dialog.editor.selected=true;
+        }return true;
+    }
     if (sessions.starting || !game) {
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0) {
             const area=port.getDrawingArea();
@@ -608,6 +664,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
                 return true;
             }
             const cancel=StartupSetup.cancelRegion(StartupSetup.panelRect(area.width(),area.height()));
+            if(!sessions.active && event.mousePos.x>=cancel.x && event.mousePos.x<=cancel.x+cancel.width && event.mousePos.y>=cancel.y && event.mousePos.y<=cancel.y+cancel.height){documents.beginOpen();return true;}
             if(sessions.active && event.mousePos.x>=cancel.x && event.mousePos.x<=cancel.x+cancel.width && event.mousePos.y>=cancel.y && event.mousePos.y<=cancel.y+cancel.height){cancelNewGame();return true;}
             const fast=StartupSetup.fastGameRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(event.mousePos.x>=fast.x && event.mousePos.x<=fast.x+fast.width && event.mousePos.y>=fast.y && event.mousePos.y<=fast.y+fast.height){StartupSetup.toggleFastGame(pendingConfig);return true;}
@@ -710,6 +767,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse wheel handler for zooming
 const mouseWheelHandler = new pdg.IEventHandler(function(event) {
+    if(documents.dialog)return true;
     if (sessions.starting || !game) {
         return true;
     }
@@ -731,6 +789,7 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse move handler for drag scrolling
 const mouseMoveHandler = new pdg.IEventHandler(function(event) {
+    if(documents.dialog)return true;
     if (sessions.starting || !game) {
         return true;
     }
@@ -781,6 +840,7 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
 });
 
 const keyHandler = new pdg.IEventHandler(function(event) {
+    if(documents.dialog){if(event && event.eventType===pdg.eventType_KeyPress)documents.key(event.unicode);return true;}
     // Check if this is a key press event
     if (event && event.eventType === pdg.eventType_KeyPress) {
         if (!sessions.starting && game) {

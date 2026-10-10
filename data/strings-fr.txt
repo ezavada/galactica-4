@@ -472,3 +472,23 @@
 // Local game documents
 836	Nouvelle partie…
 837	Parties ouvertes
+
+// Local saved-game documents
+838	Fichier
+839	Enregistrer la partie
+840	Enregistrer sous…
+841	Ouvrir une partie…
+842	Revenir à la sauvegarde
+843	Chemin du fichier
+844	Nom du fichier
+845	Impossible d’enregistrer cette partie.
+846	Impossible d’ouvrir cette partie.
+847	Ce fichier n’est pas une sauvegarde Galactica-4 prise en charge.
+848	Partie enregistrée : {0}
+849	Abandonner les modifications et revenir au dernier tour enregistré ?
+850	Enregistrement de la partie…
+851	Ouverture de la partie…
+852	Restauration de la partie…
+853	Choisissez un fichier à ouvrir.
+854	Aucune version enregistrée n’est disponible.
+855	Remplacer le fichier existant : {0} ?
