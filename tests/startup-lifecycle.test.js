@@ -70,4 +70,20 @@ module.exports=()=>test.describe('First-install startup lifecycle',()=>{
   env.navigator.userActivation.isActive=true;test.assertTrue(Actions.dispatch(3,{open:()=>{opens++;return true;}},env));test.assertEqual(opens,2);test.assertEqual(listeners.size,0);
  });
 
+ test.it('toggles application sound through the source startup command and persists it without feedback or a document',()=>{
+  const Actions=require('../src/js/startup-actions.js'),env=browser(),preferences=require('../src/js/drawing-preferences.js').createPreferences(env);let starts=0,stops=0;
+  const resources={getSound:()=>({setLooping:()=>{},start:()=>starts++,stop:()=>stops++})},Sound=require('../src/js/sound.js'),audio=Sound.createSound(resources,preferences),services=Actions.preferenceServices(preferences,audio,{});
+  audio.play(1001);test.assertEqual(starts,1);test.assertTrue(Actions.dispatch(4017,services,{}));test.assertFalse(audio.isEnabled());test.assertEqual(stops,2);test.assertFalse(Sound.createSound(resources,preferences).isEnabled());
+  test.assertTrue(Actions.dispatch(4017,services,{}));test.assertTrue(audio.isEnabled());test.assertTrue(Sound.createSound(resources,preferences).isEnabled());test.assertEqual(starts,1);
+ });
+ test.it('toggles application flyby help and clears existing hover state through the source command',()=>{
+  const Actions=require('../src/js/startup-actions.js'),env=browser(),preferences=require('../src/js/drawing-preferences.js').createPreferences(env),changes=[],services=Actions.preferenceServices(preferences,{}, {},enabled=>changes.push(enabled));
+  test.assertTrue(Actions.dispatch(0x4069FFFC,services,{}));test.assertFalse(preferences.readControlHelp());test.assertFalse(require('../src/js/drawing-preferences.js').createPreferences(env).readControlHelp());
+  test.assertTrue(Actions.dispatch(0x4069FFFC,services,{}));test.assertTrue(preferences.readControlHelp());test.assertEqual(changes.join(','),'false,true');
+ });
+ test.it('opens application preferences through the synthetic command explicitly handled by v3',()=>{
+  const Actions=require('../src/js/startup-actions.js'),env=browser(),preferences=require('../src/js/drawing-preferences.js').createPreferences(env),presentation=new (require('../src/js/presentation.js'))(preferences),port={getDrawingArea:()=>new pdg.Rect(800,600)},settings=new (require('../src/js/startup-settings.js'))(port,{drawingPreferences:preferences,presentation,sound:{isEnabled:()=>true,play:()=>{}}});
+  test.assertTrue(Actions.dispatch(1324679167,Actions.preferenceServices(preferences,{},settings),{}));test.assertTrue(settings.active);test.assertEqual(settings.model.uiWindow,'settings');test.assertEqual(settings.model.turn,1);settings.key(pdg.key_Escape);test.assertFalse(settings.active);
+ });
+
 });

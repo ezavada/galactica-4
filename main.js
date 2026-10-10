@@ -102,6 +102,10 @@ const fullscreen = require('./src/js/fullscreen.js').createController(pdg,port,g
 fullscreen.restore();
 const presentation=new (require('./src/js/presentation.js'))(drawingPreferences);
 const startupLifecycle=new StartupLifecycle.StartupLifecycle(installation,()=>beginTutorial(),()=>userManual.open(pdg.res.getLanguage()),()=>StartupActions.dispatch(configuredStartupAction,{
+    ...StartupActions.preferenceServices(drawingPreferences,sound,startupSettings,enabled=>{
+        startupHelp.clear();if(game){game.showControlHelp=enabled;game.display.clearControlHelp();}
+        if(startupSettings.model){startupSettings.model.showControlHelp=enabled;startupSettings.model.display.clearControlHelp();}
+    }),
     about:openAbout,newGame:()=>sessions.starting?true:beginNewGame(),open:()=>documents.beginOpen(),
     save:()=>documents.beginSave(),saveAs:()=>documents.beginSave(true),revert:()=>sessions.active?documents.beginRevert():false,
     quit:()=>pdg.quit(),fullscreen:()=>fullscreen.toggle(),help:()=>userManual.open(pdg.res.getLanguage()),tutorial:()=>beginTutorial()

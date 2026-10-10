@@ -1,6 +1,7 @@
-// Numeric commands from the shipped v3 Mcmd resources and GalacticaConsts.h.
+// Numeric commands from shipped v3 Mcmd resources and GalacticaConsts.h.
+// Preferences is the synthetic value explicitly normalized in Galactica.cpp.
 const commands=Object.freeze({about:1,newGame:2,open:3,close:4,save:5,saveAs:6,revert:7,quit:10,
-    fullscreen:4016,help:0x4069FFFA,tutorial:0x4069FFF9});
+    fullscreen:4016,sound:4017,preferences:1324679167,controlHelp:0x4069FFFC,help:0x4069FFFA,tutorial:0x4069FFF9});
 function read(env=globalThis){
     try{
         const value=env.window?env.window.localStorage.getItem('galactica.StartAction'):env.pdg.cfg.getConfigLong('StartAction');
@@ -28,4 +29,11 @@ function dispatch(command,services,env=globalThis){
     if(!action || typeof services[action]!=='function')return false;
     return ['open','help','fullscreen'].includes(action)?withUserGesture(services[action],env):services[action]();
 }
-module.exports={commands,read,dispatch,withUserGesture};
+function preferenceServices(preferences,sound,settings,controlHelpChanged=()=>{}){
+    return {
+        preferences:()=>settings.open(),
+        sound:()=>{sound.setEnabled(!sound.isEnabled());return true;},
+        controlHelp:()=>{const enabled=!preferences.readControlHelp();preferences.writeControlHelp(enabled);controlHelpChanged(enabled);return true;}
+    };
+}
+module.exports={commands,read,dispatch,withUserGesture,preferenceServices};

@@ -88,7 +88,7 @@ including when the introduction is disabled or the tutorial was requested
 explicitly. Closing About cannot replay it.
 
 Available application handlers are About, New, Open, Save, Save As, Revert,
-Quit, Fullscreen, Help and Tutorial. Document commands depend on an active
+Quit, Fullscreen, Sound, Preferences, Flyby Help, Help and Tutorial. Document commands depend on an active
 document; a normal launch has none. Browser Open/Help/Fullscreen wait for the
 first trusted pointer/key gesture if startup lacks activation, consume that
 input before it reaches setup and remove both listeners before opening.
@@ -99,3 +99,22 @@ Check for New Version (8001), the edition-specific command 27 and other
 inherited/window commands still need individual source and runtime audits.
 They are pending work, not unavailable-help blockers. Music and the pinned
 native fullscreen runtime remain the separately documented limitations.
+
+### Application preferences startup commands
+
+`Galactica.cpp:2099–2102` explicitly maps synthetic command `1324679167` to
+`cmd_Preferences`; it is now connected to the existing application Settings
+window. The numeric PowerPlant constant behind `cmd_Preferences` is not defined
+in this checkout and is not guessed. In particular, command 16 in Mcmd 130 is
+Select All, not Preferences. The shipped Preferences handler (`1813–1815`)
+opens its modal dialog without a beep and is enabled before a game exists.
+
+Sound (`4017`) toggles the global sound/music flags, saves preferences and
+updates command status (`2285–2290`). Flyby Help (`0x4069FFFC`) toggles global
+mouse-linger help and saves preferences (`2150–2165`). V4 connects both to the
+existing application controllers without creating a game, opening a dialog or
+adding feedback audio. Disabling sound stops cached audio; enabling it does not
+play an invented source cue. Flyby Help changes clear cached hover state and
+update any existing renderer. The settings window reads the shared preferences
+when opened. These behaviors remain separate from the unavailable original
+music asset; no music playback is claimed.
