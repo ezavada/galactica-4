@@ -14,6 +14,24 @@ function setup(starting=false){
 function enter(owner){owner.start({window:1});owner.pressButton({window:1});owner.pressButton();test.assertTrue(owner.openSetup());test.assertTrue(owner.acceptSetup());}
 function install(owner){const game=createTutorialGame(galaxy),view=display(game);test.assertTrue(!!owner.install(game,view));return {game,view};}
 module.exports=()=>test.describe('Temporary tutorial document lifecycle',()=>{
+ test.it('plays source lesson-entry cues once, leaves source-silent pages quiet and stops on completion',()=>{
+  const f=setup(),played=[],Sound=require('../src/js/sound.js');
+  f.owner.options.sound=Sound.createSound({getSound(file){return {setLooping:()=>{},start:()=>played.push(file),stop:()=>played.push('stop')};}},{readSound:()=>true,writeSound:()=>{}});
+  enter(f.owner);install(f.owner);test.assertEqual(played.filter(x=>x==='tutorial/sounds/7000.wav').length,6);
+  const count=played.length;f.owner.controller.tick(1000);f.owner.controller.observe({type:'unrelated'});test.assertEqual(played.length,count);
+  f.owner.pressButton();test.assertEqual(f.owner.controller.pageId,6);test.assertEqual(played.length,count);
+  f.owner.pressButton();test.assertEqual(f.owner.controller.pageId,7);test.assertEqual(played.length,count);
+  f.owner.controller.observe({type:'zoomChanged'},1000);f.owner.controller.tick(4001);test.assertEqual(f.owner.controller.pageId,8);test.assertEqual(played.filter(x=>x==='tutorial/sounds/7000.wav').length,7);
+  f.owner.controller.goto(60);f.owner.pressButton();test.assertEqual(played[played.length-1],'stop');test.assertTrue(f.visible()===f.application);
+ });
+ test.it('respects mute without replaying a skipped tutorial cue and stops even before hiding a game',()=>{
+  const f=setup(),played=[],Sound=require('../src/js/sound.js');
+  const audio=f.owner.options.sound=Sound.createSound({getSound(file){return {setLooping:()=>{},start:()=>played.push(file),stop:()=>played.push('stop')};}},{readSound:()=>false,writeSound:()=>{}});
+  f.owner.start({window:1});test.assertEqual(played.length,0);audio.setEnabled(true);f.owner.controller.tick(1000);test.assertEqual(played.length,0);
+  f.owner.controller.goto(100);test.assertEqual(played.filter(x=>x==='tutorial/sounds/7000.wav').length,1);
+  f.owner.stop();test.assertEqual(played[played.length-1],'stop');test.assertFalse(f.owner.engaged);test.assertTrue(f.visible()===f.application);
+ });
+
  test.it('leaves an open game visible until the hiding acknowledgment and removes its file association from tutorial play',()=>{
   const f=setup();f.owner.start({window:1});test.assertEqual(f.owner.controller.pageId,100);test.assertFalse(f.owner.engaged);test.assertTrue(f.sessions.active===f.session);test.assertTrue(f.visible()===f.application);
   f.owner.pressButton({window:1});test.assertEqual(f.owner.controller.pageId,1);test.assertTrue(f.owner.engaged);test.assertNull(f.sessions.active);test.assertTrue(f.sessions.starting);test.assertTrue(f.visible().game===null);

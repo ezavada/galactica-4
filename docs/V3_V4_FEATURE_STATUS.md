@@ -808,3 +808,31 @@ maps and before/after/original/restored screenshots were inspected under
 No visible strings change. Visible lessons, complete tutorial save/resume,
 source picture/audio presentation and the full walkthrough remain unfinished;
 this item does not complete the tutorial, parity or Map Generation checklists.
+
+
+### Tutorial lesson attention cue
+
+Audited `GalacticaTutorial.cp:443–453`: each LoadPage plays its nonzero sound,
+with -1 resolving to tutorial attention resource 7000. The shipped English and
+German resources contain identical samples. The sound importer now accepts
+`--tutorial /path/to/v3` and reproducibly preserves all 3,824 unsigned PCM bytes
+at 10,000 Hz in `data/tutorial/sounds/7000.wav`; source and converted hashes are
+recorded in its manifest. Regeneration also reproduced the twelve existing
+normal-game WAVs and their manifest byte for byte.
+
+The session owner uses the application sound service on lesson entry, respects
+source-silent pages and the persistent Sound setting, and stops owned playback
+on completion/cancellation, including cancellation before hiding a game. Muted
+entries are never replayed merely by enabling sound. Four new regressions cover
+sample provenance/native loading and real session progression/cleanup; both
+full lanes pass all 1,246 tests. Packaged browser checks decode the 0.3824-second
+sample and observe real playback progress, actual setup/name button cues, silent
+lessons, mute and cancellation in en/de/es/fr/ja/ru. Reviewed before/after tutorial
+and restored-game screenshots under `/private/tmp/galactica-parity/tutorial-sound-{before,after}`.
+Logs: `/private/tmp/galactica-tutorial-sound-{tests,native-tests}.log` and
+`/private/tmp/galactica-tutorial-sound-after-<language>.log`.
+
+No visible text changes and the cue is identical in all languages. Instruction
+rendering, six-language lesson text/art, full tutorial save/resume and a complete
+guided walkthrough still remain. The tutorial and broader parity/map-generation
+checklists are not complete.

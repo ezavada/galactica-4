@@ -80,3 +80,9 @@ The private stream uses portable Park–Miller integer arithmetic; seed 101 foll
 the source tutorial startup. AI and combat read the owning game's state without
 reseeding or replacing PDG randomness. This does not claim exact agreement with
 the legacy platform library. No normal procedural-map behavior changes.
+
+The shipped tutorial attention cue is in `sounds/7000.wav`. Regenerate it with
+`python3 tools/import-v3-sounds.py --tutorial /path/to/v3`; the importer verifies
+that the English and German sources agree. Its manifest records unchanged PCM
+bytes and source hashes. Session entry uses the normal Sound preference and
+stops playback when the tutorial ends.

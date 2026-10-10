@@ -1,7 +1,7 @@
 // Shipped v3 event sounds. Audio state belongs to the application, not saves.
 const Common=require('./common.js');
 const Destruction=require('./destruction-effect.js');
-const available=new Set([1000,1001,1002,1003,1007,1008,1009,1010,1011,1012,1013,1014]);
+const available=new Set([1000,1001,1002,1003,1007,1008,1009,1010,1011,1012,1013,1014,7000]);
 function eventCue(event) {
     if(!event)return null;
     if(event.colonization)return event.observer?1014:1011;
@@ -28,7 +28,7 @@ function createSound(resourceManager,preferences) {
         if(!enabled || !available.has(id))return false;
         try {
             let sound=cache.get(id);
-            if(!sound){sound=resourceManager.getSound('sounds/'+id+'.wav');if(!sound)return false;sound.setLooping(false);cache.set(id,sound);}
+            if(!sound){sound=resourceManager.getSound((id===7000?'tutorial/sounds/':'sounds/')+id+'.wav');if(!sound)return false;sound.setLooping(false);cache.set(id,sound);}
             stop();sound.start();return true;
         } catch(error){return false;}
     };

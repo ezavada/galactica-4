@@ -10,9 +10,10 @@ converted or copied from that collection, including an exact copy relationship
 between `data/background.png` and
 `old-art/Art/sources/coloradjusted_background-0.png`.
 
-The twelve runtime WAV files under `data/sounds/` are converted from the shipped
+The twelve runtime WAV files under `data/sounds/` and the tutorial cue under
+`data/tutorial/sounds/` are converted from the shipped
 Galactica v3 sound resource bundle. Their source hashes and unchanged PCM
-payloads are recorded in `data/sounds/manifest.json`; no additional license
+payloads are recorded in their respective `manifest.json` files; no additional license
 is granted for those legacy recordings.
 
 No embedded license, source URL, artist credit, or written rights statement
@@ -22,7 +23,7 @@ items that need explicit verification:
 | Asset group | Files | Current evidence | Required action |
 |---|---:|---|---|
 | Galactica ships, event panels, and blueprints | 32 runtime PNGs plus legacy sources | Derived from the historical Galactica art archive; no artist/license record in this repository | Confirm ownership or obtain written permission, then record author and license |
-| Legacy sound recordings | 12 runtime WAVs | Converted from shipped v3 snd resources; resource 1003 is labeled Message (TNG doorbell), with no recording license in this repository | Confirm recording rights before public redistribution, or replace the recordings |
+| Legacy sound recordings | 13 runtime WAVs | Converted from shipped v3 snd resources; resource 1003 is labeled Message (TNG doorbell), with no recording license in this repository | Confirm recording rights before public redistribution, or replace the recordings |
 | Space background | `data/background.png` and `besthubble_keyhole_02.jpg` derivatives | Filenames suggest Hubble imagery, but the precise NASA/ESA source and transformation chain are not documented | Identify the original image and add its authoritative credit/usage statement |
 | VendorNation and STS logos | `vn-logo*`, `VN_logo*`, `PICT_135*`, `PICT_136*` | Trademark/logo files with no redistribution grant | Confirm trademark ownership and intended public use, or remove them |
 | Legacy screenshots and product/CD artwork | `old-art/screenshots/`, `old-art/Art/Galactica CD label/` | Historical product materials, including layered Adobe files and archives | Confirm all constituent art/font rights, or omit the entire legacy tree |

@@ -115,7 +115,10 @@ autoplay controller. Autoplay timers resume only if that restored controller was
 running. Attachment and fixture-construction failures restore the original
 application; repeated cleanup is harmless. Unfinished initial setup is preserved
 when no ordinary game was open. Visible instruction controls, translated lesson
-resources, tutorial save/resume and presentation audio/pictures remain required.
+resources, tutorial save/resume and presentation pictures remain required.
+Lesson entry audio now uses the shared Sound preference and stops when the
+session ends, including cancellation before acknowledgment. Source-silent
+pages do not play a cue. The sample is identical in both shipped languages.
 Tutorial games now own the private random stream described below.
 
 

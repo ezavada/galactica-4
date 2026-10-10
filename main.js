@@ -521,7 +521,7 @@ function clearSessionInput() {
 function beginTutorial(pages,context={window:game && !sessions.starting?1:34,modal:sessions.starting}) {
     if(tutorialSession && tutorialSession.controller.active)return false;
     const owner=new (require('./src/js/tutorial-session.js'))(pages,{
-        sessions,
+        sessions,sound,
         captureApplication:()=>({game,display,autoplayController,pendingConfig,startupPlayerName,startupGameTitle,startupComputerCount,startupAISkill}),
         suspendApplication:()=>{
             sound.stop();clearSessionInput();stopAutoplayTimer();game=null;display=null;autoplayController=null;

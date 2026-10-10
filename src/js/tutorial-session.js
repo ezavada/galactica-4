@@ -9,7 +9,7 @@ class TutorialSession {
         this.runtime=null;this.game=null;this.display=null;this.finished=false;
         this.controller=new Controller(pages,{macOS:options.macOS,
             onDismissWindow:options.onDismissWindow,
-            onEnter:(id,page,effects)=>{if(id===1 && !this.engaged)this.engage();if(options.onEnter)options.onEnter(id,page,effects);},
+            onEnter:(id,page,effects)=>{if(id===1 && !this.engaged)this.engage();if(options.onEnter)options.onEnter(id,page,effects);if(options.sound)options.sound.play(page.sound);},
             onStop:reason=>this.release(reason)});
     }
     start(context={}){
@@ -50,7 +50,7 @@ class TutorialSession {
         if(this.finished)return;this.finished=true;
         const application=this.application,engaged=this.engaged,display=this.display,runtime=this.runtime;
         this.engaged=false;this.application=null;this.runtime=null;this.game=null;this.display=null;
-        try{if(runtime)runtime.dispose();}
+        try{if(this.options.sound)this.options.sound.stop();if(runtime)runtime.dispose();}
         finally{
             try{if(display && display.dispose)display.dispose();}
             finally{

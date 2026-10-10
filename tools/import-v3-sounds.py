@@ -9,6 +9,7 @@ import hashlib
 import json
 from pathlib import Path
 import struct
+import runpy
 import wave
 
 
@@ -59,11 +60,10 @@ def pcm_sample(blob):
     return round(fixed_rate / 65536), fixed_rate, frames
 
 
-def convert(source, destination):
-    blob = source.read_bytes()
+def write_samples(samples, source_hash, destination):
     destination.mkdir(parents=True, exist_ok=True)
     entries = []
-    for resource_id, sound in sorted(resources(blob, b'snd ')):
+    for resource_id, sound in sorted(samples):
         rate, fixed_rate, frames = pcm_sample(sound)
         target = destination / f'{resource_id}.wav'
         with wave.open(str(target), 'wb') as output:
@@ -78,15 +78,36 @@ def convert(source, destination):
             'wav_sha256':hashlib.sha256(target.read_bytes()).hexdigest()})
     if not entries:
         raise ValueError('No sound resources found')
-    (destination / 'manifest.json').write_text(json.dumps({'source_sha256':hashlib.sha256(blob).hexdigest(),
+    (destination / 'manifest.json').write_text(json.dumps({'source_sha256':source_hash,
         'format':'unsigned 8-bit mono PCM', 'sounds':entries}, indent=2) + '\n')
     return entries
+
+
+def convert(source, destination):
+    blob = source.read_bytes()
+    return write_samples(resources(blob, b'snd '), hashlib.sha256(blob).hexdigest(), destination)
+
+
+def convert_tutorial(source, destination):
+    # The shipped tutorial Rez dump contains the same cue in both languages.
+    read_rez = runpy.run_path(str(Path(__file__).with_name('import-v3-tutorial.py')))['read_rez']
+    english = (source / 'Resources/gal-tutorial-en.r').read_bytes()
+    decoded = read_rez(english)
+    samples = [(number, payload) for (kind, number), payload in decoded.items() if kind == 'snd ']
+    german = read_rez((source / 'Resources/gal-tutorial-de.r').read_bytes())
+    if not samples or any(german.get(('snd ', number)) != payload for number, payload in samples):
+        raise ValueError('Tutorial sound resources differ between shipped languages')
+    return write_samples(samples, hashlib.sha256(english).hexdigest(), destination)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('source', type=Path)
     parser.add_argument('output', nargs='?', type=Path, default=Path(__file__).resolve().parents[1] / 'data/sounds')
+    parser.add_argument('--tutorial', action='store_true', help='Read the shipped tutorial Rez resources from a v3 repository')
     args = parser.parse_args()
-    for sound in convert(args.source, args.output):
+    destination = args.output
+    if args.tutorial and destination == Path(__file__).resolve().parents[1] / 'data/sounds':
+        destination = Path(__file__).resolve().parents[1] / 'data/tutorial/sounds'
+    for sound in (convert_tutorial if args.tutorial else convert)(args.source, destination):
         print(f"{sound['file']}: {sound['frames']} frames at {sound['rate']} Hz")

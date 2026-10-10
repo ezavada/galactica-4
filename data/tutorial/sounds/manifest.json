@@ -1,0 +1,16 @@
+{
+  "source_sha256": "365ae0f9804e36bdb256eeb51959ee43c97ab7a222e15858883825e47ba23ef6",
+  "format": "unsigned 8-bit mono PCM",
+  "sounds": [
+    {
+      "id": 7000,
+      "file": "7000.wav",
+      "frames": 3824,
+      "rate": 10000,
+      "source_fixed_rate": 655360000,
+      "source_sha256": "e20a9dd1fdccf0f5b6f229764b06ea6a3d3de7347775a99338efc3c868edb5c5",
+      "pcm_sha256": "5f133d5b90fd02b0b88cd15b863cd46d30dcbdc925403cb8f0bbfc16560774ca",
+      "wav_sha256": "eb585e0525f31e3ef0a8fbb186655209d56728717c4d09bac0e186b688c858fd"
+    }
+  ]
+}
