@@ -23,6 +23,7 @@ class Fleet {
         this.name = name || I18n.formatString(560, 'Fleet {0}', this.id);
         this.star = null;
         this.onPatrol = false;
+        this.toBeScrapped = false;
         this.userCallIn = false;
         this.lastCallInTurn = -5;
         
@@ -79,6 +80,8 @@ class Fleet {
             ship.star.removeShip(ship);
         }
         
+        // v3 clears a fleet scrap order when accepting an unmarked ship.
+        if(!ship.isToBeScrapped || !ship.isToBeScrapped())this.setScrap(false);
         // Add to fleet
         this.ships.push(ship);
         ship.fleet = this;
@@ -259,6 +262,7 @@ class Fleet {
     
     // Move fleet to a destination
     setDestination(destination) {
+        if(destination)this.setScrap(false);
         this.destination = destination;
         this.progress = 0;
         if (destination) {
@@ -482,6 +486,13 @@ class Fleet {
 
     canFormFleet() {
         return false;
+    }
+
+    isToBeScrapped() { return !!this.toBeScrapped; }
+
+    setScrap(scrap) {
+        this.toBeScrapped=!!scrap;
+        for(const ship of this.ships)if(ship.setScrap)ship.setScrap(scrap);
     }
 
     isOnPatrol() {

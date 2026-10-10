@@ -1313,6 +1313,7 @@ class Display {
                 if (object.destination) {
                     actions.push({ key: 'X', label: this.STR.clear, action: { type: 'clearOrders' } });
                 }
+                if(this.game.canToggleScrap(object))actions.push({key:null,label:I18n.getString(object.isToBeScrapped()?755:754,object.isToBeScrapped()?'Cancel scrap':'Scrap'),action:{type:'toggleScrap'}});
                 if(this.game.canTogglePatrol(object))actions.push({ key: 'P', label: this.STR.patrol, action: { type: 'togglePatrol' } });
                 if (objectType === Common.ObjectType.FLEET) {
                     actions.push(
@@ -1433,7 +1434,8 @@ class Display {
         }
         for (const button of buttons) {
             this.drawUIButton(button.rect, button.label, button.key, { size: 10, radius: 14,
-                active: button.action.type==='togglePatrol'?object.isOnPatrol():
+                active: button.action.type==='toggleScrap'?object.isToBeScrapped():
+                    button.action.type==='togglePatrol'?object.isOnPatrol():
                     button.action.type === 'buildShip' && !!object.currentShip &&
                     object.currentShip.type === button.action.shipType });
         }
@@ -1451,7 +1453,7 @@ class Display {
         const extraMemberHeight = visibleShips.length > 0 ? 16 + (visibleShips.length * memberRowHeight) : 0;
         const transferHeight = transferTargets.length > 0 ? 8 : 0;
         const destinationHeight = fleet.destination ? 18 : 0;
-        const patrolHeight=fleet.isOnPatrol() && this.game.canViewCourse(fleet)?18:0;
+        const patrolHeight=(fleet.isOnPatrol() || fleet.isToBeScrapped()) && this.game.canViewCourse(fleet)?18:0;
         const height = 170 + (compositionRows.length * 16) + extraMemberHeight + transferHeight + destinationHeight + patrolHeight;
         return {
             rect: this.getAnchoredPanelRect(fleet, 310, height),
@@ -1740,12 +1742,13 @@ class Display {
         const visibleRows = rows.slice(page * pageSize, (page + 1) * pageSize);
         const rect = this.fitPanelToScreen({x: (screen.width - width)/2, y: 84, width,
             height: 142 + Math.max(1,visibleRows.length) * 26});
+        const tableWidth=width-112;
         const columns = [
-            { key: 'name', label: this.STR.name.replace(/:$/, ''), offset: 14, width: width*.40-14 },
-            { key: 'tech', label: this.STR.tech.replace(/:$/, ''), offset: width*.40, width: width*.14 },
-            { key: 'power', label: this.STR.power.replace(/:$/, ''), offset: width*.54, width: width*.14 },
-            { key: 'damage', label: this.STR.damage.replace(/:$/, ''), offset: width*.68, width: width*.16 },
-            { key: 'speed', label: this.STR.speed.replace(/:$/, ''), offset: width*.84, width: width*.16-14 }
+            { key: 'name', label: this.STR.name.replace(/:$/, ''), offset: 14, width: tableWidth*.40-14 },
+            { key: 'tech', label: this.STR.tech.replace(/:$/, ''), offset: tableWidth*.40, width: tableWidth*.14 },
+            { key: 'power', label: this.STR.power.replace(/:$/, ''), offset: tableWidth*.54, width: tableWidth*.14 },
+            { key: 'damage', label: this.STR.damage.replace(/:$/, ''), offset: tableWidth*.68, width: tableWidth*.16 },
+            { key: 'speed', label: this.STR.speed.replace(/:$/, ''), offset: tableWidth*.84, width: tableWidth*.16-14 }
         ];
         return { rect, page, pages, pageSize, visibleRows, columns };
     }
@@ -1756,9 +1759,14 @@ class Display {
         const regions = layout.columns.map(column => ({
             rect: { x: rect.x+column.offset, y: rect.y+38, width: column.width, height: 24 },
             action: { type: 'sortSystemShips', key: column.key } }));
-        layout.visibleRows.forEach((row,index) => regions.push({
-            rect: {x: rect.x+14, y: rect.y+68+index*26, width: rect.width-28, height: 24},
-            action: {type:'selectObject',object:row.object,center:true,closeWindow:true} }));
+        layout.visibleRows.forEach((row,index) => {
+            if(this.game.canToggleScrap(row.object))regions.push({
+                rect:{x:rect.x+rect.width-112,y:rect.y+68+index*26,width:98,height:24},
+                label:I18n.getString(row.object.isToBeScrapped()?755:754,row.object.isToBeScrapped()?'Cancel scrap':'Scrap'),
+                active:row.object.isToBeScrapped(),action:{type:'toggleScrap',object:row.object}});
+            regions.push({rect:{x:rect.x+14,y:rect.y+68+index*26,width:rect.width-128,height:24},
+                action:{type:'selectObject',object:row.object,center:true,closeWindow:true}});
+        });
         if (layout.page > 0) regions.push({rect:{x:rect.x+14,y:rect.y+rect.height-36,width:150,height:24},
             label:I18n.getString(690,'Previous'), action:{type:'systemShipPage',page:layout.page-1}});
         if (layout.page < layout.pages-1) regions.push({rect:{x:rect.x+rect.width-164,y:rect.y+rect.height-36,width:150,height:24},
@@ -2314,6 +2322,7 @@ class Display {
         else if (ship.isOnPatrol()) status = I18n.getString(703, 'Patrolling');
         else if (ship.destination) status = I18n.getString(704, 'Travelling');
         else if (ship.star || ship.fleet) status = I18n.getString(702, 'Docked');
+        if(ship.isToBeScrapped() && this.game.isOwnerAlliedWith(viewer,ship.owner))status=I18n.getString(756,'Marked for scrap');
         const position = ship.fleet || ship;
         const coordinates = this.formatSpaceCoordinates(position);
         return {
@@ -2406,7 +2415,7 @@ class Display {
         y += 22;
 
         if(layout.patrolHeight) {
-            this.drawLabelValue(I18n.getString(699,'Status:'),I18n.getString(703,'Patrolling'),x,y,{labelWidth:92,size:11});
+            this.drawLabelValue(I18n.getString(699,'Status:'),fleet.isToBeScrapped()?I18n.getString(756,'Marked for scrap'):I18n.getString(703,'Patrolling'),x,y,{labelWidth:92,size:11});
             y+=18;
         }
 
@@ -2746,13 +2755,13 @@ class Display {
                     (column.key==='damage' ? `${row.damage}` : I18n.formatDecimal(row[column.key]));
                 while (Array.from(text).length>1 && (this.port.getTextWidth ? this.port.getTextWidth(text,11) : text.length*7)>column.width-8)
                     text=Array.from(text).slice(0,-2).join('')+'…';
-                this.drawTextLine(text,rect.x+column.offset,y,row.member?'gray':'lightgray',11);
+                this.drawTextLine(text,rect.x+column.offset,y,(row.member || row.object.isToBeScrapped() && this.game.isOwnerAlliedWith(this.game.getCurrentHumanPlayer(),row.object.owner))?'gray':'lightgray',11);
             });
             this.drawDivider(rect.x+14,y+7,rect.width-28);
         });
         this.drawTextLine(I18n.getString(692,'Click a ship or fleet to inspect it'),rect.x+rect.width/2,
             rect.y+rect.height-51,'gray',10,pdg.textStyle_Centered);
-        this.getSystemShipActionRegions().filter(region=>region.label).forEach(region=>this.drawUIButton(region.rect,region.label));
+        this.getSystemShipActionRegions().filter(region=>region.label).forEach(region=>this.drawUIButton(region.rect,region.label,null,{size:10,active:!!region.active}));
         this.drawTextLine(`${layout.page+1} / ${layout.pages}`,rect.x+rect.width/2,rect.y+rect.height-19,'gray',11,pdg.textStyle_Centered);
     }
 

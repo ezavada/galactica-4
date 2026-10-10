@@ -104,7 +104,7 @@ class Rules {
     // --- ship specific rules ---
 
     getShipScrapValue(ship) {
-        return this.getShipBuildCost(ship.type, ship.techLevel) / 4.0;
+        return this.getShipBuildCost(ship) / 4.0;
     }
     
     getShipBuildCost(ship, star) {

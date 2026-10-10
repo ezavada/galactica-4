@@ -346,3 +346,10 @@
 751	Reviewed
 752	Select an event
 753	Details
+
+# Scrapping
+754	Scrap
+755	Cancel scrap
+756	Marked for scrap
+757	{0} scrapped; {1} production recovered at {2}
+758	{0} scrapped

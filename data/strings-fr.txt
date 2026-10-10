@@ -346,3 +346,10 @@
 751	Examiné
 752	Sélectionnez un événement
 753	Détails
+
+# Scrapping
+754	Démanteler
+755	Annuler
+756	À démanteler
+757	{0} démantelé ; {1} de production récupérée à {2}
+758	{0} démantelé

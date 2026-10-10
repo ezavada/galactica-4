@@ -30,6 +30,7 @@ class Ship {
         this.name = '';
         this.classIndex = 0; // 1-based class index for battleships per 5 tech levels
         this.onPatrol = false;
+        this.toBeScrapped = false;
         this.userCallIn = false;
         this.lastCallInTurn = -5;
         
@@ -193,6 +194,14 @@ class Ship {
         return this.star !== null;
     }
     
+    isToBeScrapped() { return !!this.toBeScrapped; }
+
+    setScrap(scrap) {
+        this.toBeScrapped=!!scrap;
+        // A surviving member must not leave its parent marked for deletion.
+        if(!scrap && this.fleet)this.fleet.toBeScrapped=false;
+    }
+
     isOnPatrol() {
         return !!this.onPatrol;
     }
@@ -324,6 +333,7 @@ class Ship {
     
     setDestination(obj) {
         if (this.type !== 'defense') {
+            if(obj)this.setScrap(false);
             this.setPatrol(false);
             this.destination = obj;
             if (obj) {

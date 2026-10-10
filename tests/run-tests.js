@@ -34,6 +34,7 @@ const runAllocationPrecisionTests = require('./allocation-precision.test.js');
 const runSliderDragTests = require('./slider-drag.test.js');
 const runColonyDefaultsTests = require('./colony-defaults.test.js');
 const runPursuitMovementTests = require('./pursuit-movement.test.js');
+const runScrappingTests = require('./scrapping.test.js');
 const runEventReportTests = require('./event-reports.test.js');
 const runAttentionTests = require('./attention.test.js');
 const runCoursePatrolTests = require('./course-patrol.test.js');
@@ -125,6 +126,7 @@ try {
     runCoursePatrolTests();
     runAttentionTests();
     runEventReportTests();
+    runScrappingTests();
     runPursuitMovementTests();
     runColonyDefaultsTests();
     runSliderDragTests();

@@ -75,6 +75,7 @@ class Star {
         this.currentShip = null; // Ship currently being built
         this.paidTowardShipBuilding = 0;
         this.buildCredits = {};
+        this.unassignedShipCredit = 0;
         this.paidTowardResearch = 0;
         
         // Ships at this star
@@ -328,11 +329,19 @@ class Star {
         return true;
     }
 
+    addScrapProduction(amount) {
+        if(this.currentShip) {
+            this.paidTowardShipBuilding+=amount;
+            this.buildCredits[this.currentShip.type]=this.paidTowardShipBuilding;
+        } else this.unassignedShipCredit=(this.unassignedShipCredit || 0)+amount;
+    }
+
     startBuildingShip(shipType, commissionCredit = true) {
         if (!['scout', 'defense', 'colony', 'battleship'].includes(shipType)) return false;
         if (this.currentShip && this.currentShip.type === shipType) return false;
         if (this.currentShip) this.pauseShipBuilding();
-        this.paidTowardShipBuilding = this.buildCredits[shipType] || 0;
+        this.paidTowardShipBuilding = (this.buildCredits[shipType] || 0)+(this.unassignedShipCredit || 0);
+        this.unassignedShipCredit=0;
         // Pending construction is system data, not a ship/map entity.
         // Cache the selected hull's price; commission at the system's
         // current technology as soon as its full cost has been paid.

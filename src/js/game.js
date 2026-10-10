@@ -1521,6 +1521,7 @@ class Game {
         const changed=replace?object.course.edit(index,target):object.course.addPlayerWaypoint(target,index);
         if (!changed) return false;
         object.setPatrol(false);
+        object.setScrap(false);
         this.recordEvent(I18n.getString(604,'Orders'),I18n.formatString(739,'Course updated for {0}',this.getObjectDisplayName(object)),{type:'ui'});
         return true;
     }
@@ -1713,6 +1714,7 @@ class Game {
                 const object=this.courseWindowObject;
                 if(!this.canEditCourse(object) || !object.course.swapMemory())return false;
                 object.setPatrol(false); // CbxNaPanel cancels patrol after memory use.
+                object.setScrap(false);
                 const index=object.course.current;
                 this.courseSelection=object.course.waypoints[index]?index:null;
                 this.coursePage=0;
@@ -1732,6 +1734,7 @@ class Game {
                 this.courseWindowObject.course.changed();return true;
             case 'clearOrders':
                 return this.clearOrders(action.object);
+            case 'toggleScrap': return this.toggleScrap(action.object);
             case 'togglePatrol':
                 return this.togglePatrol(action.object);
             case 'toggleFleetWindow':
@@ -1895,6 +1898,7 @@ class Game {
         const newPatrol = !(object.isOnPatrol && object.isOnPatrol());
         object.setPatrol(newPatrol);
         if(newPatrol) {
+            object.setScrap(false);
             object.course.clear();
             if(this.courseWindowObject===object) {this.courseSelection=null;this.coursePage=0;}
         }
@@ -2289,6 +2293,38 @@ class Game {
         }
     }
     
+    canToggleScrap(object) {
+        if(!object || !this.canHumanControl(object))return false;
+        const fleet=this.factory.isFleet(object);
+        if(fleet ? !this.allFleets.includes(object) || object.isEmpty()
+            : !this.allShips.includes(object) || object.isDead() || object.underConstruction())return false;
+        const container=object.fleet || object.star;
+        return !!container && container.owner===this.getCurrentHumanPlayer();
+    }
+
+    toggleScrap(object=this.selectedObject) {
+        if(!this.canToggleScrap(object))return false;
+        object.setScrap(!object.isToBeScrapped());
+        if(object.isToBeScrapped()) {
+            this.attention.attend(object);
+            if(this.factory.isFleet(object))for(const ship of object.ships)this.attention.attend(ship);
+        }
+        return true;
+    }
+
+    scrapShip(ship) {
+        if(!this.allShips.includes(ship) || !ship.isToBeScrapped() || ship.isDead() || ship.underConstruction())return false;
+        const fleet=ship.fleet,star=fleet?fleet.star:ship.star;
+        const amount=this.rules.getShipScrapValue(ship),name=this.getObjectDisplayName(ship);
+        if(star && this.stars.includes(star) && Number.isFinite(amount))star.addScrapProduction(amount);
+        const event=this.recordEvent(I18n.getString(754,'Scrap'),star
+            ? I18n.formatString(757,'{0} scrapped; {1} production recovered at {2}',name,I18n.formatDecimal(amount,3),this.getObjectDisplayName(star))
+            : I18n.formatString(758,'{0} scrapped',name),{type:'scrap',subject:ship,recipient:ship.owner});
+        this.detachShipFromContainers(ship);this.entityRemoved(ship);
+        if(fleet && fleet.isEmpty())this.entityRemoved(fleet);
+        return !!event;
+    }
+
     // CShip::EndOfTurn marks the actor before allowing its destination to
     // move. Marking before recursion handles mutual pursuit and longer cycles.
     moveAllShips() {
@@ -2306,8 +2342,14 @@ class Game {
         if(type===Common.ObjectType.SHIP && !this.allShips.includes(actor) ||
             type===Common.ObjectType.FLEET && !this.allFleets.includes(actor))return false;
         turn.moved.add(actor);
+        if(type===Common.ObjectType.SHIP && actor.isToBeScrapped())return this.scrapShip(actor);
         // Contained ships travel with their fleet, never independently.
         if(type===Common.ObjectType.SHIP && actor.fleet)return false;
+        if(type===Common.ObjectType.FLEET) {
+            // Process contained scrap orders before departure, even when pursued.
+            for(const ship of [...actor.ships])this.moveActorForTurn(ship);
+            if(!this.allFleets.includes(actor))return false;
+        }
         actor.move();
         return true;
     }

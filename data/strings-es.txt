@@ -346,3 +346,10 @@
 751	Revisado
 752	Selecciona un evento
 753	Detalles
+
+# Scrapping
+754	Desguazar
+755	Cancelar
+756	Para desguace
+757	{0} desguazada; {1} de producción recuperada en {2}
+758	{0} desguazada

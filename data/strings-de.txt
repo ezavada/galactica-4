@@ -346,3 +346,10 @@
 751	Gelesen
 752	Ereignis auswählen
 753	Details
+
+# Scrapping
+754	Verschrotten
+755	Abbrechen
+756	Zum Verschrotten
+757	{0} verschrottet; {1} Produktion bei {2} zurückgewonnen
+758	{0} verschrottet
