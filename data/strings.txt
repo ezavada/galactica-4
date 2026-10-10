@@ -598,3 +598,7 @@
 947	Repairs
 948	Your ship {0} has been completely repaired.
 949	All ships in your fleet {0} have been completely repaired.
+
+# Rendezvous fleet formation notices
+950	Your new fleet has begun to form at {0}. Please name it.
+951	{0} has begun forming a new fleet at {1}.

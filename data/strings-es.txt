@@ -598,3 +598,7 @@
 947	Reparaciones
 948	Tu nave {0} ha sido reparada por completo.
 949	Todas las naves de tu flota {0} han sido reparadas por completo.
+
+# Rendezvous fleet formation notices
+950	Tu nueva flota ha comenzado a formarse en {0}. Dale un nombre.
+951	{0} ha comenzado a formar una nueva flota en {1}.

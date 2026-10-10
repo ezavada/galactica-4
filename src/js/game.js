@@ -1014,7 +1014,7 @@ class Game {
     }
 
     hasReplayableReport(event) {
-        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair));
+        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair || event.rendezvousFormation));
     }
 
     queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense)), manual = false) {
@@ -1028,7 +1028,7 @@ class Game {
         const retained=new Set(this.getEventRows());
         for(const event of this.eventLog) {
             if(event.turn!==this.turn && !retained.has(event))continue;
-            if(!event.observer || event.handled || this.overlay && this.overlay.eventId===event.id ||
+            if(!event.observer || event.automatic===false || event.handled || this.overlay && this.overlay.eventId===event.id ||
                     this.overlayQueue.some(overlay=>overlay.eventId===event.id))continue;
             queued=this.queueReport(event) || queued;
         }
@@ -3288,7 +3288,7 @@ class Game {
                 I18n.formatString(948,'Your ship {0} has been completely repaired.',name),
             {type:fleet?Common.EventType.FLEET_REPAIRED:Common.EventType.SHIP_REPAIRED,
                 subject:ship,position:star,recipient:star.owner});
-        event.repair={name,fleet};
+        event.repair={name,fleet};event.automatic=false;
         this.attention.requestEvent(event);
         return event;
     }
@@ -3567,7 +3567,7 @@ class Game {
             this.recordEvent(
                 I18n.getString(567, 'Rendezvous'),
                 I18n.formatString(668, '{0} assigned to {1}', this.getObjectDisplayName(assemblyFleet), this.getObjectDisplayName(rendezvous)),
-                { type: Common.EventType.FLEET_FORMED }
+                { type: Common.EventType.FLEET_FORMED, subject:assemblyFleet, recipient:entity.owner }
             );
             return assemblyFleet;
         }
@@ -3576,14 +3576,10 @@ class Game {
             return null;
         }
 
-        if (!assemblyFleet || (assemblyFleet.isEmpty && assemblyFleet.isEmpty())) {
+        const newFleet=!assemblyFleet || (assemblyFleet.isEmpty && assemblyFleet.isEmpty());
+        if (newFleet) {
             assemblyFleet = this.factory.createFleet(rendezvous.x, rendezvous.y, entity.owner, rendezvous.name);
             rendezvous.setFleet(assemblyFleet);
-            this.recordEvent(
-                I18n.getString(567, 'Rendezvous'),
-                I18n.formatString(669, '{0} formed at {1}', this.getObjectDisplayName(assemblyFleet), this.getObjectDisplayName(rendezvous)),
-                { type: Common.EventType.FLEET_FORMED }
-            );
         }
 
         assemblyFleet.x = rendezvous.x;
@@ -3593,12 +3589,28 @@ class Game {
         assemblyFleet.syncShipPositions();
         rendezvous.setFleet(assemblyFleet);
 
-        this.recordEvent(
+        if(newFleet)this.recordRendezvousFleetFormation(assemblyFleet,rendezvous);
+        else this.recordEvent(
             I18n.getString(567, 'Rendezvous'),
             I18n.formatString(670, '{0} joined {1}', this.getObjectDisplayName(entity), this.getObjectDisplayName(assemblyFleet)),
-            { type: Common.EventType.FLEET_FORMED }
+            { type: Common.EventType.FLEET_FORMED, subject:assemblyFleet, recipient:entity.owner }
         );
         return assemblyFleet;
+    }
+
+    recordRendezvousFleetFormation(fleet, rendezvous) {
+        const owner=fleet.owner,ownerName=this.players[owner] && this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
+        const location=I18n.formatString(656,'({0}, {1})',I18n.formatDecimal(rendezvous.x/65536,2),I18n.formatDecimal(rendezvous.y/65536,2));
+        return Object.keys(this.players).map(Number).filter(recipient=>recipient>0 && this.players[recipient]).map(recipient=>{
+            const observer=recipient!==owner;
+            const event=this.recordEvent(I18n.getString(566,'Fleets'),observer?
+                I18n.formatString(951,'{0} has begun forming a new fleet at {1}.',ownerName,location):
+                I18n.formatString(950,'Your new fleet has begun to form at {0}. Please name it.',location),
+                {type:Common.EventType.FLEET_FORMED,subject:fleet,position:rendezvous,recipient});
+            event.rendezvousFormation={owner,ownerName,location};event.observer=observer;event.automatic=false;
+            this.attention.requestEvent(event);
+            return event;
+        });
     }
 
     getFriendlyFleetsAtLocation(owner, x, y, excludeFleet = null) {

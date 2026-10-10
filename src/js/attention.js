@@ -29,7 +29,11 @@ class Attention {
     attend(object) { const entry=this.pending().find(entry=>entry.object===object);if(entry){entry.handled=true;if(entry.event)entry.event.handled=true;} }
     next() {
         const entry=this.pending()[0];if(!entry)return false;
-        entry.handled=true;if(entry.event) {this.game.focusEvent(entry.event,true);return true;}
+        entry.handled=true;if(entry.event) {
+            this.game.focusEvent(entry.event,true);
+            if(entry.event.automatic===false && this.game.hasReplayableReport(entry.event))this.game.queueReport(entry.event,false,true);
+            return true;
+        }
         this.game.uiWindow=null;this.game.setSelectedObject(entry.object);
         if(this.game.display)this.game.display.centerOn(entry.object.x,entry.object.y);
         return true;
