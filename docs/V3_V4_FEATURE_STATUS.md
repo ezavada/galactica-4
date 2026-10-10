@@ -113,7 +113,7 @@ The largest blockers to a complete game are:
 | Map display modes | Ownership, production, tech, defense, growth, shipbuilding and research brightness modes. | ✅ Implemented | ✅ Implemented | Command Menu → Map display offers all seven working modes to players and observers. Ownership retains existing visuals; numeric modes normalize brightness over known owned systems, with a localized range legend. Defense includes docked allied ships/fleets/satellites; economic allocation modes use target levels. Tech/defense also shade visible ships/fleets using the system range; economic modes de-emphasize mobiles. Unknown enemy metrics cannot alter shading or normalization. Equal/empty ranges are finite. Mode is per-game and is retained by local file saves, matching v3. |
 | Danger display | Dormant button/command in v3. | ❌ Missing / not a parity blocker | ❌ Missing / not a parity blocker | Audited `CStar::GetDangerLevel`, `CShip::GetDangerLevel` and base implementation all return zero; `GalacticaDoc::RecalcHighestValues` comments out danger statistics. There is no functioning v3 danger metric to port. V4 offers the seven working modes and does not invent a danger calculation. |
 | Scanner/range circles | v3 UI can render ranges/spheres of influence. | ✅ Implemented | ✅ Implemented | Settings/F6 controls default-on, persistent scanner overlays. Systems form three owner-colored unioned influence bands (4×/2×/1× range); selected scanners show three rings (1×/2×/4×) even when the setting is off. Ordinary unselected mobile scanners show one ring; looping couriers only show rings when selected. System coverage requires allied/omniscient or Tech knowledge, while mobile rings follow v3 visible-ship eligibility. |
-| Full screen | Window menu toggle. | 🟡 Partial | 🟡 Partial | Localized command-menu and startup/in-game Settings toggles use actual browser fullscreen state and native PDG APIs; Settings shows localized failure feedback without closing or overwriting the saved choice. Browser entry/exit, external exit, rejection/retry and wide-screen click coordinates verified in all six languages. Native GLFW monitor switching and default-port restoration are fixed in both PDG repos. Current native PDG now passes real entry/exit/restoration cycles on three connected displays. Fullscreen preferences persist; native launch restores immediately and browser launch waits for the first click/key gesture. The pinned v1.2.0 archive still lacks the engine fix: v4 detects its unchanged actual state, reports failure and retains the saved preference. Updating the packaged runtime remains unfinished. |
+| Full screen | Window menu toggle. | 🟡 Partial | 🟡 Partial | Localized command-menu and startup/in-game Settings toggles use actual browser fullscreen state and native PDG APIs; Settings shows localized failure feedback without closing or overwriting the saved choice. Browser entry/exit, external exit, rejection/retry and wide-screen click coordinates verified in all six languages. Native GLFW monitor switching and default-port restoration are fixed in both PDG repos. An earlier private-engine run passed real entry/exit/restoration cycles on three connected displays; the current execution session reports zero displays, so the public backport cannot yet be validated on connected monitors. Fullscreen preferences persist; native launch restores immediately and browser launch waits for the first click/key gesture. The pinned v1.2.0 archive still lacks the engine fix: v4 detects its unchanged actual state, reports failure and retains the saved preference. Updating the packaged runtime remains unfinished. |
 | Nebula/background art | Persisted, default-on nebula preference; black map when disabled. | ✅ Implemented | ✅ Implemented | Settings → Show nebula background retains the choice through browser/native preferences and new games. On uses existing zoom-scaled parallax art and a missing-image gradient fallback; off clears the entire viewport black without drawing/loading another background. Influence bands dim to the v3 black-background levels (0.0625/0.09375/0.1875 versus 0.1/0.15/0.3) by updating cached drawing attributes; geometry masks are reused. Star animation, decorative exterior stars, grid, rings, controls and simulation remain independent. |
 
 ### Possible map/display enhancements beyond v3, not counted in Section 2
@@ -1420,17 +1420,19 @@ under `/private/tmp/galactica-parity/fullscreen-startup/<language>`; logs are
 `/private/tmp/galactica-fullscreen-startup-<language>.log`. Existing localized
 fullscreen labels and retry feedback are reused; no new UI strings were added.
 
-Native revalidation supersedes the earlier zero-monitor observation: both
-runtimes now report three displays. Current PDG completes real fullscreen →
+Historical native revalidation found three displays. The private development
+runtime completed real fullscreen →
 windowed → saved-fullscreen → windowed cycles, with preference writes
 `true,false,true,false`, using isolated in-memory preferences. The pinned release
 runtime reports request success while remaining windowed; the new guard reports
 failure and performs no preference write. Evidence:
 `/private/tmp/galactica-fullscreen-startup-current-native-ui.log` and
 `/private/tmp/galactica-fullscreen-startup-native-ui.log`. The source engine fix
-already exists in both PDG repos; updating the pinned release archive is still
-required for native distribution. It is not treated as an unavailable-help
-blocker, and broader parity/Map Generation remains unfinished.
+was already committed in the private repository; the claim that it also existed
+in the public repository was incorrect. The public backport and current release
+gate results are recorded below. Updating the pinned release archive is still
+required for native distribution, and broader parity/Map Generation remains
+unfinished.
 
 
 ### Separate persistent new-game defaults
@@ -1663,3 +1665,40 @@ are included in `/private/tmp/galactica-fullscreen-settings-packaged-app`.
 The pinned native release still lacks the previously fixed fullscreen engine
 behavior. Its packaging update, other preferences, remaining v3 parity and
 Map Generation are not complete.
+
+
+### Public fullscreen engine backport and native release gate
+
+Inspection of public main confirmed that the private fullscreen fix was absent.
+Public commit `f95a1d36f` now applies the same implementation and regression spec
+as private commit `120fde2946669106c4b21d24194435774d08cfdc`: GLFW changes the
+window monitor, GraphicsManager returns actual fullscreen state and uses the
+chosen dimensions, and returning to windowed mode restores the default port.
+The public commit is local; it has not been pushed or packaged into a release.
+
+The rebuilt public runtime and both C++ test targets compile. All 20 C++ tests
+pass, and the targeted fullscreen spec passes its no-monitor failure/default-port
+restoration path (one test, five assertions). The connected-monitor path remains
+unverified in this execution session. The release script passes 1,464 Node tests
+(11,328 assertions), but stops at the native gate: 1,691 tests, 17,319 assertions,
+11 failures. Every failure is in GraphicsManager screen validation. Running that
+spec against Galactica's original pinned v1.2.0 runtime reproduces all 11 failures
+at the same assertions (26 tests, 106 assertions). Both rebuilt public and private
+runtimes currently report zero displays; launching the public app through macOS
+Launch Services and retrying in a terminal did not provide display access.
+
+This packaging item requires a macOS execution session with native display
+access to run connected-monitor transitions and the complete release gate.
+Tests were not bypassed. No replacement archive was produced or uploaded, and
+Galactica's runtime pin/cache remain unchanged. Historical three-display success
+above is evidence for the private implementation, not a current public-runtime
+release validation. Full Galactica suites pass against both the original pinned
+runtime and the rebuilt public runtime: 1,325 tests in each lane. No game UI or
+user-facing strings changed in this backport follow-up.
+
+Evidence: `/private/tmp/pdg-public-fullscreen-{build,spec-runtime,ctest,release}.log`,
+`/private/tmp/pdg-public-fullscreen-original-graphics.log`,
+`/private/tmp/galactica-public-fullscreen-native.log`,
+`/private/tmp/galactica-private-fullscreen-current.log`, and
+`/private/tmp/galactica-fullscreen-backport-{tests,public-tests}.log`.
+Broader parity and Map Generation work remain active.
