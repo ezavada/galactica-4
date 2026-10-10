@@ -177,6 +177,33 @@ module.exports = function runRendezvousTests() {
             test.assertEqual(game.selectedObject, game.allRendezvous[0]);
         });
 
+        test.it('routes empty-space clicks into rendezvous creation and movement rather than camera dragging',()=>{
+            const game=createGameForTests();game.port=createFakePort();const display=new Display(game);
+            display.camera.setZoom(2);display.camera.centerOn(400000,500000);
+            const x=display.toGalacticX(240),y=display.toGalacticY(200);
+            game.beginRendezvousPlacement();test.assertTrue(game.isAwaitingMapTarget());
+            test.assertFalse(game.handleUIClick(240,200));game.handleMouseClick(240,200);
+            const point=game.allRendezvous[0];test.assertApproximately(point.x,x,.00001);test.assertApproximately(point.y,y,.00001);test.assertNull(point.anchor);
+            test.assertFalse(game.isAwaitingMapTarget());game.beginRendezvousPlacement(point);test.assertTrue(game.isAwaitingMapTarget());
+            game.handleMouseClick(260,220);test.assertApproximately(point.x,display.toGalacticX(260),.00001);test.assertNull(point.anchor);
+        });
+        test.it('lets star and ship popup rendezvous actions choose a map location',()=>{
+            const game=createGameForTests();game.port=createFakePort();const display=new Display(game);
+            const star=createOwnedStar(game,1),ship=createCompletedShip(game,star);
+            for(const object of [star,ship]){game.setSelectedObject(object);const row=display.getContextActions(object).find(row=>row.key==='U');
+                test.assertEqual(row.action.type,'beginRendezvousPlacement');game.executeUIAction(row.action);test.assertTrue(game.isAwaitingMapTarget());
+                test.assertEqual(game.allRendezvous.length,0);game.handleKeyPress(pdg.key_Escape);test.assertFalse(game.isAwaitingMapTarget());}
+        });
+        test.it('renders thicker private markers at wide zoom and cycles owner color to pale and back',()=>{
+            const game=createGameForTests();game.port=createFakePort();const display=new Display(game),point=game.createRendezvousAt(200,200,1,'Meet');
+            display.camera.zoom=.1;let polygons=0,color;game.port.drawPolygon=()=>polygons++;
+            display.styles.rendezvousMarker.fillColor=c=>{color=c;return display.styles.rendezvousMarker;};
+            display.visualTime=0;display.drawRendezvous(point);test.assertEqual(polygons,2);const base=color;
+            display.visualTime=1100;display.drawRendezvous(point);test.assertTrue(color.red>base.red);test.assertTrue(color.green>base.green);test.assertTrue(color.alpha>=.85);
+            display.visualTime=2200;display.drawRendezvous(point);test.assertApproximately(color.red,base.red,.000001);
+            display.visualEffects.reducedMotion=true;display.visualTime=1100;display.drawRendezvous(point);test.assertApproximately(color.red,base.red,.000001);
+            point.owner=2;const count=polygons;display.drawRendezvous(point);test.assertEqual(polygons,count);
+        });
         test.it('renames, moves, and deletes rendezvous points from popup actions', () => {
             const game = createGameForTests();
             game.port = createFakePort(800, 600);

@@ -237,6 +237,7 @@ class Display {
         // Treat these Attributes objects like CSS classes: define once, reuse at draw sites,
         // and allow later UI passes to tune a style in one place.
         return {
+            rendezvousMarker: this.createAttributes({lineStyle:pdg.lineStyle_None}),
             starTwinkle: this.createAttributes({lineColor:new pdg.Color('white'),lineStyle:pdg.lineStyle_Solid}),
             clear: this.createAttributes({ fillColor: new pdg.Color('black') }),
             image: this.createAttributes(),
@@ -944,21 +945,23 @@ class Display {
         let x = this.toScreenX(rendezvous.x);
         let y = this.toScreenY(rendezvous.y);
         const selected = rendezvous === this.selectedObject;
-        if (this.camera.zoom < 0.25 && !selected) {
-            return;
+        const opacity = selected ? 1.0 : Math.max(0.85, this.mapEntityNameOpacity || 0);
+        const owner = this.ownerColors[rendezvous.owner] || new pdg.Color('white');
+        const pulse=this.visualEffects.rendezvousPulse(this.getVisualTime());
+        const blend=0.85*pulse;
+        const color=new pdg.Color(owner.red*(1-blend)+0.96*blend,
+            owner.green*(1-blend)+0.96*blend,owner.blue*(1-blend)+0.96*blend,opacity);
+        const attrs=this.styles.rendezvousMarker.fillColor(color);
+        const radius = Math.max(7, (this.scaledShipRadius || Common.ShipRadius) + 3);
+        // Filled strokes stay three pixels thick even where WebGL ignores line width.
+        for(const direction of [-1,1]) {
+            const from=new pdg.Point(x-radius,y-direction*radius),to=new pdg.Point(x+radius,y+direction*radius);
+            const length=Math.hypot(to.x-from.x,to.y-from.y),nx=-(to.y-from.y)/length*1.5,ny=(to.x-from.x)/length*1.5;
+            const stroke=new pdg.Polygon(new pdg.Point(from.x+nx,from.y+ny),new pdg.Point(to.x+nx,to.y+ny),
+                new pdg.Point(to.x-nx,to.y-ny),new pdg.Point(from.x-nx,from.y-ny));
+            try{this.port.drawPolygon(stroke,attrs);}finally{if(typeof stroke.delete==='function')stroke.delete();}
+            this.port.drawCircle(from,1.5,attrs);this.port.drawCircle(to,1.5,attrs);
         }
-
-        const opacity = selected ? 1.0 : Math.max(0.45, this.mapEntityNameOpacity);
-        const lineColor = this.ownerColors[rendezvous.owner] || new pdg.Color('white');
-        const attrs = this.createAttributes({
-            lineColor,
-            lineOpacity: opacity,
-            lineStyle: pdg.lineStyle_Solid
-        });
-        const radius = Math.max(5, (this.scaledShipRadius || Common.ShipRadius) + 2);
-
-        this.port.drawLine(new pdg.Point(x - radius, y - radius), new pdg.Point(x + radius, y + radius), attrs);
-        this.port.drawLine(new pdg.Point(x + radius, y - radius), new pdg.Point(x - radius, y + radius), attrs);
 
         if (selected) {
             const pulse = this.selectionPulse.sample(pdg.tm.getMilliseconds());
@@ -1374,7 +1377,7 @@ class Display {
                 { key: 'D', label: this.STR.defenseName, action: { type: 'buildShip', shipType: 'defense' } },
                 { key: 'B', label: this.STR.battleshipName, action: { type: 'buildShip', shipType: 'battleship' } },
                 { key: 'c', label: this.STR.colonyName, action: { type: 'buildShip', shipType: 'colony' } },
-                { key: 'U', label: this.STR.rendezvous, action: { type: 'createRendezvous' } }
+                { key: 'U', label: this.STR.rendezvous, action: { type: 'beginRendezvousPlacement' } }
             );
         } else if (objectType === Common.ObjectType.SHIP || objectType === Common.ObjectType.FLEET) {
             if (this.game.canHumanControl(object)) {
@@ -1391,7 +1394,7 @@ class Display {
                     );
                 } else {
                     actions.push({ key: 'N', label: this.STR.rename, action: { type: 'beginRename' } },
-                        { key: 'U', label: this.STR.rendezvous, action: { type: 'createRendezvous' } });
+                        { key: 'U', label: this.STR.rendezvous, action: { type: 'beginRendezvousPlacement' } });
                 }
             }
             if (this.game.canViewCourse(object)) actions.push({key:'G',label:I18n.getString(726,'Course'),action:{type:'showCourse'}});

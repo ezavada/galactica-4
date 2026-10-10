@@ -15,6 +15,9 @@ class VisualEffects {
         }
         return {id:selected,strength:Math.sin(Math.PI*phase/duration)**2};
     }
+    rendezvousPulse(milliseconds) {
+        return this.reducedMotion?0:(1-Math.cos(2*Math.PI*milliseconds/2200))/2;
+    }
     parallax(camera) {
         if(this.reducedMotion)return {x:0,y:0};
         return {x:-8*Math.tanh(camera.panX*camera.scale/400),y:-8*Math.tanh(camera.panY*camera.scale/400)};

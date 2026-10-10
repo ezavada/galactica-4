@@ -1538,7 +1538,7 @@ class Game {
     }
 
     isAwaitingMapTarget() {
-        return !!this.pendingMapOrderObject;
+        return !!(this.pendingMapOrderObject || this.pendingRendezvousPlacement);
     }
 
     beginMapOrder(object) {
