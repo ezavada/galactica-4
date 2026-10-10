@@ -430,3 +430,6 @@
 807	Oui
 808	Non
 809	Double-cliquez sur une ligne pour l’inspecter.
+
+# Roster window geometry
+810	Faites glisser le titre pour déplacer ; le coin inférieur droit pour redimensionner.

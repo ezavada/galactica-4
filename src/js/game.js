@@ -61,6 +61,8 @@ class Game {
         this.fleetRosterPage = 0;
         this.fleetRosterSort = {key:'name',ascending:true};
         this.fleetRosterLastClick = null;
+        this.fleetRosterGeometry = null;
+        this.uiWindowDrag = null;
         this.colonyDefaultsDraft = null;
         this.systemShipWindowStar = null;
         this.systemShipPage = 0;
@@ -666,7 +668,7 @@ class Game {
         this.setSelectedObject(object);
         if(this.display)this.display.centerOn(object.x,object.y);
         if(previous && previous.object===object && now>=previous.time && now-previous.time<=500) {
-            this.uiWindow=null;this.fleetRosterLastClick=null;
+            this.saveFleetRosterGeometry();this.uiWindow=null;this.fleetRosterLastClick=null;
         } else this.fleetRosterLastClick={object,time:now};
         return true;
     }
@@ -915,6 +917,8 @@ class Game {
     }
 
     openUIWindow(windowName) {
+        this.endUIWindowDrag();
+        this.saveFleetRosterGeometry();
         if (this.mapSelectionPicker) this.cancelMapSelection();
         this.uiWindow = windowName;
         if(windowName==='fleets')this.fleetRosterLastClick=null;
@@ -922,6 +926,8 @@ class Game {
     }
 
     toggleUIWindow(windowName) {
+        this.endUIWindowDrag();
+        this.saveFleetRosterGeometry();
         if (this.mapSelectionPicker) this.cancelMapSelection();
         this.uiWindow = (this.uiWindow === windowName) ? null : windowName;
         if(windowName==='fleets')this.fleetRosterLastClick=null;
@@ -1219,6 +1225,7 @@ class Game {
     }
 
     handleCommandWindowKey(key, char) {
+        if(this.uiWindowDrag && key===pdg.key_Escape){this.endUIWindowDrag();return true;}
         if(this.uiWindow==='mapPick') {
             if(key===pdg.key_Escape)return this.cancelMapSelection();
             const index=Number(char)-1;
@@ -1245,7 +1252,7 @@ class Game {
         }
         if(key===pdg.key_Home && this.uiWindow==='menu')return this.executeUIAction({type:'selectHomeStar'});
         if(this.uiWindow==='fleetExchange' || this.uiWindow==='fleets') {
-            if(key===pdg.key_Escape)this.uiWindow=null;
+            if(key===pdg.key_Escape){this.saveFleetRosterGeometry();this.uiWindow=null;}
             return true;
         }
         if(this.uiWindow==='settings' || this.uiWindow==='mapDisplay') {
@@ -1889,7 +1896,7 @@ class Game {
                 if(this.rosterPreferences)this.rosterPreferences.write(this.fleetRosterSort);
                 return true;
             }
-            case 'closeFleetRoster':this.uiWindow=null;this.fleetRosterLastClick=null;return true;
+            case 'closeFleetRoster':this.endUIWindowDrag();this.saveFleetRosterGeometry();this.uiWindow=null;this.fleetRosterLastClick=null;return true;
             case 'showFleetExchange':return this.showFleetExchange(action.container || this.selectedObject);
             case 'fleetExchangeSelect':return this.selectFleetExchangeMember(action.side,action.object);
             case 'exchangeFleetMember':return this.exchangeFleetMember();
@@ -2106,6 +2113,51 @@ class Game {
         this.uiMapScrollDrag=null;return true;
     }
 
+    saveFleetRosterGeometry() {
+        if(this.uiWindow!=='fleets' || !this.display)return;
+        if(!this.fleetRosterGeometry) {
+            const rect=this.display.getFleetWindowRect();
+            this.fleetRosterGeometry={x:rect.x,y:rect.y,height:rect.height};
+        }
+        if(this.rosterPreferences && this.rosterPreferences.writeGeometry)
+            this.rosterPreferences.writeGeometry(this.fleetRosterGeometry);
+    }
+
+    beginUIWindowDrag(x,y) {
+        this.endUIWindowDrag();
+        if(this.uiWindow!=='fleets' || !this.display || !Number.isFinite(x) || !Number.isFinite(y))return false;
+        const region=this.display.getFleetRosterDragRegions().find(region=>this.display.containsPoint(region.rect,x,y));
+        if(!region)return false;
+        const screen=this.display.getScreenSize(),rect=this.display.getFleetWindowRect();
+        this.uiWindowDrag={mode:region.mode,x,y,rect:{...rect},width:screen.width,height:screen.height};
+        this.fleetRosterLastClick=null;return true;
+    }
+
+    updateUIWindowDrag(x,y) {
+        const drag=this.uiWindowDrag;if(!drag)return false;
+        const screen=this.display.getScreenSize();
+        if(this.uiWindow!=='fleets' || screen.width!==drag.width || screen.height!==drag.height) {
+            this.endUIWindowDrag();return true;
+        }
+        if(!Number.isFinite(x) || !Number.isFinite(y))return true;
+        const rect=drag.rect;
+        if(drag.mode==='move')this.fleetRosterGeometry={
+            x:Math.max(10,Math.min(screen.width-rect.width-10,rect.x+x-drag.x)),
+            y:Math.max(10,Math.min(screen.height-rect.height-10,rect.y+y-drag.y)),height:rect.height};
+        else this.fleetRosterGeometry={x:rect.x,y:rect.y,
+            height:Math.max(158,Math.min(screen.height-rect.y-10,rect.height+y-drag.y))};
+        return true;
+    }
+
+    endUIWindowDrag(x,y) {
+        if(!this.uiWindowDrag)return false;
+        if(Number.isFinite(x) && Number.isFinite(y))this.updateUIWindowDrag(x,y);
+        if(!this.uiWindowDrag)return true;
+        this.uiWindowDrag=null;
+        if(this.fleetRosterGeometry)this.saveFleetRosterGeometry();
+        return true;
+    }
+
     beginUISliderDrag(x,y) {
         this.endUISliderDrag();
         const slider = this.display && this.display.getDraggableSliderAt(x,y);
@@ -2206,7 +2258,7 @@ class Game {
     }
 
     requestEndTurn() {
-        if(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag || this.mapSelectionPicker)return false;
+        if(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag || this.uiWindowDrag || this.mapSelectionPicker)return false;
         if(this.attention.pending().length || this.hasEventPresentation()) {this.uiWindow='endTurnConfirm';return false;}
         this.endTurn();return true;
     }
@@ -2308,7 +2360,7 @@ class Game {
     }
     
     handleMouseRightClick(x, y, options={}) {
-        if(this.uiWindow==='mapPick')return true;
+        if(['mapPick','fleets'].includes(this.uiWindow))return true;
         if(this.pendingMapOrderObject || this.pendingRendezvousPlacement)return this.handleMouseClick(x,y,options);
         if(!options.resolved && this.beginMapSelection(x,y,'order'))return true;
         this.pendingMapOrderObject = null;

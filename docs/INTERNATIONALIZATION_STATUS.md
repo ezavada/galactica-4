@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 344 IDs
-- localized files: 344 IDs each
+- `strings.txt`: 345 IDs
+- localized files: 345 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 889 passed, 0 failed.
+Current expected full-suite result: 900 passed, 0 failed.
 
 ## Future work
 
@@ -141,3 +141,5 @@ Nested fleet groups add IDs 796–798 (Group action, default group name, Parent 
 Fleet exchange adds IDs 801–805 (window title/action, main-list heading, destination contents heading, New fleet and Inspect) in all six languages. It reuses localized sorting, paging, health, patrol, scrap, parent navigation and close labels. Native browser exchanges in both directions, new top-level/nested fleets, intact group wrapping, parent inspection, patrol/scrap and modal keys passed in every language. Current resources: 340 IDs per language; full suites: 877 passed on release/current native PDG.
 
 Fleet roster adds IDs 806–809 (empty roster, Yes/No colony capability and double-click help) in all six languages. It reuses localized column names, patrol, paging and close labels, with native decimal formatting for speed and coordinates. All translated columns, later pages, selected/double-click views and smaller CSS views passed actual browser checks; header layouts also fit logical 640×480/600 screens. Current resources: 344 IDs per language; full suites: 889 passed on release/current native PDG.
+
+Roster geometry adds ID 810, a native-language title/corner drag hint, in all six languages. Actual browser move/resize, paging, Escape, release outside the canvas and fresh-page restoration passed in every language; inspected translated moved/resized/restored windows and smaller CSS views. Current resources: 345 IDs per language; full suites: 900 passed on release/current native PDG.

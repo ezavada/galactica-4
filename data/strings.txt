@@ -430,3 +430,6 @@
 807	Yes
 808	No
 809	Double-click a row to inspect it.
+
+# Roster window geometry
+810	Drag title to move; drag lower-right corner to resize.

@@ -430,3 +430,6 @@
 807	Ja
 808	Nein
 809	Zeile doppelklicken, um sie anzusehen.
+
+# Roster window geometry
+810	Titelleiste zum Verschieben ziehen; untere rechte Ecke zum Ändern der Größe ziehen.

@@ -430,3 +430,6 @@
 807	Sí
 808	No
 809	Haz doble clic en una fila para inspeccionarla.
+
+# Roster window geometry
+810	Arrastra el título para mover; la esquina inferior derecha para cambiar el tamaño.
