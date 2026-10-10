@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1430 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1438 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -43,7 +43,7 @@ The largest blockers to a complete game are:
 1. **Combat runtime rules are now at v3 parity for Section 6, but presentation is still thin.** Enemy ship/star/fleet arrivals invoke `CombatSystem`, remove destroyed ships, use v3-style ship/star combat formulas, run ground combat, let surviving colony ships capture stars, repair docked mobile ships/fleets, recalculate fog each turn, and record localized battle summaries. Missing v3 pieces are UI/presentation: remaining observer/other recipient-relative reports, sound and remaining illustrated event coverage. Participant combat, defeated-resistance and capture messages now have automatic windows and replay. A distinct last-seen ghost rendering mode was not found in the shipped v3 drawing paths.
 2. **The v3 command UI now has a first clickable runtime path, but not full parity.** v4 has a startup setup dialog, charcoal rounded windows, bottom-right permanent map buttons, a top-center turn/game header, clickable popup action buttons, directly clickable production sliders, retained event list, player comparison window, a paged sortable fleet/ship roster, fleet/rendezvous panels, and anchored selection panels. Missing v3 pieces remain: remaining attention-event coverage, map replay, help, sound, and the remaining drawing/sound/game preferences.
 3. **Navigation now supports v3 waypoint editing and looping.** Broader attention-event coverage and full arrival presentation remain incomplete; ship/fleet scrapping is implemented.
-4. **Local file persistence is implemented; multiplayer is absent.** Versioned Save/Save As, Open and confirmed Revert preserve the game graph, visibility, courses, events, selection and camera. Hosting, joining/rejoining, turn posting, timers, passwords, discovery, chat and host administration remain missing.
+4. **Local file persistence and direct multiplayer joining are implemented; multiplayer gameplay is incomplete.** Versioned Save/Save As, Open and confirmed Revert preserve the game graph, visibility, courses, events, selection and camera. Direct hostname/IP inspection and authenticated joining/rejoining now have localized application dialogs and retained sessions. Host setup, saved host lists/discovery, optional password persistence, turn posting, timers, chat, network saves and host administration remain unfinished.
 5. **Several systems are present but incomplete or incorrectly wired.** Examples include fog-of-war presentation, remaining attention-event coverage, event depth, setup/default-settings UI, and richer list/command UI polish.
 
 ## Easy wins applied on 2026-08-25
@@ -273,16 +273,16 @@ The largest blockers to a complete game are:
 | Open saved game | Opens a saved turn. | ✅ Implemented | ✅ Implemented | Startup Open Game and File → Open load `.gad4.json` documents without regenerating the galaxy, preserving already-open games. References, object prototypes, spatial indexes, factory/AI/runtime services and future entity IDs are restored. Malformed or unsupported files report a localized error without replacing the active document. Browser fresh-page imports of actual downloaded files pass in all six languages. The format is v4 JSON, not a reader for legacy v3 binary files. |
 | Revert to saved turn | Restores the last saved state. | ✅ Implemented | ✅ Implemented | File → Revert asks before discarding changes, then restores the saved graph, turn, selection and camera under the same local document identity. Cancel preserves the running game. Native/file-handle backends reread the file; download-only browsers revert to the last successfully saved/imported snapshot. No-saved-file and load failures are localized. |
 | Close game | File-menu Close Game/W closes the active document; game changes mark it modified, save/load clears that state, and closing stops tutorial instructions. | ✅ Implemented | ✅ Implemented | File → Close game/W offers localized Save and close/Discard/Cancel for changed or new documents, closes clean saved games directly, waits for successful writes and preserves other open games. Navigation/report review does not dirty the document. Closing the last game returns to setup; tutorial closure restores the original and releases bindings. Both full suites pass 1,358 tests; dedicated async decisions and actual six-language browser paths are verified below. Application Quit and browser-tab protection are verified separately below; native OS/window-close interception remains pending. |
-| Quit application | Quit checks modified documents before exiting; Cancel prevents exit. | 🟡 Partial | 🟡 Partial | File → Quit/Q, Command/Ctrl+Q, startup Quit and configured command 10 now check every retained game, wait for writes and preserve remaining documents on Cancel. Browser unload warns for unsaved games; accepted Quit offers a localized restart screen. Both full suites pass 1,369 tests; actual all-six-language browser and real native shutdown checks pass. Native window-close/OS Quit requests still bypass save decisions in the pinned PDG runtime and require engine integration. Network logout/host-work deferral remain pending with multiplayer. |
-| Host new network game | Creates host data, starts server, and presents join flow. | 🧱 Scaffold only | ❌ Missing | The native host service creates/reopens a durable multiplayer galaxy and serves public lobby information, durable authenticated slot admission and recipient-specific state over HTTP. A tested native/browser client now inspects, joins/rejoins, reconstructs and refreshes that state for the existing renderer. Host setup/join dialogs, application-session integration and turn posting remain missing. See the prerequisite audits below. |
+| Quit application | Quit checks modified documents before exiting; Cancel prevents exit. | 🟡 Partial | 🟡 Partial | File → Quit/Q, Command/Ctrl+Q, startup Quit and configured command 10 now check every retained game, wait for writes and preserve remaining documents on Cancel. Browser unload warns for unsaved games; accepted Quit offers a localized restart screen. Both full suites pass 1,369 tests; actual all-six-language browser and real native shutdown checks pass. Native window-close/OS Quit requests still bypass save decisions in the pinned PDG runtime and require engine integration. Joined client documents log out on accepted Close/Quit. Host-work deferral remains pending with host application integration. |
+| Host new network game | Creates host data, starts server, and presents join flow. | 🧱 Scaffold only | ❌ Missing | The native host service creates/reopens a durable multiplayer galaxy and serves public lobby information, durable authenticated slot admission and recipient-specific state over HTTP. A tested native/browser client now inspects, joins/rejoins, reconstructs and refreshes that state for the existing renderer. The Join/Rejoin dialog and retained application client sessions are now wired; host setup/application hosting and turn posting remain missing. See the prerequisite audits below. |
 | Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | ❌ Missing | ❌ Missing | No equivalent. |
 | LAN/Internet discovery | Browse advertised games and query the matchmaker. | ❌ Missing | ❌ Missing | No equivalent. |
-| Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | 🧱 Scaffold only | ❌ Missing | The tested live client accepts hostname/IP origins, inspects game/slot information and joins or rejoins through actual native HTTP and browser fetch/CORS. It preserves pending local edits during same-turn refreshes and accepts the next host turn. Host discovery, saved game-list UI, player/host dialogs and application-session integration remain missing. |
-| Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🧱 Scaffold only | ❌ Missing | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Private/admit policy, password preference UI, host administration and player-facing error localization remain forthcoming. |
+| Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | 🟡 Partial | 🟡 Partial | Startup Join/J and File → Join open a localized modal address/name/masked-password form with public game/slot information and paged player selection. Native HTTP/browser CORS admission installs the authenticated client as a retained game document; same-player rejoin reuses that document. Automatic refresh preserves same-turn orders and updates authoritative turns. Title dragging stays in the port and remembers its position. Six-language actual-control browser tests pass. Saved host lists/discovery and complete multiplayer order flow remain missing. |
+| Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🟡 Partial | 🟡 Partial | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit policy, optional saved-password preferences and host administration remain forthcoming. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ❌ Missing | ❌ Missing | v4 directly mutates one local game and advances immediately. |
 | Timed turns | Host clock, time remaining, pause/resume, automatic completion. | ❌ Missing | ❌ Missing | No runtime timer. |
 | Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | ❌ Missing | ❌ Missing | No host/admin mode. |
-| Multiplayer chat | Player-to-player/all/admin messages. | ❌ Missing | ❌ Missing | No networking or chat. |
+| Multiplayer chat | Player-to-player/all/admin messages. | ❌ Missing | ❌ Missing | No chat protocol or UI. |
 
 ### Possible persistence/multiplayer enhancements beyond v3, not counted in Section 9
 
@@ -2505,3 +2505,50 @@ network saves, localized network errors and cross-language report presentation,
 order submission/turn coordination, discovery, private/admit policy and host
 administration remain unfinished. The test-only advance route exists solely
 in the temporary browser fixture, not in the production host service.
+
+
+### Player-facing direct Join/Rejoin and retained client sessions — 2026-10-10
+
+Audited v3 `Classes/GalacticaClient.cpp:250–315, 625–777, 1165–1201`:
+manual hostname/IP entry, public player-slot selection, a new name for open
+slots, the recorded name for claimed slots, optional password admission and
+rejoining. The direct-address portion now runs from startup Join/J and File →
+Join in the actual v4 application. The shared modal appearance, keycap hints,
+constrained title dragging and remembered placement apply to this window.
+All new labels, slot states, admission errors and reconnect guidance use IDs
+1005–1036 in English, German, Spanish, French, Japanese and Russian. Passwords
+are masked and cleared on accepted login/cancel; tokens remain ephemeral.
+
+Accepted views become retained `GameSessions` documents without replacing
+local games. Rejoining the same endpoint/game/player reuses the existing client
+and document. Polling every three seconds retains same-turn pending edits and
+installs an authoritative next turn with selection/camera/drawing choices.
+Models arriving while a tutorial owns the app context are deferred. Close/Quit
+cancel requests and log out; expired/disconnected sessions retain their view
+and show reconnect guidance. Admission cancellation cannot resurrect a closed
+window or start another login after cancelled logout. Client-created local
+report IDs are negative so acknowledging an order notice cannot acknowledge
+an unrelated later positive host report ID.
+
+Verification: **1,438 passed, 0 failed** on pinned/current native PDG. Dedicated
+awaited admission lifecycle and real HTTP transport regressions pass on both.
+Actual Chrome controls pass in all six languages: startup cancellation, File
+Join, Unicode name/password typing, inspect/admit, outside modal clicks,
+unchanged retained local game, production controls, automatic same/new-turn
+refresh, localized incorrect-password handling, same-document rejoin, explicit
+partial-save refusal and accepted Close/remote logout. The final English run
+also verifies title dragging and persisted constrained placement, background
+updates while a local document is active, and actual Open Games switching back
+to the updated client document. Screenshots
+in `/private/tmp/galactica-parity/network-join/{en,de,es,fr,ja,ru}` were reviewed;
+the new joined-production view was compared with the previous manually-fed
+client renderer baseline and preserves its appearance.
+
+Section 9 is not complete. Host setup/open-as-host/dedicated application mode,
+host lists/discovery, optional saved-password preferences, private admission,
+order submission/turn completion, timed turns, host administration, chat,
+network-document saving and cross-language host-report text remain unfinished.
+Save of a joined client currently explains that it is unsupported; it never
+writes a partial map as a complete local simulation. The existing guarded
+client End Turn still does not submit orders. These are remaining work, not
+unavailable-help blockers or completed multiplayer gameplay.

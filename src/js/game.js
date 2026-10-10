@@ -1126,7 +1126,7 @@ class Game {
         const source=options.position || subject;
         const position=source && Number.isFinite(source.x) && Number.isFinite(source.y)?{x:source.x,y:source.y}:null;
         const event={
-            id:++this.nextEventId,turn:options.turn || this.turn,title,message,
+            id:this.clientPlayerNum?-(this.clientEventSequence=(this.clientEventSequence || 0)+1):++this.nextEventId,turn:options.turn || this.turn,title,message,
             type:options.type || 'game',subject,position,recipient:options.recipient,
             handled:false,
             createdAt:(typeof pdg!=='undefined' && pdg.tm && pdg.tm.getMilliseconds)?pdg.tm.getMilliseconds():Date.now()

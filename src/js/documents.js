@@ -16,6 +16,7 @@ class Documents {
     }
     beginSave(saveAs=false) {
         const session=this.active();if(!session)return false;
+        if(session.game.clientPlayerNum)return this.status(1035);
         if(!saveAs && session.file)return this.save(session.file.name,false);
         const name=session.file?session.file.name:Files.suggestedName(session.game.config.gameTitle);
         this.dialog={kind:'editor',operation:'save',editor:Name.createEditor(name,1024),saveAs:true,error:false};return true;
@@ -68,6 +69,7 @@ class Documents {
     }
     action(action) {
         if(action==='cancel' || action==='ack')return this.cancel();
+        if(action==='join')return !!(this.join && this.join());
         if(action==='quit')return !!(this.quit && this.quit());
         if(action==='close')return this.beginClose();
         if(action==='discardClose' && this.dialog && this.dialog.kind==='close')return this.finishClose(this.pendingClose);
@@ -80,6 +82,7 @@ class Documents {
         const dialog=this.dialog;if(!dialog)return false;
         if(key===pdg.key_Escape)return this.cancel();
         if(dialog.kind==='menu' && (key===81 || key===113))return !!(this.quit && this.quit());
+        if(dialog.kind==='menu' && [74,106].includes(key))return !!(this.join && this.join());
         if(dialog.kind==='menu' && (key===87 || key===119))return this.beginClose();
         if(dialog.kind==='editor'){const action=Name.edit(dialog.editor,key);if(action==='submit')this.submit();return true;}
         if(key===13 || key===3){if(dialog.kind==='close')this.beginSave();else if(dialog.kind==='revert')this.revert();else if(dialog.kind==='overwrite')this.save(dialog.name,true);else if(dialog.kind==='status')this.cancel();}
@@ -91,9 +94,9 @@ class Documents {
         const dialogHeight=dialog.kind==='menu'?Math.min(384,height-20):300,rect={x:(width-Math.min(480,width-40))/2,y:(height-dialogHeight)/2,width:Math.min(480,width-40),height:dialogHeight};
         let title=I18n.getString(838),message=dialog.message || '',buttons=[];
         if(dialog.kind==='menu'){
-            const rows=[['save',839],['saveAs',840],['open',841],['revert',842],['close',989],...(this.quit?[['quit',996]]:[]),['cancel',683]];
+            const rows=[...(this.join?[['join',1005]]:[]),['save',839],['saveAs',840],['open',841],['revert',842],['close',989],...(this.quit?[['quit',996]]:[]),['cancel',683]];
             const pitch=Math.min(42,(rect.height-70)/rows.length),buttonHeight=Math.min(32,pitch-6);
-            buttons=rows.map(([action,id],index)=>({action,label:I18n.getString(id),key:action==='close'?'W':action==='quit'?'Q':action==='cancel'?'Esc':null,rect:{x:rect.x+24,y:rect.y+54+index*pitch,width:rect.width-48,height:buttonHeight}}));
+            buttons=rows.map(([action,id],index)=>({action,label:I18n.getString(id),key:action==='join'?'J':action==='close'?'W':action==='quit'?'Q':action==='cancel'?'Esc':null,rect:{x:rect.x+24,y:rect.y+54+index*pitch,width:rect.width-48,height:buttonHeight}}));
         }
         else {
             if(dialog.kind==='close'){title=I18n.getString(this.quitPending?996:989);message=I18n.formatString(this.quitPending?997:990,'',this.pendingClose.game.config.gameTitle);buttons.push({action:'saveClose',label:I18n.getString(991)},{action:'discardClose',label:I18n.getString(992)});}

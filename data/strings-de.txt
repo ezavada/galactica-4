@@ -682,3 +682,37 @@
 
 # Ordinary completed-ship report
 1004	Dein neu gebautes Raumschiff {0} befindet sich im System {1} und ist startbereit.
+
+# Network joining and reconnection
+1005	Netzwerkspiel beitreten
+1006	Hostadresse
+1007	Spielername
+1008	Passwort
+1009	Prüfen
+1010	Beitreten
+1011	Wieder beitreten
+1012	Host wird kontaktiert…
+1013	Spielbeitritt…
+1014	{0} — Runde {1}
+1015	{0} menschliche Plätze · {1} Computerspieler
+1016	Spieler {0}: Frei
+1017	Spieler {0}: {1} ({2})
+1018	Online
+1019	Offline
+1020	Hostname oder IP-Adresse eingeben, optional mit Port.
+1021	Bitte einen gültigen Spielernamen eingeben.
+1022	Falsches Passwort.
+1023	Dieser Name hat bereits einen Platz. Erneut beitreten wählen.
+1024	In diesem Spiel sind keine Spielerplätze frei.
+1025	Kein Spieler mit diesem Namen gefunden.
+1026	Der Host führt ein anderes Spiel aus. Adresse erneut prüfen.
+1027	Dieser Host verwendet eine inkompatible Netzwerkversion.
+1028	Der Host hat nicht rechtzeitig geantwortet.
+1029	Der Host hat ungültige Spieldaten gesendet.
+1030	Der Host konnte das Spiel nicht speichern oder bereitstellen.
+1031	Die Anmeldung ist abgelaufen. Erneut beitreten wählen.
+1032	Host nicht erreichbar. Adresse und Verbindung prüfen.
+1033	Zurück
+1034	Weiter
+1035	Netzwerkspiele können noch nicht gespeichert werden.
+1036	Zum Wiederverbinden Datei → Beitreten öffnen.

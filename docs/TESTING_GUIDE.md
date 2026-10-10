@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1430
-Passed: 1430 ✓
+Total: 1438
+Passed: 1438 ✓
 Failed: 0 ✗
 ```
 
@@ -33,6 +33,7 @@ is tested separately under the PDG runtime:
 ```bash
 ./gad4 tools/test-network-host.js
 ./gad4 tools/test-network-client.js
+./gad4 tools/test-network-join.js
 ```
 
 These scripts create temporary localhost hosts and documents, check admission,
@@ -50,8 +51,21 @@ Repeat for `de`, `es`, `fr`, `ja`, and `ru`. The script starts its own temporary
 native host, exercises real browser fetch/CORS traffic and production controls,
 and captures the manually-fed client baseline, live client, preserved same-turn
 edits, and authoritative next turn. It stops Chrome and the host afterward. This
-is transport/renderer coverage; the player-facing host/join dialogs remain to
-be wired into the application.
+is transport/renderer coverage. Host setup remains unfinished.
+
+For actual startup/File-menu admission, masked password input, modal outside
+clicks, remembered title dragging, retained local documents, automatic turn
+refresh, same-document rejoining, localized rejection, and close/logout:
+
+```bash
+node tools/test-web-network-join.cjs /path/to/web-build /tmp/join-shots en
+```
+
+Repeat for the other five languages. Chrome uses `--mute-audio` and all native
+network helpers mute the output bus. These checks preserve sound logic and do
+not change gameplay sound preferences. Network-game saving and order posting
+remain unfinished; Save currently reports the localized unsupported-operation
+message rather than serializing a partial client as a full local galaxy.
 
 ## Test runner
 

@@ -88,10 +88,11 @@ function clickSectorSize(config,rect,x,y) {
     const choice=sectorSizeRegions(rect,config).find(({rect:r})=>x>=r.x && x<r.x+r.width && y>=r.y && y<r.y+r.height);
     return choice?setSectorSize(config,choice.value):false;
 }
-function tutorialRegion(rect) {return {x:rect.x+28,y:rect.y+503*rect.height/540,width:(rect.width-80)/4,height:26*rect.height/540};}
+function tutorialRegion(rect) {return {x:rect.x+28,y:rect.y+503*rect.height/540,width:(rect.width-88)/5,height:26*rect.height/540};}
 function settingsRegion(rect) {const tutorial=tutorialRegion(rect);return {...tutorial,x:tutorial.x+tutorial.width+8};}
 function cancelRegion(rect) {const settings=settingsRegion(rect);return {...settings,x:settings.x+settings.width+8};}
-function quitRegion(rect) {const cancel=cancelRegion(rect);return {...cancel,x:cancel.x+cancel.width+8};}
+function joinRegion(rect) {const cancel=cancelRegion(rect);return {...cancel,x:cancel.x+cancel.width+8};}
+function quitRegion(rect) {const join=joinRegion(rect);return {...join,x:join.x+join.width+8};}
 function startRegion(rect) {return {x:rect.x+28,y:rect.y+467*rect.height/540,width:(rect.width-64)/2,height:30*rect.height/540};}
 function manualRegion(rect) {const start=startRegion(rect);return {...start,x:start.x+start.width+8};}
 function helpRegions(width,height,config,active=false) {
@@ -104,4 +105,4 @@ function helpRegions(width,height,config,active=false) {
   region(fastGameRegion(rect),'startupFast'),region(fogOfWarRegion(rect),'startupFog'),
   region(startRegion(rect),'startGame'),region(manualRegion(rect),'openManual'),region(tutorialRegion(rect),'startTutorial'),region(settingsRegion(rect),'startupSettings'),region(cancelRegion(rect),active?'cancel':'open'),region(quitRegion(rect),'quit')];
 }
-module.exports={quitRegion,settingsRegion,tutorialRegion,manualRegion,helpRegions,cancelRegion,setFogOfWar,toggleFogOfWar,fogOfWarRegion,setFastGame,toggleFastGame,fastGameRegion,skills,setSkill,skillRegion,skillMenu,setComputerCount,acceptComputerCount,computerCountRegion,maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};
+module.exports={joinRegion,quitRegion,settingsRegion,tutorialRegion,manualRegion,helpRegions,cancelRegion,setFogOfWar,toggleFogOfWar,fogOfWarRegion,setFastGame,toggleFastGame,fastGameRegion,skills,setSkill,skillRegion,skillMenu,setComputerCount,acceptComputerCount,computerCountRegion,maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};

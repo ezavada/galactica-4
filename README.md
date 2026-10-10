@@ -91,6 +91,18 @@ use the same paths as the desktop launcher.
 - [Internationalization Status](docs/INTERNATIONALIZATION_STATUS.md) - Resource localization status
 - [Future Improvements](docs/FUTURE_IMPROVEMENTS.md) - Non-parity enhancement ideas
 
+## Network joining
+
+Use startup **Join** (J), or **File → Join** while a game is open. Enter the
+host address (hostname/IP and optional port), inspect its player slots, and
+enter your name and optional password. Select a claimed player to rejoin.
+Joined and local games remain available through **Open Games**. A joined game
+refreshes automatically; rejoining the same player reuses its document.
+
+Multiplayer remains incomplete: the host setup UI, order posting, timers,
+chat and network-game saving are still being ported. Client End Turn does not
+submit orders yet. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
+
 ## Testing
 
 ```bash
@@ -98,7 +110,7 @@ use the same paths as the desktop launcher.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1430 passed, 0 failed.
+Current expected result: 1438 passed, 0 failed.
 
 AI-only parity observer:
 

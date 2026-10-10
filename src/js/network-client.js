@@ -105,7 +105,8 @@ class NetworkClient {
  }
  async rejoin(password=''){
   const identity=this.identity;if(!identity)throw fail('player_not_found');
-  await this.disconnect({keepView:true});return this.connect({name:identity.name,password,mode:'rejoin',gameId:identity.gameId});
+  const closing=this.disconnect({keepView:true}),generation=this.generation;await closing;
+  if(generation!==this.generation)throw fail('network_cancelled');return this.connect({name:identity.name,password,mode:'rejoin',gameId:identity.gameId});
  }
 }
 module.exports={NetworkClient,normalizeAddress,validateInfo,validateLogin,preservePresentation};

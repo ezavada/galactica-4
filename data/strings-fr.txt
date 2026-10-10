@@ -682,3 +682,37 @@
 
 # Ordinary completed-ship report
 1004	Votre nouveau vaisseau {0} se trouve dans le système {1}, prêt à partir.
+
+# Network joining and reconnection
+1005	Rejoindre une partie en réseau
+1006	Adresse de l’hôte
+1007	Nom du joueur
+1008	Mot de passe
+1009	Consulter
+1010	Rejoindre
+1011	Reconnexion
+1012	Contact de l’hôte…
+1013	Connexion à la partie…
+1014	{0} — Tour {1}
+1015	{0} places humaines · {1} joueurs IA
+1016	Joueur {0} : Libre
+1017	Joueur {0} : {1} ({2})
+1018	En ligne
+1019	Hors ligne
+1020	Entrez un nom d’hôte ou une adresse IP, avec un port facultatif.
+1021	Entrez un nom de joueur valide.
+1022	Mot de passe incorrect.
+1023	Ce nom a déjà une place. Choisissez Reconnexion.
+1024	Cette partie n’a aucune place libre.
+1025	Aucun joueur portant ce nom n’a été trouvé.
+1026	L’hôte exécute une autre partie. Consultez à nouveau l’adresse.
+1027	Cet hôte utilise une version réseau incompatible.
+1028	L’hôte n’a pas répondu à temps.
+1029	L’hôte a renvoyé des données de partie invalides.
+1030	L’hôte n’a pas pu enregistrer ou fournir la partie.
+1031	Votre connexion a expiré. Choisissez Reconnexion.
+1032	Hôte injoignable. Vérifiez son adresse et la connexion.
+1033	Précédent
+1034	Suivant
+1035	L’enregistrement des parties en réseau n’est pas encore disponible.
+1036	Ouvrez Fichier → Rejoindre pour vous reconnecter.

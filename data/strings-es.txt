@@ -682,3 +682,37 @@
 
 # Ordinary completed-ship report
 1004	Tu nueva nave {0} está en el sistema {1}, lista para partir.
+
+# Network joining and reconnection
+1005	Unirse a partida en red
+1006	Dirección del host
+1007	Nombre del jugador
+1008	Contraseña
+1009	Consultar
+1010	Unirse
+1011	Reconectar
+1012	Contactando al host…
+1013	Uniéndose a la partida…
+1014	{0} — Turno {1}
+1015	{0} plazas humanas · {1} jugadores de IA
+1016	Jugador {0}: Libre
+1017	Jugador {0}: {1} ({2})
+1018	En línea
+1019	Desconectado
+1020	Introduce un nombre de host o una IP, con puerto opcional.
+1021	Introduce un nombre de jugador válido.
+1022	Contraseña incorrecta.
+1023	Ese nombre ya tiene una plaza. Elige Reconectar.
+1024	Esta partida no tiene plazas libres.
+1025	No se encontró un jugador con ese nombre.
+1026	El host ejecuta otra partida. Consulta la dirección de nuevo.
+1027	Este host usa una versión de red incompatible.
+1028	El host no respondió a tiempo.
+1029	El host devolvió datos de partida no válidos.
+1030	El host no pudo guardar o proporcionar la partida.
+1031	Tu sesión ha caducado. Elige Reconectar.
+1032	No se pudo contactar al host. Revisa dirección y conexión.
+1033	Anterior
+1034	Siguiente
+1035	Aún no se pueden guardar partidas de red.
+1036	Abre Archivo → Unirse para reconectar.

@@ -16,6 +16,11 @@ function fixture(fn){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-c
 const get=(client,kind,e)=>client[kind].find(row=>row.id===e.id);
 function rejects(fn){let caught=false;try{fn();}catch(error){caught=error.message==='invalid_player_state';}test.assertTrue(caught);}
 module.exports=()=>test.describe('Visibility-limited multiplayer client model',()=>{
+ test.it('keeps local client reports distinct from future authoritative host report IDs',()=>fixture(({state})=>{
+  const client=Client.restore(state()),nextId=client.nextEventId+1,local=client.recordEvent('Orders','Local edit');local.handled=true;
+  test.assertTrue(local.id<0);test.assertEqual(client.nextEventId,nextId-1);
+  const fresh=Client.restore(state());fresh.eventLog.push({id:nextId,handled:false});require('../src/js/network-client.js').preservePresentation(client,fresh);test.assertFalse(fresh.eventLog[fresh.eventLog.length-1].handled);
+ }));
  test.it("reconstructs the second human identity and allows orders only on that player's entities",()=>fixture(({game,own,enemy,ship,state})=>{
   const original=Save.serialize(game);pdg.srand(719);const expected=pdg.rand();pdg.srand(719);const client=Client.restore(state());test.assertEqual(pdg.rand(),expected);const home=get(client,'stars',own),other=get(client,'stars',enemy),courier=get(client,'allShips',ship);
   test.assertEqual(client.getCurrentHumanPlayer(),2);test.assertTrue(client.canHumanControl(home));test.assertTrue(client.canHumanControl(courier));test.assertFalse(client.canHumanControl(other));

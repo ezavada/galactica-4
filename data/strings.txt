@@ -682,3 +682,37 @@
 
 # Ordinary completed-ship report
 1004	Your newly built starship {0} is in the system {1}, ready for launch.
+
+# Network joining and reconnection
+1005	Join Network Game
+1006	Host address
+1007	Player name
+1008	Password
+1009	Inspect
+1010	Join
+1011	Rejoin
+1012	Contacting host…
+1013	Joining game…
+1014	{0} — Turn {1}
+1015	{0} human slots · {1} computer players
+1016	Player {0}: Open
+1017	Player {0}: {1} ({2})
+1018	Online
+1019	Offline
+1020	Enter a hostname or IP address, with an optional port.
+1021	Enter a valid player name.
+1022	Incorrect password.
+1023	That name already has a player slot. Choose Rejoin.
+1024	This game has no open player slots.
+1025	No player with that name was found.
+1026	The host is running a different game. Inspect the address again.
+1027	This host uses an incompatible network version.
+1028	The host did not respond in time.
+1029	The host returned invalid game data.
+1030	The host could not save or provide the game.
+1031	Your login expired. Choose Rejoin.
+1032	Could not reach the host. Check its address and connection.
+1033	Previous
+1034	Next
+1035	Saving joined network games is not yet available.
+1036	Open File → Join to reconnect.
