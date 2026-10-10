@@ -22,8 +22,8 @@ function pointer(rect,anchor){
 function draw(port,hint){
  let attrs=styles.get(port);
  if(!attrs){
-  const fill=new pdg.Color(.5,.5,.5,1);
-  attrs={body:new pdg.Attributes().fillColor(fill).lineOpacity(0).roundedCorners(2),
+  const fill=new pdg.Color(1,1,1,.75);
+  attrs={body:new pdg.Attributes().fillColor(fill).lineOpacity(0).roundedCorners(4),
    pointer:new pdg.Attributes().fillColor(fill).lineOpacity(0),
    text:new pdg.Attributes().fillColor(new pdg.Color(.18,.18,.18,1)).textSize(11).textStyle(pdg.textStyle_Plain)};
   styles.set(port,attrs);
