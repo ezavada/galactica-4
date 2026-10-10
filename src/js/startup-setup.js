@@ -22,6 +22,9 @@ function skillMenu(width,height,config) {
         cancel:{x:rect.x+rect.width/2-75,y:rect.y+252,width:150,height:30}};
 }
 function computerCountRegion(rect) {return {x:rect.x+28,y:rect.y+96*rect.height/540,width:rect.width-56,height:24*rect.height/540};}
+function setFastGame(config,value) {if(typeof value!=='boolean')return false;config.fastGame=value;return true;}
+function toggleFastGame(config) {return setFastGame(config,!config.fastGame);}
+function fastGameRegion(rect) {return {x:rect.x+28,y:rect.y+336*rect.height/540,width:(rect.width-62)/2,height:26*rect.height/540};}
 function titleRegion(rect) {return {x:rect.x+28,y:rect.y+56*rect.height/540,width:rect.width-56,height:26*rect.height/540};}
 
 // The seven choices and menu order are from v3 CGameSetupAttach.cpp.
@@ -83,4 +86,4 @@ function clickSectorSize(config,rect,x,y) {
     return choice?setSectorSize(config,choice.value):false;
 }
 function startRegion(rect) {return {x:rect.x+rect.width/2-90,y:rect.y+467*rect.height/540,width:180,height:30*rect.height/540};}
-module.exports={skills,setSkill,skillRegion,skillMenu,setComputerCount,acceptComputerCount,computerCountRegion,maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};
+module.exports={setFastGame,toggleFastGame,fastGameRegion,skills,setSkill,skillRegion,skillMenu,setComputerCount,acceptComputerCount,computerCountRegion,maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};

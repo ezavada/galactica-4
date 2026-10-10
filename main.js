@@ -147,6 +147,7 @@ function createStartupAttributes(definition = {}) {
 
 // Startup dialog drawing uses Attributes like CSS classes: define once, reuse at draw sites.
 const startupStyles = {
+    checkboxMark:createStartupAttributes({lineColor:new pdg.Color('white')}),
     background: createStartupAttributes({ fillColor: startupUIColor('background') }),
     panel: createStartupAttributes({
         fillColor: startupUIColor('panelFill'),
@@ -326,12 +327,20 @@ function drawStartupDialog() {
         port.drawText(choice.label,new pdg.Point(choice.rect.x+choice.rect.width/2,choice.rect.y+step(19)),startupStyles.advantageText);
     }
     y += step(56);
-    port.drawText(I18n.formatString(
-        524,
-        'Options: {0}, {1}',
-        pendingConfig.fastGame ? I18n.getString(505, 'Fast Game') : I18n.getString(509, 'Normal speed'),
-        pendingConfig.getFogOfWarDescription()
-    ), new pdg.Point(x, y), startupStyles.lineText);
+    const fastRect=StartupSetup.fastGameRegion(panelRect);
+    drawStartupRoundedRect(fastRect,6,pendingConfig.fastGame?startupStyles.advantageButtonActive:startupStyles.advantageButton);
+    const box={x:fastRect.x+step(8),y:fastRect.y+step(5),width:step(16),height:step(16)};
+    drawStartupRoundedRect(box,3,startupStyles.background);
+    if(pendingConfig.fastGame) {
+        port.drawLine(new pdg.Point(box.x+box.width*.2,box.y+box.height*.5),new pdg.Point(box.x+box.width*.43,box.y+box.height*.75),startupStyles.checkboxMark);
+        port.drawLine(new pdg.Point(box.x+box.width*.43,box.y+box.height*.75),new pdg.Point(box.x+box.width*.82,box.y+box.height*.22),startupStyles.checkboxMark);
+    }
+    port.drawText(I18n.getString(505,'Fast Game'),new pdg.Point(fastRect.x+step(32),fastRect.y+step(18)),startupStyles.lineText);
+    const fogX=fastRect.x+fastRect.width+12,fogLabel=pendingConfig.getFogOfWarDescription();
+    let fogSize=Math.max(9,14*scale);
+    while(fogSize>9 && port.getTextWidth(fogLabel,fogSize)>panelX+panelWidth-28-fogX)fogSize--;
+    startupStyles.lineText.textSize(fogSize);
+    port.drawText(fogLabel,new pdg.Point(fogX,fastRect.y+step(18)),startupStyles.lineText);
     y += step(36);
     port.drawText(I18n.getString(525, '<C> edit AI players   <1-5> AI skill'), new pdg.Point(x, y), startupStyles.hintText);
     y += step(22);
@@ -399,7 +408,7 @@ function handleStartupKey(key) {
             StartupSetup.cycleDensity(pendingConfig);
             return true;
         case 'f':
-            pendingConfig.fastGame = !pendingConfig.fastGame;
+            StartupSetup.toggleFastGame(pendingConfig);
             return true;
         case 'o':
             pendingConfig.omniscient = !pendingConfig.omniscient;
@@ -556,6 +565,8 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
                 else if(contains(layout.field)){editor.selected=true;editor.caret=Array.from(editor.text).length;}
                 return true;
             }
+            const fast=StartupSetup.fastGameRegion(StartupSetup.panelRect(area.width(),area.height()));
+            if(event.mousePos.x>=fast.x && event.mousePos.x<=fast.x+fast.width && event.mousePos.y>=fast.y && event.mousePos.y<=fast.y+fast.height){StartupSetup.toggleFastGame(pendingConfig);return true;}
             const skill=StartupSetup.skillRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(event.mousePos.x>=skill.x && event.mousePos.x<=skill.x+skill.width && event.mousePos.y>=skill.y && event.mousePos.y<=skill.y+skill.height){startupAISkill=true;return true;}
             const count=StartupSetup.computerCountRegion(StartupSetup.panelRect(area.width(),area.height()));

@@ -160,3 +160,7 @@ The player-count row is a button opening a selected numeric draft through a clic
 ### Shared startup AI skill
 
 The skill row opens five vertically stacked choices in the existing neutral window style, with the current skill highlighted. All translated labels and Cancel fit normal and smaller layouts. Choosing a value returns to setup; Cancel/Escape/outside-click keeps the previous skill. Inspected six translated popups and before/after setup under `/private/tmp/galactica-parity/skill-{before,after}`. Full suites: 947 passed on release/current native PDG.
+
+### Fast Game checkbox
+
+The setup options row uses a clickable Fast Game checkbox with a vector check mark, dark inset box and active fill. A gap separates it from density buttons; the translated fog description occupies the other half of the row with measured font fitting. Checked/unchecked states, six-language before/after setup and smaller layouts were inspected under `/private/tmp/galactica-parity/fast-{before,after}`. Full suites: 952 passed on release/current native PDG.
