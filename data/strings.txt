@@ -118,7 +118,7 @@
 545	<V>/<Esc> Close comparison
 546	Zoom
 547	<+/-> Zoom   <0> Fit   <Shift+C> Center
-548	<Left Drag> Pan   <Middle Drag> Pan   <Mouse Wheel> Zoom
+548	<Drag space / Alt+drag / Middle drag> Pan   <Wheel> Zoom
 549	Production
 
 # Command button and panel labels (550-599)
@@ -401,3 +401,7 @@
 788	Zoom out
 789	Reset view
 790	Center selected item
+
+# Map scroll bars
+791	Scroll horizontally
+792	Scroll vertically

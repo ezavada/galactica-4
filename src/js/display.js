@@ -3,6 +3,7 @@
 
 const Common = require('./common.js');
 const Camera = require('./camera.js');
+const MapScrollbars = require('./map-scrollbars.js');
 const RetainedPanel = require('./retained-panel.js');
 const SelectionPulse = require('./selection-pulse.js');
 const I18n = require('./i18n.js');
@@ -106,7 +107,7 @@ class Display {
             buildColony: I18n.getString(33, "[c] colony"),
             zoom: I18n.getString(546, "Zoom"),
             zoomResetCenterHelp: I18n.getString(547, "<+/-> Zoom   <0> Reset   <Shift+C> Center"),
-            dragZoomHelp: I18n.getString(548, "<Left Drag> Pan   <Middle Drag> Pan   <Mouse Wheel> Zoom"),
+            dragZoomHelp: I18n.getString(548, "<Drag space / Alt+drag / Middle drag> Pan   <Wheel> Zoom"),
             production: I18n.getString(549, "Production"),
             menu: I18n.getString(550, "Menu"),
             events: I18n.getString(551, "Events"),
@@ -1540,11 +1541,12 @@ class Display {
     getContextButtonArc(object, panelRect) {
         const actions = this.getContextActions(object);
         const position = this.getObjectScreenPosition(object);
+        const screen=this.getScreenSize();
+        if(position.x<0 || position.x>=screen.width || position.y<0 || position.y>=screen.height)return [];
         const panelIsLeftOfObject = (panelRect.x + panelRect.width / 2) < position.x;
         const direction = panelIsLeftOfObject ? 1 : -1;
         const widths=actions.map(action=>this.getButtonWidth(action.label,action.key,{size:10,minWidth:96}));
         const baseDistance=Math.max(116,Math.max(...widths)/2+50);
-        const screen=this.getScreenSize();
         const buttonHeight = 28;
         const verticalSpacing = 36;
         const curveDepth = 3;
@@ -2377,6 +2379,8 @@ class Display {
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
         if (['rename','colonyDefaults','settings','mapDisplay','view','endTurnConfirm'].includes(this.game.uiWindow)) return { type: 'consume' };
+        const scrollAction=this.getMapScrollActionAt(x,y);
+        if(scrollAction)return scrollAction;
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
         if (contextButton) {
             return contextButton.action;
@@ -2413,6 +2417,36 @@ class Display {
 
         const panel = this.getUIPanelRegions().find(rect => this.containsPoint(rect, x, y));
         return panel ? { type: 'consume' } : null;
+    }
+
+    getMapScrollbars() {
+        const screen=this.getScreenSize();
+        return MapScrollbars.layout(this.camera,screen.width,screen.height);
+    }
+
+    getMapScrollActionAt(x,y) {
+        const bar=this.getMapScrollbars().find(bar=>this.containsPoint(bar.rect,x,y));
+        if(!bar)return null;
+        const part=this.containsPoint(bar.before,x,y)?'before':this.containsPoint(bar.after,x,y)?'after':
+            this.containsPoint(bar.thumb,x,y)?'thumb':'track';
+        return {type:'mapScroll',bar,part,x,y};
+    }
+
+    drawMapScrollbars() {
+        for(const bar of this.getMapScrollbars()) {
+            const box=r=>new pdg.Rect(new pdg.Point(r.x,r.y),r.width,r.height);
+            this.port.drawRect(box(bar.rect),this.styles.barTrack);
+            this.drawRoundedRect(bar.thumb,3,this.styles[bar.enabled?'buttonFill':'barFrame']);
+            for(const [r,direction] of [[bar.before,-1],[bar.after,1]]) {
+                const x=r.x+r.width/2,y=r.y+r.height/2,points=bar.axis==='x'?
+                    [[x-direction*2,y-3],[x+direction*2,y],[x-direction*2,y+3]]:
+                    [[x-3,y-direction*2],[x,y+direction*2],[x+3,y-direction*2]];
+                for(let i=1;i<points.length;i++)this.port.drawLine(new pdg.Point(...points[i-1]),
+                    new pdg.Point(...points[i]),this.getLineAttributes(bar.enabled?'lightgray':'gray'));
+            }
+            if(this.isHovered(bar.rect))this.iconHint={rect:bar.rect,label:I18n.getString(bar.axis==='x'?791:792,
+                bar.axis==='x'?'Scroll horizontally':'Scroll vertically')};
+        }
     }
 
     getAllocationSliderRects(x, y, width) {
@@ -3292,6 +3326,8 @@ class Display {
     // Main draw function that orchestrates all drawing
     drawGame() {
         this.visualTime=pdg.tm.getMilliseconds();
+        const scrollDrag=this.game.uiMapScrollDrag;
+        if(scrollDrag && scrollDrag.part)this.game.updateMapScrollDrag(scrollDrag.x,scrollDrag.y);
         this.iconHint=null;
         // Update star rendering cache once per frame
         this.updateMapRenderingCalculations();
@@ -3336,6 +3372,7 @@ class Display {
         });
         // Draw instructions
         this.drawInstructions();
+        this.drawMapScrollbars();
 
         // Draw command UI windows above the map/help layer
         if(this.game.pendingCourseEdit) {

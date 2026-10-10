@@ -437,12 +437,21 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
         // PDG uses buttonNumber: 0=left, 1=right, 2=middle
         if (event.buttonNumber === 0) {
             game.display.setHoverPoint(event.mousePos.x, event.mousePos.y);
-            if (game.beginUISliderDrag(event.mousePos.x,event.mousePos.y)) {
+            if (game.beginMapScrollDrag(event.mousePos.x,event.mousePos.y) || game.beginUISliderDrag(event.mousePos.x,event.mousePos.y)) {
                 isDragging = false;
                 isLeftClickDragging = false;
                 return true;
             }
             if (game.handleUIClick(event.mousePos.x, event.mousePos.y)) {
+                return true;
+            }
+
+            // v3 Option-drag pans over objects without selecting or issuing orders.
+            if(event.alt) {
+                isLeftClickDragging=true;
+                hasDragged=true;
+                lastMouseX=event.mousePos.x;
+                lastMouseY=event.mousePos.y;
                 return true;
             }
 
@@ -475,7 +484,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
         }
     } else if (event && event.eventType === pdg.eventType_MouseUp) {
         if (event.buttonNumber === 0) {
-            if (game.endUISliderDrag(event.mousePos.x,event.mousePos.y)) {
+            if (game.endMapScrollDrag(event.mousePos.x,event.mousePos.y) || game.endUISliderDrag(event.mousePos.x,event.mousePos.y)) {
                 isLeftClickDragging = false;
                 return true;
             }
@@ -522,6 +531,8 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
     if (event && event.eventType === pdg.eventType_MouseMove) {
         game.display.setHoverPoint(event.mousePos.x, event.mousePos.y);
         // Recover if the button was released outside the game window.
+        if(game.uiMapScrollDrag && event.leftButton===false) {game.endMapScrollDrag();return true;}
+        if(game.updateMapScrollDrag(event.mousePos.x,event.mousePos.y))return true;
         if (game.uiSliderDrag && event.leftButton===false) {
             game.endUISliderDrag();
             return true;

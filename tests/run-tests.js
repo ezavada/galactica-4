@@ -4,6 +4,7 @@
 // Uses PDG's built-in pdg.srand() and pdg.rand() for deterministic testing
 
 const test = require('./test-framework.js');
+const runMapScrollbarTests=require('./map-scrollbars.test.js');
 const runFullscreenTests = require('./fullscreen.test.js');
 const runMapDisplayModeTests = require('./map-display-modes.test.js');
 const runStringResourceTests = require('./string-resources.test.js');
@@ -150,6 +151,7 @@ try {
     runShipCommissioningTests();
     runShipDiagnosticsTests();
 
+    runMapScrollbarTests();
     runFullscreenTests();
     runMapDisplayModeTests();
 

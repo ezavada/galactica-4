@@ -119,7 +119,7 @@
 545	<V>/<Esc> Fermer la comparaison
 546	Zoom
 547	<+/-> Zoom   <0> Ajuster   <Shift+C> Centrer
-548	<Glisser gauche> Déplacer   <Glisser milieu> Déplacer   <Molette> Zoom
+548	<Glisser espace / Alt / bouton milieu> Déplacer   <Molette> Zoom
 549	Production
 
 # Command button and panel labels (550-599)
@@ -401,3 +401,7 @@
 788	Zoom arrière
 789	Réinitialiser la vue
 790	Centrer la sélection
+
+# Map scroll bars
+791	Défiler horizontalement
+792	Défiler verticalement

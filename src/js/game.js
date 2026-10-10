@@ -54,6 +54,7 @@ class Game {
         this.courseSelection = null;
         this.coursePage = 0;
         this.uiSliderDrag = null;
+        this.uiMapScrollDrag = null;
         this.colonyDefaultsDraft = null;
         this.systemShipWindowStar = null;
         this.systemShipPage = 0;
@@ -1651,6 +1652,8 @@ class Game {
                     this.setStarAllocation(action.star, action.allocationKey, action.desired, {silent:!!action.silent});
                 }
                 return true;
+            case 'mapScroll':
+                return this.applyMapScrollAction(action);
             case 'zoomIn':
                 if(!this.display)return false;this.display.zoomIn();return true;
             case 'zoomOut':
@@ -1854,6 +1857,66 @@ class Game {
         }
     }
 
+    applyMapScrollAction(action) {
+        const {bar,part,x,y}=action;
+        if(!bar || !bar.enabled)return true;
+        const Scrollbars=require('./map-scrollbars.js'),position=bar.axis==='x'?x:y;
+        if(part==='thumb')return true;
+        const direction=part==='before'?-1:part==='after'?1:position<bar.trackStart+
+            Math.max(0,Math.min(1,bar.leading/bar.range))*bar.travel?-1:1;
+        Scrollbars.move(this.display.camera,bar,bar.leading+direction*bar.span*(part==='track'?.9:.1));
+        return true;
+    }
+
+    beginMapScrollDrag(x,y) {
+        this.uiMapScrollDrag=null;
+        const action=this.display && this.display.getUIActionAt(x,y);
+        if(!action || action.type!=='mapScroll')return false;
+        const bar=action.bar;
+        if(action.part==='thumb' && bar.enabled) {
+            const axis=bar.axis,screen=this.display.getScreenSize();
+            this.uiMapScrollDrag={bar,offset:(axis==='x'?x:y)-(axis==='x'?bar.thumb.x:bar.thumb.y),
+                zoom:this.display.camera.zoom,width:screen.width,height:screen.height,window:this.uiWindow};
+        } else {
+            this.applyMapScrollAction(action);
+            if(bar.enabled) {
+                const screen=this.display.getScreenSize();
+                this.uiMapScrollDrag={bar,part:action.part,x,y,zoom:this.display.camera.zoom,
+                    width:screen.width,height:screen.height,window:this.uiWindow,nextRepeat:pdg.tm.getMilliseconds()+350};
+            }
+        }
+        return true;
+    }
+
+    updateMapScrollDrag(x,y) {
+        const drag=this.uiMapScrollDrag;
+        if(!drag)return false;
+        const screen=this.display.getScreenSize();
+        if(this.uiWindow!==drag.window || this.display.camera.zoom!==drag.zoom ||
+            screen.width!==drag.width || screen.height!==drag.height) {this.uiMapScrollDrag=null;return true;}
+        if(drag.part) {
+            drag.x=x;drag.y=y;
+            const now=pdg.tm.getMilliseconds();
+            if(now>=drag.nextRepeat) {
+                drag.nextRepeat=now+65;
+                const action=this.display.getMapScrollActionAt(x,y);
+                if(action && action.bar.axis===drag.bar.axis && action.part===drag.part)
+                    this.applyMapScrollAction(action);
+            }
+            return true;
+        }
+        const bar=drag.bar,position=bar.axis==='x'?x:y;
+        require('./map-scrollbars.js').move(this.display.camera,bar,
+            (position-drag.offset-bar.trackStart)/bar.travel*bar.range);
+        return true;
+    }
+
+    endMapScrollDrag(x,y) {
+        if(!this.uiMapScrollDrag)return false;
+        if(Number.isFinite(x)&&Number.isFinite(y))this.updateMapScrollDrag(x,y);
+        this.uiMapScrollDrag=null;return true;
+    }
+
     beginUISliderDrag(x,y) {
         this.endUISliderDrag();
         const slider = this.display && this.display.getDraggableSliderAt(x,y);
@@ -1954,7 +2017,7 @@ class Game {
     }
 
     requestEndTurn() {
-        if(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag)return false;
+        if(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag)return false;
         if(this.attention.pending().length || this.hasEventPresentation()) {this.uiWindow='endTurnConfirm';return false;}
         this.endTurn();return true;
     }
@@ -2199,10 +2262,11 @@ class Game {
         if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}
         if ((key===13 || key===3) && !['rename','colonyDefaults','settings','systemComparison','events','endTurnConfirm'].includes(this.uiWindow)) {this.requestEndTurn();return true;}
         if (key === pdg.key_Tab) {
-            if(!this.pendingMapOrderObject && !this.pendingRendezvousPlacement && !this.uiSliderDrag && !this.hasEventPresentation())this.attention.next();
+            if(!this.pendingMapOrderObject && !this.pendingRendezvousPlacement && !this.uiSliderDrag && !this.uiMapScrollDrag && !this.hasEventPresentation())this.attention.next();
             return true;
         }
 
+        if (key === pdg.key_Escape && this.uiMapScrollDrag) {this.endMapScrollDrag();return true;}
         if (key === pdg.key_Escape && this.uiSliderDrag) {
             this.endUISliderDrag();
             return true;

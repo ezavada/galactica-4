@@ -118,3 +118,7 @@ Settings offers a localized Show nebula background control with active state. Th
 ### Camera commands
 
 Compact zoom minus/plus icons join Menu/Home/Fit in the existing 44×30 grouped row. The icons use the shared 2× offscreen cache and substantial filled strokes. Single-character shortcuts sit beside icons; longer Home stays in the localized hover hint to keep the house unobstructed. Command Menu → View presents six neutral gradient buttons for zoom, fit, home, center selection and reset. All six translated layouts and before/after map/menu screenshots were inspected. Evidence: `/private/tmp/galactica-parity/camera-{before,after}`.
+
+### Map scroll bars
+
+Twelve-pixel neutral scroll tracks sit at the bottom/right edges without moving the compact map controls. Proportional thumbs use the existing subdued button style; small geometric arrows show both directions, with translated hover hints. Thumb/track state follows the camera and disabled fitted axes remain visible. Offscreen selected objects keep their inspector but suppress map action arcs, preventing edge-clamped buttons from covering the panel. Before/after maps, panned axes, translated hints and smaller CSS viewport screenshots were inspected in all six languages. Evidence: `/private/tmp/galactica-parity/scrollbars-{before,after}`.
