@@ -1014,7 +1014,7 @@ class Game {
     }
 
     hasReplayableReport(event) {
-        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction));
+        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair));
     }
 
     queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense)), manual = false) {
@@ -3277,6 +3277,20 @@ class Game {
     getColonySetupReport(star) {
         return this.eventLog.find(event=>event.id===this.eventSelection && event.subject===star &&
             event.type===Common.EventType.RENAME_COLONY && this.isEventAccessible(event)) || null;
+    }
+
+    recordRepairCompletion(ship, star) {
+        const player=star && this.players[star.owner];
+        if(!player || player.isComputer || !ship || ship.damage!==0)return null;
+        const fleet=this.factory.isFleet(ship),name=this.getObjectDisplayName(ship);
+        const event=this.recordEvent(I18n.getString(947,'Repairs'),
+            fleet?I18n.formatString(949,'All ships in your fleet {0} have been completely repaired.',name):
+                I18n.formatString(948,'Your ship {0} has been completely repaired.',name),
+            {type:fleet?Common.EventType.FLEET_REPAIRED:Common.EventType.SHIP_REPAIRED,
+                subject:ship,position:star,recipient:star.owner});
+        event.repair={name,fleet};
+        this.attention.requestEvent(event);
+        return event;
     }
 
     noteworthyEvent(who, what, where, how, why, other) {

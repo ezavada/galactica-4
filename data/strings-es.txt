@@ -593,3 +593,8 @@
 944	No se encontró el manual incluido. Reinstala el juego completo.
 945	No se pudo abrir el manual. Permite nuevas pestañas o elige un navegador predeterminado e inténtalo de nuevo.
 946	Abre el manual incluido en tu navegador. La partida y el turno actual permanecen abiertos.
+
+# Complete repair notices
+947	Reparaciones
+948	Tu nave {0} ha sido reparada por completo.
+949	Todas las naves de tu flota {0} han sido reparadas por completo.

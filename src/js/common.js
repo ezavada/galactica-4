@@ -32,6 +32,8 @@ const EventType = {
     RENDEZVOUS_UPDATED: 18, // A rendezvous point changed
     NEW_TECH_DISCOVERY: 20, // Lab event: reached a new drive class (tech/5)
     NEW_SHIP_CLASS: 21,      // Stardock event: first hull type or higher battleship class built for player
+    SHIP_REPAIRED: 25, // A docked ship has been completely repaired
+    FLEET_REPAIRED: 26, // All ships in a docked fleet have been repaired
     SYSTEM_DEFENSE_LOSSES: 24, // Defending ships lost at a surviving system
     DEFENDERS_LOST: 23, // An enemy system lost its last resistance
     RENAME_COLONY: 22 // Private request to name a new colony and set production

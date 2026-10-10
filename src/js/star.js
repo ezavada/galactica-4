@@ -180,6 +180,9 @@ class Star {
             }
             const repaired = ship.repairDamage(repairRemaining);
             repairedTotal += repaired;
+            if (repaired > 0 && ship.damage === 0 && this.game.recordRepairCompletion) {
+                this.game.recordRepairCompletion(ship, this);
+            }
             repairRemaining -= repaired;
             if (repairRemaining <= 0) {
                 break;

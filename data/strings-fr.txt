@@ -593,3 +593,8 @@
 944	Le manuel fourni est introuvable. Réinstalle le jeu complet.
 945	Impossible d’ouvrir le manuel. Autorise les nouveaux onglets ou choisis un navigateur par défaut, puis réessaie.
 946	Ouvre le manuel fourni dans ton navigateur. La partie et le tour actuel restent ouverts.
+
+# Complete repair notices
+947	Réparations
+948	Votre vaisseau {0} a été entièrement réparé.
+949	Tous les vaisseaux de votre flotte {0} ont été entièrement réparés.

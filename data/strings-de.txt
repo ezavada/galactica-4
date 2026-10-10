@@ -593,3 +593,8 @@
 944	Das mitgelieferte Handbuch wurde nicht gefunden. Bitte installiere das vollständige Spiel erneut.
 945	Das Handbuch konnte nicht geöffnet werden. Erlaube neue Tabs oder wähle einen Standardbrowser und versuche es erneut.
 946	Öffne das mitgelieferte Handbuch im Webbrowser. Dein Spiel und der aktuelle Zug bleiben geöffnet.
+
+# Complete repair notices
+947	Reparaturen
+948	Ihr Schiff {0} wurde vollständig repariert.
+949	Alle Schiffe Ihrer Flotte {0} wurden vollständig repariert.

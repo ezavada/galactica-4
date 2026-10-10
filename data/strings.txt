@@ -593,3 +593,8 @@
 944	The bundled manual could not be found. Please reinstall the complete game.
 945	The manual could not be opened. Allow new tabs or choose a default web browser, then try again.
 946	Open the bundled User’s Manual in your web browser. Your game and current turn stay open.
+
+# Complete repair notices
+947	Repairs
+948	Your ship {0} has been completely repaired.
+949	All ships in your fleet {0} have been completely repaired.
