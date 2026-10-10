@@ -18,6 +18,7 @@ function createPreferences(env=globalThis) {
         } catch(error) { /* The current drawing choice still applies. */ }
     };
     return {
+        readShips:()=>read('showShips'),writeShips:show=>write('showShips',show),
         readGrid:()=>read('showGrid'),writeGrid:show=>write('showGrid',show),
         readMapNames:()=>read('showMapNames'),writeMapNames:show=>write('showMapNames',show)
     };

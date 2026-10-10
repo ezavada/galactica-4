@@ -369,3 +369,4 @@
 # Map drawing preferences
 765	Mostrar cuadrícula
 766	Mostrar nombres en el mapa
+767	Mostrar naves

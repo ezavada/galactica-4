@@ -32,6 +32,7 @@ class Game {
         this.display = null;
         this.overlay = null; // UI overlay for lab/stardock events
         this.overlayQueue = [];
+        this.showShips = true;
         this.showGrid = true;
         this.showMapNames = true;
         this.uiWindow = null; // command UI window: menu, production, events, comparison
@@ -1576,6 +1577,10 @@ class Game {
         switch (action.type) {
             case 'consume':
                 return true;
+            case 'toggleShips':
+                this.showShips=!this.showShips;
+                if(this.drawingPreferences)this.drawingPreferences.writeShips(this.showShips);
+                return true;
             case 'toggleMapNames':
                 this.showMapNames=!this.showMapNames;
                 if(this.drawingPreferences)this.drawingPreferences.writeMapNames(this.showMapNames);
@@ -2043,6 +2048,7 @@ class Game {
         const shipRadiusSquared = Common.ShipRadius * Common.ShipRadius;
         for (const ship of this.allShips) {
             if(ship.fleet)continue; // Fleet members are not independent map markers.
+            if(this.display.isMobileVisibleOnMap && !this.display.isMobileVisibleOnMap(ship))continue;
             if(this.display.isPatrolHiddenOnMap && this.display.isPatrolHiddenOnMap(ship))continue;
             // Convert ship position to screen for distance check
             const shipScreenX = this.display.toScreenX(ship.x);
@@ -2066,6 +2072,7 @@ class Game {
         // Check for fleet clicks (using screen-space radius for consistent UI feel)
         const fleetRadiusSquared = Common.ShipRadius * Common.ShipRadius * 2.25; // Fleet hexagons are larger than ships
         for (const fleet of this.allFleets) {
+            if(this.display.isMobileVisibleOnMap && !this.display.isMobileVisibleOnMap(fleet))continue;
             if(this.display.isPatrolHiddenOnMap && this.display.isPatrolHiddenOnMap(fleet))continue;
             // Convert fleet position to screen for distance check
             let fleetScreenX = this.display.toScreenX(fleet.x);
@@ -2132,6 +2139,7 @@ class Game {
     }
     
     handleKeyPress(key) {
+        if(key === pdg.key_F1)return this.executeUIAction({type:'toggleShips'});
         if(key === pdg.key_F2)return this.executeUIAction({type:'toggleMapNames'});
         if(key === pdg.key_F3)return this.executeUIAction({type:'toggleGrid'});
         if (['rename','colonyDefaults','settings'].includes(this.uiWindow) && key === pdg.key_Tab) return true;

@@ -766,6 +766,13 @@ class Display {
             object.isOnPatrol() && !object.destination;
     }
 
+    isMobileVisibleOnMap(object) {
+        const viewer=this.game.getCurrentHumanPlayer() || 1;
+        if(!this.isEntityVisibleToPlayer(object,viewer) && !this.game.isOwnerAlliedWith(viewer,object.owner))return false;
+        if(this.game.showShips===false && object!==this.selectedObject)return false;
+        return !this.isPatrolHiddenOnMap(object);
+    }
+
     drawMobileMapName(object,x,y,radius,docked) {
         if(this.game.showMapNames===false || this.camera.zoom<.5 || docked && object!==this.selectedObject)return;
         const viewer=this.game.getCurrentHumanPlayer() || 1;
@@ -780,7 +787,7 @@ class Display {
 
     // Draw a single ship
     drawShip(ship) {
-        if(this.isPatrolHiddenOnMap(ship))return;
+        if(!this.isMobileVisibleOnMap(ship))return;
         // Convert galactic coordinates to screen coordinates
         let x = this.toScreenX(ship.x);
         let y = this.toScreenY(ship.y);
@@ -878,7 +885,7 @@ class Display {
             }
             
             // Always show own ships, only show enemy ships if visible
-            if (this.isEntityVisibleToPlayer(ship, humanPlayer)) {
+            if (this.isMobileVisibleOnMap(ship)) {
                 this.drawShip(ship);
             }
         }
@@ -890,7 +897,7 @@ class Display {
     
     // Draw a single fleet
     drawFleet(fleet) {
-        if(this.isPatrolHiddenOnMap(fleet))return;
+        if(!this.isMobileVisibleOnMap(fleet))return;
         // Convert galactic coordinates to screen coordinates
         let x = this.toScreenX(fleet.x);
         let y = this.toScreenY(fleet.y);
@@ -966,7 +973,7 @@ class Display {
         
         for (const fleet of fleets) {
             // Always show own fleets, only show enemy fleets if visible
-            if (this.isEntityVisibleToPlayer(fleet, humanPlayer)) {
+            if (this.isMobileVisibleOnMap(fleet)) {
                 this.drawFleet(fleet);
             }
         }
@@ -1753,7 +1760,7 @@ class Display {
 
     getSettingsWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(320,screen.width-40);
-        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:398});
+        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:430});
     }
 
     getSettingsActionRegions() {
@@ -1766,7 +1773,9 @@ class Display {
         })).concat([{rect:{x:rect.x+14,y:rect.y+284,width:rect.width-28,height:28},
             label:I18n.getString(765,'Show grid'),key:'F3',active:this.game.showGrid,action:{type:'toggleGrid'}},
             {rect:{x:rect.x+14,y:rect.y+316,width:rect.width-28,height:28},
-            label:I18n.getString(766,'Show map names'),key:'F2',active:this.game.showMapNames,action:{type:'toggleMapNames'}}]);
+            label:I18n.getString(766,'Show map names'),key:'F2',active:this.game.showMapNames,action:{type:'toggleMapNames'}},
+            {rect:{x:rect.x+14,y:rect.y+348,width:rect.width-28,height:28},
+            label:I18n.getString(767,'Show ships'),key:'F1',active:this.game.showShips,action:{type:'toggleShips'}}]);
     }
 
     drawSettingsWindow() {

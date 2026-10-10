@@ -82,3 +82,9 @@ Full suite: 771 passed. Browser clicks, F3 and new-game persistence passed in al
 Settings → Show map names and F2 toggle star, ship, fleet and rendezvous map labels. The choice defaults on and persists independently of grid visibility in browser/native preferences. Inspectors, lists, orders and player comparison continue to show names. Fogged yellow-star aliases retain their existing behavior when map names are enabled; comparison still uses real faction names.
 
 Ship/fleet labels now follow v3 drawing rules: at least half zoom, unselected docked labels suppressed, and Class visibility required for non-allied objects unless omniscient. Existing label fading remains; fleet counts and object symbols remain visible when names are hidden. Full suite: 774 passed. Native controls and translated screenshots passed in all six languages, with map-name on/off and French settings views inspected. Evidence: `/private/tmp/galactica-parity/names-{before,after}` and `/private/tmp/galactica-names-tests.log`.
+
+### Ship visibility preference (2026-10-09)
+
+Settings → Show ships and F1 control ship/fleet map rendering. Default-on state persists independently of grid and name choices. The selected visible mobile object remains drawn with its diagnostics and course when hiding others, matching v3; fog still prevents disclosure of an invisible enemy even if selected. Patrol hiding remains in place. Hidden ships/fleets do not intercept map selection or order targets, and stars/rendezvous points are unaffected. Simulation collections and movement are unchanged.
+
+Full suite: 777 passed. Browser settings/F1, selected ship/fleet exceptions, hidden-hit checks and new-game persistence passed in all six languages; before/after translated settings and map views were inspected. Evidence: `/private/tmp/galactica-parity/ships-{before,after}` and `/private/tmp/galactica-ships-tests.log`.

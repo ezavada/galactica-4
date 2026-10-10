@@ -329,6 +329,7 @@ function startGame() {
     game.languagePreferences = languagePreferences;
     game.drawingPreferences = drawingPreferences;
     game.showGrid = drawingPreferences.readGrid();
+    game.showShips = drawingPreferences.readShips();
     game.showMapNames = drawingPreferences.readMapNames();
     game.port = port;
     display = new Display(game);

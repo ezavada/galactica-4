@@ -32,6 +32,33 @@ module.exports=()=>test.describe('Language settings',()=>{
         let key,value;const native=Drawing.createPreferences({pdg:{cfg:{useConfig:()=>{},getConfigString:()=>value,setConfigString:(k,v)=>{key=k;value=v;}}}});
         native.writeMapNames(false);test.assertEqual(key,'showMapNames');test.assertFalse(native.readMapNames());
     });
+    test.it('toggles ships from settings and F1 with independent persisted state',()=>{
+        const {game,display}=fixture();game.uiWindow='settings';const values=new Map();
+        game.drawingPreferences=require('../src/js/drawing-preferences.js').createPreferences({window:{localStorage:{getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)}}});
+        const row=display.getSettingsActionRegions().find(row=>row.action.type==='toggleShips');test.assertTrue(row.active);
+        game.handleUIClick(row.rect.x+5,row.rect.y+5);test.assertFalse(game.showShips);test.assertFalse(game.drawingPreferences.readShips());
+        test.assertTrue(game.showGrid);test.assertTrue(game.showMapNames);test.assertTrue(game.handleKeyPress(pdg.key_F1));test.assertTrue(game.showShips);test.assertTrue(game.drawingPreferences.readShips());
+    });
+    test.it('keeps selected visible mobile objects on the map while ships are hidden, with fog and patrol restrictions',()=>{
+        const {game,display}=fixture(),home=game.factory.createStar(1000,1000,'Home');home.owner=1;
+        const ship=game.factory.createShip(200,200,'scout',home);ship.complete();ship.star=null;
+        game.showShips=false;test.assertFalse(display.isMobileVisibleOnMap(ship));
+        game.setSelectedObject(ship);test.assertTrue(display.isMobileVisibleOnMap(ship));
+        ship.owner=2;ship.setVisibilityTo(1,0);test.assertFalse(display.isMobileVisibleOnMap(ship));
+        ship.setVisibilityTo(1,1);test.assertTrue(display.isMobileVisibleOnMap(ship));
+        game.setSelectedObject(null);game.showShips=true;test.assertTrue(display.isMobileVisibleOnMap(ship));
+        ship.owner=1;ship.star=home;ship.setPatrol(true);test.assertFalse(display.isMobileVisibleOnMap(ship));
+    });
+    test.it('excludes hidden ships and fleets from map hits and rendering without changing object collections',()=>{
+        const {game,display}=fixture(),home=game.factory.createStar(1000,1000,'Home');home.owner=1;
+        const ship=game.factory.createShip(200,200,'scout',home);ship.complete();ship.star=null;
+        const fleet=game.factory.createFleet(400,200,1,'Fleet');display.toScreenX=x=>x;display.toScreenY=y=>y;
+        let ships=0,fleets=0;display.drawShip=()=>ships++;display.drawFleet=()=>fleets++;
+        game.showShips=false;test.assertNull(game.findObjectAtPosition(200,200));test.assertNull(game.findObjectAtPosition(400,200));
+        display.drawShips(game.allShips);display.drawFleets(game.allFleets);test.assertEqual(ships,0);test.assertEqual(fleets,0);
+        game.setSelectedObject(fleet);display.drawFleets(game.allFleets);test.assertEqual(fleets,1);test.assertTrue(game.findObjectAtPosition(400,200)===fleet);
+        game.showShips=true;test.assertTrue(game.findObjectAtPosition(200,200)===ship);test.assertEqual(game.allShips.length,1);test.assertEqual(game.allFleets.length,1);
+    });
     test.it('always presents native names in their native scripts',()=>restoreLanguage(()=>{
         const {game,display}=fixture();game.uiWindow='settings';
         const names=['English','Deutsch','Español','Français','日本語','Русский'];
