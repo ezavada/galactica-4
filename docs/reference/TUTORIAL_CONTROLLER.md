@@ -2,10 +2,12 @@
 
 `src/js/tutorial-controller.js` implements the progression model for the sixty
 original lessons. It is connected to an explicitly bound tutorial game through
-`src/js/tutorial-runtime.js`, and rendered by a floating localized instruction panel. There is no public startup
-entry yet. A successful model walkthrough is not proof of a playable tutorial.
-The public launch UI, illustrations, complete saves and full guided walkthrough
-remain required work in `V3_V4_FEATURE_STATUS.md`.
+`src/js/tutorial-runtime.js`, and rendered by a floating localized instruction
+panel. Launch it with Tutorial on the start screen or in-game command menu.
+The full normal guided route is verified through real UI input in all six
+languages; public launch/cancellation is also verified in each language, with a
+complete English run from the visible launch button. Illustrations and complete
+tutorial save/resume remain required work in `V3_V4_FEATURE_STATUS.md`.
 
 The constructor accepts decoded page metadata and callbacks. Use `tutorial-lessons.js::load(dataDirectory, language)` for runtime pages;
 `v3-tutorial.json` is a source reference,
@@ -286,3 +288,26 @@ are covered separately by model/runtime tests. Screenshots are under
 `/private/tmp/galactica-parity/tutorial-skipped-observers/<language>` and logs
 are `/private/tmp/galactica-tutorial-skipped-observers-<language>.log`.
 Public launch, illustrations and complete tutorial save/resume remain open.
+
+
+### Public startup and menu commands
+
+V3's `Galactica.cpp:2176–2215` chooses the existing-game hiding page when a
+map is open, otherwise the welcome page, and preserves startup/name-window
+exceptions. The new start-screen Tutorial button and command-menu Tutorial
+row call the existing document owner with those contexts. The game menu closes
+before launch so cancellation returns to the map. Duplicate launches are
+unavailable while instructions are active; the setup button and its help are
+also hidden during practice setup. Both entry points use translated title 960,
+with new translated control help 964 in all six supported languages.
+
+Tests cover actual menu hit targets, duplicate prevention, cancellation with an
+existing document and compact layout reachability. Both native lanes pass all
+1,292 tests. Browser input clicks both visible launch controls in en/de/es/fr/ja/ru,
+starts the fixed 42-system practice game and cancels, proving the previous game,
+renderer, session, saved document and file association remain intact. Reviewed
+screenshots are under `/private/tmp/galactica-parity/tutorial-launch/<language>`;
+logs are `/private/tmp/galactica-tutorial-launch-{tests,native-tests,<language>}.log`.
+A complete English walkthrough from the visible startup button also proves
+Finish removes tutorial state and promotes practice to an ordinary unsaved
+local document; see `/private/tmp/galactica-tutorial-public-guided-en.log`.

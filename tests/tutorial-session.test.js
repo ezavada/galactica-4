@@ -14,6 +14,21 @@ function setup(starting=false){
 function enter(owner){owner.start({window:1});owner.pressButton({window:1});owner.pressButton();test.assertTrue(owner.openSetup());test.assertTrue(owner.acceptSetup());}
 function install(owner){const game=createTutorialGame(galaxy),view=display(game);test.assertTrue(!!owner.install(game,view));return {game,view};}
 module.exports=()=>test.describe('Temporary tutorial document lifecycle',()=>{
+ test.it('launches from the real game-menu action and preserves the suspended document on cancellation',()=>{
+  const f=setup(),before=Save.serialize(f.original);f.original.tutorialCommands={available:()=>!f.owner.controller.active,start:()=>{f.original.uiWindow=null;f.owner.start({window:1});return true;}};f.original.uiWindow='menu';
+  const row=f.view.getCommandActionRegions().find(r=>r.action.type==='startTutorial');test.assertDefined(row);test.assertTrue(f.original.handleUIClick(row.rect.x+3,row.rect.y+3));test.assertEqual(f.owner.controller.pageId,100);test.assertFalse(f.original.canStartTutorial());test.assertFalse(f.original.executeUIAction({type:'startTutorial'}));
+  f.owner.pressButton();test.assertTrue(f.sessions.transient!==null);f.owner.stop();test.assertTrue(f.sessions.active===f.session);test.assertTrue(f.visible()===f.application);test.assertTrue(f.original.canStartTutorial());
+  const expected=Save.restore(before);expected.uiWindow=null;test.assertEqual(Save.serialize(f.original),Save.serialize(expected));
+ });
+ test.it('keeps localized launch controls reachable alongside setup and menu controls in short viewports',()=>{
+  const Setup=require('../src/js/startup-setup.js'),Help=require('../src/js/hover-help.js'),language=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);for(const [width,height] of [[800,600],[640,480],[320,340]]){
+   const f=setup();f.original.port.getDrawingArea=()=>new pdg.Rect(width,height);f.original.tutorialCommands={start:()=>true};f.original.manualCommands={};f.original.sessionCommands={};f.original.fileCommands={};f.original.uiWindow='menu';
+   const rows=f.view.getCommandActionRegions(),tutorial=rows.find(r=>r.action.type==='startTutorial');test.assertDefined(tutorial);test.assertEqual(tutorial.label,pdg.res.getString(960));test.assertEqual(Help.describe(tutorial.action),pdg.res.getString(964));
+   const setupRows=Setup.helpRegions(width,height,f.original.config),launch=setupRows.find(r=>r.action.type==='startTutorial'),cancel=setupRows.find(r=>r.action.type==='open');test.assertTrue(launch.rect.x+launch.rect.width<=cancel.rect.x);
+   for(const row of [...rows,launch,cancel])test.assertTrue(row.rect.x>=0 && row.rect.y>=0 && row.rect.x+row.rect.width<=width && row.rect.y+row.rect.height<=height);
+   for(let i=1;i<rows.length;i++)test.assertTrue(rows[i-1].rect.y+rows[i-1].rect.height<=rows[i].rect.y);
+  }}}finally{pdg.res.setLanguage(language);}
+ });
  test.it('plays source lesson-entry cues once, leaves source-silent pages quiet and stops on completion',()=>{
   const f=setup(),played=[],Sound=require('../src/js/sound.js');
   f.owner.options.sound=Sound.createSound({getSound(file){return {setLooping:()=>{},start:()=>played.push(file),stop:()=>played.push('stop')};}},{readSound:()=>true,writeSound:()=>{}});

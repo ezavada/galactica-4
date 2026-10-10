@@ -1795,7 +1795,7 @@ class Display {
     }
 
     getCommandWindowHeight() {
-        return (this.game.manualCommands?34:0)+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error?438:396):362);
+        return (this.game.canStartTutorial()?34:0)+(this.game.manualCommands?34:0)+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error?438:396):362);
     }
 
     getCommandWindowRect() {
@@ -1968,8 +1968,9 @@ class Display {
             {rect:{x:rect.x+14,y:rect.y+318,width:rect.width-28,height:28},label:I18n.getString(836,'New Game…'),key:'N',action:{type:'newGame'}},
             {rect:{x:rect.x+14,y:rect.y+352,width:rect.width-28,height:28},label:I18n.getString(837,'Open Games'),key:'G',action:{type:'showGames'}}]:[];
         const manual=this.game.manualCommands?[{rect:{x:rect.x+14,y:rect.y+318+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported?34:0),width:rect.width-28,height:28},label:I18n.getString(943,'User’s Manual'),key:'H',action:{type:'openManual'}}]:[];
+        const tutorial=this.game.canStartTutorial()?[{rect:{x:rect.x+14,y:rect.y+318+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported?34:0)+(this.game.manualCommands?34:0),width:rect.width-28,height:28},label:I18n.getString(960,'Tutorial'),action:{type:'startTutorial'}}]:[];
         const file=this.game.fileCommands?[{rect:{x:rect.x+14,y:rect.y+318+(this.game.sessionCommands?68:0),width:rect.width-28,height:28},label:I18n.getString(838,'File'),action:{type:'fileMenu'}}]:[];
-        if(!this.game.getCurrentHumanPlayer())return fit([comparison,settings,mapDisplay,view,...documents,...file,...fullscreen,...manual]);
+        if(!this.game.getCurrentHumanPlayer())return fit([comparison,settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial]);
         return fit([{rect:{x:rect.x+14,y:rect.y+80,width:rect.width-28,height:28},
             icon:'gear',label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}},
             {rect:{x:rect.x+14,y:rect.y+114,width:rect.width-28,height:28},
@@ -1977,7 +1978,7 @@ class Display {
             comparison,
             {rect:{x:rect.x+14,y:rect.y+182,width:rect.width-28,height:28},
             label:I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`,key:'Tab',active:this.game.attention.pending().length>0,action:{type:'nextAttention'}},
-            settings,mapDisplay,view,...documents,...file,...fullscreen,...manual]);
+            settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial]);
     }
 
     getMapSelectionRect() {

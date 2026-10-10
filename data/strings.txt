@@ -628,3 +628,6 @@
 961	Switch to building {0}
 962	Set
 963	Clear
+
+# Tutorial launch help
+964	Start the guided tutorial in a practice game. Your open games are kept.

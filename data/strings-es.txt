@@ -628,3 +628,6 @@
 961	Cambiar a construir {0}
 962	Fijar
 963	Borrar
+
+# Tutorial launch help
+964	Inicia el tutorial guiado en una partida de práctica. Tus partidas abiertas se conservan.

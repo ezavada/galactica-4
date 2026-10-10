@@ -628,3 +628,6 @@
 961	Zur Produktion von {0} wechseln
 962	Setzen
 963	Löschen
+
+# Tutorial launch help
+964	Starte die geführte Einführung in einem Übungsspiel. Deine offenen Spiele bleiben erhalten.

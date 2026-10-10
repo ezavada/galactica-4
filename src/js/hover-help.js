@@ -60,6 +60,7 @@ const helpIds=Object.freeze({
   "toggleAllCourses": 882,
   "toggleCourierCourses": 882,
   "openManual": 946,
+  "startTutorial": 964,
   "toggleFullscreen": 908,
   "toggleGrid": 882,
   "toggleMapNames": 882,

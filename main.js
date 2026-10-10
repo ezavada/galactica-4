@@ -404,6 +404,7 @@ function drawStartupDialog() {
 
     if(!sessions.active){const open=StartupSetup.cancelRegion(panelRect);drawStartupRoundedRect(open,7,startupStyles.advantageButton);port.drawText(I18n.getString(841,'Open Game…'),new pdg.Point(open.x+open.width/2,open.y+step(20)),startupStyles.startText);}
     if(sessions.active){const cancel=StartupSetup.cancelRegion(panelRect);drawStartupRoundedRect(cancel,7,startupStyles.advantageButton);port.drawText(I18n.getString(683,'Cancel'),new pdg.Point(cancel.x+cancel.width/2,cancel.y+step(20)),startupStyles.startText);}
+    if(!tutorialSession){const tutorial=StartupSetup.tutorialRegion(panelRect);drawStartupRoundedRect(tutorial,7,startupStyles.advantageButton);drawStartupButtonCaption(tutorial,I18n.getString(960,'Tutorial'),startupStyles.startText,Math.max(9,14*scale));}
     drawStartupRoundedRect(StartupSetup.startRegion(panelRect),7,startupStyles.advantageButton);
     const start=StartupSetup.startRegion(panelRect),manual=StartupSetup.manualRegion(panelRect);
     drawStartupButtonCaption(start,I18n.getString(528,'<Enter> Start'),startupStyles.startText,Math.max(9,14*scale));
@@ -429,7 +430,7 @@ function drawStartupControlHelp() {
         const layout=PlayerName.layout(screen.width,screen.height,I18n.getString(682,'Save'));
         regions=layout.buttons.map(b=>({rect:b.rect,action:{type:b.action==='cancel'?'cancel':'submit'}}));
         regions.push({rect:layout.field,action:{type:startupComputerCount?'startupCount':startupGameTitle?'startupTitle':'startupName'}});
-    } else regions=StartupSetup.helpRegions(screen.width,screen.height,pendingConfig,!!sessions.active);
+    } else regions=StartupSetup.helpRegions(screen.width,screen.height,pendingConfig,!!sessions.active).filter(r=>r.action.type!=='startTutorial' || !tutorialSession);
     const hit=point && drawingPreferences.readControlHelp() && regions.find(({rect:r})=>
         point.x>=r.x && point.x<r.x+r.width && point.y>=r.y && point.y<r.y+r.height);
     const candidate=hit?{...hit,text:ControlHelp.describe(hit.action),key:scope+':'+hit.action.type+':'+hit.rect.x+':'+hit.rect.y}:null;
@@ -520,7 +521,7 @@ function clearSessionInput() {
     isDragging=false;isLeftClickDragging=false;hasDragged=false;
     if(game){game.endUIWindowDrag();game.endMapScrollDrag();game.endUISliderDrag();}
 }
-// No menu advertises the tutorial until the localized instruction UI is ready.
+// Both public launch controls share the same temporary tutorial document owner.
 function beginTutorial(pages=require('./src/js/tutorial-lessons.js').load(dataPath),context={window:game && !sessions.starting?1:34,modal:sessions.starting}) {
     if(tutorialSession && tutorialSession.controller.active)return false;
     const owner=new (require('./src/js/tutorial-session.js'))(pages,{
@@ -611,6 +612,7 @@ function attachGameServices(nextGame) {
     if(!nextGame.restoredFromSave)nextGame.showMapNames = drawingPreferences.readMapNames();
     nextGame.port = port;
     nextGame.manualCommands=userManual;
+    nextGame.tutorialCommands={available:()=>!tutorialSession,start:()=>{nextGame.uiWindow=null;return beginTutorial();}};
     nextGame.fileCommands={menu:()=>{clearSessionInput();return documents.menu();}};
     nextGame.sessionCommands={begin:beginNewGame,rows:()=>sessions.rows(),select:switchGameSession};
 }
@@ -835,6 +837,8 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
                 else if(contains(layout.field)){editor.selected=true;editor.caret=Array.from(editor.text).length;}
                 return true;
             }
+            const tutorial=StartupSetup.tutorialRegion(StartupSetup.panelRect(area.width(),area.height()));
+            if(!tutorialSession && event.mousePos.x>=tutorial.x && event.mousePos.x<tutorial.x+tutorial.width && event.mousePos.y>=tutorial.y && event.mousePos.y<tutorial.y+tutorial.height){beginTutorial();return true;}
             const manual=StartupSetup.manualRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(event.mousePos.x>=manual.x && event.mousePos.x<manual.x+manual.width && event.mousePos.y>=manual.y && event.mousePos.y<manual.y+manual.height){userManual.open(pdg.res.getLanguage());return true;}
             const cancel=StartupSetup.cancelRegion(StartupSetup.panelRect(area.width(),area.height()));

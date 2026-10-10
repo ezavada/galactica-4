@@ -628,3 +628,6 @@
 961	Passer à la construction de {0}
 962	Définir
 963	Effacer
+
+# Tutorial launch help
+964	Lancez le tutoriel guidé dans une partie d’entraînement. Vos parties ouvertes sont conservées.

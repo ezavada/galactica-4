@@ -1854,12 +1854,18 @@ class Game {
         return true;
     }
 
+    canStartTutorial() {
+        const commands=this.tutorialCommands;
+        return !!(commands && typeof commands.start==='function' && (!commands.available || commands.available()));
+    }
+
     executeUIAction(action) {
         if (!action) {
             return false;
         }
 
         switch (action.type) {
+            case 'startTutorial':return this.canStartTutorial() && !!this.tutorialCommands.start();
             case 'openManual':
                 if(!this.manualCommands)return false;
                 this.manualCommands.open(pdg.res.getLanguage());return true;
