@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 692
-Passed: 692 ✓
+Total: 703
+Passed: 703 ✓
 Failed: 0 ✗
 ```
 
@@ -50,6 +50,7 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - `event-reports.test.js`
 - `scrapping.test.js`
 - `visual-effects.test.js`
+- `language-settings.test.js`
 - `autoplay.test.js`
 
 ## What the tests cover

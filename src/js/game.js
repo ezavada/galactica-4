@@ -1,6 +1,7 @@
 // Game class for Galactica-4
 // Contains main game logic and state management
 
+const LanguageSettings = require('./language-settings.js');
 const Common = require('./common.js');
 const MapGenerator = require('./map-generator.js');
 const GameConfig = require('./game-config.js');
@@ -1184,6 +1185,11 @@ class Game {
 
         const lower = char.toLowerCase();
 
+        if(this.uiWindow==='settings') {
+            if(key===pdg.key_Escape)this.uiWindow=null;
+            return true;
+        }
+
         if (this.uiWindow === 'colonyDefaults') {
             if (key === pdg.key_Escape) return this.cancelColonyDefaults();
             if (key === 13 || key === 3) return this.saveColonyDefaults();
@@ -1562,6 +1568,12 @@ class Game {
 
         switch (action.type) {
             case 'consume':
+                return true;
+            case 'setLanguage':
+                if(this.uiWindow!=='settings' || !LanguageSettings.supported(action.language))return false;
+                pdg.res.setLanguage(action.language);
+                if(this.display)this.display.reloadUIStrings();
+                if(this.languagePreferences)this.languagePreferences.write(action.language);
                 return true;
             case 'toggleWindow':
                 return this.toggleUIWindow(action.window);
@@ -2105,9 +2117,9 @@ class Game {
     }
     
     handleKeyPress(key) {
-        if (['rename','colonyDefaults'].includes(this.uiWindow) && key === pdg.key_Tab) return true;
+        if (['rename','colonyDefaults','settings'].includes(this.uiWindow) && key === pdg.key_Tab) return true;
         if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}
-        if ((key===13 || key===3) && !['rename','colonyDefaults','systemComparison','events','endTurnConfirm'].includes(this.uiWindow)) {this.requestEndTurn();return true;}
+        if ((key===13 || key===3) && !['rename','colonyDefaults','settings','systemComparison','events','endTurnConfirm'].includes(this.uiWindow)) {this.requestEndTurn();return true;}
         if (key === pdg.key_Tab) {
             if(!this.pendingMapOrderObject && !this.pendingRendezvousPlacement && !this.uiSliderDrag && !this.hasEventPresentation())this.attention.next();
             return true;

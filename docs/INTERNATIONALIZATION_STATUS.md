@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 295 IDs
-- localized files: 295 IDs each
+- `strings.txt`: 297 IDs
+- localized files: 297 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -40,7 +40,11 @@ Every supported localized file currently has the same string ID set as the defau
 The `--` separator keeps application arguments distinct from launcher options
 and works consistently in the macOS and Windows launchers.
 
-The code then calls `pdg.res.setLanguage(languageCode)`.
+Menu → Settings → Language offers English, Deutsch, Español, Français, 日本語 and Русский. These native names are fixed and independent of the current UI language. Settings/Language headings are localized (IDs 759–760).
+
+A click switches `pdg.res` and refreshes cached display labels immediately, including numeric formatting and retained inspector text. The current language is highlighted. Esc closes the window; Enter/Tab and outside clicks do not advance the turn or change selection. Existing proper names and previously generated event narratives retain their original text; future events use the new language.
+
+The choice is remembered through browser localStorage (`galactica.language`) or the native PDG ConfigManager (`Galactica`, item `language`). Blocked storage leaves live switching usable. On startup an explicit `--lang=`/web `lang=` overrides the saved choice; unsupported/missing saved values fall back to English. Explicit launch overrides do not overwrite the saved preference.
 
 ## Localized areas
 
@@ -63,7 +67,6 @@ The current resources cover:
 
 ## Known gaps
 
-- There is no in-game language switcher.
 - Debug and diagnostic console output remains English by design for now.
 - Future v3 systems that have not been ported yet, such as tutorial/help text, save/load dialogs, multiplayer chat, and richer event/result windows, will need new resource IDs when implemented.
 - Generated proper names and ship class/art names currently remain English-style names in every language.
@@ -82,11 +85,10 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 692 passed, 0 failed.
+Current expected full-suite result: 703 passed, 0 failed.
 
 ## Future work
 
-- Add an in-game language selector.
 - Decide whether battleship class names should stay stable asset identifiers or become fully translated display names separate from artwork.
 - Add tutorial/help, save/load, multiplayer, and richer event/result text resources when those v3 systems are ported.
 
@@ -95,3 +97,5 @@ The Your Star Systems table adds localized titles, nine column headers, populati
 System diagnostics adds IDs 720–725 for locale-specific integer grouping, coordinates, defense labels and unidentified system designations. English/Japanese use commas, German/Spanish periods, French narrow nonbreaking spaces and Russian nonbreaking spaces. Light-year coordinates retain two decimal places with each language’s decimal separator. All six browser layouts and native numeric resources were verified.
 
 Universal Menu, Home and Fit icons retain their existing localized labels as hover hints; the colony-defaults gear keeps its localized text. No new string IDs are needed for the presentation effects. Browser controls and labels were verified in all six supported languages.
+
+Language switching adds 11 regressions covering fixed autonyms in all UI languages, cached labels/numeric formatting, active selection, unsupported codes, modal click/keyboard routing, observer access, startup precedence, browser/native preference adapters and denied storage. Full suite: 703 passed. Real browser clicks from each of the six starting languages switched to all six destinations, preserved native names and game state, restored the saved preference after reload and honored an explicit override. Compared 12 before/after scenes: six system views were pixel-identical and six menus intentionally gained Settings.

@@ -353,3 +353,7 @@
 756	À démanteler
 757	{0} démantelé ; {1} de production récupérée à {2}
 758	{0} démantelé
+
+# Settings
+759	Paramètres
+760	Langue

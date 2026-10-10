@@ -26,7 +26,7 @@ module.exports = function() {
         });
         test.it('hides the command for AI-only games',()=>{
             const {game,display}=fixture();game.config.numHumans=0;game.uiWindow='menu';
-            test.assertEqual(game.getSystemComparisonRows().length,0);test.assertEqual(display.getCommandActionRegions().length,0);
+            test.assertEqual(game.getSystemComparisonRows().length,0);test.assertEqual(display.getCommandActionRegions().filter(row=>row.action.type==='showSystemComparison').length,0);
             test.assertFalse(game.executeUIAction({type:'showSystemComparison'}));
         });
         test.it('reports v3 integer population, combined production, and current build progress',()=>{

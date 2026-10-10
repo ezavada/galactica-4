@@ -353,3 +353,7 @@
 756	Marked for scrap
 757	{0} scrapped; {1} production recovered at {2}
 758	{0} scrapped
+
+# Settings
+759	Settings
+760	Language

@@ -353,3 +353,7 @@
 756	Para desguace
 757	{0} desguazada; {1} de producción recuperada en {2}
 758	{0} desguazada
+
+# Settings
+759	Configuración
+760	Idioma

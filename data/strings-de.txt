@@ -353,3 +353,7 @@
 756	Zum Verschrotten
 757	{0} verschrottet; {1} Produktion bei {2} zurückgewonnen
 758	{0} verschrottet
+
+# Settings
+759	Einstellungen
+760	Sprache

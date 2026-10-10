@@ -37,27 +37,9 @@ function getIntegerArg(name, fallback = null) {
     return Number.isFinite(parsed) ? Math.floor(parsed) : fallback;
 }
 
-for (const arg of args) {
-    if (arg.startsWith('--lang=')) {
-        const langCode = arg.substring(7); // Extract language code after '--lang='
-        if (langCode.length >= 2) {
-            pdg.res.setLanguage(langCode);
-            console.log(`Language set to: ${langCode}`);
-            
-            // Verify string loading with a test string
-            const testStr = pdg.res.getString(1); // Should be "Turn" in English, "Turno" in Spanish
-            console.log(`Test string (ID 1): "${testStr}"`);
-        } else {
-            console.warn(`Invalid language code: ${langCode} (must be at least 2 characters)`);
-        }
-    }
-}
-
-// If no language set, verify default English strings are loading
-if (args.every(arg => !arg.startsWith('--lang='))) {
-    const testStr = pdg.res.getString(1);
-    console.log(`Using default language. Test string (ID 1): "${testStr}"`);
-}
+const LanguageSettings = require('./src/js/language-settings.js');
+const languagePreferences = LanguageSettings.createPreferences();
+LanguageSettings.initialize(args,pdg.res,languagePreferences);
 
 // Load required modules
 const Factory = require('./src/js/factory.js');
@@ -315,6 +297,7 @@ function startGame() {
     const factory = new Factory();
     const rules = new Rules(pendingConfig.fastGame);
     game = new Game(factory, rules, pendingConfig);
+    game.languagePreferences = languagePreferences;
     game.port = port;
     display = new Display(game);
     if (pendingConfig.numHumans === 0 && display) {

@@ -7,6 +7,7 @@ const RetainedPanel = require('./retained-panel.js');
 const SelectionPulse = require('./selection-pulse.js');
 const I18n = require('./i18n.js');
 const VisualEffects = require('./visual-effects.js');
+const LanguageSettings = require('./language-settings.js');
 
 const debugSelectedObject = true;
 
@@ -63,7 +64,10 @@ class Display {
             this.mapHeight
         );
         
-        // Load UI strings from resources (cache for performance)
+        this.reloadUIStrings();
+    }
+
+    reloadUIStrings() {
         this.STR = {
             turn: I18n.getString(1, "Turn"),
             stars: I18n.getString(2, "Stars:"),
@@ -1581,7 +1585,7 @@ class Display {
 
     getCommandWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 226 });
+        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 260 });
     }
 
     getProductionWindowRect() {
@@ -1667,14 +1671,41 @@ class Display {
     }
 
     getCommandActionRegions() {
-        if (this.game.uiWindow!=='menu' || !this.game.getCurrentHumanPlayer()) return [];
+        if (this.game.uiWindow!=='menu') return [];
         const rect = this.getCommandWindowRect();
+        const settings={rect:{x:rect.x+14,y:rect.y+182,width:rect.width-28,height:28},
+            icon:'gear',label:I18n.getString(759,'Settings'),action:{type:'toggleWindow',window:'settings'}};
+        if(!this.game.getCurrentHumanPlayer())return [settings];
         return [{rect:{x:rect.x+14,y:rect.y+80,width:rect.width-28,height:28},
             icon:'gear',label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}},
             {rect:{x:rect.x+14,y:rect.y+114,width:rect.width-28,height:28},
             label:I18n.getString(708,'Your Star Systems'),action:{type:'showSystemComparison'}},
             {rect:{x:rect.x+14,y:rect.y+148,width:rect.width-28,height:28},
-            label:I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`,key:'Tab',active:this.game.attention.pending().length>0,action:{type:'nextAttention'}}];
+            label:I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`,key:'Tab',active:this.game.attention.pending().length>0,action:{type:'nextAttention'}},
+            settings];
+    }
+
+    getSettingsWindowRect() {
+        const screen=this.getScreenSize(),width=Math.min(320,screen.width-40);
+        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:322});
+    }
+
+    getSettingsActionRegions() {
+        if(this.game.uiWindow!=='settings')return [];
+        const rect=this.getSettingsWindowRect();
+        return LanguageSettings.languages.map((language,index)=>({
+            rect:{x:rect.x+14,y:rect.y+76+index*32,width:rect.width-28,height:28},
+            label:language.name,active:LanguageSettings.current()===language.code,
+            action:{type:'setLanguage',language:language.code}
+        }));
+    }
+
+    drawSettingsWindow() {
+        const rect=this.getSettingsWindowRect();
+        this.drawWindowPanel(rect,I18n.getString(759,'Settings'));
+        this.drawTextLine(I18n.getString(760,'Language'),rect.x+14,rect.y+57,'lightgray',12);
+        for(const region of this.getSettingsActionRegions())this.drawUIButton(region.rect,region.label,null,{active:region.active});
+        this.drawTextLine(this.STR.escClose,rect.x+14,rect.y+rect.height-16,'gray',10);
     }
 
     getColonyDefaultsWindowRect() {
@@ -1880,6 +1911,8 @@ class Display {
                 return this.getComparisonWindowRect();
             case 'fleets':
                 return this.getFleetWindowRect();
+            case 'settings':
+                return this.getSettingsWindowRect();
             case 'colonyDefaults':
                 return this.getColonyDefaultsWindowRect();
             case 'systemShips':
@@ -2078,6 +2111,7 @@ class Display {
         if (this.game.uiWindow==='endTurnConfirm') controls=this.getEndTurnConfirmActions();
         if (this.game.uiWindow==='events') controls=this.getEventActionRegions();
         if (this.game.uiWindow==='menu') controls=this.getCommandActionRegions();
+        if (this.game.uiWindow==='settings') controls=this.getSettingsActionRegions();
         if (this.game.uiWindow==='colonyDefaults') {
             controls=this.getColonyDefaultActionRegions();
             const slider=this.getColonyDefaultSliderRegions().find(region=>this.containsPoint(region.rect,x,y));
@@ -2110,7 +2144,7 @@ class Display {
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
-        if (['rename','colonyDefaults','endTurnConfirm'].includes(this.game.uiWindow)) return { type: 'consume' };
+        if (['rename','colonyDefaults','settings','endTurnConfirm'].includes(this.game.uiWindow)) return { type: 'consume' };
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
         if (contextButton) {
             return contextButton.action;
@@ -2885,6 +2919,9 @@ class Display {
                 break;
             case 'fleets':
                 this.drawFleetWindow();
+                break;
+            case 'settings':
+                this.drawSettingsWindow();
                 break;
             case 'colonyDefaults':
                 this.drawColonyDefaultsWindow();
