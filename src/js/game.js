@@ -956,6 +956,7 @@ class Game {
             return false;
         }
 
+        if(overlay.type==='outcome'){this.endUIWindowDrag();this.endMapScrollDrag();this.endUISliderDrag();if(this.uiWindow==='endTurnConfirm')this.uiWindow=null;}
         this.overlay = {
             ...overlay,
             createdAt: this.getCurrentMilliseconds()
@@ -980,11 +981,27 @@ class Game {
         return !!(this.overlay || (this.overlayQueue && this.overlayQueue.length > 0));
     }
 
+    queueOutcome(event,kind,playerNum=0) {
+        const player=this.players && this.players[playerNum];
+        event.outcome={kind,playerNum,name:player && player.name?player.name:`${I18n.getString(18,'Player')} ${playerNum}`,turn:event.turn};
+        return this.queueEventOverlay({type:'outcome',...event.outcome,eventId:event.id,page:0});
+    }
+
+    replayOutcome(event) {
+        if(!this.getEventRows().includes(event) || !event.outcome)return false;
+        this.uiWindow=null;
+        return this.queueEventOverlay({type:'outcome',...event.outcome,eventId:event.id,page:0});
+    }
+
     dismissEventPresentation() {
         if (!this.hasEventPresentation()) {
             return false;
         }
 
+        if(this.overlay && this.overlay.type==='outcome') {
+            const event=this.eventLog.find(event=>event.id===this.overlay.eventId);
+            if(event)this.focusEvent(event);
+        }
         this.overlay = null;
         if (this.overlayQueue && this.overlayQueue.length > 0) {
             this.showEventOverlay(this.overlayQueue.shift());
@@ -1059,7 +1076,9 @@ class Game {
 
     getEventRows() {
         const reportTurn=Math.max(1,this.turn-1);
-        return this.eventLog.filter(event=>event.turn===reportTurn && this.isEventAccessible(event));
+        // Terminal turns do not advance; their reports must remain available for replay.
+        return this.eventLog.filter(event=>(event.turn===reportTurn ||
+            event.outcome && event.turn===this.turn) && this.isEventAccessible(event));
     }
 
     getEventFocus(event) {
@@ -1303,7 +1322,7 @@ class Game {
         if(this.uiWindow==='events') {
             if(key===13 || key===3) {
                 const event=this.getEventRows().find(event=>event.id===this.eventSelection);
-                if(event)this.focusEvent(event,true);else this.requestEndTurn();
+                if(event && event.outcome)this.replayOutcome(event);else if(event)this.focusEvent(event,true);else this.requestEndTurn();
                 return true;
             }
         }
@@ -1730,6 +1749,12 @@ class Game {
         }
 
         switch (action.type) {
+            case 'dismissOutcome':
+                return !!(this.overlay && this.overlay.type==='outcome' && this.dismissEventPresentation());
+            case 'outcomePage':
+                if(!this.overlay || this.overlay.type!=='outcome' || !Number.isInteger(action.page) || action.page<0)return false;
+                this.overlay.page=action.page;return true;
+            case 'replayOutcome':return this.replayOutcome(action.event);
             case 'consume':
                 return true;
             case 'setMapDisplayMode':
@@ -2489,6 +2514,14 @@ class Game {
     }
 
     handleKeyPress(key) {
+        if(this.overlay && this.overlay.type==='outcome') {
+            if(key===pdg.key_LeftArrow || key===pdg.key_RightArrow) {
+                const layout=this.display && this.display.getOutcomeLayout(this.overlay);
+                if(layout)this.overlay.page=Math.max(0,Math.min(layout.pages-1,layout.page+(key===pdg.key_LeftArrow?-1:1)));
+            } else if(key===13 || key===3 || key===32 || key===pdg.key_Escape)this.dismissEventPresentation();
+            return true;
+        }
+
         if(['comparison','systemComparison'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
         if(key === pdg.key_F6)return this.executeUIAction({type:'toggleScannerRanges'});
         if(key === pdg.key_F4)return this.executeUIAction({type:'toggleAllCourses'});
@@ -2901,7 +2934,8 @@ class Game {
         const playerName = player && player.name ? player.name : `${I18n.getString(18, 'Player')} ${playerNum}`;
         const message = I18n.formatString(644, '{0} wins on turn {1}', playerName, this.victoryTurn);
         console.log(message);
-        this.recordEvent(I18n.getString(614, 'Victory'), message, { type: Common.EventType.GAME_WON });
+        const event=this.recordEvent(I18n.getString(614, 'Victory'), message, { type: Common.EventType.GAME_WON });
+        this.queueOutcome(event,'win',playerNum);
         return true;
     }
 
@@ -2916,7 +2950,8 @@ class Game {
 
         const message = I18n.formatString(652, 'No players remain on turn {0}', this.victoryTurn);
         console.log(message);
-        this.recordEvent(I18n.getString(615, 'Stalemate'), message, { type: Common.EventType.GAME_DRAW });
+        const event=this.recordEvent(I18n.getString(615, 'Stalemate'), message, { type: Common.EventType.GAME_DRAW });
+        this.queueOutcome(event,'draw');
         return true;
     }
 
@@ -3164,6 +3199,7 @@ class Game {
                 who && [Common.ObjectType.STAR,Common.ObjectType.SHIP,Common.ObjectType.FLEET].includes(this.getObjectType(who))?who:null;
             const event=this.recordEvent(eventTitle,eventMessage,{type:what,subject,
                 recipient:subject?subject.owner:undefined,position:what===Common.EventType.SHIP_DESTROYED?where:subject});
+            if(what===Common.EventType.PLAYER_DIED)this.queueOutcome(event,'defeat',who.playerNum);
             if([Common.EventType.SHIP_BUILT,Common.EventType.STAR_COLONIZED,Common.EventType.STAR_CAPTURED].includes(what))this.attention.requestEvent(event);
         }
     }

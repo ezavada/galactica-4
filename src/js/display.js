@@ -1785,7 +1785,9 @@ class Display {
             action:{type:'selectEvent',event}}));
         if(l.page>0)controls.push({rect:{x:r.x+14,y:r.y+r.height-36,width:90,height:24},label:I18n.getString(690,'Previous'),action:{type:'eventPage',page:l.page-1}});
         if(l.page<l.pages-1)controls.push({rect:{x:r.x+110,y:r.y+r.height-36,width:90,height:24},label:I18n.getString(691,'Next'),action:{type:'eventPage',page:l.page+1}});
-        if(l.selected && this.game.getEventFocus(l.selected))controls.push({rect:{x:r.x+r.width-174,y:r.y+r.height-36,width:160,height:24},
+        if(l.selected && l.selected.outcome)controls.push({rect:{x:r.x+r.width-174,y:r.y+r.height-36,width:160,height:24},
+            label:I18n.getString(835,'View report'),key:'Enter',action:{type:'replayOutcome',event:l.selected}});
+        else if(l.selected && this.game.getEventFocus(l.selected))controls.push({rect:{x:r.x+r.width-174,y:r.y+r.height-36,width:160,height:24},
             label:I18n.getString(749,'Go to'),key:'Enter',action:{type:'goToEvent',event:l.selected}});
         if(l.detailPage>0)controls.push({rect:{x:r.x+14,y:r.y+r.height-70,width:90,height:24},label:I18n.getString(690,'Previous'),action:{type:'eventDetailPage',page:l.detailPage-1}});
         if(l.detailPage<l.detailPages-1)controls.push({rect:{x:r.x+110,y:r.y+r.height-70,width:90,height:24},label:I18n.getString(691,'Next'),action:{type:'eventDetailPage',page:l.detailPage+1}});
@@ -2594,6 +2596,12 @@ class Display {
     }
 
     getUIActionAt(x, y) {
+        if(this.game.overlay && this.game.overlay.type==='outcome') {
+            const layout=this.getOutcomeLayout(this.game.overlay);
+            const control=layout.buttons.find(button=>this.containsPoint(button.rect,x,y));
+            return control?control.action:{type:'consume'};
+        }
+
         if(this.game.uiWindow==='mapPick')return this.getActiveWindowActionAt(x,y) || {type:'consume'};
         if(this.game.pendingCourseEdit) {
             const screen=this.getScreenSize(),hint={x:20,y:78,width:screen.width-40,height:40};
@@ -3133,7 +3141,9 @@ class Display {
 
     drawEventWindow() {
         const l=this.getEventWindowLayout(),r=l.rect;
-        this.drawWindowPanel(r,`${this.STR.eventList} · ${this.STR.turn} ${Math.max(1,this.game.turn-1)}`);
+        const turns=l.rows.map(event=>event.turn),first=turns.length?Math.min(...turns):Math.max(1,this.game.turn-1);
+        const last=turns.length?Math.max(...turns):first;
+        this.drawWindowPanel(r,`${this.STR.eventList} · ${this.STR.turn} ${first===last?first:`${first}–${last}`}`);
         if(!l.rows.length) {this.drawTextLine(this.STR.noEventsYet,r.x+14,r.y+62,'gray',12);return;}
         l.visibleRows.forEach((event,index)=>{
             const row={x:r.x+14,y:r.y+48+index*32,width:r.width-28,height:30},selected=event===l.selected;
@@ -3654,11 +3664,39 @@ class Display {
         }
     }
 
+    getOutcomeLayout(overlay) {
+        const screen=this.getScreenSize(),width=Math.min(640,screen.width-40),height=Math.min(460,screen.height-40);
+        const rect={x:(screen.width-width)/2,y:(screen.height-height)/2,width,height};
+        const viewer=this.game.getCurrentHumanPlayer(),local=viewer===overlay.playerNum;
+        const title=I18n.getString(overlay.kind==='win'?614:overlay.kind==='defeat'?613:615);
+        const summary=overlay.kind==='win'?I18n.formatString(644,'{0} wins on turn {1}',overlay.name,overlay.turn):
+            overlay.kind==='defeat'?I18n.formatString(637,'{0} has been defeated',overlay.name):I18n.formatString(652,'No players remain on turn {0}',overlay.turn);
+        const body=local && overlay.kind==='win'?I18n.getString(832).replace(/\|/g,'\n\n'):local && overlay.kind==='defeat'?I18n.getString(833).replace(/\|/g,'\n\n').replace(/\{0\}/g,()=>overlay.name):'';
+        const summaryLines=this.wrapEventMessage(summary,width-40,14),bodyY=rect.y+58+summaryLines.length*20+18;
+        const lines=body?this.wrapEventMessage(body,width-40,13):[];
+        const capacity=Math.max(1,Math.floor((rect.y+height-100-bodyY)/18));
+        const pages=Math.max(1,Math.ceil(lines.length/capacity)),page=this.clamp(overlay.page || 0,0,pages-1);
+        const buttons=[{rect:{x:rect.x+width-174,y:rect.y+height-46,width:154,height:28},label:I18n.getString(834,'Continue'),action:{type:'dismissOutcome'}}];
+        if(page>0)buttons.push({rect:{x:rect.x+20,y:rect.y+height-46,width:90,height:28},label:I18n.getString(690,'Previous'),action:{type:'outcomePage',page:page-1}});
+        if(page<pages-1)buttons.push({rect:{x:rect.x+116,y:rect.y+height-46,width:90,height:28},label:I18n.getString(691,'Next'),action:{type:'outcomePage',page:page+1}});
+        return {rect,title,summaryLines,lines,bodyY,capacity,pages,page,visibleLines:lines.slice(page*capacity,(page+1)*capacity),buttons};
+    }
+
+    drawOutcome(overlay) {
+        const layout=this.getOutcomeLayout(overlay),r=layout.rect;
+        this.drawWindowPanel(r,layout.title);
+        layout.summaryLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,r.y+58+index*20,'lightgray',14));
+        layout.visibleLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,layout.bodyY+index*18,'lightgray',13));
+        this.drawTextLine(I18n.getString(572,'Space or Esc to continue'),r.x+20,r.y+r.height-70,'labelgray',11);
+        layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,null));
+    }
+
     drawOverlay(overlay) {
         const drawingArea = this.port.getDrawingArea();
         // Dim the scene
         this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), this.styles.overlayDim);
         
+        if(overlay.type==='outcome'){this.drawOutcome(overlay);return;}
         if (overlay.type === 'lab') {
             const back = this.getImageCached('labback', 'events/labback.png');
             const top = this.getImageCached('labtop', 'events/labtop.png');

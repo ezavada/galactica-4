@@ -462,3 +462,9 @@
 829	Computer opponents
 830	Enter the number of opponents (0–{0}).
 831	Enter a whole number from 0 to {0}.
+
+# Victory and defeat conclusions (v3 TEXT 4000/4001)
+832	Victory is yours!|You have conquered the entire Galaxy, defeating all who stood in your way. You relax for a while as the people celebrate your victory.|But you know that, in time, other usurpers will arise…
+833	Your ships have been destroyed, your planets conquered.|As you are taken prisoner, you realize you have no choice but to admit defeat. You have little chance now of becoming emperor.|But it is written: “Someday, {0} will return—stronger than ever…”
+834	Continue
+835	View report

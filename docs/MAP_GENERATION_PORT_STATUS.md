@@ -49,7 +49,7 @@ The full suite was last verified with:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 957 passed, 0 failed.
+Current expected result: 969 passed, 0 failed.
 
 ## Maintenance notes
 

@@ -462,3 +462,9 @@
 829	Computergegner
 830	Anzahl der Gegner eingeben (0–{0}).
 831	Geben Sie eine ganze Zahl von 0 bis {0} ein.
+
+# Victory and defeat conclusions (v3 TEXT 4000/4001)
+832	Der Sieg gehört Ihnen!|Sie haben die gesamte Galaxie erobert und alle besiegt, die sich Ihnen in den Weg stellten. Sie ruhen sich eine Weile aus, während das Volk Ihren Sieg feiert.|Doch Sie wissen, dass sich mit der Zeit neue Usurpatoren erheben werden…
+833	Ihre Schiffe wurden zerstört, Ihre Planeten erobert.|Als Sie gefangen genommen werden, erkennen Sie, dass Sie die Niederlage eingestehen müssen. Ihre Aussicht, Kaiser zu werden, ist nun gering.|Doch es steht geschrieben: „Eines Tages wird {0} zurückkehren – stärker als je zuvor…“
+834	Weiter
+835	Bericht anzeigen

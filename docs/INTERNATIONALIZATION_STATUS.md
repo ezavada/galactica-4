@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 366 IDs
-- localized files: 366 IDs each
+- `strings.txt`: 370 IDs
+- localized files: 370 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 957 passed, 0 failed.
+Current expected full-suite result: 969 passed, 0 failed.
 
 ## Future work
 
@@ -161,3 +161,5 @@ The startup skill popup reuses IDs 301–305, 522 and 683 for all five native-la
 The Fast Game setup checkbox uses existing label 505 and shortcut hint 527 in all six languages; the neighboring fog description keeps its existing translations and measured font fitting. No new resources (366 IDs per language). Inspected checked/unchecked and smaller layouts and six before/after setup comparisons; actual checkbox/F/reset/modal/launch flows passed in en/de/es/fr/ja/ru. Full suites: 952 passed on release/current native PDG.
 
 The Fog of War checkbox reuses label 508 and shortcut hint 527 in en/de/es/fr/ja/ru. It remains labeled Fog of War in either state; clearing it enables all-visible mode. Shared checkbox rendering measures both native-language labels. No new resources (366 IDs per language). Inspected six translated before/after setup and smaller checked/unchecked layouts, plus actual fog/all-visible enemy windows. Browser flows passed in all six languages; full suites: 957 passed on release/current native PDG.
+
+Victory/defeat conclusion reports add IDs 832–835 in all six languages: three-paragraph victory and defeat narratives, Continue, and View report. Player substitution preserves literal Unicode names and punctuation. Existing outcome titles, summaries, hints and paging labels are reused. Browser narratives, controls, replay and small drawing-area layouts were inspected in en/de/es/fr/ja/ru. Current resources: 370 IDs per language; full suites: 969 passed on release/current native PDG.

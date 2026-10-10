@@ -462,3 +462,9 @@
 829	Adversaires IA
 830	Saisissez le nombre d’adversaires (0–{0}).
 831	Saisissez un entier de 0 à {0}.
+
+# Victory and defeat conclusions (v3 TEXT 4000/4001)
+832	La victoire est à vous !|Vous avez conquis toute la galaxie et vaincu tous ceux qui se dressaient sur votre chemin. Vous prenez un peu de repos tandis que le peuple célèbre votre victoire.|Mais vous savez qu’avec le temps, d’autres usurpateurs apparaîtront…
+833	Vos vaisseaux ont été détruits et vos planètes conquises.|Alors que vous êtes fait prisonnier, vous comprenez que vous devez reconnaître votre défaite. Vos chances de devenir empereur sont désormais minces.|Mais il est écrit : « Un jour, {0} reviendra, plus fort que jamais… »
+834	Continuer
+835	Voir le rapport

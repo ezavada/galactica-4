@@ -462,3 +462,9 @@
 829	Oponentes de la IA
 830	Introduce el número de oponentes (0–{0}).
 831	Introduce un número entero entre 0 y {0}.
+
+# Victory and defeat conclusions (v3 TEXT 4000/4001)
+832	¡La victoria es tuya!|Has conquistado toda la galaxia y derrotado a todos los que se interpusieron en tu camino. Descansas un tiempo mientras el pueblo celebra tu victoria.|Pero sabes que, con el tiempo, surgirán nuevos usurpadores…
+833	Tus naves han sido destruidas y tus planetas conquistados.|Al caer prisionero, comprendes que no te queda más remedio que admitir la derrota. Ahora tienes pocas posibilidades de convertirte en emperador.|Pero está escrito: «Algún día, {0} volverá, más fuerte que nunca…»
+834	Continuar
+835	Ver informe

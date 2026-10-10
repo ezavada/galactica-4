@@ -6,7 +6,7 @@ Run the full suite from the project root with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 957 passed, 0 failed.
+Current expected result: 969 passed, 0 failed.
 
 The launcher downloads the checksum-pinned public PDG release on first use;
 no sibling `pdg` or `pdg-devel` checkout is required.
@@ -18,6 +18,7 @@ no sibling `pdg` or `pdg-devel` checkout is required.
 
 ## Suites
 
+- `outcome-reports.test.js`: conclusion narratives, literal Unicode names, viewer roles, queue ordering, quiet autoplay, modal input, paging, replay on later turns, correct event-list headings, and six-language resources.
 - String resources
 - Map generation
 - Coordinate conversion and movement

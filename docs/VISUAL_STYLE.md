@@ -168,3 +168,7 @@ The setup options row uses a clickable Fast Game checkbox with a vector check ma
 ### Fog of War checkbox
 
 Fast Game and Fog of War share measured checkbox rendering, equal widths and separated hit areas. Fog is checked by default; clearing it enables the all-visible map. Both use the existing 13-point setup text scale, dark inset box, vector check mark and active fill. Inspected six translated before/after setup comparisons, smaller checked/unchecked layouts and actual fog/all-visible enemy panels under `/private/tmp/galactica-parity/fog-{before,after}`. Full suites: 957 passed on release/current native PDG.
+
+## Conclusion reports
+
+Victory, defeat and stalemate use the shared neutral gradient/border panel over a dimmed map. Local victory/defeat retain v3's complete three-paragraph narratives; other-player notices show the affected name without addressing the viewer as the defeated player. Text wraps by measured font width; smaller drawing areas paginate rather than discard narrative lines. Continue, Space, Enter or Escape acknowledge without advancing a turn. The event list offers View report for retained outcomes; its heading reflects the turns represented in the list. Reports capture pointer/keyboard input and cancel active map/window/slider drags. All text and controls use the six supported resource languages.

@@ -1,0 +1,68 @@
+const test=require('./test-framework.js'),Game=require('../src/js/game.js'),Factory=require('../src/js/factory.js'),Rules=require('../src/js/rules.js'),Config=require('../src/js/game-config.js'),Display=require('../src/js/display.js'),Common=require('../src/js/common.js'),I18n=require('../src/js/i18n.js');
+function fixture(options={},width=800,height=600){const game=new Game(new Factory(),new Rules(),new Config({skipMapGeneration:true,...options}));
+ game.port={getDrawingArea:()=>new pdg.Rect(width,height),getTextWidth:(text,size)=>Array.from(String(text)).length*size};const display=new Display(game);return {game,display};}
+function ownStar(game,owner){const star=game.factory.createStar(owner*100000,0,'Home '+owner);star.owner=owner;return star;}
+function dismissUntil(game,kind){while(game.overlay && game.overlay.kind!==kind)game.dismissEventPresentation();return game.overlay;}
+module.exports=()=>test.describe('Victory and defeat reports',()=>{
+ test.it('queues a defeated-opponent notice then the full local victory narrative after the last opponent falls',()=>{
+  const {game,display}=fixture();ownStar(game,1);game.players[1].name='Captain 星';game.updatePlayerPieceCounts();
+  test.assertTrue(game.isGameOver);test.assertEqual(game.overlay.kind,'defeat');test.assertEqual(game.overlay.playerNum,2);test.assertEqual(game.overlayQueue.length,1);
+  const outcome=dismissUntil(game,'win'),layout=display.getOutcomeLayout(outcome);test.assertEqual(outcome.playerNum,1);test.assertTrue(layout.lines.join(' ').includes('Victory is yours!'));test.assertTrue(layout.summaryLines.join(' ').includes('Captain 星'));
+ });
+ test.it('shows the human defeat story with a literal full name while remaining opponents continue',()=>{
+  const {game,display}=fixture({numComputers:2});ownStar(game,2);ownStar(game,3);game.players[1].name='星 | $& Captain';game.updatePlayerPieceCounts();
+  test.assertFalse(game.isGameOver);test.assertEqual(game.overlay.kind,'defeat');test.assertEqual(game.overlay.playerNum,1);
+  const text=display.getOutcomeLayout(game.overlay).lines.join(' ');test.assertTrue(text.includes('星 | $& Captain'));test.assertFalse(text.includes('{0}'));test.assertTrue(text.includes('taken prisoner'));
+ });
+ test.it('does not address another winner or a defeated AI as the local player, including observers',()=>{
+  for(const options of [{},{numHumans:0,numComputers:2}]){const {game,display}=fixture(options);game.markGameWon(2);test.assertEqual(display.getOutcomeLayout(game.overlay).lines.length,0);}
+  const {game,display}=fixture();const event=game.recordEvent('Defeat','Notice');game.queueOutcome(event,'defeat',2);test.assertEqual(display.getOutcomeLayout(game.overlay).lines.length,0);
+ });
+ test.it('does not duplicate defeat or terminal reports when piece counts are checked again',()=>{
+  const {game}=fixture();ownStar(game,1);game.updatePlayerPieceCounts();const events=game.eventLog.length,queued=game.overlayQueue.length;
+  for(let i=0;i<5;i++)game.updatePlayerPieceCounts();test.assertEqual(game.eventLog.length,events);test.assertEqual(game.overlayQueue.length,queued);test.assertFalse(game.markGameWon(1));test.assertFalse(game.markGameDraw());
+ });
+ test.it('reports stalemate when everyone is gone and preserves existing event ordering',()=>{
+  const {game}=fixture();game.queueEventOverlay({type:'lab',classIndex:1});game.updatePlayerPieceCounts();test.assertEqual(game.overlay.type,'lab');
+  const outcome=dismissUntil(game,'draw');test.assertEqual(outcome.kind,'draw');test.assertEqual(game.winningPlayerNum,0);test.assertTrue(game.eventLog.some(e=>e.type===Common.EventType.GAME_DRAW));
+ });
+ test.it('keeps quiet autoplay free of dialogs while retaining replay metadata',()=>{
+  const {game}=fixture({numHumans:0,numComputers:2,autoplay:{enabled:true,showEventWindows:false}});ownStar(game,1);game.updatePlayerPieceCounts();
+  test.assertNull(game.overlay);test.assertEqual(game.overlayQueue.length,0);test.assertTrue(game.eventLog.some(e=>e.outcome && e.outcome.kind==='win'));
+ });
+ test.it('acknowledges reports without advancing turns and blocks map commands, shortcuts and slider capture',()=>{
+  const {game,display}=fixture();const star=ownStar(game,1);game.setSelectedObject(star);game.uiWindow='endTurnConfirm';game.markGameWon(1);test.assertNull(game.uiWindow);const event=game.eventLog.find(e=>e.outcome && e.outcome.kind==='win'),turn=game.turn;
+  game.handleKeyPress(pdg.key_F4);test.assertTrue(game.showAllCourses);test.assertNotNull(game.overlay);test.assertEqual(display.getUIActionAt(1,1).type,'consume');
+  const slider=display.getStarAllocationSliderRegions(star)[0];test.assertFalse(game.beginUISliderDrag(slider.trackRect.x+10,slider.trackRect.y+4));
+  const button=display.getOutcomeLayout(game.overlay).buttons.find(b=>b.action.type==='dismissOutcome');test.assertTrue(game.handleUIClick(button.rect.x+2,button.rect.y+2));test.assertNull(game.overlay);test.assertTrue(event.handled);test.assertEqual(game.turn,turn);
+  game.replayOutcome(event);game.handleKeyPress(13);test.assertNull(game.overlay);test.assertEqual(game.turn,turn);
+ });
+ test.it('pages complete Unicode narratives in smaller windows without losing lines or overlapping controls',()=>{
+  const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const {game,display}=fixture({},480,400);game.players[1].name='星'.repeat(32);
+   const event=game.recordEvent('Defeat','Notice');game.queueOutcome(event,'defeat',1);let layout=display.getOutcomeLayout(game.overlay),all=[];
+   for(let page=0;page<layout.pages;page++){game.overlay.page=page;layout=display.getOutcomeLayout(game.overlay);all.push(...layout.visibleLines);test.assertTrue(layout.bodyY+layout.visibleLines.length*18<=layout.rect.y+layout.rect.height-82);for(const b of layout.buttons)test.assertTrue(b.rect.x>=layout.rect.x&&b.rect.x+b.rect.width<=layout.rect.x+layout.rect.width);}
+   test.assertEqual(all.join('\n'),layout.lines.join('\n'));game.overlay.page=0;game.handleKeyPress(pdg.key_RightArrow);test.assertEqual(game.overlay.page,Math.min(1,layout.pages-1));game.handleKeyPress(pdg.key_LeftArrow);test.assertEqual(game.overlay.page,0);
+  }}finally{pdg.res.setLanguage(old);}
+ });
+ test.it('replays retained outcomes from the event list without adding duplicate log entries and rejects unrelated reports',()=>{
+  const {game,display}=fixture();game.markGameWon(1);const event=game.eventLog.find(e=>e.outcome),count=game.eventLog.length;game.dismissEventPresentation();game.uiWindow='events';game.eventSelection=event.id;
+  test.assertTrue(display.getEventActionRegions().some(b=>b.action.type==='replayOutcome'));game.handleKeyPress(13);test.assertEqual(game.overlay.eventId,event.id);test.assertNull(game.uiWindow);test.assertEqual(game.eventLog.length,count);
+  game.dismissEventPresentation();test.assertFalse(game.replayOutcome({outcome:event.outcome}));const other=game.recordEvent('Other','Other');test.assertFalse(game.replayOutcome(other));
+ });
+ test.it('retains current-turn outcomes for replay on later turns without exposing unrelated current events',()=>{
+  const {game,display}=fixture();game.turn=6;const previous=game.recordEvent('Previous','Previous');game.turn=7;
+  const current=game.recordEvent('Current','Current');game.markGameWon(1);const result=game.eventLog.find(e=>e.outcome);
+  game.dismissEventPresentation();test.assertTrue(game.getEventRows().includes(previous));test.assertFalse(game.getEventRows().includes(current));
+  test.assertTrue(game.getEventRows().includes(result));test.assertTrue(game.replayOutcome(result));test.assertEqual(game.overlay.turn,7);
+  game.dismissEventPresentation();let heading;display.drawWindowPanel=(rect,title)=>{heading=title;};display.drawTextLine=()=>{};display.drawDivider=()=>{};display.drawRoundedRect=()=>{};display.drawUIButton=()=>{};display.drawEventWindow();test.assertTrue(heading.endsWith('6–7'));
+  game.turn=8;display.drawEventWindow();test.assertTrue(heading.endsWith('7'));test.assertTrue(game.getEventRows().includes(result));game.turn=9;test.assertFalse(game.getEventRows().includes(result));
+ });
+ test.it('renders acknowledgement text without displaying internal action objects',()=>{
+  const {game,display}=fixture();const labels=[];game.port.drawRect=()=>{};game.port.drawLine=()=>{};game.port.drawText=text=>labels.push(text);game.markGameWon(1);display.drawOverlay(game.overlay);
+  test.assertTrue(labels.includes(I18n.getString(834)));test.assertFalse(labels.some(text=>String(text).includes('[object Object]')));
+ });
+ test.it('translates the three narrative paragraphs, player substitution and acknowledgement controls in every language',()=>{
+  const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);for(const id of [832,833])test.assertEqual(I18n.getString(id).split('|').length,3);test.assertTrue(I18n.getString(833).includes('{0}'));for(const id of [834,835])test.assertTrue(I18n.getString(id).length>0);}}
+  finally{pdg.res.setLanguage(old);}
+ });
+});
