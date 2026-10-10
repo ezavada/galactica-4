@@ -253,7 +253,7 @@ The largest blockers to a complete game are:
 | Send/show/hold player messages | Multiplayer chat to one/all/admin, with message history and repeat settings. | ❌ Missing | ❌ Missing | No chat or message model. |
 | Rename ship/fleet/colony/rendezvous | Edit menu rename workflow. | ✅ Implemented | ✅ Implemented | Owned ships, systems, fleets and rendezvous points have localized Unicode Rename/Save/Cancel controls. New human neutral colonies create the private v3 naming/production instruction and attention navigation, rather than a forced naming modal. Requests disappear for recaptured/removed colonies and do not target computer or captured enemy systems. |
 | Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | 🟡 Partial | 🟡 Partial | The localized persistent Sound setting now controls cached PDG audio across open/restored games. Presented colony, battle, destruction, repair, lab and stardock reports and attention navigation select recipient cues from the shipped samples; explosions precede the later cue by the source animation cadence plus 20 ticks. Hidden reports and quiet autoplay are silent, and mute stops owned playback. Native suites and actual browser controls/playback are verified below. Empty Tab/Next item now plays the shipped No more cue without changing selection or the turn. Chat, background network-turn and tutorial cues remain tied to their unported features; Left Arrow at a top-level object also plays No more. Startup/About music is blocked by missing source movie metadata, documented below. |
-| Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen choices now persist across launch: native restoration is immediate, while browsers defer until the first user gesture and remember external exits. Startup Settings and Menu → Settings → New game defaults now select numeric values directly and saves map size, density, AI skill/advantage, fast game and fog of war separately from ordinary setup and current games. Startup and New Game apply these defaults; tutorial setup is isolated. Other preference controls/presentation coverage and the pinned native runtime update are incomplete. |
+| Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen choices now persist across launch: native restoration is immediate, while browsers defer until the first user gesture and remember external exits. Startup Settings and Menu → Settings → New game defaults now select numeric values directly and saves map size, density, AI skill/advantage, fast game and fog of war separately from ordinary setup and current games. Startup and New Game apply these defaults; tutorial setup is isolated. Colony hull and coupled production defaults now persist independently and are available from startup/in-game Settings and the game menu. Save applies them to the local human and future games; opening saves reapplies application colony defaults as in v3, while existing systems and computer defaults stay unchanged. Fixed tutorial practice is isolated. Other preference controls/presentation coverage and the pinned native runtime update are incomplete. |
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
 | Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | 🟡 Partial | 🟡 Partial | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; Open and Revert retain active instruction bindings and production safeguards, with independent documents preserved. The optional wrong-course retry is verified through actual controls in all six languages. Hosting recovery remains dependent on the unported multiplayer startup flow; other recovery paths retain model-level coverage. See docs/reference/TUTORIAL_CONTROLLER.md. |
 | Internationalization | v3 language plug-ins; menu can switch languages. | ✅ Implemented | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian resources and accepts runtime language with `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven/tested; Menu → Settings → Language switches cached UI labels and numeric formatting immediately, remembers the selection and always lists native-script language names. Unported v3 dialogs/help still need future resources. |
@@ -1561,3 +1561,58 @@ includes all six updated manuals at
 
 Broader preference controls, the pinned native runtime update, remaining v3
 parity and Map Generation remain unfinished.
+
+
+### Persistent new-colony production and hull preferences
+
+V3 `Galactica.cpp:781–784` stores hull, growth, ships and technology in the
+application preferences. `PrefsDialogAttach::CloseDialog:848–882` writes only
+on acceptance; `GalacticaDoc.cp:1375–1398` corrects the three allocations to a
+sum of 1000 using equal shares and a growth remainder.
+`GalacticaSingleDoc.cp:222–248` applies these values to the local human when
+preferences change, and `602–626` reads them when opening a saved game.
+
+V4 now persists these four fields in separate native/browser adapters. Typed
+validation preserves valid hulls, requires complete allocations, applies the
+source normalization when safe and otherwise falls back to 334/333/333.
+The existing colony editor reads the latest application defaults, saves them
+and applies them to its captured human player, and leaves existing-system
+allocations, AI defaults and ordinary galaxy configuration untouched. Ordinary
+new and opened/reverted games read these application defaults for the local
+human, as v3 does. The accepted fixed-tutorial isolation remains: practice
+neither reads nor writes these preferences.
+
+Startup and in-game Settings now expose the shared colony editor; Save/Cancel
+return there, while the existing direct game-menu entry returns to the map.
+Startup supports the same slider dragging. Save/Cancel show the shared Enter/Esc
+hints. The previously negative-width compact sliders now have labels above
+their tracks, with percentage and adjustment controls to the right. All
+controls fit the 320×340 logical viewport. Help 968 and the six local manuals
+explain persistence and isolation in en/de/es/fr/ja/ru.
+
+Six regressions cover both adapters/all hulls, input normalization and denied
+storage, current/future/opened games, existing-system and AI isolation, Cancel,
+latest application defaults on reopen, fixed tutorial isolation, startup slider
+dragging and Settings return, plus localized compact geometry. Both full
+suites pass 1,322 tests; logs are
+`/private/tmp/galactica-colony-preferences-{tests,native-tests}.log`.
+
+Actual Chromium UI checks passed in all six languages without runtime
+exceptions. They open the startup Settings editor, edit the coupled growth
+slider and hull, Cancel without writes, Save/reopen, create a normal game,
+save another set of defaults from its menu, and open an earlier serialized
+game through File → Open with a file-picker adapter. The opened game's local
+human receives current application defaults while its systems remain unchanged.
+Fresh-page reload restores the preferences; the public tutorial still starts
+with the fixture defaults and leaves the stored values intact. Before/after
+game-editor views, startup edits, saved/reloaded panels and all six compact
+layouts were inspected. The compact rendering fixture overrides logical port
+dimensions to 320×340; it does not resize the native window. Screenshots are
+under `/private/tmp/galactica-parity/colony-preferences/<language>` and baseline
+`/private/tmp/galactica-parity/colony-preferences-before/en`; logs are
+`/private/tmp/galactica-colony-preferences-<language>.log`. All six updated
+manual files are byte-identical in the packaged app at
+`/private/tmp/galactica-colony-preferences-packaged-app`.
+
+Other v3 preferences, the packaged fullscreen runtime, remaining gameplay/UI
+parity and Map Generation are still unfinished.

@@ -638,3 +638,5 @@
 
 # Direct numeric preference choices
 967	Choose a value directly. Arrow keys highlight a choice; Enter selects it. Escape returns to the defaults without changing this option.
+
+968	Save remembers the hull and production allocations for your future colonies and future games. Existing systems keep their allocations. Cancel discards edits. Fixed tutorial practice does not change these preferences.

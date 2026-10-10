@@ -638,3 +638,5 @@
 
 # Direct numeric preference choices
 967	Elige un valor directamente. Las flechas resaltan una opción y Intro la selecciona. Escape vuelve a los valores sin cambiar esta opción.
+
+968	Guardar recuerda el tipo de nave y las asignaciones de producción para tus futuras colonias y partidas. Los sistemas existentes conservan sus asignaciones. Cancelar descarta los cambios. El tutorial fijo no modifica estas preferencias.

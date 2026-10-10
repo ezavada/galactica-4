@@ -1562,9 +1562,11 @@ class Game {
         const playerNum = this.getCurrentHumanPlayer();
         const player = this.players[playerNum];
         if (!player || !player.isHuman) return false;
-        this.colonyDefaultsDraft = { playerNum, defaultGrowth: player.defaultGrowth,
-            defaultShips: player.defaultShips, defaultTech: player.defaultTech,
-            defaultBuildType: player.defaultBuildType };
+        const source=this.colonyDefaultsPreferences && !this.tutorialSimulation?this.colonyDefaultsPreferences.read():player;
+        this.colonyDefaultsReturn=this.uiWindow==='settings'?'settings':null;
+        this.colonyDefaultsDraft = { playerNum, defaultGrowth: source.defaultGrowth,
+            defaultShips: source.defaultShips, defaultTech: source.defaultTech,
+            defaultBuildType: source.defaultBuildType };
         this.uiWindow = 'colonyDefaults';
         return true;
     }
@@ -1604,14 +1606,15 @@ class Game {
             !Number.isInteger(draft.defaultBuildType) || draft.defaultBuildType<1 || draft.defaultBuildType>4) return false;
         player.setDefaultEconomics(draft.defaultGrowth,draft.defaultTech,draft.defaultShips);
         player.setDefaultBuildType(draft.defaultBuildType);
+        if(this.colonyDefaultsPreferences && !this.tutorialSimulation)this.colonyDefaultsPreferences.write(draft);
         this.colonyDefaultsDraft = null;
-        this.uiWindow = null;
+        this.uiWindow = this.colonyDefaultsReturn || null;this.colonyDefaultsReturn=null;
         return true;
     }
 
     cancelColonyDefaults() {
         this.colonyDefaultsDraft = null;
-        this.uiWindow = null;
+        this.uiWindow = this.colonyDefaultsReturn || null;this.colonyDefaultsReturn=null;
         return true;
     }
 

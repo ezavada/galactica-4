@@ -2137,7 +2137,8 @@ class Display {
             label:I18n.getString(857,'Control help'),active:this.game.showControlHelp!==false,action:{type:'toggleControlHelp'}},
             {label:I18n.getString(938,'Show enemy events'),active:this.game.showEnemyEvents,action:{type:'toggleEnemyEvents'}},
             {label:I18n.getString(954,'Sound'),active:!!this.game.sound && this.game.sound.isEnabled(),action:{type:'toggleSound'}},
-            ...(this.game.newGameDefaultsPreferences?[{label:I18n.getString(965,'New game defaults'),action:{type:'openNewGameDefaults'}}]:[])]);
+            ...(this.game.newGameDefaultsPreferences?[{label:I18n.getString(965,'New game defaults'),action:{type:'openNewGameDefaults'}}]:[]),
+            ...(this.game.colonyDefaultsPreferences?[{label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}}]:[])]);
         const capacity=Math.max(1,Math.floor((rect.height-112)/28)),pages=Math.ceil(rows.length/capacity);
         const page=this.clamp(this.game.settingsPage||0,0,pages-1);this.game.settingsPage=page;
         const visible=rows.slice(page*capacity,(page+1)*capacity).map((row,index)=>({...row,
@@ -2198,15 +2199,15 @@ class Display {
     getColonyDefaultsWindowRect() {
         const screen = this.getScreenSize();
         const width = Math.min(520,screen.width-40);
-        return this.fitWindowToScreen('colonyDefaults',{x:(screen.width-width)/2,y:84,width,height:310});
+        return this.fitWindowToScreen('colonyDefaults',{x:(screen.width-width)/2,y:84,width,height:width<400?Math.min(340,screen.height-20):310});
     }
 
     getColonyDefaultSliderRegions() {
-        const rect = this.getColonyDefaultsWindowRect();
+        const rect = this.getColonyDefaultsWindowRect(),compact=rect.width<400;
         return ['defaultGrowth','defaultShips','defaultTech'].map((key,index) => ({key,
             label:[this.STR.growth,this.STR.ships.replace(/:$/, ''),this.STR.research][index],
             color:['green','aqua','purple'][index],
-            rect:{x:rect.x+130,y:rect.y+66+index*28,width:rect.width-290,height:24}}));
+            compact,rect:{x:rect.x+(compact?14:130),y:rect.y+(compact?76:66)+index*(compact?40:28),width:rect.width-(compact?160:290),height:24}}));
     }
 
     getColonyDefaultActionRegions() {
@@ -2219,13 +2220,13 @@ class Display {
                 action:{type:'setColonyDefaultAllocation',key:slider.key,value:draft[slider.key]+delta}}));
         });
         ['defense','scout','colony','battleship'].forEach((type,index) => regions.push({
-            rect:{x:rect.x+14+(index%2)*(rect.width/2-7),y:rect.y+168+Math.floor(index/2)*32,width:rect.width/2-21,height:26},
+            rect:{x:rect.x+14+(index%2)*(rect.width/2-7),y:rect.y+(rect.width<400?202:168)+Math.floor(index/2)*32,width:rect.width/2-21,height:26},
             label:this.getShipTypeName(type),active:draft.defaultBuildType===index+1,
             action:{type:'setColonyDefaultHull',hull:index+1}}));
-        regions.push({rect:{x:rect.x+14,y:rect.y+266,width:rect.width/2-21,height:28},
-            label:I18n.getString(682,'Save'),action:{type:'saveColonyDefaults'}},
-            {rect:{x:rect.x+rect.width/2+7,y:rect.y+266,width:rect.width/2-21,height:28},
-            label:I18n.getString(683,'Cancel'),action:{type:'cancelColonyDefaults'}});
+        regions.push({rect:{x:rect.x+14,y:rect.y+rect.height-44,width:rect.width/2-21,height:28},
+            label:I18n.getString(682,'Save'),key:'Enter',action:{type:'saveColonyDefaults'}},
+            {rect:{x:rect.x+rect.width/2+7,y:rect.y+rect.height-44,width:rect.width/2-21,height:28},
+            label:I18n.getString(683,'Cancel'),key:'Esc',action:{type:'cancelColonyDefaults'}});
         return regions;
     }
 
@@ -3447,12 +3448,13 @@ class Display {
         this.drawTextLine(I18n.getString(694,'Applies to future colonies'),rect.x+14,rect.y+47,'gray',11);
         this.getColonyDefaultSliderRegions().forEach(slider=>{
             const y = slider.rect.y+17;
-            this.drawRightTextLine(slider.label,slider.rect.x-8,y,'labelgray',11);
+            if(slider.compact)this.drawTextLine(slider.label,slider.rect.x,slider.rect.y-2,'labelgray',11);
+            else this.drawRightTextLine(slider.label,slider.rect.x-8,y,'labelgray',11);
             this.drawBar(slider.rect.x,slider.rect.y+8,slider.rect.width,8,draft[slider.key]/1000,slider.color);
             this.drawTextLine(`${I18n.formatDecimal(draft[slider.key]/10)}%`,slider.rect.x+slider.rect.width+8,y,'lightgray',11);
         });
-        this.drawTextLine(this.STR.building.replace(/:$/, ''),rect.x+14,rect.y+153,'labelgray',11);
-        this.getColonyDefaultActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,null,{active:region.active}));
+        this.drawTextLine(this.STR.building.replace(/:$/, ''),rect.x+14,rect.y+(rect.width<400?188:153),'labelgray',11);
+        this.getColonyDefaultActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,region.key||null,{active:region.active}));
     }
 
     getCourseWaypointDescription(target) {

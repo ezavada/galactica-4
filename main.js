@@ -53,6 +53,8 @@ const systemComparisonPreferences = require('./src/js/roster-preferences.js').cr
 });
 const NewGameDefaults=require('./src/js/new-game-defaults.js');
 const newGameDefaultsPreferences=NewGameDefaults.createPreferences();
+const ColonyPreferences=require('./src/js/colony-preferences.js');
+const colonyDefaultsPreferences=ColonyPreferences.createPreferences();
 const drawingPreferences = require('./src/js/drawing-preferences.js').createPreferences();
 const sound=require('./src/js/sound.js').createSound(pdg.res,drawingPreferences);
 const languagePreferences = LanguageSettings.createPreferences();
@@ -94,7 +96,7 @@ console.log(`Random seed set to: ${randomSeed}${launchOptions.aiAutoplay ? ' (AI
 const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), I18n.getString(568, 'Galactica-4'));
 const fullscreen = require('./src/js/fullscreen.js').createController(pdg,port,globalThis,drawingPreferences);
 fullscreen.restore();
-const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,sound});
+const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,colonyDefaultsPreferences,sound});
 
 function createDefaultConfig(usePreferences=true) {
     if(usePreferences)return NewGameDefaults.createConfig(newGameDefaultsPreferences);
@@ -602,6 +604,8 @@ function attachGameServices(nextGame) {
     nextGame.languagePreferences = languagePreferences;
     nextGame.drawingPreferences = drawingPreferences;
     nextGame.newGameDefaultsPreferences=newGameDefaultsPreferences;
+    nextGame.colonyDefaultsPreferences=colonyDefaultsPreferences;
+    ColonyPreferences.apply(nextGame,colonyDefaultsPreferences);
     nextGame.sound=sound;
     nextGame.showControlHelp=drawingPreferences.readControlHelp();
     nextGame.systemComparisonPreferences = systemComparisonPreferences;

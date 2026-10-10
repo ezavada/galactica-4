@@ -638,3 +638,5 @@
 
 # Direct numeric preference choices
 967	Choisissez une valeur directement. Les flèches surlignent un choix ; Entrée le sélectionne. Échap revient aux valeurs sans modifier cette option.
+
+968	Enregistrer mémorise le type de vaisseau et les allocations de production pour vos futures colonies et parties. Les systèmes existants conservent leurs allocations. Annuler abandonne les modifications. Le tutoriel prédéfini ne change pas ces préférences.

@@ -638,3 +638,5 @@
 
 # Direct numeric preference choices
 967	Wähle einen Wert direkt aus. Pfeiltasten markieren eine Auswahl; Eingabe übernimmt sie. Escape kehrt zu den Vorgaben zurück, ohne diese Option zu ändern.
+
+968	Speichern merkt sich den Schiffstyp und die Produktionsanteile für deine zukünftigen Kolonien und Spiele. Bestehende Systeme behalten ihre Anteile. Abbrechen verwirft Änderungen. Das feste Lernspiel verändert diese Vorgaben nicht.
