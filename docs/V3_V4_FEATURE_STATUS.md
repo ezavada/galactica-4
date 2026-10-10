@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1398 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1407 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -274,11 +274,11 @@ The largest blockers to a complete game are:
 | Revert to saved turn | Restores the last saved state. | ✅ Implemented | ✅ Implemented | File → Revert asks before discarding changes, then restores the saved graph, turn, selection and camera under the same local document identity. Cancel preserves the running game. Native/file-handle backends reread the file; download-only browsers revert to the last successfully saved/imported snapshot. No-saved-file and load failures are localized. |
 | Close game | File-menu Close Game/W closes the active document; game changes mark it modified, save/load clears that state, and closing stops tutorial instructions. | ✅ Implemented | ✅ Implemented | File → Close game/W offers localized Save and close/Discard/Cancel for changed or new documents, closes clean saved games directly, waits for successful writes and preserves other open games. Navigation/report review does not dirty the document. Closing the last game returns to setup; tutorial closure restores the original and releases bindings. Both full suites pass 1,358 tests; dedicated async decisions and actual six-language browser paths are verified below. Application Quit and browser-tab protection are verified separately below; native OS/window-close interception remains pending. |
 | Quit application | Quit checks modified documents before exiting; Cancel prevents exit. | 🟡 Partial | 🟡 Partial | File → Quit/Q, Command/Ctrl+Q, startup Quit and configured command 10 now check every retained game, wait for writes and preserve remaining documents on Cancel. Browser unload warns for unsaved games; accepted Quit offers a localized restart screen. Both full suites pass 1,369 tests; actual all-six-language browser and real native shutdown checks pass. Native window-close/OS Quit requests still bypass save decisions in the pinned PDG runtime and require engine integration. Network logout/host-work deferral remain pending with multiplayer. |
-| Host new network game | Creates host data, starts server, and presents join flow. | 🧱 Scaffold only | ❌ Missing | The tested native host service now creates/reopens a durable multiplayer galaxy and listens over HTTP for read-only lobby information. It is not yet connected to startup/game commands. Host setup, player authentication/join and turn synchronization remain missing; see the prerequisite audit below. |
+| Host new network game | Creates host data, starts server, and presents join flow. | 🧱 Scaffold only | ❌ Missing | The tested native host service now creates/reopens a durable multiplayer galaxy and listens over HTTP for read-only lobby information. It is not yet connected to startup/game commands. Durable authenticated slot admission now exists in the host service; host setup/join UI, client state and turn synchronization remain missing. See the prerequisite audits below. |
 | Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | ❌ Missing | ❌ Missing | No equivalent. |
 | LAN/Internet discovery | Browse advertised games and query the matchmaker. | ❌ Missing | ❌ Missing | No equivalent. |
 | Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | ❌ Missing | ❌ Missing | No equivalent. |
-| Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | ❌ Missing | ❌ Missing | `PlayerInfo.password`/`isLoggedIn` are unused model fields only. |
+| Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🧱 Scaffold only | ❌ Missing | The native host admission service now assigns human slots, verifies optional passwords on rejoin, persists claims/game identity, replaces old sessions and rejects duplicate/full/incompatible requests through actual HTTP. It has no startup/join UI or client game projection yet. Private/admit policy, host administration and player-facing error localization remain forthcoming with those flows. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ❌ Missing | ❌ Missing | v4 directly mutates one local game and advances immediately. |
 | Timed turns | Host clock, time remaining, pause/resume, automatic completion. | ❌ Missing | ❌ Missing | No runtime timer. |
 | Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | ❌ Missing | ❌ Missing | No host/admin mode. |
@@ -2323,3 +2323,51 @@ Host setup commands, authenticated slots/rejoining, client projections, turn
 posting/synchronization, timed resolution, chat, discovery and administration
 remain unimplemented. The hosting row stays Scaffold only and the broader v3
 parity and Map Generation goals remain active.
+
+### Durable human-slot admission and rejoining prerequisite
+
+Verified `GalacticaHost::HandleLoginRequest` (`Classes/GalacticaHost.cpp:1638–1798`):
+new players receive the first unassigned human slot; assigned duplicate names
+and full games reject admission. Existing players are found by exact name and
+verified against their optional password. Successful rejoining disconnects the
+previous endpoint (last login wins). The returned rejoin key is the game ID,
+not a second password. Packet protocol/version validation precedes admission.
+
+`src/js/host-login.js` implements those rules for the new v4 transport. Human
+slot claims and a cryptographically random game ID persist in the host graph.
+Passwords use per-player random salts and PBKDF2-SHA256 hashes; plaintext
+passwords and temporary bearer session tokens are never saved. Optional empty
+passwords retain the source rejoin behavior. Logout leaves a reserved slot;
+reopening restores claims and identity but clears live sessions/connection flags.
+A successful rejoin invalidates its predecessor's token. Failed persistence
+rolls back the claim, name and configuration without affecting existing sessions.
+Earlier host documents migrate to a persistent game ID once; malformed stored
+claims reject opening. Cryptographic work does not consume simulation randomness.
+
+The native listener now exposes POST /login, GET /session and POST /logout,
+with bearer authorization for session/logout. Public /info shows slot/name/
+connection status but excludes hashes, salts and tokens. Wrong-game IDs,
+incompatible protocol, duplicate/full slots, unknown players and wrong passwords
+produce structured errors. Requests are bounded at 8 KiB and decoded as UTF-8
+across network chunk boundaries. Invalid JSON/oversized bodies do not claim a
+slot. Save failures return a generic code rather than file paths or credentials.
+CORS/preflight headers allow the forthcoming browser client to use these routes.
+No game-state endpoint exposes the private authoritative graph.
+
+Nine regressions cover real human/computer eligibility, admission, duplicate and
+invalid requests, hashed durable claims, password/last-login behavior, passwordless
+rejoin/logout, save rollback, migration/invalid metadata, RNG/session cleanup and
+names/passwords in en/de/es/fr/ja/ru. Both native full suites pass 1,407 tests.
+The actual socket script now checks successful Unicode admission (including a
+split multibyte character), private session access, protocol/body limits,
+duplicate/full/wrong-password results, token replacement/logout and rejoining
+after closing/reopening the same host. It passes in both PDG runtimes. Audio
+remains muted during automation.
+
+Evidence: `/private/tmp/galactica-host-login-{tests,public-tests,sockets,public-sockets}.log`.
+These are tested host-service prerequisites, not a completed player-facing
+multiplayer feature. Host/startup/join UI, localized UI error mapping, private
+admission policy, recipient-filtered client state, orders/turn posting, timed
+resolution, discovery, chat and administration remain required. No UI is changed
+in this backend item, so screenshot comparison awaits those actual UI surfaces.
+The v3 parity and Map Generation goals remain active.
