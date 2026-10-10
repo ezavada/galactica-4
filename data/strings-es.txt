@@ -118,7 +118,7 @@
 544	Flota seleccionada: {0} naves
 545	<V>/<Esc> Cerrar comparación
 546	Zoom
-547	<+/-> Zoom   <0> Restablecer   <Shift+C> Centrar
+547	<+/-> Zoom   <0> Ajustar   <Shift+C> Centrar
 548	<Arrastrar izq.> Panorámica   <Arrastrar medio> Panorámica   <Rueda> Zoom
 549	Producción
 
@@ -394,3 +394,10 @@
 
 # Nebula background preference
 785	Mostrar fondo de nebulosa
+
+# Camera view commands
+786	Vista
+787	Acercar
+788	Alejar
+789	Restablecer vista
+790	Centrar selección

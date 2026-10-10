@@ -152,7 +152,7 @@ module.exports=()=>test.describe('Language settings',()=>{
     }));
     test.it('offers settings even in an AI-only observer game',()=>{
         const {game,display}=fixture();game.config.numHumans=0;game.uiWindow='menu';
-        const rows=display.getCommandActionRegions();test.assertEqual(rows.length,3);test.assertEqual(rows.find(row=>row.action.window==='settings').action.window,'settings');
+        const rows=display.getCommandActionRegions();test.assertEqual(rows.length,4);test.assertEqual(rows.find(row=>row.action.window==='settings').action.window,'settings');
     });
     test.it('offers player comparison only in the global menu and keeps its shortcut',()=>{
         const {game,display}=fixture();game.uiWindow='menu';

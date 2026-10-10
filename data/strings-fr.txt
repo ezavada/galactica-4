@@ -118,7 +118,7 @@
 544	Flotte sélectionnée : {0} vaisseaux
 545	<V>/<Esc> Fermer la comparaison
 546	Zoom
-547	<+/-> Zoom   <0> Réinitialiser   <Shift+C> Centrer
+547	<+/-> Zoom   <0> Ajuster   <Shift+C> Centrer
 548	<Glisser gauche> Déplacer   <Glisser milieu> Déplacer   <Molette> Zoom
 549	Production
 
@@ -394,3 +394,10 @@
 
 # Nebula background preference
 785	Afficher le fond de nébuleuse
+
+# Camera view commands
+786	Vue
+787	Zoom avant
+788	Zoom arrière
+789	Réinitialiser la vue
+790	Centrer la sélection

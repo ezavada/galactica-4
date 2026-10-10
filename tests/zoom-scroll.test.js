@@ -15,6 +15,50 @@ const mockPort = {
 };
 
 function runZoomScrollTests() {
+    test.describe('V3 camera command UI', () => {
+        const fixture = () => {
+            const Factory=require('../src/js/factory.js'),Game=require('../src/js/game.js');
+            const GameConfig=require('../src/js/game-config.js'),Rules=require('../src/js/rules.js'),Display=require('../src/js/display.js');
+            const game=new Game(new Factory(),new Rules(false),new GameConfig({numHumans:1,numComputers:1,skipMapGeneration:true}));
+            game.port={getDrawingArea:()=>new pdg.Rect(800,600)};
+            const display=new Display(game);game.display=display;
+            return {game,display};
+        };
+        test.it('fits with zero, keypad star and F without resetting to 100 percent',()=>{
+            const {game,display}=fixture();let fits=0,resets=0;
+            display.zoomToFit=()=>fits++;display.resetView=()=>resets++;
+            for(const key of [48,42,102,70])game.handleKeyPress(key);
+            test.assertEqual(fits,4);test.assertEqual(resets,0);
+        });
+        test.it('consumes Enter and Tab in map display and View without advancing turns or attention',()=>{
+            const {game}=fixture();let turns=0,next=0;
+            game.requestEndTurn=()=>turns++;game.attention.next=()=>next++;
+            for(const window of ['settings','mapDisplay','view']) {
+                game.uiWindow=window;for(const key of [13,3,pdg.key_Tab])test.assertTrue(game.handleKeyPress(key));
+                test.assertEqual(game.uiWindow,window);
+            }
+            test.assertEqual(turns,0);test.assertEqual(next,0);
+        });
+        test.it('centers the selected item without changing selection and rejects missing selection',()=>{
+            const {game,display}=fixture();let center;
+            display.centerOn=(x,y)=>center=[x,y];
+            test.assertFalse(game.executeUIAction({type:'centerSelected'}));
+            const star=game.factory.createStar(200,300,'Target');game.setSelectedObject(star);
+            test.assertTrue(game.executeUIAction({type:'centerSelected'}));
+            test.assertEqual(center[0],200);test.assertEqual(center[1],300);test.assertTrue(game.selectedObject===star);
+        });
+        test.it('localizes all camera menu labels with distinct nonoverlapping controls',()=>{
+            const {game,display}=fixture(),previous=pdg.res.getLanguage();game.uiWindow='view';
+            try {for(const lang of ['en','de','es','fr','ja','ru']) {
+                pdg.res.setLanguage(lang);const rows=display.getViewActionRegions();
+                test.assertEqual(rows.length,6);test.assertEqual(rows[0].label,pdg.res.getString(787));
+                test.assertEqual(rows[1].label,pdg.res.getString(788));test.assertEqual(rows[4].label,pdg.res.getString(790));
+                test.assertEqual(rows[5].label,pdg.res.getString(789));
+                for(let i=1;i<rows.length;i++)test.assertTrue(rows[i-1].rect.y+rows[i-1].rect.height<rows[i].rect.y);
+            }}finally{pdg.res.setLanguage(previous);}
+        });
+    });
+
     test.describe('Camera System - Initialization', () => {
         test.it('should initialize with default values', () => {
             const camera = new Camera(mockPort, 1024, 1024);

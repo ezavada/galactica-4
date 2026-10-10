@@ -114,3 +114,7 @@ Command Menu → Map display offers ownership and six numeric modes. Higher know
 ### Nebula background preference
 
 Settings offers a localized Show nebula background control with active state. The default-on art, parallax and missing-image gradient are retained; turning it off uses v3’s plain black map. System influence bands use lower tint opacity over black while keeping the cached geometry. Star twinkle and continuous brightness, map labels/grid, selection and owned-window color remain active. The settings dialog grows by one row and fits the logical 800×600 viewport; all six translated layouts and a smaller CSS viewport were inspected. Enabled-background before/after maps match exactly, and actual browser clicks/persistence passed. Evidence: `/private/tmp/galactica-parity/nebula-{before,after}`.
+
+### Camera commands
+
+Compact zoom minus/plus icons join Menu/Home/Fit in the existing 44×30 grouped row. The icons use the shared 2× offscreen cache and substantial filled strokes. Single-character shortcuts sit beside icons; longer Home stays in the localized hover hint to keep the house unobstructed. Command Menu → View presents six neutral gradient buttons for zoom, fit, home, center selection and reset. All six translated layouts and before/after map/menu screenshots were inspected. Evidence: `/private/tmp/galactica-parity/camera-{before,after}`.

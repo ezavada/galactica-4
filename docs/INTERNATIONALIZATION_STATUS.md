@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 322 IDs
-- localized files: 322 IDs each
+- `strings.txt`: 327 IDs
+- localized files: 327 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 799 passed, 0 failed.
+Current expected full-suite result: 803 passed, 0 failed.
 
 ## Future work
 
@@ -123,3 +123,5 @@ Fullscreen uses IDs 771–772 for the menu control and failure feedback in every
 Map display controls and brightness legends use IDs 773–784 in all six languages. Chooser labels, active state, known-system range, no-known-values message and allocation hint are resource driven. Actual browser clicks selected every mode; translated chooser/map/legend screenshots were inspected, including a smaller Russian viewport. Current resources: 321 IDs per language. Full suite: 795 passed.
 
 The persisted Show nebula background setting uses ID 785 in all six languages. Its label, active state, on/off map rendering and remembered new-game choices were checked with native browser clicks and translated screenshots. The taller settings panel fits the logical 800×600 viewport and was also inspected at a 640×480 CSS viewport. Current resources: 322 IDs per language. Full suite: 799 passed.
+
+Camera commands use IDs 786–790 for View, Zoom in/out, Reset view and Center selected item in en/de/es/fr/ja/ru. Help ID 547 now describes zero as Fit. Native browser clicks and screenshots verify all six translated dialogs. Current resources: 327 IDs per language; current full suite: 803 passed.

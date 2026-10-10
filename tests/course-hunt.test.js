@@ -32,11 +32,12 @@ module.exports=function(){test.describe('V3 course Hunt control',()=>{
         const fleet=game.factory.createFleet(0,0,1,'Guard');fleet.addShip(ship);test.assertFalse(hunt(game));
         fleet.removeShip(ship);ship.star=home;game.entityRemoved(ship);test.assertFalse(hunt(game));
     });
-    test.it('routes H in the editor before home-system navigation',()=>{
+    test.it('reserves H for Hunt and uses Home for home-system navigation',()=>{
         const {game,ship}=fixture();order(game,ship);let homeCalls=0;game.selectHomeStar=()=>homeCalls++;
         game.handleKeyPress(104);test.assertTrue(ship.course.hunt);test.assertEqual(homeCalls,0);test.assertEqual(game.uiWindow,'course');
         game.handleKeyPress(72);test.assertFalse(ship.course.hunt);test.assertEqual(homeCalls,0);
-        game.uiWindow=null;game.handleKeyPress(104);test.assertEqual(homeCalls,1);
+        game.uiWindow=null;game.handleKeyPress(104);test.assertTrue(ship.course.hunt);test.assertEqual(homeCalls,0);
+        game.handleKeyPress(pdg.key_Home);test.assertEqual(homeCalls,1);
     });
     test.it('keeps Hunt in memory and clears it with the active course',()=>{
         const {game,ship}=fixture();order(game,ship);hunt(game);game.executeUIAction({type:'swapCourseMemory'});

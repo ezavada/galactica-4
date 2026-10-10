@@ -17,7 +17,7 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         for(let i=0;i<buttons.length;i++)for(let j=i+1;j<buttons.length;j++){
             const a=buttons[i].rect,b=buttons[j].rect;test.assertFalse(a.x<b.x+b.width&&b.x<a.x+a.width&&a.y<b.y+b.height&&b.y<a.y+a.height);
         }
-        const icons=buttons.filter(b=>b.icon);test.assertEqual(icons.map(b=>b.icon).join(','),'menu,home,fit');
+        const icons=buttons.filter(b=>b.icon);test.assertEqual(icons.map(b=>b.icon).join(','),'menu,zoom-out,zoom-in,home,fit');
         icons.forEach((button,index)=>{
             test.assertEqual(button.rect.width,44);test.assertEqual(button.rect.height,30);
             test.assertEqual(button.rect.y,icons[0].rect.y);

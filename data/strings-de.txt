@@ -118,7 +118,7 @@
 544	Ausgewählte Flotte: {0} Schiffe
 545	<V>/<Esc> Vergleich schließen
 546	Zoom
-547	<+/-> Zoom   <0> Zurücksetzen   <Shift+C> Zentrieren
+547	<+/-> Zoom   <0> Einpassen   <Shift+C> Zentrieren
 548	<Linke Maustaste ziehen> Verschieben   <Mittlere Maustaste ziehen> Verschieben   <Mausrad> Zoom
 549	Produktion
 
@@ -394,3 +394,10 @@
 
 # Nebula background preference
 785	Nebel-Hintergrund anzeigen
+
+# Camera view commands
+786	Ansicht
+787	Vergrößern
+788	Verkleinern
+789	Ansicht zurücksetzen
+790	Auswahl zentrieren

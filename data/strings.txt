@@ -117,7 +117,7 @@
 544	Selected fleet: {0} ships
 545	<V>/<Esc> Close comparison
 546	Zoom
-547	<+/-> Zoom   <0> Reset   <Shift+C> Center
+547	<+/-> Zoom   <0> Fit   <Shift+C> Center
 548	<Left Drag> Pan   <Middle Drag> Pan   <Mouse Wheel> Zoom
 549	Production
 
@@ -394,3 +394,10 @@
 
 # Nebula background preference
 785	Show nebula background
+
+# Camera view commands
+786	View
+787	Zoom in
+788	Zoom out
+789	Reset view
+790	Center selected item

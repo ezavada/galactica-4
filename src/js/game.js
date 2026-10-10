@@ -1199,6 +1199,16 @@ class Game {
 
         const lower = char.toLowerCase();
 
+        if(this.uiWindow==='view') {
+            if(key===pdg.key_Escape)this.uiWindow=null;
+            else if(key===pdg.key_Home)this.executeUIAction({type:'selectHomeStar'});
+            else if(lower==='+' || lower==='=')this.executeUIAction({type:'zoomIn'});
+            else if(lower==='-')this.executeUIAction({type:'zoomOut'});
+            else if(lower==='0' || lower==='*' || lower==='f')this.executeUIAction({type:'zoomToFit'});
+            else if(char==='C')this.executeUIAction({type:'centerSelected'});
+            return true;
+        }
+        if(key===pdg.key_Home && this.uiWindow==='menu')return this.executeUIAction({type:'selectHomeStar'});
         if(this.uiWindow==='settings' || this.uiWindow==='mapDisplay') {
             if(key===pdg.key_Escape)this.uiWindow=null;
             return true;
@@ -1301,16 +1311,16 @@ class Game {
             case 'u':
                 return this.beginRendezvousPlacement();
             case 'h':
-                this.selectHomeStar();
-                return true;
+                return this.executeUIAction({type:'toggleCourseHunt',object:this.selectedObject});
             case 'f':
                 if (this.display) {
                     this.display.zoomToFit();
                 }
                 return true;
             case '0':
+            case '*':
                 if (this.display) {
-                    this.display.resetView();
+                    this.display.zoomToFit();
                 }
                 return true;
             case '+':
@@ -1641,6 +1651,15 @@ class Game {
                     this.setStarAllocation(action.star, action.allocationKey, action.desired, {silent:!!action.silent});
                 }
                 return true;
+            case 'zoomIn':
+                if(!this.display)return false;this.display.zoomIn();return true;
+            case 'zoomOut':
+                if(!this.display)return false;this.display.zoomOut();return true;
+            case 'resetView':
+                if(!this.display)return false;this.display.resetView();return true;
+            case 'centerSelected':
+                if(!this.display || !this.selectedObject)return false;
+                this.display.centerOn(this.selectedObject.x,this.selectedObject.y);return true;
             case 'selectHomeStar':
                 this.selectHomeStar();
                 return true;
@@ -1783,11 +1802,13 @@ class Game {
                 }
                 return true;
             }
-            case 'toggleCourseHunt':
-                if(!this.canToggleCourseHunt())return false;
+            case 'toggleCourseHunt': {
+                const object=action.object || this.courseWindowObject;
+                if(!this.canToggleCourseHunt(object))return false;
                 // v3 stores the mode without changing waypoints or movement.
-                this.courseWindowObject.course.hunt=!this.courseWindowObject.course.hunt;
+                object.course.hunt=!object.course.hunt;
                 return true;
+            }
             case 'toggleCourseLoop':
                 if (!this.canEditCourse(this.courseWindowObject)) return false;
                 this.courseWindowObject.course.loop=!this.courseWindowObject.course.loop;
@@ -2173,7 +2194,8 @@ class Game {
         if(key === pdg.key_F1)return this.executeUIAction({type:'toggleShips'});
         if(key === pdg.key_F2)return this.executeUIAction({type:'toggleMapNames'});
         if(key === pdg.key_F3)return this.executeUIAction({type:'toggleGrid'});
-        if (['rename','colonyDefaults','settings'].includes(this.uiWindow) && key === pdg.key_Tab) return true;
+        if (['rename','colonyDefaults','settings','mapDisplay','view'].includes(this.uiWindow) && key===pdg.key_Tab) return true;
+        if (['settings','mapDisplay','view'].includes(this.uiWindow) && (key===13 || key===3)) return true;
         if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}
         if ((key===13 || key===3) && !['rename','colonyDefaults','settings','systemComparison','events','endTurnConfirm'].includes(this.uiWindow)) {this.requestEndTurn();return true;}
         if (key === pdg.key_Tab) {
@@ -2218,9 +2240,8 @@ class Game {
         } else if (key === 45) { // - key
             // Zoom out with - key (zoom to center of screen)
             this.display.zoomOut();
-        } else if (key === 48) { // 0 key
-            // Reset view with 0 key
-            this.display.resetView();
+        } else if (key === 48 || key === 42) { // v3 zero and keypad * fit the map
+            this.display.zoomToFit();
         //} else if (key === 99 || key === 67) { // c or C key
         //    // Center on selected object with C key
         //    if (this.selectedObject) {
@@ -2233,9 +2254,10 @@ class Game {
         } else if (key === 102 || key === 70) { // f or F key
             // Zoom to fit entire map with F key
             this.display.zoomToFit();
-        } else if (key === 104 || key === 72) { // h or H key
-            // Select player's home star with H key
+        } else if (key === pdg.key_Home) {
             this.selectHomeStar();
+        } else if (key === 104 || key === 72) {
+            return this.executeUIAction({type:'toggleCourseHunt',object:this.selectedObject});
         } else if (this.handleTopLevelCommandKey(key, char)) {
             return true;
         } else if (this.selectedObject) {

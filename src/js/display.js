@@ -1402,9 +1402,10 @@ class Display {
         style.lineStyle(pdg.lineStyle_Solid).lineThickness(0.6);
         this.drawRoundedRect(drawRect, options.radius || 10, style);
         if(options.icon) {
-            this.drawUIIcon(options.icon,drawRect.x+(options.iconOnly?drawRect.width/2-(hotkey?4:0):18),drawRect.y+drawRect.height/2);
+            const inlineHotkey=hotkey && String(hotkey).length===1;
+            this.drawUIIcon(options.icon,drawRect.x+(options.iconOnly?drawRect.width/2-(inlineHotkey?4:0):18),drawRect.y+drawRect.height/2);
             if(options.iconOnly) {
-                if(hotkey)this.drawTextLine(hotkey,drawRect.x+drawRect.width-8,drawRect.y+drawRect.height/2+3,'labelgray',9,pdg.textStyle_RightJustified);
+                if(inlineHotkey)this.drawTextLine(hotkey,drawRect.x+drawRect.width-8,drawRect.y+drawRect.height/2+3,'labelgray',9,pdg.textStyle_RightJustified);
                 if(hovered)this.iconHint={rect:drawRect,inWindow:!!this.drawingActiveWindow,label:hotkey?`${label} <${hotkey}>`:label};
                 return;
             }
@@ -1438,8 +1439,10 @@ class Display {
             { key: 'U', label: this.STR.rendezvous, action: { type: 'beginRendezvousPlacement' } },
             { key: 'Tab', label: I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`, action: { type: 'nextAttention' } },
             { key: 'Enter', label: this.STR.endTurn, action: { type: 'endTurn' } },
-            { key: 'H', icon:'home', label: this.STR.home, action: { type: 'selectHomeStar' } },
-            { key: 'F', icon:'fit', label: this.STR.fit, action: { type: 'zoomToFit' } }
+            { key: '-',icon:'zoom-out',label:I18n.getString(788,'Zoom out'),action:{type:'zoomOut'} },
+            { key: '+',icon:'zoom-in',label:I18n.getString(787,'Zoom in'),action:{type:'zoomIn'} },
+            { key: 'Home', icon:'home', label: this.STR.home, action: { type: 'selectHomeStar' } },
+            { key: '0', icon:'fit', label: this.STR.fit, action: { type: 'zoomToFit' } }
         ];
     }
 
@@ -1701,7 +1704,7 @@ class Display {
 
     getCommandWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error ? 404 : 362) : 328 });
+        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error ? 438 : 396) : 362 });
     }
 
     getProductionWindowRect() {
@@ -1794,12 +1797,14 @@ class Display {
         const comparison={rect:{x:rect.x+14,y:rect.y+148,width:rect.width-28,height:28},
             label:this.STR.compare,key:'V',action:{type:'toggleWindow',window:'comparison'}};
         const fullscreen=this.game.fullscreen && this.game.fullscreen.supported ? [{
-            rect:{x:rect.x+14,y:rect.y+284,width:rect.width-28,height:28},
+            rect:{x:rect.x+14,y:rect.y+318,width:rect.width-28,height:28},
             label:I18n.getString(771,'Full screen'),active:this.game.fullscreen.active(),action:{type:'toggleFullscreen'}
         }] : [];
         const mapDisplay={rect:{x:rect.x+14,y:rect.y+250,width:rect.width-28,height:28},
             label:I18n.getString(773,'Map display'),action:{type:'toggleWindow',window:'mapDisplay'}};
-        if(!this.game.getCurrentHumanPlayer())return [comparison,settings,mapDisplay,...fullscreen];
+        const view={rect:{x:rect.x+14,y:rect.y+284,width:rect.width-28,height:28},
+            label:I18n.getString(786,'View'),action:{type:'toggleWindow',window:'view'}};
+        if(!this.game.getCurrentHumanPlayer())return [comparison,settings,mapDisplay,view,...fullscreen];
         return [{rect:{x:rect.x+14,y:rect.y+80,width:rect.width-28,height:28},
             icon:'gear',label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}},
             {rect:{x:rect.x+14,y:rect.y+114,width:rect.width-28,height:28},
@@ -1807,7 +1812,32 @@ class Display {
             comparison,
             {rect:{x:rect.x+14,y:rect.y+182,width:rect.width-28,height:28},
             label:I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`,key:'Tab',active:this.game.attention.pending().length>0,action:{type:'nextAttention'}},
-            settings,mapDisplay,...fullscreen];
+            settings,mapDisplay,view,...fullscreen];
+    }
+
+    getViewWindowRect() {
+        const screen=this.getScreenSize(),width=Math.min(340,screen.width-40);
+        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:294});
+    }
+
+    getViewActionRegions() {
+        if(this.game.uiWindow!=='view')return [];
+        const rect=this.getViewWindowRect();
+        return [
+            {label:I18n.getString(787,'Zoom in'),key:'+',action:{type:'zoomIn'}},
+            {label:I18n.getString(788,'Zoom out'),key:'-',action:{type:'zoomOut'}},
+            {label:this.STR.fit,key:'0',action:{type:'zoomToFit'}},
+            {label:this.STR.home,key:'Home',action:{type:'selectHomeStar'}},
+            {label:I18n.getString(790,'Center selected item'),key:'Shift+C',action:{type:'centerSelected'}},
+            {label:I18n.getString(789,'Reset view'),action:{type:'resetView'}}
+        ].map((row,index)=>({...row,rect:{x:rect.x+14,y:rect.y+64+index*32,width:rect.width-28,height:28}}));
+    }
+
+    drawViewWindow() {
+        const rect=this.getViewWindowRect();
+        this.drawWindowPanel(rect,I18n.getString(786,'View'));
+        this.getViewActionRegions().forEach(row=>this.drawUIButton(row.rect,row.label,row.key));
+        this.drawTextLine(this.STR.escClose,rect.x+14,rect.y+rect.height-16,'gray',10);
     }
 
     getMapDisplayWindowRect() {
@@ -2104,6 +2134,8 @@ class Display {
                 return this.getComparisonWindowRect();
             case 'fleets':
                 return this.getFleetWindowRect();
+            case 'view':
+                return this.getViewWindowRect();
             case 'mapDisplay':
                 return this.getMapDisplayWindowRect();
             case 'settings':
@@ -2311,6 +2343,7 @@ class Display {
         if (this.game.uiWindow==='menu') controls=this.getCommandActionRegions();
         if (this.game.uiWindow==='settings') controls=this.getSettingsActionRegions();
         if (this.game.uiWindow==='mapDisplay') controls=this.getMapDisplayActionRegions();
+        if (this.game.uiWindow==='view') controls=this.getViewActionRegions();
         if (this.game.uiWindow==='colonyDefaults') {
             controls=this.getColonyDefaultActionRegions();
             const slider=this.getColonyDefaultSliderRegions().find(region=>this.containsPoint(region.rect,x,y));
@@ -2343,7 +2376,7 @@ class Display {
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
-        if (['rename','colonyDefaults','settings','mapDisplay','endTurnConfirm'].includes(this.game.uiWindow)) return { type: 'consume' };
+        if (['rename','colonyDefaults','settings','mapDisplay','view','endTurnConfirm'].includes(this.game.uiWindow)) return { type: 'consume' };
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
         if (contextButton) {
             return contextButton.action;
@@ -2795,7 +2828,7 @@ class Display {
         let y = this.getPanelContentStartY(rect);
         this.drawTextLine(this.STR.keyboardShortcutsActive, x, y, 'gray', 11);
         this.getCommandActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,region.key,{icon:region.icon,active:!!region.active}));
-        if(this.game.fullscreen && this.game.fullscreen.error)this.wrapEventMessage(I18n.getString(772,'Could not change full screen. Please try again.'),rect.width-28,11).slice(0,3).forEach((line,index)=>this.drawTextLine(line,x,rect.y+333+index*15,'lightgray',11));
+        if(this.game.fullscreen && this.game.fullscreen.error)this.wrapEventMessage(I18n.getString(772,'Could not change full screen. Please try again.'),rect.width-28,11).slice(0,3).forEach((line,index)=>this.drawTextLine(line,x,rect.y+367+index*15,'lightgray',11));
         this.drawTextLine(this.STR.escClose,x,rect.y+rect.height-16,'gray',10);
     }
 
@@ -3125,6 +3158,9 @@ class Display {
                 break;
             case 'fleets':
                 this.drawFleetWindow();
+                break;
+            case 'view':
+                this.drawViewWindow();
                 break;
             case 'mapDisplay':
                 this.drawMapDisplayWindow();
