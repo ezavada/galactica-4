@@ -2,7 +2,7 @@
 
 The map and controls use small presentation effects to add life without distracting from strategy.
 
-- A subset of stars receives a faint 800 ms twinkle every 21 seconds, with phases derived from stable object IDs.
+- One star currently inside the viewport receives a quick 320 ms glint every 1.8 seconds. A soft halo and brighter short cross brighten the existing star; deterministic selection uses visible IDs and time, independently of draw order and game RNG. Scrolling refreshes the candidate set, and sparse views still twinkle.
 - The background moves gently opposite camera scrolling, bounded to 8 pixels in each direction. Overscan keeps the viewport covered at all aspect ratios.
 - Neutral panels use gray vertical gradients and thin gray outlines; buttons retain blue-gray fills and brighter hover states. Inspector surfaces are 92% opaque and dialog surfaces 96% opaque, allowing a little background color through while keeping text and controls clear. System and ship panels blend 6% owner color at the top, fading to the neutral panel gray at the bottom. Identified enemies, allies and no-fog views share this treatment; retained completed/construction ship panels use it too. Known-owner borders blend 20% owner color into the neutral outline, preserving its opacity. Setup, settings, comparison and other ownerless dialogs share the neutral gradient and border recipe; the top information panel uses the same treatment at its existing 86% opacity. Tint visibility follows the corresponding owner label (any observed ownership for systems, Tech visibility for enemy ships). Unknown ownership and unclaimed objects keep the neutral surface.
 - Inspector and runtime-window entrances settle in 120 ms, moving 2 pixels and reaching their normal surface opacity. Closed windows fade out over 85 ms. Controls remain immediately usable.
@@ -28,3 +28,7 @@ Yellow-star names remain visible through fog. Undiscovered enemy homeworlds use 
 ### Shared window surfaces (2026-10-09)
 
 Setup and all ownerless runtime panels use a neutral gray surface, a subtle +0.022 RGB lift at the top and a 0.7-pixel outline. Owned system/ship surfaces retain the 6% owner tint at the top and fade to neutral gray; their outlines now blend 20% owner color. Unknown ownership remains neutral. Existing opacity levels are preserved. Full suite: 752 passed, including neutral gradient/alpha, startup recipe and border/visibility regressions. Native browser actions and 84 before/after screenshot pairs cover all six languages; no localized resources were added. Evidence: `/private/tmp/galactica-parity/neutral-{before,after}` and `/private/tmp/galactica-neutral-tests.log`.
+
+### Visible-star twinkles (2026-10-09)
+
+Replaced the sparse 21-second, one-in-seven-star effect with a 320 ms glint every 1.8 seconds, selected only from onscreen stars. Peak glint opacity is 75%, with a soft 45% radial halo; selection uses a presentation hash and does not consume simulation randomness. Reduced motion disables it. Full suite: 754 passed. Browser checks cover pulse frames, viewport selection, scrolling and reduced motion in all six languages, with English before/after frames. Evidence: `/private/tmp/galactica-parity/twinkle-{before,after}` and `/private/tmp/galactica-twinkle-tests.log`.

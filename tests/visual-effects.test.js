@@ -3,22 +3,38 @@ const Factory=require('../src/js/factory.js'),Game=require('../src/js/game.js'),
 function fixture(){const game=new Game(new Factory(),new Rules(false),new GameConfig({numHumans:1,numComputers:1,skipMapGeneration:true}));
     game.port={getDrawingArea:()=>new pdg.Rect(800,600)};return {game,display:new Display(game)};}
 module.exports=function(){test.describe('Subtle presentation effects',()=>{
-    test.it('twinkles occasionally rather than making every star flash',()=>{
-        const v=new VisualEffects();let eligible=0;for(let id=1;id<=300;id++){
-            const hash=Math.imul(id,2654435761)>>>0,time=21000-hash%21000;
-            if(v.twinkle(id,time+400)>0)eligible++;
-            test.assertEqual(v.twinkle(id,time+1200),0);
-        }test.assertTrue(eligible>0&&eligible<60);
-    });
-    test.it('keeps twinkle phases stable and bounded without depending on draw order',()=>{
-        const v=new VisualEffects();for(let id=1;id<=50;id++)for(const time of [0,200,800,9000,21000,100000]){
-            const a=v.twinkle(id,time);v.twinkle(id+1,time);test.assertEqual(v.twinkle(id,time),a);test.assertTrue(a>=0&&a<=1);
-            test.assertEqual(v.twinkle(id,time+21000),a);
+    test.it('twinkles one visible star every 1.8 seconds with a quiet interval between pulses',()=>{
+        const v=new VisualEffects(),ids=[3,19,200];
+        for(let slot=0;slot<20;slot++){
+            const frame=v.twinkleFrame(ids,slot*1800+160);test.assertTrue(ids.includes(frame.id));test.assertApproximately(frame.strength,1,.000001);
+            test.assertNull(v.twinkleFrame(ids,slot*1800+1200));
         }
+        test.assertNull(v.twinkleFrame([],160));
+    });
+    test.it('keeps twinkle selection independent of draw order and smoothly bounded',()=>{
+        const v=new VisualEffects(),ids=[1,2,3,4,5];let targets=new Set();
+        for(let time=0;time<18000;time+=100){
+            const a=v.twinkleFrame(ids,time),b=v.twinkleFrame(ids.slice().reverse(),time);
+            if(a){test.assertEqual(a.id,b.id);test.assertEqual(a.strength,b.strength);test.assertTrue(a.strength>=0&&a.strength<=1);targets.add(a.id);}
+            else test.assertNull(b);
+        }
+        test.assertTrue(targets.size>1);
+    });
+    test.it('still provides regular twinkles with only one onscreen star',()=>{
+        const v=new VisualEffects();for(let slot=0;slot<10;slot++){test.assertEqual(v.twinkleFrame([42],slot*1800+160).id,42);}
+        test.assertNull(new VisualEffects(true).twinkleFrame([42],160));
+    });
+    test.it('limits candidates to the viewport and refreshes them after scrolling',()=>{
+        const {display:d}=fixture();d.visualTime=160;let pan=0;
+        d.toScreenX=x=>x-pan;d.toScreenY=y=>y;d.drawStar=()=>{};
+        const stars=[{id:1,x:200,y:100},{id:2,x:-10,y:100},{id:3,x:1000,y:100},{id:4,x:200,y:601}];
+        d.drawStars(stars);test.assertEqual(d.starTwinkle.id,1);
+        pan=900;d.drawStars(stars);test.assertEqual(d.starTwinkle.id,3);
+        pan=3000;d.drawStars(stars);test.assertNull(d.starTwinkle);
     });
     test.it('does not consume game randomness while sampling effects',()=>{
         const v=new VisualEffects();pdg.srand(424242);const expected=pdg.rand();pdg.srand(424242);
-        for(let id=1;id<500;id++){v.twinkle(id,45000);v.parallax({panX:id,panY:-id,scale:1/1024});v.transition('window','menu',id);}
+        for(let id=1;id<500;id++){v.twinkleFrame([id,id+1],45000);v.parallax({panX:id,panY:-id,scale:1/1024});v.transition('window','menu',id);}
         test.assertEqual(pdg.rand(),expected);
     });
     test.it('moves the background only a small distance opposite camera movement',()=>{
@@ -54,7 +70,7 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         test.assertEqual(v.transition('inspector',1,201).opacity,1);test.assertTrue(v.transition('window','menu',201).opacity<1);
     });
     test.it('disables twinkle, parallax and transition movement with reduced motion',()=>{
-        const v=new VisualEffects(true);test.assertEqual(v.twinkle(7,400),0);const p=v.parallax({panX:1e12,panY:1e12,scale:1});test.assertEqual(p.x,0);test.assertEqual(p.y,0);
+        const v=new VisualEffects(true);test.assertNull(v.twinkleFrame([7],160));const p=v.parallax({panX:1e12,panY:1e12,scale:1});test.assertEqual(p.x,0);test.assertEqual(p.y,0);
         test.assertEqual(v.transition('window','menu',0).opacity,1);test.assertEqual(v.transition('window','menu',0).offset,0);test.assertEqual(v.transition('window',null,1).opacity,0);
     });
     test.it('tints controlled planet panels and leaves unknown ownership unaccented',()=>{

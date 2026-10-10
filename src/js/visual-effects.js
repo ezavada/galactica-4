@@ -1,12 +1,19 @@
 // Presentation-only motion: never consumes the simulation RNG or changes hit areas.
 class VisualEffects {
     constructor(reducedMotion=false) {this.reducedMotion=reducedMotion;this.channels=new Map();}
-    twinkle(id,milliseconds) {
-        if(this.reducedMotion)return 0;
-        const hash=Math.imul(id,2654435761)>>>0;
-        if(hash%7)return 0;
-        const phase=((milliseconds+hash%21000)%21000+21000)%21000;
-        return phase<800?Math.sin(Math.PI*phase/800)**2:0;
+    twinkleFrame(visibleIds,milliseconds) {
+        if(this.reducedMotion || !visibleIds.length)return null;
+        const interval=1800,duration=320;
+        const phase=((milliseconds%interval)+interval)%interval;
+        if(phase>=duration)return null;
+        const slot=Math.floor(milliseconds/interval);
+        let selected=null,best=Infinity;
+        for(const id of visibleIds) {
+            let hash=Math.imul(id ^ Math.imul(slot+1,0x9e3779b1),0x85ebca6b)>>>0;
+            hash=(hash ^ (hash>>>16))>>>0;
+            if(hash<best || hash===best && id<selected){best=hash;selected=id;}
+        }
+        return {id:selected,strength:Math.sin(Math.PI*phase/duration)**2};
     }
     parallax(camera) {
         if(this.reducedMotion)return {x:0,y:0};

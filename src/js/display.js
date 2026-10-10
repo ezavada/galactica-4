@@ -237,6 +237,7 @@ class Display {
         // Treat these Attributes objects like CSS classes: define once, reuse at draw sites,
         // and allow later UI passes to tune a style in one place.
         return {
+            starTwinkle: this.createAttributes({lineColor:new pdg.Color('white'),lineStyle:pdg.lineStyle_Solid}),
             clear: this.createAttributes({ fillColor: new pdg.Color('black') }),
             image: this.createAttributes(),
             panel: this.createAttributes({
@@ -669,14 +670,18 @@ class Display {
         });
         this.port.drawPolygon(diamond, attrs);
         
-        const twinkle=this.visualEffects.twinkle(star.id,this.getVisualTime());
+        const twinkle=this.starTwinkle && this.starTwinkle.id===star.id?this.starTwinkle.strength:0;
         if(twinkle>0) {
-            const glow=this.styles.selectionFrame;
-            glow.lineOpacity(0.18*twinkle);
-            const reach=scaledRadius+3;
+            const glow=this.styles.starTwinkle;
+            const reach=scaledRadius+4;
+            glow.fillRadialGradient(new pdg.Point(screenX,screenY),new pdg.Color(1,1,1,0.45*twinkle),
+                reach,new pdg.Color(1,1,1,0));
+            // A soft halo and short glint brighten the star without changing its hit area.
+            glow.lineOpacity(0);
+            this.port.drawCircle(new pdg.Point(screenX,screenY),reach,glow);
+            glow.lineOpacity(0.75*twinkle);
             this.port.drawLine(new pdg.Point(screenX-reach,screenY),new pdg.Point(screenX+reach,screenY),glow);
             this.port.drawLine(new pdg.Point(screenX,screenY-reach),new pdg.Point(screenX,screenY+reach),glow);
-            glow.lineOpacity(1);
         }
         const isHomeSystem = this.isHomeSystem(star);
 
@@ -721,8 +726,12 @@ class Display {
     
     // Draw all stars
     drawStars(stars) {
-        const humanPlayer = 1; // Player 1 is the human player
-        
+        const screen=this.getScreenSize();
+        const visibleIds=stars.filter(star=>{
+            const x=this.toScreenX(star.x),y=this.toScreenY(star.y);
+            return x>=0 && x<=screen.width && y>=0 && y<=screen.height;
+        }).map(star=>star.id);
+        this.starTwinkle=this.visualEffects.twinkleFrame(visibleIds,this.getVisualTime());
         for (const star of stars) {
             // Always show all stars, but with different visibility levels
             this.drawStar(star);
