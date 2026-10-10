@@ -164,8 +164,8 @@ class Display {
 
     createUIColorPalette() {
         const colors = {
-            panelFill: [0.105, 0.135, 0.17, 0.96],
-            windowFill: [0.105, 0.135, 0.17, 1.0],
+            panelFill: [0.105, 0.135, 0.17, 0.92],
+            windowFill: [0.105, 0.135, 0.17, 0.96],
             panelBorder: [0.38, 0.50, 0.61, 0.55],
             buttonFill: [0.16, 0.21, 0.27, 0.98],
             buttonFillHover: [0.23, 0.31, 0.39, 1.0],
