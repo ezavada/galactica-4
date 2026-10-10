@@ -567,3 +567,7 @@
 926	Vous avez gagné la bataille à {0}. Votre force : {1}. Vaisseaux perdus : {2}. Vaisseaux ennemis détruits : {3}.
 927	Vous avez perdu la bataille à {0}. Votre force : {1}. Vaisseaux perdus : {2}. Vaisseaux ennemis détruits : {3}.
 928	La bataille à {0} est restée indécise. Votre force : {1}. Vaisseaux perdus : {2}. Vaisseaux ennemis détruits : {3}.
+929	Vous avez pris le système stellaire {0} à {1} !
+930	Vous avez perdu le système stellaire {0} lorsque {1} l’a attaqué.
+931	Vous avez écrasé la dernière résistance dans le système {0} lors d’une bataille contre {1} !
+932	Vos derniers défenseurs du système {0} sont morts courageusement dans une bataille contre {1}.

@@ -567,3 +567,7 @@
 926	Ganaste la batalla en {0}. Tu fuerza: {1}. Naves propias perdidas: {2}. Naves enemigas destruidas: {3}.
 927	Perdiste la batalla en {0}. Tu fuerza: {1}. Naves propias perdidas: {2}. Naves enemigas destruidas: {3}.
 928	La batalla en {0} no tuvo un vencedor. Tu fuerza: {1}. Naves propias perdidas: {2}. Naves enemigas destruidas: {3}.
+929	¡Has conquistado el sistema estelar {0} de {1}!
+930	Has perdido el sistema estelar {0} cuando {1} lo atacó.
+931	¡Has aplastado la última resistencia en el sistema {0} en una batalla contra {1}!
+932	Tus últimos defensores del sistema {0} murieron con valentía en una batalla contra {1}.

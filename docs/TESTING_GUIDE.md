@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1045
-Passed: 1045 ✓
+Total: 1052
+Passed: 1052 ✓
 Failed: 0 ✗
 ```
 
@@ -41,6 +41,7 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - `spatial-partitioning-performance.test.js`
 - `fleet.test.js`
 - `combat.test.js`
+- `occupation-reports.test.js`
 - `game-rules.test.js`
 - `command-ui.test.js`
 - `fleet-formation.test.js`
@@ -219,3 +220,5 @@ First-hull commissioning: four regressions in `tests/ship-naming-events.test.js`
 Participant battle reports: four new regressions in `tests/combat.test.js` check actual fleet combat, private/mirrored recipient perspectives, immutable force/loss snapshots, real unarmed inconclusive results, exclusion of planets/consumed colonies from ship casualties, complete-save persistence and translated human-defender focus. The existing runtime summary regression now checks the owner-relative report. Full suites: 1040 passed on release/current native PDG. Actual browser fleet arrival battles cover winner/loser Events and Go to selection or remembered location in all six languages. Reviewed artifacts: `/private/tmp/galactica-parity/battle-reports-{before,after}`. Logs: `/private/tmp/galactica-battle-reports-{tests,native-tests}.log` and `/private/tmp/galactica-battle-reports-{before,after}-<language>.log`.
 
 Automatic combat report windows: five new regressions in `tests/outcome-reports.test.js` cover actual combat presentation/privacy, modal input isolation, retained Events replay, measured Unicode pages and button rows in all six languages at 320×340, queued complete-save identities and quiet autoplay. Full suites: 1045 passed on release/current native PDG. Actual browser winner/loser battles verify automatic dialogs, Continue/Go to, Events replay, blocked keyboard shortcuts/map clicks/wheel zoom and smaller-window paging in en/de/es/fr/ja/ru. Final before/after and translated screenshots inspected under `/private/tmp/galactica-parity/message-windows-{before,after}`. Logs: `/private/tmp/galactica-message-windows-{tests,native-tests}.log` and `/private/tmp/galactica-message-windows-{before,after}-<language>.log`.
+
+Occupation reports: seven new regressions in `tests/occupation-reports.test.js` exercise actual invasions with and without colony ships, participant-specific resistance/capture reports, hidden lost-system focus, failed invasions and neutral colonies, immutable snapshots, unrelated-player privacy, queued complete saves, final-turn Events replay and translated layouts. Full suites: 1052 passed on release/current native PDG. Actual browser before/after fleet invasions, Continue/Go to, Events replay and smaller windows pass in all six languages; inspected screenshots: `/private/tmp/galactica-parity/occupation-{before,after}`. Logs: `/private/tmp/galactica-occupation-{tests,native-tests}.log` and `/private/tmp/galactica-occupation-{before,after}-<language>.log`.

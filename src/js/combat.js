@@ -699,6 +699,9 @@ class CombatSystem {
 
         const casualties=[...attackerCombatants,...spaceDefenders].filter(entity=>this.isShip(entity)&&!this.isAliveCombatant(entity));
 
+        if (starNeutralized && this.game && this.game.recordOccupationReports)
+            this.game.recordOccupationReports(destination, attackerOwner, originalDestinationOwner, 'defendersLost');
+
         const survivingColony = attackerSurvivors.find(entity => entity.type === 'colony');
         const canColonize = !!(survivingColony && this.isStar(destination) && destination.owner === 0);
         if (canColonize && this.game && this.game.colonizeStar) {

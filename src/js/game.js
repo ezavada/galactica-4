@@ -993,13 +993,17 @@ class Game {
         return this.queueEventOverlay({type:'outcome',...event.outcome,eventId:event.id,page:0});
     }
 
+    hasReplayableReport(event) {
+        return !!(event && (event.combat || event.occupation));
+    }
+
     queueReport(event) {
-        if (!event || !event.combat || !this.isEventAccessible(event)) return false;
+        if (!this.hasReplayableReport(event) || !this.isEventAccessible(event)) return false;
         return this.queueEventOverlay({type:'report',eventId:event.id,page:0});
     }
 
     replayReport(event) {
-        if (!this.getEventRows().includes(event) || !event.combat || !this.isEventAccessible(event)) return false;
+        if (!this.getEventRows().includes(event) || !this.hasReplayableReport(event) || !this.isEventAccessible(event)) return false;
         this.uiWindow=null;
         return this.queueReport(event);
     }
@@ -1090,7 +1094,7 @@ class Game {
         const reportTurn=Math.max(1,this.turn-1);
         // Terminal turns do not advance; their reports must remain available for replay.
         return this.eventLog.filter(event=>(event.turn===reportTurn ||
-            event.outcome && event.turn===this.turn) && this.isEventAccessible(event));
+            (event.outcome || this.isGameOver && this.hasReplayableReport(event)) && event.turn===this.turn) && this.isEventAccessible(event));
     }
 
     getEventFocus(event) {
@@ -1345,7 +1349,7 @@ class Game {
         if(this.uiWindow==='events') {
             if(key===13 || key===3) {
                 const event=this.getEventRows().find(event=>event.id===this.eventSelection);
-                if(event && event.outcome)this.replayOutcome(event);else if(event && event.combat)this.replayReport(event);else if(event)this.focusEvent(event,true);else this.requestEndTurn();
+                if(event && event.outcome)this.replayOutcome(event);else if(this.hasReplayableReport(event))this.replayReport(event);else if(event)this.focusEvent(event,true);else this.requestEndTurn();
                 return true;
             }
         }
@@ -3134,10 +3138,30 @@ class Game {
         this.applyNewColonyDefaults(star, previousOwner);
 
         const eventType = previousOwner ? Common.EventType.STAR_CAPTURED : Common.EventType.STAR_COLONIZED;
-        this.noteworthyEvent(colonyShip, eventType, star);
+        if(previousOwner)this.recordOccupationReports(star, colonyShip.owner, previousOwner, 'capture');
+        else this.noteworthyEvent(colonyShip, eventType, star);
         if(!previousOwner)this.requestColonySetup(star);
         this.removeDestroyedShip(colonyShip, colonyShip.owner, false);
         return true;
+    }
+
+    recordOccupationReports(star, attackerOwner, previousOwner, kind) {
+        if (!star || !previousOwner || attackerOwner===previousOwner || !['capture','defendersLost'].includes(kind)) return [];
+        const playerName=owner=>this.players[owner] && this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
+        const snapshot={kind,starName:star.name,attackerOwner,previousOwner,
+            attackerName:playerName(attackerOwner),defenderName:playerName(previousOwner)};
+        return [attackerOwner,previousOwner].map(recipient=>{
+            const winner=recipient===attackerOwner;
+            const id=kind==='capture'?(winner?929:930):(winner?931:932);
+            const event=this.recordEvent(I18n.getString(607,'Combat'),
+                I18n.formatString(id, '',snapshot.starName,winner?snapshot.defenderName:snapshot.attackerName),
+                {type:kind==='capture'?Common.EventType.STAR_CAPTURED:Common.EventType.DEFENDERS_LOST,
+                    subject:star,recipient,position:star});
+            event.occupation={...snapshot,side:winner?'attacker':'defender'};
+            this.queueReport(event);
+            this.attention.requestEvent(event);
+            return event;
+        });
     }
 
     requestColonySetup(star) {

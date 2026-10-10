@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 1045 passed, 0 failed.
+Current expected full-suite result: 1052 passed, 0 failed.
 
 ## Future work
 
@@ -183,3 +183,5 @@ First-built hull presentations add ID 925 in all six languages (460 IDs per file
 Participant combat reports add IDs 926–928 in all six languages (463 IDs per file). Winner, loser and inconclusive messages retain literal force/location names and distinguish own ship losses from destroyed enemy ships. Count labels avoid singular/plural agreement problems; Japanese uses native counters. Reports reuse existing Events, complete-text wrapping and Go to controls. Before/after browser checks and reviewed winner/loser reports pass in all six languages under `/private/tmp/galactica-parity/battle-reports-{before,after}`. Full suites: 1040 passed on release/current native PDG. Observer reports, automatic message presentation/replay and the remaining recipient-relative event variants are still pending.
 
 Automatic battle message windows reuse existing translated combat, Continue, Go to, View report and paging resources; resource counts remain 463 per language. Complete Unicode wrapping and measured control rows retain all text without overlap at 320×340 in unit checks. Actual browser automatic winner/loser dialogs, Events replay and smaller paged messages pass in all six languages; final screenshots were inspected under `/private/tmp/galactica-parity/message-windows-{before,after}`. Full suites: 1045 passed on release/current native PDG. Observer and other recipient-relative narrative variants remain pending.
+
+System resistance/capture reports add IDs 929–932 in all six languages (467 IDs per file). Winner and loser narratives retain literal system/faction names and distinguish defeating resistance from taking ownership. Reports use existing translated modal, navigation and replay controls. Unicode unit layouts and actual browser winner/loser invasions, Events replay and smaller dialogs pass in en/de/es/fr/ja/ru; final screenshots inspected under `/private/tmp/galactica-parity/occupation-{before,after}`. Full suites: 1052 passed on release/current native PDG. Observer variants remain pending.

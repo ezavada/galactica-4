@@ -1799,7 +1799,7 @@ class Display {
         if(l.page<l.pages-1)controls.push({rect:{x:r.x+110,y:r.y+r.height-36,width:90,height:24},label:I18n.getString(691,'Next'),action:{type:'eventPage',page:l.page+1}});
         if(l.selected && l.selected.outcome)controls.push({rect:{x:r.x+r.width-174,y:r.y+r.height-36,width:160,height:24},
             label:I18n.getString(835,'View report'),key:'Enter',action:{type:'replayOutcome',event:l.selected}});
-        else if(l.selected && l.selected.combat)controls.push({rect:{x:r.x+r.width-174,y:r.y+r.height-36,width:160,height:24},
+        else if(this.game.hasReplayableReport(l.selected))controls.push({rect:{x:r.x+r.width-174,y:r.y+r.height-36,width:160,height:24},
             label:I18n.getString(835,'View report'),key:'Enter',action:{type:'replayReport',event:l.selected}});
         else if(l.selected && this.game.getEventFocus(l.selected))controls.push({rect:{x:r.x+r.width-174,y:r.y+r.height-36,width:160,height:24},
             label:I18n.getString(749,'Go to'),key:'Enter',action:{type:'goToEvent',event:l.selected}});

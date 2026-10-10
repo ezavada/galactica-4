@@ -567,3 +567,7 @@
 926	You won the battle at {0}. Your force: {1}. Your ships lost: {2}. Enemy ships destroyed: {3}.
 927	You lost the battle at {0}. Your force: {1}. Your ships lost: {2}. Enemy ships destroyed: {3}.
 928	The battle at {0} was inconclusive. Your force: {1}. Your ships lost: {2}. Enemy ships destroyed: {3}.
+929	You took the star system {0} from {1}!
+930	You lost the star system {0} when {1} attacked it.
+931	You have crushed the last resistance on the system {0} in a battle against {1}!
+932	Your last defenders of the system {0} died bravely in a battle against {1}.
