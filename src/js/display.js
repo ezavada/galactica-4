@@ -1873,7 +1873,9 @@ class Display {
     }
 
     drawMapSelectionWindow() {
-        const rect=this.getMapSelectionRect();this.drawWindowPanel(rect,I18n.getString(793,'Choose an object'));
+        const rect=this.getMapSelectionRect();
+        const title=this.game.mapSelectionPicker.mode==='transfer'?I18n.getString(795,'Choose destination fleet'):I18n.getString(793,'Choose an object');
+        this.drawWindowPanel(rect,this.fitShipDiagnosticText(title,rect.width-32,14));
         this.getMapSelectionActions().forEach(row=>{
             this.drawUIButton(row.rect,row.label,row.key,{icon:row.icon,active:row.active,bold:row.bold});
             if(row.fullLabel && this.isHovered(row.rect))this.iconHint={rect:row.rect,inWindow:true,label:row.fullLabel};
@@ -2343,7 +2345,7 @@ class Display {
             if (owned && primaryTransferTarget) {
                 regions.push({
                     rect: { x: rect.x + rect.width - 14 - removeWidth - 6 - transferWidth, y: y - 16, width: transferWidth, height: 20 },
-                    action: { type: 'transferFleetShip', ship, targetFleet: primaryTransferTarget }
+                    action: transferTargets.length>1?{type:'beginFleetTransfer',ship}:{ type: 'transferFleetShip', ship, targetFleet: primaryTransferTarget }
                 });
             }
             if(owned)regions.push({
@@ -2884,7 +2886,7 @@ class Display {
                     region.action.ship === ship
                 );
                 const transferRegion = memberRegions.find(region =>
-                    region.action.type === 'transferFleetShip' &&
+                    ['transferFleetShip','beginFleetTransfer'].includes(region.action.type) &&
                     region.action.ship === ship
                 );
                 const nameRight=Math.min(rect.x+rect.width-12,removeRegion?removeRegion.rect.x-6:Infinity,transferRegion?transferRegion.rect.x-6:Infinity);

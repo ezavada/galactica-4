@@ -409,3 +409,6 @@
 # Overlapping map objects
 793	Choose an object
 794	Select an item; Esc cancels
+
+# Fleet transfer destination
+795	Choose destination fleet

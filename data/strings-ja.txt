@@ -409,3 +409,6 @@
 # Overlapping map objects
 793	対象を選択
 794	項目を選択（Escでキャンセル）
+
+# Fleet transfer destination
+795	転送先の艦隊を選択

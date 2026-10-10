@@ -409,3 +409,6 @@
 # Overlapping map objects
 793	Choisir un objet
 794	Choisissez un élément ; Échap annule
+
+# Fleet transfer destination
+795	Choisir une flotte de destination

@@ -409,3 +409,6 @@
 # Overlapping map objects
 793	Выберите объект
 794	Выберите элемент; Esc — отмена
+
+# Fleet transfer destination
+795	Выберите флот назначения

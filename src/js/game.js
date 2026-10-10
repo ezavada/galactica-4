@@ -1883,6 +1883,7 @@ class Game {
             }
             case 'removeFleetShip':
                 return this.separateShipFromFleet(action.fleet, action.ship);
+            case 'beginFleetTransfer':return this.beginFleetTransfer(action.ship);
             case 'transferFleetShip':
                 return this.transferShipToFleet(action.ship, action.targetFleet);
             default:
@@ -2099,6 +2100,11 @@ class Game {
 
     getMapSelectionRows() {
         if(!this.mapSelectionPicker)return [];
+        const picker=this.mapSelectionPicker;
+        if(picker.mode==='transfer') {
+            if(this.selectedObject!==picker.sourceFleet || picker.transferShip.fleet!==picker.sourceFleet)return [];
+            return picker.candidates.filter(target=>this.canTransferShipToFleet(picker.transferShip,target));
+        }
         const live=new Set(this.getMapObjects());
         return this.mapSelectionPicker.candidates.filter(object=>live.has(object) && this.display.getMapMarker(object));
     }
@@ -2112,6 +2118,7 @@ class Game {
     chooseMapSelection(object) {
         if(!this.getMapSelectionRows().includes(object))return false;
         const picker=this.mapSelectionPicker;this.cancelMapSelection();
+        if(picker.mode==='transfer')return this.transferShipToFleet(picker.transferShip,object);
         const options={resolved:true,target:object};
         if(picker.mode==='order')return this.handleMouseRightClick(picker.x,picker.y,options);
         return this.handleMouseClick(picker.x,picker.y,options);
@@ -3012,10 +3019,31 @@ class Game {
     }
 
     getFleetTransferTargets(fleet) {
-        if (!fleet || !this.canHumanControl(fleet)) {
-            return [];
-        }
+        if (!fleet || !this.allFleets.includes(fleet) || !this.canHumanControl(fleet)) return [];
         return this.getFriendlyFleetsAtLocation(fleet.owner, fleet.x, fleet.y, fleet);
+    }
+
+    canTransferShipToFleet(ship,targetFleet) {
+        if(!ship || !targetFleet || !this.allShips.includes(ship) || !this.allFleets.includes(targetFleet) ||
+            !this.canHumanControl(ship) || !this.canHumanControl(targetFleet) || ship.owner!==targetFleet.owner ||
+            ship.fleet===targetFleet || ship.isDead() || ship.underConstruction() || targetFleet.isEmpty())return false;
+        const source=ship.fleet || ship;
+        if(ship.fleet && (!this.allFleets.includes(source) || !source.ships.includes(ship) || !this.canHumanControl(source)))return false;
+        return Number.isFinite(source.x) && Number.isFinite(source.y) &&
+            Math.abs(source.x-targetFleet.x)<5 && Math.abs(source.y-targetFleet.y)<5;
+    }
+
+    beginFleetTransfer(ship) {
+        const sourceFleet=ship && ship.fleet;
+        if(!sourceFleet || this.selectedObject!==sourceFleet || !this.display || this.mapSelectionPicker ||
+            this.pendingMapOrderObject || this.pendingCourseEdit || this.pendingRendezvousPlacement)return false;
+        const candidates=this.getFleetTransferTargets(sourceFleet).filter(target=>this.canTransferShipToFleet(ship,target));
+        if(!candidates.length)return false;
+        if(candidates.length===1)return this.transferShipToFleet(ship,candidates[0]);
+        const position=this.display.getObjectScreenPosition(sourceFleet);
+        this.mapSelectionPicker={candidates,x:position.x,y:position.y,mode:'transfer',transferShip:ship,sourceFleet,
+            page:0,previousWindow:this.uiWindow};
+        this.uiWindow='mapPick';return true;
     }
 
     separateShipFromFleet(fleet, ship) {
@@ -3065,15 +3093,13 @@ class Game {
     }
 
     transferShipToFleet(ship, targetFleet) {
-        if (!ship || !targetFleet || !this.canHumanControl(targetFleet) || ship.owner !== targetFleet.owner) {
-            return false;
-        }
+        if(!this.canTransferShipToFleet(ship,targetFleet))return false;
         const oldFleet = ship.fleet;
         if (oldFleet === targetFleet) {
             return false;
         }
 
-        targetFleet.addShip(ship);
+        if(!targetFleet.addShip(ship))return false;
         targetFleet.calculateFleetStats();
         targetFleet.syncShipPositions();
 

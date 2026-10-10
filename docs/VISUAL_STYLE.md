@@ -132,3 +132,5 @@ Fleet panels now use the same owner-tinted top-to-neutral gradient and colored b
 Fleet member inspectors use a 350-pixel panel beneath the top status bar, expanding rows vertically for technology/speed/power and live health. The member count per page follows available logical screen height; measured names stop before Remove/Transfer buttons, and translated paging stays within the panel. Unknown health stays `?` with no bar; enemy contents remain read-only. Final browser captures in all six languages were inspected against the prior name-only list.
 
 Map help is drawn beneath inspectors so tall fleet member panels and their paging controls remain readable.
+
+Multi-destination fleet transfers reuse the neutral paged object chooser, with the translated destination-fleet heading (795), cached 2× fleet glyphs, numbered buttons and existing Previous/Next/Esc help. The inspector remains visible beneath it; cancel changes no fleet membership. Before/after screenshots were inspected in all six languages; ordinary source-fleet views are pixel-identical.

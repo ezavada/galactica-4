@@ -409,3 +409,6 @@
 # Overlapping map objects
 793	Objekt auswählen
 794	Eintrag wählen; Esc bricht ab
+
+# Fleet transfer destination
+795	Zielflotte wählen
