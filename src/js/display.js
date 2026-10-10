@@ -1103,7 +1103,7 @@ class Display {
         const base=attrs===this.styles.windowPanel?this.getUIColor('windowFill'):this.getUIColor('panelFill');
         const color=this.panelStyleColors.get(attrs) || base;
         attrs.fillGradient(new pdg.Point(rect.x,rect.y),new pdg.Color(color.red+0.022,color.green+0.022,color.blue+0.022,color.alpha),
-            new pdg.Point(rect.x,rect.y+rect.height),color);
+            new pdg.Point(rect.x,rect.y+rect.height),this.panelStyleColors.has(attrs)?base:color);
         attrs.lineStyle(pdg.lineStyle_Solid).lineThickness(0.7);
         this.drawRoundedRect(rect,14,attrs);
     }
@@ -1165,18 +1165,25 @@ class Display {
         this.port.drawPolygon(new pdg.Polygon(...pointer.points), attrs);
     }
 
+    getOwnerPanelStyle(object) {
+        if(!object || object.owner<=0)return null;
+        const viewer=this.game.getCurrentHumanPlayer() || 1;
+        const known=this.game.factory.isStar(object)?this.isStarOwnerKnown(object):
+            this.game.factory.isShip(object) && (this.game.config.omniscient ||
+                this.game.isOwnerAlliedWith(viewer,object.owner) || object.getVisibilityTo(viewer)>=Common.VisibilityLevel.TECH);
+        if(!known)return null;
+        if(!this.ownerPanelStyles.has(object.owner))this.ownerPanelStyles.set(object.owner,this.createAttributes({lineColor:this.getUIColor('panelBorder')}));
+        const style=this.ownerPanelStyles.get(object.owner);
+        const base=this.getUIColor('panelFill'),owner=this.ownerColors[object.owner] || this.getUIColor('panelBorder');
+        const tint=new pdg.Color(base.red*0.94+owner.red*0.06,base.green*0.94+owner.green*0.06,base.blue*0.94+owner.blue*0.06,base.alpha);
+        style.fillColor(tint);
+        this.panelStyleColors.set(style,tint);
+        return style;
+    }
+
     drawAnchoredPanel(object, rect, title = null, borderColor = null) {
         this.drawPanelPointer(object, rect, borderColor);
-        let style=null;
-        if(this.game.factory.isStar(object) && object.owner>0 && this.isStarOwnerKnown(object)) {
-            if(!this.ownerPanelStyles.has(object.owner))this.ownerPanelStyles.set(object.owner,this.createAttributes({lineColor:this.getUIColor('panelBorder')}));
-            style=this.ownerPanelStyles.get(object.owner);
-            const base=this.getUIColor('panelFill'),owner=this.ownerColors[object.owner] || this.getUIColor('panelBorder');
-            const tint=new pdg.Color(base.red*0.94+owner.red*0.06,base.green*0.94+owner.green*0.06,base.blue*0.94+owner.blue*0.06,base.alpha);
-            style.fillColor(tint);
-            this.panelStyleColors.set(style,tint);
-        }
-        this.drawPanel(rect, title, borderColor,style);
+        this.drawPanel(rect,title,borderColor,this.getOwnerPanelStyle(object));
     }
 
     fitPanelToScreen(rect) {
@@ -2489,13 +2496,13 @@ class Display {
             panel.text('title', this.fitShipDiagnosticText(data.title, rect.width - 32, 14), 16, 22, 'lightgray', 14);
             rows.forEach(([id, label, y]) => panel.labelValue(id, label, this.fitShipDiagnosticText(data[id], width), y, { size: 11, labelWidth }));
             this.drawPanelPointer(ship, rect);
-            panel.draw(rect);
+            panel.draw(rect,this.getOwnerPanelStyle(ship));
             if (data.healthRatio !== null) this.drawBar(rect.x + labelWidth + 5, rect.y + 181, width, 8, data.healthRatio, 'green');
             this.drawContextButtonArc(ship, rect);
             return;
         }
         this.drawPanelPointer(ship, rect);
-        panel.draw(rect);
+        panel.draw(rect,this.getOwnerPanelStyle(ship));
         this.drawBar(rect.x + rect.width - 130, rect.y + 75, 70, 8, ship.progress / 100, 'lightgray');
         this.drawContextButtonArc(ship, rect);
     }

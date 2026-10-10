@@ -101,7 +101,7 @@ module.exports=function() {
             display.styles={divider:attrs};display.shipPanels=new Map();display.getTextAttributes=()=>attrs;
             display.port={getTextWidth:text=>Array.from(text).length*6,getCurrentFont:()=>({getFontName:()=> 'Test',getFontAscent:()=>9,getFontDescent:()=>3}),drawDrawing:()=>{}};
             display.getShipDetailsRect=()=>({x:0,y:0,width:350,height:292});display.drawPanelPointer=()=>{};
-            display.drawRoundedRect=()=>{};display.drawPanelSurface=()=>{};display.drawContextButtonArc=()=>{};display.drawBar=(x,y,w,h,ratio)=>bars.push(ratio);
+            display.drawRoundedRect=()=>{};display.drawPanelSurface=()=>{};display.getOwnerPanelStyle=()=>null;display.drawContextButtonArc=()=>{};display.drawBar=(x,y,w,h,ratio)=>bars.push(ratio);
             display.drawShipDetails(ship);const panel=display.shipPanels.get(false);const original=panel.fields.get('title').element;
             const count=panel.drawing.getElementCount();test.assertEqual(panel.fields.get('health').text,'71%');
             star.repairDockedShips();display.drawShipDetails(ship);test.assertEqual(panel.fields.get('health').text,'100%');

@@ -84,6 +84,25 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Ally');star.owner=2;game.players[2].isAllyOf=player=>player===1;
         test.assertTrue(d.isStarOwnerKnown(star));test.assertEqual(d.getStarDiagnostics(star).owner,'2');
     });
+    test.it('fades owner-tinted panels from the existing top color to neutral gray at the bottom',()=>{
+        const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Home');star.owner=1;
+        const appearance=d.getOwnerPanelStyle(star),tint=d.panelStyleColors.get(appearance),base=d.getUIColor('panelFill');let colors;
+        const attrs={fillGradient:(a,top,b,bottom)=>colors={a,top,b,bottom},lineStyle:()=>({lineThickness:()=>{}})};
+        d.panelStyleColors.set(attrs,tint);d.drawRoundedRect=()=>{};d.drawPanelSurface({x:10,y:20,width:100,height:200},attrs);
+        test.assertApproximately(colors.top.blue,tint.blue+.022,.000001);test.assertApproximately(colors.bottom.blue,base.blue,.000001);
+        test.assertApproximately(colors.bottom.red,base.red,.000001);test.assertApproximately(colors.top.alpha,base.alpha,.000001);test.assertEqual(colors.a.y,20);test.assertEqual(colors.b.y,220);
+    });
+    test.it('shares the owner gradient with ship panels only when ship ownership is known',()=>{
+        const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Home');star.owner=1;star.startBuildingShip('scout');const ship=star.completeShip();
+        test.assertTrue(d.getOwnerPanelStyle(ship)===d.getOwnerPanelStyle(star));ship.owner=2;
+        for(const level of [0,1,2,3,4,0]) {ship.setVisibilityTo(1,level);test.assertEqual(!!d.getOwnerPanelStyle(ship),level>=2);}
+        game.config.omniscient=true;test.assertTrue(!!d.getOwnerPanelStyle(ship));ship.owner=0;test.assertNull(d.getOwnerPanelStyle(ship));
+    });
+    test.it('renders ships with unknown ownership using the neutral surface',()=>{
+        const RetainedPanel=require('../src/js/retained-panel.js'),neutral={};let appearance;
+        const panel={display:{styles:{panel:neutral},drawPanelSurface:(rect,attrs)=>appearance=attrs,port:{drawDrawing:()=>{}}},drawing:{},parentAttributes:{}};
+        RetainedPanel.prototype.draw.call(panel,{x:0,y:0,width:100,height:100},null);test.assertTrue(appearance===neutral);
+    });
     test.it('keeps familiar icons tied to the original actions and localized labels',()=>{
         const {display}=fixture();const buttons=display.getMapButtonDefinitions();
         for(const [type,icon] of [['selectHomeStar','home'],['zoomToFit','fit']]){const button=buttons.find(b=>b.action.type===type);test.assertEqual(button.icon,icon);test.assertTrue(button.label.length>0);}
