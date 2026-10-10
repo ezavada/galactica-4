@@ -64,4 +64,9 @@ module.exports=()=>test.describe('Complete local game save documents',()=>{
   const {game}=fixture(),before=game.stars[0].name;const doc=Save.snapshot(game);doc.graph.nodes[0].properties.push(['__proto__',{ref:0}]);throws(()=>Save.restore(JSON.stringify(doc)));test.assertEqual(game.stars[0].name,before);test.assertEqual({}.polluted,undefined);
   doc.graph.nodes[0].properties.pop();doc.graph.nodes[0].properties.push(['bad',{ref:-1}]);throws(()=>Save.restore(JSON.stringify(doc)));test.assertTrue(game.factory.game===game);
  });
+ test.it('detects changed gameplay while ignoring navigation, display settings and report review',()=>{
+  const {game,home,enemy}=fixture(),content=Save.contentSignature(game);game.setSelectedObject(enemy);game.showGrid=!game.showGrid;game.uiWindow='events';game.eventPage=4;game.savedCamera={zoom:2,panX:42,panY:73};game.recordEvent('Review','Navigation',{type:'ui'});
+  test.assertEqual(Save.contentSignature(game),content);home.growth.desired=60;test.assertFalse(Save.contentSignature(game)===content);home.growth.desired=33.4;test.assertEqual(Save.contentSignature(game),content);game.turn++;test.assertFalse(Save.contentSignature(game)===content);
+ });
+
 });

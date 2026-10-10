@@ -80,7 +80,7 @@ function decodeGraph(graph) {
     });
     return {root:value(graph.root),nodes};
 }
-function snapshot(game) {
+function snapshot(game,contentOnly=false) {
     const state={};for(const key of fields)state[key]=game[key];
     // v3 retains the Events window; command menus and order editors are transient.
     state.uiWindow=game.uiWindow==='events'?'events':null;
@@ -89,8 +89,11 @@ function snapshot(game) {
     state.chart=ChartNames.snapshot(game);
     state.aiSkills=[...game.aiManager.aiPlayers].map(([id,player])=>[id,player.skillManager.getSkillLevel()]);
     state.camera=game.display?{zoom:game.display.camera.zoom,panX:game.display.camera.panX,panY:game.display.camera.panY}:game.savedCamera || null;
+    if(contentOnly)for(const key of ['selectedObject','eventLog','nextEventId','eventSelection','eventPage','eventDetailPage','turnAttentionPending','uiWindow','overlay','overlayQueue','attention','chart','camera','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames','showEnemyEvents','mapDisplayMode'])delete state[key];
     return {format:'Galactica-4',version:1,graph:encodeGraph(state)};
 }
+// Navigation and report review do not mark the document modified in v3.
+function contentSignature(game) {return JSON.stringify(snapshot(game,true));}
 function serialize(game) {return JSON.stringify(snapshot(game));}
 function validate(state,nodes) {
     if(!state || !Number.isInteger(state.turn) || state.turn<1 || !Number.isFinite(state.gameWidth) || state.gameWidth<=0 || !Number.isFinite(state.gameHeight) || state.gameHeight<=0)invalid();
@@ -160,4 +163,4 @@ function restore(input) {
     game.restoredFromSave=true;
     return game;
 }
-module.exports={serialize,restore,snapshot,encodeGraph,decodeGraph};
+module.exports={serialize,restore,snapshot,contentSignature,encodeGraph,decodeGraph};

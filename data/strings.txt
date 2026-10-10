@@ -658,3 +658,12 @@
 986	Development build {0}
 987	 (modified)
 988	Build information unavailable
+
+# Close game document
+989	Close game
+990	Save changes to “{0}” before closing?
+991	Save and close
+992	Discard
+993	Close this game. You can save or discard unsaved changes; other open games remain.
+994	Save changes, then close this game. A canceled or failed save keeps it open.
+995	Close this game without saving changes. Its existing save file remains unchanged.

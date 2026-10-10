@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1086
-Passed: 1086 ✓
+Total: 1358
+Passed: 1358 ✓
 Failed: 0 ✗
 ```
 
@@ -266,3 +266,29 @@ input, captures the lessons and recovery states, and checks the original saved
 document survives cancellation and full tutorial completion. The save picker
 uses an in-memory fixture; it does not drive the operating system file dialog.
 Audio output is muted. Temporary browser profiles are removed when the run ends.
+
+
+## Closing game documents
+
+```bash
+./gad4 tests/documents-close-async.js
+```
+
+The asynchronous lane checks Cancel, Discard, successful/deferred/failed/canceled
+Save and close, a late write after the active document changes, gameplay-only
+modified-state tracking, and all six translated decision layouts/help strings.
+`tests/game-sessions.test.js` and `tests/game-save.test.js` cover retained games,
+background removal, setup/tutorial guards and content comparisons in the full
+suite. Existing file transport and Save/Open/Revert runners remain relevant:
+`tests/document-files-async.js` and `tests/documents-async.js`.
+
+
+For actual browser decisions and retained-game/tutorial restoration:
+
+```bash
+node tools/test-web-close-game.cjs /path/to/web-build /path/to/screenshots en
+```
+
+Repeat for all six languages. Chrome is muted, and `GALACTICA_CHROME` overrides
+its executable. Save/Open pickers use in-memory fixtures, including canceled
+picks and failed writes. Temporary browser profiles are removed at completion.

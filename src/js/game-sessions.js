@@ -45,6 +45,12 @@ class GameSessions {
         if(this.starting || this.transient || !this.active)return false;
         const session=this.active;session.game=game;session.display=display;session.autoplay=null;return session;
     }
+    close(session=this.active) {
+        if(this.transient || (this.starting && session===this.active) || !this.sessions.includes(session))return false;
+        this.sessions.splice(this.sessions.indexOf(session),1);
+        if(this.active===session){this.active=this.sessions[this.sessions.length-1] || null;this.starting=!this.active;}
+        return session;
+    }
     rows() {return this.sessions.map(session=>({id:session.id,title:session.game.config.gameTitle,
         turn:session.game.turn,active:session===this.active}));}
 }

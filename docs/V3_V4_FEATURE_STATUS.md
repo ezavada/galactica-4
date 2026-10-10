@@ -272,6 +272,7 @@ The largest blockers to a complete game are:
 | Save turn / Save As | Saves a single-player turn document. | ✅ Implemented | ✅ Implemented | Menu → File provides Save and Save As with a selected Unicode filename/path editor. Versioned graph serialization preserves configuration/rules, players, stars, ships, nested fleets, rendezvous, shared courses/memory, economy, events/attention, historical subjects, visibility/chart aliases, selection, camera, drawing flags and Events-window visibility/paging. Native writes replace files atomically; Save As confirms existing native paths. Browsers use retained file handles or downloaded JSON. |
 | Open saved game | Opens a saved turn. | ✅ Implemented | ✅ Implemented | Startup Open Game and File → Open load `.gad4.json` documents without regenerating the galaxy, preserving already-open games. References, object prototypes, spatial indexes, factory/AI/runtime services and future entity IDs are restored. Malformed or unsupported files report a localized error without replacing the active document. Browser fresh-page imports of actual downloaded files pass in all six languages. The format is v4 JSON, not a reader for legacy v3 binary files. |
 | Revert to saved turn | Restores the last saved state. | ✅ Implemented | ✅ Implemented | File → Revert asks before discarding changes, then restores the saved graph, turn, selection and camera under the same local document identity. Cancel preserves the running game. Native/file-handle backends reread the file; download-only browsers revert to the last successfully saved/imported snapshot. No-saved-file and load failures are localized. |
+| Close game | File-menu Close Game/W closes the active document; game changes mark it modified, save/load clears that state, and closing stops tutorial instructions. | ✅ Implemented | ✅ Implemented | File → Close game/W offers localized Save and close/Discard/Cancel for changed or new documents, closes clean saved games directly, waits for successful writes and preserves other open games. Navigation/report review does not dirty the document. Closing the last game returns to setup; tutorial closure restores the original and releases bindings. Both full suites pass 1,358 tests; dedicated async decisions and actual six-language browser paths are verified below. Quit/browser-tab confirmation remains separate unfinished work. |
 | Host new network game | Creates host data, starts server, and presents join flow. | ❌ Missing | ❌ Missing | `GameConfig.hosting` is data only. There is no network/server code in v4. |
 | Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | ❌ Missing | ❌ Missing | No equivalent. |
 | LAN/Internet discovery | Browse advertised games and query the matchmaker. | ❌ Missing | ❌ Missing | No equivalent. |
@@ -2003,3 +2004,51 @@ independent of the Community site's missing redirect target. Runtime command
 entry, activated browser launch and localized failure handling remain pending
 that decision; no runtime/UI completion is claimed. Other actionable parity
 and Map Generation work continues.
+
+
+### Close Game document lifecycle (2026-10-10)
+
+The shipped File menu maps Close Game/W to command 4. Source evidence:
+`GalacticaDoc.cp:1425–1436` stops tutorial instructions when the game closes;
+`AGalacticThingyUI.cpp:420–426` marks gameplay changes modified;
+`GalacticaSingleDoc.cp:477,497` clears modified state after saving/loading.
+The underlying file-document close behavior is inherited from PowerPlant.
+
+V4 now exposes File → Close game with a File-menu W hint. Unsaved/new games
+present Save and close (Enter), Discard and Cancel (Escape). Clean saved games
+close directly; selection, camera movement, display options and report review
+do not by themselves prompt for a save. Save/Open/Revert establish a gameplay
+content baseline without changing the version-1 save format. A successful save
+closes only after writing completes; canceled/failed saves keep the document
+open. Changes made during the write cause another decision, and a late write
+cannot close a different active document or leave the busy window stranded.
+Discard never overwrites the existing save file.
+
+Closing removes only that session, disposes its renderer and stops its sound
+and autoplay timer. The most recently retained game resumes with its existing
+state; closing the last document returns to setup. Closing a tutorial practice
+game stops the instructions, removes the scripted runtime and restores the
+underlying original game. Other retained documents remain available.
+
+Decision labels, explanatory hover help and the manual's File section are
+localized in en/de/es/fr/ja/ru. The translated buttons use full-width stacked
+rows so longer labels fit, with the shared small right-aligned shortcut hints.
+Both full native runtime suites pass 1,358 tests. Dedicated close/save async
+regressions and the existing Save/Open/Revert async lane pass on both runtimes.
+`tools/test-web-close-game.cjs` provides repeatable actual-input browser
+coverage in all six languages for File-menu W and button
+entry, modal input isolation, Cancel, Save/filename selection, clean saved-game
+Open/Close, Discard with another retained game, failed writes, canceled pickers
+and closing a tutorial back to the unchanged original. Opening then closing a
+tutorial document while the original application is in New Game setup also
+removes the closed session and preserves that setup state. Save pickers use an
+explicit in-memory handle fixture, not an automated operating-system dialog.
+Inspected the before/after File menu, translated decisions and retained views.
+
+Evidence: `/private/tmp/galactica-close-{tests,public-tests,async,public-async,documents-async,public-documents-async,<language>,before}.log`,
+`/private/tmp/galactica-close-setup-<language>.log`,
+`/private/tmp/galactica-parity/close-game`, and
+`/private/tmp/galactica-close-{review,languages-review}.png`.
+Other application/window commands, modal tutorial recovery, multiplayer and
+Map Generation remain pending. This item does not claim Quit/browser-tab close
+confirmation or complete arbitrary-command parity.

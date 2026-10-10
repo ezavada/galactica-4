@@ -76,7 +76,7 @@ const sessions=new (require('./src/js/game-sessions.js'))();
 let tutorialSession=null;
 let tutorialPanel=null;
 let tutorialPointerCapture=false;
-const documents=new (require('./src/js/documents.js'))(require('./src/js/document-files.js').createFiles(),()=>sessions.active,installSavedGame,revertSavedGame);
+const documents=new (require('./src/js/documents.js'))(require('./src/js/document-files.js').createFiles(),()=>sessions.active,installSavedGame,revertSavedGame,closeActiveGame);
 
 const launchOptions = {
     aiAutoplay: hasArg('--ai-autoplay', '--autoplay-ai-skills'),
@@ -107,7 +107,7 @@ const startupLifecycle=new StartupLifecycle.StartupLifecycle(installation,()=>be
         if(startupSettings.model){startupSettings.model.showControlHelp=enabled;startupSettings.model.display.clearControlHelp();}
     }),
     about:openAbout,newGame:()=>sessions.starting?true:beginNewGame(),open:()=>documents.beginOpen(),
-    save:()=>documents.beginSave(),saveAs:()=>documents.beginSave(true),revert:()=>sessions.active?documents.beginRevert():false,
+    close:()=>documents.beginClose(),save:()=>documents.beginSave(),saveAs:()=>documents.beginSave(true),revert:()=>sessions.active?documents.beginRevert():false,
     quit:()=>pdg.quit(),fullscreen:()=>fullscreen.toggle(),help:()=>userManual.open(pdg.res.getLanguage()),tutorial:()=>beginTutorial()
 }));
 const openAbout=()=>startupSettings.open('about');
@@ -259,9 +259,9 @@ function drawStartupRoundedRect(rect, radius = 14, attrs = startupStyles.panel) 
 }
 
 const ButtonCaption=require('./src/js/button-caption.js');
-function drawStartupButtonCaption(rect,label,attrs=startupStyles.advantageText,size=13){
+function drawStartupButtonCaption(rect,label,attrs=startupStyles.advantageText,size=13,key=null){
     const hintSize=Math.max(8,Math.min(9,size-2));
-    const caption=ButtonCaption.layout(rect,label,null,(text,fontSize)=>port.getTextWidth(text,fontSize),{hintSize});
+    const caption=ButtonCaption.layout(rect,label,key,(text,fontSize)=>port.getTextWidth(text,fontSize),{hintSize});
     attrs.textSize(size).textStyle(pdg.textStyle_Centered);
     port.drawText(caption.label,new pdg.Point(caption.labelX,Math.round(rect.y+rect.height/2+size*.3)),attrs);
     if(caption.key){
@@ -318,7 +318,7 @@ function drawStartupTextDialog(editor,labels) {
     port.drawText(visible.text,new pdg.Point(field.x+12,field.y+24),startupStyles.lineText);
     if(!editor.selected)port.drawLine(new pdg.Point(field.x+12+visible.caret,field.y+7),new pdg.Point(field.x+12+visible.caret,field.y+28),startupStyles.divider);
     port.drawText(editor.error?labels.error:'',new pdg.Point(rect.x+24,rect.y+178),startupStyles.hintText);
-    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,13);}
+    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,13,button.key);}
 }
 
 function drawStartupCheckbox(rect,label,checked,scale) {
@@ -616,6 +616,24 @@ function switchGameSession(id) {
     return true;
 }
 
+function closeActiveGame(session) {
+    if(sessions.starting || sessions.active!==session)return false;
+    sound.stop();clearSessionInput();stopAutoplayTimer();
+    if(tutorialSession){
+        const practice=tutorialSession.engaged && tutorialSession.game===session.game;
+        tutorialSession.stop('close');
+        if(practice){if(sessions.sessions.includes(session)){if(!sessions.close(session))return false;session.display.dispose();}return true;}
+    }
+    if(!sessions.close(session))return false;
+    session.display.dispose();
+    if(sessions.active)resumeSession(sessions.active);
+    else{
+        game=null;display=null;autoplayController=null;pendingConfig=createDefaultConfig();
+        startupPlayerName=null;startupGameTitle=null;startupComputerCount=null;startupAISkill=false;
+    }
+    return true;
+}
+
 function attachGameServices(nextGame) {
     nextGame.languagePreferences = languagePreferences;
     nextGame.drawingPreferences = drawingPreferences;
@@ -704,7 +722,7 @@ function drawDocumentDialog() {
         }
         lines.slice(0,8).forEach((line,index)=>port.drawText(line,new pdg.Point(r.x+24,r.y+78+index*19),startupStyles.lineText));
     }
-    layout.buttons.forEach(button=>{drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,13);});
+    layout.buttons.forEach(button=>{drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,13,button.key);});
 }
 
 function startGame() {

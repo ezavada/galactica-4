@@ -658,3 +658,12 @@
 986	Version de développement {0}
 987	 (modifiée)
 988	Informations de compilation indisponibles
+
+# Close game document
+989	Fermer la partie
+990	Enregistrer les modifications de « {0} » avant de fermer ?
+991	Enregistrer et fermer
+992	Abandonner
+993	Fermer cette partie. Les modifications peuvent être enregistrées ou abandonnées ; les autres parties restent ouvertes.
+994	Enregistrer les modifications puis fermer cette partie. Une sauvegarde annulée ou échouée la laisse ouverte.
+995	Fermer cette partie sans enregistrer les modifications. Son fichier enregistré reste inchangé.

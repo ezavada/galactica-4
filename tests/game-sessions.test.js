@@ -57,4 +57,23 @@ module.exports=()=>test.describe('Local game documents and New Game lifecycle',(
   const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const {game,display}=fixture();game.uiWindow='menu';game.fullscreen={supported:true,active:()=>false};for(const height of [600,480,400]){display.getScreenSize=()=>({width:480,height});const r=display.getCommandWindowRect();for(const b of display.getCommandActionRegions())test.assertTrue(b.rect.y+b.rect.height<r.y+r.height-16);}for(const id of [836,837])test.assertTrue(I18n.getString(id).length>0);}}
   finally{pdg.res.setLanguage(old);}
  });
+ test.it('closes one document and selects the last retained game without changing its state',()=>{
+  const {sessions,game,display}=fixture();game.turn=8;sessions.begin();const second=document('Second'),closed=sessions.accept(second.game,second.display);
+  test.assertTrue(sessions.close()===closed);test.assertEqual(sessions.sessions.length,1);test.assertTrue(sessions.active.game===game);test.assertTrue(sessions.active.display===display);test.assertEqual(game.turn,8);test.assertFalse(sessions.starting);
+  test.assertFalse(sessions.close(closed));test.assertTrue(sessions.close()!==false);test.assertNull(sessions.active);test.assertTrue(sessions.starting);test.assertEqual(sessions.rows().length,0);
+ });
+ test.it('cannot close documents behind setup or a temporary tutorial',()=>{
+  const {sessions}=fixture(),original=sessions.active;sessions.begin();test.assertFalse(sessions.close(original));sessions.cancel();sessions.beginTransient();test.assertFalse(sessions.close(original));test.assertEqual(sessions.sessions.length,1);sessions.endTransient();test.assertTrue(sessions.active===original);
+ });
+
+ test.it('removes a background document without switching or modifying the active game',()=>{
+  const {sessions}=fixture(),original=sessions.active;sessions.begin();const second=document('Second'),active=sessions.accept(second.game,second.display);second.game.turn=6;
+  test.assertTrue(sessions.close(original)===original);test.assertTrue(sessions.active===active);test.assertEqual(second.game.turn,6);test.assertFalse(sessions.starting);test.assertEqual(sessions.sessions.length,1);
+ });
+
+ test.it('can release a restored tutorial document while preserving the original setup state',()=>{
+  const {sessions}=fixture(),original=sessions.active;sessions.begin();const practice=document('Practice'),closed=sessions.accept(practice.game,practice.display);sessions.select(original.id);sessions.begin();
+  test.assertTrue(sessions.close(closed)===closed);test.assertTrue(sessions.starting);test.assertTrue(sessions.active===original);test.assertEqual(sessions.sessions.length,1);test.assertFalse(sessions.close(original));
+ });
+
 });

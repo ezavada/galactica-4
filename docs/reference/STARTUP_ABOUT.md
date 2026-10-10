@@ -176,3 +176,51 @@ update check or claim that a missing page proves the development build is
 current. No guessed release policy, release publication or obsolete download
 link has been added. Other application commands and multiplayer remain
 unfinished work; this is an individual external publication blocker.
+
+
+### Close Game document lifecycle (2026-10-10)
+
+The shipped File menu maps Close Game/W to command 4. Source evidence:
+`GalacticaDoc.cp:1425–1436` stops tutorial instructions when the game closes;
+`AGalacticThingyUI.cpp:420–426` marks gameplay changes modified;
+`GalacticaSingleDoc.cp:477,497` clears modified state after saving/loading.
+The underlying file-document close behavior is inherited from PowerPlant.
+
+V4 now exposes File → Close game with a File-menu W hint. Unsaved/new games
+present Save and close (Enter), Discard and Cancel (Escape). Clean saved games
+close directly; selection, camera movement, display options and report review
+do not by themselves prompt for a save. Save/Open/Revert establish a gameplay
+content baseline without changing the version-1 save format. A successful save
+closes only after writing completes; canceled/failed saves keep the document
+open. Changes made during the write cause another decision, and a late write
+cannot close a different active document or leave the busy window stranded.
+Discard never overwrites the existing save file.
+
+Closing removes only that session, disposes its renderer and stops its sound
+and autoplay timer. The most recently retained game resumes with its existing
+state; closing the last document returns to setup. Closing a tutorial practice
+game stops the instructions, removes the scripted runtime and restores the
+underlying original game. Other retained documents remain available.
+
+Decision labels, explanatory hover help and the manual's File section are
+localized in en/de/es/fr/ja/ru. The translated buttons use full-width stacked
+rows so longer labels fit, with the shared small right-aligned shortcut hints.
+Both full native runtime suites pass 1,358 tests. Dedicated close/save async
+regressions and the existing Save/Open/Revert async lane pass on both runtimes.
+`tools/test-web-close-game.cjs` provides repeatable actual-input browser
+coverage in all six languages for File-menu W and button
+entry, modal input isolation, Cancel, Save/filename selection, clean saved-game
+Open/Close, Discard with another retained game, failed writes, canceled pickers
+and closing a tutorial back to the unchanged original. Opening then closing a
+tutorial document while the original application is in New Game setup also
+removes the closed session and preserves that setup state. Save pickers use an
+explicit in-memory handle fixture, not an automated operating-system dialog.
+Inspected the before/after File menu, translated decisions and retained views.
+
+Evidence: `/private/tmp/galactica-close-{tests,public-tests,async,public-async,documents-async,public-documents-async,<language>,before}.log`,
+`/private/tmp/galactica-close-setup-<language>.log`,
+`/private/tmp/galactica-parity/close-game`, and
+`/private/tmp/galactica-close-{review,languages-review}.png`.
+Other application/window commands, modal tutorial recovery, multiplayer and
+Map Generation remain pending. This item does not claim Quit/browser-tab close
+confirmation or complete arbitrary-command parity.

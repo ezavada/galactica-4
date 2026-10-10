@@ -658,3 +658,12 @@
 986	Versión de desarrollo {0}
 987	 (modificada)
 988	Información de compilación no disponible
+
+# Close game document
+989	Cerrar partida
+990	¿Guardar los cambios de «{0}» antes de cerrar?
+991	Guardar y cerrar
+992	Descartar
+993	Cerrar esta partida. Puedes guardar o descartar los cambios; las demás partidas siguen abiertas.
+994	Guardar los cambios y cerrar esta partida. Si se cancela o falla el guardado, permanece abierta.
+995	Cerrar esta partida sin guardar los cambios. Su archivo guardado no se modifica.
