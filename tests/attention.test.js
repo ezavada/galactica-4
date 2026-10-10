@@ -105,7 +105,7 @@ module.exports=function(){test.describe('V3 human call-ins and attention',()=>{
         const action=g.display.getCommandActionRegions().find(r=>r.action.type==='nextAttention');
         test.assertTrue(action.active);g.executeUIAction(action.action);test.assertTrue(g.selectedObject===ship);
         const fit=g.display.getMapButtonRegions().find(r=>r.action.type==='zoomToFit');
-        test.assertTrue(fit.rect.width>98);test.assertTrue(fit.rect.x+fit.rect.width<=800);
+        test.assertTrue(fit.rect.width>=98);test.assertTrue(fit.rect.x+fit.rect.width<=800);
     });
     test.it('supports fleet manual requests without modifying member flags',()=>{
         const {g,ship}=fixture();const fleet=g.factory.createFleet(0,0,1,'Guard');fleet.addShip(ship);

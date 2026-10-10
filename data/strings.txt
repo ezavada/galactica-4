@@ -124,7 +124,7 @@
 # Command button and panel labels (550-599)
 550	Menu
 551	Events
-552	Compare
+552	Compare Players
 553	Home
 554	Fit
 555	Orders

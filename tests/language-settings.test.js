@@ -24,7 +24,15 @@ module.exports=()=>test.describe('Language settings',()=>{
     }));
     test.it('offers settings even in an AI-only observer game',()=>{
         const {game,display}=fixture();game.config.numHumans=0;game.uiWindow='menu';
-        const rows=display.getCommandActionRegions();test.assertEqual(rows.length,1);test.assertEqual(rows[0].action.window,'settings');
+        const rows=display.getCommandActionRegions();test.assertEqual(rows.length,2);test.assertEqual(rows.find(row=>row.action.window==='settings').action.window,'settings');
+    });
+    test.it('offers player comparison only in the global menu and keeps its shortcut',()=>{
+        const {game,display}=fixture();game.uiWindow='menu';
+        const row=display.getCommandActionRegions().find(row=>row.action.window==='comparison');
+        test.assertEqual(row.key,'V');test.assertEqual(display.getUIActionAt(row.rect.x+10,row.rect.y+10).window,'comparison');
+        for(const owner of [0,1,2]){const star=game.factory.createStar(0,0,'Test');star.owner=owner;test.assertFalse(display.getContextActions(star).some(row=>row.action.window==='comparison'));}
+        test.assertFalse(display.getMapButtonDefinitions().some(row=>row.window==='comparison'));
+        game.executeUIAction(row.action);test.assertEqual(game.uiWindow,'comparison');
     });
     test.it('routes every language row and consumes clicks outside the settings dialog',()=>{
         const {game,display}=fixture();game.uiWindow='settings';

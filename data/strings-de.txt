@@ -125,7 +125,7 @@
 # Command button and panel labels (550-599)
 550	Menü
 551	Ereignisse
-552	Vergleich
+552	Spieler vergleichen
 553	Heimat
 554	Einpassen
 555	Befehle

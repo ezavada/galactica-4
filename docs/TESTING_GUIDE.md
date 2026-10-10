@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 748
-Passed: 748 ✓
+Total: 749
+Passed: 749 ✓
 Failed: 0 ✗
 ```
 

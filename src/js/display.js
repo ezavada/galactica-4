@@ -106,7 +106,7 @@ class Display {
             production: I18n.getString(549, "Production"),
             menu: I18n.getString(550, "Menu"),
             events: I18n.getString(551, "Events"),
-            compare: I18n.getString(552, "Compare"),
+            compare: I18n.getString(552, "Compare Players"),
             home: I18n.getString(553, "Home"),
             fit: I18n.getString(554, "Fit"),
             orders: I18n.getString(555, "Orders"),
@@ -1313,7 +1313,6 @@ class Display {
         return [
             { key: 'M', icon:'menu', label: this.STR.menu, window: 'menu', action: { type: 'toggleWindow', window: 'menu' } },
             { key: 'E', label: this.STR.events, window: 'events', action: { type: 'toggleWindow', window: 'events' } },
-            { key: 'V', label: this.STR.compare, window: 'comparison', action: { type: 'toggleWindow', window: 'comparison' } },
             { key: 'L', label: this.STR.fleets, window: 'fleets', action: { type: 'toggleWindow', window: 'fleets' } },
             { key: 'U', label: this.STR.rendezvous, action: { type: 'beginRendezvousPlacement' } },
             { key: 'Tab', label: I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`, action: { type: 'nextAttention' } },
@@ -1389,8 +1388,7 @@ class Display {
             }
             if (this.game.canViewCourse(object)) actions.push({key:'G',label:I18n.getString(726,'Course'),action:{type:'showCourse'}});
             actions.push(
-                { key: 'C', label: this.STR.center, action: { type: 'centerObject' } },
-                { key: 'V', label: this.STR.compare, action: { type: 'toggleWindow', window: 'comparison' } }
+                { key: 'C', label: this.STR.center, action: { type: 'centerObject' } }
             );
         } else if (objectType === Common.ObjectType.RENDEZVOUS) {
             if (this.game.canHumanControl(object)) {
@@ -1402,13 +1400,11 @@ class Display {
                 );
             }
             actions.push(
-                { key: 'C', label: this.STR.center, action: { type: 'centerObject' } },
-                { key: 'V', label: this.STR.compare, action: { type: 'toggleWindow', window: 'comparison' } }
+                { key: 'C', label: this.STR.center, action: { type: 'centerObject' } }
             );
         } else {
             actions.push(
-                { key: 'C', label: this.STR.center, action: { type: 'centerObject' } },
-                { key: 'V', label: this.STR.compare, action: { type: 'toggleWindow', window: 'comparison' } }
+                { key: 'C', label: this.STR.center, action: { type: 'centerObject' } }
             );
         }
 
@@ -1579,7 +1575,7 @@ class Display {
 
     getCommandWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 260 });
+        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 294 });
     }
 
     getProductionWindowRect() {
@@ -1667,14 +1663,17 @@ class Display {
     getCommandActionRegions() {
         if (this.game.uiWindow!=='menu') return [];
         const rect = this.getCommandWindowRect();
-        const settings={rect:{x:rect.x+14,y:rect.y+182,width:rect.width-28,height:28},
+        const settings={rect:{x:rect.x+14,y:rect.y+216,width:rect.width-28,height:28},
             icon:'gear',label:I18n.getString(759,'Settings'),action:{type:'toggleWindow',window:'settings'}};
-        if(!this.game.getCurrentHumanPlayer())return [settings];
+        const comparison={rect:{x:rect.x+14,y:rect.y+148,width:rect.width-28,height:28},
+            label:this.STR.compare,key:'V',action:{type:'toggleWindow',window:'comparison'}};
+        if(!this.game.getCurrentHumanPlayer())return [comparison,settings];
         return [{rect:{x:rect.x+14,y:rect.y+80,width:rect.width-28,height:28},
             icon:'gear',label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}},
             {rect:{x:rect.x+14,y:rect.y+114,width:rect.width-28,height:28},
             label:I18n.getString(708,'Your Star Systems'),action:{type:'showSystemComparison'}},
-            {rect:{x:rect.x+14,y:rect.y+148,width:rect.width-28,height:28},
+            comparison,
+            {rect:{x:rect.x+14,y:rect.y+182,width:rect.width-28,height:28},
             label:I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`,key:'Tab',active:this.game.attention.pending().length>0,action:{type:'nextAttention'}},
             settings];
     }

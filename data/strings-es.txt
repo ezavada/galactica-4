@@ -125,7 +125,7 @@
 # Command button and panel labels (550-599)
 550	Menú
 551	Eventos
-552	Comparar
+552	Comparar jugadores
 553	Inicio
 554	Ajustar
 555	Órdenes
