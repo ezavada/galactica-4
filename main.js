@@ -250,6 +250,21 @@ function drawStartupTextDialog(editor,labels) {
     for(const button of layout.buttons){drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);port.drawText(button.label,new pdg.Point(button.rect.x+button.rect.width/2,button.rect.y+20),startupStyles.advantageText);}
 }
 
+function drawStartupCheckbox(rect,label,checked,scale) {
+    const step=value=>value*scale;
+    drawStartupRoundedRect(rect,6,checked?startupStyles.advantageButtonActive:startupStyles.advantageButton);
+    const box={x:rect.x+step(8),y:rect.y+step(5),width:step(16),height:step(16)};
+    drawStartupRoundedRect(box,3,startupStyles.background);
+    if(checked) {
+        port.drawLine(new pdg.Point(box.x+box.width*.2,box.y+box.height*.5),new pdg.Point(box.x+box.width*.43,box.y+box.height*.75),startupStyles.checkboxMark);
+        port.drawLine(new pdg.Point(box.x+box.width*.43,box.y+box.height*.75),new pdg.Point(box.x+box.width*.82,box.y+box.height*.22),startupStyles.checkboxMark);
+    }
+    let size=Math.max(9,13*scale);
+    while(size>9 && port.getTextWidth(label,size)>rect.width-step(40))size--;
+    startupStyles.lineText.textSize(size);
+    port.drawText(label,new pdg.Point(rect.x+step(32),rect.y+step(18)),startupStyles.lineText);
+}
+
 function drawStartupSkillMenu() {
     const area=port.getDrawingArea(),layout=StartupSetup.skillMenu(area.width(),area.height(),pendingConfig),rect=layout.rect;
     port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.background);
@@ -327,20 +342,8 @@ function drawStartupDialog() {
         port.drawText(choice.label,new pdg.Point(choice.rect.x+choice.rect.width/2,choice.rect.y+step(19)),startupStyles.advantageText);
     }
     y += step(56);
-    const fastRect=StartupSetup.fastGameRegion(panelRect);
-    drawStartupRoundedRect(fastRect,6,pendingConfig.fastGame?startupStyles.advantageButtonActive:startupStyles.advantageButton);
-    const box={x:fastRect.x+step(8),y:fastRect.y+step(5),width:step(16),height:step(16)};
-    drawStartupRoundedRect(box,3,startupStyles.background);
-    if(pendingConfig.fastGame) {
-        port.drawLine(new pdg.Point(box.x+box.width*.2,box.y+box.height*.5),new pdg.Point(box.x+box.width*.43,box.y+box.height*.75),startupStyles.checkboxMark);
-        port.drawLine(new pdg.Point(box.x+box.width*.43,box.y+box.height*.75),new pdg.Point(box.x+box.width*.82,box.y+box.height*.22),startupStyles.checkboxMark);
-    }
-    port.drawText(I18n.getString(505,'Fast Game'),new pdg.Point(fastRect.x+step(32),fastRect.y+step(18)),startupStyles.lineText);
-    const fogX=fastRect.x+fastRect.width+12,fogLabel=pendingConfig.getFogOfWarDescription();
-    let fogSize=Math.max(9,14*scale);
-    while(fogSize>9 && port.getTextWidth(fogLabel,fogSize)>panelX+panelWidth-28-fogX)fogSize--;
-    startupStyles.lineText.textSize(fogSize);
-    port.drawText(fogLabel,new pdg.Point(fogX,fastRect.y+step(18)),startupStyles.lineText);
+    drawStartupCheckbox(StartupSetup.fastGameRegion(panelRect),I18n.getString(505,'Fast Game'),pendingConfig.fastGame,scale);
+    drawStartupCheckbox(StartupSetup.fogOfWarRegion(panelRect),I18n.getString(508,'Fog of War'),!pendingConfig.omniscient,scale);
     y += step(36);
     port.drawText(I18n.getString(525, '<C> edit AI players   <1-5> AI skill'), new pdg.Point(x, y), startupStyles.hintText);
     y += step(22);
@@ -411,7 +414,7 @@ function handleStartupKey(key) {
             StartupSetup.toggleFastGame(pendingConfig);
             return true;
         case 'o':
-            pendingConfig.omniscient = !pendingConfig.omniscient;
+            StartupSetup.toggleFogOfWar(pendingConfig);
             return true;
         case 't':beginGameTitle();return true;
         case 'r':
@@ -567,6 +570,8 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
             }
             const fast=StartupSetup.fastGameRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(event.mousePos.x>=fast.x && event.mousePos.x<=fast.x+fast.width && event.mousePos.y>=fast.y && event.mousePos.y<=fast.y+fast.height){StartupSetup.toggleFastGame(pendingConfig);return true;}
+            const fog=StartupSetup.fogOfWarRegion(StartupSetup.panelRect(area.width(),area.height()));
+            if(event.mousePos.x>=fog.x && event.mousePos.x<=fog.x+fog.width && event.mousePos.y>=fog.y && event.mousePos.y<=fog.y+fog.height){StartupSetup.toggleFogOfWar(pendingConfig);return true;}
             const skill=StartupSetup.skillRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(event.mousePos.x>=skill.x && event.mousePos.x<=skill.x+skill.width && event.mousePos.y>=skill.y && event.mousePos.y<=skill.y+skill.height){startupAISkill=true;return true;}
             const count=StartupSetup.computerCountRegion(StartupSetup.panelRect(area.width(),area.height()));

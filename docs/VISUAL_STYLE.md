@@ -164,3 +164,7 @@ The skill row opens five vertically stacked choices in the existing neutral wind
 ### Fast Game checkbox
 
 The setup options row uses a clickable Fast Game checkbox with a vector check mark, dark inset box and active fill. A gap separates it from density buttons; the translated fog description occupies the other half of the row with measured font fitting. Checked/unchecked states, six-language before/after setup and smaller layouts were inspected under `/private/tmp/galactica-parity/fast-{before,after}`. Full suites: 952 passed on release/current native PDG.
+
+### Fog of War checkbox
+
+Fast Game and Fog of War share measured checkbox rendering, equal widths and separated hit areas. Fog is checked by default; clearing it enables the all-visible map. Both use the existing 13-point setup text scale, dark inset box, vector check mark and active fill. Inspected six translated before/after setup comparisons, smaller checked/unchecked layouts and actual fog/all-visible enemy panels under `/private/tmp/galactica-parity/fog-{before,after}`. Full suites: 957 passed on release/current native PDG.

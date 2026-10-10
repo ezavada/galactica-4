@@ -6,7 +6,7 @@ Run the full suite from the project root with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 952 passed, 0 failed.
+Current expected result: 957 passed, 0 failed.
 
 The launcher downloads the checksum-pinned public PDG release on first use;
 no sibling `pdg` or `pdg-devel` checkout is required.
@@ -65,3 +65,5 @@ Use `docs/TESTING_GUIDE.md` for details on adding or debugging tests.
 - `startup-skill.test.js`: ordered five-choice shared popup, current-choice highlighting, setup isolation, strict skill validation, AI forwarding, smaller layout bounds and translated labels.
 
 - `startup-fast-game.test.js`: checkbox/key state isolation, boolean validation, actual fast scan/speed/shipbuilding rates, smaller layout separation and all six native-language labels.
+
+- `startup-fog.test.js`: inverse checkbox/omniscient state, setup isolation, strict boolean validation, enemy detail/mobile visibility, public yellow-star and disguised-homeworld names, comparison metadata, separated hit areas and six-language labels.

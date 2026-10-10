@@ -160,6 +160,7 @@ class GameConfig {
     // Validate configuration
     validate() {
         const errors = [];
+        if(typeof this.omniscient!=='boolean')errors.push('omniscient must be a boolean');
         if(typeof this.fastGame!=='boolean')errors.push('fastGame must be a boolean');
         if(!PlayerName.validName(this.gameTitle,27))errors.push('gameTitle must contain 1–27 characters without control characters');
         for(const [key,name] of Object.entries(this.humanPlayerNames)) {

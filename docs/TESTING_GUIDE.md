@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 952
-Passed: 952 ✓
+Total: 957
+Passed: 957 ✓
 Failed: 0 ✗
 ```
 
@@ -191,3 +191,7 @@ Computer-opponent setup: seven regressions cover every local count 0–98, accep
 Startup shared AI-skill popup: six regressions cover the exact v3 five-choice order, accepted-choice highlighting, isolation of other setup metadata and explicit per-player harness overrides, strict integer/zero validation, selected skill forwarding to all computers, separate popup/cancel hit bounds and all six translations. Full suites: 947 passed on release/current native PDG. Actual browser clicks on all five choices, Cancel/Escape/outside-click, direct and popup number shortcuts, R reset, non-leaking Enter/T, clicks while count/title/name dialogs are open, launched-game AI metadata and smaller layouts passed in every language. Inspected translated popup/smaller captures and six before/after setup comparisons under `/private/tmp/galactica-parity/skill-{before,after}`. Logs: `/private/tmp/galactica-skill-{tests,native-tests}.log`, `/private/tmp/galactica-skill-after-<language>.log`.
 
 Fast Game setup checkbox: five regressions cover state transitions without affecting other options, strict boolean validation, positive doubled scan/speed/shipbuilding rules, smaller viewport separation from density/hints and all translated labels/shortcuts. Full suites: 952 passed on release/current native PDG. Actual browser click/F agreement, on/off state, R reset, count/title/skill/name modal isolation, preserved other options, launched fast rules and smaller checked/unchecked states passed in all six languages. Inspected six translated before/after setup comparisons and checked/smaller captures under `/private/tmp/galactica-parity/fast-{before,after}`. Review found the checkbox initially touched the density row; added a gap and repeated final checks. Logs: `/private/tmp/galactica-fast-{tests,native-tests}.log`, `/private/tmp/galactica-fast-after-<language>.log`.
+
+Fog of War setup checkbox: five regressions cover inverse checked/omniscient mapping, preserving other settings, rejecting nonboolean flags, actual enemy diagnostic/mobile visibility, public yellow-star labels and unseen-homeworld aliases with true comparison metadata, control separation and six-language labels. Full suites: 957 passed on release/current native PDG. Browser default/check/uncheck/O agreement, independent Fast Game state, R reset, count/title/skill/name modal isolation, launched enemy information/map names and smaller states passed in every language. Inspected six before/after setup comparisons, checked/unchecked and smaller layouts, and actual fog/all-visible enemy windows under `/private/tmp/galactica-parity/fog-{before,after}`. Shared checkbox fonts match the existing setup style. Logs: `/private/tmp/galactica-fog-{tests,native-tests}.log`, `/private/tmp/galactica-fog-after-<language>.log`. Broader fog/last-seen behavior remains governed by the Section 6 checklist.
+
+Final checkbox-renderer regression check: the Fast Game control crop is pixel-identical before/after in all six languages after matching the existing 13-point setup scale.

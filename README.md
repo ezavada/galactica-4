@@ -58,7 +58,7 @@ use the same paths as the desktop launcher.
 ## Features
 
 - **Map generation**: Procedurally generated star maps using v3-style algorithms.
-- **Local setup dialog**: Editable Unicode game titles (up to 27 characters), followed by player-name entry. Click the player-count row or press C to edit 0–98 AI opponents, including solo exploration. Click the AI-skill row for the five localized v3 choices, or use keys 1–5. Startup configuration for the full −3 through +3 computer-advantage range, map size, density, fast-game, and fog/all-visible mode. Advantage choices are clickable or cycled with A; Fast Game has a clickable checkbox and F shortcut.
+- **Local setup dialog**: Editable Unicode game titles (up to 27 characters), followed by player-name entry. Click the player-count row or press C to edit 0–98 AI opponents, including solo exploration. Click the AI-skill row for the five localized v3 choices, or use keys 1–5. Startup configuration for the full −3 through +3 computer-advantage range, map size, density, fast-game, and fog/all-visible mode. Advantage choices are clickable or cycled with A; Fast Game and Fog of War have clickable checkboxes and F/O shortcuts.
 - **Turn-based core**: Build ships, colonize stars, move ships/fleets, resolve v3-style combat/capture, repair docked ships/fleets, and update fog-of-war state.
 - **AI players**: Computer opponents participate in turns, use v3-backed economy/build rules, and send ships/fleets to destinations with v3-style decision scoring.
 - **Command UI**: Startup player-name dialog with remembered Unicode names, runtime windows, event list, full v3 player comparison with production/power and system/ship technology statistics, best/worst highlighting, paged rosters, permanent map buttons, popup action buttons, and production sliders.
@@ -84,7 +84,7 @@ use the same paths as the desktop launcher.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 952 passed, 0 failed.
+Current expected result: 957 passed, 0 failed.
 
 AI-only parity observer:
 

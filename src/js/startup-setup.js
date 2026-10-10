@@ -25,6 +25,9 @@ function computerCountRegion(rect) {return {x:rect.x+28,y:rect.y+96*rect.height/
 function setFastGame(config,value) {if(typeof value!=='boolean')return false;config.fastGame=value;return true;}
 function toggleFastGame(config) {return setFastGame(config,!config.fastGame);}
 function fastGameRegion(rect) {return {x:rect.x+28,y:rect.y+336*rect.height/540,width:(rect.width-62)/2,height:26*rect.height/540};}
+function setFogOfWar(config,enabled) {if(typeof enabled!=='boolean')return false;config.omniscient=!enabled;return true;}
+function toggleFogOfWar(config) {return setFogOfWar(config,config.omniscient);}
+function fogOfWarRegion(rect) {const fast=fastGameRegion(rect);return {...fast,x:fast.x+fast.width+6};}
 function titleRegion(rect) {return {x:rect.x+28,y:rect.y+56*rect.height/540,width:rect.width-56,height:26*rect.height/540};}
 
 // The seven choices and menu order are from v3 CGameSetupAttach.cpp.
@@ -86,4 +89,4 @@ function clickSectorSize(config,rect,x,y) {
     return choice?setSectorSize(config,choice.value):false;
 }
 function startRegion(rect) {return {x:rect.x+rect.width/2-90,y:rect.y+467*rect.height/540,width:180,height:30*rect.height/540};}
-module.exports={setFastGame,toggleFastGame,fastGameRegion,skills,setSkill,skillRegion,skillMenu,setComputerCount,acceptComputerCount,computerCountRegion,maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};
+module.exports={setFogOfWar,toggleFogOfWar,fogOfWarRegion,setFastGame,toggleFastGame,fastGameRegion,skills,setSkill,skillRegion,skillMenu,setComputerCount,acceptComputerCount,computerCountRegion,maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};

@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 952 passed, 0 failed.
+Current expected full-suite result: 957 passed, 0 failed.
 
 ## Future work
 
@@ -159,3 +159,5 @@ Computer-opponent setup adds IDs 829–831 and updates shortcut hint 525 in en/d
 The startup skill popup reuses IDs 301–305, 522 and 683 for all five native-language skill names, heading and Cancel. No new string IDs are needed (366 per language). Actual pointer selection of every choice, cancellation, keyboard selection, modal isolation and smaller layouts passed in all six languages; screenshots were inspected. Full suites: 947 passed on release/current native PDG.
 
 The Fast Game setup checkbox uses existing label 505 and shortcut hint 527 in all six languages; the neighboring fog description keeps its existing translations and measured font fitting. No new resources (366 IDs per language). Inspected checked/unchecked and smaller layouts and six before/after setup comparisons; actual checkbox/F/reset/modal/launch flows passed in en/de/es/fr/ja/ru. Full suites: 952 passed on release/current native PDG.
+
+The Fog of War checkbox reuses label 508 and shortcut hint 527 in en/de/es/fr/ja/ru. It remains labeled Fog of War in either state; clearing it enables all-visible mode. Shared checkbox rendering measures both native-language labels. No new resources (366 IDs per language). Inspected six translated before/after setup and smaller checked/unchecked layouts, plus actual fog/all-visible enemy windows. Browser flows passed in all six languages; full suites: 957 passed on release/current native PDG.
