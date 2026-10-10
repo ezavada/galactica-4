@@ -595,23 +595,21 @@ class CombatSystem {
         }
     }
 
-    recordCombatSummary(destination, outcome, attackersLost, defendersLost) {
-        if (!this.game || typeof this.game.recordEvent !== 'function') {
-            return;
+    recordCombatSummary(destination, outcome, forces, casualties) {
+        if (!this.game || typeof this.game.recordEvent !== 'function') return;
+        const location=this.getCombatLocationLabel(destination);
+        for(const [owner,force] of forces) {
+            const won=force.side==='attacker'?outcome.attackersWon:outcome.defendersWon;
+            const lost=force.side==='attacker'?outcome.defendersWon:outcome.attackersWon;
+            const ownLosses=casualties.filter(ship=>ship.owner===owner).length;
+            const enemyLosses=casualties.filter(ship=>force.side==='attacker'?ship.owner!==owner:ship.owner===force.attackerOwner).length;
+            const event=this.game.recordEvent(I18n.getString(607,'Combat'),
+                I18n.formatString(won?926:lost?927:928,'',location,force.name,ownLosses,enemyLosses),
+                {type:Common.EventType.BATTLE_RESOLVED,recipient:owner,subject:force.subject,position:destination});
+            // Retain the battle-time figures, independent of later repairs, grouping or destruction.
+            event.combat={side:force.side,result:won?'won':lost?'lost':'inconclusive',forceName:force.name,
+                ownShipsLost:ownLosses,enemyShipsLost:enemyLosses,location};
         }
-
-        this.game.recordEvent(
-            I18n.getString(607, 'Combat'),
-            I18n.formatString(
-                651,
-                'Combat at {0}: {1}. Losses: attackers {2}, defenders {3}.',
-                this.getCombatLocationLabel(destination),
-                outcome.label,
-                attackersLost,
-                defendersLost
-            ),
-            { type: Common.EventType.BATTLE_RESOLVED }
-        );
     }
 
     // Resolve combat between attackers and defenders
@@ -636,6 +634,18 @@ class CombatSystem {
                 hasColony: false,
                 canColonize: false
             };
+        }
+
+        const forces=new Map();
+        const addForce=(owner,subject,side)=>{
+            if(owner>0&&!forces.has(owner))forces.set(owner,{subject,side,attackerOwner,
+                name:subject.name || (typeof this.game.getObjectDisplayName==='function'?this.game.getObjectDisplayName(subject):this.getCombatLocationLabel(subject))});
+        };
+        addForce(attackerOwner,attacker,'attacker');
+        if(this.isEnemyOf(attackerOwner,destination))addForce(originalDestinationOwner,destination,'defender');
+        for(const ship of spaceDefenders) {
+            let root=ship;while(root.fleet)root=root.fleet;
+            addForce(ship.owner,root,'defender');
         }
 
         let spaceResult;
@@ -686,6 +696,8 @@ class CombatSystem {
             defenderSurvivors = groundResult.defenderSurvivors.filter(entity => this.isAliveCombatant(entity));
         }
 
+        const casualties=[...attackerCombatants,...spaceDefenders].filter(entity=>this.isShip(entity)&&!this.isAliveCombatant(entity));
+
         const survivingColony = attackerSurvivors.find(entity => entity.type === 'colony');
         const canColonize = !!(survivingColony && this.isStar(destination) && destination.owner === 0);
         if (canColonize && this.game && this.game.colonizeStar) {
@@ -698,7 +710,7 @@ class CombatSystem {
         const attackersLost = spaceResult.attackersLost + (groundResult ? groundResult.attackersLost : 0);
         const defendersLost = spaceResult.defendersLost + (groundResult ? groundResult.defendersLost : 0);
         const finalOutcome = this.getCombatOutcome(destination, attackerOwner, attackerSurvivors, defenderSurvivors);
-        this.recordCombatSummary(destination, finalOutcome, attackersLost, defendersLost);
+        this.recordCombatSummary(destination, finalOutcome, forces, casualties);
 
         if (this.game && typeof this.game.updatePlayerPieceCounts === 'function') {
             this.game.updatePlayerPieceCounts();

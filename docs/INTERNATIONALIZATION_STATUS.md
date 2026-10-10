@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 460 IDs
-- localized files: 460 IDs each
+- `strings.txt`: 463 IDs
+- localized files: 463 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 1036 passed, 0 failed.
+Current expected full-suite result: 1040 passed, 0 failed.
 
 ## Future work
 
@@ -179,3 +179,5 @@ Control flyby help adds IDs 857–920 in English, German, Spanish, French, Japan
 Hull-role explanations add IDs 921–924 in all six languages (459 IDs per file). Build choices and new-colony default hull choices explain satellite immobility/mandatory patrol, scout scanning and technology delivery, colony consumption and escort needs, and battleship combat/class progression. Existing build-credit and future-colony explanations are retained. All translated descriptions wrap completely at smaller test widths without changing production on hover. Actual browser before/after screenshots and build/default click-through checks pass in en/de/es/fr/ja/ru; reviewed artifacts: `/private/tmp/galactica-parity/hull-help-{before,after}`. Full suites: 1032 passed on release/current native PDG.
 
 First-built hull presentations add ID 925 in all six languages (460 IDs per file), with literal hull/class and source-system names preserved through substitution. The report reuses role explanations 921–924; Stardock titles/footer reuse 571/572. Satellites, scouts and colony ships now use their own existing artwork. Reports and overlays are owner-only, including with fog disabled. Actual browser before/after checks and reviewed translated Stardock/report screenshots pass in every supported language under `/private/tmp/galactica-parity/first-hulls-{before,after}`. Full suites: 1036 passed on release/current native PDG.
+
+Participant combat reports add IDs 926–928 in all six languages (463 IDs per file). Winner, loser and inconclusive messages retain literal force/location names and distinguish own ship losses from destroyed enemy ships. Count labels avoid singular/plural agreement problems; Japanese uses native counters. Reports reuse existing Events, complete-text wrapping and Go to controls. Before/after browser checks and reviewed winner/loser reports pass in all six languages under `/private/tmp/galactica-parity/battle-reports-{before,after}`. Full suites: 1040 passed on release/current native PDG. Observer reports, automatic message presentation/replay and the remaining recipient-relative event variants are still pending.

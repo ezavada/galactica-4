@@ -564,3 +564,6 @@
 923	Colony ship: costly and slow. It is consumed when colonizing a neutral system or capturing a defeated enemy system. Escort it through hostile space.
 924	Battleship: a mobile combat ship for attacking and escorting. Higher technology increases its combat power and unlocks stronger named classes. It has no scanner.
 925	First {0} commissioned at {1}.
+926	You won the battle at {0}. Your force: {1}. Your ships lost: {2}. Enemy ships destroyed: {3}.
+927	You lost the battle at {0}. Your force: {1}. Your ships lost: {2}. Enemy ships destroyed: {3}.
+928	The battle at {0} was inconclusive. Your force: {1}. Your ships lost: {2}. Enemy ships destroyed: {3}.

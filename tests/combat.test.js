@@ -441,10 +441,56 @@ function runCombatTests() {
             const event = game.eventLog.find(entry => entry.type === Common.EventType.BATTLE_RESOLVED);
             test.assertDefined(event, 'Combat should record a summary event');
             test.assertEqual(event.title, 'Combat');
-            test.assertContains(event.message, 'Combat at Target');
-            test.assertContains(event.message, 'attacker victory');
+            test.assertContains(event.message, 'You won the battle at Target');
+            test.assertEqual(event.recipient,1);test.assertTrue(event.subject===attacker);
+            test.assertEqual(event.combat.result,'won');
         });
 
+        test.it('records participant-relative fleet casualties without exposing battles to outsiders',()=>{
+            const config=new GameConfig({numHumans:1,numComputers:2,skipMapGeneration:true,omniscient:true});
+            const game=new Game(new Factory(),new Rules(false),config),a=createOwnedStar(game,0,0,'A',2,20),b=createOwnedStar(game,1000,0,'B',3,1);
+            const attacker=game.factory.createFleet(0,0,2,'Attack 星'),defender=game.factory.createFleet(1000,0,3,'Defend Д');
+            const ships=[createCompletedShip(game,a,'battleship',20),createCompletedShip(game,a,'battleship',20),createCompletedShip(game,b,'battleship',1)];
+            attacker.addShip(ships[0]);attacker.addShip(ships[1]);defender.addShip(ships[2]);pdg.srand(42);
+            const result=game.combatSystem.resolveCombat(attacker,defender),reports=game.eventLog.filter(e=>e.type===Common.EventType.BATTLE_RESOLVED);
+            test.assertEqual(reports.length,2);test.assertEqual(game.getEventRows().filter(e=>e.type===Common.EventType.BATTLE_RESOLVED).length,0);
+            const attack=reports.find(e=>e.recipient===2),defend=reports.find(e=>e.recipient===3);
+            test.assertTrue(attack.subject===attacker);test.assertTrue(defend.subject===defender);
+            test.assertEqual(attack.combat.enemyShipsLost,defend.combat.ownShipsLost);
+            test.assertEqual(attack.combat.ownShipsLost,defend.combat.enemyShipsLost);
+            test.assertEqual(attack.combat.result,result.attackersWon?'won':result.defendersWon?'lost':'inconclusive');
+            test.assertEqual(defend.combat.result,result.defendersWon?'won':result.attackersWon?'lost':'inconclusive');
+            const snapshot=JSON.stringify(reports.map(e=>e.combat));ships[0].name='Changed';ships[0].damage=0;attacker.name='Renamed';
+            test.assertEqual(JSON.stringify(reports.map(e=>e.combat)),snapshot);
+        });
+        test.it('reports an unresolved unarmed encounter without inventing a winner or casualties',()=>{
+            const game=createRuntimeCombatGame(),a=createOwnedStar(game,0,0,'A',1),b=createOwnedStar(game,1000,0,'B',2);
+            const attacker=createCompletedShip(game,a,'scout'),defender=createCompletedShip(game,b,'scout');
+            const result=game.combatSystem.resolveCombat(attacker,defender);test.assertFalse(result.attackersWon);test.assertFalse(result.defendersWon);
+            const reports=game.eventLog.filter(e=>e.type===Common.EventType.BATTLE_RESOLVED);test.assertEqual(reports.length,2);
+            for(const event of reports){test.assertEqual(event.combat.result,'inconclusive');test.assertEqual(event.combat.ownShipsLost,0);test.assertEqual(event.combat.enemyShipsLost,0);test.assertTrue(event.message.includes('inconclusive'));}
+        });
+        test.it('counts ships rather than the planet or consumed colony in invasion reports',()=>{
+            const game=createRuntimeCombatGame(),origin=createOwnedStar(game,0,0,'Home',1,20),target=createOwnedStar(game,1000,0,'Target',2,1,1);
+            const fleet=game.factory.createFleet(0,0,1,'Liberation'),battleship=createCompletedShip(game,origin,'battleship',20),colony=createCompletedShip(game,origin,'colony',20);
+            fleet.addShip(battleship);fleet.addShip(colony);pdg.srand(42);game.combatSystem.resolveCombat(fleet,target);
+            const event=game.eventLog.find(e=>e.type===Common.EventType.BATTLE_RESOLVED&&e.recipient===1);
+            test.assertEqual(event.combat.enemyShipsLost,0);test.assertEqual(event.combat.ownShipsLost,0);
+            test.assertFalse(game.allShips.includes(colony));test.assertEqual(target.owner,1);
+            const saved=JSON.stringify(event.combat),Save=require('../src/js/game-save.js'),loaded=Save.restore(Save.serialize(game));
+            test.assertEqual(JSON.stringify(loaded.eventLog.find(e=>e.id===event.id).combat),saved);
+        });
+        test.it('shows a human defender only their own perspective in all translated reports',()=>{
+            const lang=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']) {
+                pdg.res.setLanguage(code);const game=createRuntimeCombatGame(),origin=createOwnedStar(game,0,0,'Enemy',2,20),home=createOwnedStar(game,1000,0,'Home 星',1,1);
+                const attacker=createCompletedShip(game,origin,'battleship',20),defender=createCompletedShip(game,home,'battleship',1);defender.name='Guard Д';pdg.srand(42);
+                game.combatSystem.resolveCombat(attacker,defender);
+                const reports=game.getEventRows().filter(e=>e.type===Common.EventType.BATTLE_RESOLVED);test.assertEqual(reports.length,1);const event=reports[0];
+                test.assertEqual(event.recipient,1);test.assertEqual(event.combat.side,'defender');test.assertTrue(event.message.includes('Guard Д'));
+                test.assertFalse(/\{[0-9]+\}/.test(event.message));test.assertEqual(event.combat.result,'lost');
+                test.assertTrue(game.getEventFocus(event).object===null);test.assertEqual(game.getEventFocus(event).x,1000);
+            }}finally{pdg.res.setLanguage(lang);}
+        });
         test.it('resolves enemy ship interception as combat instead of fleet formation', () => {
             const game = createRuntimeCombatGame();
             const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 20, 100);
