@@ -2,12 +2,15 @@
 // Defines game setup options matching original C++ NewGameInfoT structure
 
 const I18n = require('./i18n.js');
+const PlayerName=require('./player-name.js');
 
 class GameConfig {
     constructor(options = {}) {
         // Game title
         this.gameTitle = options.gameTitle || I18n.getString(500, "Galactica Game");
         
+        this.humanPlayerNames = options.humanPlayerNames ? {...options.humanPlayerNames} : {};
+
         // Player configuration
         this.numHumans = options.numHumans !== undefined ? options.numHumans : 1;
         this.numComputers = options.numComputers !== undefined ? options.numComputers : 1;
@@ -157,7 +160,12 @@ class GameConfig {
     // Validate configuration
     validate() {
         const errors = [];
-        
+        for(const [key,name] of Object.entries(this.humanPlayerNames)) {
+            const player=Number(key);
+            if(!Number.isInteger(player) || player<1 || player>this.numHumans || !PlayerName.validName(name))
+                errors.push('humanPlayerNames must contain valid names for human player slots');
+        }
+
         if (this.numHumans < 0 || this.numHumans > 99) {
             errors.push("numHumans must be between 0 and 99");
         }

@@ -446,3 +446,8 @@
 819	{0} (derrotado)
 820	Tecnología de sistemas
 821	Tecnología de naves
+
+# New game player name
+822	Nombre del jugador
+823	Introduce tu nombre de jugador.
+824	Introduce un nombre antes de empezar.

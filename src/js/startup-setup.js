@@ -56,4 +56,5 @@ function clickSectorSize(config,rect,x,y) {
     const choice=sectorSizeRegions(rect,config).find(({rect:r})=>x>=r.x && x<r.x+r.width && y>=r.y && y<r.y+r.height);
     return choice?setSectorSize(config,choice.value):false;
 }
-module.exports={advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};
+function startRegion(rect) {return {x:rect.x+rect.width/2-90,y:rect.y+467*rect.height/540,width:180,height:30*rect.height/540};}
+module.exports={startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};

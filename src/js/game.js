@@ -98,6 +98,7 @@ class Game {
         for (let i = 1; i <= this.config.totalPlayers; i++) {
             const isComputer = (i > this.config.numHumans);
             this.players[i] = new PlayerInfo(i, isComputer);
+            if(!isComputer && this.config.humanPlayerNames[i])this.players[i].setName(this.config.humanPlayerNames[i]);
             if (isComputer) {
                 this.players[i].setAISkill(this.config.getAISkillForPlayer(i), this.config.compAdvantage);
             }

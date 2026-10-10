@@ -446,3 +446,8 @@
 819	{0} (besiegt)
 820	Systemtechnologie
 821	Schiffstechnologie
+
+# New game player name
+822	Spielername
+823	Geben Sie Ihren Spielernamen ein.
+824	Geben Sie vor dem Start einen Namen ein.

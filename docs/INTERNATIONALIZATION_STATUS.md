@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 356 IDs
-- localized files: 356 IDs each
+- `strings.txt`: 359 IDs
+- localized files: 359 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 919 passed, 0 failed.
+Current expected full-suite result: 928 passed, 0 failed.
 
 ## Future work
 
@@ -149,3 +149,5 @@ System comparison sorting uses existing localized headers and hull labels in all
 System comparison geometry reuses localized title/corner hints (810), close (531), paging and table guidance. No new strings; 345 resource IDs per language. Actual browser controls and full reload restoration passed in en/de/es/fr/ja/ru, with moved and smaller/restored layouts inspected. Current full suites: 909 passed on release/current native PDG.
 
 Compare Players adds IDs 811–821 in English, German, Spanish, French, Japanese and Russian: unowned systems, compact technology subheadings, best/worst legend, defeated-name template and grouped system/ship technology headings. Integer formatting follows each language; real enemy faction/homeworld names are preserved independently of fogged map aliases. All six translated table and smaller CSS views inspected after actual paging/input/close/reopen flows. Current resources: 356 IDs per language; full suites: 919 passed on release/current native PDG.
+
+Player-name startup adds IDs 822–824 in all six languages for the title, prompt and blank-name error; Start/Cancel use existing resources. Native-script names edit by Unicode code point and are retained in configuration/map generation/player comparison and native/browser remembered-name storage. Actual typed accented/Japanese/Cyrillic names, cancellation, blank validation, fresh-page restoration and smaller dialog layouts passed in en/de/es/fr/ja/ru, with screenshots inspected. Current resources: 359 IDs per language; full suites: 928 passed on release/current native PDG.

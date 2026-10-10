@@ -6,7 +6,7 @@ Run the full suite from the project root with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 919 passed, 0 failed.
+Current expected result: 928 passed, 0 failed.
 
 The launcher downloads the checksum-pinned public PDG release on first use;
 no sibling `pdg` or `pdg-devel` checkout is required.
@@ -41,6 +41,7 @@ no sibling `pdg` or `pdg-devel` checkout is required.
 - AI skill autoplay
 - PDG v1.2 camera, retained panel text, and selection scripts
 
+- `player-name.test.js`: selected-name replacement, spaces and Unicode editing, caret/delete behavior, 32-character limit, configuration/map integration, native/browser preferences, pointer Start bounds and all six languages.
 - `player-comparison.test.js`: all v3 summary metrics, population/production units, integer technology averages, nested members/satellites, dead/unfinished exclusions, unowned/defeated/unassigned rows, raw production extrema, rendered colors/dashes, paging, modal input and all six languages.
 - `system-comparison.test.js`: owned-system filtering, v3 production/defense arithmetic, fleet/satellite minimums, all-column sorting, paging, stale selection, mouse/keyboard navigation and six-language resources.
 

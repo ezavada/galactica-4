@@ -446,3 +446,8 @@
 819	{0} (vaincu)
 820	Technologie des systèmes
 821	Technologie des vaisseaux
+
+# New game player name
+822	Nom du joueur
+823	Saisissez votre nom de joueur.
+824	Saisissez un nom avant de commencer.

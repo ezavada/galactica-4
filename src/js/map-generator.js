@@ -287,7 +287,7 @@ class MapGenerator {
                 // Human player - set default name from resources
                 const youStr = I18n.getString(17, "You");
                 const playerStr = I18n.getString(18, "Player");
-                playerInfo.setName(playerNum === 1 ? youStr : `${playerStr} ${playerNum}`);
+                playerInfo.setName(this.game.config.humanPlayerNames[playerNum] || (playerNum === 1 ? youStr : `${playerStr} ${playerNum}`));
             }
         }
         

@@ -446,3 +446,8 @@
 819	{0} (defeated)
 820	System technology
 821	Ship technology
+
+# New game player name
+822	Player name
+823	Enter your player name.
+824	Enter a name before starting.

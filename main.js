@@ -40,6 +40,8 @@ function getIntegerArg(name, fallback = null) {
 
 const LanguageSettings = require('./src/js/language-settings.js');
 const StartupSetup = require('./src/js/startup-setup.js');
+const PlayerName=require('./src/js/player-name.js');
+const playerNamePreferences=PlayerName.createPreferences();
 const rosterPreferences = require('./src/js/roster-preferences.js').createPreferences();
 const systemComparisonPreferences = require('./src/js/roster-preferences.js').createPreferences(globalThis, {
     prefix:'systemComparison', minimumHeight:176, keys:['name','tech','population','production','buildName','completion',
@@ -100,6 +102,7 @@ let pendingConfig = launchOptions.aiAutoplay ?
         fastGame: launchOptions.fastAutoplay
     }) :
     createDefaultConfig();
+let startupPlayerName=null;
 let game = null;
 let display = null;
 let autoplayController = null;
@@ -196,7 +199,39 @@ function drawStartupDivider(x, y, width) {
     port.drawLine(new pdg.Point(x, y), new pdg.Point(x + width, y), startupStyles.divider);
 }
 
+function beginPlayerName() {
+    if(pendingConfig.numHumans===0){startGame();return;}
+    startupPlayerName=PlayerName.createEditor(pendingConfig.humanPlayerNames[1] || playerNamePreferences.read() || I18n.getString(17,'You'));
+}
+
+function submitPlayerName() {
+    if(!startupPlayerName)return;
+    const name=startupPlayerName.text.trim();
+    if(!PlayerName.validName(name)){startupPlayerName.error=true;return;}
+    pendingConfig.humanPlayerNames[1]=name;
+    startGame();
+    if(game){playerNamePreferences.write(name);startupPlayerName=null;}
+}
+
+function drawPlayerNameDialog() {
+    const area=port.getDrawingArea(),layout=PlayerName.layout(area.width(),area.height()),{rect,field}=layout;
+    port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.background);
+    PanelAppearance.applySurface(startupStyles.panel,rect,startupUIColor('panelFill'));drawStartupRoundedRect(rect,14,startupStyles.panel);
+    startupStyles.subtitleText.textSize(16);startupStyles.lineText.textSize(14);startupStyles.hintText.textSize(12);startupStyles.advantageText.textSize(13);
+    port.drawText(I18n.getString(822,'Player name'),new pdg.Point(rect.x+rect.width/2,rect.y+40),startupStyles.subtitleText);
+    port.drawText(I18n.getString(823,'Enter your player name.'),new pdg.Point(rect.x+24,rect.y+78),startupStyles.lineText);
+    drawStartupRoundedRect(field,6,startupStyles.advantageButton);
+    const visible=PlayerName.visibleText(startupPlayerName,field.width-24,text=>port.getTextWidth(text,14));
+    if(startupPlayerName.selected)drawStartupRoundedRect({x:field.x+9,y:field.y+5,width:Math.min(field.width-18,port.getTextWidth(visible.text,14)+6),height:26},3,startupStyles.advantageButtonActive);
+    port.drawText(visible.text,new pdg.Point(field.x+12,field.y+24),startupStyles.lineText);
+    if(!startupPlayerName.selected)port.drawLine(new pdg.Point(field.x+12+visible.caret,field.y+7),new pdg.Point(field.x+12+visible.caret,field.y+28),startupStyles.divider);
+    port.drawText(startupPlayerName.error?I18n.getString(824,'Enter a name before starting.'):'',new pdg.Point(rect.x+24,rect.y+178),startupStyles.hintText);
+    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);port.drawText(button.label,new pdg.Point(button.rect.x+button.rect.width/2,button.rect.y+20),startupStyles.advantageText);}
+}
+
 function drawStartupDialog() {
+    if(startupPlayerName){drawPlayerNameDialog();return;}
+
     const drawingArea = port.getDrawingArea();
     const screenWidth = drawingArea.width();
     const screenHeight = drawingArea.height();
@@ -263,15 +298,23 @@ function drawStartupDialog() {
     port.drawText(I18n.getString(527, '<F> fast game   <O> fog/all visible   <R> defaults'), new pdg.Point(x, y), startupStyles.hintText);
     y += step(42);
 
+    drawStartupRoundedRect(StartupSetup.startRegion(panelRect),7,startupStyles.advantageButton);
     port.drawText(I18n.getString(528, '<Enter> Start'), new pdg.Point(screenWidth / 2, y), startupStyles.startText);
 }
 
 function handleStartupKey(key) {
+    if(startupPlayerName) {
+        const action=PlayerName.edit(startupPlayerName,key);
+        if(action==='submit')submitPlayerName();
+        if(action==='cancel')startupPlayerName=null;
+        return true;
+    }
+
     const char = typeof key === 'number' ? String.fromCharCode(key) : '';
     const lower = char.toLowerCase();
 
     if (key === 13 || key === 10 || key === pdg.key_Tab) {
-        startGame();
+        beginPlayerName();
         return true;
     }
 
@@ -436,6 +479,17 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     if (!game) {
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0) {
             const area=port.getDrawingArea();
+            if(startupPlayerName) {
+                const layout=PlayerName.layout(area.width(),area.height()),x=event.mousePos.x,y=event.mousePos.y;
+                const contains=r=>x>=r.x && x<=r.x+r.width && y>=r.y && y<=r.y+r.height;
+                const button=layout.buttons.find(button=>contains(button.rect));
+                if(button && button.action==='submit')submitPlayerName();
+                else if(button && button.action==='cancel')startupPlayerName=null;
+                else if(contains(layout.field)){startupPlayerName.selected=true;startupPlayerName.caret=Array.from(startupPlayerName.text).length;}
+                return true;
+            }
+            const start=StartupSetup.startRegion(StartupSetup.panelRect(area.width(),area.height()));
+            if(event.mousePos.x>=start.x && event.mousePos.x<=start.x+start.width && event.mousePos.y>=start.y && event.mousePos.y<=start.y+start.height){beginPlayerName();return true;}
             StartupSetup.clickAdvantage(pendingConfig,StartupSetup.panelRect(area.width(),area.height()),event.mousePos.x,event.mousePos.y);
             StartupSetup.clickDensity(pendingConfig,StartupSetup.panelRect(area.width(),area.height()),event.mousePos.x,event.mousePos.y);
             StartupSetup.clickSectorSize(pendingConfig,StartupSetup.panelRect(area.width(),area.height()),event.mousePos.x,event.mousePos.y);
