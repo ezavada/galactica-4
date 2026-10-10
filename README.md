@@ -33,7 +33,8 @@ to share that cache between clones, or `PDG_EXECUTABLE` to test with an
 already installed runtime. Pass `--refresh-pdg` (or `-RefreshPdg` in
 PowerShell) to replace the cached copy.
 
-Press **T** or click the triangle in the introduction/About window, click **Tutorial** on the start screen, or open the in-game menu and choose
+On a new installation, closing the introduction starts the tutorial automatically.
+You can also press **T** or click the triangle in the introduction/About window, click **Tutorial** on the start screen, or open the in-game menu and choose
 **Tutorial**. Follow the instruction window and use the indicated game controls.
 **Close tutorial** cancels practice and restores your previous game; **Finish**
 keeps the practice game open for further play.

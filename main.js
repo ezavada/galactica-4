@@ -6,6 +6,8 @@
 const pdg = require('pdg');
 const PanelAppearance = require('./src/js/panel-appearance.js');
 globalThis.pdg = pdg;
+const StartupLifecycle=require('./src/js/startup-lifecycle.js');
+const installation=StartupLifecycle.createInstallation();
 
 console.log("=== Galactica-4 PDG Game Starting ===");
 
@@ -97,8 +99,9 @@ const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), I18n.getStri
 const fullscreen = require('./src/js/fullscreen.js').createController(pdg,port,globalThis,drawingPreferences);
 fullscreen.restore();
 const presentation=new (require('./src/js/presentation.js'))(drawingPreferences);
+const startupLifecycle=new StartupLifecycle.StartupLifecycle(installation,()=>beginTutorial(),()=>userManual.open(pdg.res.getLanguage()));
 const openAbout=()=>startupSettings.open('about');
-const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,colonyDefaultsPreferences,sound,fullscreen,presentation,openAbout,presentationTutorial:()=>{if(tutorialSession)return false;presentation.close();startupSettings.model.uiWindow=null;return beginTutorial();}});
+const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,colonyDefaultsPreferences,sound,fullscreen,presentation,openAbout,presentationClosed:kind=>{if(kind==='startup')startupLifecycle.finishIntroduction();},presentationTutorial:()=>{if(tutorialSession)return false;presentation.close();startupSettings.model.uiWindow=null;return beginTutorial();}});
 
 function createDefaultConfig(usePreferences=true) {
     if(usePreferences)return NewGameDefaults.createConfig(newGameDefaultsPreferences);
@@ -535,6 +538,7 @@ function clearSessionInput() {
 // Both public launch controls share the same temporary tutorial document owner.
 function beginTutorial(pages=require('./src/js/tutorial-lessons.js').load(dataPath),context={window:game && !sessions.starting?1:34,modal:sessions.starting}) {
     if(tutorialSession && tutorialSession.controller.active)return false;
+    startupLifecycle.consume();
     const owner=new (require('./src/js/tutorial-session.js'))(pages,{
         sessions,sound,
         captureApplication:()=>({game,display,autoplayController,pendingConfig,startupPlayerName,startupGameTitle,startupComputerCount,startupAISkill}),
@@ -1108,4 +1112,7 @@ console.log("Event handlers registered, starting PDG...");
 pdg.run();
 
 // Present the introduction once per interactive launch, independently of saved games.
-if(!launchOptions.aiAutoplay && presentation.showSplash)startupSettings.open('startup');
+if(!launchOptions.aiAutoplay){
+    if(presentation.showSplash)startupSettings.open('startup');
+    startupLifecycle.start(presentation.showSplash);
+}

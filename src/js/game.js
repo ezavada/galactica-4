@@ -1992,8 +1992,10 @@ class Game {
                 return this.openAbout?this.openAbout():false;
             case 'toggleSplash':
                 if(!this.presentation)return false;this.presentation.toggleSplash();return true;
-            case 'closePresentation':
-                if(this.uiWindow!=='presentation')return false;this.uiWindow=this.presentation.close();return true;
+            case 'closePresentation': {
+                if(this.uiWindow!=='presentation')return false;const kind=this.presentation.kind;
+                this.uiWindow=this.presentation.close();if(this.presentationClosed)this.presentationClosed(kind);return true;
+            }
             case 'presentationTutorial':
                 return this.presentationTutorial?this.presentationTutorial():false;
             case 'presentationPage': {

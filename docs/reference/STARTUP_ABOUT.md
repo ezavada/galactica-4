@@ -50,13 +50,17 @@ runtime strings or recreated graphics are supplied by this import.
   blocker. It does not block implementing presentation, preference storage,
   dismissal, About entry, or tutorial recovery.
 
-## Remaining verification
+## Implemented and remaining verification
 
-Implement startup and About, persist `ShowSplash` outside saved games, retain
-current setup/game state across About and startup dismissal, and localize
-narrative/controls to en/de/es/fr/ja/ru. Verify default-on, saved-off, unavailable
-storage, re-entry, modal input, constrained draggable remembered windows,
-version/attribution, tutorial recovery, reduced motion and narrow layouts.
-Compare actual before/after screenshots, run relevant and full suites, and
-check packaged artwork/string inclusion. Existing resource extraction is not
-proof of runtime completion.
+The core presentation and `ShowSplash` preference are implemented and verified
+in six languages, including ordinary setup/game preservation, paging, reduced
+motion, modal input, title dragging, original attribution, compact layouts and
+packaged resources. First-install tutorial startup now snapshots preferences
+before other factories initialize them; tutorial failure falls back to the manual.
+Existing installations and later launches do not repeat automatic onboarding.
+See `docs/V3_V4_FEATURE_STATUS.md` for the test and screenshot evidence.
+
+Configured startup commands and accurate application-version presentation remain
+unfinished. Original music still needs intact composition metadata. These source
+references remain requirements for the remaining port; resource extraction alone
+is not runtime completion evidence.
