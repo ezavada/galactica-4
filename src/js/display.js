@@ -1693,7 +1693,7 @@ class Display {
 
     getCommandWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 294 });
+        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error ? 370 : 328) : 294 });
     }
 
     getProductionWindowRect() {
@@ -1785,7 +1785,11 @@ class Display {
             icon:'gear',label:I18n.getString(759,'Settings'),action:{type:'toggleWindow',window:'settings'}};
         const comparison={rect:{x:rect.x+14,y:rect.y+148,width:rect.width-28,height:28},
             label:this.STR.compare,key:'V',action:{type:'toggleWindow',window:'comparison'}};
-        if(!this.game.getCurrentHumanPlayer())return [comparison,settings];
+        const fullscreen=this.game.fullscreen && this.game.fullscreen.supported ? [{
+            rect:{x:rect.x+14,y:rect.y+250,width:rect.width-28,height:28},
+            label:I18n.getString(771,'Full screen'),active:this.game.fullscreen.active(),action:{type:'toggleFullscreen'}
+        }] : [];
+        if(!this.game.getCurrentHumanPlayer())return [comparison,settings,...fullscreen];
         return [{rect:{x:rect.x+14,y:rect.y+80,width:rect.width-28,height:28},
             icon:'gear',label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}},
             {rect:{x:rect.x+14,y:rect.y+114,width:rect.width-28,height:28},
@@ -1793,7 +1797,7 @@ class Display {
             comparison,
             {rect:{x:rect.x+14,y:rect.y+182,width:rect.width-28,height:28},
             label:I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`,key:'Tab',active:this.game.attention.pending().length>0,action:{type:'nextAttention'}},
-            settings];
+            settings,...fullscreen];
     }
 
     getSettingsWindowRect() {
@@ -2725,6 +2729,7 @@ class Display {
         let y = this.getPanelContentStartY(rect);
         this.drawTextLine(this.STR.keyboardShortcutsActive, x, y, 'gray', 11);
         this.getCommandActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,region.key,{icon:region.icon,active:!!region.active}));
+        if(this.game.fullscreen && this.game.fullscreen.error)this.wrapEventMessage(I18n.getString(772,'Could not change full screen. Please try again.'),rect.width-28,11).slice(0,3).forEach((line,index)=>this.drawTextLine(line,x,rect.y+299+index*15,'lightgray',11));
         this.drawTextLine(this.STR.escClose,x,rect.y+rect.height-16,'gray',10);
     }
 

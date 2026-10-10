@@ -373,3 +373,7 @@
 768	Alle Kurse anzeigen
 769	Kurierkurse anzeigen
 770	Scannerreichweiten anzeigen
+
+# Fullscreen window command
+771	Vollbild
+772	Der Vollbildmodus konnte nicht geändert werden. Bitte erneut versuchen.

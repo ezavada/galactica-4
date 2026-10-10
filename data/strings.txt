@@ -373,3 +373,7 @@
 768	Show all courses
 769	Show courier courses
 770	Show scanner ranges
+
+# Fullscreen window command
+771	Full screen
+772	Could not change full screen. Please try again.

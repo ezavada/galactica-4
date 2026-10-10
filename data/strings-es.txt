@@ -373,3 +373,7 @@
 768	Mostrar todos los recorridos
 769	Mostrar recorridos de mensajeros
 770	Mostrar alcances de escáner
+
+# Fullscreen window command
+771	Pantalla completa
+772	No se pudo cambiar la pantalla completa. Inténtalo de nuevo.

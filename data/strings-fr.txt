@@ -373,3 +373,7 @@
 768	Afficher tous les trajets
 769	Afficher les trajets des courriers
 770	Afficher les portées des scanners
+
+# Fullscreen window command
+771	Plein écran
+772	Impossible de changer le mode plein écran. Veuillez réessayer.

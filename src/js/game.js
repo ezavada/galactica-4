@@ -1580,6 +1580,8 @@ class Game {
         switch (action.type) {
             case 'consume':
                 return true;
+            case 'toggleFullscreen':
+                return !!(this.fullscreen && this.fullscreen.toggle());
             case 'toggleScannerRanges':
                 this.showScannerRanges=!this.showScannerRanges;
                 if(this.drawingPreferences)this.drawingPreferences.writeScannerRanges(this.showScannerRanges);

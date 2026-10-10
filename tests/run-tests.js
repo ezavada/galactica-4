@@ -4,6 +4,7 @@
 // Uses PDG's built-in pdg.srand() and pdg.rand() for deterministic testing
 
 const test = require('./test-framework.js');
+const runFullscreenTests = require('./fullscreen.test.js');
 const runStringResourceTests = require('./string-resources.test.js');
 const runMapGenerationTests = require('./map-generation.test.js');
 const runCoordinateMovementTests = require('./coordinate-movement.test.js');
@@ -147,6 +148,8 @@ try {
     runConstructionBoundaryTests();
     runShipCommissioningTests();
     runShipDiagnosticsTests();
+
+    runFullscreenTests();
 
     // Print summary
     const success = test.printSummary();

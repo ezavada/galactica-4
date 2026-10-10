@@ -73,6 +73,7 @@ console.log(`Random seed set to: ${randomSeed}${launchOptions.aiAutoplay ? ' (AI
 
 // Create window port
 const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), I18n.getString(568, 'Galactica-4'));
+const fullscreen = require('./src/js/fullscreen.js').createController(pdg,port);
 
 function createDefaultConfig() {
     const config = GameConfig.createSinglePlayer(2, 2); // 2 computers, Good difficulty
@@ -328,6 +329,7 @@ function startGame() {
     game = new Game(factory, rules, pendingConfig);
     game.languagePreferences = languagePreferences;
     game.drawingPreferences = drawingPreferences;
+    game.fullscreen = fullscreen;
     game.showGrid = drawingPreferences.readGrid();
     game.showShips = drawingPreferences.readShips();
     game.showAllCourses = drawingPreferences.readAllCourses();
