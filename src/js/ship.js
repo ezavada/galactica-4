@@ -2,6 +2,7 @@
 // Contains all ship-related data and logic
 
 const Common = require('./common.js');
+const CombatRoll = require('./combat-roll.js');
 const Course = require('./course.js');
 
 class Ship {
@@ -136,8 +137,8 @@ class Ship {
     }
     
     getOneAttackAgainst(defender) {
-        // Use PDG random function for damage variance
-        const attackDamage = Math.floor((this.getAttackStrength() * (pdg.rand() + pdg.rand() + pdg.rand() + 3)) / 300);
+        // Use the source bounded PDG rolls for damage variance
+        const attackDamage = CombatRoll.attackDamage(this.getAttackStrength());
         
         // Apply patrol bonus if docked and on patrol
         if (this.isDocked() && this.isOnPatrol()) {

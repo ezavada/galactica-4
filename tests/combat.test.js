@@ -217,6 +217,29 @@ function runCombatTests() {
             test.assertNotEqual(damage1, damage3);
         });
         
+        test.it('bounds ship and planet damage for the full native random range',()=>{
+            const game=createRuntimeCombatGame(),star=createOwnedStar(game,0,0,'Home',1,10,1000000),ship=game.factory.createShip(0,0,'battleship',star,true);
+            const original=pdg.rand;let rolls,calls;
+            try{
+                pdg.rand=()=>{calls++;return rolls.shift();};
+                for(const attacker of [star,ship]){
+                    attacker.getAttackStrength=()=>10000;
+                    for(const [values,expected] of [[[100,196,198],100],[[99,97,98],9900],[[2147483647,2147483647,2147483647],3133]]){
+                        rolls=values.slice();calls=0;
+                        const damage=attacker.getOneAttackAgainst(null);
+                        test.assertEqual(damage,expected);test.assertEqual(calls,3);test.assertEqual(rolls.length,0);test.assertTrue(damage<=attacker.getAttackStrength());
+                    }
+                }
+            }finally{pdg.rand=original;}
+        });
+        test.it('keeps real seeded combat damage within attack strength across repeated rolls',()=>{
+            const game=createRuntimeCombatGame(),star=createOwnedStar(game,0,0,'Home',1,10,1000000),ship=game.factory.createShip(0,0,'battleship',star,true);
+            pdg.srand(101);
+            for(const attacker of [star,ship])for(let i=0;i<100;i++){
+                const damage=attacker.getOneAttackAgainst(null);
+                test.assertTrue(damage>=0 && damage<=attacker.getAttackStrength(),'Unbounded native attack '+damage);
+            }
+        });
         test.it('should handle ship death correctly', () => {
             const mockGame = {
                 players: [],

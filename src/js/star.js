@@ -2,6 +2,7 @@
 // Contains all star-related data and logic
 
 const Common = require('./common.js');
+const CombatRoll = require('./combat-roll.js');
 const I18n = require('./i18n.js');
 
 // how much of the star's resources are allocated to a particular effort
@@ -579,8 +580,8 @@ class Star {
     }
     
     getOneAttackAgainst(defender) {
-        // Use PDG random function for damage variance
-        const attackDamage = Math.floor((this.getAttackStrength() * (pdg.rand() + pdg.rand() + pdg.rand() + 3)) / 300);
+        // Use the source bounded PDG rolls for damage variance
+        const attackDamage = CombatRoll.attackDamage(this.getAttackStrength());
         return Math.max(0, attackDamage);
     }
     

@@ -755,3 +755,26 @@ Inspected original/restored views, name dialog and all six tutorial maps under
 Applied the requested modern UI deviation to the shared camera navigation path: jumps now use a 240ms whip pan with quintic acceleration/braking. Home, Center, system/fleet tables, event/report navigation, attention and tutorial focus use that path, and Fit/Reset animate their positional changes. Retargeting begins at the sampled current pose; dragging, scroll positions and anchored zoom cancel motion. Initial framing and reduced-motion preferences remain immediate. Rendering and inverse transforms use the same camera pose, including background parallax and map scroll bars. No strings or simulation randomness change.
 
 Five regressions cover exact landing, inverse transforms during movement, continuous retargeting, manual-control interruption, initial/reduced-motion behavior and fit/reset. Both full test lanes pass all 1,233 tests. Actual browser Home, double-clicked system comparison and event Go to controls pass in all six languages, with precise final centering and manual interruption. Before/after and timed start/mid/end screenshots were inspected under `/private/tmp/galactica-parity/whip-pan-{before,after}`; logs are `/private/tmp/galactica-whip-pan-{tests,native-tests,<language>}.log`. Tooltip surfaces are separately committed as white at 75% alpha with 4px corners. The parity and Map Generation checklists remain active.
+
+
+### Bounded source combat damage rolls
+
+A tutorial RNG audit found that ship and system attacks added three raw native
+`pdg.rand()` values, allowing damage far above attack strength. Restored the
+exact `AGalacticThingy.cpp:848–854` formula with three independent bounded rolls
+of 100, 98 and 99, plus 3, divided by 300 and truncated. `GenericUtils.cpp:27–30`
+confirms `Rnd(max)` is modulo; the largest possible base attack is therefore
+99% of attack strength. The existing docked Patrol bonus is applied afterward,
+matching `CShip.cpp:239–249`. This corrects actual combat for ordinary and tutorial
+games; it changes no text, drawing or random-call count.
+
+Two regressions cover native-sized values, distinct roll bounds, exactly three
+samples, extreme damage and 200 real seeded attacks across ships and systems.
+Both full suites pass all 1,235 tests. Real browser fleet arrivals exercise
+private winner/loser reports, Events → View report → Go to and surviving/remembered
+focus in en/de/es/fr/ja/ru. Before/after report screenshots and all-language
+winner/loser views were inspected under
+`/private/tmp/galactica-parity/combat-roll-{before,after}`; logs are
+`/private/tmp/galactica-combat-roll-{tests,native-tests,<language>}.log`.
+The tutorial's separate random stream, visible lessons, full saves and
+presentation resources remain unfinished; parity and Map Generation remain active.
