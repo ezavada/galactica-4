@@ -187,10 +187,11 @@ module.exports = function runRendezvousTests() {
             test.assertFalse(game.isAwaitingMapTarget());game.beginRendezvousPlacement(point);test.assertTrue(game.isAwaitingMapTarget());
             game.handleMouseClick(260,220);test.assertApproximately(point.x,display.toGalacticX(260),.00001);test.assertNull(point.anchor);
         });
-        test.it('lets star and ship popup rendezvous actions choose a map location',()=>{
+        test.it('retains ship popup rendezvous placement while removing it from system menus',()=>{
             const game=createGameForTests();game.port=createFakePort();const display=new Display(game);
             const star=createOwnedStar(game,1),ship=createCompletedShip(game,star);
-            for(const object of [star,ship]){game.setSelectedObject(object);const row=display.getContextActions(object).find(row=>row.key==='U');
+            test.assertFalse(display.getContextActions(star).some(row=>row.key==='U'));
+            for(const object of [ship]){game.setSelectedObject(object);const row=display.getContextActions(object).find(row=>row.key==='U');
                 test.assertEqual(row.action.type,'beginRendezvousPlacement');game.executeUIAction(row.action);test.assertTrue(game.isAwaitingMapTarget());
                 test.assertEqual(game.allRendezvous.length,0);game.handleKeyPress(pdg.key_Escape);test.assertFalse(game.isAwaitingMapTarget());}
         });

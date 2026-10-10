@@ -15,3 +15,11 @@ Button shortcuts use the icon buttons' compact hint treatment: a separate small,
 All tooltips share a white surface at 75% alpha, no border, 4px corner rounding and solid dark grey text. Immediate icon/table hints and delayed control help (including startup and file dialogs) use the same 20px equilateral triangle as object inspectors, oriented toward the hovered subject. Tooltip placement leaves room for the pointer and keeps the body inside the drawing port.
 
 Map navigation uses a 240ms whip pan with fast acceleration and braking. Home, selected-object centering, tables, event/report navigation, attention and tutorial focus all share the display centering path; fit/reset also animate their location change. New destinations start from the sampled current pose. Dragging, scroll bars and zoom cancel pending motion. Initial framing and reduced-motion preferences use immediate centering. The rendered camera pose also drives hit testing, backgrounds and scroll bars; animation changes no game objects or simulation randomness.
+
+System and ship inspectors outline the exposed sides of their pointers instead
+of drawing a straight border through the attachment. System coordinates are
+replaced by an inline Send to row with measured Set/Clear buttons; ship Location
+is hidden. Both old coordinate rows remain commented in source. Production
+locks use bare cached glyphs; the compact = control sits beside the sliders and
+uses = as its shortcut. Public system pause actions and the Continuous caption
+are removed. Build-button hover headings describe switching production.

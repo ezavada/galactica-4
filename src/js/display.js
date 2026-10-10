@@ -1266,10 +1266,25 @@ class Display {
             return;
         }
 
-        const attrs = borderColor
-            ? this.createAttributes({ fillColor: this.getUIColor('panelFill'), lineColor: new pdg.Color(borderColor) })
-            : this.styles.panelPointer;
-        this.port.drawPolygon(new pdg.Polygon(...pointer.points), attrs);
+        const owner=this.getOwnerPanelStyle(object),base=this.getUIColor('panelFill');
+        const top=owner && this.panelStyleColors.get(owner) || base;
+        const lift=owner?0.022:0.075;
+        const fill=this.inspectorPointerFill || (this.inspectorPointerFill=this.createAttributes());
+        PanelAppearance.applySurface(fill,rect,top,base,lift);
+        fill.lineStyle(pdg.lineStyle_None);
+        const points=pointer.points.map((point,index)=>new pdg.Point(point.x+(index===1?0:pointer.side==='left'?1:-1),point.y));
+        this.port.drawPolygon(new pdg.Polygon(...points),fill);
+        // Cover the old straight edge, then outline only the two exposed sides.
+        const amount=(pointer.centerY-rect.y)/rect.height;
+        const seam=this.inspectorPointerSeam || (this.inspectorPointerSeam=this.createAttributes({lineStyle:pdg.lineStyle_None}));
+        seam.fillColor(new pdg.Color((top.red+lift)*(1-amount)+base.red*amount,
+            (top.green+lift)*(1-amount)+base.green*amount,(top.blue+lift)*(1-amount)+base.blue*amount,1));
+        const sideX=pointer.points[0].x;
+        this.port.drawRect(new pdg.Rect(new pdg.Point(sideX-.5,pointer.centerY-10),1,20),seam);
+        const border=this.inspectorPointerBorder || (this.inspectorPointerBorder=this.createAttributes({lineStyle:pdg.lineStyle_Solid}).lineThickness(.7));
+        border.lineColor(borderColor?new pdg.Color(borderColor):owner?PanelAppearance.ownerBorder(this.ownerColors[object.owner]):this.getUIColor('panelBorder'));
+        this.port.drawLine(pointer.points[0],pointer.points[1],border);
+        this.port.drawLine(pointer.points[1],pointer.points[2],border);
     }
 
     getOwnerPanelStyle(object) {
@@ -1289,8 +1304,8 @@ class Display {
     }
 
     drawAnchoredPanel(object, rect, title = null, borderColor = null) {
-        this.drawPanelPointer(object, rect, borderColor);
         this.drawPanel(rect,title,borderColor,this.getOwnerPanelStyle(object));
+        this.drawPanelPointer(object, rect, borderColor);
     }
 
     fitWindowToScreen(name,rect) {
@@ -1418,7 +1433,7 @@ class Display {
         const drawRect = this.snapRectToPixels(rect);
         const active = !!options.active;
         const hovered = this.isHovered(drawRect);
-        if (hovered) this.hoverControl={rect:drawRect,label:ButtonCaption.tooltip(label,hotkey)};
+        if (hovered) this.hoverControl={rect:drawRect,label:options.tooltipLabel || ButtonCaption.tooltip(label,hotkey)};
         let fillColorName = active ? 'buttonFillActive' : 'buttonFill';
         if (hovered) {
             fillColorName = active ? 'buttonFillActiveHover' : 'buttonFillHover';
@@ -1428,7 +1443,7 @@ class Display {
         const color=light?new pdg.Color(active ? .70 : hovered ? .94 : .86,active ? .73 : hovered ? .94 : .86,active ? .75 : hovered ? .92 : .85,1):this.getUIColor(fillColorName);
         style.fillGradient(new pdg.Point(drawRect.x,drawRect.y),new pdg.Color(color.red+0.016,color.green+0.016,color.blue+0.016,color.alpha),new pdg.Point(drawRect.x,drawRect.y+drawRect.height),color);
         style.lineStyle(pdg.lineStyle_Solid).lineThickness(0.6);
-        this.drawRoundedRect(drawRect, options.radius || 10, style);
+        if(!options.bare)this.drawRoundedRect(drawRect, options.radius || 10, style);
         const caption=ButtonCaption.layout(drawRect,label,hotkey,(text,size)=>this.port.getTextWidth(text,size),options);
         if(caption.key)this.drawTextLine(caption.key,caption.keyX,Math.round(drawRect.y+drawRect.height/2+3),
             'labelgray',9,pdg.textStyle_RightJustified);
@@ -1509,13 +1524,11 @@ class Display {
 
         if (objectType === Common.ObjectType.STAR && this.game.canHumanControl(object)) {
             actions.push({ key: 'N', label: this.STR.rename, action: { type: 'beginRename' } });
-            if (object.currentShip) actions.push({ key: 'X', label: I18n.getString(678, 'Pause build'), action: { type: 'pauseBuild' } });
             actions.push(
                 { key: 'S', label: this.STR.scoutName, action: { type: 'buildShip', shipType: 'scout' } },
                 { key: 'D', label: this.STR.defenseName, action: { type: 'buildShip', shipType: 'defense' } },
                 { key: 'B', label: this.STR.battleshipName, action: { type: 'buildShip', shipType: 'battleship' } },
-                { key: 'c', label: this.STR.colonyName, action: { type: 'buildShip', shipType: 'colony' } },
-                { key: 'U', label: this.STR.rendezvous, action: { type: 'beginRendezvousPlacement' } }
+                { key: 'c', label: this.STR.colonyName, action: { type: 'buildShip', shipType: 'colony' } }
             );
         } else if (objectType === Common.ObjectType.SHIP || objectType === Common.ObjectType.FLEET) {
             if (this.game.canHumanControl(object)) {
@@ -1647,6 +1660,7 @@ class Display {
         }
         for (const button of buttons) {
             this.drawUIButton(button.rect, button.label, button.key, { size: 10, radius: 14,
+                tooltipLabel:button.action.type==='buildShip'?I18n.formatString(961,'Switch to building {0}',button.label):null,
                 active: button.action.type==='toggleScrap'?object.isToBeScrapped():
                     button.action.type==='togglePatrol'?object.isOnPatrol():
                     button.action.type === 'buildShip' && !!object.currentShip &&
@@ -2390,7 +2404,7 @@ class Display {
         const star = this.game.getSelectedStar();
         if (!this.game.canViewSystemShips(star)) return null;
         const panel = this.getStarDetailsLayout(star).rect;
-        return {rect:{x:panel.x+184,y:panel.y+panel.height-(this.game.canHumanControl(star)?88:30),width:164,height:22},
+        return {rect:{x:panel.x+184,y:panel.y+panel.height-34,width:164,height:22},
             label:I18n.getString(688,'Ships in system'),action:{type:'showSystemShips',star}};
     }
 
@@ -2491,32 +2505,43 @@ class Display {
     getAllocationEqualizeRegions() {
         const star = this.game.getSelectedStar();
         if (!star || !this.game.canHumanControl(star)) return [];
-        const panel = this.getStarDetailsLayout(star).rect;
-        const regions = [{ rect: { x: panel.x + 12, y: panel.y + panel.height - 88, width: 170, height: 22 },
-            action: { type: 'equalizeAllocations', star } }];
-        if (this.game.uiWindow === 'production') {
-            const window = this.getProductionWindowRect();
-            regions.unshift({ rect: { x: window.x + 14, y: window.y + 128, width: 170, height: 22 },
-                action: { type: 'equalizeAllocations', star }, key: 'R' });
+        const layout=this.getStarDetailsLayout(star),sliders=this.getStarAllocationSliderRegions(star);
+        const locks=this.getAllocationLockRegions(sliders),middle=sliders[1].rect;
+        const regions=[{rect:{x:locks[1].rect.x+locks[1].rect.width+4,y:middle.y+middle.height/2-11,width:24,height:22},
+            action:{type:'equalizeAllocations',star},key:'=',inWindow:false}];
+        if(this.game.uiWindow==='production'){
+            const windowSliders=this.getProductionWindowSliderRegions(),windowLocks=this.getAllocationLockRegions(windowSliders),row=windowSliders[1].rect;
+            regions.unshift({rect:{x:windowLocks[1].rect.x+windowLocks[1].rect.width+4,y:row.y+row.height/2-11,width:24,height:22},
+                action:{type:'equalizeAllocations',star},key:'=',inWindow:true});
         }
         return regions;
     }
 
+    getDefaultDestinationLayout(star,layout=this.getStarDetailsLayout(star)) {
+        const data=this.getStarDiagnostics(star),owned=this.game.canHumanControl(star),gap=4;
+        const buttons=owned?[{label:I18n.getString(962,'Set'),action:{type:'beginOrders',object:star}},
+            {label:I18n.getString(963,'Clear'),action:{type:'clearDefaultDestination',object:star}}]:[];
+        const widths=buttons.map(button=>this.getButtonWidth(button.label,null,{size:10,minWidth:36}));
+        const buttonWidth=widths.reduce((sum,width)=>sum+width,0)+buttons.length*gap;
+        const available=layout.rect.width-24-buttonWidth;
+        const full=I18n.getString(684,'Send to:')+' '+data.destination;
+        const measure=text=>this.port.getTextWidth?this.port.getTextWidth(text,11):Array.from(text).length*6;
+        let text=full;
+        while(Array.from(text).length>1 && measure(text)>available)text=Array.from(text).slice(0,-2).join('')+'…';
+        let x=layout.x+measure(text)+gap;
+        const y=layout.basicStartY+4*18;
+        const regions=buttons.map((button,index)=>{const region={...button,rect:{x,y:y-15,width:widths[index],height:22}};x+=widths[index]+gap;return region;});
+        return {text,x:layout.x,y,regions};
+    }
+
     getDefaultDestinationRegions() {
-        const star = this.game.getSelectedStar();
-        if (!star || !this.game.canHumanControl(star)) return [];
-        const panel = this.getStarDetailsLayout(star).rect;
-        const regions = [{ rect: { x: panel.x + 12, y: panel.y + panel.height - 30, width: 164, height: 22 },
-            label: I18n.getString(685, 'Set destination'), action: { type: 'beginOrders', object: star } }];
-        if (star.getDefaultDestination()) regions.push({
-            rect: { x: panel.x + 184, y: panel.y + panel.height - 30, width: 164, height: 22 },
-            label: I18n.getString(686, 'Clear destination'), action: { type: 'clearDefaultDestination', object: star } });
-        return regions;
+        const star=this.game.getSelectedStar();
+        return star && this.game.canHumanControl(star)?this.getDefaultDestinationLayout(star).regions:[];
     }
 
     getAllocationLockRegions(sliders = this.getAllocationSliderRegions()) {
         return sliders.map(slider => ({
-            rect: { x: slider.trackRect.x + slider.trackRect.width + 48, y: slider.rect.y + 1, width: 26, height: 18 },
+            rect: { x: slider.trackRect.x + slider.trackRect.width + 48, y: slider.rect.y - 1, width: 26, height: 18 },
             action: { type: 'toggleAllocationLock', star: slider.star, allocationKey: slider.key }
         }));
     }
@@ -2781,9 +2806,9 @@ class Display {
         this.drawBar(rects.track.x, rects.track.y, rects.track.width, rects.track.height, current / 100.0, color);
         this.drawTextLine(options.unknown ? '?' : `${I18n.formatPercentage(desired)}%`, rects.percent.x, y, valueColor, 11);
 
-        if (options.interactive !== false) this.drawUIButton({ x: rects.track.x + width + 48, y: y - 13, width: 26, height: 18 },
+        if (options.interactive !== false) this.drawUIButton({ x: rects.track.x + width + 48, y: y - 15, width: 26, height: 18 },
             allocation.locked ? I18n.getString(675, 'Unlock') : I18n.getString(674, 'Lock'), null,
-            { size: 9, radius: 6, icon: allocation.locked ? 'lock' : 'unlock', iconOnly: true, active: allocation.locked });
+            { size: 9, bare:true, icon: allocation.locked ? 'lock' : 'unlock', iconOnly: true, active: allocation.locked });
 
         const targetMarkerX = rects.track.x + this.clamp(Math.round(width * desired / 100.0), 0, width);
         this.port.drawLine(new pdg.Point(targetMarkerX, y - 11), new pdg.Point(targetMarkerX, y + 1), this.getLineAttributes(valueColor));
@@ -2854,10 +2879,10 @@ class Display {
 
     getStarDetailsPanelHeight(star) {
         const data = this.getStarDiagnostics(star);
-        if (this.game.canHumanControl(star)) {const lines=this.getColonySetupLines(star);return 394+(lines.length?lines.length*15+8:0);}
-        if (data.allied) return 364;
-        if (data.showProduction) return 325;
-        return this.game.canViewSystemShips(star) ? 254 : 224;
+        if (this.game.canHumanControl(star)) {const lines=this.getColonySetupLines(star);return 336+(lines.length?lines.length*15+8:0);}
+        if (data.allied) return 336;
+        if (data.showProduction) return 307;
+        return this.game.canViewSystemShips(star) ? 236 : 206;
     }
 
     getStarDetailsLayout(star) {
@@ -2865,7 +2890,7 @@ class Display {
         const rect = this.getAnchoredPanelRect(star, 360, this.getStarDetailsPanelHeight(star));
         const x = rect.x + 12;
         const hintLines=this.getColonySetupLines(star),hintHeight=hintLines.length?hintLines.length*15+8:0;
-        let y = this.getPanelContentStartY(rect) + hintHeight + 8*18;
+        let y = this.getPanelContentStartY(rect) + hintHeight + (7+Number(data.showDestination))*18;
         if (data.eta !== null) y += 18;
         const dividerY = y - 1;
         const productionTitleY = dividerY + 19;
@@ -2940,15 +2965,18 @@ class Display {
         layout.hintLines.forEach((line,index)=>this.drawTextLine(line,x,this.getPanelContentStartY(rect)+index*15,'lightgray',11));
         let y = layout.basicStartY;
         const labels = [this.STR.owner,this.STR.pop,this.STR.tech,this.STR.building,
-            I18n.getString(721,'Position:'),I18n.getString(722,'Total defense:'),
+            // I18n.getString(721,'Position:'), // Retained for possible future display.
+            ...(data.showDestination?[null]:[]),I18n.getString(722,'Total defense:'),
             I18n.getString(723,'Satellites:'),I18n.getString(724,'Ship defense:')];
-        const values = [data.owner,data.population,data.tech,data.building,data.position,
+        const values = [data.owner,data.population,data.tech,data.building,
+            // data.position,
+            ...(data.showDestination?[null]:[]),
             data.totalDefense,data.satelliteDefense,data.shipDefense];
-        const labelWidth = Math.max(70,...labels.map(label=>this.port.getTextWidth(label,11)+8));
+        const labelWidth = Math.max(70,...labels.filter(Boolean).map(label=>this.port.getTextWidth(label,11)+8));
         labels.forEach((label,index) => {
             let valueWidth = rect.width-labelWidth-24;
             if (index===3 && data.completion!==null) valueWidth -= 105;
-            this.drawLabelValue(label,this.fitShipDiagnosticText(values[index],valueWidth,11),x,y,{labelWidth,size:11});
+            if(label)this.drawLabelValue(label,this.fitShipDiagnosticText(values[index],valueWidth,11),x,y,{labelWidth,size:11});
             if (index===3 && data.completion!==null) {
                 const right = rect.x+rect.width-25;
                 this.drawBar(right-101,y-8,72,8,star.currentShip.progress/100,'lightgray');
@@ -2961,7 +2989,6 @@ class Display {
             this.drawDivider(x,layout.dividerY,rect.width-24);
             this.drawTextLine(this.STR.production,x,layout.productionTitleY,'lightgray',12);
             this.drawRightTextLine(data.production,rect.x+rect.width-16,layout.productionTitleY,'lightgray',11);
-            if (data.completion!==null) this.drawTextLine(I18n.getString(677,'Continuous'),x+120,layout.productionTitleY,'gray',10);
             if (owned) this.drawStarAllocationSummary(star,x,layout.sliderStartY,layout.sliderWidth);
             else {
                 const entries = [this.STR.growth,this.STR.ships.replace(/:$/,''),this.STR.research];
@@ -2972,22 +2999,20 @@ class Display {
         }
         const shipButton = this.getSystemShipButtonRegion();
         if (shipButton) this.drawUIButton(shipButton.rect,shipButton.label,null,{size:10});
-        const equalize = this.getAllocationEqualizeRegions().find(region=>!region.key);
-        if (owned && equalize) this.drawUIButton(equalize.rect,I18n.getString(676,'Equalize'),null,{size:10});
+        const equalize = this.getAllocationEqualizeRegions().find(region=>!region.inWindow);
+        if (owned && equalize) this.drawUIButton(equalize.rect,'=',null,{size:18,tooltipLabel:ButtonCaption.tooltip(I18n.getString(676,'Equalize'),'=')});
         if (data.showDestination) {
-            const label = I18n.getString(684,'Send to:');
-            const width = Math.max(86,this.port.getTextWidth(label,11)+8);
-            this.drawLabelValue(label,this.fitShipDiagnosticText(data.destination,rect.width-width-24),x,rect.y+rect.height-45,
-                {labelWidth:width,size:11});
+            const destination=this.getDefaultDestinationLayout(star,layout);
+            this.drawTextLine(destination.text,destination.x,destination.y,'lightgray',11);
+            destination.regions.forEach(region=>this.drawUIButton(region.rect,region.label,null,
+                {size:10,active:region.action.type==='beginOrders' && this.game.pendingMapOrderObject===star}));
         }
-        this.getDefaultDestinationRegions().forEach(region=>this.drawUIButton(region.rect,region.label,null,
-            {size:10,active:region.action.type==='beginOrders' && this.game.pendingMapOrderObject===star}));
         this.drawContextButtonArc(star,rect);
     }
 
     getShipDetailsRect(ship) {
         return ship.underConstruction() ? this.getAnchoredPanelRect(ship, 240, 138)
-            : this.getAnchoredPanelRect(ship, 350, 292);
+            : this.getAnchoredPanelRect(ship, 350, 274);
     }
 
     getShipDiagnostics(ship) {
@@ -3060,21 +3085,21 @@ class Display {
                 ['damage', this.STR.damage, 155], ['health', I18n.getString(698, 'Health:'), 173],
                 ['scanner', I18n.getString(696, 'Scanner range:'), 209],
                 ['status', I18n.getString(699, 'Status:'), 227],
-                ['location', I18n.getString(700, 'Location:'), 245],
-                ['destination', I18n.getString(595, 'Destination:'), 263]
+                // ['location', I18n.getString(700, 'Location:'), 245], // Retained for possible future display.
+                ['destination', I18n.getString(595, 'Destination:'), 245]
             ];
             const labelWidth = Math.max(117, ...rows.map(row => Math.ceil(this.port.getTextWidth(row[1], 11)) + 12));
             const width = rect.width - labelWidth - 21;
             panel.text('title', this.fitShipDiagnosticText(data.title, rect.width - 32, 14), 16, 22, 'lightgray', 14);
             rows.forEach(([id, label, y]) => panel.labelValue(id, label, this.fitShipDiagnosticText(data[id], width), y, { size: 11, labelWidth }));
-            this.drawPanelPointer(ship, rect);
             panel.draw(rect,this.getOwnerPanelStyle(ship));
+            this.drawPanelPointer(ship, rect);
             if (data.healthRatio !== null) this.drawBar(rect.x + labelWidth + 5, rect.y + 181, width, 8, data.healthRatio, 'green');
             this.drawContextButtonArc(ship, rect);
             return;
         }
-        this.drawPanelPointer(ship, rect);
         panel.draw(rect,this.getOwnerPanelStyle(ship));
+        this.drawPanelPointer(ship, rect);
         this.drawBar(rect.x + rect.width - 130, rect.y + 75, 70, 8, ship.progress / 100, 'lightgray');
         this.drawContextButtonArc(ship, rect);
     }
@@ -3234,8 +3259,8 @@ class Display {
         this.drawTextLine(star.name, x, y, 'lightgray', 13);
         y += 28;
         this.drawStarAllocationSummary(star, x, y, 185);
-        const equalize = this.getAllocationEqualizeRegions().find(region => region.key);
-        if (equalize) this.drawUIButton(equalize.rect, I18n.getString(676, 'Equalize'), 'R', { size: 10 });
+        const equalize = this.getAllocationEqualizeRegions().find(region => region.inWindow);
+        if (equalize) this.drawUIButton(equalize.rect,'=',null,{size:18,tooltipLabel:ButtonCaption.tooltip(I18n.getString(676,'Equalize'),'=')});
         y += 98;
         this.drawTextLine(this.STR.escClose, x, y, 'gray', 10);
     }

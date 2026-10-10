@@ -16,6 +16,23 @@ function fixture() {
 }
 module.exports=function() {
     test.describe('System diagnostics and v3 visibility',()=>{
+        test.it('equalizes targets with = without changing actual production or camera zoom, including locked shares',()=>{
+            const {game,star,display}=fixture();star.growth.value=15;star.research.setLocked(true);star.research.desired=20;
+            star.growth.desired=65;star.shipBuilding.desired=15;const zoom=display.camera.zoom;
+            game.handleKeyPress(61);test.assertEqual(star.growth.desired,40);test.assertEqual(star.shipBuilding.desired,40);test.assertEqual(star.research.desired,20);test.assertEqual(star.growth.value,15);test.assertEqual(display.camera.zoom,zoom);
+            game.uiWindow='production';star.growth.desired=70;star.shipBuilding.desired=10;game.handleKeyPress(61);test.assertEqual(star.growth.desired,40);test.assertEqual(display.camera.zoom,zoom);
+            game.uiWindow=null;game.handleKeyPress(43);test.assertTrue(display.camera.zoom>zoom);
+        });
+        test.it('fits Set/Clear after long Unicode destination text in every language without crossing the panel',()=>{
+            const {game,star,display}=fixture(),previous=pdg.res.getLanguage(),target=game.factory.createStar(0,0,'京都 '+ '航'.repeat(80));target.owner=1;star.setDefaultDestination(target);
+            try{for(const lang of ['en','de','es','fr','ja','ru']){
+                pdg.res.setLanguage(lang);display.reloadUIStrings();const layout=display.getStarDetailsLayout(star),destination=display.getDefaultDestinationLayout(star,layout),regions=destination.regions;
+                test.assertEqual(regions.length,2);test.assertEqual(regions[0].rect.x,destination.x+display.port.getTextWidth(destination.text,11)+4);
+                test.assertTrue(regions[0].rect.x+regions[0].rect.width+4<=regions[1].rect.x);test.assertTrue(regions[1].rect.x+regions[1].rect.width<=layout.rect.x+layout.rect.width-12);
+                test.assertEqual(destination.y,layout.basicStartY+72);test.assertTrue(destination.text.endsWith('…'));
+            }}finally{pdg.res.setLanguage(previous);}
+        });
+
         test.it('shows owned-system integers, named drive class, coordinates, progress and current output',()=>{
             const {star,display}=fixture();const data=display.getStarDiagnostics(star);
             test.assertEqual(data.title,'Atlas');test.assertEqual(data.population,'1,234,567,000');test.assertEqual(data.tech,'8');
@@ -121,13 +138,13 @@ module.exports=function() {
             const enemy=game.factory.createStar(0,0,'Private name');enemy.owner=2;
             test.assertEqual(display.getSpacePointDescription(enemy),I18n.formatString(725,'S-{0}',enemy.id));
         });
-        test.it('keeps production controls and footer buttons apart inside the screen',()=>{
+        test.it('keeps compact production controls and destination buttons apart inside the screen',()=>{
             const {star,display}=fixture();star.x=500;star.y=300;display.toScreenX=x=>x;display.toScreenY=y=>y;
             const layout=display.getStarDetailsLayout(star),slider=display.getStarAllocationSliderRegions(star)[2];
             const button=display.getAllocationEqualizeRegions()[0].rect;
-            test.assertTrue(slider.rect.y+slider.rect.height<button.y);test.assertTrue(layout.rect.y>=10);
+            const locks=display.getAllocationLockRegions(display.getStarAllocationSliderRegions(star));test.assertTrue(button.x>=locks[1].rect.x+locks[1].rect.width+4);test.assertEqual(button.y+button.height/2,locks[1].rect.y+locks[1].rect.height/2+3);test.assertTrue(layout.rect.y>=10);
             test.assertTrue(layout.rect.y+layout.rect.height<=590);
-            const send=display.getDefaultDestinationRegions()[0].rect;test.assertTrue(send.y>button.y+button.height);
+            const send=display.getDefaultDestinationRegions()[0].rect;test.assertTrue(send.y+send.height<button.y);
         });
         test.it('draws enemy details without leaking progress, ETA, production percentages or destination text',()=>{
             const {star,display}=fixture();star.owner=2;star.setVisibilityTo(1,Common.VisibilityLevel.DETAILS);const texts=[];

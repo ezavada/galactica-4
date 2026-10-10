@@ -125,15 +125,15 @@ The largest blockers to a complete game are:
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
-| System information panel | Name, owner, population, tech, build choice/progress, and production. | ✅ Implemented | ✅ Implemented | Anchored panels show localized grouped population, integer tech, current drive class, construction progress/ETA, light-year coordinates, total/satellite/mobile defenses and production totals. Owned systems retain build/pause/rename, lock/equalize, ship-list and default-destination controls. Allied production/destination inspection is read-only, and allied docked ships can be inspected. V3 visibility rules hide true names/population below Class, technology below Tech, hulls below Details, and enemy progress, allocations and destinations at every visibility level. Long Unicode titles/map labels fit their available space. A focused new-colony setup report displays its localized naming/production instruction above the ordinary inspector controls. Help/manual remains its separate checklist item. |
+| System information panel | Name, owner, population, tech, build choice/progress, and production. | ✅ Implemented | ✅ Implemented | Anchored panels show localized grouped population, integer tech, current drive class, construction progress/ETA, total/satellite/mobile defenses and production totals. Owned systems retain build/rename, bare lock icons, a compact = equalize button, ship-list and inline Set/Clear default-destination controls. Coordinate rows and public pause actions are intentionally removed per the requested v4 design. Allied production/destination inspection is read-only, and allied docked ships can be inspected. V3 visibility rules hide true names/population below Class, technology below Tech, hulls below Details, and enemy progress, allocations and destinations at every visibility level. Long Unicode titles/map labels fit their available space. A focused new-colony setup report displays its localized naming/production instruction above the ordinary inspector controls. Help/manual remains its separate checklist item. |
 | Population growth | Growth allocation drives a density-dependent population curve. | ✅ Implemented | ➖ N/A | Owned systems grow after allocation adjustment using the v3 percentage-to-allocation scaling and both density curves. Resulting population truncates to whole thousand-person units; the original minimum increment is retained. Zero-growth systems stay stationary. The 99,900 limit in `CStar::SetPopulation` applies only to a slider indicator, so actual colony population is not capped there. |
 | Three-way economy | Growth, ships, and tech share system output. | ✅ Implemented | ✅ Implemented | Allocation model, gradual adjustment, human keyboard controls, dragging/clicking, locks/equalize, AI desired allocations, expert tech-star/shipbuilder roles, and default non-expert split exist. Runtime and player defaults retain v3’s 0–1000 precision in percentage units, with the 33.4/33.3/33.3 initial split, six-point adjustment rate, balanced unlocked redistribution and fractional Equalize. Owned systems now repair, produce research/ships from current output, then adjust allocations and grow/improve next-turn benefits, matching v3’s phase order. Research, growth and construction completion now match the verified v3 economy rules. Pending construction is system data, with cached hull costs and commissioning at current system technology. |
 | Production sliders | Coupled sliders with current/desired colors and gradual adjustment. | ✅ Implemented | ✅ Implemented | Visible controls support click-and-drag in the system panel and production window, with pointer capture, clamped endpoints, locked-allocation protection and one notification per gesture. New-colony sliders also drag on their 0–1000 scale. Fractional percentages use localized decimal separators, and solid fills show current output, vertical markers show desired output, and track clicks set the desired level during gradual adjustment. |
 | Slider locks | Lock one allocation while adjusting others. | ✅ Implemented | ✅ Implemented | Localized Lock/Unlock buttons in system and production panels preserve locked allocations while redistributing the remaining budget. Ownership, all-locked behavior, and click routing are tested. |
-| Equalize production | Button resets unlocked allocations equally. | ✅ Implemented | ✅ Implemented | Localized Equalize buttons and production-window `[R]` preserve locked allocations, split the remaining budget evenly, and put rounding remainder on the first unlocked allocation, matching `CGalacticSlider.cpp`. |
+| Equalize production | Button resets unlocked allocations equally. | ✅ Implemented | ✅ Implemented | The compact `=` icon button and `=` shortcut in owned system/production views preserve locked allocations, split the remaining budget evenly, and put rounding remainder on the first unlocked allocation, matching `CGalacticSlider.cpp`. |
 | Research and tech advancement | Research accumulates; higher levels take more work. | ✅ Implemented | ➖ N/A | Research uses current output before allocation adjustment, pays whole credits on v3’s integer 0–1000 allocation scale, truncates computer bonuses separately, and advances at most once per turn when credit strictly exceeds 1000 (normal) or 750 (fast). Excess credit is retained. |
 | New-drive milestone | New technology class event every five levels. | ✅ Implemented | ✅ Implemented | The localized lab overlay appears when a system first reaches a new drive class for its player. Other systems reaching an already known class do not repeat the discovery event. Lab artwork is owner-only; eligible observers receive localized discovery narratives with Events replay and retained discovery details. |
-| Choose hull type | Popup offers Satellite, Scout/Courier, Colony, Battleship. | ✅ Implemented | ✅ Implemented | All four hulls can be switched by keyboard or popup buttons; the active hull is highlighted. Per-hull effort survives switching or pausing; superseded unfinished hulls are unregistered. Pause build is available on `[X]`. |
+| Choose hull type | Popup offers Satellite, Scout/Courier, Colony, Battleship. | ✅ Implemented | ✅ Implemented | All four hulls can be switched by keyboard or popup buttons; the active hull is highlighted. Per-hull effort survives switching; superseded unfinished hulls are unregistered. Public Pause build and its X shortcut are intentionally removed per the requested v4 design. Build-button tooltips say “Switch to building {type}” in all six languages. |
 | Continuous ship production | A system continues producing the selected hull class. | ✅ Implemented | ✅ Implemented | Human systems keep the selected hull active, use carried effort, and can complete multiple ships each turn. Computer systems choose their next v3-weighted hull after each completion. A hull completes as soon as accumulated effort reaches its cost (100%). Fully paid saved hulls need no further payment, including at zero output. This intentionally improves on v3’s strict greater-than boundary at the user’s request. System panels identify continuous production. |
 | Per-hull accumulated production | v3 preserves paid progress separately for each hull type when switching. | ✅ Implemented | ✅ Implemented | Per-hull credits are retained across switch/pause/resume and computer hull selection; resumed progress is visible in system and construction panels. |
 | Ship build progress/ETA | Panel displays percent complete and v3 can estimate turns. | ✅ Implemented | ✅ Implemented | The system panel shows construction percentage truncated as in v3, alongside localized ETA using desired allocation, fast-game, computer advantage and inclusive completion rounding. Pending construction is system data, excluded from map selection, ship IDs/counts, scanners, docked lists and defenses. Hull cost is cached when selected; the real ship is created with current system owner/technology at commissioning. |
@@ -836,3 +836,34 @@ No visible text changes and the cue is identical in all languages. Instruction
 rendering, six-language lesson text/art, full tutorial save/resume and a complete
 guided walkthrough still remain. The tutorial and broader parity/map-generation
 checklists are not complete.
+
+
+### Compact system and ship inspectors
+
+Applied the requested v4 deviations: removed Rendezvous and Pause build from
+system context menus, removed public pause actions/X, and removed the Continuous
+caption. Build-button tooltip headings now say “Switch to building {type}”.
+Locks retain their hit regions but draw only the cached glyphs, shifted up two
+pixels. The compact = button sits to the right of the three sliders at their
+vertical midpoint; its = shortcut preserves locked shares and actual production.
++ still zooms. Owned systems show an inline Send to row in the old Position slot,
+with measured Set/Clear buttons separated by the same four-pixel gap as locks
+from the slider control. Long Unicode destinations ellipsize before the buttons.
+System and ship coordinate rows are commented out for potential reuse.
+
+Inspector triangles now draw after the panel, match its owner/neutral gradient,
+cover the straight seam and outline only their exposed sides. Shorter inspector
+heights remove the old footer gap. All new strings and changed manual instructions
+are supplied in en/de/es/fr/ja/ru. Regressions cover removed menu/actions, actual
+= key behavior, locked allocations, actual-output preservation, destination
+routing and localized long-name bounds. Both full suites pass 1,248 tests.
+Actual browser mouse/keyboard checks pass in all six languages for locks,
+equalize, removed X, Set/map target/Clear, localized build hints and production
+window shortcuts. Before/after system/ship screenshots, both pointer orientations,
+translated tooltips and long destination layouts were inspected under
+`/private/tmp/galactica-parity/compact-inspector-{before,after}`. Logs:
+`/private/tmp/galactica-compact-inspector-{tests,native-tests}.log` and
+`/private/tmp/galactica-compact-inspector-after-<language>.log`.
+
+These explicit UI deviations supersede the earlier pause/coordinate descriptions;
+remaining tutorial, parity and Map Generation items remain open.

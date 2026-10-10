@@ -53,10 +53,10 @@ module.exports = function() {
             const ship = star.completeShip(); test.assertFalse(!!ship.destination);
             test.assertTrue(ship.star === star); test.assertEqual(ship.x,star.x);
         });
-        test.it('routes visible destination buttons and hides clear when no default is set', () => {
+        test.it('routes compact Set and Clear buttons even when no default is set', () => {
             const {game, star} = fixture(); game.port = {getDrawingArea: () => new pdg.Rect(800,600)};
             const display = new Display(game); let regions = display.getDefaultDestinationRegions();
-            test.assertEqual(regions.length,1);
+            test.assertEqual(regions.length,2);
             let r=regions[0].rect; test.assertEqual(display.getUIActionAt(r.x+5,r.y+5).type,'beginOrders');
             star.setDefaultDestination({x:1,y:2}); regions=display.getDefaultDestinationRegions();
             test.assertEqual(regions.length,2); r=regions[1].rect;
@@ -119,11 +119,12 @@ module.exports = function() {
             test.assertEqual(star.buildCredits.battleship, 3);
             test.assertEqual(game.allShips.length, 0);
         });
-        test.it('pauses and resumes construction without losing paid effort', () => {
+        test.it('removes pause actions while preserving ongoing construction and paid effort', () => {
             const {game, star} = fixture(); star.startBuildingShip('colony');
             star.paidTowardShipBuilding = 2;
-            test.assertTrue(game.executeUIAction({type:'pauseBuild',object:star}));
-            test.assertNull(star.currentShip);
+            const hull=star.currentShip;test.assertFalse(game.executeUIAction({type:'pauseBuild',object:star}));
+            game.handleStarKeyPress(star,120);test.assertTrue(star.currentShip===hull);
+            game.port={getDrawingArea:()=>new pdg.Rect(800,600)};test.assertFalse(new Display(game).getContextActions(star).some(row=>row.action.type==='pauseBuild'));
             star.startBuildingShip('colony');
             test.assertEqual(star.paidTowardShipBuilding, 2);
         });

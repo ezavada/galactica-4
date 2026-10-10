@@ -623,3 +623,8 @@
 
 # Tutorial document title
 960	Tutorial
+
+# Compact system inspector controls
+961	Zur Produktion von {0} wechseln
+962	Setzen
+963	Löschen

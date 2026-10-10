@@ -623,3 +623,8 @@
 
 # Tutorial document title
 960	Обучение
+
+# Compact system inspector controls
+961	Переключить строительство на {0}
+962	Задать
+963	Сбросить

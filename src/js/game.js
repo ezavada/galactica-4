@@ -1432,7 +1432,7 @@ class Game {
                 case 'd':
                     this.adjustSelectedStarAllocation('research', -5);
                     return true;
-                case 'r':
+                case '=':
                     this.resetSelectedStarAllocations();
                     return true;
                 case 'p':
@@ -1996,9 +1996,6 @@ class Game {
                     this.display.zoomToFit();
                 }
                 return true;
-            case 'pauseBuild':
-                return !!action.object && this.canHumanControl(action.object) &&
-                    this.getObjectType(action.object) === Common.ObjectType.STAR && action.object.pauseShipBuilding();
             case 'buildShip':
                 if (action.object && this.getObjectType(action.object) === Common.ObjectType.STAR) {
                     this.setSelectedObject(action.object);
@@ -2734,7 +2731,9 @@ class Game {
         if (key === pdg.key_Escape) {
             this.selectedObject = null;
             this.display.setSelectedObject(null);
-        } else if (key === 61 || key === 43) { // = or + key
+        } else if (key===61 && !this.uiWindow && this.canHumanControl(this.getSelectedStar())) {
+            return this.resetSelectedStarAllocations();
+        } else if (key === 61 || key === 43) { // + zooms; = also zooms when no owned system is selected
             // Zoom in with + or = key (zoom to center of screen)
             this.display.zoomIn();
         } else if (key === 45) { // - key
@@ -2815,9 +2814,6 @@ class Game {
         switch (String.fromCharCode(key)) {
             case 'n':
                 return this.beginRenameObject(star);
-            case 'x':
-                star.pauseShipBuilding();
-                return true;
             case 's':
                 star.startBuildingShip('scout');
                 break;

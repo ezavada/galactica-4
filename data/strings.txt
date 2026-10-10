@@ -623,3 +623,8 @@
 
 # Tutorial document title
 960	Tutorial
+
+# Compact system inspector controls
+961	Switch to building {0}
+962	Set
+963	Clear

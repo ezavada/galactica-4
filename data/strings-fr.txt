@@ -623,3 +623,8 @@
 
 # Tutorial document title
 960	Tutoriel
+
+# Compact system inspector controls
+961	Passer à la construction de {0}
+962	Définir
+963	Effacer
