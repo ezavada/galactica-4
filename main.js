@@ -104,6 +104,7 @@ let pendingConfig = launchOptions.aiAutoplay ?
     createDefaultConfig();
 let startupPlayerName=null;
 let startupGameTitle=null;
+let startupComputerCount=null;
 let game = null;
 let display = null;
 let autoplayController = null;
@@ -214,6 +215,13 @@ function submitPlayerName() {
     if(game){playerNamePreferences.write(name);startupPlayerName=null;}
 }
 
+function beginComputerCount() {startupComputerCount=PlayerName.createEditor(String(pendingConfig.numComputers),2);}
+function submitComputerCount() {
+    if(!startupComputerCount)return;
+    if(!StartupSetup.acceptComputerCount(pendingConfig,startupComputerCount.text)){startupComputerCount.error=true;return;}
+    startupComputerCount=null;
+}
+
 function beginGameTitle() {
     startupGameTitle=PlayerName.createEditor(pendingConfig.gameTitle,StartupSetup.maximumTitleLength);
 }
@@ -241,6 +249,7 @@ function drawStartupTextDialog(editor,labels) {
 }
 
 function drawStartupDialog() {
+    if(startupComputerCount){drawStartupTextDialog(startupComputerCount,{title:I18n.getString(829,'Computer opponents'),prompt:I18n.formatString(830,'Enter the number of opponents (0–{0}).',99-pendingConfig.numHumans),error:I18n.formatString(831,'Enter a whole number from 0 to {0}.',99-pendingConfig.numHumans),submit:I18n.getString(682,'Save')});return;}
     if(startupGameTitle){drawStartupTextDialog(startupGameTitle,{title:I18n.getString(825,'Game title'),prompt:I18n.getString(826,'Enter a game title.'),error:I18n.getString(827,'Enter a title before saving.'),submit:I18n.getString(682,'Save')});return;}
     if(startupPlayerName){drawStartupTextDialog(startupPlayerName,{title:I18n.getString(822,'Player name'),prompt:I18n.getString(823,'Enter your player name.'),error:I18n.getString(824,'Enter a name before starting.'),submit:I18n.getString(528,'<Enter> Start')});return;}
 
@@ -268,6 +277,7 @@ function drawStartupDialog() {
 
     const x = panelX + 34;
     let y = panelY + step(112);
+    drawStartupRoundedRect(StartupSetup.computerCountRegion(panelRect),6,startupStyles.advantageButton);
     port.drawText(I18n.formatString(
         521,
         'Players: {0} {1}, {2} {3}',
@@ -306,7 +316,7 @@ function drawStartupDialog() {
         pendingConfig.getFogOfWarDescription()
     ), new pdg.Point(x, y), startupStyles.lineText);
     y += step(36);
-    port.drawText(I18n.getString(525, '<C> cycle AI players   <1-5> AI skill'), new pdg.Point(x, y), startupStyles.hintText);
+    port.drawText(I18n.getString(525, '<C> edit AI players   <1-5> AI skill'), new pdg.Point(x, y), startupStyles.hintText);
     y += step(22);
     port.drawText(I18n.getString(762,'<A> cycle computer advantage'),new pdg.Point(x,y),startupStyles.hintText);
     y += step(22);
@@ -320,6 +330,13 @@ function drawStartupDialog() {
 }
 
 function handleStartupKey(key) {
+    if(startupComputerCount) {
+        const action=PlayerName.edit(startupComputerCount,key);
+        if(action==='submit')submitComputerCount();
+        if(action==='cancel')startupComputerCount=null;
+        return true;
+    }
+
     if(startupGameTitle) {
         const action=PlayerName.edit(startupGameTitle,key);
         if(action==='submit')submitGameTitle();
@@ -351,9 +368,7 @@ function handleStartupKey(key) {
         case 'a':
             return StartupSetup.cycleAdvantage(pendingConfig);
         case 'c':
-            pendingConfig.numComputers = (pendingConfig.numComputers % 5) + 1;
-            refreshTotalPlayers(pendingConfig);
-            return true;
+            beginComputerCount();return true;
         case 's':
             StartupSetup.cycleSectorSize(pendingConfig);
             return true;
@@ -372,13 +387,9 @@ function handleStartupKey(key) {
             return true;
         case '+':
         case '=':
-            pendingConfig.numComputers = clamp(pendingConfig.numComputers + 1, 1, 5);
-            refreshTotalPlayers(pendingConfig);
-            return true;
+            StartupSetup.setComputerCount(pendingConfig,Math.min(99-pendingConfig.numHumans,pendingConfig.numComputers+1));return true;
         case '-':
-            pendingConfig.numComputers = clamp(pendingConfig.numComputers - 1, 1, 5);
-            refreshTotalPlayers(pendingConfig);
-            return true;
+            StartupSetup.setComputerCount(pendingConfig,Math.max(0,pendingConfig.numComputers-1));return true;
         default:
             return true;
     }
@@ -504,16 +515,18 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     if (!game) {
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0) {
             const area=port.getDrawingArea();
-            if(startupGameTitle || startupPlayerName) {
-                const title=!!startupGameTitle,editor=startupGameTitle || startupPlayerName;
+            if(startupComputerCount || startupGameTitle || startupPlayerName) {
+                const count=!!startupComputerCount,title=!!startupGameTitle,editor=startupComputerCount || startupGameTitle || startupPlayerName;
                 const layout=PlayerName.layout(area.width(),area.height()),x=event.mousePos.x,y=event.mousePos.y;
                 const contains=r=>x>=r.x && x<=r.x+r.width && y>=r.y && y<=r.y+r.height;
                 const button=layout.buttons.find(button=>contains(button.rect));
-                if(button && button.action==='submit'){if(title)submitGameTitle();else submitPlayerName();}
-                else if(button && button.action==='cancel'){if(title)startupGameTitle=null;else startupPlayerName=null;}
+                if(button && button.action==='submit'){if(count)submitComputerCount();else if(title)submitGameTitle();else submitPlayerName();}
+                else if(button && button.action==='cancel'){if(count)startupComputerCount=null;else if(title)startupGameTitle=null;else startupPlayerName=null;}
                 else if(contains(layout.field)){editor.selected=true;editor.caret=Array.from(editor.text).length;}
                 return true;
             }
+            const count=StartupSetup.computerCountRegion(StartupSetup.panelRect(area.width(),area.height()));
+            if(event.mousePos.x>=count.x && event.mousePos.x<=count.x+count.width && event.mousePos.y>=count.y && event.mousePos.y<=count.y+count.height){beginComputerCount();return true;}
             const title=StartupSetup.titleRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(event.mousePos.x>=title.x && event.mousePos.x<=title.x+title.width && event.mousePos.y>=title.y && event.mousePos.y<=title.y+title.height){beginGameTitle();return true;}
             const start=StartupSetup.startRegion(StartupSetup.panelRect(area.width(),area.height()));

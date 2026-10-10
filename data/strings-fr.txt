@@ -96,7 +96,7 @@
 522	Niveau IA : {0} ({1})
 523	Taille de carte : {0}
 524	Options : {0}, {1}
-525	<C> changer joueurs IA   <1-5> niveau IA
+525	<C> modifier le nombre d’IA   <1-5> niveau IA
 526	<S> taille de carte   <D> densité stellaire
 527	<F> jeu rapide   <O> brouillard/tout visible   <R> valeurs par défaut
 528	<Enter> Commencer
@@ -457,3 +457,8 @@
 826	Saisissez un titre pour la partie.
 827	Saisissez un titre avant de sauvegarder.
 828	Titre : {0} <T>
+
+# Computer-opponent setup
+829	Adversaires IA
+830	Saisissez le nombre d’adversaires (0–{0}).
+831	Saisissez un entier de 0 à {0}.

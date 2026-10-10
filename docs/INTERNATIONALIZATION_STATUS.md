@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 363 IDs
-- localized files: 363 IDs each
+- `strings.txt`: 366 IDs
+- localized files: 366 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 934 passed, 0 failed.
+Current expected full-suite result: 941 passed, 0 failed.
 
 ## Future work
 
@@ -153,3 +153,5 @@ Compare Players adds IDs 811–821 in English, German, Spanish, French, Japanese
 Player-name startup adds IDs 822–824 in all six languages for the title, prompt and blank-name error; Start/Cancel use existing resources. Native-script names edit by Unicode code point and are retained in configuration/map generation/player comparison and native/browser remembered-name storage. Actual typed accented/Japanese/Cyrillic names, cancellation, blank validation, fresh-page restoration and smaller dialog layouts passed in en/de/es/fr/ja/ru, with screenshots inspected. Current resources: 359 IDs per language; full suites: 928 passed on release/current native PDG.
 
 Game-title setup adds IDs 825–828 in all six languages for the editor title, prompt, blank-title validation and setup title button. Save/Cancel reuse existing translations. Browser typing, validation, Save/Cancel, title-limit and generated-game header flows passed in en/de/es/fr/ja/ru, with translated screenshots inspected. Current resources: 363 IDs per language; full suites: 934 passed on release/current native PDG.
+
+Computer-opponent setup adds IDs 829–831 and updates shortcut hint 525 in en/de/es/fr/ja/ru. Count prompts and errors format the available opponent limit; Save/Cancel reuse existing translations. Actual browser editor, invalid input, cancellation, twelve-opponent and solo launches/turns passed in every language. Translated normal/smaller layouts were inspected. Current resources: 366 IDs per language; full suites: 941 passed on release/current native PDG.

@@ -152,3 +152,7 @@ Post-setup player-name dialog uses the neutral window gradient/border, a selecte
 ### Editable startup game title
 
 The setup title is a clickable control with T shortcut. The title editor reuses the player-name field and window style, with Save/Cancel and a 27-character Unicode limit. Header text measures its available width and reduces font size before truncation. Before/after setup, translated editors and maximum-length header screenshots were inspected under `/private/tmp/galactica-parity/game-title-{before,after}`; player-name dialog screenshots remain pixel-identical in every supported language. Full suites: 934 passed on release/current native PDG.
+
+### Editable opponent count
+
+The player-count row is a button opening a selected numeric draft through a click or C. The editor uses the existing title/name window style with localized range and validation text, Save/Cancel and unchanged neighboring setup controls. Inspected six translated editors, smaller layouts, errors, before/after setup and actual solo/twelve-opponent games under `/private/tmp/galactica-parity/opponents-{before,after}`. Full suites: 941 passed on release/current native PDG.

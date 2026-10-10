@@ -183,17 +183,17 @@ function runPlayerConfigTests() {
             test.assertContains(errors[0], '99', 'Error should mention 99 player limit');
         });
 
-        test.it('rejects too few players', () => {
+        test.it('rejects an empty game', () => {
             const config = new GameConfig({
-                numHumans: 1,
+                numHumans: 0,
                 numComputers: 0
             });
 
             const errors = config.validate();
-            test.assertGreaterThan(errors.length, 0, 'Should have errors for 1 total player');
+            test.assertGreaterThan(errors.length, 0, 'Should have errors for 0 total players');
             // Find the error about minimum players (not assuming it's first)
-            const minPlayerError = errors.find(e => e.includes('2'));
-            test.assert(minPlayerError, 'Should have error mentioning 2 player minimum');
+            const minPlayerError = errors.find(e => e.includes('at least 1'));
+            test.assert(minPlayerError, 'Should have error mentioning 1 player minimum');
         });
 
         test.it('rejects invalid density', () => {

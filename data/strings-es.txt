@@ -96,7 +96,7 @@
 522	Habilidad de IA: {0} ({1})
 523	Tamaño del mapa: {0}
 524	Opciones: {0}, {1}
-525	<C> cambiar jugadores IA   <1-5> habilidad IA
+525	<C> editar jugadores IA   <1-5> nivel IA
 526	<S> tamaño del mapa   <D> densidad estelar
 527	<F> juego rápido   <O> niebla/todo visible   <R> valores iniciales
 528	<Enter> Iniciar
@@ -457,3 +457,8 @@
 826	Introduce un título para la partida.
 827	Introduce un título antes de guardar.
 828	Título: {0} <T>
+
+# Computer-opponent setup
+829	Oponentes de la IA
+830	Introduce el número de oponentes (0–{0}).
+831	Introduce un número entero entre 0 y {0}.

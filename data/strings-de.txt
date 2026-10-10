@@ -96,7 +96,7 @@
 522	KI-Fähigkeit: {0} ({1})
 523	Kartengröße: {0}
 524	Optionen: {0}, {1}
-525	<C> KI-Spieler wechseln   <1-5> KI-Fähigkeit
+525	<C> KI-Anzahl bearbeiten   <1-5> KI-Stärke
 526	<S> Kartengröße   <D> Sterndichte
 527	<F> schnelles Spiel   <O> Nebel/alles sichtbar   <R> Standardwerte
 528	<Enter> Starten
@@ -457,3 +457,8 @@
 826	Geben Sie einen Spieltitel ein.
 827	Geben Sie vor dem Speichern einen Titel ein.
 828	Titel: {0} <T>
+
+# Computer-opponent setup
+829	Computergegner
+830	Anzahl der Gegner eingeben (0–{0}).
+831	Geben Sie eine ganze Zahl von 0 bis {0} ein.

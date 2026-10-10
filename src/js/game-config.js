@@ -167,11 +167,11 @@ class GameConfig {
                 errors.push('humanPlayerNames must contain valid names for human player slots');
         }
 
-        if (this.numHumans < 0 || this.numHumans > 99) {
+        if (!Number.isInteger(this.numHumans) || this.numHumans < 0 || this.numHumans > 99) {
             errors.push("numHumans must be between 0 and 99");
         }
         
-        if (this.numComputers < 0 || this.numComputers > 99) {
+        if (!Number.isInteger(this.numComputers) || this.numComputers < 0 || this.numComputers > 99) {
             errors.push("numComputers must be between 0 and 99");
         }
         
@@ -179,8 +179,8 @@ class GameConfig {
             errors.push("Cannot have more than 99 total players");
         }
         
-        if (this.totalPlayers < 2) {
-            errors.push("Must have at least 2 total players");
+        if (this.totalPlayers < 1) {
+            errors.push("Must have at least 1 total player");
         }
         
         if (!Number.isInteger(this.density) || this.density < 1 || this.density > 10) {
