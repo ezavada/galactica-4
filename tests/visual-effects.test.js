@@ -115,20 +115,43 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         for(let id=1;id<500;id++){v.twinkleFrame([id,id+1],45000);v.starBrightness(id,45000);v.rendezvousPulse(45000);v.parallax({panX:id,panY:-id,scale:1/1024});v.transition('window','menu',id);}
         test.assertEqual(pdg.rand(),expected);
     });
-    test.it('moves the background only a small distance opposite camera movement',()=>{
-        const v=new VisualEffects();const a=v.parallax({panX:102400,panY:-102400,scale:1/1024});test.assertTrue(a.x<0&&a.y>0);test.assertTrue(Math.abs(a.x)<3);
-        const b=v.parallax({panX:1e12,panY:-1e12,scale:1/1024});test.assertTrue(Math.abs(b.x)<=8&&Math.abs(b.y)<=8);
+    test.it('moves the background consistently with scrolling and scales its rate with zoom',()=>{
+        const v=new VisualEffects(),camera={panX:102400,panY:-102400,scale:1/1024,zoom:1,minZoom:.1};
+        const a=v.parallax(camera);test.assertApproximately(a.x,-.9,.000001);test.assertApproximately(a.y,.9,.000001);
+        camera.panX*=2;test.assertApproximately(v.parallax(camera).x,2*a.x,.000001);
+        camera.zoom=2;test.assertTrue(Math.abs(v.parallax(camera).x)>Math.abs(2*a.x));
+        camera.zoom=.1;test.assertEqual(v.parallax(camera).x,0);test.assertEqual(v.parallax(camera).y,0);
+        camera.zoom=.10001;test.assertTrue(Math.abs(v.parallax(camera).x)<.001);
+        camera.zoom=2;test.assertEqual(new VisualEffects(true).parallax(camera).x,0);
     });
-    test.it('keeps parallax independent of camera zoom',()=>{
-        const v=new VisualEffects(),camera={panX:102400,panY:204800,scale:1/1024,zoom:1};const a=v.parallax(camera);camera.zoom=8;const b=v.parallax(camera);
-        test.assertEqual(a.x,b.x);test.assertEqual(a.y,b.y);
-    });
-    test.it('covers every viewport edge during parallax across aspect ratios',()=>{
+    test.it('covers every viewport edge with background tiles during unrestricted panning',()=>{
         const d=Object.create(Display.prototype);d.visualEffects=new VisualEffects();d.styles={image:{}};
         for(const [width,height] of [[800,600],[1600,900],[480,800]])for(const [iw,ih] of [[1920,1080],[1000,1000],[600,1000]])for(const sign of [-1,1]){
-            let rect;d.port={getDrawingArea:()=>new pdg.Rect(width,height),drawImage:(i,r)=>{rect=r}};d.backgroundImage={getWidth:()=>iw,getHeight:()=>ih};d.camera={panX:sign*1e12,panY:-sign*1e12,scale:1/1024};
-            d.drawBackground();test.assertTrue(rect.left<=0&&rect.top<=0&&rect.right>=width&&rect.bottom>=height);
+            const rects=[];d.port={getDrawingArea:()=>new pdg.Rect(width,height),drawImage:(i,r)=>rects.push(r)};d.backgroundImage={getWidth:()=>iw,getHeight:()=>ih};d.camera={panX:sign*1e12,panY:-sign*1e12,scale:1/1024,zoom:10,minZoom:.1};
+            d.drawBackground();
+            for(let x=0;x<=width;x+=width/4)for(let y=0;y<=height;y+=height/4)
+                test.assertTrue(rects.some(r=>r.left<=x&&r.right>=x&&r.top<=y&&r.bottom>=y));
+            test.assertTrue(rects.length<=4);
         }
+    });
+    test.it('creates stable unnamed decorative positions only outside the playable map',()=>{
+        const v=new VisualEffects(),cell=256*1024,bounds={left:-cell*4,top:-cell*4,right:cell*8,bottom:cell*8};
+        const stars=v.decorativeStars(bounds,cell*4,cell*4);test.assertTrue(stars.length>50);
+        test.assertEqual(JSON.stringify(stars),JSON.stringify(v.decorativeStars(bounds,cell*4,cell*4)));
+        for(const star of stars){test.assertTrue(star.x<0||star.y<0||star.x>cell*4||star.y>cell*4);test.assertUndefined(star.name);test.assertUndefined(star.id);}
+        const small={left:-cell*2,top:-cell*2,right:0,bottom:0};
+        test.assertEqual(JSON.stringify(v.decorativeStars(small,cell*4,cell*4)),JSON.stringify(stars.filter(s=>s.x>=small.left&&s.x<=0&&s.y>=small.top&&s.y<=0)));
+        pdg.srand(424242);const expected=pdg.rand();pdg.srand(424242);v.decorativeStars(bounds,cell*4,cell*4);test.assertEqual(pdg.rand(),expected);
+    });
+    test.it('renders exterior stars dimly with cached styles and leaves the game star collection unchanged',()=>{
+        const {game,display:d}=fixture(),original=game.stars,definitions=[],draws=[];
+        d.camera.setZoom(.5);d.camera.centerOn(0,0);
+        const create=d.createAttributes.bind(d);d.createAttributes=definition=>{definitions.push(definition);return create(definition);};
+        d.port.drawCircle=(point,radius,style)=>draws.push({point,radius,style});
+        d.drawDecorativeStars();test.assertTrue(draws.length>0);test.assertEqual(definitions.length,4);
+        for(const definition of definitions)test.assertTrue(definition.fillColor.blue<.4);
+        for(const draw of draws){const x=d.camera.toGalacticX(draw.point.x),y=d.camera.toGalacticY(draw.point.y);test.assertTrue(x<0||y<0||x>d.mapWidth||y>d.mapHeight);test.assertTrue(draw.radius<=1.25);}
+        const styles=d.decorativeStarStyles;d.drawDecorativeStars();test.assertEqual(definitions.length,4);test.assertTrue(d.decorativeStarStyles===styles);test.assertTrue(game.stars===original);
     });
     test.it('settles a barely displaced opening window within 120 milliseconds',()=>{
         const v=new VisualEffects(),first=v.transition('window','menu',100),last=v.transition('window','menu',220);

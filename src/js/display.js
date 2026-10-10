@@ -462,10 +462,16 @@ class Display {
             const offsetX = (screenWidth - scaledWidth) / 2+drift.x;
             const offsetY = (screenHeight - scaledHeight) / 2+drift.y;
             
-            // Create rectangle for the background image (may extend beyond screen bounds)
-            const backgroundRect = this.toPDGRect({ x: offsetX, y: offsetY, width: scaledWidth, height: scaledHeight });
-            
-            this.port.drawImage(this.backgroundImage, backgroundRect, this.styles.image);
+            // Repeat only when a translated edge enters view; unrestricted panning
+            // must keep a constant drift rate rather than saturating at an offset.
+            const tileX=((offsetX%scaledWidth)+scaledWidth)%scaledWidth;
+            const tileY=((offsetY%scaledHeight)+scaledHeight)%scaledHeight;
+            for(let y=tileY-scaledHeight;y<screenHeight;y+=scaledHeight) {
+                for(let x=tileX-scaledWidth;x<screenWidth;x+=scaledWidth) {
+                    if(x+scaledWidth<=0 || y+scaledHeight<=0)continue;
+                    this.port.drawImage(this.backgroundImage,this.toPDGRect({x,y,width:scaledWidth,height:scaledHeight}),this.styles.image);
+                }
+            }
         } else {
             // Fallback to a gradient background if image not loaded
             const backgroundRect = new pdg.Rect(0, 0, screenWidth, screenHeight);
@@ -729,6 +735,18 @@ class Display {
         }
     }
     
+    drawDecorativeStars() {
+        const screen=this.getScreenSize();
+        const bounds={left:this.camera.toGalacticX(0),top:this.camera.toGalacticY(0),
+            right:this.camera.toGalacticX(screen.width),bottom:this.camera.toGalacticY(screen.height)};
+        if(!this.decorativeStarStyles)this.decorativeStarStyles=[.24,.29,.34,.39].map(tone=>
+            this.createAttributes({fillColor:new pdg.Color(tone*.9,tone*.95,tone),lineStyle:pdg.lineStyle_None}));
+        for(const star of this.visualEffects.decorativeStars(bounds,this.mapWidth,this.mapHeight)) {
+            this.port.drawCircle(new pdg.Point(this.toScreenX(star.x),this.toScreenY(star.y)),
+                Math.max(.65,Math.min(1.25,.8*Math.sqrt(this.camera.zoom))),this.decorativeStarStyles[star.tone]);
+        }
+    }
+
     // Draw all stars
     drawStars(stars) {
         const screen=this.getScreenSize();
@@ -3099,6 +3117,7 @@ class Display {
 
         // Draw grid (behind game objects but above background)
         this.drawGrid();
+        this.drawDecorativeStars();
 
         // Draw game objects
         this.drawStars(game.stars);

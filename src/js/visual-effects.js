@@ -27,7 +27,24 @@ class VisualEffects {
     }
     parallax(camera) {
         if(this.reducedMotion)return {x:0,y:0};
-        return {x:-8*Math.tanh(camera.panX*camera.scale/400),y:-8*Math.tanh(camera.panY*camera.scale/400)};
+        const zoom=camera.zoom ?? 1;
+        const depth=.01*zoom*Math.max(0,zoom-(camera.minZoom ?? .1));
+        return {x:-camera.panX*camera.scale*depth,y:-camera.panY*camera.scale*depth};
+    }
+    decorativeStars(bounds,mapWidth,mapHeight) {
+        const cell=256*1024,stars=[];
+        for(let row=Math.floor(bounds.top/cell);row<=Math.floor(bounds.bottom/cell);row++) {
+            for(let col=Math.floor(bounds.left/cell);col<=Math.floor(bounds.right/cell);col++) {
+                let hash=(Math.imul(col,0x85ebca6b)^Math.imul(row,0xc2b2ae35)^0x27d4eb2f)>>>0;
+                hash=Math.imul(hash^(hash>>>16),0x7feb352d)>>>0;
+                const x=(col+.12+.76*(hash&65535)/65535)*cell;
+                const y=(row+.12+.76*(hash>>>16)/65535)*cell;
+                if(x>=0 && x<=mapWidth && y>=0 && y<=mapHeight)continue;
+                if(x<bounds.left || x>bounds.right || y<bounds.top || y>bounds.bottom)continue;
+                stars.push({x,y,tone:hash%4});
+            }
+        }
+        return stars;
     }
     transition(channel,key,milliseconds) {
         let state=this.channels.get(channel);
