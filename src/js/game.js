@@ -3513,6 +3513,15 @@ class Game {
         });
     }
 
+    recordBuiltShipReport(ship, star) {
+        const name=this.getObjectDisplayName(ship).replace(/\t/g,' · '),starName=star.name;
+        const event=this.recordEvent(I18n.getString(608,'Build'),
+            I18n.formatString(1004,'',name,starName),{type:Common.EventType.SHIP_BUILT,subject:ship,recipient:ship.owner,position:star});
+        event.builtShip={name,starName,shipType:ship.type,techLevel:ship.techLevel};event.automatic=false;
+        this.attention.requestEvent(event);
+        return event;
+    }
+
     noteworthyEvent(who, what, where, how, why, other) {
         let eventTitle = I18n.getString(600, 'Event');
         let eventMessage = null;
@@ -3552,10 +3561,7 @@ class Game {
                 console.log(eventMessage); // who = Ship, where = position or Star or Ship
                 break;
             case Common.EventType.SHIP_BUILT:
-                eventTitle = I18n.getString(608, 'Build');
-                eventMessage = I18n.formatString(628, '{0} built a {1} ship', where.name, shipTypeName);
-                console.log(eventMessage); // who = Ship, where = Star
-                break;
+                return this.recordBuiltShipReport(who,where);
             case Common.EventType.SHIP_DEPARTED:
                 eventTitle = I18n.getString(609, 'Departure');
                 eventMessage = I18n.formatString(629, '{0} ship departed from {1}', shipTypeName, where.name);
@@ -3617,7 +3623,7 @@ class Game {
             const event=this.recordEvent(eventTitle,eventMessage,{type:what,subject,
                 recipient:subject?subject.owner:undefined,position:what===Common.EventType.SHIP_DESTROYED?where:subject});
             if(what===Common.EventType.PLAYER_DIED)this.queueOutcome(event,'defeat',who.playerNum);
-            if([Common.EventType.SHIP_BUILT,Common.EventType.STAR_CAPTURED].includes(what))this.attention.requestEvent(event);
+            if(what===Common.EventType.STAR_CAPTURED)this.attention.requestEvent(event);
         }
     }
     

@@ -679,3 +679,6 @@
 # Ship and fleet call-in reports
 1002	Tu nave {0} en {1} está esperando tus órdenes.
 1003	Tu flota {0} en {1} está esperando tus órdenes.
+
+# Ordinary completed-ship report
+1004	Tu nueva nave {0} está en el sistema {1}, lista para partir.

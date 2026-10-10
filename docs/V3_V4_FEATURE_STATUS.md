@@ -2212,3 +2212,35 @@ C/C++ sources; no emitter was found. Their resource text establishes definitions
 not observable normal-turn behavior. A complete event-matrix audit must preserve
 this distinction and must not invent broadcasts from unused resource entries.
 The broader parity and Map Generation objectives remain active.
+
+### Ordinary newly built ship notices
+`Classes/CStar.cpp:900–931` creates BuiltShip (10) separately from the first
+new-class Stardock report. Satellites and automatic deliveries suppress the
+ordinary orders notice. Evnt128 selects owner STR#500/17, sound 1001, no PPob,
+and autoShow=0. The shipped text identifies the newly built starship and its
+origin system, ready for launch. It is sent to the owner, without a broadcast.
+
+V4 now preserves that full narrative with localized text 1004 in en/de/es/fr/ja/ru.
+The owner-private report snapshots ship name, origin name, hull and technology;
+renaming does not rewrite history. It retains ordinary attention and Events →
+Go to, without an additional modal report. First-class commissioning remains a
+separate presentation. Existing satellite/default-destination suppression stays
+in place, including deliveries that reach their destination immediately. The
+intentional v4 rule that exactly 100% paid hulls complete without another positive
+payment also remains covered.
+
+Six regressions cover all mobile hulls, suppression, real end-turn completion,
+privacy/saves, live/lost navigation and localization. Both native runtimes pass
+1,385 tests. `tools/test-web-built-ship-reports.cjs` prepares production credit,
+then uses actual Scout production, End Turn, Events selection and Go to controls.
+All six languages pass. Reviewed baseline/updated screenshots show the full
+ship/origin narrative, readable wrapping and unchanged surrounding controls.
+Automated native and browser audio output remains muted.
+
+Evidence: `/private/tmp/galactica-built-report-{tests,public-tests,<language>,before}.log`,
+`/private/tmp/galactica-parity/built`, and
+`/private/tmp/galactica-built-report-{before-after,languages}.png`.
+
+This completes the ordinary owner notice alongside the prior call-in item. The
+remaining recipient/event matrix, other v3 parity items and Map Generation
+checklist still require implementation or individual verified blocker evidence.

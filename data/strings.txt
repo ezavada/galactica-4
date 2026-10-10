@@ -679,3 +679,6 @@
 # Ship and fleet call-in reports
 1002	Your starship {0} at {1} is awaiting your orders.
 1003	Your fleet {0} at {1} is awaiting your orders.
+
+# Ordinary completed-ship report
+1004	Your newly built starship {0} is in the system {1}, ready for launch.

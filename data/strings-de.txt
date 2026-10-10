@@ -679,3 +679,6 @@
 # Ship and fleet call-in reports
 1002	Dein Raumschiff {0} bei {1} wartet auf deine Befehle.
 1003	Deine Flotte {0} bei {1} wartet auf deine Befehle.
+
+# Ordinary completed-ship report
+1004	Dein neu gebautes Raumschiff {0} befindet sich im System {1} und ist startbereit.

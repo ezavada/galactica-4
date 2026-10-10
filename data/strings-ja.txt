@@ -679,3 +679,6 @@
 # Ship and fleet call-in reports
 1002	{1}にいる宇宙船「{0}」が命令を待っています。
 1003	{1}にいる艦隊「{0}」が命令を待っています。
+
+# Ordinary completed-ship report
+1004	新しく完成した宇宙船「{0}」は{1}星系で出発を待っています。
