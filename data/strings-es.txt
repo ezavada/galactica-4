@@ -468,3 +468,7 @@
 833	Tus naves han sido destruidas y tus planetas conquistados.|Al caer prisionero, comprendes que no te queda más remedio que admitir la derrota. Ahora tienes pocas posibilidades de convertirte en emperador.|Pero está escrito: «Algún día, {0} volverá, más fuerte que nunca…»
 834	Continuar
 835	Ver informe
+
+// Local game documents
+836	Nueva partida…
+837	Partidas abiertas

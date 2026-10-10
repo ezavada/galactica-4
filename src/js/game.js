@@ -1264,6 +1264,16 @@ class Game {
         }
 
         const lower = char.toLowerCase();
+        if(this.uiWindow==='games') {
+            if(key===pdg.key_Escape)this.uiWindow=null;
+            else if(key===pdg.key_LeftArrow)this.gameSessionPage=Math.max(0,(this.gameSessionPage || 0)-1);
+            else if(key===pdg.key_RightArrow)this.gameSessionPage=(this.gameSessionPage || 0)+1;
+            return true;
+        }
+        if(this.uiWindow==='menu' && this.sessionCommands) {
+            if(lower==='n')return this.executeUIAction({type:'newGame'});
+            if(lower==='g')return this.executeUIAction({type:'showGames'});
+        }
 
         if(this.uiWindow==='view') {
             if(key===pdg.key_Escape)this.uiWindow=null;
@@ -1749,6 +1759,13 @@ class Game {
         }
 
         switch (action.type) {
+            case 'newGame':return !!(this.sessionCommands && this.sessionCommands.begin());
+            case 'showGames':
+                if(!this.sessionCommands)return false;
+                this.endUIWindowDrag();this.endMapScrollDrag();this.endUISliderDrag();
+                this.gameSessionPage=0;this.uiWindow='games';return true;
+            case 'selectGame':return !!(this.uiWindow==='games' && this.sessionCommands && this.sessionCommands.select(action.id));
+            case 'gameSessionPage':this.gameSessionPage=Math.max(0,action.page);return true;
             case 'dismissOutcome':
                 return !!(this.overlay && this.overlay.type==='outcome' && this.dismissEventPresentation());
             case 'outcomePage':
@@ -2421,7 +2438,7 @@ class Game {
     }
     
     handleMouseRightClick(x, y, options={}) {
-        if(['mapPick','fleets','systemComparison','comparison'].includes(this.uiWindow))return true;
+        if(['mapPick','games','fleets','systemComparison','comparison'].includes(this.uiWindow))return true;
         if(this.pendingMapOrderObject || this.pendingRendezvousPlacement)return this.handleMouseClick(x,y,options);
         if(!options.resolved && this.beginMapSelection(x,y,'order'))return true;
         this.pendingMapOrderObject = null;
@@ -2529,7 +2546,7 @@ class Game {
         if(key === pdg.key_F1)return this.executeUIAction({type:'toggleShips'});
         if(key === pdg.key_F2)return this.executeUIAction({type:'toggleMapNames'});
         if(key === pdg.key_F3)return this.executeUIAction({type:'toggleGrid'});
-        if(['mapPick','fleetExchange','fleets'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
+        if(['mapPick','games','fleetExchange','fleets'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
         if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && key===pdg.key_Tab) return true;
         if (['settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && (key===13 || key===3)) return true;
         if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}

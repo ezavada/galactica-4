@@ -468,3 +468,7 @@
 833	Vos vaisseaux ont été détruits et vos planètes conquises.|Alors que vous êtes fait prisonnier, vous comprenez que vous devez reconnaître votre défaite. Vos chances de devenir empereur sont désormais minces.|Mais il est écrit : « Un jour, {0} reviendra, plus fort que jamais… »
 834	Continuer
 835	Voir le rapport
+
+// Local game documents
+836	Nouvelle partie…
+837	Parties ouvertes

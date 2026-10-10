@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 969
-Passed: 969 ✓
+Total: 979
+Passed: 979 ✓
 Failed: 0 ✗
 ```
 
@@ -197,3 +197,5 @@ Fog of War setup checkbox: five regressions cover inverse checked/omniscient map
 Final checkbox-renderer regression check: the Fast Game control crop is pixel-identical before/after in all six languages after matching the existing 13-point setup scale.
 
 Victory/defeat reports: twelve regressions cover actual piece-count transitions, local versus other/observer narratives, duplicate suppression, stalemate and queue ordering, quiet autoplay metadata, modal pointer/keyboard input, Unicode substitution and paging, acknowledgement without turn advance, retained outcome replay, later-turn visibility and accurate event-list turn headings, rendered button labels and all six languages. Full suites: 969 passed on pinned release and current native PDG. Browser ownership transitions on turn 7, opponent notices, personal victory/defeat, actual Continue/View report clicks, Enter/Space/Escape, blocked outside/map input and wheel zoom, paging and stalemate passed in every language. Compared before/after victory/defeat screenshots and inspected translated narratives, replay controls and small layouts under `/private/tmp/galactica-parity/outcome-{before,after}`. Small-layout stress sets Display's drawing dimensions to 480×400 while retaining the 800×600 canvas; it verifies layout/font/paging, not a native window resize. Visual review fixed an accidental action-object button label and the previous-turn-only event-list heading. Logs: `/private/tmp/galactica-outcome-{tests,native-tests}.log` and `/private/tmp/galactica-outcome-{before,after}-<language>.log`.
+
+New Game and retained local documents: ten regressions cover initial setup acceptance, cancellation, full graph/selection/event/allocation/turn/camera retention, independent factories/rules/configurations, duplicate titles with stable identities, unknown IDs, menu controls and menu-only N/G, chooser input isolation, all-document paging, pointer switching, Start/Cancel separation, smaller command menu bounds and six-language resources. Full suites: 979 passed on pinned release/current native PDG. Browser flows passed in all six languages: actual New Game/Cancel clicks, title edits followed by cancellation, nested name cancellation, setup Escape, independent named solo/fast-game creation, actual second-game turn advancement without changing the first, Open Games switching with restored state and camera, outside-click/Enter/Tab/wheel isolation and nine generated documents with paging. Inspected before/after command menus, translated setup/chooser/pages, restored maps and smaller menus under `/private/tmp/galactica-parity/sessions-{before,after}`. Smaller layout stress overrides Display's drawing dimensions to 480×400 with the real 800×600 browser canvas/font, rather than testing a native port resize. Logs: `/private/tmp/galactica-sessions-{tests,native-tests}.log` and `/private/tmp/galactica-sessions-{before,after}-<language>.log`.

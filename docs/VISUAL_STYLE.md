@@ -172,3 +172,7 @@ Fast Game and Fog of War share measured checkbox rendering, equal widths and sep
 ## Conclusion reports
 
 Victory, defeat and stalemate use the shared neutral gradient/border panel over a dimmed map. Local victory/defeat retain v3's complete three-paragraph narratives; other-player notices show the affected name without addressing the viewer as the defeated player. Text wraps by measured font width; smaller drawing areas paginate rather than discard narrative lines. Continue, Space, Enter or Escape acknowledge without advancing a turn. The event list offers View report for retained outcomes; its heading reflects the turns represented in the list. Reports capture pointer/keyboard input and cancel active map/window/slider drags. All text and controls use the six supported resource languages.
+
+## Local game documents
+
+New Game and Open Games share the existing command menu. Opening setup retains the previous map and simulation; Cancel/Escape returns to that document, while cancelling the player-name dialog returns to setup. The neutral Open Games panel lists titles and turn numbers, highlights the active document and pages long lists. Its pointer/keyboard input stays above the map. The expanded command menu reduces row spacing in smaller drawing areas. All six languages reuse the shared styles and localized controls.

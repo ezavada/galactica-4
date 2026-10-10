@@ -59,6 +59,7 @@ const Rules = require('./src/js/rules.js');
 const GameConfig = require('./src/js/game-config.js');
 const I18n = require('./src/js/i18n.js');
 const Autoplay = require('./src/js/autoplay.js');
+const sessions=new (require('./src/js/game-sessions.js'))();
 
 const launchOptions = {
     aiAutoplay: hasArg('--ai-autoplay', '--autoplay-ai-skills'),
@@ -213,8 +214,7 @@ function submitPlayerName() {
     const name=startupPlayerName.text.trim();
     if(!PlayerName.validName(name)){startupPlayerName.error=true;return;}
     pendingConfig.humanPlayerNames[1]=name;
-    startGame();
-    if(game){playerNamePreferences.write(name);startupPlayerName=null;}
+    if(startGame()){playerNamePreferences.write(name);startupPlayerName=null;}
 }
 
 function beginComputerCount() {startupComputerCount=PlayerName.createEditor(String(pendingConfig.numComputers),2);}
@@ -354,6 +354,7 @@ function drawStartupDialog() {
     port.drawText(I18n.getString(527, '<F> fast game   <O> fog/all visible   <R> defaults'), new pdg.Point(x, y), startupStyles.hintText);
     y += step(42);
 
+    if(sessions.active){const cancel=StartupSetup.cancelRegion(panelRect);drawStartupRoundedRect(cancel,7,startupStyles.advantageButton);port.drawText(I18n.getString(683,'Cancel'),new pdg.Point(cancel.x+cancel.width/2,cancel.y+step(20)),startupStyles.startText);}
     drawStartupRoundedRect(StartupSetup.startRegion(panelRect),7,startupStyles.advantageButton);
     port.drawText(I18n.getString(528, '<Enter> Start'), new pdg.Point(screenWidth / 2, y), startupStyles.startText);
 }
@@ -385,6 +386,8 @@ function handleStartupKey(key) {
         if(action==='cancel')startupPlayerName=null;
         return true;
     }
+
+    if(key===pdg.key_Escape && cancelNewGame())return true;
 
     const char = typeof key === 'number' ? String.fromCharCode(key) : '';
     const lower = char.toLowerCase();
@@ -430,9 +433,38 @@ function handleStartupKey(key) {
     }
 }
 
+function clearSessionInput() {
+    isDragging=false;isLeftClickDragging=false;hasDragged=false;
+    if(game){game.endUIWindowDrag();game.endMapScrollDrag();game.endUISliderDrag();}
+}
+function beginNewGame() {
+    if(!sessions.begin())return false;
+    clearSessionInput();stopAutoplayTimer();
+    pendingConfig=createDefaultConfig();
+    startupPlayerName=null;startupGameTitle=null;startupComputerCount=null;startupAISkill=false;
+    return true;
+}
+function resumeSession(session) {
+    game=session.game;display=session.display;autoplayController=session.autoplay;
+    display.reloadUIStrings();display.onScreenSizeChanged();
+    if(autoplayController && autoplayController.getStatus().running)
+        pdg.tm.startTimer(AUTOPLAY_TIMER_ID,game.config.autoplay.turnDelayMs,pdg.timer_Repeating);
+}
+function cancelNewGame() {
+    if(!sessions.cancel())return false;
+    startupPlayerName=null;startupGameTitle=null;startupComputerCount=null;startupAISkill=false;
+    resumeSession(sessions.active);return true;
+}
+function switchGameSession(id) {
+    if(sessions.starting || !sessions.sessions.some(session=>session.id===id))return false;
+    clearSessionInput();stopAutoplayTimer();
+    const session=sessions.select(id);game.uiWindow=null;resumeSession(session);game.uiWindow=null;
+    return true;
+}
+
 function startGame() {
-    if (game) {
-        return;
+    if (!sessions.starting) {
+        return false;
     }
     refreshTotalPlayers(pendingConfig);
 
@@ -440,39 +472,44 @@ function startGame() {
     if (errors.length > 0) {
         console.error("Invalid startup configuration:", errors);
         pendingConfig = createDefaultConfig();
-        return;
+        return false;
     }
 
     const factory = new Factory();
     const rules = new Rules(pendingConfig.fastGame);
-    game = new Game(factory, rules, pendingConfig);
-    game.languagePreferences = languagePreferences;
-    game.drawingPreferences = drawingPreferences;
-    game.systemComparisonPreferences = systemComparisonPreferences;
-    game.systemComparisonSort = systemComparisonPreferences.read();
-    game.systemComparisonGeometry = systemComparisonPreferences.readGeometry();
-    game.rosterPreferences = rosterPreferences;
-    game.fleetRosterSort = rosterPreferences.read();
-    game.fleetRosterGeometry = rosterPreferences.readGeometry();
-    game.fullscreen = fullscreen;
-    game.showGrid = drawingPreferences.readGrid();
-    game.showNebula = drawingPreferences.readNebula();
-    game.showShips = drawingPreferences.readShips();
-    game.showAllCourses = drawingPreferences.readAllCourses();
-    game.showScannerRanges = drawingPreferences.readScannerRanges();
-    game.showCourierCourses = drawingPreferences.readCourierCourses();
-    game.showMapNames = drawingPreferences.readMapNames();
-    game.port = port;
-    display = new Display(game);
+    const nextGame = new Game(factory, rules, pendingConfig);
+    nextGame.languagePreferences = languagePreferences;
+    nextGame.drawingPreferences = drawingPreferences;
+    nextGame.systemComparisonPreferences = systemComparisonPreferences;
+    nextGame.systemComparisonSort = systemComparisonPreferences.read();
+    nextGame.systemComparisonGeometry = systemComparisonPreferences.readGeometry();
+    nextGame.rosterPreferences = rosterPreferences;
+    nextGame.fleetRosterSort = rosterPreferences.read();
+    nextGame.fleetRosterGeometry = rosterPreferences.readGeometry();
+    nextGame.fullscreen = fullscreen;
+    nextGame.showGrid = drawingPreferences.readGrid();
+    nextGame.showNebula = drawingPreferences.readNebula();
+    nextGame.showShips = drawingPreferences.readShips();
+    nextGame.showAllCourses = drawingPreferences.readAllCourses();
+    nextGame.showScannerRanges = drawingPreferences.readScannerRanges();
+    nextGame.showCourierCourses = drawingPreferences.readCourierCourses();
+    nextGame.showMapNames = drawingPreferences.readMapNames();
+    nextGame.port = port;
+    const nextDisplay = new Display(nextGame);
+    sessions.accept(nextGame,nextDisplay);
+    game=nextGame;display=nextDisplay;
+    autoplayController=null;
+    nextGame.sessionCommands={begin:beginNewGame,rows:()=>sessions.rows(),select:switchGameSession};
     if (pendingConfig.numHumans === 0 && display) {
         display.zoomToFit();
     }
-    game.recordEvent(
+    nextGame.recordEvent(
         I18n.getString(601, 'Startup'),
         I18n.formatString(511, 'Game started: {0}', pendingConfig.getDescription()),
         { type: 'system' }
     );
     console.log("Game created and window opened");
+    return true;
 }
 
 function startAutoplay() {
@@ -484,6 +521,7 @@ function startAutoplay() {
         maxTurns: pendingConfig.autoplay.maxTurns,
         eventPresentationMs: pendingConfig.autoplay.eventPresentationMs
     });
+    sessions.active.autoplay=autoplayController;
     game.recordEvent(
         I18n.getString(601, 'Startup'),
         I18n.formatString(643, 'AI autoplay started with seed {0} and {1} ms delay', randomSeed, pendingConfig.autoplay.turnDelayMs),
@@ -517,7 +555,7 @@ if (launchOptions.aiAutoplay) {
 
 // Create event handlers using the correct PDG syntax
 const drawHandler = new pdg.IEventHandler(function(event) {
-    if (game) {
+    if (!sessions.starting && game) {
         game.draw();
     } else {
         drawStartupDialog();
@@ -530,6 +568,7 @@ const autoplayTimerHandler = new pdg.IEventHandler(function(event) {
         return false;
     }
 
+    if(sessions.starting || !sessions.active || sessions.active.autoplay!==autoplayController)return true;
     const status = autoplayController.step();
     if (!status.running) {
         stopAutoplayTimer();
@@ -547,7 +586,7 @@ let leftClickStartY = 0;
 let hasDragged = false; // Track if user has dragged during left click
 
 const mouseHandler = new pdg.IEventHandler(function(event) {
-    if (!game) {
+    if (sessions.starting || !game) {
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0) {
             const area=port.getDrawingArea();
             if(startupAISkill) {
@@ -568,6 +607,8 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
                 else if(contains(layout.field)){editor.selected=true;editor.caret=Array.from(editor.text).length;}
                 return true;
             }
+            const cancel=StartupSetup.cancelRegion(StartupSetup.panelRect(area.width(),area.height()));
+            if(sessions.active && event.mousePos.x>=cancel.x && event.mousePos.x<=cancel.x+cancel.width && event.mousePos.y>=cancel.y && event.mousePos.y<=cancel.y+cancel.height){cancelNewGame();return true;}
             const fast=StartupSetup.fastGameRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(event.mousePos.x>=fast.x && event.mousePos.x<=fast.x+fast.width && event.mousePos.y>=fast.y && event.mousePos.y<=fast.y+fast.height){StartupSetup.toggleFastGame(pendingConfig);return true;}
             const fog=StartupSetup.fogOfWarRegion(StartupSetup.panelRect(area.width(),area.height()));
@@ -594,7 +635,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     }
     // Check if this is a mouse down event
     if (event && event.eventType === pdg.eventType_MouseDown) {
-        if(['mapPick','fleets','systemComparison','comparison'].includes(game.uiWindow) && event.buttonNumber!==0)return true;
+        if(['mapPick','games','fleets','systemComparison','comparison'].includes(game.uiWindow) && event.buttonNumber!==0)return true;
         // Check which button was pressed
         // PDG uses buttonNumber: 0=left, 1=right, 2=middle
         if (event.buttonNumber === 0) {
@@ -669,11 +710,11 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse wheel handler for zooming
 const mouseWheelHandler = new pdg.IEventHandler(function(event) {
-    if (!game) {
+    if (sessions.starting || !game) {
         return true;
     }
     if (event && event.eventType === pdg.eventType_ScrollWheel) {
-        if(game.uiWindow==='mapPick' || game.overlay && game.overlay.type==='outcome')return true;
+        if(['mapPick','games'].includes(game.uiWindow) || game.overlay && game.overlay.type==='outcome')return true;
         const delta = event.vertDelta || 0;
         if (delta < 0) {
             // Get current mouse position for zoom target
@@ -690,7 +731,7 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse move handler for drag scrolling
 const mouseMoveHandler = new pdg.IEventHandler(function(event) {
-    if (!game) {
+    if (sessions.starting || !game) {
         return true;
     }
     if (event && event.eventType === pdg.eventType_MouseMove) {
@@ -699,7 +740,7 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
         // Recover if the button was released outside the game window.
         if(game.uiWindowDrag && event.leftButton===false){game.endUIWindowDrag();return true;}
         if(game.updateUIWindowDrag(event.mousePos.x,event.mousePos.y))return true;
-        if(['fleets','systemComparison','comparison'].includes(game.uiWindow)) {
+        if(['games','fleets','systemComparison','comparison'].includes(game.uiWindow)) {
             game.endMapScrollDrag();game.endUISliderDrag();
             isDragging=false;isLeftClickDragging=false;return true;
         }
@@ -742,7 +783,7 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
 const keyHandler = new pdg.IEventHandler(function(event) {
     // Check if this is a key press event
     if (event && event.eventType === pdg.eventType_KeyPress) {
-        if (game) {
+        if (!sessions.starting && game) {
             game.handleKeyPress(event.unicode);
         } else {
             handleStartupKey(event.unicode);

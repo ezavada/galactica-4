@@ -468,3 +468,7 @@
 833	Ihre Schiffe wurden zerstört, Ihre Planeten erobert.|Als Sie gefangen genommen werden, erkennen Sie, dass Sie die Niederlage eingestehen müssen. Ihre Aussicht, Kaiser zu werden, ist nun gering.|Doch es steht geschrieben: „Eines Tages wird {0} zurückkehren – stärker als je zuvor…“
 834	Weiter
 835	Bericht anzeigen
+
+// Local game documents
+836	Neues Spiel…
+837	Offene Spiele

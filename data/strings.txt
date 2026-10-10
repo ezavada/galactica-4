@@ -468,3 +468,7 @@
 833	Your ships have been destroyed, your planets conquered.|As you are taken prisoner, you realize you have no choice but to admit defeat. You have little chance now of becoming emperor.|But it is written: “Someday, {0} will return—stronger than ever…”
 834	Continue
 835	View report
+
+// Local game documents
+836	New Game…
+837	Open Games
