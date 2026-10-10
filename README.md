@@ -112,7 +112,7 @@ host to announce the next turn.
 Desktop **Host** (H), on startup or in File, creates a durable hosted game.
 Choose human/AI counts, map options, a host filename, port (0 selects an
 available port), and an optional minutes/hours/days/weeks turn limit. The status
-window offers Join, Pause/Resume game, End turn now, Stop hosting, and Host
+window offers Join, Pause/Resume game, End turn now, Host settings, Stop hosting, and Host
 another game. Pausing holds both the timer and automatic turn advancement and
 survives reopening. End turn now warns about assigned living humans who have
 not posted; Keep waiting cancels, and a confirmation for an already-advanced
@@ -120,6 +120,15 @@ turn cannot skip another turn. Forced turns retain the paused state. A failed
 save leaves the turn unchanged and keeps the confirmation available for retry. Hosting continues when
 you dismiss that window or close a client game; accepted Quit saves and stops
 all hosts before exiting. A failed save keeps the application and listener open.
+Host settings edits AI skill/advantage, fast mode, fog, turn limit and endEarly.
+The title, roster and map stay fixed. AI changes apply to every computer player.
+Changing a positive limit preserves the current turn's deadline and applies the
+new budget next turn, including after reopening. Disabling clears the timer;
+enabling starts a fresh limit and retains the paused state. Existing second-based
+limits are preserved exactly. Cancel leaves the host unchanged; failed saves keep
+the draft for retry, and stale drafts must be reopened. Joined clients refresh
+settings and visibility while keeping unposted orders.
+
 Browsers can join games but require the desktop application to host.
 
 Use **File → Open as host**, or **Open as host** in the startup Host form, to
@@ -177,7 +186,7 @@ network-game saving are still being ported. See [the parity checklist](docs/V3_V
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1501 passed, 0 failed.
+Current expected result: 1515 passed, 0 failed.
 
 AI-only parity observer:
 

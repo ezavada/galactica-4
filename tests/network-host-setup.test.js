@@ -49,4 +49,15 @@ module.exports=()=>test.describe('Multiplayer Host setup controls',()=>{
   const w=form();let discarded=null;w.backend.discardConversion=token=>{discarded=token;};w.stage='conversion';w.conversion={token:'snapshot'};w.busy=true;test.assertFalse(w.cancel());test.assertEqual(discarded,null);w.busy=false;test.assertTrue(w.cancel());test.assertEqual(discarded,'snapshot');test.assertEqual(w.conversion,null);test.assertFalse(w.active);
  });
 
+ test.it('edits only active settings and preserves exact second limits without changing the host draft on Cancel',()=>{
+  const w=form(),info={address:'http://localhost',info:{title:'Host 星',humans:2,computers:1,sectorSize:1,density:1},administration:{complete:false,settingsRevision:4,settings:{compSkill:3,compAdvantage:0,fastGame:true,omniscient:false,maxTimePerTurn:17,endEarly:false}}};w.record={};w.backend.describe=()=>info;
+  test.assertTrue(w.editSettings());test.assertEqual(w.stage,'settings');test.assertEqual(w.unit,4);test.assertEqual(w.time.text,'17');test.assertEqual(w.settingsOptions().maxTimePerTurn,17);test.assertEqual(w.settingsRevision,4);test.assertFalse(w.action('size',3));test.assertFalse(w.action('density',3));w.action('skill',1);test.assertEqual(info.administration.settings.compSkill,3);test.assertTrue(w.cancel());test.assertTrue(w.active);test.assertEqual(w.stage,'hosting');
+  w.editSettings();w.action('timed');w.key(65);test.assertEqual(w.time.text,'17');test.assertEqual(w.settingsOptions().maxTimePerTurn,0);w.key(pdg.key_Tab);test.assertEqual(w.stage,'settings');w.cancel();info.administration.complete=true;test.assertFalse(w.editSettings());
+ });
+ test.it('fits translated active settings controls with fixed title, roster and map labels in all languages',()=>{
+  const lang=pdg.res.getLanguage(),w=form();w.record={};w.backend.describe=()=>({address:'http://localhost',info:{title:'Host 星',humans:0,computers:2,sectorSize:1,density:1},administration:{complete:false,settingsRevision:0,settings:{compSkill:3,compAdvantage:0,fastGame:true,omniscient:false,maxTimePerTurn:300,endEarly:false}}});
+  try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);w.editSettings();const l=w.layout(800,600),r=l.rect;test.assertEqual(l.title,pdg.res.getString(1118));test.assertDeepEqual(l.fields.map(f=>f.name),['time']);test.assertFalse(l.choices.some(c=>['size','density'].includes(c.action)));test.assertTrue(l.labels[0].text.includes('Host 星'));test.assertTrue(l.buttons.some(b=>b.action==='saveSettings'));for(const item of [...l.fields,...l.choices,...l.checks,...l.buttons])test.assertTrue(item.rect.x>=r.x && item.rect.y>=r.y && item.rect.x+item.rect.width<=r.x+r.width && item.rect.y+item.rect.height<=r.y+r.height);}}
+  finally{pdg.res.setLanguage(lang);}
+ });
+
 });

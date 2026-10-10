@@ -809,3 +809,11 @@
 1115	Runde {0}
 1116	Spiel pausieren
 1117	Spiel fortsetzen
+
+1118	Host-Einstellungen
+1119	Änderungen positiver Zeitlimits gelten ab der nächsten Runde.
+1120	Host-Einstellungen werden gespeichert…
+1121	Host-Einstellungen geändert. Zum Prüfen erneut öffnen.
+1122	{0} · {1} Menschen, {2} KI
+1123	Sekunden
+1124	Karte: {0}×{0} · Dichte: {1} (fest)

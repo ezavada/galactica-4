@@ -809,3 +809,11 @@
 1115	Turn {0}
 1116	Pause game
 1117	Resume game
+
+1118	Host settings
+1119	Positive time limit changes apply to the next turn.
+1120	Saving host settings…
+1121	Host settings changed. Open them again to review.
+1122	{0} · {1} human, {2} AI
+1123	Seconds
+1124	Map: {0}×{0} · Density: {1} (fixed)

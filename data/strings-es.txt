@@ -809,3 +809,11 @@
 1115	Turno {0}
 1116	Pausar partida
 1117	Reanudar partida
+
+1118	Ajustes del anfitrión
+1119	Los cambios de límite positivo se aplican al próximo turno.
+1120	Guardando ajustes del anfitrión…
+1121	Los ajustes cambiaron. Ábrelos de nuevo para revisarlos.
+1122	{0} · {1} humanos, {2} IA
+1123	Segundos
+1124	Mapa: {0}×{0} · Densidad: {1} (fijos)

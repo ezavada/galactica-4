@@ -10,7 +10,7 @@ function validate(config){
         !Number.isSafeInteger(config.maxTimePerTurn) || config.maxTimePerTurn<0 || config.maxTimePerTurn>Math.floor(Number.MAX_SAFE_INTEGER/1000) || typeof config.endEarly!=='boolean')throw failure('invalid_host_config');
 }
 class NetworkHost {
-    constructor(game,file,fs){validate(game.config);this.game=game;this.file=file;this.fs=fs;this.server=null;this.login=new HostLogin(game,()=>this.persist());
+    constructor(game,file,fs){validate(game.config);if(game.config.networkHost && game.config.networkHost.settingsRevision!==undefined && (!Number.isSafeInteger(game.config.networkHost.settingsRevision) || game.config.networkHost.settingsRevision<0))throw failure('invalid_host_settings');this.game=game;this.file=file;this.fs=fs;this.server=null;this.login=new HostLogin(game,()=>this.persist());
         // Each host owns its portable stream, so failed staging never consumes live/global randomness.
         if(game.tutorialRandom==null)game.tutorialRandom=require('./simulation-random.js').create(parseInt(game.config.networkHost.id.slice(0,8),16)%2147483646+1);
         this.clock=new (require('./host-clock.js'))(game);this.clockTimer=null;this.clockError=null;}
@@ -66,7 +66,7 @@ class NetworkHost {
     }
     transact(change){
         const old=this.game,clock=this.clock,types=[require('./star.js'),require('./ship.js'),require('./fleet.js'),require('./rendezvous.js')],counters=types.map(type=>type.nextId);
-        const clockState={turn:clock.turn,limit:clock.limit,remainingMs:clock.remainingMs,paused:clock.paused,startedAt:clock.startedAt};
+        const clockState={turn:clock.turn,limit:clock.limit,configuredLimit:clock.configuredLimit,remainingMs:clock.remainingMs,paused:clock.paused,startedAt:clock.startedAt};
         try{
             const staged=Save.restore(Save.serialize(old));change(staged);this.game=staged;this.login.game=staged;
             if(staged.turn!==old.turn || staged.isGameOver)clock.reset(staged,!!this.server);
@@ -86,6 +86,12 @@ class NetworkHost {
         const ready=this.ready(this.game) && (this.game.config.numHumans===0 || this.game.turn===1 || this.game.config.maxTimePerTurn===0 || this.game.config.endEarly);
         if(!ready && (this.game.config.numHumans===0 || !this.clock.expired()))return false;
         this.transact(game=>game.endTurn());return true;
+    }
+    updateSettings(value,revision){
+        const Settings=require('./host-settings.js'),settings=Settings.validate(value),current=this.game.config.networkHost.settingsRevision || 0;
+        if(!Number.isSafeInteger(revision) || revision!==current || current===Number.MAX_SAFE_INTEGER)throw failure('stale_host_settings');
+        if(this.game.isGameOver)throw failure('game_complete');
+        this.transact(game=>{Settings.apply(game,settings);game.config.networkHost.settingsRevision=current+1;this.clock.configure(game,!!this.server);});
     }
     forceEndTurn(expectedTurn){
         if(expectedTurn!==this.game.turn)throw failure('stale_host_turn');

@@ -809,3 +809,11 @@
 1115	Tour {0}
 1116	Mettre en pause
 1117	Reprendre la partie
+
+1118	Paramètres de l’hôte
+1119	Les changements de limite positive prennent effet au prochain tour.
+1120	Enregistrement des paramètres de l’hôte…
+1121	Paramètres modifiés. Rouvrez-les pour les vérifier.
+1122	{0} · {1} humains, {2} IA
+1123	Secondes
+1124	Carte : {0}×{0} · Densité : {1} (fixes)

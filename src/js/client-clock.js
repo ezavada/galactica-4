@@ -2,13 +2,13 @@
 const I18n=require('./i18n.js');
 const now=()=>pdg.tm.getMilliseconds();
 function receive(value,game,time=now()){
- if(value===undefined)return null;const limit=game.config.maxTimePerTurn;
+ if(value===undefined)return null;const configured=game.config.maxTimePerTurn,limit=value && value.limitSeconds!==undefined?value.limitSeconds:configured;
  if(!value || typeof value!=='object' || Array.isArray(value) || typeof value.paused!=='boolean' || typeof value.running!=='boolean' ||
-  value.paused && value.running || !Number.isSafeInteger(limit) || limit<0 ||
+  value.paused && value.running || !Number.isSafeInteger(configured) || configured<0 || value.limitSeconds!==undefined && (!configured || game.turn===1 || game.isGameOver || !Number.isSafeInteger(value.limitSeconds) || value.limitSeconds<1 || value.limitSeconds>Math.floor(Number.MAX_SAFE_INTEGER/1000)) || !Number.isSafeInteger(limit) || limit<0 ||
   value.secondsRemaining!==null && (!Number.isSafeInteger(value.secondsRemaining) || value.secondsRemaining<0 || value.secondsRemaining>limit) ||
   (game.turn===1 || !limit || game.isGameOver) && value.secondsRemaining!==null ||
   game.turn>1 && limit>0 && !game.isGameOver && value.secondsRemaining===null || value.running && value.secondsRemaining===null)throw Error('invalid_player_state');
- return {secondsRemaining:value.secondsRemaining,paused:value.paused,running:value.running,receivedAt:time};
+ return {secondsRemaining:value.secondsRemaining,paused:value.paused,running:value.running,receivedAt:time,...(value.limitSeconds!==undefined?{limitSeconds:value.limitSeconds}:{})};
 }
 function seconds(clock,time=now()){
  if(clock.secondsRemaining===null)return null;

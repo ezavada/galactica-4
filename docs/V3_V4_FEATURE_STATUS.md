@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1501 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1515 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -281,7 +281,7 @@ The largest blockers to a complete game are:
 | Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🟡 Partial | 🟡 Partial | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit policy, optional saved-password preferences and host administration remain forthcoming. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ✅ Implemented | ✅ Implemented | Client End Turn submits owned decision records through authenticated HTTP, shows localized Posting/Posted/Retry states and locks posted orders. The host stages and validates production targets/build choices, destinations/courses/memory, names, fleet membership, private rendezvous and player defaults; it derives simulation values and permanent IDs. Untimed turns resolve once every assigned living human posts. Durable receipts make retries idempotent after lost replies/reopening. Authoritative next-turn refresh unlocks client orders. Both full suites pass 1,459 tests; posting controls are verified in all six languages, with an English browser rerun after the host-clock addition. Timed host scheduling, visible countdowns and desktop setup are implemented separately; host administration UI remains unfinished. |
 | Timed turns | Host clock, time remaining, pause/resume, automatic completion. | ✅ Implemented | ✅ Implemented | Native host listener runs a monotonic countdown after untimed turn 1, resolves expired turns even with unposted/offline humans, and preserves remaining time while stopped/reopened. Local host-service pause/resume and public/authenticated countdown records are implemented. Joined games display validated countdowns in the map header, including localized paused and awaiting-next-turn states; the countdown remains visible after posting and never resolves a turn locally. Nine unit regressions and awaited real scheduler/socket checks cover expiration, endEarly, persistence, save rollback/retry and shutdown. Desktop Host now configures the time limit and endEarly option. Desktop Host status now offers durable Pause/Resume with current countdown text; pausing holds expiry, ready-post resolution and AI-only advancement. Joined clients receive paused/resumed clock state. Saved/reopened pause and failed-write rollback are verified. |
-| Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | 🟡 Partial | 🟡 Partial | Desktop host status offers durable Pause/Resume and End turn now. A paged confirmation lists assigned living humans who have not posted; cancellation preserves the turn. Captured-turn checks prevent a stale confirmation from skipping a newer turn; failed saves roll back and retain retry. Host settings/player changes, state editing, ejection, private admission and remote administrator access remain unported. |
+| Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | 🟡 Partial | 🟡 Partial | Desktop host status offers durable Pause/Resume and End turn now. A paged confirmation lists assigned living humans who have not posted; cancellation preserves the turn. Captured-turn checks prevent a stale confirmation from skipping a newer turn; failed saves roll back and retain retry. Active host settings now edit AI skill/advantage, fast mode, fog and turn timing with fixed title/roster/map, save rollback/retry and stale-draft protection. Positive-to-positive timer changes preserve the current deadline through reopening and apply the budget next turn; enable/disable retains pause. Joined clients receive settings/visibility changes while preserving unposted decisions. Player changes, state editing, ejection, private admission and remote administrator access remain unported. |
 | Multiplayer chat | Player-to-player/all/admin messages. | ❌ Missing | ❌ Missing | No chat protocol or UI. |
 
 ### Possible persistence/multiplayer enhancements beyond v3, not counted in Section 9
@@ -2959,3 +2959,49 @@ row remains partial for settings/player changes, private admission, ejection,
 state editing and remote administration. Discovery, saved password preferences,
 chat, network-document saving, host report localization, tutorial recovery 103
 and the Map Generation checklist remain unfinished.
+
+
+### Active host settings parity audit
+
+Verified v3 `Classes/CGameSetupAttach.cpp:183–279` and
+`Classes/GalacticaHostDoc.cp:470–485`: reconfiguration locks title, human/AI
+counts, sector size and density; it edits AI skill/advantage, fast mode,
+omniscience, maximum turn time and endEarly. Desktop Host now offers those six
+editable settings, with fixed title/roster/map labels. AI changes apply globally,
+including replacing any per-player skill overrides. Existing ships' stored speed,
+selected hull costs and paid construction effort are retained; new production
+uses the changed rules. Fog changes recalculate authoritative visibility and
+refresh the same-turn client projection without retaining hidden foreign units.
+Owned draft names, targets/locks, player defaults, routes and memories, newly
+created groups/markers and locally removed groups/markers survive that refresh.
+Report subjects and attention references resolve to the retained model objects.
+
+V3 `GalacticaHost::UpdateMaxTimePerTurn` preserves the active countdown for
+positive-to-positive changes, clears it on disable and starts a new limit when
+enabling. The v4 save/protocol records retain a validated active timer ceiling
+when it differs from the configured next-turn budget. Reopening does not reset
+that deadline or consume stopped time; pause survives every setting transition.
+Turn one remains untimed. A seconds unit additionally preserves exact limits
+created by tools rather than rounding them during editing. A captured settings
+revision prevents stale drafts from overwriting accepted changes. Failed atomic
+writes restore settings, AI, revision and every clock field and leave the draft
+available for retry. Controls and messages are localized in en/de/es/fr/ja/ru.
+
+Both native runtimes pass 1,515 unit tests. Awaited real desktop/socket/file
+checks pass in all six languages, covering actual permission failures and retry,
+stale revisions, authoritative AI changes, same-turn client refresh and posting,
+timer transitions and saved reopen. Browser runs use actual clicks and keys for
+Cancel, settings changes, failed-save recovery and stale drafts. Before/after
+host-status pairs, all six settings dialogs and representative error states were
+visually inspected and remain readable without overlap. Automated audio remains
+muted.
+
+Artifacts: `/private/tmp/galactica-parity/host-settings-before/<language>` and
+`/private/tmp/galactica-parity/host-settings-after/<language>`.
+Logs: `/private/tmp/galactica-host-settings-{unit,public-unit,native,public-native}.log`,
+`/private/tmp/galactica-host-settings-ui-<language>.log` and
+`/private/tmp/galactica-host-settings-before-<language>.log`.
+
+The Host administration row remains partial for player changes, state editing,
+ejection and remote access. The remaining multiplayer checklist and Map
+Generation port still require work; this completes only active host settings.
