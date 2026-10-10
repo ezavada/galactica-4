@@ -11,6 +11,16 @@ module.exports=()=>test.describe('V3 delayed control help',()=>{
    const help=new Help.HoverHelp(),c={...candidate(),rect,text:'名前 星 Текст du contrôle avec une explication complète et sans perte.'};help.sample(c,0,size,measure);const hint=help.sample(c,1000,size,measure);test.assertDefined(hint);test.assertTrue(hint.rect.x>=0&&hint.rect.y>=0&&hint.rect.x+hint.rect.width<=size.width&&hint.rect.y+hint.rect.height<=size.height);for(const line of hint.lines)test.assertTrue(measure(line)<=hint.rect.width-24);test.assertEqual(hint.lines.join('').replace(/\s/g,''),c.text.replace(/\s/g,''));
   }
  });
+ test.it('keeps tooltip bodies and subject pointers visible at viewport edges',()=>{
+  const Tooltip=require('../src/js/tooltip.js');
+  for(const size of [{width:800,height:600},{width:320,height:420}])for(const anchor of [{x:0,y:0,width:30,height:20},{x:size.width-30,y:size.height-20,width:30,height:20}]){
+   const rect=Tooltip.place(anchor,Math.min(250,size.width-16),50,size),points=Tooltip.pointer(rect,anchor);
+   test.assertTrue(rect.x>=8&&rect.y>=8&&rect.x+rect.width<=size.width-8&&rect.y+rect.height<=size.height-8);
+   for(const p of points)test.assertTrue(p.x>=0&&p.y>=0&&p.x<=size.width&&p.y<=size.height);
+   const apex=points[1];test.assertTrue(anchor.y===0?apex.y<rect.y:apex.y>rect.y+rect.height);
+   test.assertTrue(Math.abs(Math.hypot(points[0].x-apex.x,points[0].y-apex.y)-20)<.001);
+  }
+ });
  test.it('wraps varying-width glyphs without overflowing the carried word fragment',()=>{
   const measure=text=>Array.from(text).reduce((sum,c)=>sum+(c==='W'?25:c==='i'||c===' '?1:5),0),text='i abcdefW abcdefW';const lines=Help.wrap(text,40,measure);for(const line of lines)test.assertTrue(measure(line)<=40);test.assertEqual(lines.join('').replace(/\s/g,''),text.replace(/\s/g,''));
  });

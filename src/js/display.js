@@ -17,6 +17,7 @@ const ButtonCaption=require('./button-caption.js');
 const LanguageSettings = require('./language-settings.js');
 const MapDisplayModes = require('./map-display-modes.js');
 const ControlHelp = require('./hover-help.js');
+const Tooltip = require('./tooltip.js');
 
 const debugSelectedObject = true;
 
@@ -3662,9 +3663,8 @@ class Display {
         if (this.controlHelp.visible) return;
         const {rect,label}=this.iconHint,screen=this.getScreenSize();
         const width=Math.min(screen.width-20,this.port.getTextWidth(label,11)+24);
-        const box=this.fitPanelToScreen({x:rect.x+rect.width-width,y:rect.y-32,width,height:26});
-        this.drawPanelSurface(box,this.styles.windowPanel);
-        this.drawTextLine(label,box.x+12,box.y+17,'lightgray',11);
+        const box=Tooltip.place(rect,width,26,screen);
+        Tooltip.draw(this.port,{rect:box,anchor:rect,lines:[label]});
     }
 
     // Main draw function that orchestrates all drawing
@@ -3757,8 +3757,7 @@ class Display {
         const hint=this.controlHelp.sample(this.getControlHelpCandidate(),this.visualTime,this.getScreenSize(),
             text=>this.port.getTextWidth(text,11));
         if (!hint) return;
-        this.drawPanelSurface(hint.rect,this.styles.windowPanel);
-        hint.lines.forEach((line,index)=>this.drawTextLine(line,hint.rect.x+12,hint.rect.y+16+index*15,'lightgray',11));
+        Tooltip.draw(this.port,hint);
     }
 
     // Helper to load an image once

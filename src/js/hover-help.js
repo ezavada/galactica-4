@@ -1,3 +1,4 @@
+const Tooltip=require('./tooltip.js');
 const I18n=require('./i18n.js');
 const helpIds=Object.freeze({
   "setAllocation": 858,
@@ -165,11 +166,7 @@ class HoverHelp {
   const width=Math.max(40,Math.min(340,screen.width-16)),lines=wrap(candidate.text,width-24,measure);
   const height=20+lines.length*15;
   if(height>screen.height-16)return null;
-  const rect=candidate.rect;
-  const x=Math.max(8,Math.min(screen.width-width-8,rect.x+rect.width/2-width/2));
-  const above=rect.y-height-8,below=rect.y+rect.height+8;
-  const y=Math.max(8,Math.min(screen.height-height-8,above>=8?above:below));
-  return this.visible={rect:{x,y,width,height},lines,text:candidate.text};
+  return this.visible={rect:Tooltip.place(candidate.rect,width,height,screen),anchor:candidate.rect,lines,text:candidate.text};
  }
 }
 module.exports={HoverHelp,describe,helpIds,delay,wrap};

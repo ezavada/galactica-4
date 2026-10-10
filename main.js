@@ -431,9 +431,7 @@ function drawStartupControlHelp() {
     const candidate=hit?{...hit,text:ControlHelp.describe(hit.action),key:scope+':'+hit.action.type+':'+hit.rect.x+':'+hit.rect.y}:null;
     const hint=startupHelp.sample(candidate,pdg.tm.getMilliseconds(),screen,text=>port.getTextWidth(text,11));
     if(!hint)return;
-    PanelAppearance.applySystemSurface(startupStyles.panel,hint.rect);
-    drawStartupRoundedRect(hint.rect,8,startupStyles.panel);startupStyles.lineText.textSize(11);
-    hint.lines.forEach((line,index)=>port.drawText(line,new pdg.Point(hint.rect.x+12,hint.rect.y+16+index*15),startupStyles.lineText));
+    require('./src/js/tooltip.js').draw(port,hint);
 }
 
 function handleStartupKey(key) {
