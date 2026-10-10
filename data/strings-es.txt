@@ -391,3 +391,6 @@
 782	Sin valores conocidos
 783	Sistemas conocidos: {0}–{1}
 784	Asignación objetivo (%)
+
+# Nebula background preference
+785	Mostrar fondo de nebulosa

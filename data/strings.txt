@@ -391,3 +391,6 @@
 782	No known values
 783	Known systems: {0}–{1}
 784	Target allocation (%)
+
+# Nebula background preference
+785	Show nebula background

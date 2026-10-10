@@ -3,6 +3,28 @@ const Factory=require('../src/js/factory.js'),Game=require('../src/js/game.js'),
 function fixture(){const game=new Game(new Factory(),new Rules(false),new Config({numHumans:1,numComputers:1,skipMapGeneration:true}));game.port={getDrawingArea:()=>new pdg.Rect(800,600)};return {game,display:new Display(game)};}
 function restoreLanguage(fn){const previous=pdg.res.getLanguage();try{fn();}finally{pdg.res.setLanguage(previous);}}
 module.exports=()=>test.describe('Language settings',()=>{
+    test.it('toggles the persisted nebula preference without changing selection, turn or camera',()=>{
+        const {game,display}=fixture(),star=game.factory.createStar(0,0,'Home');star.owner=1;game.setSelectedObject(star);
+        game.uiWindow='settings';display.camera.setPan(12345,67890);display.camera.setZoom(2);
+        const before=[game.turn,display.camera.panX,display.camera.panY,display.camera.zoom],values=new Map();
+        game.drawingPreferences=require('../src/js/drawing-preferences.js').createPreferences({window:{localStorage:{getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)}}});
+        let row=display.getSettingsActionRegions().find(row=>row.action.type==='toggleNebula');test.assertTrue(row.active);
+        game.handleUIClick(row.rect.x+5,row.rect.y+5);test.assertFalse(game.showNebula);test.assertFalse(game.drawingPreferences.readNebula());
+        test.assertEqual(values.get('galactica.showNebula'),'false');test.assertEqual(game.selectedObject,star);
+        test.assertEqual([game.turn,display.camera.panX,display.camera.panY,display.camera.zoom].join(','),before.join(','));
+        row=display.getSettingsActionRegions().find(row=>row.action.type==='toggleNebula');test.assertFalse(row.active);
+        const rect=display.getSettingsWindowRect();test.assertTrue(row.rect.y+row.rect.height<rect.y+rect.height-16);test.assertTrue(rect.y+rect.height<=600);
+        game.handleUIClick(row.rect.x+5,row.rect.y+5);test.assertTrue(game.showNebula);test.assertTrue(game.drawingPreferences.readNebula());
+    });
+    test.it('defaults nebula on and stores it independently through browser/native configuration',()=>{
+        const Drawing=require('../src/js/drawing-preferences.js'),values=new Map();
+        const browser=Drawing.createPreferences({window:{localStorage:{getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)}}});
+        test.assertTrue(browser.readNebula());browser.writeNebula(false);test.assertFalse(browser.readNebula());test.assertTrue(browser.readGrid());
+        const reopened=Drawing.createPreferences({window:{localStorage:{getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)}}});test.assertFalse(reopened.readNebula());
+        let namespace;const native=Drawing.createPreferences({pdg:{cfg:{useConfig:name=>namespace=name,getConfigString:key=>values.get(key),setConfigString:(key,value)=>values.set(key,value)}}});
+        test.assertTrue(native.readNebula());native.writeNebula(false);test.assertEqual(namespace,'Galactica');test.assertFalse(native.readNebula());native.writeNebula(true);test.assertTrue(native.readNebula());
+        const denied=Drawing.createPreferences({window:{get localStorage(){throw Error('denied');}}});test.assertTrue(denied.readNebula());denied.writeNebula(false);
+    });
     test.it('toggles grid drawing from settings and F3 without changing simulation state',()=>{
         const {game,display}=fixture();game.uiWindow='settings';let saved;
         game.drawingPreferences={writeGrid:value=>saved=value};
@@ -101,6 +123,11 @@ module.exports=()=>test.describe('Language settings',()=>{
         layer.draw({drawImage:()=>drawn++},[group],800,600);test.assertEqual(allocated,3);test.assertEqual(closed,3);test.assertEqual(drawn,3);
         for(const mask of layer.layers.values())test.assertEqual(mask.image.circles.length,2);
         layer.draw({drawImage:()=>{}},[group],800,600);test.assertEqual(allocated,3);
+        const images=[...layer.layers.values()].map(mask=>mask.image);
+        layer.draw({drawImage:()=>{}},[group],800,600,false);test.assertEqual(allocated,3);
+        for(const [index,mask] of [...layer.layers.values()].entries()){test.assertEqual(mask.image,images[index]);test.assertEqual(mask.attrs.opacity,[.0625,.09375,.1875][index]);}
+        layer.draw({drawImage:()=>{}},[group],800,600,true);test.assertEqual(allocated,3);
+        for(const [index,mask] of [...layer.layers.values()].entries())test.assertEqual(mask.attrs.opacity,[.1,.15,.3][index]);
         group.circles[0].x++;layer.draw({drawImage:()=>{}},[group],800,600);test.assertEqual(deleted,12);
         layer.draw({drawImage:()=>{}},[],800,600);test.assertEqual(layer.layers.size,0);test.assertEqual(deleted,18);layer.dispose();
     });

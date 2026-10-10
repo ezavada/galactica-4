@@ -38,6 +38,7 @@ class Game {
         this.showCourierCourses = true;
         this.showShips = true;
         this.showGrid = true;
+        this.showNebula = true;
         this.mapDisplayMode = 'ownership';
         this.showMapNames = true;
         this.uiWindow = null; // command UI window: menu, production, events, comparison
@@ -1588,6 +1589,10 @@ class Game {
                 return true;
             case 'toggleFullscreen':
                 return !!(this.fullscreen && this.fullscreen.toggle());
+            case 'toggleNebula':
+                this.showNebula=!this.showNebula;
+                if(this.drawingPreferences)this.drawingPreferences.writeNebula(this.showNebula);
+                return true;
             case 'toggleScannerRanges':
                 this.showScannerRanges=!this.showScannerRanges;
                 if(this.drawingPreferences)this.drawingPreferences.writeScannerRanges(this.showScannerRanges);

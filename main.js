@@ -331,6 +331,7 @@ function startGame() {
     game.drawingPreferences = drawingPreferences;
     game.fullscreen = fullscreen;
     game.showGrid = drawingPreferences.readGrid();
+    game.showNebula = drawingPreferences.readNebula();
     game.showShips = drawingPreferences.readShips();
     game.showAllCourses = drawingPreferences.readAllCourses();
     game.showScannerRanges = drawingPreferences.readScannerRanges();

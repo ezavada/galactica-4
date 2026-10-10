@@ -1,7 +1,7 @@
 // Opaque offscreen masks union overlapping systems before applying tint once.
 class ScannerLayer {
     constructor(backend=pdg){this.backend=backend;this.layers=new Map();}
-    draw(port,groups,width,height) {
+    draw(port,groups,width,height,nebula=true) {
         const b=this.backend,active=new Set();
         for(const group of groups)for(let level=0;level<3;level++) {
             const key=group.owner+':'+level;active.add(key);
@@ -25,6 +25,7 @@ class ScannerLayer {
                     if(attrs && typeof attrs.delete==='function')attrs.delete();
                 }
             }
+            layer.attrs.fillOpacity([.10,.15,.30][level]*(nebula?1:.625));
             port.drawImage(layer.image,new b.Rect(width,height),layer.attrs);
         }
         for(const [key,layer] of this.layers)if(!active.has(key)){this.release(layer);this.layers.delete(key);}

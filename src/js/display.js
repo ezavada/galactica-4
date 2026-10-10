@@ -449,6 +449,10 @@ class Display {
         const screenWidth = drawingArea.width();
         const screenHeight = drawingArea.height();
         
+        if(this.game && this.game.showNebula===false) {
+            this.port.drawRect(drawingArea,this.styles.clear);
+            return;
+        }
         if (this.backgroundImage) {
             // Get the original image dimensions
             const imageWidth = this.backgroundImage.getWidth();
@@ -800,7 +804,7 @@ class Display {
 
     drawScannerRanges() {
         const {groups,rings}=this.getScannerPresentation(),screen=this.getScreenSize();
-        this.scannerLayer.draw(this.port,groups,screen.width,screen.height);
+        this.scannerLayer.draw(this.port,groups,screen.width,screen.height,this.game.showNebula!==false);
         if(!this.scannerRingStyle)this.scannerRingStyle=this.createAttributes({lineStyle:pdg.lineStyle_Solid,lineThickness:1,fillOpacity:0});
         for(const ring of rings) {
             this.scannerRingStyle.lineColor(new pdg.Color(ring.color.red,ring.color.green,ring.color.blue,1)).lineOpacity(ring.opacity);
@@ -1858,7 +1862,7 @@ class Display {
 
     getSettingsWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(320,screen.width-40);
-        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:526});
+        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:558});
     }
 
     getSettingsActionRegions() {
@@ -1879,7 +1883,9 @@ class Display {
             {rect:{x:rect.x+14,y:rect.y+412,width:rect.width-28,height:28},
             label:I18n.getString(769,'Show courier courses'),key:'F5',active:this.game.showCourierCourses,action:{type:'toggleCourierCourses'}},
             {rect:{x:rect.x+14,y:rect.y+444,width:rect.width-28,height:28},
-            label:I18n.getString(770,'Show scanner ranges'),key:'F6',active:this.game.showScannerRanges,action:{type:'toggleScannerRanges'}}]);
+            label:I18n.getString(770,'Show scanner ranges'),key:'F6',active:this.game.showScannerRanges,action:{type:'toggleScannerRanges'}},
+            {rect:{x:rect.x+14,y:rect.y+476,width:rect.width-28,height:28},
+            label:I18n.getString(785,'Show nebula background'),active:this.game.showNebula,action:{type:'toggleNebula'}}]);
     }
 
     drawSettingsWindow() {

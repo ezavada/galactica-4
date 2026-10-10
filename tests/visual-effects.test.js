@@ -124,6 +124,20 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         camera.zoom=.10001;test.assertTrue(Math.abs(v.parallax(camera).x)<.001);
         camera.zoom=2;test.assertEqual(new VisualEffects(true).parallax(camera).x,0);
     });
+    test.it('clears nebula-off maps to black without sampling parallax or drawing the cached image',()=>{
+        const {game,display:d}=fixture();game.showNebula=false;
+        d.backgroundImage={getWidth:()=>{throw Error('Image must not be sampled');}};d.visualEffects.parallax=()=>{throw Error('Parallax must not be sampled');};
+        let rect,attrs;d.port.drawRect=(r,a)=>{rect=r;attrs=a;};d.port.drawImage=()=>{throw Error('Image must not be drawn');};
+        d.drawBackground();test.assertEqual(rect.width(),800);test.assertEqual(rect.height(),600);test.assertEqual(attrs,d.styles.clear);
+    });
+    test.it('retains the image cache when hiding/restoring the nebula and keeps the missing-image fallback',()=>{
+        const {game,display:d}=fixture(),image={getWidth:()=>1600,getHeight:()=>900};d.backgroundImage=image;
+        let images=0,fills=0,gradient;d.port.drawImage=()=>images++;d.port.drawRect=()=>fills++;
+        const original=d.createAttributes.bind(d);d.createAttributes=definition=>{if(definition.fillGradient)gradient=definition.fillGradient;return original(definition);};
+        d.drawBackground();test.assertTrue(images>0);game.showNebula=false;images=0;d.drawBackground();test.assertEqual(images,0);test.assertEqual(fills,1);test.assertEqual(d.backgroundImage,image);
+        game.showNebula=true;d.drawBackground();test.assertTrue(images>0);test.assertEqual(d.backgroundImage,image);
+        d.backgroundImage=null;d.drawBackground();test.assertTrue(!!gradient);test.assertEqual(fills,2);
+    });
     test.it('covers every viewport edge with background tiles during unrestricted panning',()=>{
         const d=Object.create(Display.prototype);d.visualEffects=new VisualEffects();d.styles={image:{}};
         for(const [width,height] of [[800,600],[1600,900],[480,800]])for(const [iw,ih] of [[1920,1080],[1000,1000],[600,1000]])for(const sign of [-1,1]){

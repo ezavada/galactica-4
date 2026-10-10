@@ -391,3 +391,6 @@
 782	Keine bekannten Werte
 783	Bekannte Systeme: {0}–{1}
 784	Zielanteil (%)
+
+# Nebula background preference
+785	Nebel-Hintergrund anzeigen
