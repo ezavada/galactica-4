@@ -242,3 +242,6 @@ Reusable colonies: `tests/reusable-colony.test.js` adds five regressions for two
 
 
 Scripted tutorial production: seven regressions in `tests/tutorial-simulation.test.js` verify scoped allocation restoration, source-turn home/New Terra hull guarantees through real end-turn production, positive-effort requirements, computer hull continuation and ordinary-game isolation. Both full suites pass (1178 tests). Browser before/after End Turn comparisons use deliberately low output to expose stalled baseline hulls versus guaranteed tutorial milestones; inspectors were reviewed in all six languages under `/private/tmp/galactica-parity/tutorial-simulation-{before,after}`.
+
+
+Tutorial progression model: fourteen regressions in `tests/tutorial-controller.test.js` exercise the complete sixty-lesson source action path, startup/recovery and macOS logical pages, ordered exceptions, hidden-button guards, debounced actions, course Retry, production/target guards, bounded rendezvous placement with actual point identity, distinct message/attention lifecycle signals, source effects, snapshots, cancellation and corrupt metadata. Both full suites pass (1192 tests). Logs: `/private/tmp/galactica-tutorial-controller-{tests,native-tests}.log`. The controller is not connected to game input or rendering yet; these tests do not establish a playable, localized UI.
