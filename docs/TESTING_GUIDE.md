@@ -4,6 +4,8 @@ Last reviewed: 2026-08-25
 
 ## Running the suite
 
+Automated tests mute the native audio output bus. Sound behavior assertions still run, and the game’s saved sound preference is unchanged. Browser automation launches Chrome with `--mute-audio` for the same reason.
+
 Run tests with the PDG runtime from the project root:
 
 ```bash
