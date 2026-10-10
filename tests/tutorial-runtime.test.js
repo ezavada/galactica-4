@@ -20,6 +20,18 @@ module.exports=()=>test.describe('Tutorial bindings to real game actions',()=>{
  test.it('keeps placement captured for a rejected point, then opens naming and binds the real rendezvous ID',()=>{
   const {game,display,tutorial,home,terra}=setup();tutorial.goto(38);game.beginRendezvousPlacement();test.assertEqual(tutorial.pageId,39);display.toGalacticX=x=>x;display.toGalacticY=y=>y;game.findObjectAtPosition=()=>null;const pending=game.pendingRendezvousPlacement;test.assertFalse(game.finishRendezvousPlacementAt(0,0));test.assertTrue(game.pendingRendezvousPlacement===pending);test.assertEqual(game.allRendezvous.length,0);const x=(home.x+terra.x)/2,y=(home.y+terra.y)/2;test.assertTrue(game.finishRendezvousPlacementAt(x,y));const point=game.allRendezvous[0];test.assertEqual(tutorial.pageId,40);test.assertEqual(tutorial.alphaId,point.id);test.assertTrue(game.renameTarget===point);test.assertEqual(game.uiWindow,'rename');game.renameText='Wrong';game.commitRename();test.assertEqual(point.name,'Alpha');test.assertEqual(tutorial.pageId,41);
  });
+ test.it('renames Alpha without changing a star with the same numeric ID',()=>{
+  const {game,tutorial,home,terra}=setup();tutorial.goto(39);const point=game.createRendezvousAt((home.x+terra.x)/2,(home.y+terra.y)/2),star=game.stars.find(s=>s.id===point.id),name=star.name;
+  game.renameText='Wrong';test.assertTrue(game.commitRename());test.assertEqual(point.name,'Alpha');test.assertEqual(star.name,name);test.assertEqual(tutorial.pageId,41);
+ });
+ test.it('requires the correct object kind for each naming lesson despite matching IDs',()=>{
+  const {game,tutorial,terra,home}=setup();terra.owner=1;
+  const point=game.factory.createRendezvous(home.x,home.y,1,'Original');point.id=terra.id;
+  tutorial.goto(25);game.beginRenameObject(point);game.renameText='Custom marker';game.commitRename();test.assertEqual(tutorial.pageId,25);test.assertEqual(point.name,'Custom marker');test.assertFalse(terra.name==='New Terra');
+  tutorial.goto(39);const alpha=game.createRendezvousAt((home.x+terra.x)/2,(home.y+terra.y)/2),star=game.stars.find(s=>s.id===alpha.id);star.owner=1;
+  game.handleKeyPress(pdg.key_Escape);game.beginRenameObject(star);game.renameText='Custom star';game.commitRename();test.assertEqual(tutorial.pageId,40);test.assertEqual(star.name,'Custom star');test.assertFalse(alpha.name==='Alpha');
+  game.beginRenameObject(alpha);game.renameText='Chosen marker';game.commitRename();test.assertEqual(tutorial.pageId,41);test.assertEqual(alpha.name,'Alpha');test.assertEqual(star.name,'Custom star');
+ });
  test.it('sets both actual star auto-destinations to the bound point',()=>{
   const {game,tutorial,home,terra}=setup();terra.owner=1;tutorial.goto(39);const point=game.createRendezvousAt((home.x+terra.x)/2,(home.y+terra.y)/2);game.renameText='Alpha';game.commitRename();game.setSelectedObject(home);game.handleMouseRightClick(0,0,{target:point});test.assertTrue(home.getDefaultDestination()===point);test.assertEqual(tutorial.pageId,42);game.setSelectedObject(terra);game.handleMouseRightClick(0,0,{target:point});test.assertTrue(terra.getDefaultDestination()===point);test.assertEqual(tutorial.pageId,43);
  });

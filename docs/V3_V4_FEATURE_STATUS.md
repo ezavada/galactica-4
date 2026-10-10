@@ -1123,3 +1123,32 @@ map-selection problem in the automatic-destination step. Its cause still needs
 investigation; it is not documented as an unavailable-help blocker. Public
 launch, full guided verification, illustrations, complete tutorial saves, the
 remaining parity inventory and Map Generation remain unfinished.
+
+
+### Tutorial names target the correct object kind
+
+V3 names the newly created rendezvous directly (`GalacticaDoc.cp:723–747`).
+V4's tutorial rename effect searched stars before rendezvous points using only
+numeric ID, so creating Alpha also renamed the unrelated star with the same ID.
+Rename events/effects now identify the object kind. New Terra only resolves a
+star; Alpha only resolves its rendezvous. A matching ID on a different kind
+cannot force a name or advance the naming lesson. Regression tests reproduce
+both kinds of collision and prove unrelated names remain unchanged.
+
+The automatic-destination walkthrough failure at lesson 41 was test input:
+Alpha overlaps the docked Scout, and the test omitted choosing Alpha from the
+visible object picker. The corrected real input reaches lesson 42, sets the
+home system's destination to the actual rendezvous and verifies all unrelated
+star names against their setup values. Six-language screenshots are reviewed
+under `/private/tmp/galactica-parity/tutorial-rename-identity/<language>`;
+before screenshots are under
+`/private/tmp/galactica-parity/tutorial-turn-attention/full-en/page-41.png`.
+Logs are `/private/tmp/galactica-tutorial-rename-identity-{tests,native-tests,<language>}.log`.
+Both complete native lanes pass all 1,287 tests. No user-facing strings changed;
+existing en/de/es/fr/ja/ru names and instructions remain resource-driven.
+
+The continued English walkthrough reaches lesson 57 with another system
+selected instead of the newly built fleet. Source verification and an actual
+fleet-contents transition remain required. Public launch, full guided validation,
+illustrations, complete tutorial saves, the broader parity inventory and Map
+Generation remain open. No unavailable-help blocker has been established.

@@ -47,7 +47,8 @@ class TutorialRuntime {
                 const ship=firstHull('scout'),star=g.stars.find(s=>s.id===effect.starId);
                 if(ship && star){ship.course.clear();ship.setDestination(star);}
             } else if(effect.type==='rename') {
-                const object=[...g.stars,...g.allRendezvous].find(item=>item.id===effect.id);
+                const objects=effect.objectKind==='star'?g.stars:effect.objectKind==='rendezvous'?g.allRendezvous:[];
+                const object=objects.find(item=>item.id===effect.id);
                 if(object)object.name=effect.name;
             } else if(effect.type==='setEnemyPlayback')g.showEnemyEvents=effect.enabled;
             else if(effect.type==='restoreHoverHelp')g.showControlHelp=true;
@@ -119,10 +120,10 @@ class TutorialRuntime {
         this.wrap(g,'commitRename',(call)=>{
             const object=g.renameTarget,valid=object && g.canHumanControl(object) && g.renameText.trim().length>0;
             if(valid && this.controller.active) {
-                if(this.controller.pageId===25 && object.id===9)g.renameText='New Terra';
-                if(this.controller.pageId===40 && object.id===this.controller.alphaId)g.renameText='Alpha';
+                if(this.controller.pageId===25 && g.factory.isStar(object) && object.id===9)g.renameText='New Terra';
+                if(this.controller.pageId===40 && g.factory.isRendezvous(object) && object.id===this.controller.alphaId)g.renameText='Alpha';
             }
-            const result=call();if(result && valid)this.notify({type:'objectRenamed',objectId:object.id});return result;
+            const result=call();if(result && valid)this.notify({type:'objectRenamed',objectKind:this.targetData(object).targetKind,objectId:object.id});return result;
         });
         this.wrap(g,'handleStarKeyPress',(call,[star,key])=>{
             const result=call(),hull={s:'scout',d:'defense',b:'battleship',c:'colony'}[String.fromCharCode(key)];

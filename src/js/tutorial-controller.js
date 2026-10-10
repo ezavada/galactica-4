@@ -141,16 +141,16 @@ class TutorialController {
             const expected={19:[HOME,'defense'],26:[NEW_TERRA,'battleship'],31:[HOME,'scout'],37:[HOME,'battleship']}[page];
             if(event.starId===expected[0] && event.hull===expected[1])next();
         } else if(page===20 && event.type==='allocationsEqualized')next();
-        else if(page===25 && event.type==='objectRenamed' && event.objectId===NEW_TERRA) {
-            result.effects.push({type:'rename',id:NEW_TERRA,name:'New Terra'});next();
+        else if(page===25 && event.type==='objectRenamed' && event.objectKind==='star' && event.objectId===NEW_TERRA) {
+            result.effects.push({type:'rename',objectKind:'star',id:NEW_TERRA,name:'New Terra'});next();
         } else if([30,36].includes(page) && event.type==='objectSelected' && event.objectId===HOME)next();
         else if(page===38 && event.type==='beginRendezvous')next();
         else if(page===39 && event.type==='rendezvousPlaced') {
             if(this.placementAllowed(event.point) && Number.isInteger(event.objectId) && event.objectId>0) {
                 this.alphaId=event.objectId;next();
             } else result.accepted=false;
-        } else if(page===40 && event.type==='objectRenamed' && event.objectId===this.alphaId) {
-            result.effects.push({type:'rename',id:this.alphaId,name:'Alpha'});next();
+        } else if(page===40 && event.type==='objectRenamed' && event.objectKind==='rendezvous' && event.objectId===this.alphaId) {
+            result.effects.push({type:'rename',objectKind:'rendezvous',id:this.alphaId,name:'Alpha'});next();
         } else if([41,42].includes(page) && event.type==='defaultDestinationChosen' &&
                 this.alphaId!==null && event.targetKind==='rendezvous' && event.targetId===this.alphaId)next();
         else if(page===48 && event.type==='patrolChanged')next();

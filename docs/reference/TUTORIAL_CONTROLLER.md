@@ -238,6 +238,25 @@ handling (`GalacticaDoc.cp:3044–3077`, `CMessage.cpp:869–874`). Explicit att
 also handles exactly one request. Actual six-language walkthroughs now reach
 lesson 34 with the Scout selected and issue its New Terra course to reach 35.
 The continued English walkthrough reaches the automatic-destination lesson 41,
-where the browser's map-object selection still needs investigation. No public
+where the browser initially omitted choosing Alpha from the overlapping-object
+picker. Correcting that input advances the destination lesson; the naming
+identity repair below also protects unrelated stars. No public
 launch, illustration or complete tutorial save/resume requirement is claimed
 complete by this focused verification.
+
+
+### Naming identifies object kind as well as ID
+
+V3's new-rendezvous command applies the tutorial's forced Alpha name directly
+to the created `CRendezvous` (`GalacticaDoc.cp:723–747`). V4 has independent
+numeric IDs for stars and rendezvous points. Rename observations and effects
+now include the object kind, so Alpha's effect resolves a rendezvous and
+New Terra's effect resolves a star. Naming another kind with a matching ID
+neither forces the lesson's name nor advances that lesson.
+
+Actual six-language browser runs choose Alpha from the overlapping-object
+picker and advance to lesson 42 with Andromeda's automatic destination set to
+that exact rendezvous. They verify every unrelated star retains its original
+name. The corrected longer English walkthrough reaches lesson 57 but does not
+yet select the newly built fleet for its contents instruction. That transition
+still needs source verification; the full tutorial remains unfinished.
