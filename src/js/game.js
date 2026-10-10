@@ -1378,6 +1378,11 @@ class Game {
             if(key===pdg.key_Escape){this.saveTableWindowGeometry();this.uiWindow=null;}
             return true;
         }
+        if(this.uiWindow==='newGameDefaults'){
+            if(key===pdg.key_Escape)return this.executeUIAction({type:'cancelNewGameDefaults'});
+            if(key===13)return this.executeUIAction({type:'saveNewGameDefaults'});
+            return true;
+        }
         if(this.uiWindow==='settings' || this.uiWindow==='mapDisplay') {
             if(this.uiWindow==='settings' && [pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))
                 return this.executeUIAction({type:'settingsPage',delta:key===pdg.key_RightArrow?1:-1});
@@ -1931,6 +1936,18 @@ class Game {
                 this.showGrid=!this.showGrid;
                 if(this.drawingPreferences)this.drawingPreferences.writeGrid(this.showGrid);
                 return true;
+            case 'openNewGameDefaults':
+                if(this.uiWindow!=='settings' || !this.newGameDefaultsPreferences)return false;
+                this.newGameDefaultsDraft=this.newGameDefaultsPreferences.read();this.uiWindow='newGameDefaults';return true;
+            case 'cycleNewGameDefault':
+                return this.uiWindow==='newGameDefaults' && require('./new-game-defaults.js').cycle(this.newGameDefaultsDraft,action.field);
+            case 'saveNewGameDefaults':
+                if(this.uiWindow!=='newGameDefaults' || !this.newGameDefaultsDraft || !this.newGameDefaultsPreferences)return false;
+                this.newGameDefaultsPreferences.write(this.newGameDefaultsDraft);
+                this.newGameDefaultsDraft=null;this.uiWindow='settings';return true;
+            case 'cancelNewGameDefaults':
+                if(this.uiWindow!=='newGameDefaults')return false;
+                this.newGameDefaultsDraft=null;this.uiWindow='settings';return true;
             case 'settingsPage':
                 if(this.uiWindow!=='settings')return false;
                 this.settingsPage=Math.max(0,(this.settingsPage||0)+(action.delta||0));return true;
@@ -2723,7 +2740,7 @@ class Game {
         if(key === pdg.key_F1)return this.executeUIAction({type:'toggleShips'});
         if(key === pdg.key_F2)return this.executeUIAction({type:'toggleMapNames'});
         if(key === pdg.key_F3)return this.executeUIAction({type:'toggleGrid'});
-        if(['mapPick','games','fleetExchange','fleets'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
+        if(['mapPick','games','fleetExchange','fleets','newGameDefaults'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
         if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && key===pdg.key_Tab) return true;
         if (['settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && (key===13 || key===3)) return true;
         if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}

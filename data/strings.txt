@@ -631,3 +631,7 @@
 
 # Tutorial launch help
 964	Start the guided tutorial in a practice game. Your open games are kept.
+
+# New-game preference controls
+965	New game defaults
+966	Set defaults for future games. Click an option to change it; Save remembers your choices and Cancel discards these edits. Current games stay unchanged.

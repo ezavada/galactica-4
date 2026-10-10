@@ -1,6 +1,10 @@
 const Tooltip=require('./tooltip.js');
 const I18n=require('./i18n.js');
 const helpIds=Object.freeze({
+  "openNewGameDefaults":966,
+  "cycleNewGameDefault":966,
+  "saveNewGameDefaults":966,
+  "cancelNewGameDefaults":966,
   "setAllocation": 858,
   "setColonyDefaultAllocation": 890,
   "toggleAllocationLock": 859,

@@ -631,3 +631,7 @@
 
 # Tutorial launch help
 964	Lancez le tutoriel guidé dans une partie d’entraînement. Vos parties ouvertes sont conservées.
+
+# New-game preference controls
+965	Valeurs des nouvelles parties
+966	Définissez les valeurs des futures parties. Cliquez sur une option pour la modifier ; Enregistrer mémorise vos choix et Annuler abandonne ces modifications. Les parties en cours restent inchangées.

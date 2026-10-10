@@ -1,0 +1,36 @@
+const test=require('./test-framework.js'),Defaults=require('../src/js/new-game-defaults.js'),Game=require('../src/js/game.js'),Factory=require('../src/js/factory.js'),Rules=require('../src/js/rules.js'),Config=require('../src/js/game-config.js'),Display=require('../src/js/display.js'),Save=require('../src/js/game-save.js'),Help=require('../src/js/hover-help.js');
+function fixture(){const values={},env={window:{localStorage:{getItem:key=>values[key],setItem:(key,value)=>values[key]=value}}},preferences=Defaults.createPreferences(env);
+ const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true}));game.port={getDrawingArea:()=>new pdg.Rect(800,600)};const display=new Display(game);game.newGameDefaultsPreferences=preferences;game.uiWindow='settings';return {values,env,preferences,game,display};}
+module.exports=()=>test.describe('Application new-game defaults',()=>{
+ test.it('restores separate preferences in both adapters without storing title, players or autoplay',()=>{
+  for(const native of [false,true]){const values={},storage={getItem:key=>values[key],setItem:(key,value)=>values[key]=value},cfg={useConfig:()=>{},getConfigString:storage.getItem,setConfigString:storage.setItem},env=native?{pdg:{cfg}}:{window:{localStorage:storage}};
+   const p=Defaults.createPreferences(env),wanted={sectorSize:2,density:4,compSkill:5,compAdvantage:-2,fastGame:false,omniscient:true};p.write({...wanted,gameTitle:'Private',numComputers:77,autoplay:{enabled:true}});
+   const loaded=Defaults.createConfig(Defaults.createPreferences(env));for(const key of Object.keys(wanted))test.assertEqual(loaded[key],wanted[key]);test.assertEqual(loaded.numComputers,2);test.assertFalse(loaded.gameTitle==='Private');test.assertFalse(loaded.autoplay.enabled);
+  }
+ });
+ test.it('validates stored fields independently and tolerates corrupt or inaccessible storage',()=>{
+  const {values,preferences}=fixture();values['galactica.newGameDefaults']=JSON.stringify({sectorSize:0,density:10,compSkill:'1',compAdvantage:4,fastGame:'false',omniscient:true});
+  const loaded=preferences.read();test.assertEqual(loaded.sectorSize,5);test.assertEqual(loaded.density,10);test.assertEqual(loaded.compSkill,2);test.assertEqual(loaded.compAdvantage,0);test.assertTrue(loaded.fastGame);test.assertTrue(loaded.omniscient);
+  values['galactica.newGameDefaults']='invalid';test.assertEqual(JSON.stringify(preferences.read()),JSON.stringify(Defaults.defaults()));
+  const bad=Defaults.createPreferences({window:{get localStorage(){throw Error('Denied');}}});test.assertTrue(bad.read().fastGame);bad.write({density:3});test.assertEqual(bad.read().density,1);
+ });
+ test.it('saves an edited draft for future games without changing the active simulation and cancels edits',()=>{
+  const {preferences,game,display}=fixture(),before=Save.serialize(game);test.assertTrue(game.executeUIAction({type:'openNewGameDefaults'}));
+  const region=display.getNewGameDefaultsActionRegions().find(r=>r.action.field==='density');test.assertTrue(game.handleUIClick(region.rect.x+5,region.rect.y+5));test.assertEqual(game.newGameDefaultsDraft.density,2);test.assertEqual(preferences.read().density,1);
+  game.handleKeyPress(pdg.key_Escape);test.assertEqual(game.uiWindow,'settings');test.assertEqual(preferences.read().density,1);test.assertNull(game.newGameDefaultsDraft);
+  game.executeUIAction({type:'openNewGameDefaults'});game.executeUIAction({type:'cycleNewGameDefault',field:'density'});game.executeUIAction({type:'cycleNewGameDefault',field:'fastGame'});game.handleKeyPress(13);
+  test.assertEqual(preferences.read().density,2);test.assertFalse(preferences.read().fastGame);test.assertEqual(Save.serialize(game),before);test.assertEqual(Defaults.createConfig(preferences).density,2);
+ });
+ test.it('cycles every supported choice and refuses unrelated fields or out-of-window actions',()=>{
+  const draft=Defaults.defaults();for(const [field,maximum,minimum] of [['sectorSize',5,1],['density',10,1],['compSkill',5,1],['compAdvantage',3,-3]]){draft[field]=maximum;test.assertTrue(Defaults.cycle(draft,field));test.assertEqual(draft[field],minimum);}
+  test.assertFalse(Defaults.cycle(draft,'gameTitle'));const {game}=fixture();test.assertFalse(game.executeUIAction({type:'saveNewGameDefaults'}));test.assertFalse(game.executeUIAction({type:'cycleNewGameDefault',field:'density'}));
+ });
+ test.it('localizes reachable modal controls and their help in normal and narrow viewports',()=>{
+  const language=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);for(const [width,height] of [[800,600],[320,340]]){
+   const {game,display}=fixture();game.port.getDrawingArea=()=>new pdg.Rect(width,height);game.executeUIAction({type:'openNewGameDefaults'});const rows=display.getNewGameDefaultsActionRegions(),rect=display.getNewGameDefaultsWindowRect();
+   test.assertEqual(rows.length,8);test.assertTrue(require('../src/js/window-behavior.js').isSystem('newGameDefaults'));
+   for(const row of rows){test.assertTrue(row.rect.x>=rect.x && row.rect.y>=rect.y && row.rect.x+row.rect.width<=rect.x+rect.width && row.rect.y+row.rect.height<=rect.y+rect.height);test.assertTrue(!!Help.describe(row.action));test.assertFalse(row.label==='');}
+   const turn=game.turn;game.handleKeyPress(pdg.key_Tab);test.assertEqual(game.turn,turn);test.assertEqual(game.uiWindow,'newGameDefaults');
+  }}}finally{pdg.res.setLanguage(language);}
+ });
+});

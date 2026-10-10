@@ -209,6 +209,7 @@ runTutorialRuntimeTests();
 require('./window-behavior.test.js')();
 require('./button-caption.test.js')();
 require('./tutorial-session.test.js')();
+require('./new-game-defaults.test.js')();
 runReusableColonyTests();
 runNeutralColonyReportTests();
 runRendezvousFormationReportTests();

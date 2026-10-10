@@ -631,3 +631,7 @@
 
 # Tutorial launch help
 964	Starte die geführte Einführung in einem Übungsspiel. Deine offenen Spiele bleiben erhalten.
+
+# New-game preference controls
+965	Vorgaben für neue Spiele
+966	Lege Vorgaben für zukünftige Spiele fest. Klicke auf eine Option, um sie zu ändern. Speichern merkt sich deine Auswahl; Abbrechen verwirft diese Änderungen. Laufende Spiele bleiben unverändert.

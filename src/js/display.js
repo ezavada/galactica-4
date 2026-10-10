@@ -2134,7 +2134,8 @@ class Display {
             {rect:{x:rect.x+14,y:rect.y+508,width:rect.width-28,height:28},
             label:I18n.getString(857,'Control help'),active:this.game.showControlHelp!==false,action:{type:'toggleControlHelp'}},
             {label:I18n.getString(938,'Show enemy events'),active:this.game.showEnemyEvents,action:{type:'toggleEnemyEvents'}},
-            {label:I18n.getString(954,'Sound'),active:!!this.game.sound && this.game.sound.isEnabled(),action:{type:'toggleSound'}}]);
+            {label:I18n.getString(954,'Sound'),active:!!this.game.sound && this.game.sound.isEnabled(),action:{type:'toggleSound'}},
+            ...(this.game.newGameDefaultsPreferences?[{label:I18n.getString(965,'New game defaults'),action:{type:'openNewGameDefaults'}}]:[])]);
         const capacity=Math.max(1,Math.floor((rect.height-112)/28)),pages=Math.ceil(rows.length/capacity);
         const page=this.clamp(this.game.settingsPage||0,0,pages-1);this.game.settingsPage=page;
         const visible=rows.slice(page*capacity,(page+1)*capacity).map((row,index)=>({...row,
@@ -2157,6 +2158,28 @@ class Display {
             this.drawTextLine(I18n.getString(760,'Language'),rect.x+14,rect.y+57,'lightgray',12);
         for(const region of regions)this.drawUIButton(region.rect,region.label,region.key || null,{active:region.active});
         this.drawTextLine(this.STR.escClose,rect.x+14,rect.y+rect.height-16,'gray',10);
+    }
+
+    getNewGameDefaultsWindowRect(){
+        const screen=this.getScreenSize();return this.fitWindowToScreen('newGameDefaults',{x:40,y:40,width:Math.min(480,screen.width-40),height:Math.min(330,screen.height-30)});
+    }
+    getNewGameDefaultsActionRegions(){
+        if(this.game.uiWindow!=='newGameDefaults' || !this.game.newGameDefaultsDraft)return [];
+        const r=this.getNewGameDefaultsWindowRect(),draft=this.game.newGameDefaultsDraft,config=new (require('./game-config.js'))(draft);
+        const labels={sectorSize:I18n.formatString(523,'Map size: {0}',config.getMapSizeDescription()),density:config.getDensityDescription(),
+            compSkill:I18n.formatString(522,'AI skill: {0} ({1})',config.getDifficultyName(),draft.compSkill),
+            compAdvantage:I18n.getString(761,'Computer advantage')+': '+(draft.compAdvantage>0?'+':'')+draft.compAdvantage,
+            fastGame:I18n.getString(505,'Fast Game'),omniscient:I18n.getString(508,'Fog of War')};
+        const step=Math.min(34,(r.height-112)/6);
+        const rows=Object.keys(labels).map((field,index)=>({rect:{x:r.x+14,y:r.y+52+index*step,width:r.width-28,height:step-4},
+            label:labels[field],active:field==='fastGame'?draft.fastGame:field==='omniscient'?!draft.omniscient:false,action:{type:'cycleNewGameDefault',field}}));
+        rows.push({rect:{x:r.x+14,y:r.y+r.height-44,width:(r.width-36)/2,height:26},label:I18n.getString(682,'Save'),key:'Enter',action:{type:'saveNewGameDefaults'}},
+            {rect:{x:r.x+22+(r.width-36)/2,y:r.y+r.height-44,width:(r.width-36)/2,height:26},label:I18n.getString(683,'Cancel'),key:'Esc',action:{type:'cancelNewGameDefaults'}});
+        return rows;
+    }
+    drawNewGameDefaultsWindow(){
+        const r=this.getNewGameDefaultsWindowRect();this.drawWindowPanel(r,I18n.getString(965,'New game defaults'));
+        this.getNewGameDefaultsActionRegions().forEach(row=>this.drawUIButton(row.rect,row.label,row.key||null,{active:row.active,size:11}));
     }
 
     getColonyDefaultsWindowRect() {
@@ -2473,6 +2496,7 @@ class Display {
                 return this.getViewWindowRect();
             case 'mapDisplay':
                 return this.getMapDisplayWindowRect();
+            case 'newGameDefaults':return this.getNewGameDefaultsWindowRect();
             case 'settings':
                 return this.getSettingsWindowRect();
             case 'colonyDefaults':
@@ -2696,6 +2720,7 @@ class Display {
         if (this.game.uiWindow==='events') controls=this.getEventActionRegions();
         if (this.game.uiWindow==='games') controls=this.getGameSessionLayout().buttons;
         if (this.game.uiWindow==='menu') controls=this.getCommandActionRegions();
+        if (this.game.uiWindow==='newGameDefaults') controls=this.getNewGameDefaultsActionRegions();
         if (this.game.uiWindow==='settings') controls=this.getSettingsActionRegions();
         if (this.game.uiWindow==='mapDisplay') controls=this.getMapDisplayActionRegions();
         if (this.game.uiWindow==='view') controls=this.getViewActionRegions();
@@ -3612,6 +3637,7 @@ class Display {
             case 'mapDisplay':
                 this.drawMapDisplayWindow();
                 break;
+            case 'newGameDefaults':this.drawNewGameDefaultsWindow();break;
             case 'settings':
                 this.drawSettingsWindow();
                 break;

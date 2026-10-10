@@ -51,6 +51,7 @@ const systemComparisonPreferences = require('./src/js/roster-preferences.js').cr
     prefix:'systemComparison', minimumHeight:176, keys:['name','tech','population','production','buildName','completion',
         'totalDefense','satelliteDefense','shipDefense']
 });
+const newGameDefaultsPreferences=require('./src/js/new-game-defaults.js').createPreferences();
 const drawingPreferences = require('./src/js/drawing-preferences.js').createPreferences();
 const sound=require('./src/js/sound.js').createSound(pdg.res,drawingPreferences);
 const languagePreferences = LanguageSettings.createPreferences();
@@ -93,7 +94,8 @@ const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), I18n.getStri
 const fullscreen = require('./src/js/fullscreen.js').createController(pdg,port,globalThis,drawingPreferences);
 fullscreen.restore();
 
-function createDefaultConfig() {
+function createDefaultConfig(usePreferences=true) {
+    if(usePreferences)return require('./src/js/new-game-defaults.js').createConfig(newGameDefaultsPreferences);
     const config = GameConfig.createSinglePlayer(2, 2); // 2 computers, Good difficulty
     config.sectorSize = 5;
     return config;
@@ -530,7 +532,7 @@ function beginTutorial(pages=require('./src/js/tutorial-lessons.js').load(dataPa
         captureApplication:()=>({game,display,autoplayController,pendingConfig,startupPlayerName,startupGameTitle,startupComputerCount,startupAISkill}),
         suspendApplication:()=>{
             sound.stop();clearSessionInput();stopAutoplayTimer();game=null;display=null;autoplayController=null;
-            pendingConfig=createDefaultConfig();pendingConfig.numHumans=1;pendingConfig.numComputers=2;refreshTotalPlayers(pendingConfig);
+            pendingConfig=createDefaultConfig(false);pendingConfig.numHumans=1;pendingConfig.numComputers=2;refreshTotalPlayers(pendingConfig);
             startupPlayerName=null;startupGameTitle=null;startupComputerCount=null;startupAISkill=false;
         },
         restoreApplication:state=>{
@@ -595,6 +597,7 @@ function switchGameSession(id) {
 function attachGameServices(nextGame) {
     nextGame.languagePreferences = languagePreferences;
     nextGame.drawingPreferences = drawingPreferences;
+    nextGame.newGameDefaultsPreferences=newGameDefaultsPreferences;
     nextGame.sound=sound;
     nextGame.showControlHelp=drawingPreferences.readControlHelp();
     nextGame.systemComparisonPreferences = systemComparisonPreferences;

@@ -253,7 +253,7 @@ The largest blockers to a complete game are:
 | Send/show/hold player messages | Multiplayer chat to one/all/admin, with message history and repeat settings. | ❌ Missing | ❌ Missing | No chat or message model. |
 | Rename ship/fleet/colony/rendezvous | Edit menu rename workflow. | ✅ Implemented | ✅ Implemented | Owned ships, systems, fleets and rendezvous points have localized Unicode Rename/Save/Cancel controls. New human neutral colonies create the private v3 naming/production instruction and attention navigation, rather than a forced naming modal. Requests disappear for recaptured/removed colonies and do not target computer or captured enemy systems. |
 | Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | 🟡 Partial | 🟡 Partial | The localized persistent Sound setting now controls cached PDG audio across open/restored games. Presented colony, battle, destruction, repair, lab and stardock reports and attention navigation select recipient cues from the shipped samples; explosions precede the later cue by the source animation cadence plus 20 ticks. Hidden reports and quiet autoplay are silent, and mute stops owned playback. Native suites and actual browser controls/playback are verified below. Empty Tab/Next item now plays the shipped No more cue without changing selection or the turn. Chat, background network-turn and tutorial cues remain tied to their unported features; Left Arrow at a top-level object also plays No more. Startup/About music is blocked by missing source movie metadata, documented below. |
-| Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen choices now persist across launch: native restoration is immediate, while browsers defer until the first user gesture and remember external exits. Remaining game preferences and the pinned native runtime update are incomplete. |
+| Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen choices now persist across launch: native restoration is immediate, while browsers defer until the first user gesture and remember external exits. Settings → New game defaults now saves map size, density, AI skill/advantage, fast game and fog of war separately from ordinary setup and current games. Startup and New Game apply these defaults; tutorial setup is isolated. Remaining preference entry/presentation coverage and the pinned native runtime update are incomplete. |
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
 | Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | 🟡 Partial | 🟡 Partial | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; Open and Revert retain active instruction bindings and production safeguards, with independent documents preserved. The optional wrong-course retry is verified through actual controls in all six languages. Hosting recovery remains dependent on the unported multiplayer startup flow; other recovery paths retain model-level coverage. See docs/reference/TUTORIAL_CONTROLLER.md. |
 | Internationalization | v3 language plug-ins; menu can switch languages. | ✅ Implemented | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian resources and accepts runtime language with `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven/tested; Menu → Settings → Language switches cached UI labels and numeric formatting immediately, remembers the selection and always lists native-script language names. Unported v3 dialogs/help still need future resources. |
@@ -1431,3 +1431,50 @@ failure and performs no preference write. Evidence:
 already exists in both PDG repos; updating the pinned release archive is still
 required for native distribution. It is not treated as an unavailable-help
 blocker, and broader parity/Map Generation remains unfinished.
+
+
+### Separate persistent new-game defaults
+
+V3 `Galactica.cpp:762–771` lists AI skill/advantage, fast game, fog of war,
+density and map size as application preferences. `PrefsDialogAttach::CloseDialog`
+(848–882) writes them on acceptance, while Cancel does not write.
+`CGameSetupAttach.cpp:106–132` reads them for new-game setup. Starting an ordinary
+game does not write these six defaults back. `GalacticaDoc::UserChangedSettings`
+(1332 onward) applies display/audio choices without replacing current simulation
+configuration. This distinguishes preferences from the setup of one game.
+
+V4 now provides Menu → Settings → New game defaults, with six reachable controls,
+Save/Enter and Cancel/Escape. Numeric controls cycle through their validated ranges;
+fast game and fog toggle. The draft is separate from both persisted defaults and
+the active graph. Saved fields apply at fresh startup and subsequent New Game;
+ordinary setup overrides do not update the preferences. Tutorial setup explicitly
+bypasses ordinary defaults and its installed game retains the fixed source fixture.
+Fresh fast-game and fog defaults match `GalacticaRegistration.cpp:310–311`.
+Map size/AI baseline choices retain v4's existing setup values.
+
+Preferences use independent browser/localStorage and native PDG configuration
+adapters, store only the six fields, validate stored values individually and
+fall back safely for malformed or inaccessible storage. Titles, player counts,
+individual AI assignments and autoplay settings are not persisted by this panel.
+The new window uses shared modal chrome, constrained persistent title dragging,
+button styling and localized help. Title/help strings 965/966 are provided in
+English, German, Spanish, French, Japanese and Russian; field captions reuse
+existing localized setup resources.
+
+Five regressions cover adapter reloads, invalid fields/storage failure, actual
+hit targets and draft isolation, Save/Cancel/Enter, range wraparound, refused
+unrelated edits, modal input and normal/narrow localized bounds. Both full native
+lanes pass all 1,312 tests; logs are
+`/private/tmp/galactica-new-game-defaults-{tests,native-tests}.log`.
+Actual browser input in all six languages edits every option, cancels without a
+write, saves and reopens the draft, verifies unchanged serialized current-game
+state, starts another game with the defaults, overrides its fast-game setup
+without changing preferences, reloads the application, and starts/cancels the
+fixed tutorial without preference contamination. Reviewed before/after, saved,
+new-setup, reload and 320×340 screenshots are under
+`/private/tmp/galactica-parity/new-game-defaults/<language>`; logs are
+`/private/tmp/galactica-new-game-defaults-<language>.log`.
+
+This completes the six new-game preference fields and their in-game entry path.
+Startup-wide preference access, other unported preference controls, remaining
+v3 parity and Map Generation still require their own audits/implementations.

@@ -1,5 +1,5 @@
 // Application windows share modality, palette and persistent viewport positions.
-const systemWindows=new Set(['menu','games','comparison','systemComparison','fleets','settings','view','mapDisplay','colonyDefaults','endTurnConfirm']);
+const systemWindows=new Set(['menu','games','comparison','systemComparison','fleets','settings','newGameDefaults','view','mapDisplay','colonyDefaults','endTurnConfirm']);
 function isSystem(name){return systemWindows.has(name);}
 function constrain(rect,screen){
     const width=Math.min(rect.width,Math.max(1,screen.width-20));

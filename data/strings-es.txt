@@ -631,3 +631,7 @@
 
 # Tutorial launch help
 964	Inicia el tutorial guiado en una partida de práctica. Tus partidas abiertas se conservan.
+
+# New-game preference controls
+965	Valores para nuevas partidas
+966	Establece los valores de futuras partidas. Pulsa una opción para cambiarla; Guardar recuerda tus elecciones y Cancelar descarta estos cambios. Las partidas actuales no cambian.
