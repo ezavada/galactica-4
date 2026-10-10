@@ -49,3 +49,19 @@ monotonicity, restores player milestones and initializes visibility/selection.
 The future session controller must seed a new tutorial with 101, preserve the
 previous game and wire the original sixty action-driven lessons. Those pieces
 are still missing; this fixture does not constitute a completed tutorial.
+
+
+The builder attaches `TutorialSimulation`, which follows the source's early
+production safeguards. Before processing turns 2–13 it restores the original
+homeworld's current and target allocations to 33.4/33.3/33.3. Positive effort
+on processing turns 3, 4 and 8 guarantees the selected home hull; processing
+turn 8 does the same for New Terra (ID 9). The source adds 0.1 credit beyond
+the cost rather than inventing ships outside normal commissioning. Computer
+systems choose battleships after completing a hull. Paused/zero-effort builds
+are not guaranteed, and ordinary games do not attach these rules. Turn numbers
+here refer to the turn being processed, before v4 increments the displayed turn.
+
+This component has no new user-facing text or startup entry. Session lifetime,
+restoring the previous game and preserving tutorial progress across saves must
+be implemented by the pending controller; restoring the galaxy through the
+ordinary save API currently restores a normal game without the tutorial helper.

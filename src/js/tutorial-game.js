@@ -5,6 +5,7 @@ const Game=require('./game.js');
 const Config=require('./game-config.js');
 const Rules=require('./rules.js');
 const Factory=require('./factory.js');
+const TutorialSimulation=require('./tutorial-simulation.js');
 const hulls=['battleship','scout','colony','defense'];
 function createTutorialGame(fixture,options={}) {
     if(!fixture || fixture.format!==1 || fixture.stars.length!==42 || fixture.players.length!==3)
@@ -13,6 +14,7 @@ function createTutorialGame(fixture,options={}) {
         gameTitle:options.gameTitle || fixture.config.gameTitle});
     const rules=new Rules(config.fastGame),factory=new Factory(),game=new Game(factory,rules,config);
     game.turn=fixture.turn;
+    game.tutorialSimulation=new TutorialSimulation();
     for(const saved of fixture.stars) {
         // Assign the source ID before registration so spatial keys are correct.
         const star=new factory.starConstructor(saved.x,saved.y,saved.name,game);

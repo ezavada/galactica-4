@@ -139,6 +139,7 @@ class Star {
                 amount = this.game.applyComputerAdvantageToProduction(this.owner, amount);
             }
             if (amount > 0) this.paidTowardShipBuilding += amount;
+            if (this.game.tutorialSimulation) this.game.tutorialSimulation.prepareShipPayment(this,amount);
             this.commissionPaidHulls();
         }
 
@@ -307,7 +308,8 @@ class Star {
                     ai = new StarAI(this, this.game, this.game.rules, computer.skillManager.getSkillLevel());
                     computer.starAIs.set(this.id, ai);
                 }
-                nextType = ai.chooseShipToBuild().type;
+                nextType = this.game.tutorialSimulation ?
+                    this.game.tutorialSimulation.chooseNextComputerHull() : ai.chooseShipToBuild().type;
             }
             this.startBuildingShip(nextType, false);
         }

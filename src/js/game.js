@@ -2948,6 +2948,7 @@ class Game {
             return this.getGameResult();
         }
 
+        if (this.tutorialSimulation) this.tutorialSimulation.beforeEndTurn(this);
         this.closeEventWindowsForTurnAdvance();
 
         console.log(`=== End of Turn ${this.turn} ===`);
