@@ -107,7 +107,7 @@ function validate(state,nodes) {
     for(const key of ['isGameOver','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames'])if(typeof state[key]!=='boolean')invalid();
     if(!DisplayModes.valid(state.mapDisplayMode) || (state.uiWindow!==null && state.uiWindow!=='events'))invalid();
     if(!Array.isArray(state.players) || state.players.length!==total+1 || state.players[0]!==null)invalid();
-    state.players.slice(1).forEach((player,index)=>{if(!(player instanceof Player) || player.playerNum!==index+1 || !(player.builtFighterClasses instanceof Set))invalid();});
+    state.players.slice(1).forEach((player,index)=>{if(!(player instanceof Player) || player.playerNum!==index+1 || state.config.humanPlayerSlots!==undefined && player.isComputer===state.config.isHumanPlayer(index+1) || !(player.builtFighterClasses instanceof Set))invalid();});
     const lists=[state.stars,state.allShips,state.allFleets,state.allRendezvous];
     lists.forEach((list,index)=>{
         if(!Array.isArray(list) || new Set(list).size!==list.length)invalid();const ids=new Set();

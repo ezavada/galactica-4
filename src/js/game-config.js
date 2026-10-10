@@ -15,6 +15,7 @@ class GameConfig {
         this.numHumans = options.numHumans !== undefined ? options.numHumans : 1;
         this.numComputers = options.numComputers !== undefined ? options.numComputers : 1;
         this.totalPlayers = this.numHumans + this.numComputers;
+        if(options.humanPlayerSlots!==undefined)this.humanPlayerSlots=Array.isArray(options.humanPlayerSlots)?[...options.humanPlayerSlots]:options.humanPlayerSlots;
         
         // Map configuration
         this.density = options.density !== undefined ? options.density : 1; // v3 stellar density: integer 1–10
@@ -157,15 +158,19 @@ class GameConfig {
         });
     }
     
+    getHumanPlayerSlots() { return this.humanPlayerSlots===undefined?Array.from({length:this.numHumans},(_,i)=>i+1):this.humanPlayerSlots; }
+    isHumanPlayer(id) { return Number.isInteger(id) && id>0 && id<=this.totalPlayers && (this.humanPlayerSlots===undefined?id<=this.numHumans:Array.isArray(this.humanPlayerSlots) && this.humanPlayerSlots.includes(id)); }
+
     // Validate configuration
     validate() {
         const errors = [];
+        if(this.humanPlayerSlots!==undefined && (!Array.isArray(this.humanPlayerSlots) || this.humanPlayerSlots.length!==this.numHumans || this.humanPlayerSlots.some((id,i)=>!Number.isInteger(id) || id<1 || id>this.totalPlayers || i>0 && id<=this.humanPlayerSlots[i-1])))errors.push("humanPlayerSlots must list each human slot once in increasing order");
         if(typeof this.omniscient!=='boolean')errors.push('omniscient must be a boolean');
         if(typeof this.fastGame!=='boolean')errors.push('fastGame must be a boolean');
         if(!PlayerName.validName(this.gameTitle,27))errors.push('gameTitle must contain 1–27 characters without control characters');
         for(const [key,name] of Object.entries(this.humanPlayerNames)) {
             const player=Number(key);
-            if(!Number.isInteger(player) || player<1 || player>this.numHumans || !PlayerName.validName(name))
+            if(!Number.isInteger(player) || player<1 || !this.isHumanPlayer(player) || !PlayerName.validName(name))
                 errors.push('humanPlayerNames must contain valid names for human player slots');
         }
 

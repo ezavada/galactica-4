@@ -77,15 +77,21 @@ class NetworkHost {
     ready(game){
         // V3 robot hosts advance continuously while multiple AIs survive.
         if(game.config.numHumans===0)return game.players.filter(p=>p && p.isComputer && p.isAlive).length>1;
-        const living=game.players.slice(1,game.config.numHumans+1).filter(p=>p.isAlive);
+        const slots=game.config.getHumanPlayerSlots(),living=slots.map(id=>game.players[id]).filter(p=>p.isAlive);
         if(!living.length)return game.players.some(p=>p && p.isLoggedIn) && game.players.filter(p=>p && p.isComputer && p.isAlive).length>1;
-        return game.config.networkHost.players.every((claim,index)=>claim && (!game.players[index+1].isAlive || game.players[index+1].lastTurnPosted===game.turn));
+        return game.config.networkHost.players.every((claim,index)=>claim && (!game.players[slots[index]].isAlive || game.players[slots[index]].lastTurnPosted===game.turn));
     }
     tick(){
         if(!this.server || this.game.isGameOver || this.clock.paused)return false;
         const ready=this.ready(this.game) && (this.game.config.numHumans===0 || this.game.turn===1 || this.game.config.maxTimePerTurn===0 || this.game.config.endEarly);
         if(!ready && (this.game.config.numHumans===0 || !this.clock.expired()))return false;
         this.transact(game=>game.endTurn());return true;
+    }
+    changePlayer(value,revision,turn){
+        const Players=require('./host-players.js'),current=Players.revision(this.game);
+        if(!Number.isSafeInteger(revision) || revision!==current || current===Number.MAX_SAFE_INTEGER || turn!==this.game.turn)throw failure('stale_host_player');
+        if(this.game.isGameOver)throw failure('game_complete');
+        let revoke;this.transact(game=>{revoke=Players.apply(game,value);});if(revoke)this.login.revokePlayer(value.player);
     }
     updateSettings(value,revision){
         const Settings=require('./host-settings.js'),settings=Settings.validate(value),current=this.game.config.networkHost.settingsRevision || 0;

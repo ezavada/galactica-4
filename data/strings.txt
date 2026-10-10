@@ -817,3 +817,20 @@
 1122	{0} · {1} human, {2} AI
 1123	Seconds
 1124	Map: {0}×{0} · Density: {1} (fixed)
+
+1125	Change player
+1126	Make human
+1127	Make computer
+1128	Free human slot
+1129	Eliminate player
+1130	Rename player
+1131	{0}: {1}
+1132	{0} · {1} · {2}
+1133	Assigned
+1134	Unassigned
+1135	Alive
+1136	Defeated
+1137	Player information changed. Open it again to review.
+1138	Saving player change…
+1139	Choose a valid action and a unique player name.
+1140	Player name

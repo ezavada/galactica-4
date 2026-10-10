@@ -100,7 +100,7 @@ function openNetworkHosting(saved=false){
     const record=identity?hostedGames.records.find(r=>hostedGames.describe(r).id===identity.gameId) || hostedGames.latest():hostedGames.latest();
     if(!(saved?networkHosting.openSaved(pendingConfig):networkHosting.open(pendingConfig,record)))return false;documents.dialog=null;return true;
 }
-function requestApplicationQuit(){if(networkHosting.busy)return false;networkHosting.cancel();return quitDocuments.request();}
+function requestApplicationQuit(){if(networkHosting.busy)return false;networkHosting.dismiss();return quitDocuments.request();}
 
 function openNetworkJoin(){
     if(tutorialSession || quitDocuments.state!=='idle' || networkHosting.active)return false;

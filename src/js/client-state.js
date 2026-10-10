@@ -19,7 +19,8 @@ function restore(input){
  text(state.gameId,64);if(!/^[a-f0-9]{64}$/.test(state.gameId))invalid();
  const config=new Config({...object(state.config),hosting:false,skipMapGeneration:true,autoplay:{enabled:false}});
  if(config.validate().length || state.config.totalPlayers!==config.totalPlayers)invalid();
- const viewer=integer(state.viewer,1,config.numHumans),turn=integer(state.turn,1);
+ const viewer=integer(state.viewer,1,config.totalPlayers),turn=integer(state.turn,1);
+ if(!config.isHumanPlayer(viewer))invalid();
  const map=object(state.map);number(map.width);number(map.height);if(map.width!==1024*1024*config.sectorSize || map.height!==1024*1024*config.sectorSize)invalid();
  const privatePlayer=object(state.privatePlayer);if(privatePlayer.playerNum!==viewer)invalid();
  for(const key of ['homeStarId','hiStarTech','hiShipTech','lastTurnPosted','defaultBuildType','defaultGrowth','defaultTech','defaultShips'])if(privatePlayer[key]!==undefined)number(privatePlayer[key]);
@@ -35,11 +36,11 @@ function restore(input){
  }
  const game=new Game(new Factory(),new Rules(config.fastGame),config);
  game.clientClock=require('./client-clock.js').receive(state.clock,{config,turn,isGameOver:state.isGameOver});
- game.clientPlayerNum=viewer;game.clientGameId=state.gameId;game.turn=turn;game.gameWidth=map.width;game.gameHeight=map.height;game.isGameOver=state.isGameOver;
+ game.clientPlayerRevision=state.playerRevision===undefined?0:integer(state.playerRevision);game.clientPlayerNum=viewer;game.clientGameId=state.gameId;game.turn=turn;game.gameWidth=map.width;game.gameHeight=map.height;game.isGameOver=state.isGameOver;
  game.eventLog=[];game.overlay=null;game.overlayQueue=[];game.attention.queue=[];game.remoteComparisons=[];
  const comparisonFields=['stars','ships','shipsBuilding','population','production','productionRaw','power','minimumTech','maxTech','averageTech','minimumShipTech','maximumShipTech','averageShipTech','pieces'];
  const comparisons=list(state.comparisons);if(comparisons.length!==config.totalPlayers+1)invalid();
- comparisons.forEach((row,index)=>{object(row);if(row.playerNum!==index || typeof row.isAlive!=='boolean' || typeof row.assigned!=='boolean' || typeof row.isComputer!=='boolean' || row.isComputer!==(index>config.numHumans))invalid();text(row.name,4096);
+ comparisons.forEach((row,index)=>{object(row);if(row.playerNum!==index || typeof row.isAlive!=='boolean' || typeof row.assigned!=='boolean' || typeof row.isComputer!=='boolean' || row.isComputer!==(index>0 && !config.isHumanPlayer(index)))invalid();text(row.name,4096);
   for(const field of comparisonFields)number(row[field]);
   const copy={...scalar(row,comparisonFields),playerNum:index,name:row.name,isAlive:row.isAlive,assigned:row.assigned,isComputer:row.isComputer};game.remoteComparisons.push(copy);
   const player=game.players[index];if(player){player.name=copy.name;player.isAlive=copy.isAlive;player.numPiecesRemaining=copy.pieces;}

@@ -17,7 +17,7 @@ const reports={
  outcome:['kind','playerNum','name','turn']
 };
 function snapshot(game,viewer){
- if(!Number.isInteger(viewer) || viewer<1 || viewer>game.config.numHumans)throw new Error('invalid_viewer');
+ if(!Number.isInteger(viewer) || !game.config.isHumanPlayer(viewer))throw new Error('invalid_viewer');
  // Alias allocation is deterministic, but its cache belongs to the host UI.
  // Isolate it so even the first remote request cannot modify a saved document.
  const prior=Names.snapshot(game);
@@ -81,7 +81,7 @@ function project(game,viewer){
  const player=game.players[viewer],privatePlayer={...pick(player,['playerNum','homeStarId','hiStarTech','hiShipTech','builtColony','builtScout','builtSatellite','lastTurnPosted','defaultBuildType','defaultGrowth','defaultTech','defaultShips']),builtFighterClasses:[...player.builtFighterClasses]};
  const comparisons=game.getPlayerComparisonRows().map(source=>{
   const row=pick(source,['playerNum','isAlive','stars','ships','shipsBuilding','population','production','productionRaw','power','minimumTech','maxTech','averageTech','minimumShipTech','maximumShipTech','averageShipTech','pieces']);
-  const p=game.players[row.playerNum],claim=p && !p.isComputer?game.config.networkHost.players[row.playerNum-1]:null;
+  const p=game.players[row.playerNum],claim=p && !p.isComputer?game.config.networkHost.players[game.config.getHumanPlayerSlots().indexOf(row.playerNum)]:null;
   row.isComputer=!!(p && p.isComputer);row.name=p?(p.isComputer?p.name:claim?claim.name:''):'';row.assigned=!!(p && (p.isComputer || claim));
   return row;
  });
@@ -93,7 +93,8 @@ function project(game,viewer){
  });
  return {format:'Galactica-4-player-state',version:1,viewer,turn:game.turn,
   map:{width:1024*1024*game.config.sectorSize,height:1024*1024*game.config.sectorSize},
-  config:pick(game.config,['gameTitle','numHumans','numComputers','totalPlayers','sectorSize','density','fastGame','omniscient','compSkill','compAdvantage','maxTimePerTurn','endEarly']),
+  playerRevision:game.config.networkHost.playerStateRevision || 0,
+  config:{...(game.config.humanPlayerSlots===undefined?{}:{humanPlayerSlots:[...game.config.humanPlayerSlots]}),...pick(game.config,['humanPlayerSlots','gameTitle','numHumans','numComputers','totalPlayers','sectorSize','density','fastGame','omniscient','compSkill','compAdvantage','maxTimePerTurn','endEarly'])},
   isGameOver:game.isGameOver,privatePlayer,comparisons,entities,events};
 }
 module.exports={snapshot,reports};

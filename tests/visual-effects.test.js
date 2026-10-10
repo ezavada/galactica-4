@@ -215,7 +215,7 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         d.drawPanelPointer=()=>{};d.drawPanel=(rect,title,border,appearance)=>{style=appearance};const rect={x:0,y:0,width:100,height:100};d.drawAnchoredPanel(home,rect);
         const first=style;test.assertTrue(d.panelStyleColors.get(style).blue>d.getUIColor('panelFill').blue);d.drawAnchoredPanel(home,rect);test.assertTrue(style===first);
         home.owner=0;d.drawAnchoredPanel(home,rect);test.assertNull(style);home.owner=2;d.drawAnchoredPanel(home,rect);test.assertNull(style);
-        home.owner=8;game.config.numHumans=8;d.drawAnchoredPanel(home,rect);test.assertTrue(!!style);test.assertTrue(Number.isFinite(d.panelStyleColors.get(style).red));
+        home.owner=8;game.config.numHumans=8;game.config.totalPlayers=9;d.drawAnchoredPanel(home,rect);test.assertTrue(!!style);test.assertTrue(Number.isFinite(d.panelStyleColors.get(style).red));
     });
     test.it('tints enemy panels at exactly the visibility where ownership is revealed',()=>{
         const {display:d}=fixture(),star=d.game.factory.createStar(0,0,'Enemy');star.owner=2;

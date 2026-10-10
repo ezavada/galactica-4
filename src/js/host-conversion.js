@@ -6,7 +6,7 @@ function prepare(text,numHumans){
  const game=Save.restore(text),old=game.config;
  if(old.hosting || old.networkHost!==undefined || numHumans>old.totalPlayers)throw failure('invalid_conversion');
  const skills=new Map([...game.aiManager.aiPlayers].map(([id,ai])=>[id,ai.skillManager.getSkillLevel()]));
- game.config=new Config({...old,numHumans,numComputers:old.totalPlayers-numHumans,hosting:true,maxTimePerTurn:0,endEarly:true,skipMapGeneration:false,autoplay:{...old.autoplay,enabled:false},humanPlayerNames:{}});
+ game.config=new Config({...old,humanPlayerSlots:undefined,numHumans,numComputers:old.totalPlayers-numHumans,hosting:true,maxTimePerTurn:0,endEarly:true,skipMapGeneration:false,autoplay:{...old.autoplay,enabled:false},humanPlayerNames:{}});
  game.aiManager=new AIManager(game,game.rules);
  for(let id=1;id<=old.totalPlayers;id++){
   const player=game.players[id];player.isComputer=id>numHumans;player.isHuman=!player.isComputer;player.isLoggedIn=false;player.lastTurnPosted=0;

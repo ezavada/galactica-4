@@ -112,7 +112,7 @@ host to announce the next turn.
 Desktop **Host** (H), on startup or in File, creates a durable hosted game.
 Choose human/AI counts, map options, a host filename, port (0 selects an
 available port), and an optional minutes/hours/days/weeks turn limit. The status
-window offers Join, Pause/Resume game, End turn now, Host settings, Stop hosting, and Host
+window offers Join, Pause/Resume game, End turn now, Host settings, Change player, Stop hosting, and Host
 another game. Pausing holds both the timer and automatic turn advancement and
 survives reopening. End turn now warns about assigned living humans who have
 not posted; Keep waiting cancels, and a confirmation for an already-advanced
@@ -128,6 +128,17 @@ enabling starts a fresh limit and retains the paused state. Existing second-base
 limits are preserved exactly. Cancel leaves the host unchanged; failed saves keep
 the draft for retry, and stale drafts must be reopened. Joined clients refresh
 settings and visibility while keeping unposted orders.
+
+**Change player** lists the fixed player IDs with human/AI, assigned and alive
+status. Rename an assigned player, switch human/AI control, free a human slot,
+or eliminate a player. Role changes keep the same territory and player IDs.
+Making an AI human opens its slot; making a human AI releases its claim. Freeing
+a slot removes its password and posted-turn receipt so a replacement can join.
+Renaming a human keeps its password; that player must rejoin with the new name.
+Affected connections are revoked only after the change saves successfully.
+Elimination neutralizes all owned territory and reports defeat at turn end.
+Cancel preserves the host; failed saves retain the selected action/name for retry,
+and stale actions require reopening the player list.
 
 Browsers can join games but require the desktop application to host.
 
@@ -186,7 +197,7 @@ network-game saving are still being ported. See [the parity checklist](docs/V3_V
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1515 passed, 0 failed.
+Current expected result: 1531 passed, 0 failed.
 
 AI-only parity observer:
 

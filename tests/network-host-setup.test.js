@@ -60,4 +60,18 @@ module.exports=()=>test.describe('Multiplayer Host setup controls',()=>{
   finally{pdg.res.setLanguage(lang);}
  });
 
+ test.it('pages Change Player choices, offers only applicable actions and cancels names without touching the host',()=>{
+  const w=form(),players=Array.from({length:7},(_,i)=>({player:i+1,name:'Captain '+i,isComputer:i>1,isAlive:i!==4,assigned:i!==1,online:false}));w.record={};w.backend.describe=()=>({address:'http://localhost',info:{turn:8},administration:{complete:false,playersRevision:3,players}});w.editPlayers();test.assertEqual(w.stage,'players');test.assertTrue(w.layout(800,600).buttons.filter(b=>b.action.startsWith('player:')).every(b=>b.disabled));
+  w.selectPlayer(1);let l=w.layout(800,600);test.assertTrue(l.buttons.find(b=>b.action==='player:human').disabled);test.assertFalse(l.buttons.find(b=>b.action==='player:computer').disabled);w.playerAction('rename');test.assertEqual(w.stage,'playerName');w.key(65);test.assertEqual(players[0].name,'Captain 0');w.cancel();test.assertEqual(w.stage,'players');w.action('next');test.assertEqual(w.layout(800,600).choices[0].value,5);w.selectPlayer(5);test.assertTrue(w.layout(800,600).buttons.find(b=>b.action==='player:kill').disabled);w.cancel();test.assertEqual(w.stage,'hosting');test.assertTrue(w.active);
+ });
+ test.it('fits player actions and native-script name editors in all supported languages',()=>{
+  const language=pdg.res.getLanguage(),w=form();w.record={};w.backend.describe=()=>({address:'http://localhost',info:{turn:1},administration:{complete:false,playersRevision:0,players:[{player:1,name:'Captain 星',isComputer:false,isAlive:true,assigned:true,online:true}]}});
+  try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);w.editPlayers();w.selectPlayer(1);for(const stage of ['players','playerName']){if(stage==='playerName')w.playerAction('rename');const l=w.layout(800,600),r=l.rect;for(const item of [...l.fields,...l.choices,...l.buttons]){test.assertTrue((item.label || '').length>0);test.assertTrue(item.rect.x>=r.x && item.rect.y>=r.y && item.rect.x+item.rect.width<=r.x+r.width && item.rect.y+item.rect.height<=r.y+r.height);}}w.cancel();w.cancel();}}
+  finally{pdg.res.setLanguage(language);}
+ });
+
+ test.it('dismisses all nested host dialogs for Quit while preserving the host and deferring busy operations',()=>{
+  const w=form();w.record={};w.backend.describe=()=>({address:'http://localhost',info:{turn:1},administration:{complete:false,playersRevision:0,players:[{player:1,name:'Captain',isComputer:false,isAlive:true,assigned:true,online:true}]}});w.editPlayers();w.selectPlayer(1);w.playerAction('rename');w.busy=true;test.assertFalse(w.dismiss());test.assertTrue(w.active);test.assertEqual(w.stage,'playerName');w.busy=false;test.assertTrue(w.dismiss());test.assertFalse(w.active);test.assertNotNull(w.record);
+ });
+
 });

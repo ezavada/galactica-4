@@ -817,3 +817,20 @@
 1122	{0} · {1} humanos, {2} IA
 1123	Segundos
 1124	Mapa: {0}×{0} · Densidad: {1} (fijos)
+
+1125	Cambiar jugador
+1126	Convertir en humano
+1127	Convertir en ordenador
+1128	Liberar plaza humana
+1129	Eliminar jugador
+1130	Renombrar jugador
+1131	{0}: {1}
+1132	{0} · {1} · {2}
+1133	Asignado
+1134	Sin asignar
+1135	Vivo
+1136	Derrotado
+1137	Los datos cambiaron. Ábrelos de nuevo para revisarlos.
+1138	Guardando cambio de jugador…
+1139	Elige una acción válida y un nombre de jugador único.
+1140	Nombre del jugador

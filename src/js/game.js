@@ -102,7 +102,7 @@ class Game {
         this.players = [];
         this.players[0] = null; // Reserve index 0
         for (let i = 1; i <= this.config.totalPlayers; i++) {
-            const isComputer = (i > this.config.numHumans);
+            const isComputer = !this.config.isHumanPlayer(i);
             this.players[i] = new PlayerInfo(i, isComputer);
             if(!isComputer && this.config.humanPlayerNames[i])this.players[i].setName(this.config.humanPlayerNames[i]);
             if (isComputer) {
@@ -375,15 +375,14 @@ class Game {
     }
     
     // Check if a human player can control this entity
-    // Returns true if the entity is owned by a human player (player 1 to numHumans)
+    // Returns true if the entity is owned by a configured human player
     canHumanControl(entity) {
         if (!entity || entity.owner === undefined) {
             return false; // Unowned or invalid entity
         }
         
         if(this.clientPlayerNum)return entity.owner===this.clientPlayerNum && !this.clientTurnPosted && !this.clientPosting;
-        // Human players are numbered 1 to numHumans
-        return entity.owner > 0 && entity.owner <= this.config.numHumans;
+        return this.config.isHumanPlayer(entity.owner);
     }
     
     // Get the player number for the current human (for single player, this is 1)
@@ -393,7 +392,7 @@ class Game {
         if (!this.players) {
             return null;
         }
-        for (let i = 1; i <= this.config.numHumans; i++) {
+        for (const i of this.config.getHumanPlayerSlots()) {
             const player = this.players[i];
             if (player && player.isHuman) {
                 return i;

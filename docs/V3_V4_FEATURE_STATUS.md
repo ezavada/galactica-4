@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1515 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1531 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -281,7 +281,7 @@ The largest blockers to a complete game are:
 | Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🟡 Partial | 🟡 Partial | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit policy, optional saved-password preferences and host administration remain forthcoming. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ✅ Implemented | ✅ Implemented | Client End Turn submits owned decision records through authenticated HTTP, shows localized Posting/Posted/Retry states and locks posted orders. The host stages and validates production targets/build choices, destinations/courses/memory, names, fleet membership, private rendezvous and player defaults; it derives simulation values and permanent IDs. Untimed turns resolve once every assigned living human posts. Durable receipts make retries idempotent after lost replies/reopening. Authoritative next-turn refresh unlocks client orders. Both full suites pass 1,459 tests; posting controls are verified in all six languages, with an English browser rerun after the host-clock addition. Timed host scheduling, visible countdowns and desktop setup are implemented separately; host administration UI remains unfinished. |
 | Timed turns | Host clock, time remaining, pause/resume, automatic completion. | ✅ Implemented | ✅ Implemented | Native host listener runs a monotonic countdown after untimed turn 1, resolves expired turns even with unposted/offline humans, and preserves remaining time while stopped/reopened. Local host-service pause/resume and public/authenticated countdown records are implemented. Joined games display validated countdowns in the map header, including localized paused and awaiting-next-turn states; the countdown remains visible after posting and never resolves a turn locally. Nine unit regressions and awaited real scheduler/socket checks cover expiration, endEarly, persistence, save rollback/retry and shutdown. Desktop Host now configures the time limit and endEarly option. Desktop Host status now offers durable Pause/Resume with current countdown text; pausing holds expiry, ready-post resolution and AI-only advancement. Joined clients receive paused/resumed clock state. Saved/reopened pause and failed-write rollback are verified. |
-| Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | 🟡 Partial | 🟡 Partial | Desktop host status offers durable Pause/Resume and End turn now. A paged confirmation lists assigned living humans who have not posted; cancellation preserves the turn. Captured-turn checks prevent a stale confirmation from skipping a newer turn; failed saves roll back and retain retry. Active host settings now edit AI skill/advantage, fast mode, fog and turn timing with fixed title/roster/map, save rollback/retry and stale-draft protection. Positive-to-positive timer changes preserve the current deadline through reopening and apply the budget next turn; enable/disable retains pause. Joined clients receive settings/visibility changes while preserving unposted decisions. Player changes, state editing, ejection, private admission and remote administrator access remain unported. |
+| Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | 🟡 Partial | 🟡 Partial | Desktop host status offers durable Pause/Resume and End turn now. A paged confirmation lists assigned living humans who have not posted; cancellation preserves the turn. Captured-turn checks prevent a stale confirmation from skipping a newer turn; failed saves roll back and retain retry. Active host settings now edit AI skill/advantage, fast mode, fog and turn timing with fixed title/roster/map, save rollback/retry and stale-draft protection. Positive-to-positive timer changes preserve the current deadline through reopening and apply the budget next turn; enable/disable retains pause. Joined clients receive settings/visibility changes while preserving unposted decisions. Change player now provides rename, human/AI conversion, free human slot and elimination with stable IDs/ownership, durable save rollback, stale-action guards and affected-session revocation. State editing, ejection, private admission and remote administrator access remain unported. |
 | Multiplayer chat | Player-to-player/all/admin messages. | ❌ Missing | ❌ Missing | No chat protocol or UI. |
 
 ### Possible persistence/multiplayer enhancements beyond v3, not counted in Section 9
@@ -3005,3 +3005,76 @@ Logs: `/private/tmp/galactica-host-settings-{unit,public-unit,native,public-nati
 The Host administration row remains partial for player changes, state editing,
 ejection and remote access. The remaining multiplayer checklist and Map
 Generation port still require work; this completes only active host settings.
+
+
+### Change Player parity audit
+
+Verified v3 `Classes/CChangePlayerAttach.cpp` and
+`GalacticaHost::HandleAdminSetPlayerInfo` in `Classes/GalacticaHost.cpp`:
+the shipped dialog selects an existing player, shows human/assigned/alive status,
+and supports Make Human, Make Computer, Remove Player, Rename Player and Kill
+Player. Its role changes adjust human/AI counts without renumbering existing
+ownership. Making an AI human opens an unassigned slot; an unassigned human
+requires a name when converted to AI. Assigned humans retain their name on AI
+conversion. V3 marks a converted human's AI alive and lets normal turn processing
+recheck its territory. Kill Player neutralizes owned entities and lets turn-end
+piece-count processing detect/report defeat. Password reset is not a Change
+Player operation in that source; separate password preferences/admin work
+remains outstanding.
+
+Desktop Host now offers Change player with four entries per page, fixed IDs,
+selected role/assignment/alive text and disabled inapplicable actions. Name
+editing is a separate cancellable modal; actions finish only after their atomic
+save succeeds. The game/configuration, claims, AI services, receipts, revision,
+clock, IDs and randomness roll back on failure, and existing sessions remain
+usable. A successful human rename keeps its salted password and revokes its old
+connection; rejoin uses the new name with the existing password. Freeing a slot
+clears its credentials and posted receipt, preserves territory and permits a new
+claim. Human-to-AI conversion releases that claim and its connections;
+AI-to-human conversion initializes an open human slot and removes its AI service.
+Capturing player revision and turn prevents stale dialogs from affecting another
+claim or a later turn. Name changes must preserve unique assigned identities.
+All new controls/messages are translated in en/de/es/fr/ja/ru.
+
+The implementation removes the old first-N-human assumption throughout admission,
+public slots, viewer validation, comparisons, control ownership, pending-player
+warnings, readiness and save reconstruction. An optional sorted human-slot map
+preserves legacy first-N saves and stable IDs after role changes. For example,
+converting player 1 to AI leaves player 2 as human player 2 with unchanged
+territory/password. Converting an AI in slot 3 to human permits real admission
+into slot 3. Corrupt role maps/role flags are rejected. Converting the last human
+leaves an AI-only host using the existing autonomous scheduler.
+
+A durable player-state revision refreshes same-turn administration changes on
+joined clients without replacing the model merely because another player joins.
+Unaffected owned draft entities, routes, allocations, names and defaults survive.
+Neutralized territory and unposted markers/groups for an eliminated player are
+not retained as editable owned objects. The prior client refresh/identity,
+clocks, pause/forced-turn and active-settings integration checks still pass.
+
+Both native runtimes pass 1,531 full unit tests. Awaited real file/socket workflows
+pass in all six languages on both runtimes, including actual permission failures,
+retry with live sessions, renamed-password rejoin, stable-ID role/admission and
+posting, stale action rejection, freed-slot replacement, elimination refresh,
+turn-end defeat, save/reopen and desktop ownership guards. Shared browser UI
+checks exercise actual clicks/keys for every action and preserve the unrelated
+local game. The fixture waits for its read-only host-status poll to reflect each
+new claim before opening a captured-revision dialog; it does not rely on typing
+or CPU timing to make the view current. Seven-player paging also passes. Quit from a nested player-name dialog now dismisses every host-modal level before showing document save decisions; Cancel Quit preserves the local game and active host. Busy host operations still defer Quit. All six
+before/after host-status pairs and translated player dialogs, both list pages and
+representative name/save-error/stale-action states were visually inspected with
+no clipped labels or overlap. Automated output remains muted.
+
+Screenshots: `/private/tmp/galactica-parity/host-players-before/<language>`,
+`/private/tmp/galactica-parity/host-players-after/<language>` and
+`/private/tmp/galactica-parity/host-players-pages/en`.
+Logs: `/private/tmp/galactica-host-players-{unit,public-unit,native,public-native}.log`,
+`/private/tmp/galactica-host-players-ui-<language>.log`,
+`/private/tmp/galactica-host-players-before-<language>.log`,
+`/private/tmp/galactica-host-players-pages-en.log` and
+`/private/tmp/galactica-host-players-regression-{client,clock,controls,settings}.log`.
+
+This completes the shipped Change Player operations. Host administration remains
+partial for state editing, independent ejection, private admission and remote
+administration. Remaining multiplayer rows and the Map Generation checklist
+still require work.

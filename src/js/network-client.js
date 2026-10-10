@@ -14,7 +14,7 @@ function validateInfo(data){
  const integer=(n,min,max)=>Number.isSafeInteger(n) && n>=min && n<=max;
  if(!hex(data.gameId) || typeof data.title!=='string' || data.title.length>4096 || !integer(data.turn,1,Number.MAX_SAFE_INTEGER) || !integer(data.humans,0,99) || !integer(data.computers,0,99) || data.humans+data.computers<1 || data.humans+data.computers>99 || !Array.isArray(data.slots) || data.slots.length!==data.humans)throw fail('network_bad_response');
  const slots=data.slots.map((slot,index)=>{
-  if(!slot || slot.player!==index+1 || !['open','occupied'].includes(slot.status) || slot.status==='occupied' && (!Names.validName(slot.name) || typeof slot.online!=='boolean'))throw fail('network_bad_response');
+  if(!slot || !integer(slot.player,1,data.humans+data.computers) || (index>0 && slot.player<=data.slots[index-1].player) || !['open','occupied'].includes(slot.status) || slot.status==='occupied' && (!Names.validName(slot.name) || typeof slot.online!=='boolean'))throw fail('network_bad_response');
   return {player:slot.player,status:slot.status,...(slot.status==='occupied'?{name:slot.name,online:slot.online}:{})};
  });
  const names=slots.filter(s=>s.status==='occupied').map(s=>s.name);if(new Set(names).size!==names.length)throw fail('network_bad_response');
@@ -28,7 +28,7 @@ function validateInfo(data){
 function validateLogin(data,info,name){
  if(!data || data.protocol!==protocol)throw fail('bad_protocol');
  if(data.gameId!==info.gameId)throw fail('wrong_game');
- if(!hex(data.token) || data.name!==name || !Number.isSafeInteger(data.player) || data.player<1 || data.player>info.humans || !Number.isSafeInteger(data.turn) || data.turn<1)throw fail('network_bad_response');
+ if(!hex(data.token) || data.name!==name || !Number.isSafeInteger(data.player) || data.player<1 || !info.slots.some(slot=>slot.player===data.player) || !Number.isSafeInteger(data.turn) || data.turn<1)throw fail('network_bad_response');
  return {token:data.token,name,player:data.player,gameId:data.gameId};
 }
 function preservePresentation(old,fresh){
@@ -58,7 +58,7 @@ class NetworkClient {
   if(old && old.clientGameId===fresh.clientGameId && old.clientPlayerNum===fresh.clientPlayerNum){
    if(fresh.turn<old.turn)throw fail('stale_server_state');
    if(fresh.turn===old.turn && fresh.clientTurnPosted===old.clientTurnPosted && fresh.isGameOver===old.isGameOver && !discardOrders){
-    const changed=require('./host-settings.js').fields.some(k=>old.config[k]!==fresh.config[k]);
+    const changed=old.clientPlayerRevision!==fresh.clientPlayerRevision || JSON.stringify(old.config.getHumanPlayerSlots())!==JSON.stringify(fresh.config.getHumanPlayerSlots()) || require('./host-settings.js').fields.some(k=>old.config[k]!==fresh.config[k]);
     if(changed){if(!old.clientTurnPosted)require('./client-settings-refresh.js').preserveOrders(old,fresh);preservePresentation(old,fresh);this.model=fresh;return fresh;}
     old.clientClock=fresh.clientClock;
     old.remoteComparisons=fresh.remoteComparisons;
