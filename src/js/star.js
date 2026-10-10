@@ -137,34 +137,8 @@ class Star {
             if (this.game && typeof this.game.applyComputerAdvantageToProduction === 'function') {
                 amount = this.game.applyComputerAdvantageToProduction(this.owner, amount);
             }
-            if (amount > 0) {
-                //console.log(`Paid ${amount} toward shipbuilding at ${this.name}`);
-                this.paidTowardShipBuilding += amount;
-                // v3 keeps the selected hull active and spends all available
-                // effort, possibly completing several hulls in the same turn.
-                while (this.currentShip) {
-                    const cost = this.currentShip.cost;
-                    if (!Number.isFinite(cost) || cost <= 0) break;
-                    this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / cost * 100);
-                    if (this.paidTowardShipBuilding <= cost) break;
-                    const newShip = this.completeShip();
-                    this.paidTowardShipBuilding -= cost;
-                    this.buildCredits[newShip.type] = this.paidTowardShipBuilding;
-                    this.game.noteworthyEvent(newShip, Common.EventType.SHIP_BUILT, this);
-                    let nextType = newShip.type;
-                    const computer = this.game.aiManager.getAIPlayer(this.owner);
-                    if (computer) {
-                        let ai = computer.starAIs.get(this.id);
-                        if (!ai) {
-                            const { StarAI } = require('./ai-star.js');
-                            ai = new StarAI(this, this.game, this.game.rules, computer.skillManager.getSkillLevel());
-                            computer.starAIs.set(this.id, ai);
-                        }
-                        nextType = ai.chooseShipToBuild().type;
-                    }
-                    this.startBuildingShip(nextType);
-                }
-            }
+            if (amount > 0) this.paidTowardShipBuilding += amount;
+            this.commissionPaidHulls();
         }
 
         // Current output pays for research and construction first. v3 then
@@ -306,6 +280,32 @@ class Star {
         return ship;
     }
     
+    // Fully funded hulls are complete, even when this turn adds no effort.
+    commissionPaidHulls() {
+        while (this.currentShip) {
+            const cost = this.currentShip.cost;
+            if (!Number.isFinite(cost) || cost <= 0) break;
+            this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / cost * 100);
+            if (this.paidTowardShipBuilding < cost) break;
+            const newShip = this.completeShip();
+            this.paidTowardShipBuilding -= cost;
+            this.buildCredits[newShip.type] = this.paidTowardShipBuilding;
+            this.game.noteworthyEvent(newShip, Common.EventType.SHIP_BUILT, this);
+            let nextType = newShip.type;
+            const computer = this.game.aiManager.getAIPlayer(this.owner);
+            if (computer) {
+                let ai = computer.starAIs.get(this.id);
+                if (!ai) {
+                    const { StarAI } = require('./ai-star.js');
+                    ai = new StarAI(this, this.game, this.game.rules, computer.skillManager.getSkillLevel());
+                    computer.starAIs.set(this.id, ai);
+                }
+                nextType = ai.chooseShipToBuild().type;
+            }
+            this.startBuildingShip(nextType, false);
+        }
+    }
+
     getEstimatedTurnsToNextShip() {
         if (!this.currentShip) return null;
         // v3 estimates using desired (projected) allocation, including fast
@@ -313,9 +313,10 @@ class Star {
         let effort = this.shipBuilding.getProjectedBenefit() / 1665.0;
         if (this.game.rules.isFast) effort *= 2;
         effort = this.game.applyComputerAdvantageToProduction(this.owner, effort);
-        if (effort <= 0) return -1;
         const remaining = this.currentShip.cost - this.paidTowardShipBuilding;
-        return Math.max(1, Math.floor(remaining / effort) + 1);
+        if (remaining <= 0) return 0;
+        if (effort <= 0) return -1;
+        return Math.ceil(remaining / effort);
     }
 
     pauseShipBuilding() {
@@ -327,17 +328,18 @@ class Star {
         return true;
     }
 
-    startBuildingShip(shipType) {
+    startBuildingShip(shipType, commissionCredit = true) {
         if (!['scout', 'defense', 'colony', 'battleship'].includes(shipType)) return false;
         if (this.currentShip && this.currentShip.type === shipType) return false;
         if (this.currentShip) this.pauseShipBuilding();
         this.paidTowardShipBuilding = this.buildCredits[shipType] || 0;
         // Pending construction is system data, not a ship/map entity.
-        // v3 caches its price when selecting the hull and commissions at
-        // the system's current technology when that price is exceeded.
+        // Cache the selected hull's price; commission at the system's
+        // current technology as soon as its full cost has been paid.
         this.currentShip = { type: shipType, techLevel: this.techLevel, progress: 0 };
         this.currentShip.cost = this.game.rules.getShipBuildCost(this.currentShip, this);
         this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / this.currentShip.cost * 100);
+        if (commissionCredit) this.commissionPaidHulls();
         return true;
     }
 

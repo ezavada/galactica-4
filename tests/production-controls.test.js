@@ -81,9 +81,9 @@ module.exports = function() {
             game.rules.getShipBuildCost = () => 1;
             game.rules.getStarResearchAmount = () => 0;
             star.startBuildingShip('defense'); star.update();
-            test.assertEqual(star.defenseSatellites.length, 1);
+            test.assertEqual(star.defenseSatellites.length, 2);
             test.assertTrue(star.defenseSatellites.every(ship => ship.isOnPatrol()));
-            test.assertEqual(star.currentShip.progress, 100);
+            test.assertEqual(star.currentShip.progress, 0);
             test.assertFalse(game.allShips.includes(star.currentShip));
         });
         test.it('chooses a fresh v3 AI hull after each completed computer build', () => {
@@ -148,12 +148,12 @@ module.exports = function() {
         });
     });
     test.describe('Construction ETA', () => {
-        test.it('uses projected production and v3 rounding at exact turn boundaries', () => {
+        test.it('uses projected production with inclusive completion at exact turn boundaries', () => {
             const {game, star} = fixture(); game.rules.getShipBuildCost = () => 4; star.startBuildingShip('colony');
             star.shipBuilding.value = 1; star.shipBuilding.desired = 10;
             star.shipBuilding.setPerUnitBenefit(166.5);
             star.paidTowardShipBuilding = 1;
-            test.assertEqual(star.getEstimatedTurnsToNextShip(), 4);
+            test.assertEqual(star.getEstimatedTurnsToNextShip(), 3);
         });
         test.it('applies fast-game and computer-advantage modifiers', () => {
             const {game, star} = fixture(); star.owner = 2; game.rules.getShipBuildCost = () => 6; star.startBuildingShip('colony');

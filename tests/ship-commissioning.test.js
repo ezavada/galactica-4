@@ -65,7 +65,7 @@ module.exports=function() {
         test.it('uses the cached price for ETA even after technology transfer',()=>{
             const {star}=fixture();star.startBuildingShip('battleship');star.techLevel=8;
             star.shipBuilding.setDesired(10);star.shipBuilding.setPerUnitBenefit(166.5);
-            star.paidTowardShipBuilding=1;test.assertEqual(star.getEstimatedTurnsToNextShip(),3);
+            star.paidTowardShipBuilding=1;test.assertEqual(star.getEstimatedTurnsToNextShip(),2);
         });
     });
 };
