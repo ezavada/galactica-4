@@ -174,4 +174,14 @@ module.exports=()=>test.describe('Temporary tutorial document lifecycle',()=>{
  test.it('keeps modal recovery above the original document until it is resolved',()=>{
   const f=setup();f.owner.start({window:44,modal:true});test.assertEqual(f.owner.controller.pageId,101);test.assertFalse(f.owner.engaged);f.owner.pressButton({window:44,modal:true});test.assertFalse(f.owner.engaged);f.owner.pressButton({window:1});test.assertEqual(f.owner.controller.pageId,100);f.owner.pressButton({window:1});test.assertTrue(f.owner.engaged);f.owner.stop();test.assertTrue(f.sessions.active===f.session);
  });
+ test.it('uses the visible hide-confirmation and Close buttons to suspend and restore an existing document',()=>{
+  const f=setup(),before=Save.serialize(f.original),Panel=require('../src/js/tutorial-panel.js'),screen={width:800,height:600},measure=text=>text.length*7,panel=new Panel(f.owner,{context:()=>({window:f.owner.engaged?34:1})});
+  f.owner.controller.replacePresentation(require('../src/js/tutorial-lessons.js').load(path.join(__dirname,'../data'),'en'));
+  f.owner.start({window:1});test.assertEqual(f.owner.controller.pageId,100);test.assertFalse(f.owner.engaged);test.assertTrue(f.sessions.active===f.session);test.assertEqual(Save.serialize(f.original),before);
+  const button=panel.layout(screen,measure).button;test.assertTrue(panel.mouseDown(button.x+3,button.y+3,screen,measure));panel.mouseUp();
+  test.assertEqual(f.owner.controller.pageId,1);test.assertTrue(f.owner.engaged);test.assertTrue(f.sessions.transient!==null);test.assertTrue(f.visible()!==f.application);
+  const close=panel.layout(screen,measure).close;test.assertTrue(panel.mouseDown(close.x+3,close.y+3,screen,measure));panel.mouseUp();
+  test.assertFalse(f.owner.controller.active);test.assertNull(f.sessions.transient);test.assertTrue(f.sessions.active===f.session);test.assertTrue(f.visible()===f.application);test.assertEqual(f.session.file.name,'Original.gad4');test.assertEqual(Save.serialize(f.original),before);
+ });
+
 });

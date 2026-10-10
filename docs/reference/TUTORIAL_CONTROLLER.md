@@ -482,7 +482,48 @@ This was verification of existing behavior, with no runtime or resource changes.
 
 The tutorial UI status is corrected from Missing to Partial: the floating panel,
 all lesson resources, illustrations, normal route and optional retry have direct
-rendered evidence. Recovery pages 100/101/103 retain model coverage; the hosting
-recovery's real entry flow depends on the still-unported multiplayer setup.
+rendered evidence. At that audit, recovery pages 100/101/103 retained model coverage. Existing-game
+recovery (100) now has actual-input coverage described below; modal recovery
+(101) still needs actual-entry verification, and hosting recovery (103) depends
+on the still-unported multiplayer setup.
 That is unfinished project work, not an unavailable-help blocker. No complete
 project or Map Generation claim is made by this audit.
+
+
+### Existing-game Hide/Close recovery: actual input audit (2026-10-10)
+
+V3 `Galactica.cpp:2176–2240` starts at page 100 when a regular star-map
+window exists. The original game stays visible until the Hide acknowledgment;
+that acknowledgment hides it and proceeds to Welcome. V4 follows the same
+sequence while retaining the document in its session list.
+
+`tools/test-web-tutorial-existing-game.cjs` now provides a repeatable browser
+regression. It starts and saves an ordinary game through actual controls,
+launches Tutorial through the command menu, cancels both before and after Hide,
+and checks identity of the original game, renderer, session and file reference.
+It then follows the full normal tutorial route through actual mouse/keyboard
+input, finishes into an ordinary unsaved practice game and selects the original
+through Open Games. The original serialized graph, camera and selection, saved
+file association and saved bytes are unchanged. The browser Save picker is an
+explicit in-memory file-handle fixture; this does not claim OS file-dialog
+coverage. No lesson jumps or synthetic progression events are used.
+
+The harness waits for PDG input delivery and a subsequent draw, rather than
+assuming CDP delivery means the queued native input has already run. This
+replaces a fixed delay that intermittently let the next action run against an
+old scene. Chrome output is muted; application sound logic remains enabled.
+Native automation also mutes its output bus without changing saved preferences.
+
+All six languages (en/de/es/fr/ja/ru) pass the complete recovery walkthrough.
+Inspected the original/canceled/restored English views and the translated page
+100 panels; the existing game view is preserved and labels fit. Both native
+runtime suites pass 1,353 tests, including the new visible Hide/Close panel
+regression. Logs: `/private/tmp/galactica-tutorial-hide-synchronized-<language>.log`
+and `/private/tmp/galactica-muted-{tests,public-tests}.log`. Screenshots:
+`/private/tmp/galactica-parity/tutorial-hide/synchronized-<language>`; reviewed
+montages: `/private/tmp/galactica-hide-{recovery,languages}-review.png`.
+
+This verifies recovery page 100. Modal recovery 101 still needs an actual
+application-command entry path and rendered verification. Hosting recovery 103
+still depends on the unported multiplayer setup. No runtime or localization
+resource changes were needed for page 100.

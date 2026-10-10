@@ -250,3 +250,19 @@ Tutorial progression model: fourteen regressions in `tests/tutorial-controller.t
 
 
 Tutorial game bindings: sixteen regressions in `tests/tutorial-runtime.test.js` call real game actions and verify successful transitions, rejected first courses, guarded production, source names in events, captured rendezvous placement, actual auto-destinations, real event/attention queues, original courier identity after destruction, patrol/comparison/fleet contents, zoom debounce, original-method restoration, failed attachment rollback and snapshots. Late acknowledgment suppresses subsequent queued observers before queue draining. Both full suites pass (1208 tests). Six-language browser before/after map clicks, rename acceptance and build-button checks passed, plus final real Enter/Escape queue-order checks in all six languages. Inspected screenshots: `/private/tmp/galactica-parity/tutorial-runtime-{before,after}`. Logs: `/private/tmp/galactica-tutorial-runtime-{tests,native-tests}.log` and `/private/tmp/galactica-tutorial-runtime-final-<language>.log`. No full guided UI is advertised yet.
+
+
+## Existing-game tutorial recovery in the browser
+
+With a packaged web build and Google Chrome installed:
+
+```bash
+node tools/test-web-tutorial-existing-game.cjs /path/to/web-build /path/to/screenshots en
+```
+
+Run once per supported language (`en`, `de`, `es`, `fr`, `ja`, `ru`). Set
+`GALACTICA_CHROME` to override the Chrome executable. The regression uses actual
+input, captures the lessons and recovery states, and checks the original saved
+document survives cancellation and full tutorial completion. The save picker
+uses an in-memory fixture; it does not drive the operating system file dialog.
+Audio output is muted. Temporary browser profiles are removed when the run ends.
