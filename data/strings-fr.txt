@@ -424,3 +424,9 @@
 803	Contenu de la flotte
 804	Nouvelle flotte
 805	Inspecter
+
+# Fleet roster
+806	Aucun vaisseau, flotte ou point de ralliement.
+807	Oui
+808	Non
+809	Double-cliquez sur une ligne pour l’inspecter.

@@ -424,3 +424,9 @@
 803	Flotteninhalt
 804	Neue Flotte
 805	Ansehen
+
+# Fleet roster
+806	Keine Schiffe, Flotten oder Sammelpunkte.
+807	Ja
+808	Nein
+809	Zeile doppelklicken, um sie anzusehen.

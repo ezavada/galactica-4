@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 340 IDs
-- localized files: 340 IDs each
+- `strings.txt`: 344 IDs
+- localized files: 344 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 877 passed, 0 failed.
+Current expected full-suite result: 889 passed, 0 failed.
 
 ## Future work
 
@@ -139,3 +139,5 @@ Fleet transfer destination choice adds ID 795 in en/de/es/fr/ja/ru. The paged ch
 Nested fleet groups add IDs 796–798 (Group action, default group name, Parent fleet) in all six languages. Native browser creation, parent navigation, nested inspection, whole-group transfer and departure passed in every language. Translated inspector controls and default names were inspected. Current resources: 335 IDs per language; full suites: 866 passed on release/current native PDG.
 
 Fleet exchange adds IDs 801–805 (window title/action, main-list heading, destination contents heading, New fleet and Inspect) in all six languages. It reuses localized sorting, paging, health, patrol, scrap, parent navigation and close labels. Native browser exchanges in both directions, new top-level/nested fleets, intact group wrapping, parent inspection, patrol/scrap and modal keys passed in every language. Current resources: 340 IDs per language; full suites: 877 passed on release/current native PDG.
+
+Fleet roster adds IDs 806–809 (empty roster, Yes/No colony capability and double-click help) in all six languages. It reuses localized column names, patrol, paging and close labels, with native decimal formatting for speed and coordinates. All translated columns, later pages, selected/double-click views and smaller CSS views passed actual browser checks; header layouts also fit logical 640×480/600 screens. Current resources: 344 IDs per language; full suites: 889 passed on release/current native PDG.

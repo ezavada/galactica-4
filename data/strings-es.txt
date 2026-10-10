@@ -424,3 +424,9 @@
 803	Contenido de flota
 804	Nueva flota
 805	Inspeccionar
+
+# Fleet roster
+806	No hay naves, flotas ni puntos de reunión.
+807	Sí
+808	No
+809	Haz doble clic en una fila para inspeccionarla.

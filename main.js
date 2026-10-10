@@ -40,6 +40,7 @@ function getIntegerArg(name, fallback = null) {
 
 const LanguageSettings = require('./src/js/language-settings.js');
 const StartupSetup = require('./src/js/startup-setup.js');
+const rosterPreferences = require('./src/js/roster-preferences.js').createPreferences();
 const drawingPreferences = require('./src/js/drawing-preferences.js').createPreferences();
 const languagePreferences = LanguageSettings.createPreferences();
 LanguageSettings.initialize(args,pdg.res,languagePreferences);
@@ -329,6 +330,8 @@ function startGame() {
     game = new Game(factory, rules, pendingConfig);
     game.languagePreferences = languagePreferences;
     game.drawingPreferences = drawingPreferences;
+    game.rosterPreferences = rosterPreferences;
+    game.fleetRosterSort = rosterPreferences.read();
     game.fullscreen = fullscreen;
     game.showGrid = drawingPreferences.readGrid();
     game.showNebula = drawingPreferences.readNebula();

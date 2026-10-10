@@ -1801,17 +1801,30 @@ class Display {
         });
     }
 
-    getFleetWindowRect() {
-        const rows = this.game.getFleetListRows ? this.game.getFleetListRows() : [];
-        const screen = this.getScreenSize();
-        const width = Math.min(640, screen.width - 40);
-        return this.fitPanelToScreen({
-            x: (screen.width - width) / 2,
-            y: 84,
-            width,
-            height: Math.max(150, 78 + Math.max(rows.length, 1) * 26)
+    getFleetRosterLayout() {
+        const rows=this.game.getFleetListRows(),screen=this.getScreenSize(),width=Math.min(840,screen.width-32);
+        const pageSize=Math.max(1,Math.min(14,Math.floor((screen.height-235)/28)));
+        const pages=Math.max(1,Math.ceil(rows.length/pageSize)),page=Math.min(this.game.fleetRosterPage,pages-1);
+        this.game.fleetRosterPage=page;
+        const visibleRows=rows.slice(page*pageSize,(page+1)*pageSize);
+        const rect=this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:130+Math.max(1,visibleRows.length)*28});
+        const definitions=[['name',this.STR.name,.25],['tech',this.STR.tech,.03],['speed',this.STR.speed,.04],
+            ['power',this.STR.power,.04],['ships',this.STR.ships,.04],['damage',this.STR.damage,.04],
+            ['colony',I18n.getString(453,'Colony'),.04],['destination',this.STR.destination,.52]];
+        let headerSize=9;
+        const measure=(size,padding,nameWidth,destinationWidth)=>definitions.map(([key,label])=>Math.max(
+            key==='name'?nameWidth:key==='destination'?destinationWidth:0,
+            this.getButtonWidth(label.replace(/:$/,'')+(this.game.fleetRosterSort.key===key?' ↓':''),null,{size})-24+padding));
+        let minimums=measure(headerSize,24,80,110);
+        if(minimums.reduce((a,b)=>a+b,0)>width-28){headerSize=8;minimums=measure(headerSize,8,50,80);}
+        const extra=Math.max(0,width-28-minimums.reduce((a,b)=>a+b,0));let offset=14;
+        const columns=definitions.map(([key,label,weight],index)=>{
+            const column={key,label:label.replace(/:$/,''),offset,width:minimums[index]+extra*weight};offset+=column.width;return column;
         });
+        return {rect,page,pages,pageSize,visibleRows,columns,headerSize};
     }
+
+    getFleetWindowRect() {return this.getFleetRosterLayout().rect;}
 
     getCommandActionRegions() {
         if (this.game.uiWindow!=='menu') return [];
@@ -2455,22 +2468,18 @@ class Display {
     }
 
     getFleetListActionRegions() {
-        if (this.game.uiWindow !== 'fleets') {
-            return [];
-        }
-
-        const rect = this.getFleetWindowRect();
-        const rows = this.game.getFleetListRows ? this.game.getFleetListRows() : [];
-        const x = rect.x + 14;
-        let y = this.getPanelContentStartY(rect) + 24;
-        return rows.map(row => {
-            const region = {
-                rect: { x, y: y - 16, width: rect.width - 28, height: 22 },
-                action: { type: 'selectObject', object: row.object, center: true }
-            };
-            y += 26;
-            return region;
-        });
+        if(this.game.uiWindow!=='fleets')return [];
+        const {rect,columns,visibleRows,page,pages}=this.getFleetRosterLayout();
+        const regions=columns.map(column=>({rect:{x:rect.x+column.offset,y:rect.y+38,width:column.width-4,height:24},
+            action:{type:'sortFleetRoster',key:column.key}}));
+        visibleRows.forEach((row,index)=>regions.push({rect:{x:rect.x+14,y:rect.y+68+index*28,width:rect.width-28,height:26},
+            action:{type:'fleetRosterSelect',object:row.object}}));
+        const footerY=rect.y+rect.height-32;
+        if(page>0)regions.push({rect:{x:rect.x+14,y:footerY,width:130,height:24},label:I18n.getString(690,'Previous'),action:{type:'fleetRosterPage',page:page-1}});
+        if(page<pages-1)regions.push({rect:{x:rect.x+rect.width-144,y:footerY,width:130,height:24},label:I18n.getString(691,'Next'),action:{type:'fleetRosterPage',page:page+1}});
+        const label=I18n.getString(531,'<Esc> Close'),width=this.getButtonWidth(label,null,{size:10});
+        regions.push({rect:{x:rect.x+(rect.width-width)/2,y:footerY,width,height:24},label,action:{type:'closeFleetRoster'}});
+        return regions;
     }
 
     getUIPanelRegions() {
@@ -2540,7 +2549,7 @@ class Display {
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
-        if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick','endTurnConfirm','fleetExchange'].includes(this.game.uiWindow)) return { type: 'consume' };
+        if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick','endTurnConfirm','fleetExchange','fleets'].includes(this.game.uiWindow)) return { type: 'consume' };
         const scrollAction=this.getMapScrollActionAt(x,y);
         if(scrollAction)return scrollAction;
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
@@ -3137,36 +3146,29 @@ class Display {
     }
 
     drawFleetWindow() {
-        const rows = this.game.getFleetListRows ? this.game.getFleetListRows() : [];
-        const rect = this.getFleetWindowRect();
-        this.drawWindowPanel(rect, this.STR.fleetRoster);
-
-        const x = rect.x + 14;
-        let y = this.getPanelContentStartY(rect);
-
-        if (rows.length === 0) {
-            this.drawTextLine(this.STR.noFleets, x, y, 'gray', 12);
-            return;
-        }
-
-        this.drawTextLine(this.STR.name.replace(/:$/, ''), x, y, 'lightgray', 11);
-        this.drawTextLine(this.STR.type, x + 170, y, 'lightgray', 11);
-        this.drawTextLine(this.STR.ships.replace(/:$/, ''), x + 250, y, 'lightgray', 11);
-        this.drawTextLine(this.STR.power.replace(/:$/, ''), x + 305, y, 'lightgray', 11);
-        this.drawTextLine(this.STR.destination, x + 380, y, 'lightgray', 11);
-        this.drawDivider(x, y + 8, rect.width - 28);
-        y += 24;
-
-        for (const row of rows) {
-            const selected = this.game.selectedObject === row.object;
-            const color = selected ? 'hovergray' : 'lightgray';
-            this.drawTextLine(this.trimText(row.name, 22), x, y, color, 11);
-            this.drawTextLine(row.kind === 'fleet' ? this.STR.fleet : this.STR.point, x + 170, y, color, 11);
-            this.drawTextLine(row.ships.toString(), x + 250, y, color, 11);
-            this.drawTextLine(row.power.toString(), x + 305, y, color, 11);
-            this.drawTextLine(this.trimText(row.destination, 28), x + 380, y, 'gray', 10);
-            y += 26;
-        }
+        const layout=this.getFleetRosterLayout(),{rect,columns,visibleRows}=layout;
+        this.drawWindowPanel(rect,this.STR.fleetRoster);
+        const sort=this.game.fleetRosterSort;
+        columns.forEach(column=>this.drawUIButton({x:rect.x+column.offset,y:rect.y+38,width:column.width-4,height:24},
+            column.label+(sort.key===column.key?(sort.ascending?' ↑':' ↓'):''),null,{size:layout.headerSize}));
+        if(!visibleRows.length)this.drawTextLine(I18n.getString(806,'No ships, fleets or rendezvous points.'),rect.x+14,rect.y+86,'gray',11);
+        visibleRows.forEach((row,index)=>{
+            const y=rect.y+68+index*28,rowRect={x:rect.x+14,y,width:rect.width-28,height:26};
+            if(this.game.selectedObject===row.object || this.isHovered(rowRect))this.drawRoundedRect(rowRect,4,this.styles.buttonFillHover);
+            else if(index%2)this.drawRoundedRect(rowRect,4,this.styles.buttonFill);
+            columns.forEach(column=>{
+                const text=column.key==='speed'?I18n.formatDecimal(row.speed/16380):column.key==='damage'?row.damage+'%':
+                    column.key==='colony'?I18n.getString(row.colony?807:808,row.colony?'Yes':'No'):
+                    column.key==='ships'&&row.kind==='ship'?'—':String(row[column.key]);
+                const inset=column.key==='name'?20:0;
+                if(inset)this.drawUIIcon(row.kind,rect.x+column.offset+6,y+13,12);
+                this.drawTextLine(this.fitShipDiagnosticText(text,column.width-8-inset,10),rect.x+column.offset+inset,y+17,'lightgray',10);
+            });
+            if(this.isHovered(rowRect))this.iconHint={rect:rowRect,inWindow:true,label:row.name+' · '+row.destination};
+        });
+        const hint=I18n.getString(809,'Double-click a row to inspect it.')+`   ${layout.page+1} / ${layout.pages}`;
+        this.drawTextLine(this.fitShipDiagnosticText(hint,rect.width-28,10),rect.x+rect.width/2,rect.y+rect.height-43,'gray',10,pdg.textStyle_Centered);
+        this.getFleetListActionRegions().filter(row=>row.label).forEach(row=>this.drawUIButton(row.rect,row.label,null,{size:10}));
     }
 
     getRenameActionRegions() {

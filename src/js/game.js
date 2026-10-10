@@ -13,6 +13,7 @@ const VisibilityCalculator = require('./visibility-calculator.js');
 const CombatSystem = require('./combat.js');
 const I18n = require('./i18n.js');
 const Attention = require('./attention.js');
+const RosterPreferences = require('./roster-preferences.js');
 const ChartNames = require('./chart-names.js');
 
 class Game {
@@ -57,6 +58,9 @@ class Game {
         this.uiMapScrollDrag = null;
         this.mapSelectionPicker = null;
         this.fleetMemberPage = 0;
+        this.fleetRosterPage = 0;
+        this.fleetRosterSort = {key:'name',ascending:true};
+        this.fleetRosterLastClick = null;
         this.colonyDefaultsDraft = null;
         this.systemShipWindowStar = null;
         this.systemShipPage = 0;
@@ -628,31 +632,43 @@ class Game {
     }
 
     getFleetListRows(owner = this.getCurrentHumanPlayer()) {
-        const rows = [];
-        for (const fleet of this.getPlayerFleets(owner)) {
-            rows.push({
-                kind: 'fleet',
-                object: fleet,
-                name: this.getObjectDisplayName(fleet),
-                ships: fleet.getSize ? fleet.getSize() : 0,
-                power: fleet.totalPower || 0,
-                speed: fleet.totalSpeed || 0,
-                destination: fleet.destination ? this.getObjectDisplayName(fleet.destination) : I18n.getString(7, 'None')
-            });
-        }
-        for (const rendezvous of this.getPlayerRendezvous(owner)) {
-            const fleet = rendezvous.getFleet ? rendezvous.getFleet() : rendezvous.fleet;
-            rows.push({
-                kind: 'rendezvous',
-                object: rendezvous,
-                name: this.getObjectDisplayName(rendezvous),
-                ships: fleet && fleet.getSize ? fleet.getSize() : 0,
-                power: fleet ? (fleet.totalPower || 0) : 0,
-                speed: fleet ? (fleet.totalSpeed || 0) : 0,
-                destination: I18n.formatString(656, '({0}, {1})', Math.round(rendezvous.x / 1024), Math.round(rendezvous.y / 1024))
-            });
-        }
+        if(!owner)return [];
+        const objects=this.getPlayerFleets(owner).filter(fleet=>!fleet.fleet).concat(
+            this.allShips.filter(ship=>ship.owner===owner && !ship.fleet && !ship.isDead() &&
+                !(ship.star && ship.type==='defense')),this.getPlayerRendezvous(owner));
+        const rows=objects.map(object=>{
+            const point=this.factory.isRendezvous(object),fleet=this.factory.isFleet(object);
+            const unit=point?object.getFleet():object;
+            if(unit && this.factory.isFleet(unit))unit.calculateFleetStats();
+            const patrol=!!unit && unit.isOnPatrol(),target=point?object:unit && unit.destination;
+            const coordinates=point=>I18n.formatString(656,'({0}, {1})',I18n.formatDecimal(point.x/65536,2),I18n.formatDecimal(point.y/65536,2));
+            const destination=point?coordinates(object):patrol?I18n.getString(703,'Patrolling'):target?
+                (this.getObjectType(target)?this.getObjectDisplayName(target):coordinates(target)):'—';
+            const colony=unit?(this.factory.isFleet(unit)?(unit.hasShipType('colony')?2:0):(unit.type==='colony'?1:0)):0;
+            return {object,kind:point?'rendezvous':fleet?'fleet':'ship',name:this.getObjectDisplayName(object),
+                tech:unit?Math.trunc(unit.techLevel):0,speed:unit?(unit.speed || 0):0,power:unit?(unit.power || 0):0,
+                ships:unit&&this.factory.isFleet(unit)?unit.getSize():0,
+                damage:unit?unit.getDamagePercent():0,colony,destination,destinationRank:point?1:patrol?2:target?1:0};
+        });
+        const sort=this.fleetRosterSort;
+        rows.sort((a,b)=>{
+            const comparison=sort.key==='destination'?
+                a.destinationRank-b.destinationRank || (a.destinationRank===1?a.destination.localeCompare(b.destination):0):
+                sort.key==='name'?a.name.localeCompare(b.name):a[sort.key]-b[sort.key];
+            return (sort.ascending?comparison:-comparison) || a.kind.localeCompare(b.kind) || a.object.id-b.object.id;
+        });
         return rows;
+    }
+
+    selectFleetRosterObject(object) {
+        if(!this.getFleetListRows().some(row=>row.object===object))return false;
+        const now=this.getCurrentMilliseconds(),previous=this.fleetRosterLastClick;
+        this.setSelectedObject(object);
+        if(this.display)this.display.centerOn(object.x,object.y);
+        if(previous && previous.object===object && now>=previous.time && now-previous.time<=500) {
+            this.uiWindow=null;this.fleetRosterLastClick=null;
+        } else this.fleetRosterLastClick={object,time:now};
+        return true;
     }
 
     beginRendezvousPlacement(rendezvous = null) {
@@ -901,12 +917,14 @@ class Game {
     openUIWindow(windowName) {
         if (this.mapSelectionPicker) this.cancelMapSelection();
         this.uiWindow = windowName;
+        if(windowName==='fleets')this.fleetRosterLastClick=null;
         return true;
     }
 
     toggleUIWindow(windowName) {
         if (this.mapSelectionPicker) this.cancelMapSelection();
         this.uiWindow = (this.uiWindow === windowName) ? null : windowName;
+        if(windowName==='fleets')this.fleetRosterLastClick=null;
         return true;
     }
 
@@ -1226,7 +1244,7 @@ class Game {
             return true;
         }
         if(key===pdg.key_Home && this.uiWindow==='menu')return this.executeUIAction({type:'selectHomeStar'});
-        if(this.uiWindow==='fleetExchange') {
+        if(this.uiWindow==='fleetExchange' || this.uiWindow==='fleets') {
             if(key===pdg.key_Escape)this.uiWindow=null;
             return true;
         }
@@ -1859,6 +1877,19 @@ class Game {
                 this.systemComparisonLastClick = { star: action.star, time };
                 return true;
             }
+            case 'fleetRosterSelect':return this.selectFleetRosterObject(action.object);
+            case 'fleetRosterPage':
+                if(this.uiWindow!=='fleets')return false;
+                this.fleetRosterPage=Math.max(0,Math.trunc(action.page));this.fleetRosterLastClick=null;return true;
+            case 'sortFleetRoster': {
+                if(this.uiWindow!=='fleets' || !RosterPreferences.keys.includes(action.key))return false;
+                this.fleetRosterSort={key:action.key,ascending:this.fleetRosterSort.key===action.key?
+                    !this.fleetRosterSort.ascending:['name','destination'].includes(action.key)};
+                this.fleetRosterPage=0;this.fleetRosterLastClick=null;
+                if(this.rosterPreferences)this.rosterPreferences.write(this.fleetRosterSort);
+                return true;
+            }
+            case 'closeFleetRoster':this.uiWindow=null;this.fleetRosterLastClick=null;return true;
             case 'showFleetExchange':return this.showFleetExchange(action.container || this.selectedObject);
             case 'fleetExchangeSelect':return this.selectFleetExchangeMember(action.side,action.object);
             case 'exchangeFleetMember':return this.exchangeFleetMember();
@@ -2376,7 +2407,7 @@ class Game {
         if(key === pdg.key_F1)return this.executeUIAction({type:'toggleShips'});
         if(key === pdg.key_F2)return this.executeUIAction({type:'toggleMapNames'});
         if(key === pdg.key_F3)return this.executeUIAction({type:'toggleGrid'});
-        if(['mapPick','fleetExchange'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
+        if(['mapPick','fleetExchange','fleets'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
         if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && key===pdg.key_Tab) return true;
         if (['settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && (key===13 || key===3)) return true;
         if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}

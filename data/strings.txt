@@ -424,3 +424,9 @@
 803	Fleet contents
 804	New fleet
 805	Inspect
+
+# Fleet roster
+806	No ships, fleets or rendezvous points.
+807	Yes
+808	No
+809	Double-click a row to inspect it.
