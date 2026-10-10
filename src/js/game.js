@@ -12,6 +12,7 @@ const VisibilityCalculator = require('./visibility-calculator.js');
 const CombatSystem = require('./combat.js');
 const I18n = require('./i18n.js');
 const Attention = require('./attention.js');
+const ChartNames = require('./chart-names.js');
 
 class Game {
     constructor(factory, rules, config = null) {
@@ -565,6 +566,10 @@ class Game {
         return null;
     }
 
+    getStarDisplayName(star) {
+        return ChartNames.displayName(this,star,this.getCurrentHumanPlayer());
+    }
+
     getObjectDisplayName(object, options = {}) {
         if (!object) {
             return I18n.getString(639, 'target');
@@ -572,7 +577,7 @@ class Game {
 
         const objectType = this.getObjectType(object);
         if (objectType === Common.ObjectType.STAR) {
-            return object.name || I18n.getString(541, 'Selected object');
+            return object.namedStar||ChartNames.isHome(this,object)?this.getStarDisplayName(object):object.name || I18n.getString(541, 'Selected object');
         }
         if (objectType === Common.ObjectType.SHIP) {
             return object.name || I18n.getShipTypeName(object.type);

@@ -38,6 +38,7 @@ const runStartupSetupTests = require('./startup-setup.test.js');
 const runLanguageSettingsTests = require('./language-settings.test.js');
 const runVisualEffectTests = require('./visual-effects.test.js');
 const runUIIconTests = require('./ui-icons.test.js');
+const runChartNameTests = require('./chart-names.test.js');
 const runScrappingTests = require('./scrapping.test.js');
 const runEventReportTests = require('./event-reports.test.js');
 const runAttentionTests = require('./attention.test.js');
@@ -133,6 +134,7 @@ try {
     runScrappingTests();
     runVisualEffectTests();
     runUIIconTests();
+    runChartNameTests();
     runLanguageSettingsTests();
     runStartupSetupTests();
     runPursuitMovementTests();

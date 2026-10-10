@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 737 passed, 0 failed.
+Current expected full-suite result: 748 passed, 0 failed.
 
 ## Future work
 
@@ -105,3 +105,5 @@ Computer-advantage setup adds localized heading, A-shortcut help and production 
 Stellar-density setup now uses a localized numeric label (ID 764) in all six languages, with the same 1–10 choices in every locale. Browser input/reset/launch checks and setup screenshot comparisons passed in all six languages; the full suite has 725 passing tests. Translated star-name lists are deduplicated before generation and suffix exhaustion falls back to unique numbered names.
 
 Sector-size setup restores the v3 Tiny/Small/Average/Large/Huge scale in IDs 350–354 across all six languages. ID 523 now labels map size alone, alongside a separate density row. All five dimension choices, S cycling/reset, launch and screenshot checks passed in all six languages; the smaller Russian layout was inspected. Resource counts remain 301 per language; the full unit suite has 737 passing tests.
+
+Public yellow-star chart names and undiscovered-homeworld aliases reuse existing localized star-name/numeral/catalog resources; no IDs were added (301 per language). Aliases retain their proper names across language changes. Player comparison keeps actual home-derived faction names, while map labels use different aliases until discovery. Chart/inspector/detection/history/no-fog screenshots and browser checks passed in all six languages. Full suite: 748 passed.

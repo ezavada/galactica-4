@@ -2227,10 +2227,7 @@ class Display {
     }
 
     getStarDisplayName(star) {
-        const player = this.game.getCurrentHumanPlayer();
-        const visible = this.game.config.omniscient || star.isAllyOf(player) ||
-            star.getVisibilityTo(player) >= Common.VisibilityLevel.CLASS;
-        return visible ? star.name : I18n.formatString(725,'S-{0}',star.id);
+        return this.game.getStarDisplayName(star);
     }
 
     isStarOwnerKnown(star) {
@@ -2678,7 +2675,7 @@ class Display {
             const selectedType = this.game.getObjectType(this.game.selectedObject);
             let label = I18n.getString(541, 'Selected object');
             if (selectedType === Common.ObjectType.STAR) {
-                label = I18n.formatString(542, 'Selected star: {0}', this.game.selectedObject.name);
+                label = I18n.formatString(542, 'Selected star: {0}', this.getStarDisplayName(this.game.selectedObject));
             } else if (selectedType === Common.ObjectType.SHIP) {
                 label = I18n.formatString(543, 'Selected ship: {0}', this.getShipTypeName(this.game.selectedObject.type));
             } else if (selectedType === Common.ObjectType.FLEET) {
