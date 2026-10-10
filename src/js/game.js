@@ -961,6 +961,11 @@ class Game {
             ...overlay,
             createdAt: this.getCurrentMilliseconds()
         };
+        if(overlay.type==='report' && this.display) {
+            const event=this.eventLog.find(event=>event.id===overlay.eventId);
+            const position=this.getReportDestructionPosition(event);
+            if(position)this.display.centerOn(position.x,position.y);
+        }
         return true;
     }
 
@@ -991,6 +996,13 @@ class Game {
         if(!this.getEventRows().includes(event) || !event.outcome)return false;
         this.uiWindow=null;
         return this.queueEventOverlay({type:'outcome',...event.outcome,eventId:event.id,page:0});
+    }
+
+    getReportDestructionPosition(event) {
+        if(!this.isEventAccessible(event) || !event.position)return null;
+        const hasCasualties=event.combat && (event.combat.ownShipsLost>0 || event.combat.enemyShipsLost>0);
+        const resistanceLost=event.occupation && event.occupation.kind==='defendersLost';
+        return hasCasualties || resistanceLost ? event.position : null;
     }
 
     hasReplayableReport(event) {

@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 1055 passed, 0 failed.
+Current expected full-suite result: 1061 passed, 0 failed.
 
 ## Future work
 
@@ -187,3 +187,5 @@ Automatic battle message windows reuse existing translated combat, Continue, Go 
 System resistance/capture reports add IDs 929–932 in all six languages (467 IDs per file). Winner and loser narratives retain literal system/faction names and distinguish defeating resistance from taking ownership. Reports use existing translated modal, navigation and replay controls. Unicode unit layouts and actual browser winner/loser invasions, Events replay and smaller dialogs pass in en/de/es/fr/ja/ru; final screenshots inspected under `/private/tmp/galactica-parity/occupation-{before,after}`. Full suites: 1052 passed on release/current native PDG. Observer variants remain pending.
 
 First-detection ownership rendering reuses existing translated inspectors and controls (467 IDs per language). Actual browser star selection, all knowledge thresholds, lost detection, allied and all-visible views pass in en/de/es/fr/ja/ru; first-detection/lost-detection layouts and before/after comparisons were inspected under `/private/tmp/galactica-parity/star-ownership-{before,after}`. Full suites: 1055 passed on release/current native PDG.
+
+Destruction effects introduce no new strings or bitmap assets. Existing participant battle/resistance messages and report controls remain translated (467 IDs per language). Actual browser eight-frame winner/loser playback, completed messages, Events replay and ground resistance pass in en/de/es/fr/ja/ru. Frame sequences and translated final dialogs were inspected under `/private/tmp/galactica-parity/destruction-{before,after}`. Full suites: 1061 passed on release/current native PDG. Individual destruction narrative variants and sound remain separate parity work.

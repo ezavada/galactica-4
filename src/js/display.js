@@ -8,6 +8,7 @@ const RetainedPanel = require('./retained-panel.js');
 const SelectionPulse = require('./selection-pulse.js');
 const I18n = require('./i18n.js');
 const VisualEffects = require('./visual-effects.js');
+const DestructionEffect = require('./destruction-effect.js');
 const UIIcons = require('./ui-icons.js');
 const ScannerLayer = require('./scanner-layer.js');
 const PanelAppearance = require('./panel-appearance.js');
@@ -2621,6 +2622,7 @@ class Display {
 
     getUIActionAt(x, y) {
         if(this.game.overlay && ['outcome','report'].includes(this.game.overlay.type)) {
+            if(this.getDestructionEffect(this.game.overlay))return {type:'consume'};
             const layout=this.game.overlay.type==='report'?this.getReportLayout(this.game.overlay):this.getOutcomeLayout(this.game.overlay);
             const control=layout.buttons.find(button=>this.containsPoint(button.rect,x,y));
             return control?control.action:{type:'consume'};
@@ -3579,6 +3581,8 @@ class Display {
     }
 
     dispose() {
+        for(const effect of [this.destructionGlow,this.destructionStreak])if(effect && typeof effect.delete==='function')effect.delete();
+        this.destructionGlow=null;this.destructionStreak=null;
         this.uiIcons.dispose();
         this.scannerLayer.dispose();
         if(this.scannerRingStyle && typeof this.scannerRingStyle.delete==='function')this.scannerRingStyle.delete();
@@ -3794,7 +3798,41 @@ class Display {
         layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,null,{size:11}));
     }
 
+    getDestructionEffect(overlay, start=false) {
+        if(!overlay || overlay.type!=='report' || this.visualEffects.reducedMotion)return null;
+        const event=this.game.eventLog.find(event=>event.id===overlay.eventId);
+        const position=this.game.getReportDestructionPosition(event);
+        if(!position)return null;
+        if(!this.destructionStarts)this.destructionStarts=new WeakMap();
+        let began=this.destructionStarts.get(overlay);
+        if(began===undefined) {
+            if(!start)return null;
+            began=this.getVisualTime();this.destructionStarts.set(overlay,began);
+        }
+        const frame=DestructionEffect.sample(Math.max(0,this.getVisualTime()-began));
+        return frame?{...frame,x:this.toScreenX(position.x),y:this.toScreenY(position.y)}:null;
+    }
+
+    drawDestructionEffect(overlay) {
+        const effect=this.getDestructionEffect(overlay,true);
+        if(!effect)return false;
+        if(!this.destructionGlow)this.destructionGlow=this.createAttributes({lineStyle:pdg.lineStyle_None});
+        if(!this.destructionStreak)this.destructionStreak=this.createAttributes({fillOpacity:0,lineThickness:2,lineColor:new pdg.Color(1,.65,.2)});
+        const {x,y,radius,opacity}=effect,center=new pdg.Point(x,y);
+        this.destructionGlow.fillRadialGradient(center,new pdg.Color(1,1,.8,opacity),radius,
+            new pdg.Color(1,.12,0,0));
+        this.port.drawCircle(center,radius,this.destructionGlow);
+        this.destructionStreak.lineOpacity(opacity);
+        for(let ray=0;ray<10;ray++) {
+            const angle=ray*Math.PI/5+.13*effect.frame,reach=radius*(1.12+.13*Math.sin(ray*2.4));
+            const point=distance=>new pdg.Point(x+Math.cos(angle)*distance,y+Math.sin(angle)*distance);
+            this.port.drawLine(point(radius*.5),point(reach),this.destructionStreak);
+        }
+        return true;
+    }
+
     drawOverlay(overlay) {
+        if(this.drawDestructionEffect(overlay))return;
         const drawingArea = this.port.getDrawingArea();
         // Dim the scene
         this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), this.styles.overlayDim);
