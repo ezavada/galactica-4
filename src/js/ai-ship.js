@@ -11,7 +11,7 @@ class ShipAI extends AIBase {
     constructor(ship, game, rules, skillLevel = AI_SKILL_LEVELS.AVERAGE) {
         super(ship, game, rules);
         this.ship = ship;
-        this.skillManager = new AISkillManager(skillLevel);
+        this.skillManager = new AISkillManager(skillLevel,game);
         this.utils = new AIUtils(game, rules);
         this.decisionMatrix = new DecisionMatrix(this.getShipType());
     }

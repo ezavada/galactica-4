@@ -255,7 +255,7 @@ The largest blockers to a complete game are:
 | Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | 🟡 Partial | 🟡 Partial | The localized persistent Sound setting now controls cached PDG audio across open/restored games. Presented colony, battle, destruction, repair, lab and stardock reports and attention navigation select recipient cues from the shipped samples; explosions precede the later cue by the source animation cadence plus 20 ticks. Hidden reports and quiet autoplay are silent, and mute stops owned playback. Native suites and actual browser controls/playback are verified below. Empty Tab/Next item now plays the shipped No more cue without changing selection or the turn. Chat, background network-turn and tutorial cues remain tied to their unported features; Left Arrow at a top-level object also plays No more. Startup/About music is blocked by missing source movie metadata, documented below. |
 | Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen startup restoration and remaining game preferences are incomplete. |
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
-| Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | 🟡 Partial | ❌ Missing | The shipped 42-system galaxy, tutorial-only production safeguards, source-driven sixty-lesson progression model and removable game-action bindings are implemented. Runtime tests use actual production, waypoint rejection, naming, placement, events, attention, comparison and fleet contents. Model progress and original actor IDs can be snapshotted. There is no startup entry or instruction panel; setup actions, previous-game/file/renderer preservation, complete tutorial saves, six-language lesson text/art/sound and a full actual walkthrough remain required. See docs/reference/TUTORIAL_CONTROLLER.md. |
+| Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | 🟡 Partial | ❌ Missing | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. No public launch command or instruction panel is exposed yet. Complete tutorial saves, six-language lesson text/art/sound and a full actual guided walkthrough remain required. See docs/reference/TUTORIAL_CONTROLLER.md. |
 | Internationalization | v3 language plug-ins; menu can switch languages. | ✅ Implemented | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian resources and accepts runtime language with `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven/tested; Menu → Settings → Language switches cached UI labels and numeric formatting immediately, remembers the selection and always lists native-script language names. Unported v3 dialogs/help still need future resources. |
 | Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | 🟡 Partial | v4 uses background and lab/stardock/ship assets, while most UI buttons, panels, animations, and states are styled primitives/text. Remaining parity should be tied to specific shipped v3 event/help/window imagery. |
 
@@ -778,3 +778,33 @@ winner/loser views were inspected under
 `/private/tmp/galactica-combat-roll-{tests,native-tests,<language>}.log`.
 The tutorial's separate random stream, visible lessons, full saves and
 presentation resources remain unfinished; parity and Map Generation remain active.
+
+
+### Private tutorial random stream
+
+`GalacticaSingleDoc.cp:285–291` loads the fixed tutorial file, removes its file
+association and supplies seed 101. The modern port now owns a seed-101 portable
+Park–Miller stream on each tutorial game; it does not reseed, replace or consume
+the global PDG stream. Combat, AI utilities, random skill selection and AI skill
+variation use their owning game. Ordinary games retain existing PDG calls and
+bounds. Graph saves retain the private stream, validate corrupt state and accept
+older ordinary documents without it. This is a portable modern sequence, not a
+claim of byte-for-byte identity with the legacy platform's random library.
+
+Seven regressions include an independent known sequence, real tutorial turns and
+combat with global rolls forbidden, actual native RNG continuation, every AI
+random-helper path, ten simulated turns with an added non-research enemy colony
+that exercises random hull selection, private save continuation and corrupt/old
+save handling. Both full lanes pass all 1,242 tests. The unmodified early tutorial
+turns do not consume RNG, so browser isolation also explicitly exercises actual
+ship/system damage rolls: the baseline consumes six global values; the new code
+consumes zero and leaves the next eight native results identical after restoring
+the original game. Actual setup/name clicks, four processed turns, saved-stream
+continuation and original-game restoration pass in en/de/es/fr/ja/ru. All-language
+maps and before/after/original/restored screenshots were inspected under
+`/private/tmp/galactica-parity/tutorial-random-{before,after}`; logs are
+`/private/tmp/galactica-tutorial-random-{tests,native-tests,<language>}.log`.
+
+No visible strings change. Visible lessons, complete tutorial save/resume,
+source picture/audio presentation and the full walkthrough remain unfinished;
+this item does not complete the tutorial, parity or Map Generation checklists.

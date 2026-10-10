@@ -3,6 +3,7 @@
 const Game=require('./game.js'),Config=require('./game-config.js'),Factory=require('./factory.js'),Rules=require('./rules.js');
 const Star=require('./star.js'),Ship=require('./ship.js'),Fleet=require('./fleet.js'),Rendezvous=require('./rendezvous.js');
 const Common=require('./common.js');
+const Random=require('./simulation-random.js');
 const DisplayModes=require('./map-display-modes.js');
 const Course=require('./course.js'),Player=require('./player-info.js'),ChartNames=require('./chart-names.js');
 const types={Star,Ship,Fleet,Rendezvous,Course,Player,Allocation:Star.Allocation,Config,Rules};
@@ -83,6 +84,7 @@ function snapshot(game) {
     const state={};for(const key of fields)state[key]=game[key];
     // v3 retains the Events window; command menus and order editors are transient.
     state.uiWindow=game.uiWindow==='events'?'events':null;
+    state.tutorialRandom=game.tutorialRandom==null?null:game.tutorialRandom;
     state.attention=game.attention.queue;
     state.chart=ChartNames.snapshot(game);
     state.aiSkills=[...game.aiManager.aiPlayers].map(([id,player])=>[id,player.skillManager.getSkillLevel()]);
@@ -95,6 +97,7 @@ function validate(state,nodes) {
     if(!(state.config instanceof Config) || state.config.validate().length || !(state.rules instanceof Rules) || state.rules.isFast!==state.config.fastGame)invalid();
     if(fields.some(key=>key!=='showEnemyEvents' && !Object.prototype.hasOwnProperty.call(state,key)))invalid();
     if(state.showEnemyEvents!==undefined && typeof state.showEnemyEvents!=='boolean')invalid();
+    if(state.tutorialRandom!=null && !Random.valid(state.tutorialRandom))invalid();
     const total=state.config.totalPlayers;if(total!==state.config.numHumans+state.config.numComputers)invalid();
     for(const key of ['isGameOver','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames'])if(typeof state[key]!=='boolean')invalid();
     if(!DisplayModes.valid(state.mapDisplayMode) || (state.uiWindow!==null && state.uiWindow!=='events'))invalid();
@@ -142,6 +145,7 @@ function restore(input) {
     const game=new Game(factory,state.rules,new Config({...state.config,skipMapGeneration:true}));
     for(const key of fields)game[key]=state[key];
     game.showEnemyEvents=state.showEnemyEvents===undefined?true:state.showEnemyEvents;
+    if(state.tutorialRandom)game.tutorialRandom=state.tutorialRandom;
     game.attention.queue=state.attention;
     for(const entity of entities){entity.game=game;entity._spatialLocation=null;}
     const spatialTypes=[Common.SpatialConstants.ENTITY_TYPE_STAR,Common.SpatialConstants.ENTITY_TYPE_SHIP,Common.SpatialConstants.ENTITY_TYPE_FLEET,Common.SpatialConstants.ENTITY_TYPE_RENDEZVOUS];

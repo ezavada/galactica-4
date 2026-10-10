@@ -10,7 +10,7 @@ class StarAI extends AIBase {
     constructor(star, game, rules, skillLevel = AI_SKILL_LEVELS.AVERAGE) {
         super(star, game, rules);
         this.star = star;
-        this.skillManager = new AISkillManager(skillLevel);
+        this.skillManager = new AISkillManager(skillLevel,game);
         this.utils = new AIUtils(game, rules);
     }
 

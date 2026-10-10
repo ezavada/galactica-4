@@ -1,8 +1,9 @@
 # Fixed tutorial starting galaxy
 
 `galaxy.json` is decoded from the data fork of the shipped Galactica tutorial
-plugin, not from a procedural v4 map. It supplies the future guided controller
-through `src/js/tutorial-game.js`; the normal startup path does not use it yet.
+plugin, not from a procedural v4 map. It supplies the controller/session fixture through `src/js/tutorial-game.js`;
+ordinary new-game startup does not use it. The tutorial launch API is still
+hidden until the localized instruction UI is ready.
 
 ```sh
 python3 tools/import-v3-tutorial-game.py '/path/to/v3/release/shareware/Galactica.app/Contents/MacOS/Plug-ins/Galactica Tutorial'
@@ -46,9 +47,10 @@ random map, assigning a file, modifying existing sessions/preferences or
 reseeding the global generator. It accepts caller-supplied title/player name.
 It assigns original IDs before spatial registration, preserves allocator
 monotonicity, restores player milestones and initializes visibility/selection.
-The future session controller must seed a new tutorial with 101, preserve the
-previous game and wire the original sixty action-driven lessons. Those pieces
-are still missing; this fixture does not constitute a completed tutorial.
+The session owner preserves/restores the previous game and binds the original
+action-driven model. Each new tutorial now owns a private seed-101 random stream.
+Visible lessons and the public launch UI are unfinished; this fixture does not
+constitute a completed tutorial.
 
 
 The builder attaches `TutorialSimulation`, which follows the source's early
@@ -61,15 +63,20 @@ systems choose battleships after completing a hull. Paused/zero-effort builds
 are not guaranteed, and ordinary games do not attach these rules. Turn numbers
 here refer to the turn being processed, before v4 increments the displayed turn.
 
-This component has no new user-facing text or startup entry. Session lifetime,
-restoring the previous game and preserving a complete tutorial across saves must
-be implemented by the pending session owner; restoring the galaxy through the
-ordinary save API currently restores a normal game without the tutorial helper.
+The session owner manages lifetime and restores the previous application.
+Ordinary graph saves now retain the private RNG state, but complete tutorial
+save/resume remains unfinished: restoring the galaxy through the ordinary save
+API does not reinstall the simulation helper, runtime or previous session.
 
 
 `TutorialRuntime` can explicitly bind a constructed tutorial game to the
 progression model. It drives lessons from real game actions and remembers
 original actors; its snapshots retain actor IDs and model progress. It is not
-installed automatically by the builder or ordinary save restoration. Startup
-entry, six-language instructions and previous-session preservation are still
-missing. See `docs/reference/TUTORIAL_CONTROLLER.md`.
+installed automatically by the builder or ordinary save restoration. Public startup entry and six-language instructions are still missing; previous-
+session preservation is supplied by the session owner. See `docs/reference/TUTORIAL_CONTROLLER.md`.
+
+
+The private stream uses portable Park–Miller integer arithmetic; seed 101 follows
+the source tutorial startup. AI and combat read the owning game's state without
+reseeding or replacing PDG randomness. This does not claim exact agreement with
+the legacy platform library. No normal procedural-map behavior changes.

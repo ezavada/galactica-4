@@ -2,6 +2,7 @@
 // Contains helper functions for AI decision making and game state analysis
 
 const Common = require('./common.js');
+const Random=require('./simulation-random.js');
 
 class AIUtils {
     constructor(game, rules) {
@@ -364,13 +365,7 @@ class AIUtils {
     }
 
     randomInt(max) {
-        if (!max || max <= 0) {
-            return 0;
-        }
-        if (typeof pdg !== 'undefined' && pdg && typeof pdg.rand === 'function') {
-            return pdg.rand() % max;
-        }
-        return 0;
+        return Random.integer(max,this.game);
     }
 
     randomFloat() {

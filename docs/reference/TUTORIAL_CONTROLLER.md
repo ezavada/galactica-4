@@ -4,8 +4,8 @@
 original lessons. It is connected to an explicitly bound tutorial game through
 `src/js/tutorial-runtime.js`, but has no startup entry or rendered instruction
 panel. A successful model walkthrough is not proof of a
-playable tutorial. Session preservation and localized runtime lessons remain
-required work in `V3_V4_FEATURE_STATUS.md`.
+playable tutorial. Session preservation is implemented below; localized runtime
+lessons and the public launch UI remain required work in `V3_V4_FEATURE_STATUS.md`.
 
 The constructor accepts decoded page metadata and callbacks. Use localized
 runtime pages when the UI is wired; `v3-tutorial.json` is a source reference,
@@ -46,7 +46,7 @@ separate entry effects for early homeworld focus and the final playback/help
 restoration. `onDismissWindow` requests closing an About/splash presentation;
 `onStop` reports completion or cancellation. These callbacks do not themselves
 preserve, replace or dispose a game, save-file association, renderer or
-preferences. The pending session owner must do that work.
+preferences. The session owner described below supplies that lifecycle.
 
 `pressButton` refuses action-only pages. `advance` and `goto` are controller
 primitives, not UI actions that may be offered to skip required work. Repeated
@@ -116,4 +116,19 @@ running. Attachment and fixture-construction failures restore the original
 application; repeated cleanup is harmless. Unfinished initial setup is preserved
 when no ordinary game was open. Visible instruction controls, translated lesson
 resources, tutorial save/resume and presentation audio/pictures remain required.
-The session owner does not yet isolate the engine's global random stream.
+Tutorial games now own the private random stream described below.
+
+
+## Tutorial randomness
+
+`simulation-random.js` routes calls by owning game rather than patching global
+functions or relying on temporary ambient context. `createTutorialGame` installs
+a private seed-101 Park–Miller state object. Ship/system combat, AI utilities,
+AI skill variation and random AI/skill factories use it; a normal game falls back
+to the same native PDG calls as before. No stream is shared between tutorials.
+The generator uses exact integer arithmetic, and its plain `{algorithm,state}`
+object is retained and validated by graph saves. Missing state in older ordinary
+saves remains valid. This preserves random continuation only; restoring the full
+tutorial runtime, simulation safeguards and session ownership is separate work.
+The portable stream is not asserted to reproduce the old platform library's
+exact random sequence. Full guided-playthrough verification remains required.

@@ -138,7 +138,7 @@ class Ship {
     
     getOneAttackAgainst(defender) {
         // Use the source bounded PDG rolls for damage variance
-        const attackDamage = CombatRoll.attackDamage(this.getAttackStrength());
+        const attackDamage = CombatRoll.attackDamage(this.getAttackStrength(),this.game);
         
         // Apply patrol bonus if docked and on patrol
         if (this.isDocked() && this.isOnPatrol()) {
