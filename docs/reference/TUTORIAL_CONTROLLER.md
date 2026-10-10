@@ -93,6 +93,27 @@ Runtime `snapshot()` includes actor IDs and controller progress; `restore()`
 validates hull/owner identities and progress before applying them. This is not a
 complete tutorial save: the session owner must also preserve the game graph,
 renderer/camera, file association, previous game and progress in setup. Normal
-Save/restore does not install or persist the runtime automatically. The startup
-actions for lessons 1–4, visible instructions and full walkthrough remain
-unconnected. No startup/menu command advertises this partial tutorial yet.
+Save/restore does not install or persist the runtime automatically. The startup actions for lessons 1–4 are connected by the session owner below.
+Visible instructions and the full walkthrough remain unfinished. No startup/menu
+command advertises this partial tutorial yet.
+
+
+## Temporary tutorial document ownership
+
+`TutorialSession` owns the controller and runtime separately from ordinary open
+sessions. The existing map remains visible through recovery page 100; its
+acknowledgment captures the application and suspends it before showing setup.
+The actual setup and player-name buttons drive pages 3 and 4 using the original
+window exceptions (34, 4 and map window 1). Startup loads the shipped fixed galaxy
+and assigns a localized Tutorial title, with no ordinary document/file identity.
+The temporary session has ID 0, consumes no ordinary session ID, stays out of the
+open-game list and blocks session switching/replacement until it ends.
+
+Cancellation/completion disposes the runtime and temporary renderer and restores
+the exact prior game, renderer, configuration/editors, file association and
+autoplay controller. Autoplay timers resume only if that restored controller was
+running. Attachment and fixture-construction failures restore the original
+application; repeated cleanup is harmless. Unfinished initial setup is preserved
+when no ordinary game was open. Visible instruction controls, translated lesson
+resources, tutorial save/resume and presentation audio/pictures remain required.
+The session owner does not yet isolate the engine's global random stream.

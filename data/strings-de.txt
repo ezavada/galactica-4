@@ -620,3 +620,6 @@
 # Drive discovery broadcasts
 958	Ihre Wissenschaftler auf {0} haben einen neuen Raumschiffantrieb der Technologiestufe {1} entdeckt.
 959	Wissenschaftler auf {0}, die für {1} arbeiten, haben einen neuen Raumschiffantrieb der Technologiestufe {2} entdeckt.
+
+# Tutorial document title
+960	Tutorial

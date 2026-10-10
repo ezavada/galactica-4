@@ -723,3 +723,28 @@ Both release and development PDG full suites pass: 1214 tests each. Actual brows
 All existing button shortcuts now use the compact, small right-aligned hint style from icon buttons, including translated Start/Close labels and startup title editing. Labels and hints are measured separately; multi-character icon hints receive enough space, and normal click/keyboard routes are preserved. White-button outlines and non-modal window borders use 50% alpha. Modal gold borders retain their accents.
 
 Both full suites pass: 1218 tests with release PDG and development PDG. Browser before/after captures cover startup/name entry, owned inspectors, Settings, Compare Players, the command menu and Events in all six languages, with actual resized-button clicks, printable shortcuts and small viewport checks. Captures live under `/private/tmp/galactica-parity/button-hints-{before,after}`; test logs are `/private/tmp/galactica-button-hints-{tests,native-tests}.log`.
+
+
+### Temporary tutorial session ownership
+
+Verified the v3 hide acknowledgment and startup window exceptions in
+`Galactica.cpp:2176–2238` and the fixed tutorial's removed file association in
+`GalacticaSingleDoc.cp:275–299`. Added a session owner that captures/restores the
+current application, binds the actual setup/name buttons to source lessons, and
+installs the fixed galaxy as a temporary document. It preserves ordinary open
+games, IDs, files, renderer/camera, unfinished setup and autoplay ownership;
+construction/attachment failures clean up and restore the original application.
+The Tutorial title uses all six languages. No menu entry advertises this partial
+feature. Visible sixty-lesson instruction UI/text, full tutorial saves, scoped
+randomness and sound/pictures remain unfinished; the tutorial row is still Partial
+functionality/Missing UI and the broader parity/map-generation goal remains active.
+
+Nine lifecycle regressions plus the tooltip placement regression bring both full
+suites to 1,228 passing tests. Actual Chrome setup/name clicks, the temporary
+42-system game and cancellation/restoration pass in en/de/es/fr/ja/ru. The
+original game serializes identically after its initial map rendering, both during
+the tutorial and after return. Initial rendering lazily creates fog-of-war map
+aliases, so the browser snapshot is taken after that ordinary rendering step.
+Inspected original/restored views, name dialog and all six tutorial maps under
+`/private/tmp/galactica-parity/tutorial-session`; logs are
+`/private/tmp/galactica-tutorial-session-{tests,native-tests,<language>}.log`.

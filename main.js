@@ -65,6 +65,7 @@ const GameConfig = require('./src/js/game-config.js');
 const I18n = require('./src/js/i18n.js');
 const Autoplay = require('./src/js/autoplay.js');
 const sessions=new (require('./src/js/game-sessions.js'))();
+let tutorialSession=null;
 const documents=new (require('./src/js/documents.js'))(require('./src/js/document-files.js').createFiles(),()=>sessions.active,installSavedGame,revertSavedGame);
 
 const launchOptions = {
@@ -249,6 +250,7 @@ function drawStartupDivider(x, y, width) {
 }
 
 function beginPlayerName() {
+    if(tutorialSession && tutorialSession.engaged && !tutorialSession.acceptSetup())return false;
     if(pendingConfig.numHumans===0){startGame();return;}
     startupPlayerName=PlayerName.createEditor(pendingConfig.humanPlayerNames[1] || playerNamePreferences.read() || I18n.getString(17,'You'));
 }
@@ -515,7 +517,34 @@ function clearSessionInput() {
     isDragging=false;isLeftClickDragging=false;hasDragged=false;
     if(game){game.endUIWindowDrag();game.endMapScrollDrag();game.endUISliderDrag();}
 }
+// No menu advertises the tutorial until the localized instruction UI is ready.
+function beginTutorial(pages,context={window:game && !sessions.starting?1:34,modal:sessions.starting}) {
+    if(tutorialSession && tutorialSession.controller.active)return false;
+    const owner=new (require('./src/js/tutorial-session.js'))(pages,{
+        sessions,
+        captureApplication:()=>({game,display,autoplayController,pendingConfig,startupPlayerName,startupGameTitle,startupComputerCount,startupAISkill}),
+        suspendApplication:()=>{
+            sound.stop();clearSessionInput();stopAutoplayTimer();game=null;display=null;autoplayController=null;
+            pendingConfig=createDefaultConfig();pendingConfig.numHumans=1;pendingConfig.numComputers=2;refreshTotalPlayers(pendingConfig);
+            startupPlayerName=null;startupGameTitle=null;startupComputerCount=null;startupAISkill=false;
+        },
+        restoreApplication:state=>{
+            sound.stop();clearSessionInput();stopAutoplayTimer();
+            ({game,display,autoplayController,pendingConfig,startupPlayerName,startupGameTitle,startupComputerCount,startupAISkill}=state);
+            if(display){display.reloadUIStrings();display.onScreenSizeChanged();}
+            if(!sessions.starting && autoplayController && autoplayController.getStatus().running)
+                pdg.tm.startTimer(AUTOPLAY_TIMER_ID,game.config.autoplay.turnDelayMs,pdg.timer_Repeating);
+        },
+        installApplication:(nextGame,nextDisplay)=>{game=nextGame;display=nextDisplay;autoplayController=null;},
+        onStop:()=>{if(tutorialSession===owner)tutorialSession=null;}
+    });
+    tutorialSession=owner;
+    try{owner.start(context);}catch(error){tutorialSession=null;throw error;}
+    return owner;
+}
+
 function beginNewGame() {
+    if(tutorialSession && tutorialSession.engaged)return tutorialSession.openSetup();
     sound.stop();
     if(!sessions.begin())return false;
     clearSessionInput();stopAutoplayTimer();
@@ -537,7 +566,7 @@ function cancelNewGame() {
     resumeSession(sessions.active);return true;
 }
 function switchGameSession(id) {
-    if(sessions.starting || !sessions.sessions.some(session=>session.id===id))return false;
+    if(sessions.starting || sessions.transient || !sessions.sessions.some(session=>session.id===id))return false;
     clearSessionInput();stopAutoplayTimer();
     const session=sessions.select(id);game.uiWindow=null;resumeSession(session);game.uiWindow=null;
     return true;
@@ -633,6 +662,15 @@ function startGame() {
         return false;
     }
 
+    if(tutorialSession && tutorialSession.engaged){
+        const owner=tutorialSession;
+        try{
+            const fixture=JSON.parse(require('fs').readFileSync(path.join(dataPath,'tutorial/galaxy.json'),'utf8'));
+            const nextGame=require('./src/js/tutorial-game.js').createTutorialGame(fixture,{gameTitle:I18n.getString(960),playerName:pendingConfig.humanPlayerNames[1]});
+            attachGameServices(nextGame);const nextDisplay=new Display(nextGame);
+            const accepted=owner.install(nextGame,nextDisplay);if(!accepted)nextDisplay.dispose();return !!accepted;
+        }catch(error){owner.stop('error');throw error;}
+    }
     const factory = new Factory();
     const rules = new Rules(pendingConfig.fastGame);
     const nextGame = new Game(factory, rules, pendingConfig);

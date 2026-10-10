@@ -620,3 +620,6 @@
 # Drive discovery broadcasts
 958	Vos scientifiques sur {0} ont découvert un nouveau moteur de vaisseau de niveau technologique {1}.
 959	Les scientifiques de {0}, au service de {1}, ont découvert un nouveau moteur de vaisseau de niveau technologique {2}.
+
+# Tutorial document title
+960	Tutoriel
