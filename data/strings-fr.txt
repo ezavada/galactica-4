@@ -362,3 +362,6 @@
 761	Avantage de l’ordinateur
 762	<A> changer l’avantage de l’ordinateur
 763	Production : {0}%
+
+# Stellar density setup
+764	Densité {0}

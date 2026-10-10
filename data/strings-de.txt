@@ -362,3 +362,6 @@
 761	Computervorteil
 762	<A> Computervorteil wechseln
 763	Produktion: {0}%
+
+# Stellar density setup
+764	Sterndichte {0}

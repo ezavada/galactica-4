@@ -86,6 +86,45 @@ function runMapGenerationTests() {
         });
     });
 
+    test.describe('MapGenerator - Full density range',()=>{
+        test.it('deduplicates translated name pools before reserving homeworlds',()=>{
+            const i18n=require('../src/js/i18n.js'),getString=i18n.getString;
+            i18n.getString=(id,...args)=>id===100?'Vega|Sirius|Vega':getString.call(i18n,id,...args);
+            try {
+                const generator=new MapGenerator({});test.assertEqual(generator.STAR_NAMES.join('|'),'Vega|Sirius');
+                const names=generator.reservePlayerNames(2).filter(Boolean);test.assertEqual(new Set(names).size,2);
+            } finally {i18n.getString=getString;}
+        });
+        test.it('counts reserved home names before ordinary names and avoids exhausted or duplicate numerals',()=>{
+            const game=new Game(new Factory(),new Rules(),new GameConfig({skipMapGeneration:true})),generator=new MapGenerator(game);
+            generator.STAR_NAMES=['Vega'];generator.random=()=>0;
+            const oldRand=pdg.rand;pdg.rand=()=>0;
+            try {
+                const stars=[];generator.createRandomStars(1,1,()=>{const star={};stars.push(star);return star;},[undefined,'Vega']);
+                test.assertEqual(stars[0].name,'Vega II');
+                const usage=[1],names=[];for(let i=0;i<30;i++)names.push(generator.generateStarName(usage).name);
+                test.assertEqual(new Set(names).size,names.length);test.assertFalse(names.some(n=>n.includes('undefined')));
+            } finally {pdg.rand=oldRand;}
+        });
+        test.it('uses the original count formula for all ten densities with the same random sequence',()=>{
+            const game=new Game(new Factory(),new Rules(),new GameConfig({skipMapGeneration:true})),generator=new MapGenerator(game);
+            let low,second;
+            for(let density=1;density<=10;density++){
+                pdg.srand(TEST_SEED);const count=generator.calculateStarCount(density,1,2);
+                if(density===1)low=count;else if(density===2)second=count;
+                if(density>=2)test.assertEqual(count,low+(density-1)*(second-low));
+            }
+        });
+        test.it('constructs a playable maximum-density galaxy with unique names and all home systems',()=>{
+            pdg.srand(TEST_SEED);
+            const game=new Game(new Factory(),new Rules(),new GameConfig({density:10,sectorSize:5,numHumans:1,numComputers:2}));
+            test.assertTrue(game.stars.length>=2500&&game.stars.length<=7100);
+            test.assertEqual(new Set(game.stars.map(s=>s.name)).size,game.stars.length);
+            for(const owner of [1,2,3])test.assertEqual(game.stars.filter(s=>s.owner===owner).length,1);
+            for(const star of game.stars){test.assertTrue(Number.isFinite(star.x)&&Number.isFinite(star.y));test.assertInRange(star.x,0,1024*1024*5);test.assertInRange(star.y,0,1024*1024*5);}
+        });
+    });
+
     test.describe('MapGenerator - Star Name Generation', () => {
         test.it('generates unique star names with S- prefix for duplicates', () => {
             pdg.srand(TEST_SEED);

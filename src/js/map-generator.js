@@ -11,7 +11,7 @@ class MapGenerator {
         
         // Load star names from resources (string ID 100, pipe-separated list)
         const starNamesStr = I18n.getString(100, "Star");
-        this.STAR_NAMES = starNamesStr ? starNamesStr.split('|') : ["Star"];
+        this.STAR_NAMES = starNamesStr ? [...new Set(starNamesStr.split('|'))] : ["Star"];
         
         // Load roman numerals from resources (string ID 200, pipe-separated list)
         const romanNumeralsStr = I18n.getString(200, "|II|III|IV|V");
@@ -51,7 +51,7 @@ class MapGenerator {
         let numStars = this.calculateStarCount(density, sectorSize, totalPlayers);
         
         // Create stars with random positions
-        const unused = this.createRandomStars(numStars, sectorSize, createStarCallback);
+        const unused = this.createRandomStars(numStars, sectorSize, createStarCallback, playerReservedNames);
         
         // Assign player home stars
         const taken = this.assignPlayerHomeStars(unused, totalPlayers, numHumans, sectorSize, playerReservedNames);
@@ -104,11 +104,16 @@ class MapGenerator {
     /**
      * Create stars with random positions (matches original algorithm)
      */
-    createRandomStars(numStars, sectorSize, createStarCallback) {
+    createRandomStars(numStars, sectorSize, createStarCallback, reservedNames = []) {
         const unused = [];
         const sectorSizePixels = this.PIXELS_PER_SECTOR * this.COORDINATE_SCALE * sectorSize;
         
         const nameUsage = new Array(this.STAR_NAMES.length).fill(0);
+        // Homeworld names share the same usage accounting as ordinary stars in v3.
+        for (const name of reservedNames) {
+            const index = this.STAR_NAMES.indexOf(name);
+            if (index >= 0) nameUsage[index]++;
+        }
         
         for (let i = 0; i < numStars; i++) {
             // Generate random coordinates (matches original: Rnd(PIXELS_PER_SECTOR * sectorSize) * 1024L)
@@ -327,7 +332,7 @@ class MapGenerator {
     }
 
     /**
-     * Generate a unique star name - uses S- prefix instead of roman numerals
+     * Generate a unique named or numbered star label
      */
     generateStarName(nameUsage) {
         // 10% chance to use a random name from the STAR_NAMES array
@@ -339,7 +344,11 @@ class MapGenerator {
         // add roman numeral if the name is used more than once
         nameUsage[nameIndex]++;
         if (nameUsage[nameIndex] > 1) {
-            return { name: `${baseName} ${this.ROMAN_NUMERALS[nameUsage[nameIndex]]}`, namedStar: true };
+            const numeral = this.ROMAN_NUMERALS[nameUsage[nameIndex] - 1];
+            if (!numeral || this.ROMAN_NUMERALS.indexOf(numeral) !== nameUsage[nameIndex] - 1) {
+                return { name: `S-${this.nextStarNum++}`, namedStar: false };
+            }
+            return { name: `${baseName} ${numeral}`, namedStar: true };
         }
         return { name: baseName, namedStar: true };
     }

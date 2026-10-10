@@ -198,7 +198,7 @@ function runPlayerConfigTests() {
 
         test.it('rejects invalid density', () => {
             const config = new GameConfig({
-                density: 10
+                density: 11
             });
 
             const errors = config.validate();

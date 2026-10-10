@@ -227,7 +227,11 @@ function drawStartupDialog() {
     }
     y += step(64);
     port.drawText(I18n.formatString(523, 'Map: {0} / {1}', pendingConfig.getMapSizeDescription(), pendingConfig.getDensityDescription()), new pdg.Point(x, y), startupStyles.lineText);
-    y += step(24);
+    for(const choice of StartupSetup.densityRegions(panelRect,pendingConfig)) {
+        drawStartupRoundedRect(choice.rect,7,choice.active?startupStyles.advantageButtonActive:startupStyles.advantageButton);
+        port.drawText(choice.label,new pdg.Point(choice.rect.x+choice.rect.width/2,choice.rect.y+step(19)),startupStyles.advantageText);
+    }
+    y += step(56);
     port.drawText(I18n.formatString(
         524,
         'Options: {0}, {1}',
@@ -272,7 +276,7 @@ function handleStartupKey(key) {
             pendingConfig.sectorSize = (pendingConfig.sectorSize % 5) + 1;
             return true;
         case 'd':
-            pendingConfig.density = (pendingConfig.density % 5) + 1;
+            StartupSetup.cycleDensity(pendingConfig);
             return true;
         case 'f':
             pendingConfig.fastGame = !pendingConfig.fastGame;
@@ -403,6 +407,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0) {
             const area=port.getDrawingArea();
             StartupSetup.clickAdvantage(pendingConfig,StartupSetup.panelRect(area.width(),area.height()),event.mousePos.x,event.mousePos.y);
+            StartupSetup.clickDensity(pendingConfig,StartupSetup.panelRect(area.width(),area.height()),event.mousePos.x,event.mousePos.y);
         }
         return true;
     }

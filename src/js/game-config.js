@@ -14,7 +14,7 @@ class GameConfig {
         this.totalPlayers = this.numHumans + this.numComputers;
         
         // Map configuration
-        this.density = options.density || 1;        // 1-3 typical (star density multiplier)
+        this.density = options.density !== undefined ? options.density : 1; // v3 stellar density: integer 1–10
         this.sectorSize = options.sectorSize || 1;  // 1-4 typical (map size multiplier)
         
         // AI configuration
@@ -174,8 +174,8 @@ class GameConfig {
             errors.push("Must have at least 2 total players");
         }
         
-        if (this.density < 1 || this.density > 5) {
-            errors.push("density must be between 1 and 5");
+        if (!Number.isInteger(this.density) || this.density < 1 || this.density > 10) {
+            errors.push("density must be an integer between 1 and 10");
         }
         
         if (this.sectorSize < 1 || this.sectorSize > 5) {
@@ -241,19 +241,7 @@ class GameConfig {
     
     // Get star density description
     getDensityDescription() {
-        // Load density descriptions from resources (IDs 400-405)
-        const densityIds = {
-            1: 400,  // Sparse
-            2: 401,  // Normal
-            3: 402,  // Dense
-            4: 403,  // Very Dense
-            5: 404   // Crowded
-        };
-        const stringId = densityIds[this.density];
-        if (stringId !== undefined) {
-            return I18n.getString(stringId, "Unknown");
-        }
-        return I18n.getString(405, "Unknown");  // Unknown fallback
+        return I18n.formatString(764, 'Density {0}', this.density);
     }
     
     // Convert to simple object for MapGenerator

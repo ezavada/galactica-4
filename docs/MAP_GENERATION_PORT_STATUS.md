@@ -1,6 +1,6 @@
 # Map Generation Port Status
 
-Last reviewed: 2026-08-25
+Last reviewed: 2026-10-09
 
 This document used to be a forward-looking port plan. The core map-generation work described here has since been implemented, so this file now records the current status, remaining differences from Galactica v3, and the tests that cover the area.
 
@@ -27,10 +27,10 @@ This document used to be a forward-looking port plan. The core map-generation wo
 
 ## Remaining differences and caveats
 
-- Density and sector size currently validate as 1-5 in `GameConfig`; v3 exposed a broader density range.
+- Stellar density now matches the v3 numeric 1–10 menu, with click selection, D cycling, R reset and integer validation. Sector size currently validates as 1–5; its setup UI is still simplified.
 - `compAdvantage` now affects AI research and shipbuilding output, while `endEarly`, `maxTimePerTurn`, and `hosting` are stored but not active in the local turn loop.
 - `GameConfig.toMapGeneratorConfig()` intentionally passes only the map/player values needed by `MapGenerator`; other setup values are consumed by `Game`, `Rules`, AI, or future multiplayer systems.
-- The map generator creates mostly `S-##` unnamed systems and uses roman numerals only when the random named-star path produces a duplicate. This matches the current v4 implementation, not the older wording in this file.
+- The map generator creates mostly `S-##` unnamed systems and uses translated numerals for repeated named systems. Homeworld reservations share name-use accounting; translated name pools are deduplicated. Exhausted/repeated numeral entries fall back to unique `S-##` names.
 - Save/load, multiplayer host setup, turn posting, and timed-turn behavior are not part of the current map-generation implementation.
 - Display modes, starlanes, scanner circles, and map overlays are rendering/UI work, not map-generation work.
 
@@ -61,3 +61,7 @@ When changing map generation, update this document and the tests together. In pa
 - player and computer naming;
 - starting colony ship progress;
 - configuration validation ranges.
+
+### Full density-range validation (2026-10-09)
+
+The v3 numeric 1–10 range is now available in actual setup and reaches the original count formula. Regression coverage checks every multiplier using the same random sequence and constructs a sector-size-5, density-10 galaxy with unique names, finite in-bounds coordinates and a homeworld for every player. Name accounting includes reserved homeworld labels; duplicated translated pools and missing/repeated numeral suffixes are handled without collisions. Real browser selection, reset and maximum-density launch passed in all six supported languages. Full unit suite: 725 passed. This closes the density-range gap; the other caveats above remain.

@@ -362,3 +362,6 @@
 761	Computer advantage
 762	<A> cycle computer advantage
 763	Production: {0}%
+
+# Stellar density setup
+764	Density {0}
