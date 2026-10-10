@@ -90,7 +90,8 @@ console.log(`Random seed set to: ${randomSeed}${launchOptions.aiAutoplay ? ' (AI
 
 // Create window port
 const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), I18n.getString(568, 'Galactica-4'));
-const fullscreen = require('./src/js/fullscreen.js').createController(pdg,port);
+const fullscreen = require('./src/js/fullscreen.js').createController(pdg,port,globalThis,drawingPreferences);
+fullscreen.restore();
 
 function createDefaultConfig() {
     const config = GameConfig.createSinglePlayer(2, 2); // 2 computers, Good difficulty
