@@ -22,6 +22,7 @@ class Fleet {
         this.type = 'fleet';
         this.name = name || I18n.formatString(560, 'Fleet {0}', this.id);
         this.star = null;
+        this.fleet = null;
         this.onPatrol = false;
         this.toBeScrapped = false;
         this.userCallIn = false;
@@ -59,20 +60,35 @@ class Fleet {
     
     static nextId = 1;
     
+    get power() { return this.totalPower; }
+    get speed() { return this.totalSpeed; }
+    get damage() { return this.totalDamage; }
+
+    contains(entity) {
+        return this.ships.some(member=>member===entity || member.contains && member.contains(entity));
+    }
+
+    getLeafShips() {
+        return this.ships.flatMap(member=>member.getLeafShips ? member.getLeafShips() : [member]);
+    }
+
+    getDockedStar() {
+        return this.fleet ? this.fleet.getDockedStar() : this.star;
+    }
+
+    getDamagePercent() {
+        return this.totalPower ? Math.trunc(this.totalDamage/this.totalPower) : 0;
+    }
+
     // Add a ship to this fleet
     addShip(ship) {
-        if (!ship) return false;
+        if (!ship || ship===this || ship.contains && ship.contains(this)) return false;
         if (this.ships.includes(ship)) return false;
 
         const previousStar = ship.star || null;
 
         if (ship.fleet && ship.fleet !== this) {
-            const oldFleet = ship.fleet;
-            const oldIndex = oldFleet.ships ? oldFleet.ships.indexOf(ship) : -1;
-            if (oldIndex !== -1) {
-                oldFleet.ships.splice(oldIndex, 1);
-                oldFleet.calculateFleetStats();
-            }
+            ship.fleet.removeShip(ship);
         }
         
         // Remove ship from its current location
@@ -122,13 +138,14 @@ class Fleet {
         }
         
         // Recalculate fleet stats
+        if(ship.syncShipPositions)ship.syncShipPositions();
         this.calculateFleetStats();
         
         return true;
     }
     
     // Calculate fleet statistics from constituent ships
-    calculateFleetStats() {
+    calculateFleetStats(propagate=true) {
         this.totalPower = 0;
         this.totalSpeed = 0;
         this.totalDamage = 0;
@@ -136,13 +153,18 @@ class Fleet {
         this.scannerRange = 0;
         
         if (this.ships.length === 0) {
+            if(propagate && this.fleet)this.fleet.calculateFleetStats();
             return;
         }
         
         let maxTechLevel = 0;
         let maxScannerRange = 0;
+        const activeMembers=[];
         
         for (const ship of this.ships) {
+            if(ship.calculateFleetStats)ship.calculateFleetStats(false);
+            if(ship.isDead && ship.isDead())continue;
+            activeMembers.push(ship);
             this.totalPower += ship.power || 0;
             this.totalSpeed += ship.speed || 0;
             this.totalDamage += ship.damage || 0;
@@ -160,9 +182,10 @@ class Fleet {
         this.scannerRange = maxScannerRange;
         
         // Fleet speed is the slowest ship's speed (fleet moves as fast as slowest ship)
-        if (this.ships.length > 0) {
-            this.totalSpeed = Math.min(...this.ships.map(ship => ship.speed || 0));
+        if (activeMembers.length > 0) {
+            this.totalSpeed = Math.min(...activeMembers.map(ship => ship.speed || 0));
         }
+        if(propagate && this.fleet)this.fleet.calculateFleetStats();
     }
 
     // Fog of War: accessors to match Star/Ship interface
@@ -241,12 +264,12 @@ class Fleet {
     
     // Check if fleet contains a specific ship type
     hasShipType(shipType) {
-        return this.ships.some(ship => ship.type === shipType);
+        return this.getLeafShips().some(ship => ship.type === shipType);
     }
     
     // Get ships of a specific type
     getShipsOfType(shipType) {
-        return this.ships.filter(ship => ship.type === shipType);
+        return this.getLeafShips().filter(ship => ship.type === shipType);
     }
     
     // Check if fleet is owned by a specific player
@@ -313,6 +336,12 @@ class Fleet {
     
     // Move the fleet one turn
     move() {
+        if(this.fleet) {
+            if(!this.destination)return false;
+            const parent=this.fleet;
+            parent.removeShip(this);
+            if(parent.isEmpty() && this.game && this.game.entityRemoved)this.game.entityRemoved(parent);
+        }
         if(this.destination && this.totalSpeed>0)this.star=null;
         if(this.destination && this.game && this.game.movePursuedTargetFirst)this.game.movePursuedTargetFirst(this);
         if(this.game && this.game.movementTurn && (!this.game.allFleets.includes(this) || this.isEmpty()))return false;
@@ -350,6 +379,7 @@ class Fleet {
         for (const ship of this.ships) {
             ship.x = this.x;
             ship.y = this.y;
+            if(ship.syncShipPositions)ship.syncShipPositions();
             if (ship.updateSpatialLocation) {
                 ship.updateSpatialLocation();
             }
@@ -446,18 +476,17 @@ class Fleet {
     
     // Remove dead ships from fleet
     removeDeadShips() {
-        const aliveShips = this.ships.filter(ship => !ship.isDead || !ship.isDead());
-        const removedCount = this.ships.length - aliveShips.length;
-        
-        if (removedCount > 0) {
-            this.ships = aliveShips;
-            for (const ship of this.ships) {
-                ship.fleet = this;
+        let removedCount=0;
+        for(const member of [...this.ships]) {
+            if(member.removeDeadShips)removedCount+=member.removeDeadShips();
+            if(member.isDead && member.isDead()) {
+                this.removeShip(member);
+                if(member.isFleet && member.isFleet()) {
+                    if(this.game && this.game.entityRemoved)this.game.entityRemoved(member);
+                } else removedCount++;
             }
-            this.calculateFleetStats();
-            console.log(`Removed ${removedCount} dead ships from fleet ${this.id}`);
         }
-        
+        this.calculateFleetStats();
         return removedCount;
     }
 
@@ -477,11 +506,11 @@ class Fleet {
     }
 
     isDocked() {
-        return !!this.star;
+        return !!this.getDockedStar();
     }
 
     isInFleet() {
-        return false;
+        return !!this.fleet;
     }
 
     canFormFleet() {
@@ -512,7 +541,7 @@ class Fleet {
         let repairRemaining = amount;
         let repairedTotal = 0;
         for (const ship of this.ships) {
-            if (!ship || ship.type === 'defense' || !ship.repairDamage || ship.isOnPatrol && ship.isOnPatrol()) {
+            if (!ship || ship.destination || ship.type === 'defense' || !ship.repairDamage || ship.isOnPatrol && ship.isOnPatrol()) {
                 continue;
             }
             const repaired = ship.repairDamage(repairRemaining);

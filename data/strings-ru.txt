@@ -412,3 +412,8 @@
 
 # Fleet transfer destination
 795	Выберите флот назначения
+
+# Nested fleet groups
+796	Группа
+797	Группа {0}
+798	Родительский флот

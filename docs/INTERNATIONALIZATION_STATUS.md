@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 332 IDs
-- localized files: 332 IDs each
+- `strings.txt`: 335 IDs
+- localized files: 335 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 852 passed, 0 failed.
+Current expected full-suite result: 866 passed, 0 failed.
 
 ## Future work
 
@@ -135,3 +135,5 @@ Fleet inspector privacy uses existing translated Fleet, ships, power, speed, tec
 Fleet member rows reuse translated technology, speed, power and health labels, with localized member diagnostics and Previous/Next (690–691) controls. Names remain user content and fit measured Unicode text widths. Unknown values use the same `?` notation as the ship inspector. All six languages passed native browser paging, later-page operations and inspected before/after screenshots. No new resource IDs; 331 IDs per language. Current full suite: 844 passed.
 
 Fleet transfer destination choice adds ID 795 in en/de/es/fr/ja/ru. The paged chooser reuses localized Previous/Next and Esc help; fleet names remain user content. Actual browser cancel/retry, destination choice on page two, map visibility toggle and moved-target rejection passed in all six languages. Translated before/after captures inspected; ordinary source-fleet views are pixel-identical. Current resources: 332 IDs per language; full suite: 852 passed.
+
+Nested fleet groups add IDs 796–798 (Group action, default group name, Parent fleet) in all six languages. Native browser creation, parent navigation, nested inspection, whole-group transfer and departure passed in every language. Translated inspector controls and default names were inspected. Current resources: 335 IDs per language; full suites: 866 passed on release/current native PDG.

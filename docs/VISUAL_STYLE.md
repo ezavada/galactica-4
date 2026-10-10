@@ -134,3 +134,5 @@ Fleet member inspectors use a 350-pixel panel beneath the top status bar, expand
 Map help is drawn beneath inspectors so tall fleet member panels and their paging controls remain readable.
 
 Multi-destination fleet transfers reuse the neutral paged object chooser, with the translated destination-fleet heading (795), cached 2× fleet glyphs, numbered buttons and existing Previous/Next/Esc help. The inspector remains visible beneath it; cancel changes no fleet membership. Before/after screenshots were inspected in all six languages; ordinary source-fleet views are pixel-identical.
+
+Nested fleet inspectors retain the 350-pixel owner-tinted panel and measured, localized Group/Transfer/Remove buttons. Selectable member-name regions stop before those buttons, so selecting a group cannot accidentally create another. Parent fleet appears among context commands only when the containing fleet’s contents are known. Contained groups do not draw independent map markers. All six translated group/control layouts and before/after root views were inspected; nested navigation, transferred/departed groups and smaller CSS views remain readable.

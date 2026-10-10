@@ -205,7 +205,7 @@ class Star {
 
         if (this.game && this.game.allFleets) {
             for (const fleet of this.game.allFleets) {
-                if (!fleet || fleet.owner !== this.owner || (fleet.isEmpty && fleet.isEmpty())) {
+                if (!fleet || fleet.fleet || fleet.owner !== this.owner || (fleet.isEmpty && fleet.isEmpty())) {
                     continue;
                 }
                 if (fleet.star === this ||
@@ -517,8 +517,8 @@ class Star {
             }
         }
         for (const fleet of this.game && this.game.allFleets || []) {
-            if (docked(fleet) && allied(fleet)) {
-                const members = fleet.ships.filter(completed);
+            if (!fleet.fleet && docked(fleet) && allied(fleet)) {
+                const members = (fleet.getLeafShips ? fleet.getLeafShips() : fleet.ships).filter(completed);
                 if (!members.length) continue;
                 // v3 fleets inherit CShip defense: clamp the combined power
                 // once, rather than granting minimum power to every courier.

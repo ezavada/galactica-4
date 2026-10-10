@@ -412,3 +412,8 @@
 
 # Fleet transfer destination
 795	Choose destination fleet
+
+# Nested fleet groups
+796	Group
+797	Group {0}
+798	Parent fleet

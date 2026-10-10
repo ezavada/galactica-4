@@ -307,6 +307,9 @@ class Game {
                 Common.SpatialConstants.ENTITY_TYPE_SHIP;
             this.spatialPartition.removeEntity(entity, entityType);
         } else if (objectType === Common.ObjectType.FLEET) {
+            const parent=entity.fleet;
+            if(parent)parent.removeShip(entity);
+            if(parent && parent.isEmpty())this.entityRemoved(parent);
             const index = this.allFleets.indexOf(entity);
             if (index !== -1) {
                 this.allFleets.splice(index, 1);
@@ -479,12 +482,12 @@ class Game {
             if (destination.star) {
                 return destination.star;
             }
-            if (destination.fleet && destination.fleet.star) {
-                return destination.fleet.star;
+            if (destination.fleet && destination.fleet.getDockedStar()) {
+                return destination.fleet.getDockedStar();
             }
         }
-        if (objectType === Common.ObjectType.FLEET && destination.star) {
-            return destination.star;
+        if (objectType === Common.ObjectType.FLEET) {
+            return destination.getDockedStar();
         }
 
         return null;
@@ -1493,7 +1496,7 @@ class Game {
         const isDocked = object => object.star === star || (!object.destination &&
             Math.round(object.x) === Math.round(star.x) && Math.round(object.y) === Math.round(star.y));
         const ships = this.allShips.filter(ship => !ship.fleet && !ship.underConstruction() && isDocked(ship));
-        const fleets = this.allFleets.filter(fleet => !fleet.isEmpty() && isDocked(fleet));
+        const fleets = this.allFleets.filter(fleet => !fleet.fleet && !fleet.isEmpty() && isDocked(fleet));
         const makeRow = (object, member = false) => {
             const fleet = this.factory.isFleet(object);
             return { object, member, name: this.getObjectDisplayName(object), tech: object.techLevel || 0,
@@ -1883,6 +1886,12 @@ class Game {
             }
             case 'removeFleetShip':
                 return this.separateShipFromFleet(action.fleet, action.ship);
+            case 'createFleetGroup':return !!this.createFleetGroup(action.fleet,action.member);
+            case 'selectFleetParent': {
+                const group=this.getSelectedFleet(),parent=group && group.fleet;
+                if(!parent || !this.allFleets.includes(parent) || !this.display.getFleetKnowledge(parent).contents)return false;
+                this.setSelectedObject(parent);return true;
+            }
             case 'beginFleetTransfer':return this.beginFleetTransfer(action.ship);
             case 'transferFleetShip':
                 return this.transferShipToFleet(action.ship, action.targetFleet);
@@ -2464,7 +2473,7 @@ class Game {
 
     scrapShip(ship) {
         if(!this.allShips.includes(ship) || !ship.isToBeScrapped() || ship.isDead() || ship.underConstruction())return false;
-        const fleet=ship.fleet,star=fleet?fleet.star:ship.star;
+        const fleet=ship.fleet,star=fleet?fleet.getDockedStar():ship.star;
         const amount=this.rules.getShipScrapValue(ship),name=this.getObjectDisplayName(ship);
         if(star && this.stars.includes(star) && Number.isFinite(amount))star.addScrapProduction(amount);
         const event=this.recordEvent(I18n.getString(754,'Scrap'),star
@@ -2498,7 +2507,7 @@ class Game {
         if(type===Common.ObjectType.FLEET) {
             // Process contained scrap orders before departure, even when pursued.
             for(const ship of [...actor.ships])this.moveActorForTurn(ship);
-            if(!this.allFleets.includes(actor))return false;
+            if(!this.allFleets.includes(actor) || actor.fleet && !actor.destination)return false;
         }
         actor.move();
         return true;
@@ -2721,6 +2730,7 @@ class Game {
             return;
         }
 
+        const oldFleet=ship.fleet;
         if (ship.fleet && typeof ship.fleet.removeShip === 'function') {
             ship.fleet.removeShip(ship);
         }
@@ -2749,6 +2759,7 @@ class Game {
         }
 
         ship.star = null;
+        if(oldFleet && oldFleet.fleet && oldFleet.isEmpty())this.entityRemoved(oldFleet);
     }
 
     removeDestroyedShip(ship, attackerOwner, sendEvent = true) {
@@ -3023,10 +3034,25 @@ class Game {
         return this.getFriendlyFleetsAtLocation(fleet.owner, fleet.x, fleet.y, fleet);
     }
 
+    createFleetGroup(fleet,member) {
+        if(this.selectedObject!==fleet || !this.allFleets.includes(fleet) || !fleet.ships.includes(member) ||
+            member.fleet!==fleet || !this.canHumanControl(fleet) || !this.canHumanControl(member) ||
+            member.owner!==fleet.owner || member.isDead() || member.underConstruction() || this.mapSelectionPicker)return false;
+        const group=this.factory.createFleet(fleet.x,fleet.y,fleet.owner);
+        group.name=I18n.formatString(797,'Group {0}',group.id);
+        fleet.removeShip(member);
+        group.addShip(member);
+        fleet.addShip(group);
+        this.setSelectedObject(group);
+        this.recordEvent(I18n.getString(566,'Fleets'),I18n.formatString(669,'{0} formed at {1}',
+            this.getObjectDisplayName(group),this.getObjectDisplayName(fleet)),{type:Common.EventType.FLEET_FORMED});
+        return group;
+    }
+
     canTransferShipToFleet(ship,targetFleet) {
-        if(!ship || !targetFleet || !this.allShips.includes(ship) || !this.allFleets.includes(targetFleet) ||
+        if(!ship || !targetFleet || !(this.factory.isFleet(ship)?this.allFleets:this.allShips).includes(ship) || !this.allFleets.includes(targetFleet) ||
             !this.canHumanControl(ship) || !this.canHumanControl(targetFleet) || ship.owner!==targetFleet.owner ||
-            ship.fleet===targetFleet || ship.isDead() || ship.underConstruction() || targetFleet.isEmpty())return false;
+            ship===targetFleet || ship.fleet===targetFleet || ship.contains && ship.contains(targetFleet) || ship.isDead() || ship.underConstruction() || targetFleet.isEmpty())return false;
         const source=ship.fleet || ship;
         if(ship.fleet && (!this.allFleets.includes(source) || !source.ships.includes(ship) || !this.canHumanControl(source)))return false;
         return Number.isFinite(source.x) && Number.isFinite(source.y) &&
@@ -3052,7 +3078,7 @@ class Game {
         }
 
         const fleetName = this.getObjectDisplayName(fleet);
-        const dockedStar = fleet.star || this.stars.find(star =>
+        const dockedStar = fleet.getDockedStar() || this.stars.find(star =>
             star.owner === fleet.owner &&
             Math.abs(star.x - fleet.x) < 5 &&
             Math.abs(star.y - fleet.y) < 5
@@ -3071,7 +3097,7 @@ class Game {
             ship.x = dockedStar.x;
             ship.y = dockedStar.y;
             ship.star = dockedStar;
-            dockedStar.shipArrived(ship);
+            if(!this.factory.isFleet(ship))dockedStar.shipArrived(ship);
         }
         if (ship.updateSpatialLocation) {
             ship.updateSpatialLocation();
@@ -3181,6 +3207,7 @@ class Game {
         if (!fleet1 || !fleet2 || fleet1 === fleet2) {
             return fleet1 || fleet2 || null;
         }
+        if(fleet1.contains(fleet2) || fleet2.contains(fleet1))return null;
         // Add all ships from fleet2 to fleet1
         const shipsToMove = [...fleet2.ships]; // Create a copy to avoid modification during iteration
         for (const ship of shipsToMove) {

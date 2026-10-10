@@ -66,12 +66,13 @@ class CombatSystem {
     getCombatants(entity) {
         if (!entity) return [];
 
+        while(entity.fleet)entity=entity.fleet;
         if (this.isFleet(entity)) {
-            return this.uniqueEntities(entity.ships || []).filter(ship => this.isAliveCombatant(ship));
+            return this.uniqueEntities(entity.getLeafShips ? entity.getLeafShips() : entity.ships || []).filter(ship => this.isAliveCombatant(ship));
         }
 
         if (entity.fleet && this.isFleet(entity.fleet)) {
-            return this.uniqueEntities(entity.fleet.ships || []).filter(ship => this.isAliveCombatant(ship));
+            return this.uniqueEntities(entity.fleet.getLeafShips ? entity.fleet.getLeafShips() : entity.fleet.ships || []).filter(ship => this.isAliveCombatant(ship));
         }
 
         return this.isAliveCombatant(entity) ? [entity] : [];
@@ -90,20 +91,20 @@ class CombatSystem {
         };
 
         if (this.isStar(destination)) {
-            for (const ship of destination.ships || []) {
+            for (const ship of destination.getLeafShips ? destination.getLeafShips() : destination.ships || []) {
                 addDefender(ship);
             }
             for (const satellite of destination.defenseSatellites || []) {
                 addDefender(satellite);
             }
         } else if (this.isFleet(destination)) {
-            for (const ship of destination.ships || []) {
+            for (const ship of this.getCombatants(destination)) {
                 addDefender(ship);
             }
         } else {
             const destinationFleet = destination && destination.fleet;
             if (destinationFleet && this.isFleet(destinationFleet)) {
-                for (const ship of destinationFleet.ships || []) {
+                for (const ship of this.getCombatants(destinationFleet)) {
                     addDefender(ship);
                 }
             } else {

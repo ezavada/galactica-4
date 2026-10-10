@@ -412,3 +412,8 @@
 
 # Fleet transfer destination
 795	Zielflotte wählen
+
+# Nested fleet groups
+796	Gruppe
+797	Gruppe {0}
+798	Übergeordnete Flotte

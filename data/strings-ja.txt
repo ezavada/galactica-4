@@ -412,3 +412,8 @@
 
 # Fleet transfer destination
 795	転送先の艦隊を選択
+
+# Nested fleet groups
+796	グループ化
+797	グループ {0}
+798	親艦隊

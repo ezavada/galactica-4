@@ -816,7 +816,7 @@ class Display {
     isMobileVisibleOnMap(object) {
         const ship=this.factory.isShip(object);
         if(ship && (object.fleet || object.isDead() || object.underConstruction() || object.type==='defense'))return false;
-        if(!ship && this.factory.isFleet(object) && object.isEmpty())return false;
+        if(!ship && this.factory.isFleet(object) && (object.fleet || object.isEmpty()))return false;
         const threshold=ship?.20:.15;
         if(this.camera.zoom<threshold && object!==this.selectedObject)return false;
         const viewer=this.game.getCurrentHumanPlayer() || 1;
@@ -1515,6 +1515,8 @@ class Display {
             );
         }
 
+        if(this.factory.isFleet(object) && object.fleet && this.getFleetKnowledge(object.fleet).contents)
+            actions.push({key:null,label:I18n.getString(798,'Parent fleet'),action:{type:'selectFleetParent'}});
         return actions;
     }
 
@@ -1619,6 +1621,7 @@ class Display {
     }
 
     getFleetDiagnostics(fleet) {
+        fleet.calculateFleetStats();
         const knowledge = this.getFleetKnowledge(fleet);
         return {
             knowledge,
@@ -1636,7 +1639,7 @@ class Display {
         const members = knowledge.contents ? fleet.ships || [] : [];
         const transferTargets = this.game.getFleetTransferTargets ? this.game.getFleetTransferTargets(fleet) : [];
         const shipTypes = {};
-        for (const ship of members) shipTypes[ship.type] = (shipTypes[ship.type] || 0) + 1;
+        for (const ship of knowledge.contents ? fleet.getLeafShips() : []) shipTypes[ship.type] = (shipTypes[ship.type] || 0) + 1;
         const compositionRows = Object.entries(shipTypes);
         const memberRowHeight = 34;
         const destinationHeight = knowledge.full && fleet.destination ? 18 : 0;
@@ -2334,24 +2337,29 @@ class Display {
         const x = rect.x + 12;
         let y = this.getPanelContentStartY(rect) + layout.memberStartOffset;
         const transferTargets = layout.transferTargets;
-        const primaryTransferTarget = transferTargets.length > 0 ? transferTargets[0] : null;
         const regions = this.getFleetMemberPageRegions(fleet,layout);
         const owned=this.game.canHumanControl(fleet);
 
         const removeWidth=this.getButtonWidth(this.STR.remove,null,{size:9,minWidth:58});
         const transferWidth=this.getButtonWidth(this.STR.transfer,null,{size:9,minWidth:58});
+        const groupWidth=this.getButtonWidth(I18n.getString(796,'Group'),null,{size:9,minWidth:48});
         for (const ship of layout.visibleShips) {
-            const rowRect = { x, y: y - 14, width: rect.width - 24, height: layout.memberRowHeight-2 };
+            const memberTargets=transferTargets.filter(target=>this.game.canTransferShipToFleet(ship,target));
+            const primaryTransferTarget=memberTargets[0] || null;
+            const groupX=rect.x+rect.width-14-removeWidth-6-(primaryTransferTarget?transferWidth+6:0)-groupWidth;
+            const rowRect = { x, y: y - 14, width: owned?groupX-x-6:rect.width-24, height: layout.memberRowHeight-2 };
             if (owned && primaryTransferTarget) {
                 regions.push({
                     rect: { x: rect.x + rect.width - 14 - removeWidth - 6 - transferWidth, y: y - 16, width: transferWidth, height: 20 },
-                    action: transferTargets.length>1?{type:'beginFleetTransfer',ship}:{ type: 'transferFleetShip', ship, targetFleet: primaryTransferTarget }
+                    action: memberTargets.length>1?{type:'beginFleetTransfer',ship}:{ type: 'transferFleetShip', ship, targetFleet: primaryTransferTarget }
                 });
             }
             if(owned)regions.push({
                 rect: { x: rect.x + rect.width - 14 - removeWidth, y: y - 14, width: removeWidth, height: 20 },
                 action: { type: 'removeFleetShip', fleet, ship }
             });
+            if(owned)regions.push({rect:{x:groupX,
+                y:y-14,width:groupWidth,height:20},action:{type:'createFleetGroup',fleet,member:ship}});
             regions.push({
                 rect: rowRect,
                 action: { type: 'selectFleetMember', fleet, ship }
@@ -2889,7 +2897,9 @@ class Display {
                     ['transferFleetShip','beginFleetTransfer'].includes(region.action.type) &&
                     region.action.ship === ship
                 );
-                const nameRight=Math.min(rect.x+rect.width-12,removeRegion?removeRegion.rect.x-6:Infinity,transferRegion?transferRegion.rect.x-6:Infinity);
+                const groupRegion=memberRegions.find(region=>region.action.type==='createFleetGroup' && region.action.member===ship);
+                const nameRight=Math.min(rect.x+rect.width-12,removeRegion?removeRegion.rect.x-6:Infinity,transferRegion?transferRegion.rect.x-6:Infinity,groupRegion?groupRegion.rect.x-6:Infinity);
+                if(groupRegion)this.drawUIButton(groupRegion.rect,I18n.getString(796,'Group'),null,{size:9,radius:7});
                 this.drawTextLine(this.fitShipDiagnosticText(member.title,nameRight-x,10),x,y,'lightgray',10);
                 this.drawTextLine(`${member.tech} / ${member.speed} / ${member.power}`,x,y+13,'gray',9);
                 const healthText=I18n.getString(698,'Health:')+' '+member.health;
