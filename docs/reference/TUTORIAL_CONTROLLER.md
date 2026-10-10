@@ -452,3 +452,37 @@ were introduced; all existing controls remain localized.
 This resolves the previously documented active-tutorial Open ownership defect.
 It does not add cross-launch lesson resume or claim that every tutorial exception,
 broader parity requirement or Map Generation item has completed its final audit.
+
+
+### Optional wrong-course recovery: actual input audit
+
+V3 `Classes/GalacticaPanels.cp:562–587` checks the first colony course at
+lesson 17. A target other than New Terra's fixed ID 9 skips adding the waypoint
+and advances to lesson 18; a correct target forces lesson 19. The source lesson
+18 metadata returns to lesson 16, so Retry must restore the Orders step rather
+than quietly accepting the rejected destination.
+
+The existing v4 runtime matches this behavior. New six-language browser runs
+start from the public Tutorial button and reach lesson 17 through normal setup,
+production, reports and attention controls. They click S-7 deliberately, verify
+lesson 18 with unchanged waypoints and no destination, click Retry, reopen
+Orders through its real button, and target S-20. Every run reaches lesson 19
+with the original colony ship's destination referencing the real star ID 9.
+No forced lesson jumps or simulated progression events are used. This closes
+the actual-UI coverage gap left by the normal walkthrough, which correctly
+skips the optional error lesson.
+
+Both full native lanes pass all 1,302 tests, including the existing rejected-
+course runtime regression. Logs are
+`/private/tmp/galactica-tutorial-recovery-{tests,native-tests}.log` and
+`/private/tmp/galactica-tutorial-recovery-<language>.log`; reviewed course,
+localized Retry, Orders and success screenshots are under
+`/private/tmp/galactica-parity/tutorial-recovery/<language>` for en/de/es/fr/ja/ru.
+This was verification of existing behavior, with no runtime or resource changes.
+
+The tutorial UI status is corrected from Missing to Partial: the floating panel,
+all lesson resources, illustrations, normal route and optional retry have direct
+rendered evidence. Recovery pages 100/101/103 retain model coverage; the hosting
+recovery's real entry flow depends on the still-unported multiplayer setup.
+That is unfinished project work, not an unavailable-help blocker. No complete
+project or Map Generation claim is made by this audit.
