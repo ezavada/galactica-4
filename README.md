@@ -91,7 +91,7 @@ use the same paths as the desktop launcher.
 - [Internationalization Status](docs/INTERNATIONALIZATION_STATUS.md) - Resource localization status
 - [Future Improvements](docs/FUTURE_IMPROVEMENTS.md) - Non-parity enhancement ideas
 
-## Network joining
+## Network hosting and joining
 
 Use startup **Join** (J), or **File → Join** while a game is open. Enter the
 host address (hostname/IP and optional port), inspect its player slots, and
@@ -109,8 +109,16 @@ including pause/resume and saved time remaining across reopening. Joined games
 show a localized countdown that stays visible after posting and waits for the
 host to announce the next turn.
 
-Multiplayer remains incomplete: host setup and administration UI, discovery, chat and
-network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
+Desktop **Host** (H), on startup or in File, creates a durable hosted game.
+Choose human/AI counts, map options, a host filename, port (0 selects an
+available port), and an optional minutes/hours/days/weeks turn limit. The status
+window offers Join, Stop hosting, and Host another game. Hosting continues when
+you dismiss that window or close a client game; accepted Quit saves and stops
+all hosts before exiting. A failed save keeps the application and listener open.
+Browsers can join games but require the desktop application to host.
+
+Multiplayer remains incomplete: reopening hosts through the application,
+administration UI, discovery, chat and network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
 
@@ -119,7 +127,7 @@ network-game saving are still being ported. See [the parity checklist](docs/V3_V
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1467 passed, 0 failed.
+Current expected result: 1476 passed, 0 failed.
 
 AI-only parity observer:
 

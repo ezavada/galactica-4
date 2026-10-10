@@ -82,13 +82,27 @@ const QuitDocuments=require('./src/js/quit-documents.js');
 const quitDocuments=new QuitDocuments.QuitDocuments(sessions,documents,{
     activate:activateQuitDocument,capture:captureQuitState,restore:restoreQuitState,exit:finishQuit
 });
-documents.quit=()=>quitDocuments.request();
+documents.quit=()=>requestApplicationQuit();
 const networkJoin=new (require('./src/js/network-join.js')).JoinWindow({
     install:installNetworkGame,find:(address,gameId,name)=>{const s=sessions.sessions.find(s=>s.network && s.network.address===address && s.network.identity && s.network.identity.gameId===gameId && s.network.identity.name===name);return s?s.network:null;},defaultName:()=>playerNamePreferences.read() || I18n.getString(17,'You')
 });
 documents.join=openNetworkJoin;
+const hostedGames=require('./src/js/host-games.js').createService();
+const networkHosting=new (require('./src/js/network-host-setup.js')).HostWindow(hostedGames,info=>{
+    if(!networkJoin.open())return false;networkJoin.address=PlayerName.createEditor(info.address,256);networkJoin.expectedId=info.id;networkJoin.focus='name';networkJoin.inspect();return true;
+});
+documents.host=openNetworkHosting;
+function openNetworkHosting(){
+    if(tutorialSession || quitDocuments.state!=='idle' || networkJoin.active)return false;
+    clearSessionInput();startupHelp.clear();if(game)game.uiWindow=null;
+    const identity=sessions.active && sessions.active.network && sessions.active.network.identity;
+    const record=identity?hostedGames.records.find(r=>hostedGames.describe(r).id===identity.gameId) || hostedGames.latest():hostedGames.latest();
+    if(!networkHosting.open(pendingConfig,record))return false;documents.dialog=null;return true;
+}
+function requestApplicationQuit(){if(networkHosting.busy)return false;networkHosting.cancel();return quitDocuments.request();}
+
 function openNetworkJoin(){
-    if(tutorialSession || quitDocuments.state!=='idle')return false;
+    if(tutorialSession || quitDocuments.state!=='idle' || networkHosting.active)return false;
     clearSessionInput();startupHelp.clear();if(game)game.uiWindow=null;
     const s=sessions.active,descriptor=s && s.network?s.network.descriptor():null;
     if(!networkJoin.open(descriptor))return false;documents.dialog=null;return true;
@@ -147,7 +161,7 @@ const startupLifecycle=new StartupLifecycle.StartupLifecycle(installation,()=>be
     }),
     about:openAbout,newGame:()=>sessions.starting?true:beginNewGame(),open:()=>documents.beginOpen(),
     close:()=>documents.beginClose(),save:()=>documents.beginSave(),saveAs:()=>documents.beginSave(true),revert:()=>sessions.active?documents.beginRevert():false,
-    quit:()=>quitDocuments.request(),fullscreen:()=>fullscreen.toggle(),help:()=>userManual.open(pdg.res.getLanguage()),tutorial:()=>beginTutorial()
+    quit:()=>requestApplicationQuit(),fullscreen:()=>fullscreen.toggle(),help:()=>userManual.open(pdg.res.getLanguage()),tutorial:()=>beginTutorial()
 }));
 const openAbout=()=>startupSettings.open('about');
 const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,colonyDefaultsPreferences,sound,fullscreen,presentation,openAbout,tutorialCommands:{available:()=>!tutorialSession,start:()=>beginTutorial()},presentationClosed:kind=>{if(kind==='startup')startupLifecycle.finishIntroduction();},presentationTutorial:()=>{if(tutorialSession)return false;const kind=presentation.kind;presentation.close();startupSettings.model.uiWindow=null;const result=beginTutorial();if(kind==='startup')startupLifecycle.finishIntroduction();return result;}});
@@ -218,7 +232,7 @@ function createStartupAttributes(definition = {}) {
 
 const windowPlacement=new (require('./src/js/window-placement.js'))(drawingPreferences);
 for(const [object,method,name] of [[StartupSetup,'panelRect','startup'],[StartupSetup,'skillMenu','startupSkill'],
-    [PlayerName,'layout','textEntry'],[networkJoin,'layout','networkJoin'],[documents,'layout','documents'],[userManual,'layout','manualError']]){
+    [PlayerName,'layout','textEntry'],[networkHosting,'layout','networkHosting'],[networkJoin,'layout','networkJoin'],[documents,'layout','documents'],[userManual,'layout','manualError']]){
     const original=object[method];object[method]=function(width,height,...args){
         const layout=original.call(this,width,height,...args);
         return name==='documents' && documents.dialog && documents.dialog.kind==='editor'?layout:windowPlacement.layout(name,layout,{width,height});
@@ -226,6 +240,7 @@ for(const [object,method,name] of [[StartupSetup,'panelRect','startup'],[Startup
 }
 function foregroundApplicationWindow(){
     const area=port.getDrawingArea(),width=area.width(),height=area.height();
+    if(networkHosting.active)return {name:'networkHosting',rect:networkHosting.layout(width,height).rect};
     if(networkJoin.active)return {name:'networkJoin',rect:networkJoin.layout(width,height).rect};
     if(userManual.error())return {name:'manualError',rect:userManual.layout(width,height,text=>port.getTextWidth(text,13)).rect};
     if(documents.dialog)return {name:documents.dialog.kind==='editor'?'textEntry':'documents',rect:documents.dialog.kind==='editor'?PlayerName.layout(width,height).rect:documents.layout(width,height).rect};
@@ -362,6 +377,33 @@ function drawStartupTextDialog(editor,labels) {
     for(const button of layout.buttons){drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,13,button.key);}
 }
 
+function drawNetworkHosting(){
+    const area=port.getDrawingArea(),layout=networkHosting.layout(area.width(),area.height()),{rect:r,scale}=layout;
+    port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.dim);
+    PanelAppearance.applySystemSurface(startupStyles.panel,r);drawStartupRoundedRect(r,14,startupStyles.panel);
+    const buttonStyle=startupStyles.hostButton || (startupStyles.hostButton=createStartupAttributes({fillColor:new pdg.Color(.97,.97,.97,1),lineColor:new pdg.Color(0,0,0,.5)}).lineThickness(.7).lineStyle(pdg.lineStyle_Solid));
+    const activeStyle=startupStyles.hostButtonActive || (startupStyles.hostButtonActive=createStartupAttributes({fillColor:new pdg.Color(.83,.87,.9,1),lineColor:new pdg.Color(0,0,0,.5)}).lineThickness(.7).lineStyle(pdg.lineStyle_Solid));
+    const fit=(text,width,size=12)=>{while(size>9 && port.getTextWidth(text,size)>width)size--;return size;};
+    startupStyles.subtitleText.textSize(fit(layout.title,r.width-48,16));port.drawText(layout.title,new pdg.Point(r.x+r.width/2,r.y+34*scale),startupStyles.subtitleText);
+    for(const field of layout.fields){const editor=networkHosting[field.name],f=field.rect;
+        if(field.labelRect.width>0){startupStyles.lineText.textSize(fit(field.label,field.labelRect.width));port.drawText(field.label,new pdg.Point(field.labelRect.x,field.labelRect.y+18*scale),startupStyles.lineText);}
+        drawStartupRoundedRect(f,5,buttonStyle);const visible=PlayerName.visibleText(editor,f.width-20,text=>port.getTextWidth(text,12));startupStyles.lineText.textSize(12);
+        if(networkHosting.focus===field.name && editor.selected)drawStartupRoundedRect({x:f.x+8,y:f.y+4,width:Math.min(f.width-16,port.getTextWidth(visible.text,12)+4),height:f.height-8},3,startupStyles.advantageButtonActive);
+        port.drawText(visible.text,new pdg.Point(f.x+10,f.y+18*scale),startupStyles.lineText);
+        if(networkHosting.focus===field.name && !editor.selected)port.drawLine(new pdg.Point(f.x+10+visible.caret,f.y+4),new pdg.Point(f.x+10+visible.caret,f.y+f.height-4),startupStyles.checkboxMark);
+    }
+    for(const label of layout.labels){startupStyles.lineText.textSize(fit(label.text,label.rect.width));port.drawText(label.text,new pdg.Point(label.rect.x,label.rect.y+18*scale),startupStyles.lineText);}
+    for(const check of layout.checks)drawStartupCheckbox(check.rect,check.label,check.value,scale,buttonStyle,activeStyle);
+    for(const choice of layout.choices){drawStartupRoundedRect(choice.rect,5,choice.active?activeStyle:buttonStyle);drawStartupButtonCaption(choice.rect,choice.label,startupStyles.advantageText,fit(choice.label,choice.rect.width-12),null);}
+    if(layout.info){const info=layout.info,lines=[info.address || I18n.getString(1081),I18n.formatString(1071,'',info.info.humans,info.info.computers,info.info.turn),I18n.formatString(1072,'',info.port),info.file];
+        for(let i=0;i<lines.length;i++){const size=fit(lines[i],r.width-48);startupStyles.hintText.textSize(size);const text=PlayerName.visibleText({...PlayerName.createEditor(lines[i],1024),caret:i===3?Array.from(lines[i]).length:0},r.width-48,t=>port.getTextWidth(t,size)).text;port.drawText(text,new pdg.Point(r.x+24,r.y+(90+i*38)*scale),startupStyles.hintText);}
+    }
+    const message=networkHosting.message;if(message){let size=fit(message,r.width-48,11);startupStyles.hintText.textSize(size);const display=game && game.display;
+        const text=display?display.fitShipDiagnosticText(message,r.width-48,size):PlayerName.visibleText({...PlayerName.createEditor(message,1024),caret:0},r.width-48,t=>port.getTextWidth(t,size)).text;
+        port.drawText(text,new pdg.Point(r.x+24,r.y+520*scale),startupStyles.hintText);}
+    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,buttonStyle);const disabled=button.disabled || networkHosting.busy,attrs=disabled?(startupStyles.hostDisabledText || (startupStyles.hostDisabledText=createStartupAttributes({fillColor:new pdg.Color(.35,.35,.35,.65)}))):startupStyles.advantageText;drawStartupButtonCaption(button.rect,button.label,attrs,12,disabled?null:button.key);}
+}
+
 function drawNetworkJoin(){
     const area=port.getDrawingArea(),layout=networkJoin.layout(area.width(),area.height()),{rect:r,scale}=layout;
     port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.dim);
@@ -387,11 +429,11 @@ function drawNetworkJoin(){
     for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,button.action===networkJoin.mode?startupStyles.advantageButtonActive:startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,12,button.key);}
 }
 
-function drawStartupCheckbox(rect,label,checked,scale) {
+function drawStartupCheckbox(rect,label,checked,scale,buttonStyle=startupStyles.advantageButton,activeStyle=startupStyles.advantageButtonActive) {
     const step=value=>value*scale;
-    drawStartupRoundedRect(rect,6,checked?startupStyles.advantageButtonActive:startupStyles.advantageButton);
+    drawStartupRoundedRect(rect,6,checked?activeStyle:buttonStyle);
     const box={x:rect.x+step(8),y:rect.y+step(5),width:step(16),height:step(16)};
-    drawStartupRoundedRect(box,3,startupStyles.advantageButton);
+    drawStartupRoundedRect(box,3,buttonStyle);
     if(checked) {
         port.drawLine(new pdg.Point(box.x+box.width*.2,box.y+box.height*.5),new pdg.Point(box.x+box.width*.43,box.y+box.height*.75),startupStyles.checkboxMark);
         port.drawLine(new pdg.Point(box.x+box.width*.43,box.y+box.height*.75),new pdg.Point(box.x+box.width*.82,box.y+box.height*.22),startupStyles.checkboxMark);
@@ -491,6 +533,7 @@ function drawStartupDialog() {
     port.drawText(I18n.getString(527, '<F> fast game   <O> fog/all visible   <R> defaults'), new pdg.Point(x, y), startupStyles.hintText);
     y += step(42);
 
+    const host=StartupSetup.hostRegion(panelRect);drawStartupRoundedRect(host,7,startupStyles.advantageButton);drawStartupButtonCaption(host,I18n.getString(1082),startupStyles.startText,Math.max(9,13*scale),'H');
     const join=StartupSetup.joinRegion(panelRect);drawStartupRoundedRect(join,7,startupStyles.advantageButton);drawStartupButtonCaption(join,I18n.getString(1010),startupStyles.startText,Math.max(9,13*scale),'J');
     const quit=StartupSetup.quitRegion(panelRect);drawStartupRoundedRect(quit,7,startupStyles.advantageButton);drawStartupButtonCaption(quit,I18n.getString(996),startupStyles.startText,Math.max(9,14*scale),'Q');
     if(!sessions.active){const open=StartupSetup.cancelRegion(panelRect);drawStartupRoundedRect(open,7,startupStyles.advantageButton);port.drawText(I18n.getString(841,'Open Game…'),new pdg.Point(open.x+open.width/2,open.y+step(20)),startupStyles.startText);}
@@ -563,7 +606,7 @@ function handleStartupKey(key) {
 
     if(key===pdg.key_Escape && cancelNewGame())return true;
 
-    if(key===81 || key===113)return quitDocuments.request();
+    if(key===81 || key===113)return requestApplicationQuit();
     const char = typeof key === 'number' ? String.fromCharCode(key) : '';
     const lower = char.toLowerCase();
 
@@ -594,6 +637,7 @@ function handleStartupKey(key) {
         case 'o':
             StartupSetup.toggleFogOfWar(pendingConfig);
             return true;
+        case 'h':return openNetworkHosting();
         case 'j':return openNetworkJoin();
         case 't':beginGameTitle();return true;
         case 'r':
@@ -718,7 +762,9 @@ function activateQuitDocument(session) {
     if(game!==session.game || display!==session.display)resumeSession(session);
     return true;
 }
-function finishQuit() {
+async function finishQuit() {
+    if(hostedGames.records.length)documents.dialog={kind:'busy',operation:'hostStop',message:I18n.getString(1074)};
+    try{await hostedGames.closeAll();}catch(error){quitDocuments.state='idle';documents.status(1073);return false;}
     const browser=typeof window!=='undefined' && window.document;
     const labels=browser?[I18n.getString(998),I18n.getString(999),I18n.getString(1000)]:null;
     const language=browser?LanguageSettings.current():null;
@@ -794,7 +840,7 @@ function attachGameServices(nextGame) {
         const session=sessions.sessions.find(s=>s.game===nextGame);if(!session || !session.network || session.network.postPromise || nextGame.clientTurnPosted)return false;
         session.network.post().then(model=>{if(sessions.sessions.includes(session)){replaceNetworkModel(session,model);session.networkError=null;}},error=>{if(sessions.sessions.includes(session))session.networkError=require('./src/js/network-join.js').errorText(error);});return true;
     },status:()=>{const session=sessions.sessions.find(s=>s.game===nextGame),client=session && session.network;return nextGame.clientTurnPosted?1038:client && client.postPromise?1037:client && client.pendingPost?1039:null;}};
-    nextGame.fileCommands={quit:()=>quitDocuments.request(),menu:()=>{clearSessionInput();return documents.menu();}};
+    nextGame.fileCommands={quit:()=>requestApplicationQuit(),menu:()=>{clearSessionInput();return documents.menu();}};
     nextGame.sessionCommands={begin:beginNewGame,rows:()=>sessions.rows(),select:switchGameSession};
 }
 function installSavedGame(nextGame,reference) {
@@ -945,6 +991,7 @@ if (launchOptions.aiAutoplay) {
 // Create event handlers using the correct PDG syntax
 const drawHandler = new pdg.IEventHandler(function(event) {
     refreshNetworkSessions();
+    if(networkHosting.active){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawNetworkHosting();return true;}
     if(networkJoin.active){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawNetworkJoin();return true;}
     if(startupSettings.active){if(game && !sessions.starting)game.draw();else drawStartupDialog();startupSettings.draw();drawTutorialPanel();return true;}
     if(userManual.error()){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawManualFailure();return true;}
@@ -971,7 +1018,7 @@ const autoplayTimerHandler = new pdg.IEventHandler(function(event) {
         return false;
     }
 
-    if(networkJoin.active || startupSettings.active || userManual.error() || documents.dialog || sessions.starting || !sessions.active || sessions.active.autoplay!==autoplayController)return true;
+    if(networkJoin.active || networkHosting.active || startupSettings.active || userManual.error() || documents.dialog || sessions.starting || !sessions.active || sessions.active.autoplay!==autoplayController)return true;
     const status = autoplayController.step();
     if (!status.running) {
         stopAutoplayTimer();
@@ -993,7 +1040,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     if(game && game.display)game.display.clearControlHelp();
     if(event && event.eventType===pdg.eventType_MouseUp && windowPlacement.end(event.mousePos.x,event.mousePos.y))return true;
     if(event && event.eventType===pdg.eventType_MouseUp && event.buttonNumber===0 && tutorialPointerCapture){tutorialPointerCapture=false;if(tutorialPanel)tutorialPanel.mouseUp(event.mousePos.x,event.mousePos.y);return true;}
-    if(tutorialPanel && !networkJoin.active && !userManual.error() && !documents.dialog && event){
+    if(tutorialPanel && !networkJoin.active && !networkHosting.active && !userManual.error() && !documents.dialog && event){
         const p=event.mousePos;
         if(event.eventType===pdg.eventType_MouseUp && tutorialPanel.mouseUp(p.x,p.y))return true;
         if(event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const c=tutorialPanelContext();if(tutorialPanel.mouseDown(p.x,p.y,c.screen,c.measure,c.targets)){tutorialPointerCapture=true;return true;}}
@@ -1004,6 +1051,12 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
         const area=port.getDrawingArea(),p=event.mousePos;
         if(event.buttonNumber===0 && windowPlacement.begin(foreground.name,foreground.rect,p.x,p.y,{width:area.width(),height:area.height()}))return true;
         if(p.x<foreground.rect.x || p.x>foreground.rect.x+foreground.rect.width || p.y<foreground.rect.y || p.y>foreground.rect.y+foreground.rect.height){sound.play(1012);return true;}
+    }
+    if(networkHosting.active){
+        if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const area=port.getDrawingArea(),layout=networkHosting.layout(area.width(),area.height()),p=event.mousePos;
+            const contains=r=>p.x>=r.x&&p.x<=r.x+r.width&&p.y>=r.y&&p.y<=r.y+r.height,button=layout.buttons.find(b=>contains(b.rect)),field=layout.fields.find(f=>contains(f.rect)),choice=layout.choices.find(c=>contains(c.rect)),check=layout.checks.find(c=>contains(c.rect));
+            if(button && !button.disabled)networkHosting.action(button.action);else if(!networkHosting.busy && field){networkHosting.focus=field.name;networkHosting[field.name].selected=true;}else if(choice)networkHosting.action(choice.action,choice.value);else if(check)networkHosting.action(check.action);
+        }return true;
     }
     if(networkJoin.active){
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const area=port.getDrawingArea(),layout=networkJoin.layout(area.width(),area.height()),p=event.mousePos;
@@ -1046,8 +1099,10 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
             }
             const join=StartupSetup.joinRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(event.mousePos.x>=join.x && event.mousePos.x<join.x+join.width && event.mousePos.y>=join.y && event.mousePos.y<join.y+join.height){openNetworkJoin();return true;}
+            const host=StartupSetup.hostRegion(StartupSetup.panelRect(area.width(),area.height()));
+            if(event.mousePos.x>=host.x && event.mousePos.x<host.x+host.width && event.mousePos.y>=host.y && event.mousePos.y<host.y+host.height){openNetworkHosting();return true;}
             const quit=StartupSetup.quitRegion(StartupSetup.panelRect(area.width(),area.height()));
-            if(event.mousePos.x>=quit.x && event.mousePos.x<quit.x+quit.width && event.mousePos.y>=quit.y && event.mousePos.y<quit.y+quit.height){quitDocuments.request();return true;}
+            if(event.mousePos.x>=quit.x && event.mousePos.x<quit.x+quit.width && event.mousePos.y>=quit.y && event.mousePos.y<quit.y+quit.height){requestApplicationQuit();return true;}
             const settings=StartupSetup.settingsRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(event.mousePos.x>=settings.x && event.mousePos.x<settings.x+settings.width && event.mousePos.y>=settings.y && event.mousePos.y<settings.y+settings.height){startupSettings.open();return true;}
             const tutorial=StartupSetup.tutorialRegion(StartupSetup.panelRect(area.width(),area.height()));
@@ -1159,10 +1214,10 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse wheel handler for zooming
 const mouseWheelHandler = new pdg.IEventHandler(function(event) {
-    if(tutorialPanel && !networkJoin.active && !userManual.error() && !documents.dialog && event && event.eventType===pdg.eventType_ScrollWheel){
+    if(tutorialPanel && !networkJoin.active && !networkHosting.active && !userManual.error() && !documents.dialog && event && event.eventType===pdg.eventType_ScrollWheel){
         const p=pdg.gfx.getMouse(),c=tutorialPanelContext();if(tutorialPanel.wheel(p.x,p.y,event.vertDelta || 0,c.screen,c.measure,c.targets))return true;
     }
-    if(networkJoin.active || startupSettings.active || userManual.error() || documents.dialog)return true;
+    if(networkJoin.active || networkHosting.active || startupSettings.active || userManual.error() || documents.dialog)return true;
     if (sessions.starting || !game) {
         return true;
     }
@@ -1185,12 +1240,12 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
 // Mouse move handler for drag scrolling
 const mouseMoveHandler = new pdg.IEventHandler(function(event) {
     if(tutorialPointerCapture && event && event.eventType===pdg.eventType_MouseMove && event.leftButton===false)tutorialPointerCapture=false;
-    if(tutorialPanel && !networkJoin.active && !documents.dialog && event && event.eventType===pdg.eventType_MouseMove && tutorialPanel.mouseMove(event.mousePos.x,event.mousePos.y,event.leftButton))return true;
+    if(tutorialPanel && !networkJoin.active && !networkHosting.active && !documents.dialog && event && event.eventType===pdg.eventType_MouseMove && tutorialPanel.mouseMove(event.mousePos.x,event.mousePos.y,event.leftButton))return true;
     if(startupSettings.active)return startupSettings.move(event);
     if(event && event.eventType===pdg.eventType_MouseMove && windowPlacement.drag){
         if(event.leftButton===false)windowPlacement.end();else windowPlacement.move(event.mousePos.x,event.mousePos.y);return true;
     }
-    if(networkJoin.active || userManual.error() || documents.dialog || sessions.starting || !game) {
+    if(networkJoin.active || networkHosting.active || userManual.error() || documents.dialog || sessions.starting || !game) {
         if(event && event.eventType===pdg.eventType_MouseMove)startupHoverPoint={x:event.mousePos.x,y:event.mousePos.y};
         return true;
     }
@@ -1242,7 +1297,8 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
 });
 
 const keyHandler = new pdg.IEventHandler(function(event) {
-    if(event && event.eventType===pdg.eventType_KeyPress && QuitDocuments.isShortcut(event)){networkJoin.cancel();quitDocuments.request();return true;}
+    if(event && event.eventType===pdg.eventType_KeyPress && QuitDocuments.isShortcut(event)){networkJoin.cancel();requestApplicationQuit();return true;}
+    if(networkHosting.active){if(event && event.eventType===pdg.eventType_KeyPress)networkHosting.key(event.unicode);return true;}
     if(networkJoin.active){if(event && event.eventType===pdg.eventType_KeyPress)networkJoin.key(event.unicode);return true;}
     if(startupSettings.active){if(event && event.eventType===pdg.eventType_KeyPress){startupSettings.key(event.unicode);if(!startupSettings.active && game)game.display.reloadUIStrings();}return true;}
     if(windowPlacement.drag && event && event.eventType===pdg.eventType_KeyPress && event.unicode===pdg.key_Escape){windowPlacement.end();return true;}

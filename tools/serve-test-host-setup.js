@@ -1,0 +1,22 @@
+// Test-only localhost adapter for exercising the shared UI with real desktop hosts.
+const pdg=require('pdg');globalThis.pdg=pdg;if(pdg.snd)pdg.snd.setMute(true);
+const fs=require('fs'),path=require('path'),http=require('http');pdg.res.openResourceFile(path.join(__dirname,'../data'));pdg.res.setLanguage(process.env.GALACTICA_TEST_LANGUAGE || 'en');pdg.srand(424242);
+const service=require('../src/js/host-games.js').createService(),directory=path.dirname(process.env.GALACTICA_TEST_HOST_INFO);
+const server=http.createServer((req,res)=>{
+ const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'};
+ if(req.method==='OPTIONS'){res.writeHead(204,headers);res.end();return;}
+ if(req.url==='/info'){res.writeHead(200,headers);res.end(JSON.stringify(service.records.map(service.describe)));return;}
+ let body='';req.setEncoding('utf8');req.on('data',chunk=>body+=chunk);req.on('end',async()=>{try{
+  const input=JSON.parse(body),record=service.records.find(r=>service.describe(r).id===input.id);let result;
+  if(req.url==='/create'){
+   if(path.basename(input.file)!==input.file)throw Error('Fixture filename must be a basename');
+   result=service.describe(await service.create(input.options,path.join(directory,input.file),input.listen));
+  }else if(req.url==='/retry' && record)result=service.describe(await service.retry(record,input.port));
+  else if(req.url==='/fail-stop' && record){const original=record.host.persist;let once=true;record.host.persist=function(){if(once){once=false;throw Error('test save failure');}return original.call(this);};result=true;}
+  else if(req.url==='/stop' && record){await service.stop(record);result=true;}
+  else throw Error('Unknown fixture request');
+  res.writeHead(200,headers);res.end(JSON.stringify(result));
+ }catch(error){res.writeHead(400,headers);res.end(JSON.stringify({code:error.code || 'host_save_failed',...(error.record?{record:service.describe(error.record)}:{})}));}});
+});
+server.listen(0,'127.0.0.1',()=>fs.writeFileSync(process.env.GALACTICA_TEST_HOST_INFO,JSON.stringify({url:'http://127.0.0.1:'+server.address().port})));
+process.on('SIGTERM',async()=>{try{await service.closeAll();}finally{server.close();process.exit(0);}});

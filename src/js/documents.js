@@ -2,7 +2,7 @@ const Save=require('./game-save.js'),Files=require('./document-files.js'),Name=r
 class Documents {
     constructor(files,active,install,replace,close=()=>false) {this.files=files;this.active=active;this.install=install;this.replace=replace;this.close=close;this.pendingClose=null;this.dialog=null;this.sequence=0;this.onClosed=()=>{};this.onCanceled=()=>{};this.quitPending=false;}
     menu(){this.dialog={kind:'menu'};return true;}
-    cancel(){if(this.dialog && this.dialog.kind==='busy' && this.dialog.operation==='save')return false;this.pendingClose=null;this.sequence++;this.files.cancelPick();this.dialog=null;this.onCanceled();return true;}
+    cancel(){if(this.dialog && this.dialog.kind==='busy' && ['save','hostStop'].includes(this.dialog.operation))return false;this.pendingClose=null;this.sequence++;this.files.cancelPick();this.dialog=null;this.onCanceled();return true;}
     status(id,...values){this.dialog={kind:'status',message:I18n.formatString(id,'',...values)};return true;}
     beginClose() {
         const session=this.active();if(!session || this.dialog && this.dialog.kind==='busy')return false;
@@ -69,6 +69,7 @@ class Documents {
     }
     action(action) {
         if(action==='cancel' || action==='ack')return this.cancel();
+        if(action==='host')return !!(this.host && this.host());
         if(action==='join')return !!(this.join && this.join());
         if(action==='quit')return !!(this.quit && this.quit());
         if(action==='close')return this.beginClose();
@@ -82,6 +83,7 @@ class Documents {
         const dialog=this.dialog;if(!dialog)return false;
         if(key===pdg.key_Escape)return this.cancel();
         if(dialog.kind==='menu' && (key===81 || key===113))return !!(this.quit && this.quit());
+        if(dialog.kind==='menu' && [72,104].includes(key))return !!(this.host && this.host());
         if(dialog.kind==='menu' && [74,106].includes(key))return !!(this.join && this.join());
         if(dialog.kind==='menu' && (key===87 || key===119))return this.beginClose();
         if(dialog.kind==='editor'){const action=Name.edit(dialog.editor,key);if(action==='submit')this.submit();return true;}
@@ -94,15 +96,15 @@ class Documents {
         const dialogHeight=dialog.kind==='menu'?Math.min(384,height-20):300,rect={x:(width-Math.min(480,width-40))/2,y:(height-dialogHeight)/2,width:Math.min(480,width-40),height:dialogHeight};
         let title=I18n.getString(838),message=dialog.message || '',buttons=[];
         if(dialog.kind==='menu'){
-            const rows=[...(this.join?[['join',1005]]:[]),['save',839],['saveAs',840],['open',841],['revert',842],['close',989],...(this.quit?[['quit',996]]:[]),['cancel',683]];
+            const rows=[...(this.host?[['host',1050]]:[]),...(this.join?[['join',1005]]:[]),['save',839],['saveAs',840],['open',841],['revert',842],['close',989],...(this.quit?[['quit',996]]:[]),['cancel',683]];
             const pitch=Math.min(42,(rect.height-70)/rows.length),buttonHeight=Math.min(32,pitch-6);
-            buttons=rows.map(([action,id],index)=>({action,label:I18n.getString(id),key:action==='join'?'J':action==='close'?'W':action==='quit'?'Q':action==='cancel'?'Esc':null,rect:{x:rect.x+24,y:rect.y+54+index*pitch,width:rect.width-48,height:buttonHeight}}));
+            buttons=rows.map(([action,id],index)=>({action,label:I18n.getString(id),key:action==='host'?'H':action==='join'?'J':action==='close'?'W':action==='quit'?'Q':action==='cancel'?'Esc':null,rect:{x:rect.x+24,y:rect.y+54+index*pitch,width:rect.width-48,height:buttonHeight}}));
         }
         else {
             if(dialog.kind==='close'){title=I18n.getString(this.quitPending?996:989);message=I18n.formatString(this.quitPending?997:990,'',this.pendingClose.game.config.gameTitle);buttons.push({action:'saveClose',label:I18n.getString(991)},{action:'discardClose',label:I18n.getString(992)});}
             if(dialog.kind==='revert'){title=I18n.getString(842);message=I18n.getString(849);buttons.push({action:'confirmRevert',label:I18n.getString(842)});}
             if(dialog.kind==='overwrite'){title=I18n.getString(840);message=I18n.formatString(855,'',dialog.name);buttons.push({action:'confirmOverwrite',label:I18n.getString(839)});}
-            if(dialog.kind!=='busy' || dialog.operation!=='save')buttons.push({action:dialog.kind==='status'?'ack':'cancel',label:I18n.getString(dialog.kind==='status'?834:683)});
+            if(dialog.kind!=='busy' || !['save','hostStop'].includes(dialog.operation))buttons.push({action:dialog.kind==='status'?'ack':'cancel',label:I18n.getString(dialog.kind==='status'?834:683)});
             const gap=8,buttonWidth=(rect.width-48-gap*(buttons.length-1))/Math.max(1,buttons.length);
             buttons=buttons.map((button,index)=>({...button,key:button.action==='saveClose'?'Enter':button.action==='cancel'?'Esc':null,rect:{x:rect.x+24+(dialog.kind==='close'?0:index*(buttonWidth+gap)),y:rect.y+(dialog.kind==='close'?164+index*40:248),width:dialog.kind==='close'?rect.width-48:buttonWidth,height:30}}));
         }

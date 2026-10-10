@@ -733,3 +733,38 @@
 1047	En attente du prochain tour…
 1048	{0} jours
 1049	En pause
+
+# Desktop multiplayer hosting
+1050	Héberger une partie…
+1051	Fichier hôte
+1052	Joueurs humains
+1053	Port (0 = automatique)
+1054	Temps limite par tour
+1055	Finir dès que tous ont envoyé
+1056	Minutes
+1057	Heures
+1058	Jours
+1059	Semaines
+1060	Créer l’hôte
+1061	Création de l’hôte…
+1062	Hébergement : {0}
+1063	Rejoindre cette partie
+1064	Arrêter l’hébergement
+1065	Héberger une autre partie
+1066	L’hébergement nécessite l’application de bureau. Le navigateur peut rejoindre.
+1067	Saisissez joueurs, titre, fichier, port et durée valides.
+1068	Ce fichier hôte existe déjà. Choisissez un autre nom.
+1069	Partie enregistrée, mais serveur non démarré. Réessayez ou changez de port.
+1070	Arrêt de l’hôte…
+1071	{0} places humaines · {1} IA · Tour {2}
+1072	Les autres joueurs utilisent l’adresse de cet ordinateur et le port {0}.
+1073	Impossible d’enregistrer et d’arrêter l’hôte. Réessayez.
+1074	Enregistrement des parties hébergées…
+1075	Réessayer l’hébergement
+1076	Adresse de l’hôte
+1077	Durée
+1078	Niveau de l’IA
+1079	Taille de carte
+1080	Densité
+1081	Aucun serveur actif
+1082	Héberger

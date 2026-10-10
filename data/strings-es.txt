@@ -733,3 +733,38 @@
 1047	Esperando el siguiente turno…
 1048	{0} días
 1049	En pausa
+
+# Desktop multiplayer hosting
+1050	Alojar partida…
+1051	Archivo del anfitrión
+1052	Jugadores humanos
+1053	Puerto (0 = automático)
+1054	Límite de tiempo por turno
+1055	Terminar antes si todos envían
+1056	Minutos
+1057	Horas
+1058	Días
+1059	Semanas
+1060	Crear anfitrión
+1061	Creando anfitrión…
+1062	Alojando: {0}
+1063	Unirse a esta partida
+1064	Dejar de alojar
+1065	Alojar otra partida
+1066	Alojar requiere la aplicación de escritorio. El navegador puede unirse.
+1067	Introduce jugadores, título, archivo, puerto y tiempo válidos.
+1068	Ese archivo ya existe. Elige otro nombre.
+1069	Partida guardada, pero no se inició el servidor. Reintenta o cambia el puerto.
+1070	Deteniendo anfitrión…
+1071	{0} plazas humanas · {1} IA · Turno {2}
+1072	Otros jugadores usan la dirección de este equipo y el puerto {0}.
+1073	No se pudo guardar y detener el anfitrión. Inténtalo de nuevo.
+1074	Guardando partidas alojadas…
+1075	Reintentar alojamiento
+1076	Dirección del anfitrión
+1077	Cantidad
+1078	Nivel de IA
+1079	Tamaño del mapa
+1080	Densidad
+1081	Sin servidor activo
+1082	Alojar

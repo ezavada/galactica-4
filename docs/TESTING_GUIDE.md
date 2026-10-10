@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1467
-Passed: 1467 ✓
+Total: 1476
+Passed: 1476 ✓
 Failed: 0 ✗
 ```
 
@@ -449,3 +449,24 @@ next-turn states. Fixture clock controls exist only in the temporary test host.
 
 The earlier runtime-clock item has since gained this client countdown UI. Host
 setup widgets and remote administration controls remain pending.
+
+
+### Desktop host creation and safe shutdown
+
+```bash
+./gad4 tools/test-host-setup.js
+node tools/test-web-host-setup.cjs BUILD_DIR SCREENSHOT_DIR en
+```
+
+Repeat the browser run in de/es/fr/ja/ru. The native integration checks actual
+exclusive host files, listeners, ordinary authenticated joining, recoverable
+port collisions, save-failure rollback, Stop and shutdown. The browser runner
+uses the shipped shared UI with a test-only adapter to actual native hosts;
+production browsers cannot create listeners and explicitly say so. Actual
+controls cover startup/File Host, independent local documents, all four time
+units and end-early defaults, modal input isolation and persisted dragging,
+real two-human posting/timed turns, Stop, failed-save Quit and successful retry.
+The adapter adds no production remote host-creation or administration endpoint.
+All audio output is muted. Before/after screenshots are under
+`/private/tmp/galactica-parity/host-setup-{before,after}/<language>`.
+Full native suites on both runtimes: 1,476 passed, 0 failed.

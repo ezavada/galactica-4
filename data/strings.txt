@@ -733,3 +733,38 @@
 1047	Awaiting next turn…
 1048	{0} days
 1049	Paused
+
+# Desktop multiplayer hosting
+1050	Host game…
+1051	Host file
+1052	Human players
+1053	Port (0 = automatic)
+1054	Time limit per turn
+1055	End early when everyone posts
+1056	Minutes
+1057	Hours
+1058	Days
+1059	Weeks
+1060	Create host
+1061	Creating host…
+1062	Hosting: {0}
+1063	Join this game
+1064	Stop hosting
+1065	Host another game
+1066	Hosting requires the desktop application. Browsers can join games.
+1067	Enter valid player counts, title, filename, port and time limit.
+1068	That host file already exists. Choose another filename.
+1069	Host saved, but the listener could not start. Retry or use another port.
+1070	Stopping host…
+1071	{0} human slots · {1} AI · Turn {2}
+1072	Other players use this computer’s address and port {0}.
+1073	Could not save and stop hosting. Try again.
+1074	Saving hosted games…
+1075	Retry hosting
+1076	Host address
+1077	Amount
+1078	AI skill
+1079	Map size
+1080	Density
+1081	Not listening
+1082	Host

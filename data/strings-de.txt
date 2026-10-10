@@ -733,3 +733,38 @@
 1047	Warte auf den nächsten Zug…
 1048	{0} Tage
 1049	Pausiert
+
+# Desktop multiplayer hosting
+1050	Spiel hosten…
+1051	Host-Datei
+1052	Menschliche Spieler
+1053	Port (0 = automatisch)
+1054	Zeitlimit pro Runde
+1055	Früh beenden, wenn alle fertig sind
+1056	Minuten
+1057	Stunden
+1058	Tage
+1059	Wochen
+1060	Host erstellen
+1061	Host wird erstellt…
+1062	Hosting: {0}
+1063	Diesem Spiel beitreten
+1064	Hosting beenden
+1065	Weiteres Spiel hosten
+1066	Zum Hosten ist die Desktop-App nötig. Browser können Spielen beitreten.
+1067	Gültige Spielerzahlen, Titel, Datei, Port und Zeitlimit eingeben.
+1068	Diese Host-Datei existiert bereits. Anderen Dateinamen wählen.
+1069	Host gespeichert, aber Start fehlgeschlagen. Erneut versuchen oder Port ändern.
+1070	Hosting wird beendet…
+1071	{0} menschliche Plätze · {1} KI · Runde {2}
+1072	Andere Spieler nutzen die Adresse dieses Computers und Port {0}.
+1073	Hosting konnte nicht gespeichert und beendet werden. Erneut versuchen.
+1074	Gehostete Spiele werden gespeichert…
+1075	Hosting erneut starten
+1076	Host-Adresse
+1077	Dauer
+1078	KI-Stärke
+1079	Kartengröße
+1080	Dichte
+1081	Kein Listener aktiv
+1082	Hosten

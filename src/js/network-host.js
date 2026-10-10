@@ -140,11 +140,11 @@ class NetworkHost {
         });
     }
     async close(){
+        const previous={remainingMs:this.clock.remainingMs,startedAt:this.clock.startedAt};
+        this.clock.stop();try{this.persist();}catch(error){Object.assign(this.clock,previous);throw error;}
         if(this.clockTimer!==null){clearInterval(this.clockTimer);this.clockTimer=null;}
-        this.clock.stop();let saveError;try{this.persist();}catch(error){saveError=error;}
         this.login.disconnectAll();const server=this.server;this.server=null;
         if(server)await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));
-        if(saveError)throw saveError;
     }
 }
 module.exports={NetworkHost,protocol,validate};
