@@ -716,3 +716,13 @@
 1034	Siguiente
 1035	Aún no se pueden guardar partidas de red.
 1036	Abre Archivo → Unirse para reconectar.
+
+# Multiplayer turn posting
+1037	Enviando…
+1038	Enviado
+1039	Reintentar envío
+1040	El host rechazó las órdenes. Revísalas e inténtalo de nuevo.
+1041	El host avanzó a otro turno. Actualiza antes de enviar.
+1042	Este turno ya se ha enviado.
+1043	Esta partida ha terminado.
+1044	Estas órdenes superan el límite de tamaño.

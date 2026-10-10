@@ -716,3 +716,13 @@
 1034	Suivant
 1035	L’enregistrement des parties en réseau n’est pas encore disponible.
 1036	Ouvrez Fichier → Rejoindre pour vous reconnecter.
+
+# Multiplayer turn posting
+1037	Envoi…
+1038	Envoyé
+1039	Réessayer l’envoi
+1040	L’hôte a refusé ces ordres. Vérifiez-les et réessayez.
+1041	L’hôte est passé au tour suivant. Actualisez avant l’envoi.
+1042	Ce tour a déjà été envoyé.
+1043	Cette partie est terminée.
+1044	Ces ordres dépassent la taille maximale.

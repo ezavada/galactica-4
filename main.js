@@ -110,7 +110,7 @@ function refreshNetworkSessions(){
     for(const session of sessions.sessions){const client=session.network;
         if(session.deferredNetworkModel){replaceNetworkModel(session,session.deferredNetworkModel);session.deferredNetworkModel=null;}
         if(client && !client.session && !client.connecting && !session.networkError)session.networkError=I18n.getString(1031);
-        if(!client || !client.session || client.refreshPromise || Date.now()<(session.nextRefresh || 0))continue;
+        if(!client || !client.session || client.postPromise || client.refreshPromise || Date.now()<(session.nextRefresh || 0))continue;
         session.nextRefresh=Date.now()+3000;
         client.refresh().then(model=>{if(sessions.sessions.includes(session)){if(tutorialSession)session.deferredNetworkModel=model;else replaceNetworkModel(session,model);session.networkError=null;}},error=>{if(sessions.sessions.includes(session))session.networkError=require('./src/js/network-join.js').errorText(error);});
     }
@@ -790,6 +790,10 @@ function attachGameServices(nextGame) {
     nextGame.port = port;
     nextGame.manualCommands=userManual;
     nextGame.tutorialCommands={available:()=>!tutorialSession,start:()=>{if(nextGame.uiWindow==='menu')nextGame.uiWindow=null;return beginTutorial();}};
+    if(nextGame.clientPlayerNum)nextGame.networkCommands={post:()=>{
+        const session=sessions.sessions.find(s=>s.game===nextGame);if(!session || !session.network || session.network.postPromise || nextGame.clientTurnPosted)return false;
+        session.network.post().then(model=>{if(sessions.sessions.includes(session)){replaceNetworkModel(session,model);session.networkError=null;}},error=>{if(sessions.sessions.includes(session))session.networkError=require('./src/js/network-join.js').errorText(error);});return true;
+    },status:()=>{const session=sessions.sessions.find(s=>s.game===nextGame),client=session && session.network;return nextGame.clientTurnPosted?1038:client && client.postPromise?1037:client && client.pendingPost?1039:null;}};
     nextGame.fileCommands={quit:()=>quitDocuments.request(),menu:()=>{clearSessionInput();return documents.menu();}};
     nextGame.sessionCommands={begin:beginNewGame,rows:()=>sessions.rows(),select:switchGameSession};
 }
@@ -952,7 +956,7 @@ const drawHandler = new pdg.IEventHandler(function(event) {
         drawStartupControlHelp();
     }
     const active=sessions.active;if(active && active.networkError){
-        const area=port.getDrawingArea(),message=active.networkError+' '+I18n.getString(1036);
+        const area=port.getDrawingArea(),message=active.networkError+(active.network && (active.network.status==='connection_lost' || !active.network.session)?' '+I18n.getString(1036):'');
         const attrs=startupStyles.networkStatus || (startupStyles.networkStatus=createStartupAttributes({fillColor:new pdg.Color(.92,.92,.92,1)}));
         let size=12;while(size>9 && port.getTextWidth(message,size)>area.width()-40)size--;
         port.drawRect(new pdg.Rect(0,area.height()-38,area.width(),area.height()),startupStyles.background);

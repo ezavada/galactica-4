@@ -4,6 +4,7 @@
 // Uses PDG's built-in pdg.srand() and pdg.rand() for deterministic testing
 
 const test = require('./test-framework.js');
+const runPlayerOrdersTests=require('./player-orders.test.js');
 const runNetworkJoinTests=require('./network-join.test.js');
 const runNetworkClientTests=require('./network-client.test.js');
 const runClientStateTests=require('./client-state.test.js');
@@ -278,6 +279,7 @@ runNetworkHostTests();
 runHostLoginTests();
 runHostViewTests();
 runClientStateTests();
+runPlayerOrdersTests();
 runNetworkJoinTests();
 runNetworkClientTests();
     runMapDisplayModeTests();

@@ -716,3 +716,13 @@
 1034	Next
 1035	Saving joined network games is not yet available.
 1036	Open File → Join to reconnect.
+
+# Multiplayer turn posting
+1037	Posting…
+1038	Posted
+1039	Retry posting
+1040	The host rejected these orders. Review them and try again.
+1041	The host has advanced to another turn. Refresh before posting.
+1042	This turn is already posted.
+1043	This game is complete.
+1044	These orders exceed the size limit.

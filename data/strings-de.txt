@@ -716,3 +716,13 @@
 1034	Weiter
 1035	Netzwerkspiele können noch nicht gespeichert werden.
 1036	Zum Wiederverbinden Datei → Beitreten öffnen.
+
+# Multiplayer turn posting
+1037	Wird übermittelt…
+1038	Übermittelt
+1039	Erneut übermitteln
+1040	Der Host hat die Befehle abgelehnt. Prüfen und erneut versuchen.
+1041	Der Host hat die nächste Runde begonnen. Vor dem Übermitteln aktualisieren.
+1042	Diese Runde wurde bereits übermittelt.
+1043	Dieses Spiel ist beendet.
+1044	Diese Befehle überschreiten die Größenbegrenzung.

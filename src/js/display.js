@@ -1488,7 +1488,7 @@ class Display {
             { key: 'L', label: this.STR.fleets, window: 'fleets', action: { type: 'toggleWindow', window: 'fleets' } },
             { key: 'U', label: this.STR.rendezvous, action: { type: 'beginRendezvousPlacement' } },
             { key: 'Tab', label: I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`, action: { type: 'nextAttention' } },
-            { key: 'Enter', label: this.STR.endTurn, action: { type: 'endTurn' } },
+            { key: 'Enter', label: this.game.networkCommands && this.game.networkCommands.status()?I18n.getString(this.game.networkCommands.status()):this.STR.endTurn, action: { type: 'endTurn' } },
             { key: '-',icon:'zoom-out',label:I18n.getString(788,'Zoom out'),action:{type:'zoomOut'} },
             { key: '+',icon:'zoom-in',label:I18n.getString(787,'Zoom in'),action:{type:'zoomIn'} },
             { key: 'Home', icon:'home', label: this.STR.home, action: { type: 'selectHomeStar' } },

@@ -99,9 +99,13 @@ enter your name and optional password. Select a claimed player to rejoin.
 Joined and local games remain available through **Open Games**. A joined game
 refreshes automatically; rejoining the same player reuses its document.
 
-Multiplayer remains incomplete: the host setup UI, order posting, timers,
-chat and network-game saving are still being ported. Client End Turn does not
-submit orders yet. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
+End Turn submits your orders to the host, locks the posted turn, and waits for
+the other living human players. When everyone posts an untimed turn, the host
+resolves it and the client refreshes automatically. Retry posting resends the
+same submission after a connection failure.
+
+Multiplayer remains incomplete: host setup UI, discovery, timers, chat and
+network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
 
@@ -110,7 +114,7 @@ submit orders yet. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1438 passed, 0 failed.
+Current expected result: 1450 passed, 0 failed.
 
 AI-only parity observer:
 

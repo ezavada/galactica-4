@@ -381,7 +381,7 @@ class Game {
             return false; // Unowned or invalid entity
         }
         
-        if(this.clientPlayerNum)return entity.owner===this.clientPlayerNum && !this.clientTurnPosted;
+        if(this.clientPlayerNum)return entity.owner===this.clientPlayerNum && !this.clientTurnPosted && !this.clientPosting;
         // Human players are numbered 1 to numHumans
         return entity.owner > 0 && entity.owner <= this.config.numHumans;
     }
@@ -697,6 +697,7 @@ class Game {
     }
 
     beginRendezvousPlacement(rendezvous = null) {
+        if(this.clientPlayerNum && (this.clientTurnPosted || this.clientPosting))return false;
         const owner = this.getCurrentHumanPlayer();
         if (!owner) {
             return false;
@@ -725,6 +726,7 @@ class Game {
     }
 
     createRendezvousAt(x, y, owner = this.getCurrentHumanPlayer(), name = null, anchor = null) {
+        if(this.clientPlayerNum && (this.clientTurnPosted || this.clientPosting))return null;
         if (!owner) {
             return null;
         }
@@ -1606,6 +1608,7 @@ class Game {
     }
 
     saveColonyDefaults() {
+        if(this.clientPlayerNum && (this.clientTurnPosted || this.clientPosting))return false;
         const draft = this.colonyDefaultsDraft;
         const player = draft && this.players[draft.playerNum];
         if (!player || !player.isHuman) return false;
@@ -2584,6 +2587,7 @@ class Game {
     }
 
     requestEndTurn() {
+        if(this.clientPlayerNum && this.clientTurnPosted)return false;
         if(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag || this.uiWindowDrag || this.mapSelectionPicker)return false;
         if(this.attention.pending().length || this.hasEventPresentation()) {this.uiWindow='endTurnConfirm';return false;}
         this.endTurn();return true;
@@ -3074,7 +3078,7 @@ class Game {
 
     endTurn() {
         // Client turns are resolved by the host after order submission.
-        if(this.clientPlayerNum)return false;
+        if(this.clientPlayerNum)return this.networkCommands?this.networkCommands.post():false;
         if (this.isGameOver) {
             console.log(`Game already complete on turn ${this.victoryTurn}`);
             return this.getGameResult();

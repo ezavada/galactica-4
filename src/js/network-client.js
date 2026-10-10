@@ -43,7 +43,7 @@ function preservePresentation(old,fresh){
 class NetworkClient {
  constructor(address,{timeout=8000,request=HTTP.request}={}){
   this.address=normalizeAddress(address);if(!Number.isInteger(timeout) || timeout<1 || timeout>60000)throw fail('invalid_network_timeout');
-  this.timeout=timeout;this.request=request;this.session=null;this.identity=null;this.model=null;this.status='idle';this.connecting=false;this.generation=0;this.pending=new Set();this.refreshPromise=null;
+  this.timeout=timeout;this.request=request;this.session=null;this.identity=null;this.model=null;this.status='idle';this.connecting=false;this.generation=0;this.pending=new Set();this.refreshPromise=null;this.postPromise=null;this.pendingPost=null;
  }
  get connected(){return this.status==='connected' && !!this.session;}
  descriptor(){return this.identity?{address:this.address,...this.identity}:null;}
@@ -54,6 +54,7 @@ class NetworkClient {
  async inspect(){return validateInfo(await this.send('/info'));}
  install(fresh,{discardOrders=false}={}){
   const old=this.model;
+  if(this.pendingPost && (fresh.turn!==this.pendingPost.turn || fresh.clientTurnPosted)){this.pendingPost=null;fresh.clientPosting=false;}
   if(old && old.clientGameId===fresh.clientGameId && old.clientPlayerNum===fresh.clientPlayerNum){
    if(fresh.turn<old.turn)throw fail('stale_server_state');
    if(fresh.turn===old.turn && fresh.clientTurnPosted===old.clientTurnPosted && fresh.isGameOver===old.isGameOver && !discardOrders){
@@ -86,8 +87,40 @@ class NetworkClient {
    if(generation===this.generation)this.status='connection_lost';throw error;
   }finally{if(generation===this.generation)this.connecting=false;}
  }
+ post(){
+  if(this.postPromise)return this.postPromise;if(!this.session || !this.model)return Promise.reject(fail('not_logged_in'));
+  if(this.model.clientTurnPosted)return Promise.reject(fail('already_posted'));
+  const generation=this.generation,session=this.session;this.model.clientPosting=true;
+  const operation=(async()=>{
+   try{
+    if(this.refreshPromise)await this.refreshPromise;
+    if(generation!==this.generation || session!==this.session)throw fail('network_cancelled');
+    if(!this.pendingPost){
+     let id;if(typeof window!=='undefined'){const bytes=new Uint8Array(16);window.crypto.getRandomValues(bytes);id=Array.from(bytes,n=>n.toString(16).padStart(2,'0')).join('');}else id=require('crypto').randomBytes(16).toString('hex');
+     this.pendingPost=require('./player-orders.js').snapshot(this.model,id);
+    }
+    this.model.clientPosting=true;
+    const data=await this.send('/orders',{method:'POST',token:session.token,body:this.pendingPost});
+    if(generation!==this.generation || session!==this.session)throw fail('network_cancelled');
+    const fresh=this.state(data,session),created=this.pendingPost.entities.filter(row=>row.created),ids=data.orderIds;
+    if(fresh.turn<this.pendingPost.turn || fresh.turn===this.pendingPost.turn && !fresh.clientTurnPosted)throw fail('network_bad_response');
+    if(!Array.isArray(ids) || ids.length!==created.length)throw fail('network_bad_response');
+    const seen=new Set(),assigned=new Set();for(const row of ids){const match=created.find(e=>e.kind===row.kind && e.id===row.tempId);if(!match || !Number.isSafeInteger(row.id) || row.id<1 || seen.has(row.kind+':'+row.tempId) || assigned.has(row.kind+':'+row.id))throw fail('network_bad_response');seen.add(row.kind+':'+row.tempId);assigned.add(row.kind+':'+row.id);}
+    const remaps=ids.map(row=>{const lists={fleet:'allFleets',rendezvous:'allRendezvous'};return {row,entity:this.model[lists[row.kind]].find(e=>e.owner===this.model.clientPlayerNum && e.id===row.tempId)};});
+    for(const {row,entity} of remaps)if(entity)entity.id=row.id;
+    this.pendingPost=null;this.model.clientPosting=false;this.status='connected';return this.install(fresh,{discardOrders:true});
+   }catch(error){
+    if(generation===this.generation && session===this.session){
+     if(['bad_orders','orders_too_large','wrong_game'].includes(error.code)){this.pendingPost=null;this.model.clientPosting=false;}
+     else if(['wrong_turn','already_posted','game_complete'].includes(error.code)){this.pendingPost=null;this.model.clientPosting=false;}
+     else{if(!this.pendingPost && this.model)this.model.clientPosting=false;this.status='connection_lost';if(error.code==='not_logged_in')this.session=null;}
+    }throw error;
+   }
+  })();
+  this.postPromise=operation;operation.then(()=>{if(this.postPromise===operation)this.postPromise=null;},()=>{if(this.postPromise===operation)this.postPromise=null;});return operation;
+ }
  refresh(options={}){
-  if(!this.session)return Promise.reject(fail('not_logged_in'));if(this.refreshPromise)return this.refreshPromise;
+  if(!this.session)return Promise.reject(fail('not_logged_in'));if(this.postPromise)return this.postPromise;if(this.refreshPromise)return this.refreshPromise;
   const generation=this.generation,session=this.session;
   const operation=(async()=>{
    try{const fresh=this.state(await this.send('/state',{token:session.token}),session);

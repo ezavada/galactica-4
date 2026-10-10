@@ -371,7 +371,7 @@ class Star {
         this.currentShip = { type: shipType, techLevel: this.techLevel, progress: 0 };
         this.currentShip.cost = this.game.rules.getShipBuildCost(this.currentShip, this);
         this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / this.currentShip.cost * 100);
-        if (commissionCredit) this.commissionPaidHulls();
+        if (commissionCredit && !this.game.clientPlayerNum) this.commissionPaidHulls();
         return true;
     }
 

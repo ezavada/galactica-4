@@ -1,4 +1,4 @@
-// Normal games keep PDG's RNG. Tutorials own a serializable portable stream.
+// Local games keep PDG's RNG. Tutorials and network hosts own a serializable portable stream.
 const algorithm='park-miller-16807',modulus=2147483647;
 function valid(stream){
     return !!stream && stream.algorithm===algorithm && Number.isInteger(stream.state) &&

@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1438
-Passed: 1438 ✓
+Total: 1450
+Passed: 1450 ✓
 Failed: 0 ✗
 ```
 
@@ -34,6 +34,7 @@ is tested separately under the PDG runtime:
 ./gad4 tools/test-network-host.js
 ./gad4 tools/test-network-client.js
 ./gad4 tools/test-network-join.js
+./gad4 tools/test-network-orders.js
 ```
 
 These scripts create temporary localhost hosts and documents, check admission,
@@ -63,8 +64,7 @@ node tools/test-web-network-join.cjs /path/to/web-build /tmp/join-shots en
 
 Repeat for the other five languages. Chrome uses `--mute-audio` and all native
 network helpers mute the output bus. These checks preserve sound logic and do
-not change gameplay sound preferences. Network-game saving and order posting
-remain unfinished; Save currently reports the localized unsupported-operation
+not change gameplay sound preferences. Network-game saving remains unfinished; Save currently reports the localized unsupported-operation
 message rather than serializing a partial client as a full local galaxy.
 
 ## Test runner
@@ -391,3 +391,26 @@ creates owner-private Events narratives; roster/Events selection and Go to are
 verified without another turn or a modal report. `tests/callin-reports.test.js`
 checks real turn delivery, ship/fleet distinction, system/fixed-point locations,
 snapshots, privacy including another human owner, complete saves and lost focus.
+
+
+## Actual multiplayer End Turn controls
+
+```bash
+node tools/test-web-network-orders.cjs /path/to/web-build /tmp/posting-shots en
+```
+
+Repeat for `de`, `es`, `fr`, `ja`, and `ru`. This starts a temporary native host,
+joins using the actual localized form, changes a production target using the
+actual slider, posts through the actual End Turn button, checks the localized
+Posted label and edit locks, and posts the second authenticated human through
+the same browser transport. It verifies authoritative next-turn refresh and
+unlocking, preserves a retained local game, and captures before/posting/posted/
+next-turn screenshots. All automated audio output stays muted.
+
+`tools/test-network-orders.js` separately awaits real HTTP posting, duplicate
+click single-flight behavior, temporary/permanent ID remaps (including overlap),
+server commits followed by lost replies, immutable receipt retries, tampered
+and unauthenticated request rejection, host reopen receipts, and logout cleanup.
+Unit cases cover all decision families, marker deletion, cyclic memberships,
+hidden/self targets, host-only commissioning, patrol/scrap decisions, unassigned
+slots, timed endEarly gating, disk-failure rollback and isolated host randomness.

@@ -110,6 +110,7 @@ function restore(input){
  for(const {row,entity:e} of byId.values()){lists[row.kind].push(e);game.spatialPartition.addEntity(e,Common.SpatialConstants[row.kind==='ship' && e.type==='defense'?'ENTITY_TYPE_DEFENSE':spatial[row.kind]]);}
  for(const event of game.eventLog)if(!event.handled)game.attention.requestEvent(event);
  for(const row of records)types[row.kind].nextId=Math.max(types[row.kind].nextId,row.id+1);
+ game.clientOrderBase=require('./player-orders.js').baseline(game);
  return game;
 }
 module.exports={restore};
