@@ -308,3 +308,19 @@
 723	Satelliten:
 724	Schiffsabwehr:
 725	S-{0}
+
+# Waypoint course editor
+726	Kurs
+727	Kurs: {0}
+728	Keine Wegpunkte
+729	Hinzufügen
+730	Bearbeiten
+731	Löschen
+732	Kurs löschen
+733	Wiederholen
+734	Ziel anklicken; Esc bricht ab
+735	Runden
+736	Wegpunkt
+737	Abschnitt
+738	Verbleibend
+739	Kurs für {0} aktualisiert

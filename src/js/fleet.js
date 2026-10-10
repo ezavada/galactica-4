@@ -3,9 +3,16 @@
 // Ported from original C++ CFleet class
 
 const Common = require('./common.js');
+const Course = require('./course.js');
 const I18n = require('./i18n.js');
 
 class Fleet {
+    get destination() { return this.course ? this.course.destination : null; }
+    set destination(target) {
+        if (!this.course) this.course=new Course(this);
+        this.course.replace(target);
+    }
+
     constructor(x, y, game, owner, name = null) {
         this.id = Fleet.nextId++; // Unique ID for this fleet
         this.x = x;
@@ -300,7 +307,8 @@ class Fleet {
     
     // Move the fleet one turn
     move() {
-        if (!this.destination || this.remainingDistance <= 0) {
+        if (this.destination) this.calculateMovement();
+        if (!this.destination || this.totalSpeed <= 0) {
             console.log(`⏸️ FLEET NOT MOVING: fleet (ID: ${this.id}, ships: ${this.ships.length}) - Destination: ${this.destination ? 'set' : 'none'}`);
             return false;
         }
@@ -365,6 +373,7 @@ class Fleet {
         
         const arrivingObjectType = this.game.getObjectType(this.destination);
         const arrivingDestination = this.destination;
+        const revision = this.course.revision;
         
         if (arrivingObjectType === Common.ObjectType.SHIP) {
             // Fleet arrived at a ship - check if they can form a fleet
@@ -422,7 +431,7 @@ class Fleet {
             console.log(`Fleet ${this.id} arrived at destination`);
         }
         
-        this.destination = null;
+        if (!this.isEmpty() && (!this.game.allFleets || this.game.allFleets.includes(this))) this.course.advance(revision);
         this.progress = 0;
     }
     

@@ -308,3 +308,19 @@
 723	Satellites:
 724	Ship defense:
 725	S-{0}
+
+# Waypoint course editor
+726	Course
+727	Course: {0}
+728	No waypoints
+729	Add
+730	Edit
+731	Delete
+732	Clear course
+733	Loop
+734	Click a destination; Esc cancels
+735	Turns
+736	Waypoint
+737	Leg
+738	Remaining
+739	Course updated for {0}

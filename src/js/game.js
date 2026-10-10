@@ -32,6 +32,10 @@ class Game {
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
         this.pendingMapOrderObject = null;
+        this.pendingCourseEdit = null;
+        this.courseWindowObject = null;
+        this.courseSelection = null;
+        this.coursePage = 0;
         this.uiSliderDrag = null;
         this.colonyDefaultsDraft = null;
         this.systemShipWindowStar = null;
@@ -720,17 +724,14 @@ class Game {
                 changed = true;
             }
         }
-        for (const ship of this.allShips || []) {
-            if (ship.destination === destination) {
-                ship.destination = null;
-                changed = true;
-            }
-        }
-        for (const fleet of this.allFleets || []) {
-            if (fleet.destination === destination) {
-                fleet.setDestination(null);
-                changed = true;
-            }
+        for (const object of [...this.allShips || [],...this.allFleets || []]) {
+            if (object.course) {
+                for (let index=object.course.waypoints.length-1;index>=0;index--) {
+                    if (object.course.waypoints[index].target===destination) {
+                        object.course.delete(index);changed=true;
+                    }
+                }
+            } else if (object.destination===destination) { object.destination=null;changed=true; }
         }
         return changed;
     }
@@ -1150,6 +1151,15 @@ class Game {
             return true;
         }
 
+        if (this.uiWindow==='course') {
+            if (lower==='a') this.beginCourseEdit(false);
+            else if (lower==='e') this.beginCourseEdit(true);
+            else if (key===127 || key===8 || lower==='d') this.executeUIAction({type:'deleteWaypoint'});
+            else if (lower==='x') this.clearOrders(this.courseWindowObject);
+            else if (lower==='l') this.executeUIAction({type:'toggleCourseLoop'});
+            return true;
+        }
+
         if (this.uiWindow === 'systemComparison') {
             if (key === 13 || key === 3) this.openSystemComparisonSelection();
             return true;
@@ -1383,6 +1393,56 @@ class Game {
         return rows;
     }
 
+    canViewCourse(object) {
+        const type = this.getObjectType(object);
+        return !!object && [Common.ObjectType.SHIP,Common.ObjectType.FLEET].includes(type) &&
+            (this.config.omniscient || object.isAllyOf(this.getCurrentHumanPlayer()));
+    }
+
+    canEditCourse(object) {
+        return !!object && this.canHumanControl(object) && this.canViewCourse(object) &&
+            (this.factory.isFleet(object) ? this.allFleets.includes(object) && !object.isEmpty()
+                : this.allShips.includes(object) && !object.isDead() && !object.underConstruction() && !object.fleet && object.type!=='defense');
+    }
+
+    getCourseRows(object=this.courseWindowObject) {
+        if (!this.canViewCourse(object) || !object.course) return [];
+        const course=object.course, speed=this.factory.isFleet(object)?object.totalSpeed:object.speed;
+        return course.waypoints.map((waypoint,index)=>{
+            const target=course.resolve(waypoint);
+            const previous=index?course.resolve(course.waypoints[index-1]):course.loop && course.waypoints.length>1
+                ?course.resolve(course.waypoints[course.waypoints.length-1]):object;
+            const turns=(from)=>speed?Math.trunc(Math.hypot(target.x-from.x,target.y-from.y)/speed)+1:null;
+            return {index,target,current:index===course.current,origin:course.hasOrigin && index===0,
+                turns:course.hasOrigin && !course.loop && index===0?null:turns(previous),
+                remaining:index===course.current?turns(object):null};
+        });
+    }
+
+    showCourse(object=this.selectedObject) {
+        if (!this.canViewCourse(object)) return false;
+        this.courseWindowObject=object;this.courseSelection=null;this.coursePage=0;this.uiWindow='course';return true;
+    }
+
+    beginCourseEdit(replace=false) {
+        const object=this.courseWindowObject;
+        if (!this.canEditCourse(object)) return false;
+        const index=this.courseSelection;
+        if (replace && (index===null || !object.course.waypoints[index])) return false;
+        this.pendingCourseEdit={object,index,replace,revision:object.course.revision};
+        this.pendingMapOrderObject=object;this.uiWindow=null;return true;
+    }
+
+    issuePlayerWaypoint(object,target,index=null,replace=false) {
+        if (!this.canHumanControl(object) || !object.course || !target) return false;
+        if (object.type==='defense') return false;
+        const changed=replace?object.course.edit(index,target):object.course.addPlayerWaypoint(target,index);
+        if (!changed) return false;
+        object.setPatrol(false);
+        this.recordEvent(I18n.getString(604,'Orders'),I18n.formatString(739,'Course updated for {0}',this.getObjectDisplayName(object)),{type:'ui'});
+        return true;
+    }
+
     isAwaitingMapTarget() {
         return !!this.pendingMapOrderObject;
     }
@@ -1401,6 +1461,7 @@ class Game {
             return true;
         }
 
+        this.pendingCourseEdit = null;
         this.pendingMapOrderObject = object;
         this.setSelectedObject(object);
         this.recordEvent(
@@ -1530,6 +1591,23 @@ class Game {
                 action.object.clearDefaultDestination();
                 if (this.pendingMapOrderObject === action.object) this.pendingMapOrderObject = null;
                 return true;
+            case 'showCourse': return this.showCourse(action.object);
+            case 'selectWaypoint':
+                if (!this.getCourseRows().some(row=>row.index===action.index)) return false;
+                this.courseSelection=this.courseSelection===action.index?null:action.index;return true;
+            case 'addWaypoint': return this.beginCourseEdit(false);
+            case 'editWaypoint': return this.beginCourseEdit(true);
+            case 'deleteWaypoint':
+                if (!this.canEditCourse(this.courseWindowObject) || this.courseSelection===null) return false;
+                if (!this.courseWindowObject.course.delete(this.courseSelection)) return false;
+                this.courseSelection=null;return true;
+            case 'coursePage':
+                if (!Number.isInteger(action.page)||action.page<0)return false;
+                this.coursePage=action.page;return true;
+            case 'toggleCourseLoop':
+                if (!this.canEditCourse(this.courseWindowObject)) return false;
+                this.courseWindowObject.course.loop=!this.courseWindowObject.course.loop;
+                this.courseWindowObject.course.changed();return true;
             case 'clearOrders':
                 return this.clearOrders(action.object);
             case 'togglePatrol':
@@ -1654,7 +1732,9 @@ class Game {
         if (objectType !== Common.ObjectType.SHIP && objectType !== Common.ObjectType.FLEET) {
             return false;
         }
-        if (object.setDestination) {
+        if (object.course) {
+            object.course.clear();
+        } else if (object.setDestination) {
             object.setDestination(null);
         } else {
             object.destination = null;
@@ -1696,10 +1776,17 @@ class Game {
         }
 
         if (this.pendingMapOrderObject) {
-            const orderObject = this.pendingMapOrderObject;
-            this.pendingMapOrderObject = null;
+            const orderObject=this.pendingMapOrderObject, edit=this.pendingCourseEdit;
+            this.pendingMapOrderObject=null;this.pendingCourseEdit=null;
             this.setSelectedObject(orderObject);
-            return this.handleMouseRightClick(x, y);
+            if (edit) {
+                if (this.canEditCourse(orderObject) && edit.revision===orderObject.course.revision) {
+                    const target=this.findObjectAtPosition(x,y) || {x:this.display.toGalacticX(x),y:this.display.toGalacticY(y)};
+                    this.issuePlayerWaypoint(orderObject,target,edit.index,edit.replace);
+                }
+                this.uiWindow='course';return true;
+            }
+            return this.handleMouseRightClick(x,y);
         }
 
         // Left click - select object to view information
@@ -1760,7 +1847,7 @@ class Game {
             
             // Set destination - either to an object or to coordinates
             if (clickedObject) {
-                this.selectedObject.setDestination(clickedObject);
+                this.issuePlayerWaypoint(this.selectedObject,clickedObject);
                 const clickedObjectType = this.getObjectType(clickedObject);
                 let destinationName;
                 destinationName = this.getObjectDisplayName(clickedObject);
@@ -1768,7 +1855,7 @@ class Game {
                 console.log(`Set destination of ${selectedObjectName} to ${destinationName}`);
             } else {
                 // Right-clicking on empty space - give ship/fleet a destination (in galactic coordinates)
-                this.selectedObject.setDestination({x: galacticX, y: galacticY});
+                this.issuePlayerWaypoint(this.selectedObject,{x:galacticX,y:galacticY});
                 const selectedObjectName = this.getObjectDisplayName(this.selectedObject);
                 console.log(`Set destination of ${selectedObjectName} to galactic (${galacticX.toFixed(0)}, ${galacticY.toFixed(0)})`);
             }
@@ -1885,7 +1972,8 @@ class Game {
         }
 
         if (key === pdg.key_Escape && this.pendingMapOrderObject) {
-            this.pendingMapOrderObject = null;
+            this.pendingMapOrderObject=null;
+            if (this.pendingCourseEdit) { this.pendingCourseEdit=null;this.uiWindow='course'; }
             return true;
         }
 
@@ -2010,6 +2098,8 @@ class Game {
 
     handleShipKeyPress(ship, key) {
         switch (String.fromCharCode(key).toLowerCase()) {
+            case 'g': return this.showCourse(ship);
+            case 'a': this.showCourse(ship);return this.beginCourseEdit();
             case 'n':
                 return this.beginRenameObject(ship);
             case 'o':
@@ -2025,6 +2115,8 @@ class Game {
 
     handleFleetKeyPress(fleet, key) {
         switch (String.fromCharCode(key).toLowerCase()) {
+            case 'g': return this.showCourse(fleet);
+            case 'a': this.showCourse(fleet);return this.beginCourseEdit();
             case 'o':
                 return this.beginMapOrder(fleet);
             case 'x':

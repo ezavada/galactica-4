@@ -768,12 +768,7 @@ class Display {
         }
 
         // Draw destination line (convert destination to screen coordinates)
-        if (ship.destination && (this.game.config.omniscient ||
-                this.game.isOwnerAlliedWith(this.game.getCurrentHumanPlayer() || 1, ship.owner))) {
-            const destX = this.toScreenX(ship.destination.x);
-            const destY = this.toScreenY(ship.destination.y);
-            this.port.drawLine(new pdg.Point(x, y), new pdg.Point(destX, destY), this.styles.shipDestinationLine);
-        }
+        this.drawCourseLines(ship,x,y,this.styles.shipDestinationLine);
 
         // Draw selection indicator
         if (ship === this.selectedObject) {
@@ -880,11 +875,7 @@ class Display {
         }
         
         // Draw destination line (convert destination to screen coordinates)
-        if (fleet.destination) {
-            const destX = this.toScreenX(fleet.destination.x);
-            const destY = this.toScreenY(fleet.destination.y);
-            this.port.drawLine(new pdg.Point(x, y), new pdg.Point(destX, destY), this.styles.fleetDestinationLine);
-        }
+        this.drawCourseLines(fleet,x,y,this.styles.fleetDestinationLine);
 
         // Draw selection indicator
         if (fleet === this.selectedObject) {
@@ -1325,6 +1316,7 @@ class Display {
                         { key: 'U', label: this.STR.rendezvous, action: { type: 'createRendezvous' } });
                 }
             }
+            if (this.game.canViewCourse(object)) actions.push({key:'G',label:I18n.getString(726,'Course'),action:{type:'showCourse'}});
             actions.push(
                 { key: 'C', label: this.STR.center, action: { type: 'centerObject' } },
                 { key: 'V', label: this.STR.compare, action: { type: 'toggleWindow', window: 'comparison' } }
@@ -1470,6 +1462,7 @@ class Display {
     }
 
     getSelectedObjectPanelRect(object) {
+        if(this.game.pendingCourseEdit)return null;
         const objectType = this.game.getObjectType(object);
         if (objectType === Common.ObjectType.STAR) {
             return this.getStarDetailsLayout(object).rect;
@@ -1579,6 +1572,41 @@ class Display {
             label:I18n.getString(682,'Save'),action:{type:'saveColonyDefaults'}},
             {rect:{x:rect.x+rect.width/2+7,y:rect.y+266,width:rect.width/2-21,height:28},
             label:I18n.getString(683,'Cancel'),action:{type:'cancelColonyDefaults'}});
+        return regions;
+    }
+
+    getCourseWindowLayout() {
+        const screen=this.getScreenSize(),width=Math.min(620,screen.width-40);
+        const rows=this.game.getCourseRows(),pageSize=Math.max(1,Math.min(9,Math.floor((screen.height-270)/26)));
+        const pages=Math.max(1,Math.ceil(rows.length/pageSize)),page=Math.min(this.game.coursePage,pages-1);
+        const visibleRows=rows.slice(page*pageSize,(page+1)*pageSize);
+        const rect=this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:194+Math.max(1,visibleRows.length)*26});
+        return {rect,rows,page,pages,visibleRows,pageSize};
+    }
+
+    getCourseActionRegions() {
+        if(this.game.uiWindow!=='course')return [];
+        const layout=this.getCourseWindowLayout(),r=layout.rect,object=this.game.courseWindowObject;
+        const regions=layout.visibleRows.map((row,index)=>({rect:{x:r.x+14,y:r.y+66+index*26,width:r.width-28,height:24},
+            action:{type:'selectWaypoint',index:row.index}}));
+        const selection=this.game.courseSelection;
+        if(this.game.canEditCourse(object)) {
+            const definitions=[['addWaypoint',729,'Add','A'],['editWaypoint',730,'Edit','E'],
+                ['deleteWaypoint',731,'Delete','D'],['clearOrders',732,'Clear course','X']];
+            definitions.forEach(([type,id,fallback,key],index)=> {
+                if(['editWaypoint','deleteWaypoint'].includes(type) && !object.course.waypoints[selection])return;
+                if(type==='clearOrders' && !object.course.waypoints.length)return;
+                const width=(r.width-28)/4;
+                regions.push({rect:{x:r.x+14+index*width,y:r.y+r.height-96,width:width-5,height:26},
+                    label:I18n.getString(id,fallback),key,action:{type,object}});
+            });
+            regions.push({rect:{x:r.x+14,y:r.y+r.height-64,width:190,height:24},label:I18n.getString(733,'Loop'),
+                key:'L',active:object.course.loop,action:{type:'toggleCourseLoop'}});
+        }
+        if(layout.page>0)regions.push({rect:{x:r.x+14,y:r.y+r.height-32,width:130,height:22},
+            label:I18n.getString(690,'Previous'),action:{type:'coursePage',page:layout.page-1}});
+        if(layout.page<layout.pages-1)regions.push({rect:{x:r.x+r.width-144,y:r.y+r.height-32,width:130,height:22},
+            label:I18n.getString(691,'Next'),action:{type:'coursePage',page:layout.page+1}});
         return regions;
     }
 
@@ -1702,6 +1730,7 @@ class Display {
                 return this.getSystemShipWindowLayout().rect;
             case 'systemComparison':
                 return this.getSystemComparisonLayout().rect;
+            case 'course': return this.getCourseWindowLayout().rect;
             case 'rename':
                 return this.getRenameWindowRect();
             default:
@@ -1897,6 +1926,7 @@ class Display {
             if(slider) return {type:'setColonyDefaultAllocation',key:slider.key,
                 value:Math.round(this.clamp((x-slider.rect.x)/slider.rect.width,0,1)*1000)};
         }
+        if (this.game.uiWindow === 'course') controls = this.getCourseActionRegions();
         if (this.game.uiWindow === 'systemComparison') controls = this.getSystemComparisonActionRegions();
         if (this.game.uiWindow === 'systemShips') controls = this.getSystemShipActionRegions();
         if (this.game.uiWindow === 'rename') controls = this.getRenameActionRegions();
@@ -1914,6 +1944,11 @@ class Display {
     }
 
     getUIActionAt(x, y) {
+        if(this.game.pendingCourseEdit) {
+            const screen=this.getScreenSize(),hint={x:20,y:78,width:screen.width-40,height:40};
+            if(this.containsPoint(hint,x,y) || this.getMapButtonRegions().some(button=>this.containsPoint(button.rect,x,y)))return {type:'consume'};
+            return null;
+        }
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
@@ -2511,6 +2546,63 @@ class Display {
         this.getColonyDefaultActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,null,{active:region.active}));
     }
 
+    getCourseWaypointDescription(target) {
+        const type=this.game.getObjectType(target),player=this.game.getCurrentHumanPlayer();
+        if(type===Common.ObjectType.SHIP || type===Common.ObjectType.FLEET) {
+            const named=this.game.config.omniscient || target.isAllyOf(player) ||
+                target.getVisibilityTo(player)>=Common.VisibilityLevel.CLASS;
+            if(type===Common.ObjectType.FLEET) {
+                const name=named?this.game.getObjectDisplayName(target):String(target.id);
+                const prefix=I18n.formatString(560,'Fleet {0}','').trim();
+                return name.startsWith(prefix+' ')?name:I18n.formatString(560,'Fleet {0}',name);
+            }
+            const name=named?this.game.getObjectDisplayName(target):String(target.id);
+            return name.startsWith(this.STR.ship+' ')?name:`${this.STR.ship} ${name}`;
+        }
+        return this.getSpacePointDescription(target);
+    }
+
+    drawCourseWindow() {
+        const layout=this.getCourseWindowLayout(),r=layout.rect,object=this.game.courseWindowObject;
+        const title=I18n.formatString(727,'Course: {0}',object?this.game.getObjectDisplayName(object):this.STR.none);
+        this.drawWindowPanel(r,this.fitShipDiagnosticText(title,r.width-32,14));
+        const nameWidth=r.width-210;
+        this.drawTextLine(I18n.getString(736,'Waypoint'),r.x+42,r.y+49,'gray',11);
+        this.drawTextLine(this.fitShipDiagnosticText(I18n.getString(737,'Leg'),76,10),r.x+r.width-176,r.y+43,'gray',10);
+        this.drawTextLine(this.fitShipDiagnosticText(I18n.getString(738,'Remaining'),81,10),r.x+r.width-95,r.y+43,'gray',10);
+        [r.width-176,r.width-95].forEach(offset=>this.drawTextLine(I18n.getString(735,'Turns'),r.x+offset,r.y+57,'gray',9));
+        if(!layout.visibleRows.length)this.drawTextLine(I18n.getString(728,'No waypoints'),r.x+14,r.y+85,'gray',12);
+        layout.visibleRows.forEach((row,index)=>{
+            const rect={x:r.x+14,y:r.y+66+index*26,width:r.width-28,height:24},y=rect.y+17;
+            const selected=this.game.courseSelection===row.index;
+            if(selected || this.isHovered(rect))this.drawRoundedRect(rect,4,this.styles[selected?'buttonFillActive':'buttonFillHover']);
+            this.drawTextLine(String(row.index+1),r.x+18,y,'gray',10);
+            const name=this.getCourseWaypointDescription(row.target);
+            this.drawTextLine(this.fitShipDiagnosticText(name,nameWidth,11),r.x+42,y,'lightgray',11,
+                row.current?pdg.textStyle_Bold:pdg.textStyle_Plain);
+            this.drawTextLine(row.turns===null?'-':String(row.turns),r.x+r.width-176,y,'gray',11);
+            this.drawTextLine(row.remaining===null?'-':String(row.remaining),r.x+r.width-95,y,'lightgray',11);
+            this.drawDivider(r.x+14,rect.y+24,r.width-28);
+        });
+        this.getCourseActionRegions().filter(region=>region.label).forEach(region=>this.drawUIButton(region.rect,region.label,region.key,
+            {size:10,active:region.active}));
+        this.drawTextLine(this.STR.escClose,r.x+r.width-16,r.y+r.height-47,'gray',10,pdg.textStyle_RightJustified);
+        this.drawTextLine(`${layout.page+1} / ${layout.pages}`,r.x+r.width/2,r.y+r.height-16,'gray',11,pdg.textStyle_Centered);
+    }
+
+    drawCourseLines(object,startX,startY,attributes) {
+        if(!object.destination || !this.game.canViewCourse(object))return;
+        const points=object.course?object.course.waypoints.map(point=>object.course.resolve(point)):[object.destination];
+        const current=object.course?object.course.current:0;
+        let from={x:startX,y:startY};
+        const route=points.slice(current);
+        if(object.course && object.course.loop && points.length>1)route.push(...points.slice(0,current+1));
+        route.forEach(point=>{
+            const to={x:this.toScreenX(point.x),y:this.toScreenY(point.y)};
+            this.port.drawLine(new pdg.Point(from.x,from.y),new pdg.Point(to.x,to.y),attributes);from=to;
+        });
+    }
+
     drawSystemComparisonWindow() {
         const layout = this.getSystemComparisonLayout(), rect = layout.rect, sort = this.game.systemComparisonSort;
         this.drawWindowPanel(rect,I18n.getString(708,'Your Star Systems'));
@@ -2629,6 +2721,9 @@ class Display {
             case 'colonyDefaults':
                 this.drawColonyDefaultsWindow();
                 break;
+            case 'course':
+                this.drawCourseWindow();
+                break;
             case 'systemComparison':
                 this.drawSystemComparisonWindow();
                 break;
@@ -2716,7 +2811,7 @@ class Display {
         this.drawMainUI(game.turn, game.stars.length, game.allShips.length);
         
         // Draw selected object details
-        if (game.selectedObject) {
+        if (game.selectedObject && !game.pendingCourseEdit) {
             const objectType = game.getObjectType(game.selectedObject);
             if (objectType === Common.ObjectType.STAR) {
                 this.drawStarDetails(game.selectedObject);
@@ -2733,6 +2828,10 @@ class Display {
         this.drawInstructions();
 
         // Draw command UI windows above the map/help layer
+        if(this.game.pendingCourseEdit) {
+            const screen=this.getScreenSize(),r={x:20,y:78,width:screen.width-40,height:40};
+            this.drawWindowPanel(r,this.fitShipDiagnosticText(I18n.getString(734,'Click a destination; Esc cancels'),r.width-32,14));
+        }
         this.drawActiveWindow();
         this.drawRendezvousPlacementPrompt();
         

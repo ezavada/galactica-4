@@ -308,3 +308,19 @@
 723	Satellites :
 724	Défense navale :
 725	S-{0}
+
+# Waypoint course editor
+726	Parcours
+727	Parcours : {0}
+728	Aucune étape
+729	Ajouter
+730	Modifier
+731	Supprimer
+732	Effacer
+733	Boucler
+734	Cliquez sur une destination ; Échap annule
+735	Tours
+736	Étape
+737	Trajet
+738	Restant
+739	Parcours mis à jour pour {0}

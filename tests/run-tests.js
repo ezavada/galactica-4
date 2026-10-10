@@ -33,6 +33,7 @@ const runEconomyTurnOrderTests = require('./economy-turn-order.test.js');
 const runAllocationPrecisionTests = require('./allocation-precision.test.js');
 const runSliderDragTests = require('./slider-drag.test.js');
 const runColonyDefaultsTests = require('./colony-defaults.test.js');
+const runWaypointCourseTests = require('./waypoint-course.test.js');
 const runSystemDiagnosticsTests = require('./system-diagnostics.test.js');
 const runSystemComparisonTests = require('./system-comparison.test.js');
 const runSystemShipsTests = require('./system-ships.test.js');
@@ -112,6 +113,7 @@ try {
     runSystemShipsTests();
     runSystemComparisonTests();
     runSystemDiagnosticsTests();
+    runWaypointCourseTests();
     runColonyDefaultsTests();
     runSliderDragTests();
     runAllocationPrecisionTests();

@@ -2,8 +2,15 @@
 // Contains all ship-related data and logic
 
 const Common = require('./common.js');
+const Course = require('./course.js');
 
 class Ship {
+    get destination() { return this.course ? this.course.destination : null; }
+    set destination(target) {
+        if (!this.course) this.course=new Course(this);
+        this.course.replace(target);
+    }
+
     constructor(x, y, type, star, game, owner) {
         this.id = Ship.nextId++; // Unique ID for this ship
         this.x = x;
@@ -64,7 +71,7 @@ class Ship {
             const dy = this.destination.y - this.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            if (distance < 5 || distance < (this.speed + 5)) {
+            if (distance <= this.speed) {
                 // Arrived at destination
                 console.log(`🎯 SHIP ARRIVED: ${this.type} (ID: ${this.id}) at destination`);
                 this.arriveAtDestination();
@@ -231,7 +238,7 @@ class Ship {
         if (this.destination) {
             const arrivingObjectType = this.game.getObjectType(this.destination);
             const arrivingDestination = this.destination;
-            this.destination = null;
+            const revision = this.course.revision;
             this.x = arrivingDestination.x;
             this.y = arrivingDestination.y;
             
@@ -302,6 +309,9 @@ class Ship {
                 }
             } else {
                 this.game.noteworthyEvent(this, Common.EventType.SHIP_STOPPED, arrivingDestination);
+            }
+            if (!this.fleet && !this.isDead() && (!this.game.allShips || this.game.allShips.includes(this))) {
+                this.course.advance(revision);
             }
         }
     }

@@ -308,3 +308,19 @@
 723	Satélites:
 724	Defensa naval:
 725	S-{0}
+
+# Waypoint course editor
+726	Ruta
+727	Ruta: {0}
+728	Sin puntos de ruta
+729	Añadir
+730	Editar
+731	Eliminar
+732	Borrar ruta
+733	Repetir
+734	Haz clic en un destino; Esc cancela
+735	Turnos
+736	Punto de ruta
+737	Tramo
+738	Restante
+739	Ruta actualizada para {0}
