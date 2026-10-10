@@ -1002,22 +1002,22 @@ class Game {
         if(!this.isEventAccessible(event) || !event.position)return null;
         const hasCasualties=event.combat && (event.combat.ownShipsLost>0 || event.combat.enemyShipsLost>0);
         const resistanceLost=event.occupation && event.occupation.kind==='defendersLost';
-        return hasCasualties || resistanceLost ? event.position : null;
+        return hasCasualties || resistanceLost || event.destruction ? event.position : null;
     }
 
     hasReplayableReport(event) {
-        return !!(event && (event.combat || event.occupation));
+        return !!(event && (event.combat || event.occupation || event.destruction));
     }
 
-    queueReport(event) {
+    queueReport(event, animationOnly = !!(event && event.destruction)) {
         if (!this.hasReplayableReport(event) || !this.isEventAccessible(event)) return false;
-        return this.queueEventOverlay({type:'report',eventId:event.id,page:0});
+        return this.queueEventOverlay({type:'report',eventId:event.id,page:0,animationOnly});
     }
 
     replayReport(event) {
         if (!this.getEventRows().includes(event) || !this.hasReplayableReport(event) || !this.isEventAccessible(event)) return false;
         this.uiWindow=null;
-        return this.queueReport(event);
+        return this.queueReport(event, false);
     }
 
     dismissEventPresentation() {
@@ -3100,6 +3100,27 @@ class Game {
         if(oldFleet && oldFleet.fleet && oldFleet.isEmpty())this.entityRemoved(oldFleet);
     }
 
+    recordDestructionReports(subject, opponentOwner, position, location) {
+        if (!subject || !subject.owner || !opponentOwner || subject.owner === opponentOwner) return [];
+        const kind = this.getObjectType(subject) === Common.ObjectType.FLEET ? 'fleet' : 'ship';
+        const playerName = owner => this.players[owner] && this.players[owner].name ||
+            `${I18n.getString(18, 'Player')} ${owner}`;
+        const snapshot = {kind, name: String(subject.name || this.getObjectDisplayName(subject)).replace(/\t/g, ' '),
+            owner: subject.owner, opponentOwner, ownerName: playerName(subject.owner),
+            opponentName: playerName(opponentOwner), location: location ||
+                `(${I18n.formatDecimal(position.x / 65536, 2)}, ${I18n.formatDecimal(position.y / 65536, 2)})`};
+        return [opponentOwner, subject.owner].map(recipient => {
+            const won = recipient === opponentOwner;
+            const event = this.recordEvent(I18n.getString(607, 'Combat'),
+                I18n.formatString(kind === 'fleet' ? (won ? 935 : 936) : (won ? 933 : 934), '',
+                    snapshot.name, won ? snapshot.ownerName : snapshot.opponentName, snapshot.location),
+                {type: kind === 'fleet' ? Common.EventType.FLEET_DESTROYED : Common.EventType.SHIP_DESTROYED,
+                    subject, recipient, position});
+            event.destruction = {...snapshot, side: won ? 'winner' : 'loser'};
+            return event;
+        });
+    }
+
     removeDestroyedShip(ship, attackerOwner, sendEvent = true) {
         if (!ship) {
             return false;
@@ -3107,12 +3128,14 @@ class Game {
 
         const wasTracked = this.allShips.includes(ship);
         const where = { x: ship.x, y: ship.y };
+        const notify = sendEvent && !ship.fleet && (!ship.star || ship.star.owner !== ship.owner);
+        const location = ship.star && ship.star.name;
         this.detachShipFromContainers(ship);
 
         if (wasTracked) {
             this.entityRemoved(ship);
-            if (sendEvent) {
-                this.noteworthyEvent(ship, Common.EventType.SHIP_DESTROYED, where, null, Common.EventWhy.COMBAT, attackerOwner);
+            if (notify) {
+                for (const event of this.recordDestructionReports(ship, attackerOwner, where, location)) this.queueReport(event);
             }
         }
 

@@ -2622,7 +2622,7 @@ class Display {
 
     getUIActionAt(x, y) {
         if(this.game.overlay && ['outcome','report'].includes(this.game.overlay.type)) {
-            if(this.getDestructionEffect(this.game.overlay))return {type:'consume'};
+            if(this.game.overlay.animationOnly || this.getDestructionEffect(this.game.overlay))return {type:'consume'};
             const layout=this.game.overlay.type==='report'?this.getReportLayout(this.game.overlay):this.getOutcomeLayout(this.game.overlay);
             const control=layout.buttons.find(button=>this.containsPoint(button.rect,x,y));
             return control?control.action:{type:'consume'};
@@ -3833,6 +3833,7 @@ class Display {
 
     drawOverlay(overlay) {
         if(this.drawDestructionEffect(overlay))return;
+        if(overlay.animationOnly){this.game.dismissEventPresentation();return;}
         const drawingArea = this.port.getDrawingArea();
         // Dim the scene
         this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), this.styles.overlayDim);

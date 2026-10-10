@@ -146,7 +146,7 @@ class CombatSystem {
     }
 
     // Main combat resolution loop - ported from UShipUtils.cpp:205-275
-    attackLoop(attackers, attackersReserves, defenders, defendersReserves) {
+    attackLoop(attackers, attackersReserves, defenders, defendersReserves, casualtyOpponents = null) {
         let done = false;
         let haveWinner = false;
         let attacker;
@@ -246,7 +246,7 @@ class CombatSystem {
                         const wasDead = defender.isDead ? defender.isDead() : false;
                         console.log(`${defender.type} defending against ${attacker.type}`);
                         
-                        extraDamage = this.defendAgainst(attacker, defender, 100, extraDamage);
+                        extraDamage = this.defendAgainst(attacker, defender, 100, extraDamage, casualtyOpponents);
                         
                         if (!wasDead && (defender.isDead ? defender.isDead() : false)) {
                             numDefenders--;
@@ -272,7 +272,7 @@ class CombatSystem {
     }
 
     // Damage calculation and application - ported from AGalacticThingy.cpp:818-845
-    defendAgainst(attacker, defender, weighting = 100, rolloverDamage = 0) {
+    defendAgainst(attacker, defender, weighting = 100, rolloverDamage = 0, casualtyOpponents = null) {
         if (!attacker || !defender) {
             return 0;
         }
@@ -301,7 +301,11 @@ class CombatSystem {
         
         if (defender.getDefenseStrength && defender.getDefenseStrength() < 0) {
             // Defender was killed
-            if (defender.destroyedInCombat) {
+            if (casualtyOpponents) casualtyOpponents.set(defender, attacker.owner);
+            if (this.isShip(defender) && this.game.removeDestroyedShip) {
+                // ResolveCombat emits notices from the pre-battle containment snapshot.
+                this.game.removeDestroyedShip(defender, attacker.owner, false);
+            } else if (defender.destroyedInCombat) {
                 defender.destroyedInCombat(attacker.owner);
             }
         }
@@ -451,8 +455,8 @@ class CombatSystem {
         if (defendersCount > 0) {
             while (!done && count-- > 0) {
                 console.log(`Start Battle Loop, Iteration ${100 - count}`);
-                const done1 = this.attackLoop(attackers, attackersReserves, defenders, defendersReserves);
-                const done2 = this.attackLoop(defenders, defendersReserves, attackers, attackersReserves);
+                const done1 = this.attackLoop(attackers, attackersReserves, defenders, defendersReserves, options.casualtyOpponents);
+                const done2 = this.attackLoop(defenders, defendersReserves, attackers, attackersReserves, options.casualtyOpponents);
                 done = (done1 || done2);
 
                 this.removeDead(attackers);
@@ -484,7 +488,7 @@ class CombatSystem {
 
             if (this.isShip(entity)) {
                 if (this.game && this.game.removeDestroyedShip) {
-                    if (this.game.removeDestroyedShip(entity, opponentOwner)) {
+                    if (this.game.removeDestroyedShip(entity, opponentOwner, false)) {
                         removed++;
                     }
                 } else if (entity.destroyedInCombat) {
@@ -614,6 +618,23 @@ class CombatSystem {
         }
     }
 
+    snapshotDestructionSubjects(attackers, defenders, destination) {
+        const subjects = new Map();
+        for (const ship of [...attackers, ...defenders]) {
+            if (!this.isShip(ship)) continue;
+            if (ship.fleet) {
+                let root = ship.fleet;
+                while (root.fleet) root = root.fleet;
+                if (!subjects.has(root)) subjects.set(root, {subject: root, members: this.getCombatants(root)});
+            } else {
+                const at = attackers.includes(ship) && this.isStar(destination) ? destination : ship.star;
+                // V3 suppresses individual members and defenders docked at their own system.
+                if (!at || at.owner !== ship.owner) subjects.set(ship, {subject: ship, members: [ship]});
+            }
+        }
+        return [...subjects.values()];
+    }
+
     // Resolve combat between attackers and defenders
     resolveCombat(attacker, destination) {
         if (!attacker || !destination) {
@@ -638,6 +659,7 @@ class CombatSystem {
             };
         }
 
+        const destructionSubjects = this.snapshotDestructionSubjects(attackerCombatants, spaceDefenders, destination);
         const forces=new Map();
         const addForce=(owner,subject,side)=>{
             if(owner>0&&!forces.has(owner))forces.set(owner,{subject,side,attackerOwner,
@@ -656,9 +678,10 @@ class CombatSystem {
             ? spaceDefenders[0].owner : originalDestinationOwner);
         for (const ship of spaceDefenders) opponentsByOwner.set(ship.owner, attackerOwner);
 
+        const casualtyOpponents = new Map();
         let spaceResult;
         if (spaceDefenders.length > 0) {
-            spaceResult = this.runBattle(attackerCombatants, spaceDefenders);
+            spaceResult = this.runBattle(attackerCombatants, spaceDefenders, {casualtyOpponents});
             this.cleanupDeadEntities(attackerCombatants, spaceDefenders[0] ? spaceDefenders[0].owner : 0);
             this.cleanupDeadEntities(spaceDefenders, attackerOwner);
         } else {
@@ -683,7 +706,7 @@ class CombatSystem {
             const startingPopulation = destination.population || 0;
             console.log(`Resolving ground combat at ${destination.name}`);
             opponentsByOwner.set(attackerOwner, destination.owner || originalDestinationOwner);
-            groundResult = this.runBattle(attackerSurvivors, [], { extraDefenderReserves: [destination] });
+            groundResult = this.runBattle(attackerSurvivors, [], { extraDefenderReserves: [destination], casualtyOpponents });
             this.cleanupDeadEntities(attackerSurvivors, destination.owner || originalDestinationOwner);
 
             const defeatedPopulation = Math.max(0, startingPopulation - Math.max(0, destination.population || 0));
@@ -722,7 +745,21 @@ class CombatSystem {
         const attackersLost = spaceResult.attackersLost + (groundResult ? groundResult.attackersLost : 0);
         const defendersLost = spaceResult.defendersLost + (groundResult ? groundResult.defendersLost : 0);
         const finalOutcome = this.getCombatOutcome(destination, attackerOwner, attackerSurvivors, defenderSurvivors);
+        const destructionEvents = [];
+        for (const snapshot of destructionSubjects) {
+            // Only battle casualties count; a colony consumed by occupation is not destroyed in combat.
+            if (snapshot.members.length && snapshot.members.every(ship => casualties.includes(ship)) &&
+                    (this.isShip(snapshot.subject) || !this.game.allFleets.includes(snapshot.subject))) {
+                const opponentOwner = this.isShip(snapshot.subject)
+                    ? casualtyOpponents.get(snapshot.subject) || opponentsByOwner.get(snapshot.subject.owner)
+                    : opponentsByOwner.get(snapshot.subject.owner);
+                const location = this.isStar(destination) ? this.getCombatLocationLabel(destination) : null;
+                destructionEvents.push(...this.game.recordDestructionReports(snapshot.subject, opponentOwner, destination, location));
+            }
+        }
         this.recordCombatSummary(destination, finalOutcome, forces, casualties);
+        // Destruction messages play their animation without an extra generic alert, as in v3.
+        for (const event of destructionEvents) this.game.queueReport(event);
 
         if (this.game && typeof this.game.updatePlayerPieceCounts === 'function') {
             this.game.updatePlayerPieceCounts();

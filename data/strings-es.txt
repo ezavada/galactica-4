@@ -571,3 +571,9 @@
 930	Has perdido el sistema estelar {0} cuando {1} lo atacó.
 931	¡Has aplastado la última resistencia en el sistema {0} en una batalla contra {1}!
 932	Tus últimos defensores del sistema {0} murieron con valentía en una batalla contra {1}.
+
+# Participant ship and fleet destruction notices
+933	Has destruido la nave enemiga {0} de {1} en una batalla en {2}.
+934	Has perdido tu nave {0} en una batalla contra {1} en {2}.
+935	¡Has derrotado a {1} en una batalla en {2}, destruyendo la flota {0}!
+936	Has perdido tu flota {0}, aniquilada en una batalla contra {1} en {2}.

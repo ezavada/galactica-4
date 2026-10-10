@@ -571,3 +571,9 @@
 930	Du hast das Sternsystem {0} verloren, als {1} es angriff.
 931	Du hast den letzten Widerstand im System {0} im Kampf gegen {1} gebrochen!
 932	Deine letzten Verteidiger des Systems {0} sind im Kampf gegen {1} tapfer gefallen.
+
+# Participant ship and fleet destruction notices
+933	Du hast das feindliche Raumschiff {0} von {1} in einer Schlacht bei {2} zerstört.
+934	Du hast dein Raumschiff {0} in einer Schlacht gegen {1} bei {2} verloren.
+935	Du hast {1} in einer Schlacht bei {2} besiegt und die Flotte {0} zerstört!
+936	Deine Flotte {0} wurde in einer Schlacht gegen {1} bei {2} vernichtet.

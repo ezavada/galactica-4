@@ -18,6 +18,7 @@ const EventType = {
     SHIP_INTERCEPT: 4, // Ship intercepted another ship
     SHIP_STOPPED: 5,   // Ship stopped at a star
     SHIP_DESTROYED: 6, // A ship was destroyed
+    FLEET_DESTROYED: 8, // A top-level fleet was destroyed
     SHIP_TASKED: 7,    // A ship was given a task
     // more ship events here
     TECH_LEVEL_UP: 10,  // A star reached a new tech level

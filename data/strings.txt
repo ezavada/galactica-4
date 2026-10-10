@@ -571,3 +571,9 @@
 930	You lost the star system {0} when {1} attacked it.
 931	You have crushed the last resistance on the system {0} in a battle against {1}!
 932	Your last defenders of the system {0} died bravely in a battle against {1}.
+
+# Participant ship and fleet destruction notices
+933	You destroyed the enemy starship {0} belonging to {1} in a battle at {2}.
+934	You lost your starship {0} in a battle with {1} at {2}.
+935	You defeated {1} in a battle at {2}, destroying the fleet {0}!
+936	You lost your fleet {0}, wiped out in a battle with {1} at {2}.
