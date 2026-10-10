@@ -18,6 +18,7 @@ function createPreferences(env=globalThis) {
         } catch(error) { /* The current drawing choice still applies. */ }
     };
     return {
+        readControlHelp:()=>read('showControlHelp'),writeControlHelp:show=>write('showControlHelp',show),
         readNebula:()=>read('showNebula'),writeNebula:show=>write('showNebula',show),
         readScannerRanges:()=>read('showScannerRanges'),writeScannerRanges:show=>write('showScannerRanges',show),
         readAllCourses:()=>read('showAllCourses'),writeAllCourses:show=>write('showAllCourses',show),

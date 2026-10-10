@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 391 IDs
-- localized files: 391 IDs each
+- `strings.txt`: 455 IDs
+- localized files: 455 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -68,7 +68,7 @@ The current resources cover:
 ## Known gaps
 
 - Debug and diagnostic console output remains English by design for now.
-- Future v3 systems that have not been ported yet, such as tutorial/help text, save/load dialogs, multiplayer chat, and richer event/result windows, will need new resource IDs when implemented.
+- Future v3 systems that have not been ported yet, such as tutorial/manual text, multiplayer chat, and richer event/result windows, will need new resource IDs when implemented.
 - Generated proper names and ship class/art names currently remain English-style names in every language.
 
 ## Adding or changing strings
@@ -85,12 +85,12 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 1018 passed, 0 failed.
+Current expected full-suite result: 1029 passed, 0 failed.
 
 ## Future work
 
 - Decide whether battleship class names should stay stable asset identifiers or become fully translated display names separate from artwork.
-- Add tutorial/help, save/load, multiplayer, and richer event/result text resources when those v3 systems are ported.
+- Add tutorial/manual, multiplayer, and richer event/result text resources when those v3 systems are ported.
 
 The Your Star Systems table adds localized titles, nine column headers, population units, row-opening guidance and the empty state (IDs 708–719). The shared class names in ID 800 remain unchanged. Browser sorting, paging and row navigation were verified in every supported language.
 
@@ -173,3 +173,5 @@ New-colony setup reports add ID 856 in all six languages. The private report and
 Technology-transfer repricing uses the existing localized technology, construction completion, ETA, Production and Pause/Resume controls. Actual browser delivery and inspector/pause/resume flows pass in all six languages; before/after screenshots were inspected under `/private/tmp/galactica-parity/transfer-{before,after}`. Resource counts remain 391 per language. Full suites: 1006 passed on release/current native PDG.
 
 Highest-container arrivals retain existing localized inspector, docking, fleet-content, order and combat-summary resources. Actual browser nested arrivals, satellite docking and planetary interception/report flows pass in all six languages; translated group/report screenshots were inspected under `/private/tmp/galactica-parity/arrival-{before,after}`. Resource counts remain 391 per language. Full suites: 1018 passed on release/current native PDG.
+
+Control flyby help adds IDs 857–920 in English, German, Spanish, French, Japanese and Russian, bringing each resource file to 455 IDs. Explanations cover runtime controls, actual/target allocation semantics, system default destinations, all startup options, text editors and action-specific local file commands/confirmations. Measured Unicode wrapping retains every character without truncation; language switching updates descriptions immediately, while native-script language names remain unchanged. Actual browser help, Settings, persistence/reload, file editors, course commands, resumed games and smaller-window checks pass in all six languages; before/after and translated screenshots were inspected under `/private/tmp/galactica-parity/help-{before,after}`. Full suites: 1029 passed on release/current native PDG. Manual/tutorial, multiplayer and richer report translations remain future port work.

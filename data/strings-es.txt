@@ -493,3 +493,69 @@
 854	No hay ninguna versión guardada.
 855	¿Reemplazar el archivo existente: {0}?
 856	Pon nombre a tu nueva colonia y ajusta sus niveles de producción.
+
+# Control and setup flyby help
+857	Ayuda de controles
+858	Haz clic o arrastra para fijar el objetivo. El relleno muestra la producción real; la marca muestra el objetivo.
+859	Bloquea o desbloquea esta asignación. Los objetivos bloqueados no cambian al ajustar otros.
+860	Reparte la producción por igual entre las asignaciones desbloqueadas.
+861	Elige el siguiente casco. El trabajo pagado se conserva por separado para cada tipo.
+862	Pausa la construcción y conserva el trabajo pagado.
+863	Haz clic en un sistema, nave, flota o punto del espacio para añadir un destino. Escape cancela.
+864	Consulta y edita los puntos ordenados de la ruta de esta nave o flota.
+865	Guarda la ruta actual o intercámbiala con la ruta recordada.
+866	Repite toda la ruta, incluido su punto de origen.
+867	Patrulla este sistema. La patrulla borra la ruta activa e impide las reparaciones en puerto.
+868	Solicita atención cada turno hasta cancelar este aviso.
+869	Activa o desactiva la marca de caza de la ruta. No elige objetivos enemigos automáticamente.
+870	Marca para desguace o cancela la orden. El próximo turno se recuperará parte del coste del casco.
+871	Edita el nombre. Guardar lo acepta; Cancelar conserva el original.
+872	Elige una flota de destino y transfiere naves seleccionadas o grupos completos.
+873	Devuelve este miembro a su sistema o flota superior.
+874	Crea un grupo de flota anidado con el miembro seleccionado.
+875	Elige cualquier punto del espacio para una reunión. Las llegadas propias forman allí una flota.
+876	Elimina este punto de reunión. Las naves reunidas permanecen.
+877	Selecciona e inspecciona este objeto, o céntralo en el mapa.
+878	Ordena la lista por esta columna. Otro clic invierte el orden.
+879	Muestra otra página sin avanzar el turno.
+880	Selecciona o revisa un informe. Ir a muestra su objeto; leerlo resuelve su solicitud de atención.
+881	Termina el turno y procesa producción, movimiento y combate. Las solicitudes pendientes requieren confirmación.
+882	Muestra u oculta esta información del mapa. Los datos ocultos siguen formando parte del juego.
+883	Usa este idioma en la interfaz y recuerda la elección. Los nombres aparecen en su escritura nativa.
+884	Guarda, abre o restaura partidas locales desde el menú Archivo.
+885	Configura otra partida. Las partidas abiertas se conservan.
+886	Cierra o cancela este editor sin aceptar los cambios pendientes.
+887	Acepta y guarda los cambios de este editor.
+888	Muestra u oculta esta ventana de información.
+889	Cambia la vista o el zoom del mapa. Las coordenadas y órdenes no cambian.
+890	Fija producción y cascos predeterminados para futuras colonias. Los sistemas actuales no cambian.
+891	Muestra explicaciones cuando el puntero se detiene sobre un control.
+892	Elige opciones para una nueva galaxia. No alteran las partidas actuales.
+893	Usa reglas más rápidas de producción, investigación y movimiento.
+894	Oculta información fuera del alcance de detección. Sin niebla se revela la galaxia.
+895	Borra toda la ruta activa, incluidos Bucle y Caza. Se conserva la memoria de ruta.
+896	Haz clic en un destino para añadir un punto de ruta. Escape cancela.
+897	Selecciona un punto de ruta y haz clic en su nuevo destino. Escape cancela.
+898	Elimina el punto seleccionado y conserva el resto de la ruta.
+899	Confirma este informe y vuelve al juego sin avanzar un turno.
+900	Visita el siguiente objeto o informe que necesita atención.
+901	Elige la cantidad de rivales informáticos, desde cero hasta el límite de jugadores disponible.
+902	Elige la habilidad de decisión de los rivales, de Novato a Experto.
+903	Ajusta la producción informática un 20% por nivel de ventaja.
+904	Elige las dimensiones de la galaxia. Las galaxias mayores contienen más sistemas.
+905	Elige una densidad de estrellas de 1 a 10. Una densidad mayor crea más sistemas en la misma zona.
+906	Edita el título de la nueva partida; también será el nombre inicial del archivo.
+907	Inicia una partida con las opciones elegidas de galaxia y jugadores.
+908	Alterna entre pantalla completa y ventana. La partida y las órdenes se conservan.
+909	Restaura las opciones predeterminadas del mapa. El estado de la partida no cambia.
+910	Cambia a esta partida abierta. Las demás partidas abiertas se conservan.
+911	Borra el destino de las futuras naves construidas en este sistema. Las rutas actuales se conservan.
+912	Elige un destino para futuras naves móviles construidas en este sistema. Escape cancela.
+913	Restaura el último turno guardado. Se descartarán los cambios posteriores.
+914	Sustituye el archivo guardado por esta partida. Su contenido anterior se sobrescribirá.
+915	Guarda la partida en su archivo o elige uno si todavía no se ha guardado.
+916	Guarda la partida con otro nombre de archivo. El archivo anterior no cambia.
+917	Abre una galaxia guardada sin generar otro mapa. Las demás partidas abiertas se conservan.
+918	Vuelve al último turno guardado tras confirmar. Los cambios sin guardar se descartarán.
+919	Introduce el nombre del archivo para esta partida. Cancelar deja intacto el archivo actual.
+920	Introduce la ruta de una partida guardada de Galactica-4. Cancelar no cambia la partida actual.

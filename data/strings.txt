@@ -493,3 +493,69 @@
 854	No saved version is available.
 855	Replace the existing file: {0}?
 856	Please name your new colony and set its production levels.
+
+# Control and setup flyby help
+857	Control help
+858	Click or drag to set the target allocation. The fill shows actual output; the marker shows the target.
+859	Lock or unlock this allocation. Locked targets stay fixed when other allocations change.
+860	Divide production equally among unlocked allocations.
+861	Choose the next hull to build. Paid effort is retained separately for each hull type.
+862	Pause construction while retaining its paid effort.
+863	Click a system, ship, fleet or point in space to add a destination. Escape cancels.
+864	Inspect and edit the ordered waypoints of this ship or fleet.
+865	Store the current course, or swap it with the remembered course.
+866	Repeat the entire course, including its origin.
+867	Patrol this system. Patrolling clears the active course and prevents docked repairs.
+868	Request attention each turn until this call-in is canceled.
+869	Toggle the course's Hunt flag. It does not automatically choose enemy targets.
+870	Mark for scrapping, or cancel the order. Scrapping takes place next turn and returns part of the hull cost.
+871	Edit this object's name. Save accepts the name; Cancel keeps the original.
+872	Choose a destination fleet and transfer selected ships or intact groups.
+873	Return this member to its enclosing system or fleet.
+874	Create a nested fleet group from the selected member.
+875	Choose any point in space for a rendezvous. Friendly arrivals assemble a fleet there.
+876	Delete this rendezvous marker. Its assembled ships remain.
+877	Select and inspect this object, or center it on the map.
+878	Sort the list by this column. Click again to reverse the order.
+879	Show another page without advancing the game turn.
+880	Select or revisit a report. Go to reveals its subject; reviewing it handles its attention request.
+881	Finish this turn and process production, movement and combat. Pending attention requests require confirmation.
+882	Show or hide this map information. Hidden information remains part of the game.
+883	Use this language for the interface and remember the choice. Language names use their native script.
+884	Save, open or revert local game documents through the File menu.
+885	Set up another game. Existing open games are retained.
+886	Close or cancel this editor without accepting its pending changes.
+887	Accept and save the changes in this editor.
+888	Show or hide this information window.
+889	Change the map view or zoom. Game coordinates and orders remain unchanged.
+890	Set production and hull defaults for future colonies. Existing systems are unchanged.
+891	Show explanatory help after the pointer rests over a control.
+892	Choose settings for a new galaxy. These choices do not alter existing games.
+893	Use faster production, research and movement rules for this game.
+894	Hide information outside detection range. Disabling fog reveals the galaxy.
+895	Clear the entire active course, including Loop and Hunt. Course memory is retained.
+896	Click a destination to add another waypoint. Escape cancels.
+897	Select a waypoint, then click its replacement destination. Escape cancels.
+898	Delete the selected waypoint while retaining the rest of the course.
+899	Acknowledge this report and return to the game without advancing a turn.
+900	Visit the next object or report that needs your attention.
+901	Choose the number of computer opponents, from zero to the available player limit.
+902	Choose the computer players' decision-making skill, from Novice to Expert.
+903	Adjust computer production by 20% per advantage level.
+904	Choose the galaxy's dimensions. Larger galaxies contain more systems.
+905	Choose star density from 1 to 10. Higher density creates more systems in the same area.
+906	Edit the new game's title; it also supplies the initial save-file name.
+907	Start a game with the selected galaxy and player options.
+908	Switch between full-screen and windowed display. The game and orders are retained.
+909	Restore the default map drawing options. The game state is unchanged.
+910	Switch to this open game. Other open games are retained.
+911	Clear the destination assigned to future ships built at this system. Existing ship courses remain.
+912	Choose a destination for future mobile ships built at this system. Escape cancels.
+913	Restore the last saved turn. Changes made since that save will be discarded.
+914	Replace the existing save file with this game. The previous file contents will be overwritten.
+915	Save the current game to its file, or choose a file if it has not been saved before.
+916	Save this game under a new file name. Its previous save file remains unchanged.
+917	Open a saved galaxy without generating a new map. Other open games are retained.
+918	Return to the last saved turn after confirmation. Unsaved changes will be discarded.
+919	Enter the name of the file that will hold this saved game. Cancel leaves the current save unchanged.
+920	Enter the path of a saved Galactica-4 game to open. Cancel leaves the current game unchanged.

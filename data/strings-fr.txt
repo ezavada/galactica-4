@@ -493,3 +493,69 @@
 854	Aucune version enregistrée n’est disponible.
 855	Remplacer le fichier existant : {0} ?
 856	Nommez votre nouvelle colonie et réglez ses niveaux de production.
+
+# Control and setup flyby help
+857	Aide des commandes
+858	Cliquez ou faites glisser pour fixer l'objectif. Le remplissage indique la production réelle, le trait l'objectif.
+859	Verrouillez ou déverrouillez cette allocation. Les objectifs verrouillés restent fixes quand les autres changent.
+860	Répartissez également la production entre les allocations déverrouillées.
+861	Choisissez la prochaine coque. Le travail payé reste conservé séparément pour chaque type.
+862	Suspendez la construction en conservant le travail payé.
+863	Cliquez sur un système, vaisseau, une flotte ou un point de l'espace pour ajouter une destination. Échap annule.
+864	Consultez et modifiez les étapes ordonnées du parcours de ce vaisseau ou de cette flotte.
+865	Mémorisez le parcours actuel ou échangez-le avec le parcours mémorisé.
+866	Répétez tout le parcours, y compris son point de départ.
+867	Patrouillez dans ce système. La patrouille efface le parcours actif et empêche les réparations à quai.
+868	Demandez de l'attention à chaque tour jusqu'à l'annulation de cet appel.
+869	Activez ou désactivez l'indicateur Chasse du parcours. Il ne choisit pas automatiquement de cible ennemie.
+870	Marquez pour démantèlement ou annulez l'ordre. Au prochain tour, une partie du coût de la coque sera récupérée.
+871	Modifiez le nom. Enregistrer l'accepte ; Annuler conserve le nom initial.
+872	Choisissez une flotte de destination et transférez les vaisseaux sélectionnés ou des groupes entiers.
+873	Renvoyez ce membre dans son système ou sa flotte parente.
+874	Créez un groupe de flotte imbriqué à partir du membre sélectionné.
+875	Choisissez un point quelconque de l'espace comme rendez-vous. Vos arrivées y assemblent une flotte.
+876	Supprimez ce rendez-vous. Les vaisseaux rassemblés restent présents.
+877	Sélectionnez et inspectez cet objet ou centrez-le sur la carte.
+878	Triez la liste selon cette colonne. Un second clic inverse l'ordre.
+879	Affichez une autre page sans avancer le tour.
+880	Sélectionnez ou relisez un rapport. Aller à révèle son objet ; sa lecture traite sa demande d'attention.
+881	Terminez le tour et traitez production, mouvements et combats. Les demandes en attente nécessitent confirmation.
+882	Affichez ou masquez cette information de la carte. Les données masquées restent dans le jeu.
+883	Utilisez cette langue pour l'interface et mémorisez ce choix. Les noms utilisent leur écriture native.
+884	Enregistrez, ouvrez ou rétablissez des parties locales depuis le menu Fichier.
+885	Configurez une autre partie. Les parties ouvertes sont conservées.
+886	Fermez ou annulez cet éditeur sans accepter les modifications en attente.
+887	Acceptez et enregistrez les modifications de cet éditeur.
+888	Affichez ou masquez cette fenêtre d'information.
+889	Changez la vue ou le zoom de la carte. Les coordonnées et les ordres restent inchangés.
+890	Définissez production et coques par défaut pour les futures colonies. Les systèmes existants restent inchangés.
+891	Affichez des explications quand le pointeur reste sur une commande.
+892	Choisissez les options d'une nouvelle galaxie. Elles ne modifient pas les parties existantes.
+893	Utilisez des règles plus rapides de production, recherche et déplacement.
+894	Masquez les informations hors de portée de détection. Sans brouillard, la galaxie est révélée.
+895	Effacez tout le parcours actif, y compris Boucle et Chasse. Le parcours mémorisé est conservé.
+896	Cliquez sur une destination pour ajouter une étape. Échap annule.
+897	Sélectionnez une étape puis cliquez sur sa nouvelle destination. Échap annule.
+898	Supprimez l'étape sélectionnée en conservant le reste du parcours.
+899	Acceptez ce rapport et revenez au jeu sans avancer de tour.
+900	Visitez le prochain objet ou rapport qui demande votre attention.
+901	Choisissez le nombre d'adversaires informatiques, de zéro à la limite de joueurs disponible.
+902	Choisissez leur aptitude à décider, de Débutant à Expert.
+903	Ajustez la production informatique de 20% par niveau d'avantage.
+904	Choisissez les dimensions de la galaxie. Une galaxie plus grande contient davantage de systèmes.
+905	Choisissez une densité stellaire de 1 à 10. Une densité élevée crée davantage de systèmes dans la même zone.
+906	Modifiez le titre de la nouvelle partie ; il sert aussi de nom de fichier initial.
+907	Démarrez une partie avec les options de galaxie et de joueurs choisies.
+908	Passez du plein écran au mode fenêtré. La partie et les ordres sont conservés.
+909	Rétablissez les options par défaut de la carte. L’état de la partie reste inchangé.
+910	Passez à cette partie ouverte. Les autres parties ouvertes sont conservées.
+911	Effacez la destination des futurs vaisseaux construits ici. Les parcours existants sont conservés.
+912	Choisissez une destination pour les futurs vaisseaux mobiles construits ici. Échap annule.
+913	Rétablissez le dernier tour enregistré. Les modifications ultérieures seront abandonnées.
+914	Remplacez le fichier existant par cette partie. Son ancien contenu sera écrasé.
+915	Enregistrez la partie dans son fichier ou choisissez un fichier lors du premier enregistrement.
+916	Enregistrez cette partie sous un nouveau nom. Son ancien fichier reste inchangé.
+917	Ouvrez une galaxie enregistrée sans générer de nouvelle carte. Les autres parties ouvertes sont conservées.
+918	Revenez au dernier tour enregistré après confirmation. Les changements non enregistrés seront perdus.
+919	Saisissez le nom du fichier de sauvegarde. Annuler laisse le fichier actuel inchangé.
+920	Saisissez le chemin d’une partie Galactica-4 enregistrée. Annuler laisse la partie actuelle inchangée.

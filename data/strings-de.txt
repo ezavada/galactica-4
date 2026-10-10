@@ -493,3 +493,69 @@
 854	Es ist kein gespeicherter Spielstand verfügbar.
 855	Vorhandene Datei ersetzen: {0}?
 856	Bitte benennen Sie Ihre neue Kolonie und stellen Sie ihre Produktionsanteile ein.
+
+# Control and setup flyby help
+857	Bedienhilfe
+858	Klicken oder ziehen, um den Zielanteil festzulegen. Die Füllung zeigt die aktuelle Leistung, der Strich das Ziel.
+859	Diesen Anteil sperren oder entsperren. Gesperrte Ziele bleiben bei Änderungen anderer Anteile fest.
+860	Die Produktion gleichmäßig auf ungesperrte Anteile verteilen.
+861	Den nächsten Schiffstyp wählen. Bezahlter Baufortschritt bleibt für jeden Typ getrennt erhalten.
+862	Den Bau pausieren und den bezahlten Fortschritt behalten.
+863	Ein System, Schiff, eine Flotte oder einen Punkt im All als Ziel anklicken. Escape bricht ab.
+864	Die geordneten Wegpunkte dieses Schiffs oder dieser Flotte ansehen und bearbeiten.
+865	Den Kurs speichern oder mit dem gemerkten Kurs tauschen.
+866	Den gesamten Kurs einschließlich seines Ausgangspunkts wiederholen.
+867	Dieses System patrouillieren. Dabei wird der aktive Kurs gelöscht; Reparaturen im System entfallen.
+868	In jedem Zug Aufmerksamkeit anfordern, bis diese Meldung abgestellt wird.
+869	Die Jagdmarkierung des Kurses umschalten. Sie wählt keine Gegnerziele automatisch aus.
+870	Zur Verschrottung vormerken oder den Auftrag aufheben. Im nächsten Zug wird ein Teil der Baukosten erstattet.
+871	Den Objektnamen bearbeiten. Speichern übernimmt ihn; Abbrechen behält den bisherigen Namen.
+872	Eine Zielflotte wählen und ausgewählte Schiffe oder ganze Gruppen übertragen.
+873	Dieses Mitglied in das übergeordnete System oder die Flotte zurückbringen.
+874	Aus dem ausgewählten Mitglied eine untergeordnete Flottengruppe bilden.
+875	Einen beliebigen Punkt im All als Rendezvous wählen. Eigene Schiffe sammeln sich dort in einer Flotte.
+876	Diesen Rendezvouspunkt löschen. Die versammelten Schiffe bleiben erhalten.
+877	Dieses Objekt auswählen und ansehen oder auf der Karte zentrieren.
+878	Die Liste nach dieser Spalte sortieren. Erneutes Klicken kehrt die Reihenfolge um.
+879	Eine andere Seite anzeigen, ohne einen Zug weiterzugehen.
+880	Einen Bericht auswählen oder erneut ansehen. Gehe zu zeigt sein Objekt; Lesen erledigt seine Aufmerksamkeitsanforderung.
+881	Den Zug beenden und Produktion, Bewegung und Kämpfe ausführen. Offene Aufmerksamkeitsanforderungen erfordern Bestätigung.
+882	Diese Karteninformation ein- oder ausblenden. Ausgeblendete Informationen bleiben im Spiel erhalten.
+883	Diese Sprache für die Oberfläche verwenden und speichern. Sprachnamen stehen in ihrer eigenen Schrift.
+884	Lokale Spielstände über das Dateimenü speichern, öffnen oder zurücksetzen.
+885	Ein weiteres Spiel einrichten. Bereits geöffnete Spiele bleiben erhalten.
+886	Diesen Editor schließen oder abbrechen, ohne ausstehende Änderungen zu übernehmen.
+887	Die Änderungen in diesem Editor übernehmen und speichern.
+888	Dieses Informationsfenster ein- oder ausblenden.
+889	Kartenansicht oder Zoom ändern. Spielkoordinaten und Befehle bleiben unverändert.
+890	Produktions- und Schiffstypvorgaben für zukünftige Kolonien festlegen. Bestehende Systeme bleiben unverändert.
+891	Erläuterungen anzeigen, wenn der Zeiger über einem Bedienelement verweilt.
+892	Einstellungen für eine neue Galaxie wählen. Bestehende Spiele bleiben unverändert.
+893	Schnellere Regeln für Produktion, Forschung und Bewegung verwenden.
+894	Informationen außerhalb der Erfassungsreichweite verbergen. Ohne Kriegsnebel ist die Galaxie sichtbar.
+895	Den gesamten aktiven Kurs einschließlich Wiederholung und Jagd löschen. Der gemerkte Kurs bleibt erhalten.
+896	Ein Ziel anklicken, um einen Wegpunkt hinzuzufügen. Escape bricht ab.
+897	Einen Wegpunkt wählen und sein neues Ziel anklicken. Escape bricht ab.
+898	Den ausgewählten Wegpunkt löschen und den übrigen Kurs behalten.
+899	Diesen Bericht bestätigen und ohne Zugfortschritt zum Spiel zurückkehren.
+900	Das nächste Objekt oder den nächsten Bericht besuchen, der Aufmerksamkeit benötigt.
+901	Die Zahl der Computergegner wählen, von null bis zur verfügbaren Spielergrenze.
+902	Die Entscheidungsstärke der Computergegner von Anfänger bis Experte wählen.
+903	Die Computerproduktion je Vorteilspunkt um 20% anpassen.
+904	Die Abmessungen der Galaxie wählen. Größere Galaxien enthalten mehr Systeme.
+905	Die Sterndichte von 1 bis 10 wählen. Höhere Dichte erzeugt mehr Systeme auf derselben Fläche.
+906	Den Titel des neuen Spiels bearbeiten; er wird auch als anfänglicher Dateiname verwendet.
+907	Ein Spiel mit den gewählten Galaxie- und Spieleroptionen starten.
+908	Zwischen Vollbild und Fenster wechseln. Spiel und Befehle bleiben erhalten.
+909	Die Standardoptionen der Kartendarstellung wiederherstellen. Der Spielzustand bleibt unverändert.
+910	Zu diesem geöffneten Spiel wechseln. Andere offene Spiele bleiben erhalten.
+911	Das Ziel für künftig in diesem System gebaute Schiffe löschen. Bestehende Kurse bleiben erhalten.
+912	Ein Ziel für künftig in diesem System gebaute bewegliche Schiffe wählen. Escape bricht ab.
+913	Den zuletzt gespeicherten Zug wiederherstellen. Änderungen seit dieser Speicherung werden verworfen.
+914	Die vorhandene Datei durch dieses Spiel ersetzen. Der bisherige Dateiinhalt wird überschrieben.
+915	Das aktuelle Spiel in seiner Datei speichern oder beim ersten Speichern eine Datei wählen.
+916	Dieses Spiel unter einem neuen Dateinamen speichern. Die bisherige Datei bleibt unverändert.
+917	Eine gespeicherte Galaxie ohne neue Kartenerzeugung öffnen. Andere offene Spiele bleiben erhalten.
+918	Nach Bestätigung zum zuletzt gespeicherten Zug zurückkehren. Ungespeicherte Änderungen gehen verloren.
+919	Den Namen der Datei für diesen Spielstand eingeben. Abbrechen lässt die bisherige Speicherung unverändert.
+920	Den Pfad eines gespeicherten Galactica-4-Spiels zum Öffnen eingeben. Abbrechen lässt das aktuelle Spiel unverändert.

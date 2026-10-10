@@ -40,6 +40,9 @@ function getIntegerArg(name, fallback = null) {
 
 const LanguageSettings = require('./src/js/language-settings.js');
 const StartupSetup = require('./src/js/startup-setup.js');
+const ControlHelp=require('./src/js/hover-help.js');
+const startupHelp=new ControlHelp.HoverHelp();
+let startupHoverPoint=null;
 const PlayerName=require('./src/js/player-name.js');
 const playerNamePreferences=PlayerName.createPreferences();
 const rosterPreferences = require('./src/js/roster-preferences.js').createPreferences();
@@ -362,7 +365,35 @@ function drawStartupDialog() {
     port.drawText(I18n.getString(528, '<Enter> Start'), new pdg.Point(screenWidth / 2, y), startupStyles.startText);
 }
 
+function drawStartupControlHelp() {
+    const area=port.getDrawingArea(),screen={width:area.width(),height:area.height()},point=startupHoverPoint;
+    let regions=[],scope='setup';
+    if (documents.dialog) {
+        const layout=documents.layout(screen.width,screen.height);scope=documents.dialog.kind+':'+documents.dialog.operation;
+        regions=layout.buttons.map(b=>({rect:b.rect,action:{type:b.action==='submit'?documents.dialog.operation==='open'?'open':'save':b.action}}));
+        if(layout.field)regions.push({rect:layout.field,action:{type:documents.dialog.operation==='open'?'openFileName':'saveFileName'}});
+    } else if (startupAISkill) {
+        const layout=StartupSetup.skillMenu(screen.width,screen.height,pendingConfig);scope='skill';
+        regions=layout.choices.map(r=>({rect:r.rect,action:{type:'startupSkill'}}));
+        regions.push({rect:layout.cancel,action:{type:'cancel'}});
+    } else if (startupComputerCount || startupGameTitle || startupPlayerName) {
+        scope=startupComputerCount?'count':startupGameTitle?'title':'name';
+        const layout=PlayerName.layout(screen.width,screen.height,I18n.getString(682,'Save'));
+        regions=layout.buttons.map(b=>({rect:b.rect,action:{type:b.action==='cancel'?'cancel':'submit'}}));
+        regions.push({rect:layout.field,action:{type:startupComputerCount?'startupCount':startupGameTitle?'startupTitle':'startupName'}});
+    } else regions=StartupSetup.helpRegions(screen.width,screen.height,pendingConfig,!!sessions.active);
+    const hit=point && drawingPreferences.readControlHelp() && regions.find(({rect:r})=>
+        point.x>=r.x && point.x<r.x+r.width && point.y>=r.y && point.y<r.y+r.height);
+    const candidate=hit?{...hit,text:ControlHelp.describe(hit.action),key:scope+':'+hit.action.type+':'+hit.rect.x+':'+hit.rect.y}:null;
+    const hint=startupHelp.sample(candidate,pdg.tm.getMilliseconds(),screen,text=>port.getTextWidth(text,11));
+    if(!hint)return;
+    PanelAppearance.applySurface(startupStyles.panel,hint.rect,startupUIColor('panelFill'));
+    drawStartupRoundedRect(hint.rect,8,startupStyles.panel);startupStyles.lineText.textSize(11);
+    hint.lines.forEach((line,index)=>port.drawText(line,new pdg.Point(hint.rect.x+12,hint.rect.y+16+index*15),startupStyles.lineText));
+}
+
 function handleStartupKey(key) {
+    startupHelp.clear();startupHoverPoint=null;
     if(startupAISkill) {
         if(key===pdg.key_Escape)startupAISkill=false;
         else if(typeof key==='number' && key>=49 && key<=53){StartupSetup.setSkill(pendingConfig,key-48);startupAISkill=false;}
@@ -449,6 +480,7 @@ function beginNewGame() {
 }
 function resumeSession(session) {
     game=session.game;display=session.display;autoplayController=session.autoplay;
+    game.showControlHelp=drawingPreferences.readControlHelp();display.clearControlHelp();
     display.reloadUIStrings();display.onScreenSizeChanged();
     if(autoplayController && autoplayController.getStatus().running)
         pdg.tm.startTimer(AUTOPLAY_TIMER_ID,game.config.autoplay.turnDelayMs,pdg.timer_Repeating);
@@ -468,6 +500,7 @@ function switchGameSession(id) {
 function attachGameServices(nextGame) {
     nextGame.languagePreferences = languagePreferences;
     nextGame.drawingPreferences = drawingPreferences;
+    nextGame.showControlHelp=drawingPreferences.readControlHelp();
     nextGame.systemComparisonPreferences = systemComparisonPreferences;
     nextGame.systemComparisonSort = systemComparisonPreferences.read();
     nextGame.systemComparisonGeometry = systemComparisonPreferences.readGeometry();
@@ -604,11 +637,12 @@ if (launchOptions.aiAutoplay) {
 
 // Create event handlers using the correct PDG syntax
 const drawHandler = new pdg.IEventHandler(function(event) {
-    if(documents.dialog){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawDocumentDialog();return true;}
+    if(documents.dialog){if(game && !sessions.starting){game.display.clearControlHelp();game.draw();}else drawStartupDialog();drawDocumentDialog();drawStartupControlHelp();return true;}
     if (!sessions.starting && game) {
         game.draw();
     } else {
         drawStartupDialog();
+        drawStartupControlHelp();
     }
     return true;
 });
@@ -636,6 +670,8 @@ let leftClickStartY = 0;
 let hasDragged = false; // Track if user has dragged during left click
 
 const mouseHandler = new pdg.IEventHandler(function(event) {
+    startupHelp.clear();startupHoverPoint=null;
+    if(game && game.display)game.display.clearControlHelp();
     if(documents.dialog){
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const area=port.getDrawingArea(),layout=documents.layout(area.width(),area.height()),p=event.mousePos;
             const contains=r=>p.x>=r.x&&p.x<=r.x+r.width&&p.y>=r.y&&p.y<=r.y+r.height;const button=layout.buttons.find(b=>contains(b.rect));
@@ -789,8 +825,8 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse move handler for drag scrolling
 const mouseMoveHandler = new pdg.IEventHandler(function(event) {
-    if(documents.dialog)return true;
-    if (sessions.starting || !game) {
+    if(documents.dialog || sessions.starting || !game) {
+        if(event && event.eventType===pdg.eventType_MouseMove)startupHoverPoint={x:event.mousePos.x,y:event.mousePos.y};
         return true;
     }
     if (event && event.eventType === pdg.eventType_MouseMove) {
@@ -811,6 +847,7 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
         }
         if (game.updateUISliderDrag(event.mousePos.x,event.mousePos.y)) return true;
         if (isDragging || isLeftClickDragging) {
+            game.display.clearControlHelp();
             const deltaX = event.mousePos.x - lastMouseX;
             const deltaY = event.mousePos.y - lastMouseY;
             
@@ -840,6 +877,7 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
 });
 
 const keyHandler = new pdg.IEventHandler(function(event) {
+    if(event && event.eventType===pdg.eventType_KeyPress){startupHelp.clear();startupHoverPoint=null;}
     if(documents.dialog){if(event && event.eventType===pdg.eventType_KeyPress)documents.key(event.unicode);return true;}
     // Check if this is a key press event
     if (event && event.eventType === pdg.eventType_KeyPress) {

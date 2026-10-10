@@ -1813,6 +1813,11 @@ class Game {
                 this.showGrid=!this.showGrid;
                 if(this.drawingPreferences)this.drawingPreferences.writeGrid(this.showGrid);
                 return true;
+            case 'toggleControlHelp':
+                this.showControlHelp=this.showControlHelp===false;
+                if(this.drawingPreferences)this.drawingPreferences.writeControlHelp(this.showControlHelp);
+                if(this.display)this.display.clearControlHelp();
+                return true;
             case 'setLanguage':
                 if(this.uiWindow!=='settings' || !LanguageSettings.supported(action.language))return false;
                 pdg.res.setLanguage(action.language);
@@ -2269,6 +2274,7 @@ class Game {
     }
 
     handleUIClick(x, y) {
+        if(this.display && this.display.clearControlHelp)this.display.clearControlHelp();
         if (!this.display || typeof this.display.getUIActionAt !== 'function') {
             return false;
         }
@@ -2536,6 +2542,7 @@ class Game {
     }
 
     handleKeyPress(key) {
+        if(this.display && this.display.clearControlHelp)this.display.clearControlHelp();
         if(this.overlay && this.overlay.type==='outcome') {
             if(key===pdg.key_LeftArrow || key===pdg.key_RightArrow) {
                 const layout=this.display && this.display.getOutcomeLayout(this.overlay);

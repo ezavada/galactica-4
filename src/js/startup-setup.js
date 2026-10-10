@@ -90,4 +90,14 @@ function clickSectorSize(config,rect,x,y) {
 }
 function cancelRegion(rect) {return {x:rect.x+rect.width/2-75,y:rect.y+503*rect.height/540,width:150,height:26*rect.height/540};}
 function startRegion(rect) {return {x:rect.x+rect.width/2-90,y:rect.y+467*rect.height/540,width:180,height:30*rect.height/540};}
-module.exports={cancelRegion,setFogOfWar,toggleFogOfWar,fogOfWarRegion,setFastGame,toggleFastGame,fastGameRegion,skills,setSkill,skillRegion,skillMenu,setComputerCount,acceptComputerCount,computerCountRegion,maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};
+function helpRegions(width,height,config,active=false) {
+ const rect=panelRect(width,height);
+ const region=(rect,type)=>({rect,action:{type}});
+ return [region(titleRegion(rect),'startupTitle'),region(computerCountRegion(rect),'startupCount'),
+  region(skillRegion(rect),'startupSkill'),...advantageRegions(rect,config).map(r=>region(r.rect,'startupAdvantage')),
+  ...sectorSizeRegions(rect,config).map(r=>region(r.rect,'startupSize')),
+  ...densityRegions(rect,config).map(r=>region(r.rect,'startupDensity')),
+  region(fastGameRegion(rect),'startupFast'),region(fogOfWarRegion(rect),'startupFog'),
+  region(startRegion(rect),'startGame'),region(cancelRegion(rect),active?'cancel':'open')];
+}
+module.exports={helpRegions,cancelRegion,setFogOfWar,toggleFogOfWar,fogOfWarRegion,setFastGame,toggleFastGame,fastGameRegion,skills,setSkill,skillRegion,skillMenu,setComputerCount,acceptComputerCount,computerCountRegion,maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};

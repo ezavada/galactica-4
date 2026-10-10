@@ -13,6 +13,7 @@ const ScannerLayer = require('./scanner-layer.js');
 const PanelAppearance = require('./panel-appearance.js');
 const LanguageSettings = require('./language-settings.js');
 const MapDisplayModes = require('./map-display-modes.js');
+const ControlHelp = require('./hover-help.js');
 
 const debugSelectedObject = true;
 
@@ -23,6 +24,8 @@ class Display {
         this.factory = game.getFactory();
         this.selectedObject = null;
         this.hoverPoint = null;
+        this.controlHelp = new ControlHelp.HoverHelp();
+        this.hoverControl = null;
         game.setDisplay(this);
         const ownerColorNames = ['green', 'blue', 'red', 'yellow', 'purple', 'aqua', 'olive', 'lime'];
         this.ownerColors = ownerColorNames.map(name => new pdg.Color(name));
@@ -1381,6 +1384,7 @@ class Display {
         const drawRect = this.snapRectToPixels(rect);
         const active = !!options.active;
         const hovered = this.isHovered(drawRect);
+        if (hovered) this.hoverControl={rect:drawRect,label:hotkey?`${label} <${hotkey}>`:label};
         let fillColorName = active ? 'buttonFillActive' : 'buttonFill';
         if (hovered) {
             fillColorName = active ? 'buttonFillActiveHover' : 'buttonFillHover';
@@ -2065,7 +2069,9 @@ class Display {
             {rect:{x:rect.x+14,y:rect.y+444,width:rect.width-28,height:28},
             label:I18n.getString(770,'Show scanner ranges'),key:'F6',active:this.game.showScannerRanges,action:{type:'toggleScannerRanges'}},
             {rect:{x:rect.x+14,y:rect.y+476,width:rect.width-28,height:28},
-            label:I18n.getString(785,'Show nebula background'),active:this.game.showNebula,action:{type:'toggleNebula'}}]);
+            label:I18n.getString(785,'Show nebula background'),active:this.game.showNebula,action:{type:'toggleNebula'}},
+            {rect:{x:rect.x+14,y:rect.y+508,width:rect.width-28,height:28},
+            label:I18n.getString(857,'Control help'),active:this.game.showControlHelp!==false,action:{type:'toggleControlHelp'}}]);
     }
 
     drawSettingsWindow() {
@@ -3606,6 +3612,7 @@ class Display {
 
     drawIconHint() {
         if(!this.iconHint || this.game.uiWindow && !this.iconHint.inWindow)return;
+        if (this.controlHelp.visible) return;
         const {rect,label}=this.iconHint,screen=this.getScreenSize();
         const width=Math.min(screen.width-20,this.port.getTextWidth(label,11)+24);
         const box=this.fitPanelToScreen({x:rect.x+rect.width-width,y:rect.y-32,width,height:26});
@@ -3619,6 +3626,7 @@ class Display {
         const scrollDrag=this.game.uiMapScrollDrag;
         if(scrollDrag && scrollDrag.part)this.game.updateMapScrollDrag(scrollDrag.x,scrollDrag.y);
         this.iconHint=null;
+        this.hoverControl=null;
         // Update star rendering cache once per frame
         this.updateMapRenderingCalculations();
         this.mapDisplayState=MapDisplayModes.sample(this.game,this.game.mapDisplayMode || 'ownership');
@@ -3674,13 +3682,36 @@ class Display {
             this.drawingActiveWindow=true;
             try{this.drawActiveWindow();}finally{this.drawingActiveWindow=false;}
         });
-        this.drawIconHint();
         this.drawRendezvousPlacementPrompt();
         
         // Draw event overlay last
         if (game.overlay && game.uiWindow!=='endTurnConfirm') {
             this.drawOverlay(game.overlay);
         }
+        this.drawControlHelp();
+        this.drawIconHint();
+    }
+
+    clearControlHelp() { this.controlHelp.clear(); this.hoverPoint=null; }
+
+    getControlHelpCandidate() {
+        const game=this.game,point=this.hoverPoint;
+        if (!point || game.showControlHelp===false || game.uiSliderDrag || game.uiWindowDrag || game.uiMapScrollDrag ||
+                game.pendingCourseEdit || game.overlay && game.overlay.type!=='outcome') return null;
+        const action=this.getUIActionAt(point.x,point.y),text=ControlHelp.describe(action);
+        if (!text) return null;
+        const control=this.hoverControl || {rect:{x:point.x,y:point.y,width:1,height:1},label:''};
+        return {rect:control.rect,text:control.label?control.label+'\n'+text:text,
+            key:[game.uiWindow,action.type,action.allocationKey,action.key,action.object && action.object.id,
+                action.language,control.label,control.rect.x,control.rect.y].join(':')};
+    }
+
+    drawControlHelp() {
+        const hint=this.controlHelp.sample(this.getControlHelpCandidate(),this.visualTime,this.getScreenSize(),
+            text=>this.port.getTextWidth(text,11));
+        if (!hint) return;
+        this.drawPanelSurface(hint.rect,this.styles.windowPanel);
+        hint.lines.forEach((line,index)=>this.drawTextLine(line,hint.rect.x+12,hint.rect.y+16+index*15,'lightgray',11));
     }
 
     // Helper to load an image once
