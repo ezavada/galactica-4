@@ -104,7 +104,10 @@ the other living human players. When everyone posts an untimed turn, the host
 resolves it and the client refreshes automatically. Retry posting resends the
 same submission after a connection failure.
 
-Multiplayer remains incomplete: host setup UI, discovery, timers, chat and
+The native host service now supports timed turns after the untimed first turn,
+including pause/resume and saved time remaining across reopening.
+
+Multiplayer remains incomplete: host setup and clock UI, discovery, chat and
 network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
@@ -114,7 +117,7 @@ network-game saving are still being ported. See [the parity checklist](docs/V3_V
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1450 passed, 0 failed.
+Current expected result: 1459 passed, 0 failed.
 
 AI-only parity observer:
 

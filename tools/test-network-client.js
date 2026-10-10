@@ -16,7 +16,7 @@ const reject=async(promise,code)=>{let actual;try{await promise;}catch(error){ac
  const concurrent=a.refresh();assert.equal(a.refresh(),concurrent);await concurrent;
  const token=a.session.token;const replacement=make(url);await replacement.connect({name:'Voyager 星',password:'秘密 Д',mode:'rejoin',gameId:a.identity.gameId});await reject(a.refresh(),'not_logged_in');assert.equal(a.model,original);assert.equal(a.session,null);
  await reject(a.rejoin('wrong'),'bad_password');await a.rejoin('秘密 Д');assert.equal(a.model,original);assert.notEqual(a.session.token,token);await reject(replacement.refresh(),'not_logged_in');
- host.game.endTurn();host.persist();await a.refresh();assert.equal(a.model.turn,host.game.turn);assert.notEqual(a.model,original);assert.equal(a.model.selectedObject.id,home.id);assert.deepEqual(a.model.savedCamera,{zoom:1.5,panX:123,panY:456});assert.equal(a.model.showEnemyEvents,false);
+ host.transact(game=>game.endTurn());await a.refresh();assert.equal(a.model.turn,host.game.turn);assert.notEqual(a.model,original);assert.equal(a.model.selectedObject.id,home.id);assert.deepEqual(a.model.savedCamera,{zoom:1.5,panX:123,panY:456});assert.equal(a.model.showEnemyEvents,false);
  const stateBefore=a.model;host.game.turn--;await reject(a.refresh(),'stale_server_state');assert.equal(a.model,stateBefore);host.game.turn++;
  await a.disconnect();assert(!a.connected);assert.equal(a.model,null);assert.equal(host.info().slots[0].online,false);await a.rejoin('秘密 Д');assert(a.connected);
  const id=a.identity.gameId;await reject(make(url).connect({name:'Third',gameId:'c'.repeat(64)}),'wrong_game');

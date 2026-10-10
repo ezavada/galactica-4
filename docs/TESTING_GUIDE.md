@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1450
-Passed: 1450 ✓
+Total: 1459
+Passed: 1459 ✓
 Failed: 0 ✗
 ```
 
@@ -35,6 +35,7 @@ is tested separately under the PDG runtime:
 ./gad4 tools/test-network-client.js
 ./gad4 tools/test-network-join.js
 ./gad4 tools/test-network-orders.js
+./gad4 tools/test-network-clock.js
 ```
 
 These scripts create temporary localhost hosts and documents, check admission,
@@ -414,3 +415,17 @@ and unauthenticated request rejection, host reopen receipts, and logout cleanup.
 Unit cases cover all decision families, marker deletion, cyclic memberships,
 hidden/self targets, host-only commissioning, patrol/scrap decisions, unassigned
 slots, timed endEarly gating, disk-failure rollback and isolated host randomness.
+
+### Native host turn-clock regression
+
+`tools/test-network-clock.js` is awaited separately from the synchronous unit
+framework. It uses real one-second host turns, actual localhost admission and
+posting, and the production listener scheduler. It checks the untimed first
+turn, authenticated countdown records, paused/offline players, automatic
+expiration, remaining-time persistence across stopped/reopened listeners,
+failed-save rollback/retry and shutdown. Audio is muted, and all temporary hosts
+and documents are removed. Run it with both pinned and current public runtimes.
+
+Clock state is currently transport/service functionality. Host setup controls,
+visible countdowns and remote administration are still pending; this regression
+does not claim those UI requirements are implemented.

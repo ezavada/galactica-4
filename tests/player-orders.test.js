@@ -68,6 +68,6 @@ module.exports=()=>test.describe('Authoritative multiplayer orders',()=>{
   try{rejects(()=>host.postOrders(2,body),'host_save_failed');test.assertEqual(Save.serialize(host.game),before);test.assertEqual(host.game.tutorialRandom.state,state);test.assertEqual(pdg.rand(),expected);}finally{Game.prototype.endTurn=original;}
  }));
  test.it('retains posted receipts across reopening and keeps timed turns pending unless endEarly is set',()=>fixture(({host,snapshot})=>{
-  const body=snapshot();host.game.config.maxTimePerTurn=3600;host.game.config.endEarly=false;host.postOrders(1,body);const second=State.restore({...View.snapshot(host.game,2),gameId:host.info().gameId});host.postOrders(2,Orders.snapshot(second,'b'.repeat(32)));test.assertEqual(host.game.turn,1);const reopened=NetworkHost.open(host.file);const before=Save.serialize(reopened.game);reopened.postOrders(1,body);test.assertEqual(Save.serialize(reopened.game),before);
+  const body=snapshot();host.game.turn=2;body.turn=2;host.game.config.maxTimePerTurn=3600;host.game.config.endEarly=false;host.clock.reset(host.game,false);host.postOrders(1,body);const second=State.restore({...View.snapshot(host.game,2),gameId:host.info().gameId});host.postOrders(2,Orders.snapshot(second,'b'.repeat(32)));test.assertEqual(host.game.turn,2);const reopened=NetworkHost.open(host.file);const before=Save.serialize(reopened.game);reopened.postOrders(1,body);test.assertEqual(Save.serialize(reopened.game),before);
  }));
 });
