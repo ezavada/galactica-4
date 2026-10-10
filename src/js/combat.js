@@ -85,7 +85,9 @@ class CombatSystem {
             if (!entity || attackers.has(entity) || !this.isAliveCombatant(entity)) {
                 return;
             }
-            if (this.isEnemyOf(attackerOwner, entity)) {
+            if (this.isFleet(entity)) {
+                for (const member of this.getCombatants(entity)) addDefender(member);
+            } else if (this.isEnemyOf(attackerOwner, entity)) {
                 defenders.push(entity);
             }
         };

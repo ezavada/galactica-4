@@ -250,6 +250,10 @@ class Ship {
     }
     
     arriveAtDestination() {
+        if (this.game && typeof this.game.handleMobileArrival === 'function') {
+            return this.game.handleMobileArrival(this);
+        }
+        // Standalone model fixtures may provide a minimal game interface.
         if (this.destination) {
             const arrivingObjectType = this.game.getObjectType(this.destination);
             const arrivingDestination = this.destination;

@@ -92,7 +92,8 @@ module.exports=function(){
         ship.move();test.assertFalse(game.allShips.includes(ship));test.assertEqual(ship.course.current,1);
     });
     test.it('discards a joining ship course when it enters a fleet',()=>{
-        const {game,ship}=fixture();const fleet=game.factory.createFleet(50,0,1,'Guard');
+        const {game,home,ship}=fixture();const fleet=game.factory.createFleet(50,0,1,'Guard');
+        fleet.addShip(game.factory.createShip(50,0,'scout',home,true));fleet.star=null;
         game.issuePlayerWaypoint(ship,fleet);game.issuePlayerWaypoint(ship,point(300));ship.move();
         test.assertTrue(ship.fleet===fleet);test.assertEqual(ship.course.waypoints.length,0);
     });

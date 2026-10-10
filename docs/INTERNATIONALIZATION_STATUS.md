@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 1006 passed, 0 failed.
+Current expected full-suite result: 1018 passed, 0 failed.
 
 ## Future work
 
@@ -171,3 +171,5 @@ Local Save/Save As/Open/Revert adds IDs 838–855 in en/de/es/fr/ja/ru. Commands
 New-colony setup reports add ID 856 in all six languages. The private report and inspector guidance ask the owner to name the new colony and adjust production, matching v3 STR#500/45. Actual browser End Turn, Tab navigation, Unicode Rename/Save, production clicks, report Go to and recapture suppression pass in every language. Before/after inspectors and reports, translated naming dialogs and recaptured-system screens were inspected under `/private/tmp/galactica-parity/colony-setup-{before,after}`. Current resources: 391 IDs per language; full suites: 1001 passed on release/current native PDG.
 
 Technology-transfer repricing uses the existing localized technology, construction completion, ETA, Production and Pause/Resume controls. Actual browser delivery and inspector/pause/resume flows pass in all six languages; before/after screenshots were inspected under `/private/tmp/galactica-parity/transfer-{before,after}`. Resource counts remain 391 per language. Full suites: 1006 passed on release/current native PDG.
+
+Highest-container arrivals retain existing localized inspector, docking, fleet-content, order and combat-summary resources. Actual browser nested arrivals, satellite docking and planetary interception/report flows pass in all six languages; translated group/report screenshots were inspected under `/private/tmp/galactica-parity/arrival-{before,after}`. Resource counts remain 391 per language. Full suites: 1018 passed on release/current native PDG.

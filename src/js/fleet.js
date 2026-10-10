@@ -402,6 +402,10 @@ class Fleet {
     
     // Handle fleet arrival at destination
     arriveAtDestination() {
+        if (this.game && typeof this.game.handleMobileArrival === 'function') {
+            return this.game.handleMobileArrival(this);
+        }
+        // Standalone model fixtures may provide a minimal game interface.
         if (!this.destination) return;
         if (!this.game || typeof this.game.getObjectType !== 'function') {
             // Minimal behavior for tests/mocks: just clear destination

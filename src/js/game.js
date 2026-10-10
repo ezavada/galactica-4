@@ -3256,9 +3256,111 @@ class Game {
         return this.visibilityCalculator.getVisibilityStats();
     }
     
-    /**
-     * Handle automatic fleet formation when friendly ships intercept
-     */
+    // Navigation can name a member, but v3 resolves arrival against its
+    // highest container (CShip::Arriving / AGalacticThingy::GetTopContainer).
+    getArrivalTopContainer(destination) {
+        const seen = new Set();
+        let container = destination;
+        while (container && !seen.has(container)) {
+            seen.add(container);
+            const type = this.getObjectType(container);
+            const parent = type === Common.ObjectType.RENDEZVOUS ? container.anchor :
+                type === Common.ObjectType.SHIP || type === Common.ObjectType.FLEET ? container.fleet || container.star : null;
+            if (!parent) return container;
+            container = parent;
+        }
+        return null;
+    }
+
+    isArrivalObjectAlive(entity) {
+        switch (this.getObjectType(entity)) {
+            case Common.ObjectType.STAR: return this.stars.includes(entity);
+            case Common.ObjectType.SHIP: return this.allShips.includes(entity) && !entity.isDead();
+            case Common.ObjectType.FLEET: return this.allFleets.includes(entity) && !entity.isEmpty();
+            case Common.ObjectType.RENDEZVOUS: return this.allRendezvous.includes(entity);
+            default: return false;
+        }
+    }
+
+    handleMobileArrival(entity) {
+        const navigation = entity.destination;
+        if (!navigation) return;
+        const revision = entity.course.revision;
+        const type = this.getObjectType(entity);
+        const navType = this.getObjectType(navigation);
+        const top = this.getArrivalTopContainer(navigation);
+        if (entity.star) entity.star.shipDeparted(entity);
+        entity.star = null;
+        entity.x = navigation.x;
+        entity.y = navigation.y;
+        if (entity.syncShipPositions) entity.syncShipPositions();
+        if (entity.updateSpatialLocation) entity.updateSpatialLocation();
+
+        if (navType === Common.ObjectType.STAR && type === Common.ObjectType.SHIP) {
+            this.noteworthyEvent(entity, Common.EventType.SHIP_ARRIVED, navigation);
+        }
+        if (top && this.shouldResolveCombat(entity, top)) this.resolveCombat(entity, top);
+        if (!this.isArrivalObjectAlive(entity)) return;
+        const topType = this.getObjectType(top);
+        if (topType === Common.ObjectType.STAR && top.owner === 0) {
+            const colony = type === Common.ObjectType.SHIP ? (entity.type === 'colony' ? entity : null) :
+                entity.getShipsOfType('colony')[0];
+            if (colony) this.colonizeStar(top, colony, 0);
+            if (!this.isArrivalObjectAlive(entity)) {
+                if (type === Common.ObjectType.FLEET && entity.isEmpty()) this.removeDestroyedFleet(entity, entity.owner);
+                return;
+            }
+        }
+        if (topType === Common.ObjectType.STAR) this.applyTechnologyTransferToStar(entity, top);
+
+        const accepts = container => this.isArrivalObjectAlive(container) &&
+            (container.owner === 0 || this.isOwnerAlliedWith(entity.owner, container.owner));
+        let placement = null;
+        if (accepts(top) && this.isArrivalObjectAlive(navigation)) {
+            if (navType === Common.ObjectType.RENDEZVOUS && navigation.owner === entity.owner &&
+                    (type === Common.ObjectType.FLEET || entity.canFormFleet())) {
+                placement = this.handleRendezvousArrival(entity, navigation);
+            } else if (navType === Common.ObjectType.FLEET && accepts(navigation) &&
+                    (type === Common.ObjectType.FLEET || entity.canFormFleet())) {
+                navigation.addShip(entity);
+                placement = navigation;
+            } else if (navType === Common.ObjectType.SHIP && navigation.owner === entity.owner &&
+                    navigation.canFormFleet() && (type === Common.ObjectType.FLEET || entity.canFormFleet())) {
+                if (navigation.fleet) {
+                    navigation.fleet.addShip(entity);
+                    placement = navigation.fleet;
+                } else {
+                    placement = this.handleFleetFormation(entity, navigation);
+                }
+                if (type === Common.ObjectType.SHIP) {
+                    // Formation is already complete; emit the existing localized report.
+                    this.noteworthyEvent(entity, Common.EventType.SHIP_INTERCEPT, navigation);
+                }
+            }
+        }
+        if (!placement && accepts(top)) {
+            if (topType === Common.ObjectType.FLEET) {
+                top.addShip(entity);
+                placement = top;
+            } else if (topType === Common.ObjectType.STAR) placement = entity;
+        }
+        // Register only the outermost docked group in the system contents.
+        if (placement && topType === Common.ObjectType.STAR && accepts(top)) {
+            while (placement.fleet) placement = placement.fleet;
+            if (placement.star && placement.star !== top) placement.star.shipDeparted(placement);
+            placement.star = top;
+            top.shipArrived(placement);
+            if (placement.type === 'defense') top.addDefenseSatellite(placement);
+            if (placement.syncShipPositions) placement.syncShipPositions();
+            if (placement.updateSpatialLocation) placement.updateSpatialLocation();
+        }
+        if (!entity.fleet && this.isArrivalObjectAlive(entity)) entity.course.advance(revision);
+        if (type === Common.ObjectType.FLEET) entity.progress = 0;
+        if (type === Common.ObjectType.SHIP && !placement && navType !== Common.ObjectType.STAR) {
+            this.noteworthyEvent(entity, Common.EventType.SHIP_STOPPED, navigation);
+        }
+    }
+
     handleRendezvousArrival(entity, rendezvous) {
         if (!entity || !rendezvous || this.getObjectType(rendezvous) !== Common.ObjectType.RENDEZVOUS) {
             return null;
@@ -3281,7 +3383,7 @@ class Game {
             }
 
             if (assemblyFleet && assemblyFleet !== entity) {
-                assemblyFleet = this.mergeFleets(assemblyFleet, entity);
+                assemblyFleet.addShip(entity);
             } else {
                 assemblyFleet = entity;
             }

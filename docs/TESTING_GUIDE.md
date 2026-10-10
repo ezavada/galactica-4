@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 979
-Passed: 979 ✓
+Total: 1018
+Passed: 1018 ✓
 Failed: 0 ✗
 ```
 
@@ -205,3 +205,5 @@ Local file documents: `tests/game-save.test.js` and `tests/document-files.test.j
 New-colony setup reports: `tests/colony-setup-reports.test.js` adds nine regressions for actual neutral arrival, default retention, one private attention request, computer/capture exclusions, recapture/removal suppression, Tab/inspector/rename/production controls, pending confirmation, report navigation, save round trips and six-language bounds. Full suites: 1001 passed on release/current native PDG. Actual browser End Turn, Tab, Unicode Rename/Save, production slider clicks, report Go to and recapture suppression pass in all six languages. Before/after inspectors/reports and translated rename/recaptured screens were inspected under `/private/tmp/galactica-parity/colony-setup-{before,after}`. Logs: `/private/tmp/galactica-colony-setup-{tests,native-tests}.log` and `/private/tmp/galactica-colony-setup-{before,after}-<language>.log`.
 
 Allied arrival repricing: five additional `ship-commissioning.test.js` regressions cover every hull, fractional/banked effort, no premature commissioning, stale prices at unchanged technology, paused/enemy systems, actual scout arrival and save round trips. Existing transfer/ETA assertions and the actual fleet-arrival case in `game-rules.test.js` now require the v3 current-tech price. Full suites pass 1006 tests on release/current native PDG. Browser End Turn delivery, changed progress/ETA, courier diagnostics, Production and Pause/Resume pass in all six languages; before/after and translated screenshots inspected under `/private/tmp/galactica-parity/transfer-{before,after}`. Logs: `/private/tmp/galactica-transfer-{tests,native-tests}.log` and `/private/tmp/galactica-transfer-{before,after}-<language>.log`.
+
+Arrival container parity: `tests/arrival-containers.test.js` adds twelve regressions for nested planetary defenders, neutral-member colonization, consumed colony fleets, satellite fallback docking, fleet/group/rendezvous identity, anchor routing, destroyed-target fallback, hostile survivors, live-target courses and system/save containment. Full suites: 1018 passed on release/current native PDG. Actual browser End Turn before/after checks for nested group arrivals, satellite docking and defended-system interception pass in all six languages. Inspected screenshots: `/private/tmp/galactica-parity/arrival-{before,after}`. Logs: `/private/tmp/galactica-arrival-{tests,native-tests}.log` and `/private/tmp/galactica-arrival-{before,after}-<language>.log`.
