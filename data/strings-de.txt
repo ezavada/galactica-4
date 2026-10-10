@@ -834,3 +834,6 @@
 1138	Spieleränderung wird gespeichert…
 1139	Gültige Aktion und eindeutigen Spielernamen wählen.
 1140	Spielername
+
+1141	Spieler trennen
+1142	Der Host-Administrator hat Sie getrennt. Sie können Ihrem Platz erneut beitreten.

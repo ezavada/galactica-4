@@ -834,3 +834,6 @@
 1138	Enregistrement du changement…
 1139	Choisissez une action valide et un nom de joueur unique.
 1140	Nom du joueur
+
+1141	Déconnecter le joueur
+1142	L’administrateur vous a déconnecté. Vous pouvez rejoindre votre place.

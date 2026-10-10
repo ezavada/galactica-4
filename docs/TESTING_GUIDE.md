@@ -599,3 +599,26 @@ Paged screenshots: `/private/tmp/galactica-parity/host-controls-pages/en`.
 Native/full-unit logs: `/private/tmp/galactica-host-controls-{native,public-native,unit,public-unit}.log`.
 UI logs: `/private/tmp/galactica-host-controls-ui-<language>.log`.
 The full suite expects 1,501 passes.
+
+
+### Host player ejection
+
+```bash
+./gad4 tools/test-host-eject.js
+node tools/test-web-host-setup.cjs BUILD_DIR SCREENSHOT_DIR en eject
+node tools/test-web-host-setup.cjs BASELINE_BUILD_DIR SCREENSHOT_DIR en before-eject
+```
+
+Repeat the browser runs for de/es/fr/ja/ru. The native check awaits real HTTP
+requests in all six languages, including durable permission failure/retry,
+posted-order preservation, same-slot password rejoin, an order body arriving
+after ejection, completed hosts and save/reopen. Unit regressions live in
+`tests/host-eject.test.js`. The browser fixture joins through the ordinary UI,
+checks the actual application's disconnect banner and retained model/identity,
+then rejoins through the same password dialog. Native and browser audio output
+is muted. Current full suite: 1,537 passed on both PDG runtimes.
+
+Screenshots: `/private/tmp/galactica-parity/host-eject-{before,after}/<language>`.
+Logs: `/private/tmp/galactica-host-eject-{unit,public-unit,native,public-native}.log`
+and `/private/tmp/galactica-host-eject-{before,after}-<language>.log` (English
+initial after run: `/private/tmp/galactica-host-eject-ui-en.log`).

@@ -289,6 +289,7 @@ runHostConversionTests();
 runHostCommandTests();
 runHostControlsTests();
 runHostPlayersTests();
+require('./host-eject.test.js')();
 runHostSettingsTests();
 runHostClockTests();
 runClientClockTests();

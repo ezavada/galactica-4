@@ -834,3 +834,6 @@
 1138	Saving player change…
 1139	Choose a valid action and a unique player name.
 1140	Player name
+
+1141	Eject player
+1142	The host administrator disconnected you. You can rejoin your slot.

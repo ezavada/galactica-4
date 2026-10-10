@@ -1,0 +1,34 @@
+const test=require('./test-framework.js'),fs=require('fs'),os=require('os'),path=require('path');
+const Host=require('../src/js/network-host.js').NetworkHost,Players=require('../src/js/host-players.js'),Save=require('../src/js/game-save.js'),State=require('../src/js/client-state.js'),Orders=require('../src/js/player-orders.js');
+function fixture(fn){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-eject-'));try{fn(Host.create({numHumans:2,numComputers:1,sectorSize:1,density:1,maxTimePerTurn:300,endEarly:false},path.join(dir,'host.json')));}finally{fs.rmSync(dir,{recursive:true,force:true});}}
+const login=(host,name='First',mode='join')=>host.login.login({protocol:1,mode,name,password:'secret'});
+const eject=(host,player=1)=>host.changePlayer({action:'eject',player},Players.revision(host.game),host.game.turn);
+function rejects(fn,code){let actual;try{fn();}catch(e){actual=e.code || e.message;}test.assertEqual(actual,code);}
+module.exports=()=>test.describe('Host player ejection',()=>{
+ test.it('disconnects only the selected session and preserves identity, credentials, territory, posted orders and clock',()=>fixture(host=>{
+  const first=login(host),second=login(host,'Second');host.pauseClock();host.forceEndTurn(1);
+  host.postOrders(1,Orders.snapshot(State.restore(host.playerState(1)),'a'.repeat(32)));
+  const claim={...host.game.config.networkHost.players[0]},posts=JSON.stringify(host.game.config.networkHost.posts),territory=host.game.stars.map(s=>[s.id,s.owner,s.name]),clock=host.clock.snapshot(),revision=Players.revision(host.game),stateRevision=host.game.config.networkHost.playerStateRevision;
+  eject(host);rejects(()=>host.login.authenticate(first.token),'admin_ejected');test.assertEqual(host.login.authenticate(second.token).player,2);test.assertTrue(host.game.players[2].isLoggedIn);test.assertFalse(host.game.players[1].isLoggedIn);
+  test.assertDeepEqual(host.game.config.networkHost.players[0],claim);test.assertEqual(JSON.stringify(host.game.config.networkHost.posts),posts);test.assertDeepEqual(host.game.stars.map(s=>[s.id,s.owner,s.name]),territory);test.assertDeepEqual(host.clock.snapshot(),clock);test.assertEqual(host.game.players[1].lastTurnPosted,2);test.assertEqual(host.game.turn,2);test.assertEqual(Players.revision(host.game),revision+1);test.assertEqual(host.game.config.networkHost.playerStateRevision,stateRevision);
+  const rejoined=login(host,'First','rejoin');test.assertEqual(rejoined.player,1);test.assertTrue(State.restore(host.playerState(1)).clientTurnPosted);rejects(()=>host.login.authenticate(first.token),'admin_ejected');
+  const restored=Host.open(host.file);test.assertDeepEqual(restored.game.config.networkHost.players[0],claim);test.assertEqual(JSON.stringify(restored.game.config.networkHost.posts),posts);test.assertEqual(login(restored,'First','rejoin').player,1);test.assertFalse(fs.readFileSync(host.file,'utf8').includes(first.token));
+ }));
+ test.it('keeps the live session and durable model intact when saving fails, then permits a retry',()=>fixture(host=>{
+  const first=login(host),before=Save.serialize(host.game),file=fs.readFileSync(host.file,'utf8'),original=host.fs;host.fs={...fs,writeFileSync:()=>{throw Error('disk full');}};rejects(()=>eject(host),'host_save_failed');test.assertEqual(Save.serialize(host.game),before);test.assertEqual(fs.readFileSync(host.file,'utf8'),file);test.assertEqual(host.login.authenticate(first.token).player,1);test.assertEqual(host.login.revocations.size,0);host.fs=original;eject(host);rejects(()=>host.login.authenticate(first.token),'admin_ejected');
+ }));
+ test.it('guards stale requests and rejects offline, unclaimed, AI and malformed selections',()=>fixture(host=>{
+  const first=login(host),revision=Players.revision(host.game),before=Save.serialize(host.game);rejects(()=>host.changePlayer({action:'eject',player:1},revision-1,1),'stale_host_player');rejects(()=>host.changePlayer({action:'eject',player:1},revision,2),'stale_host_player');
+  for(const value of [{action:'eject',player:2},{action:'eject',player:3},{action:'eject',player:0},{action:'eject',player:1,name:'Extra'},{action:'eject',player:1,reason:'Forged'}])rejects(()=>host.changePlayer(value,revision,1),'invalid_host_player');test.assertEqual(Save.serialize(host.game),before);host.login.logout(first.token);rejects(()=>eject(host),'invalid_host_player');
+ }));
+ test.it('allows disconnection from a completed game without allowing other player edits',()=>fixture(host=>{
+  const first=login(host);host.game.isGameOver=true;rejects(()=>host.changePlayer({action:'kill',player:1},Players.revision(host.game),1),'game_complete');eject(host);test.assertTrue(host.game.isGameOver);rejects(()=>host.login.authenticate(first.token),'admin_ejected');test.assertEqual(login(host,'First','rejoin').player,1);
+ }));
+ test.it('bounds transient disconnect reasons and clears them on shutdown without saving tokens',()=>fixture(host=>{
+  const tokens=[];for(let i=0;i<257;i++){const token='transient-'+i;tokens.push(token);host.login.sessions.set(token,{player:1,name:'First'});host.login.revokePlayer(1,'admin_ejected');}test.assertEqual(host.login.revocations.size,256);rejects(()=>host.login.authenticate(tokens[0]),'not_logged_in');rejects(()=>host.login.authenticate(tokens[1]),'admin_ejected');rejects(()=>host.login.authenticate('unknown'),'not_logged_in');test.assertFalse(Save.serialize(host.game).includes('transient-'));host.login.disconnectAll();test.assertEqual(host.login.revocations.size,0);rejects(()=>host.login.authenticate(tokens[256]),'not_logged_in');
+ }));
+ test.it('localizes online status and ejection and restricts completed-game buttons in all six languages',()=>fixture(host=>{
+  const {HostWindow}=require('../src/js/network-host-setup.js'),old=pdg.res.getLanguage();login(host);const state={address:'http://127.0.0.1:1',title:'Host',info:host.info(),administration:{complete:true,players:Players.describe(host.game),playersRevision:Players.revision(host.game)}};
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const w=new HostWindow({supported:true,latest:()=>({}),describe:()=>state},()=>true);w.open();test.assertTrue(w.editPlayers());w.selectPlayer(1);const layout=w.layout(800,600),button=layout.buttons.find(b=>b.action==='player:eject');test.assertEqual(button.label,pdg.res.getString(1141));test.assertFalse(button.disabled);test.assertTrue(layout.buttons.filter(b=>['player:human','player:computer','player:remove','player:rename','player:kill'].includes(b.action)).every(b=>b.disabled));test.assertTrue(layout.labels.some(l=>l.text.includes(pdg.res.getString(1018))));w.selectPlayer(2);test.assertTrue(w.layout(800,600).buttons.find(b=>b.action==='player:eject').disabled);w.selectPlayer(3);test.assertTrue(w.layout(800,600).buttons.find(b=>b.action==='player:eject').disabled);}}finally{pdg.res.setLanguage(old);}
+ }));
+});

@@ -52,7 +52,7 @@ class HostWindow {
  }
  async retry(){if(this.busy || !this.record)return false;this.busy=true;this.message=I18n.getString(1061);try{const port=whole(this.port.text,0,65535);if(port===null)throw {code:'invalid_host_port'};await this.backend.retry(this.record,port);this.port=Name.createEditor(String(this.backend.describe(this.record).port),5);this.message='';return true;}catch(error){this.message=errorText(error);return false;}finally{this.busy=false;}}
  editPlayers(){
-  if(this.busy || !this.record)return false;const info=this.backend.describe(this.record);if(!info.address || info.administration.complete)return false;
+  if(this.busy || !this.record)return false;const info=this.backend.describe(this.record);if(!info.address || info.administration.complete && !info.administration.players.some(p=>!p.isComputer && p.online))return false;this.playersComplete=info.administration.complete;
   this.playerList=info.administration.players.map(p=>({...p}));this.playersRevision=info.administration.playersRevision;this.playersTurn=info.info.turn;this.playerSelection=null;this.page=0;this.stage='players';this.message='';return true;
  }
  selectPlayer(value){if(this.stage!=='players' || !this.playerList.some(p=>p.player===value))return false;this.playerSelection=value;this.message='';return true;}
@@ -133,9 +133,9 @@ class HostWindow {
    const inner=rect.width-48;return {rect,scale,title:I18n.getString(this.pendingPlayerAction==='rename'?1130:1127),messageY:190,fields:[{name:'playerName',label:I18n.getString(1140),rect:at(180,100,rect.width-204),labelRect:at(24,100,140)}],choices:[],checks:[],labels:[{text:I18n.formatString(1131,'',this.playerSelection,this.playerList.find(p=>p.player===this.playerSelection).name),rect:at(24,60,inner)}],buttons:[{action:'cancel',id:683,key:'Esc',rect:at(24,240,inner/2-4)},{action:'savePlayer',id:682,key:'Enter',rect:at(28+inner/2,240,inner/2-4)}].map(b=>({...b,label:I18n.getString(b.id)}))};
   }
   if(this.stage==='players'){
-   const inner=rect.width-48,p=this.playerList.find(p=>p.player===this.playerSelection),labels=p?[{text:I18n.formatString(1132,'',I18n.getString(p.isComputer?504:300),I18n.getString(p.assigned?1133:1134),I18n.getString(p.isAlive?1135:1136)),rect:at(24,198,inner)}]:[];
+   const inner=rect.width-48,p=this.playerList.find(p=>p.player===this.playerSelection),labels=p?[{text:I18n.formatString(1132,'',I18n.getString(p.isComputer?504:300),I18n.getString(p.assigned?1133:1134),I18n.getString(p.isAlive?1135:1136))+' · '+I18n.getString(p.online?1018:1019),rect:at(24,198,inner)}]:[];
    const choices=this.playerList.slice(this.page*4,this.page*4+4).map((p,i)=>({action:'selectPlayer',value:p.player,label:I18n.formatString(1131,'',p.player,p.name),active:p.player===this.playerSelection,rect:at(24,60+i*32,inner)}));
-   const buttons=[...(this.playerList.length>4?[{action:'previous',id:1033,disabled:this.page===0,rect:at(24,232,inner/2-4)},{action:'next',id:1034,disabled:(this.page+1)*4>=this.playerList.length,rect:at(28+inner/2,232,inner/2-4)}]:[]),{action:'player:human',id:1126,disabled:!p || !p.isComputer,rect:at(24,276,inner/2-4)},{action:'player:computer',id:1127,disabled:!p || p.isComputer,rect:at(28+inner/2,276,inner/2-4)},{action:'player:remove',id:1128,disabled:!p || p.isComputer || !p.assigned,rect:at(24,314,inner/2-4)},{action:'player:rename',id:1130,disabled:!p || !p.assigned,rect:at(28+inner/2,314,inner/2-4)},{action:'player:kill',id:1129,disabled:!p || !p.isAlive,rect:at(24,352,inner)},{action:'cancel',id:834,key:'Esc',rect:at(24,430,inner)}];
+   const buttons=[...(this.playerList.length>4?[{action:'previous',id:1033,disabled:this.page===0,rect:at(24,232,inner/2-4)},{action:'next',id:1034,disabled:(this.page+1)*4>=this.playerList.length,rect:at(28+inner/2,232,inner/2-4)}]:[]),{action:'player:human',id:1126,disabled:this.playersComplete || !p || !p.isComputer,rect:at(24,276,inner/2-4)},{action:'player:computer',id:1127,disabled:this.playersComplete || !p || p.isComputer,rect:at(28+inner/2,276,inner/2-4)},{action:'player:remove',id:1128,disabled:this.playersComplete || !p || p.isComputer || !p.assigned,rect:at(24,314,inner/2-4)},{action:'player:rename',id:1130,disabled:this.playersComplete || !p || !p.assigned,rect:at(28+inner/2,314,inner/2-4)},{action:'player:kill',id:1129,disabled:this.playersComplete || !p || !p.isAlive,rect:at(24,352,inner/2-4)},{action:'player:eject',id:1141,disabled:!p || p.isComputer || !p.online,rect:at(28+inner/2,352,inner/2-4)},{action:'cancel',id:834,key:'Esc',rect:at(24,430,inner)}];
    return {rect,scale,title:I18n.getString(1125),messageY:406,fields:[],choices,checks:[],labels,buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
   }
   if(this.stage==='endTurn'){
@@ -157,7 +157,7 @@ class HostWindow {
     ...(info.address?[{action:info.info.clock.paused?'resumeClock':'pause',id:info.info.clock.paused?1117:1116,disabled:info.administration.complete,rect:at(24,266,inner/2-4)},{action:'endNow',id:1107,disabled:info.administration.complete,rect:at(28+inner/2,266,inner/2-4)}]:[]),
     {action:'join',id:1063,key:'Enter',disabled:!info.address,rect:at(24,380,inner)},
     {action:info.address?'settings':'retry',id:info.address?1118:1075,disabled:info.address && info.administration.complete,rect:at(24,418,info.address?inner/2-4:inner)},
-    ...(info.address?[{action:'players',id:1125,disabled:info.administration.complete,rect:at(28+inner/2,418,inner/2-4)}]:[]),
+    ...(info.address?[{action:'players',id:1125,disabled:info.administration.complete && !info.administration.players.some(p=>!p.isComputer && p.online),rect:at(28+inner/2,418,inner/2-4)}]:[]),
     {action:'another',id:1065,rect:at(24,456,inner)},
     {action:'stop',id:1064,rect:at(24,494,inner/2-4)},
     {action:'cancel',id:834,key:'Esc',rect:at(28+inner/2,494,inner/2-4)}].map(b=>({...b,label:I18n.getString(b.id)}))};

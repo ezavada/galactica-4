@@ -3,7 +3,7 @@ const Names=require('./player-name.js'),I18n=require('./i18n.js'),Network=requir
 const errorIds={invalid_host_address:1020,bad_login_request:1021,bad_password:1022,duplicate_name:1023,
  game_full:1024,player_not_found:1025,wrong_game:1026,bad_protocol:1027,network_timeout:1028,
  network_bad_response:1029,invalid_player_state:1029,wrong_player:1029,network_response_too_large:1029,
- host_save_failed:1030,host_state_failed:1030,not_logged_in:1031,stale_server_state:1029,bad_orders:1040,wrong_turn:1041,already_posted:1042,game_complete:1043,orders_too_large:1044};
+ host_save_failed:1030,host_state_failed:1030,not_logged_in:1031,admin_ejected:1142,stale_server_state:1029,bad_orders:1040,wrong_turn:1041,already_posted:1042,game_complete:1043,orders_too_large:1044};
 function errorText(error){return I18n.getString(errorIds[error && error.code] || 1032);}
 class JoinWindow {
  constructor({create=address=>new Network.NetworkClient(address),install,find=()=>null,defaultName=()=>''}={}){

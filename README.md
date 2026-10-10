@@ -129,9 +129,9 @@ limits are preserved exactly. Cancel leaves the host unchanged; failed saves kee
 the draft for retry, and stale drafts must be reopened. Joined clients refresh
 settings and visibility while keeping unposted orders.
 
-**Change player** lists the fixed player IDs with human/AI, assigned and alive
+**Change player** lists the fixed player IDs with human/AI, assigned, alive and online
 status. Rename an assigned player, switch human/AI control, free a human slot,
-or eliminate a player. Role changes keep the same territory and player IDs.
+eliminate a player, or eject an online human. Role changes keep the same territory and player IDs.
 Making an AI human opens its slot; making a human AI releases its claim. Freeing
 a slot removes its password and posted-turn receipt so a replacement can join.
 Renaming a human keeps its password; that player must rejoin with the new name.
@@ -139,6 +139,10 @@ Affected connections are revoked only after the change saves successfully.
 Elimination neutralizes all owned territory and reports defeat at turn end.
 Cancel preserves the host; failed saves retain the selected action/name for retry,
 and stale actions require reopening the player list.
+Eject disconnects the selected player while preserving their name, password,
+territory and posted orders. They receive a translated notice and can rejoin
+the same slot. Completed games still permit ejection; other player edits are
+disabled.
 
 Browsers can join games but require the desktop application to host.
 
@@ -197,7 +201,7 @@ network-game saving are still being ported. See [the parity checklist](docs/V3_V
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1531 passed, 0 failed.
+Current expected result: 1537 passed, 0 failed.
 
 AI-only parity observer:
 

@@ -90,8 +90,8 @@ class NetworkHost {
     changePlayer(value,revision,turn){
         const Players=require('./host-players.js'),current=Players.revision(this.game);
         if(!Number.isSafeInteger(revision) || revision!==current || current===Number.MAX_SAFE_INTEGER || turn!==this.game.turn)throw failure('stale_host_player');
-        if(this.game.isGameOver)throw failure('game_complete');
-        let revoke;this.transact(game=>{revoke=Players.apply(game,value);});if(revoke)this.login.revokePlayer(value.player);
+        if(this.game.isGameOver && value?.action!=='eject')throw failure('game_complete');
+        let revoke;this.transact(game=>{revoke=Players.apply(game,value);});if(revoke)this.login.revokePlayer(value.player,value.action==='eject'?'admin_ejected':'not_logged_in');
     }
     updateSettings(value,revision){
         const Settings=require('./host-settings.js'),settings=Settings.validate(value),current=this.game.config.networkHost.settingsRevision || 0;
@@ -118,7 +118,7 @@ class NetworkHost {
         if(req.url==='/info'){respond(req.method==='GET'?200:405,req.method==='GET'?this.info():{error:'method_not_allowed'});return;}
         const token=()=>{const value=req.headers && req.headers.authorization;return typeof value==='string' && value.startsWith('Bearer ')?value.slice(7):null;};
         if(req.url==='/state' && req.method==='GET'){
-            let session;try{session=this.login.authenticate(token());}catch(error){respond(401,{error:'not_logged_in'});return;}
+            let session;try{session=this.login.authenticate(token());}catch(error){respond(401,{error:error.code || 'not_logged_in'});return;}
             try{respond(200,this.playerState(session.player));}
             catch(error){respond(500,{error:'host_state_failed'});}return;
         }
@@ -130,13 +130,13 @@ class NetworkHost {
             try{respond(200,this.login.logout(token()));}catch(error){respond(401,{error:error.code || 'not_logged_in'});}return;
         }
         if(req.url==='/orders' && req.method==='POST'){
-            let session;try{session=this.login.authenticate(token());}catch(error){respond(401,{error:'not_logged_in'});return;}
+            let session;try{session=this.login.authenticate(token());}catch(error){respond(401,{error:error.code || 'not_logged_in'});return;}
             let body='',bytes=0,answered=false;req.setEncoding('utf8');req.on('error',()=>{answered=true;});
             req.on('data',chunk=>{bytes+=Buffer.byteLength(chunk,'utf8');if(bytes>64*1024*1024){if(!answered){answered=true;respond(413,{error:'orders_too_large'});}return;}body+=chunk;});
             req.on('end',()=>{if(answered)return;let request;try{request=JSON.parse(body);}catch(error){respond(400,{error:'bad_orders'});return;}
                 try{const current=this.login.authenticate(token());if(current.player!==session.player)throw failure('not_logged_in');this.postOrders(current.player,request);
                     respond(200,{...this.playerState(current.player),orderIds:this.game.config.networkHost.posts[current.player].ids});}
-                catch(error){const status=error.code==='not_logged_in'?401:['wrong_game','wrong_turn','already_posted','game_complete'].includes(error.code)?409:error.code==='bad_orders'?400:500;
+                catch(error){const status=['not_logged_in','admin_ejected'].includes(error.code)?401:['wrong_game','wrong_turn','already_posted','game_complete'].includes(error.code)?409:error.code==='bad_orders'?400:500;
                     respond(status,{error:status===500?'host_save_failed':error.code});}
             });return;
         }

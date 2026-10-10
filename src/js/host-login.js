@@ -8,7 +8,7 @@ function passwordHash(password,salt){return crypto.pbkdf2Sync(password,salt,1000
 function validPassword(value){return typeof value==='string' && Array.from(value).length<=64 && !/[\u0000-\u001f\u007f-\u009f]/.test(value);}
 class HostLogin {
     constructor(game,commit){
-        this.game=game;this.commit=commit;this.sessions=new Map();
+        this.game=game;this.commit=commit;this.sessions=new Map();this.revocations=new Map();
         const c=game.config;
         if(c.networkHost===undefined)c.networkHost={id:random(),players:Array(c.numHumans).fill(null)};
         const host=c.networkHost;
@@ -54,9 +54,9 @@ class HostLogin {
         const token=random();this.sessions.set(token,{player,name:request.name});this.game.players[player].isLoggedIn=true;
         return {protocol,gameId:c.networkHost.id,player,name:request.name,token,turn:this.game.turn};
     }
-    revokePlayer(player){for(const [token,session] of this.sessions)if(session.player===player)this.sessions.delete(token);this.game.players[player].isLoggedIn=false;}
-    authenticate(token){const session=typeof token==='string' && this.sessions.get(token);if(!session)throw failure('not_logged_in');return session;}
+    revokePlayer(player,reason='not_logged_in'){for(const [token,session] of this.sessions)if(session.player===player){this.sessions.delete(token);if(reason==='admin_ejected')this.revocations.set(token,reason);}while(this.revocations.size>256)this.revocations.delete(this.revocations.keys().next().value);this.game.players[player].isLoggedIn=false;}
+    authenticate(token){const session=typeof token==='string' && this.sessions.get(token);if(!session)throw failure(this.revocations.get(token) || 'not_logged_in');return session;}
     logout(token){const session=this.authenticate(token);this.sessions.delete(token);this.game.players[session.player].isLoggedIn=false;return {player:session.player};}
-    disconnectAll(){this.sessions.clear();for(const i of this.game.config.getHumanPlayerSlots())this.game.players[i].isLoggedIn=false;}
+    disconnectAll(){this.sessions.clear();this.revocations.clear();for(const i of this.game.config.getHumanPlayerSlots())this.game.players[i].isLoggedIn=false;}
 }
 module.exports={HostLogin,protocol};

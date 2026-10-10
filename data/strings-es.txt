@@ -834,3 +834,6 @@
 1138	Guardando cambio de jugador…
 1139	Elige una acción válida y un nombre de jugador único.
 1140	Nombre del jugador
+
+1141	Desconectar jugador
+1142	El administrador te ha desconectado. Puedes volver a unirte a tu plaza.

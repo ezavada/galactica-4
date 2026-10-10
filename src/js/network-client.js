@@ -116,7 +116,7 @@ class NetworkClient {
     if(generation===this.generation && session===this.session){
      if(['bad_orders','orders_too_large','wrong_game'].includes(error.code)){this.pendingPost=null;this.model.clientPosting=false;}
      else if(['wrong_turn','already_posted','game_complete'].includes(error.code)){this.pendingPost=null;this.model.clientPosting=false;}
-     else{if(!this.pendingPost && this.model)this.model.clientPosting=false;this.status='connection_lost';if(error.code==='not_logged_in')this.session=null;}
+     else{if(!this.pendingPost && this.model)this.model.clientPosting=false;this.status='connection_lost';if(['not_logged_in','admin_ejected'].includes(error.code))this.session=null;}
     }throw error;
    }
   })();
@@ -129,7 +129,7 @@ class NetworkClient {
    try{const fresh=this.state(await this.send('/state',{token:session.token}),session);
     if(generation!==this.generation || this.session!==session)throw fail('network_cancelled');
     const model=this.install(fresh,options);this.status='connected';return model;
-   }catch(error){if(generation===this.generation && this.session===session){this.status='connection_lost';if(error.code==='not_logged_in')this.session=null;}throw error;}
+   }catch(error){if(generation===this.generation && this.session===session){this.status='connection_lost';if(['not_logged_in','admin_ejected'].includes(error.code))this.session=null;}throw error;}
   })();
   this.refreshPromise=operation;
   operation.then(()=>{if(this.refreshPromise===operation)this.refreshPromise=null;},()=>{if(this.refreshPromise===operation)this.refreshPromise=null;});return operation;
