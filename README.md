@@ -112,7 +112,12 @@ host to announce the next turn.
 Desktop **Host** (H), on startup or in File, creates a durable hosted game.
 Choose human/AI counts, map options, a host filename, port (0 selects an
 available port), and an optional minutes/hours/days/weeks turn limit. The status
-window offers Join, Stop hosting, and Host another game. Hosting continues when
+window offers Join, Pause/Resume game, End turn now, Stop hosting, and Host
+another game. Pausing holds both the timer and automatic turn advancement and
+survives reopening. End turn now warns about assigned living humans who have
+not posted; Keep waiting cancels, and a confirmation for an already-advanced
+turn cannot skip another turn. Forced turns retain the paused state. A failed
+save leaves the turn unchanged and keeps the confirmation available for retry. Hosting continues when
 you dismiss that window or close a client game; accepted Quit saves and stops
 all hosts before exiting. A failed save keeps the application and listener open.
 Browsers can join games but require the desktop application to host.
@@ -172,7 +177,7 @@ network-game saving are still being ported. See [the parity checklist](docs/V3_V
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1496 passed, 0 failed.
+Current expected result: 1501 passed, 0 failed.
 
 AI-only parity observer:
 

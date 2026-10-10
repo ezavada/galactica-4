@@ -797,3 +797,15 @@
 1104	Vitesse/visibilité : --slow --no-fog ; valeurs initiales : partie rapide, brouillard de guerre. Les parties avec uniquement des IA avancent automatiquement.
 1105	Réseau : --port 0–65535 (0 automatique) --language en/de/es/fr/ja/ru. --help affiche ces options.
 1106	Options de serveur dédié non valides. Vérifiez la syntaxe et les limites ci-dessous.
+
+1107	Terminer le tour
+1108	Joueurs sans envoi : {0}
+1109	Terminer ce tour maintenant ?
+1110	Continuer à attendre
+1111	Enregistrement des changements de l’hôte…
+1112	Joueur {0} : {1}
+1113	En attente des tours des joueurs
+1114	Le tour a avancé. Vérifiez le nouveau tour avant de le terminer.
+1115	Tour {0}
+1116	Mettre en pause
+1117	Reprendre la partie

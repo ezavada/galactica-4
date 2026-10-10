@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1496 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1501 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -265,7 +265,7 @@ The largest blockers to a complete game are:
 - Functional sorting for Compare Players, unless another shipped v3 path is found; the audited `SortCompareWindowByColumn()` body is empty.
 - Additional dashboard/scoring views beyond the v3 summary columns.
 
-## 9. Save/load, multiplayer, and host administration (Functionality 64%, UI 64%)
+## 9. Save/load, multiplayer, and host administration (Functionality 71%, UI 71%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -280,8 +280,8 @@ The largest blockers to a complete game are:
 | Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | 🟡 Partial | 🟡 Partial | Startup Join/J and File → Join open a localized modal address/name/masked-password form with public game/slot information and paged player selection. Native HTTP/browser CORS admission installs the authenticated client as a retained game document; same-player rejoin reuses that document. Automatic refresh preserves same-turn orders and updates authoritative turns. Title dragging stays in the port and remembers its position. Six-language actual-control browser tests pass. Saved host lists/discovery remain missing; untimed order submission and authoritative turn resolution are now wired. |
 | Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🟡 Partial | 🟡 Partial | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit policy, optional saved-password preferences and host administration remain forthcoming. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ✅ Implemented | ✅ Implemented | Client End Turn submits owned decision records through authenticated HTTP, shows localized Posting/Posted/Retry states and locks posted orders. The host stages and validates production targets/build choices, destinations/courses/memory, names, fleet membership, private rendezvous and player defaults; it derives simulation values and permanent IDs. Untimed turns resolve once every assigned living human posts. Durable receipts make retries idempotent after lost replies/reopening. Authoritative next-turn refresh unlocks client orders. Both full suites pass 1,459 tests; posting controls are verified in all six languages, with an English browser rerun after the host-clock addition. Timed host scheduling, visible countdowns and desktop setup are implemented separately; host administration UI remains unfinished. |
-| Timed turns | Host clock, time remaining, pause/resume, automatic completion. | 🟡 Partial | 🟡 Partial | Native host listener runs a monotonic countdown after untimed turn 1, resolves expired turns even with unposted/offline humans, and preserves remaining time while stopped/reopened. Local host-service pause/resume and public/authenticated countdown records are implemented. Joined games display validated countdowns in the map header, including localized paused and awaiting-next-turn states; the countdown remains visible after posting and never resolves a turn locally. Nine unit regressions and awaited real scheduler/socket checks cover expiration, endEarly, persistence, save rollback/retry and shutdown. Desktop Host now configures the time limit and endEarly option. Host pause/resume administration controls remain missing. |
-| Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | ❌ Missing | ❌ Missing | No host/admin mode. |
+| Timed turns | Host clock, time remaining, pause/resume, automatic completion. | ✅ Implemented | ✅ Implemented | Native host listener runs a monotonic countdown after untimed turn 1, resolves expired turns even with unposted/offline humans, and preserves remaining time while stopped/reopened. Local host-service pause/resume and public/authenticated countdown records are implemented. Joined games display validated countdowns in the map header, including localized paused and awaiting-next-turn states; the countdown remains visible after posting and never resolves a turn locally. Nine unit regressions and awaited real scheduler/socket checks cover expiration, endEarly, persistence, save rollback/retry and shutdown. Desktop Host now configures the time limit and endEarly option. Desktop Host status now offers durable Pause/Resume with current countdown text; pausing holds expiry, ready-post resolution and AI-only advancement. Joined clients receive paused/resumed clock state. Saved/reopened pause and failed-write rollback are verified. |
+| Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | 🟡 Partial | 🟡 Partial | Desktop host status offers durable Pause/Resume and End turn now. A paged confirmation lists assigned living humans who have not posted; cancellation preserves the turn. Captured-turn checks prevent a stale confirmation from skipping a newer turn; failed saves roll back and retain retry. Host settings/player changes, state editing, ejection, private admission and remote administrator access remain unported. |
 | Multiplayer chat | Player-to-player/all/admin messages. | ❌ Missing | ❌ Missing | No chat protocol or UI. |
 
 ### Possible persistence/multiplayer enhancements beyond v3, not counted in Section 9
@@ -2914,3 +2914,48 @@ saved-password preferences, chat, network-document saving, host-generated report
 localization and tutorial recovery 103 remain pending. The v3 hostconfig file
 format is not read by the dedicated command; administrative settings/persistence
 remain a separate task. Map Generation follows the remaining parity work.
+
+
+### Desktop host pause/resume and end-turn-now — 2026-10-10
+
+Audited v3 `GalacticaHostDoc.cp:496–529`: End turn now warns only for assigned,
+alive human players whose last posted turn is older than the current turn,
+then invokes `HandleAdminEndTurnNow`. The latter directly resolves a turn in
+`GalacticaHost.cpp:2450–2456`. V3's pause/resume packet handlers at 2458–2471
+only log; the host menu pause/resume case is commented out. The v4 checklist's
+pause/resume requirement is implemented as a useful durable control, not claimed
+as a working shipped v3 packet implementation.
+
+The desktop Host status now shows Pause/Resume game, End turn now and the current
+clock/waiting state. Pause stops both countdown expiry and ready-post/AI-only
+advancement, persists remaining time and survives host reopening. Resume restores
+the scheduler without resetting the remaining time. Ordinary authenticated
+clients receive paused/resumed countdown state through the existing state refresh.
+
+End turn now follows v3's assigned/living/unposted filter. With no such players
+it resolves immediately; otherwise it opens a translated modal with a paged list
+of every pending player, Keep waiting/Escape and End turn now/Enter. The captured
+turn is checked by the host, so automatic resolution during confirmation cannot
+skip a newer turn. Completion during confirmation returns to disabled status
+controls. Forced turns reset the turn clock but retain pause. Atomic-save failure
+rolls back game/IDs/randomness/clock and retains the confirmation for retry; no
+turn is reported complete before successful persistence.
+
+Controls are local to the owning desktop host registry, validate record/action
+membership and require an active listener. No unauthenticated HTTP admin route
+was added. Public player info remains separate from desktop pending-player
+metadata. Remote administrator admission/commands remain a later task.
+
+Both full suites pass 1,501 tests. Awaited integration on both native runtimes
+covers real write-permission failure, saved/reopened pause, forced turns and
+stale/completed confirmations, authenticated clock refresh, and service guards.
+Actual-control UI passes in all six languages, including Cancel, stale-turn
+warning, failed-save retry and paused/resumed joined-client countdowns. Testing
+Guide records before/after screenshot and log paths. Compared the status windows
+in every language and inspected confirmation labels and visible failure messages.
+An additional actual seven-player run verifies Next/Previous and the final
+pending-player page; both pages were visually reviewed. The wider administration
+row remains partial for settings/player changes, private admission, ejection,
+state editing and remote administration. Discovery, saved password preferences,
+chat, network-document saving, host report localization, tutorial recovery 103
+and the Map Generation checklist remain unfinished.

@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1496
-Passed: 1496 ✓
+Total: 1501
+Passed: 1501 ✓
 Failed: 0 ✗
 ```
 
@@ -567,3 +567,35 @@ failed-save rollback/retry. This command-only item adds no graphical surface.
 
 Results: `/private/tmp/galactica-host-command-{unit,public-unit,native,public-native}.log`.
 The full unit suite expects 1,496 passes.
+
+
+### Desktop host turn controls
+
+```bash
+./gad4 tools/test-host-controls.js
+node tools/test-web-host-setup.cjs BUILD_DIR SCREENSHOT_DIR en controls
+node tools/test-web-host-setup.cjs BUILD_DIR SCREENSHOT_DIR en controls-pages
+```
+
+Repeat the ordinary controls run in de/es/fr/ja/ru. `before-controls` captures
+the committed status window without administration buttons. The same test-only
+localhost adapter exercises the real native service; production browser hosting
+and remote administration are not enabled by this fixture. Audio remains muted.
+
+The awaited native test covers assigned/living unposted warnings, cancellation,
+durable pause and client clock propagation, forced turns while paused, stale
+confirmation rejection, actual denied writes/rollback/retry, saved pause/reopen,
+resume/rejoin, completion during confirmation, and desktop/record/action guards.
+Units verify exact forced-turn persistence, rollback, pending-list paging, layout
+bounds, translated controls, completion guards and absent-listener behavior.
+The actual-control browser flow covers Pause/Resume, pending-player names,
+Keep waiting/Escape, confirmation/Enter, stale-turn and failed-save errors,
+retry, authenticated client countdowns, retained local documents and Stop.
+`controls-pages` uses seven real claimed players to exercise Next/Previous and
+the final pending-player page.
+
+Before/after screenshots: `/private/tmp/galactica-parity/host-controls-{before,after}/<language>`.
+Paged screenshots: `/private/tmp/galactica-parity/host-controls-pages/en`.
+Native/full-unit logs: `/private/tmp/galactica-host-controls-{native,public-native,unit,public-unit}.log`.
+UI logs: `/private/tmp/galactica-host-controls-ui-<language>.log`.
+The full suite expects 1,501 passes.

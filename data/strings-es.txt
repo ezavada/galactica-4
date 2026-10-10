@@ -797,3 +797,15 @@
 1104	Velocidad/visibilidad: --slow --no-fog; valores iniciales: juego rápido, niebla de guerra. Las partidas solo de IA avanzan automáticamente.
 1105	Red: --port 0–65535 (0 automático) --language en/de/es/fr/ja/ru. --help muestra estas opciones.
 1106	Opciones del anfitrión dedicado no válidas. Revisa la sintaxis y los intervalos siguientes.
+
+1107	Terminar turno ahora
+1108	Jugadores que no han enviado: {0}
+1109	¿Terminar este turno ahora?
+1110	Seguir esperando
+1111	Guardando cambios del anfitrión…
+1112	Jugador {0}: {1}
+1113	Esperando turnos de jugadores
+1114	El turno ha avanzado. Revisa el nuevo turno antes de terminarlo.
+1115	Turno {0}
+1116	Pausar partida
+1117	Reanudar partida

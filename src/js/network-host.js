@@ -87,6 +87,11 @@ class NetworkHost {
         if(!ready && (this.game.config.numHumans===0 || !this.clock.expired()))return false;
         this.transact(game=>game.endTurn());return true;
     }
+    forceEndTurn(expectedTurn){
+        if(expectedTurn!==this.game.turn)throw failure('stale_host_turn');
+        if(this.game.isGameOver)throw failure('game_complete');
+        this.transact(game=>game.endTurn());
+    }
     pauseClock(){this.transact(()=>this.clock.pause());}
     resumeClock(){this.transact(()=>this.clock.resume(!!this.server));}
     playerState(viewer){return {...HostView.snapshot(this.game,viewer),gameId:this.game.config.networkHost.id,clock:this.clock.info()};}

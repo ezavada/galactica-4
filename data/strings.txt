@@ -797,3 +797,15 @@
 1104	Speed/visibility: --slow --no-fog; defaults: fast game, fog of war. AI-only hosts advance automatically.
 1105	Network: --port 0–65535 (0 automatic) --language en/de/es/fr/ja/ru. --help shows these options.
 1106	Invalid dedicated-host options. Check the syntax and ranges below.
+
+1107	End turn now
+1108	Players who have not posted: {0}
+1109	End this turn now?
+1110	Keep waiting
+1111	Saving host changes…
+1112	Player {0}: {1}
+1113	Waiting for player turns
+1114	The turn has advanced. Review the new turn before ending it.
+1115	Turn {0}
+1116	Pause game
+1117	Resume game

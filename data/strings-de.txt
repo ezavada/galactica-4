@@ -797,3 +797,15 @@
 1104	Tempo/Sicht: --slow --no-fog; Standard: schnelles Spiel, Kriegsnebel. Reine KI-Spiele laufen automatisch.
 1105	Netzwerk: --port 0–65535 (0 automatisch) --language en/de/es/fr/ja/ru. --help zeigt diese Optionen.
 1106	Ungültige Serveroptionen. Prüfe Syntax und Wertebereiche unten.
+
+1107	Runde jetzt beenden
+1108	Spieler ohne Abgabe: {0}
+1109	Diese Runde jetzt beenden?
+1110	Weiter warten
+1111	Host-Änderungen werden gespeichert…
+1112	Spieler {0}: {1}
+1113	Warten auf Spielerzüge
+1114	Die Runde ist weitergegangen. Prüfe die neue Runde vor dem Beenden.
+1115	Runde {0}
+1116	Spiel pausieren
+1117	Spiel fortsetzen
