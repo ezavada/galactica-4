@@ -2143,6 +2143,49 @@ class Game {
         }
     }
     
+    // CShip::EndOfTurn marks the actor before allowing its destination to
+    // move. Marking before recursion handles mutual pursuit and longer cycles.
+    moveAllShips() {
+        const previous=this.movementTurn;
+        const actors=[...this.allShips,...this.allFleets];
+        this.movementTurn={moved:new Set(),actors:new Set(actors)};
+        try { actors.forEach(actor=>this.moveActorForTurn(actor)); }
+        finally { this.movementTurn=previous; }
+    }
+
+    moveActorForTurn(actor) {
+        const turn=this.movementTurn;
+        if(!turn || !turn.actors.has(actor) || turn.moved.has(actor))return false;
+        const type=this.getObjectType(actor);
+        if(type===Common.ObjectType.SHIP && !this.allShips.includes(actor) ||
+            type===Common.ObjectType.FLEET && !this.allFleets.includes(actor))return false;
+        turn.moved.add(actor);
+        // Contained ships travel with their fleet, never independently.
+        if(type===Common.ObjectType.SHIP && actor.fleet)return false;
+        actor.move();
+        return true;
+    }
+
+    movePursuedTargetFirst(actor) {
+        const turn=this.movementTurn;
+        if(!turn)return;
+        const target=actor.destination;
+        const eligible=object=>object && turn.actors.has(object) &&
+            !turn.moved.has(object) && object.destination &&
+            [Common.ObjectType.SHIP,Common.ObjectType.FLEET].includes(this.getObjectType(object));
+        // v3 tests the actual target first, then its highest container.
+        if(eligible(target)) { this.moveActorForTurn(target);return; }
+        let top=target;
+        const seen=new Set();
+        while(top && !seen.has(top)) {
+            seen.add(top);
+            const container=top.fleet || top.star;
+            if(!container)break;
+            top=container;
+        }
+        if(eligible(top))this.moveActorForTurn(top);
+    }
+
     endTurn() {
         if (this.isGameOver) {
             console.log(`Game already complete on turn ${this.victoryTurn}`);
@@ -2171,18 +2214,7 @@ class Game {
             this.aiManager.processAITurns();
         }
         
-        // Update all ships
-        for (const ship of [...this.allShips]) {
-            if (this.allShips.includes(ship)) {
-                ship.move();
-            }
-        }
-        // Update all fleets
-        for (const fleet of [...this.allFleets]) {
-            if (this.allFleets.includes(fleet)) {
-                fleet.move();
-            }
-        }
+        this.moveAllShips();
         this.refreshRendezvousFleetReferences();
         // Update all stars
         for (const star of [...this.stars]) {

@@ -67,6 +67,10 @@ class Ship {
                 this.star = null;
             }
             
+            if(this.game && this.game.movePursuedTargetFirst)this.game.movePursuedTargetFirst(this);
+            if(!this.destination || this.isDead() || this.fleet ||
+                this.game.movementTurn && !this.game.allShips.includes(this))return;
+
             const dx = this.destination.x - this.x;
             const dy = this.destination.y - this.y;
             const distance = Math.sqrt(dx * dx + dy * dy);

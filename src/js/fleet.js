@@ -307,6 +307,8 @@ class Fleet {
     
     // Move the fleet one turn
     move() {
+        if(this.destination && this.game && this.game.movePursuedTargetFirst)this.game.movePursuedTargetFirst(this);
+        if(this.game && this.game.movementTurn && (!this.game.allFleets.includes(this) || this.isEmpty()))return false;
         if (this.destination) this.calculateMovement();
         if (!this.destination || this.totalSpeed <= 0) {
             console.log(`⏸️ FLEET NOT MOVING: fleet (ID: ${this.id}, ships: ${this.ships.length}) - Destination: ${this.destination ? 'set' : 'none'}`);
