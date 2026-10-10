@@ -2076,7 +2076,8 @@ class Display {
             label:I18n.getString(785,'Show nebula background'),active:this.game.showNebula,action:{type:'toggleNebula'}},
             {rect:{x:rect.x+14,y:rect.y+508,width:rect.width-28,height:28},
             label:I18n.getString(857,'Control help'),active:this.game.showControlHelp!==false,action:{type:'toggleControlHelp'}},
-            {label:I18n.getString(938,'Show enemy events'),active:this.game.showEnemyEvents,action:{type:'toggleEnemyEvents'}}]);
+            {label:I18n.getString(938,'Show enemy events'),active:this.game.showEnemyEvents,action:{type:'toggleEnemyEvents'}},
+            {label:I18n.getString(954,'Sound'),active:!!this.game.sound && this.game.sound.isEnabled(),action:{type:'toggleSound'}}]);
         const capacity=Math.max(1,Math.floor((rect.height-112)/28)),pages=Math.ceil(rows.length/capacity);
         const page=this.clamp(this.game.settingsPage||0,0,pages-1);this.game.settingsPage=page;
         const visible=rows.slice(page*capacity,(page+1)*capacity).map((row,index)=>({...row,
@@ -3848,8 +3849,13 @@ class Display {
     }
 
     drawOverlay(overlay) {
-        if(this.drawDestructionEffect(overlay))return;
-        if(overlay.animationOnly){this.game.dismissEventPresentation();return;}
+        const exploding=this.drawDestructionEffect(overlay);
+        if(this.game.sound)this.game.sound.present(this.game,overlay,exploding);
+        if(exploding)return;
+        if(overlay.animationOnly){
+            if(this.game.sound && this.game.sound.isPending(overlay))return;
+            this.game.dismissEventPresentation();return;
+        }
         const drawingArea = this.port.getDrawingArea();
         // Dim the scene
         this.port.drawRect(new pdg.Rect(0, 0, drawingArea.width(), drawingArea.height()), this.styles.overlayDim);

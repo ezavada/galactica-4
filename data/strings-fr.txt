@@ -606,3 +606,7 @@
 # Neutral colony reports
 952	Vous avez colonisé le système stellaire inhabité {0} !
 953	{0} a colonisé le système stellaire inhabité {1}.
+
+# Sound preference
+954	Son
+955	Jouer les sons des événements et des alertes. Désactiver le son arrête la lecture en cours.

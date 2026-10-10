@@ -32,8 +32,10 @@ class Attention {
         entry.handled=true;if(entry.event) {
             this.game.focusEvent(entry.event,true);
             if(entry.event.automatic===false && this.game.hasReplayableReport(entry.event))this.game.queueReport(entry.event,false,true);
+            else if(this.game.sound)this.game.sound.attention(this.game,entry.event);
             return true;
         }
+        if(this.game.sound)this.game.sound.attention(this.game);
         this.game.uiWindow=null;this.game.setSelectedObject(entry.object);
         if(this.game.display)this.game.display.centerOn(entry.object.x,entry.object.y);
         return true;

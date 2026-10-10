@@ -52,6 +52,7 @@ const systemComparisonPreferences = require('./src/js/roster-preferences.js').cr
         'totalDefense','satelliteDefense','shipDefense']
 });
 const drawingPreferences = require('./src/js/drawing-preferences.js').createPreferences();
+const sound=require('./src/js/sound.js').createSound(pdg.res,drawingPreferences);
 const languagePreferences = LanguageSettings.createPreferences();
 LanguageSettings.initialize(args,pdg.res,languagePreferences);
 
@@ -479,6 +480,7 @@ function clearSessionInput() {
     if(game){game.endUIWindowDrag();game.endMapScrollDrag();game.endUISliderDrag();}
 }
 function beginNewGame() {
+    sound.stop();
     if(!sessions.begin())return false;
     clearSessionInput();stopAutoplayTimer();
     pendingConfig=createDefaultConfig();
@@ -486,6 +488,7 @@ function beginNewGame() {
     return true;
 }
 function resumeSession(session) {
+    sound.stop();
     game=session.game;display=session.display;autoplayController=session.autoplay;
     game.showControlHelp=drawingPreferences.readControlHelp();display.clearControlHelp();
     display.reloadUIStrings();display.onScreenSizeChanged();
@@ -507,6 +510,7 @@ function switchGameSession(id) {
 function attachGameServices(nextGame) {
     nextGame.languagePreferences = languagePreferences;
     nextGame.drawingPreferences = drawingPreferences;
+    nextGame.sound=sound;
     nextGame.showControlHelp=drawingPreferences.readControlHelp();
     nextGame.systemComparisonPreferences = systemComparisonPreferences;
     nextGame.systemComparisonSort = systemComparisonPreferences.read();

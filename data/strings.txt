@@ -606,3 +606,7 @@
 # Neutral colony reports
 952	You have colonized the uninhabited star system {0}!
 953	{0} colonized the uninhabited star system {1}.
+
+# Sound preference
+954	Sound
+955	Play event and attention sounds. Turning sound off stops current playback.

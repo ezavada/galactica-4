@@ -606,3 +606,7 @@
 # Neutral colony reports
 952	Sie haben das unbewohnte Sternsystem {0} kolonisiert!
 953	{0} hat das unbewohnte Sternsystem {1} kolonisiert.
+
+# Sound preference
+954	Ton
+955	Ereignis- und Aufmerksamkeitssignale abspielen. Beim Ausschalten endet die laufende Wiedergabe.

@@ -18,6 +18,7 @@ function createPreferences(env=globalThis) {
         } catch(error) { /* The current drawing choice still applies. */ }
     };
     return {
+        readSound:()=>read('playSound'),writeSound:enabled=>write('playSound',enabled),
         readEnemyEvents:()=>read('showEnemyEvents'),writeEnemyEvents:show=>write('showEnemyEvents',show),
         readControlHelp:()=>read('showControlHelp'),writeControlHelp:show=>write('showControlHelp',show),
         readNebula:()=>read('showNebula'),writeNebula:show=>write('showNebula',show),

@@ -606,3 +606,7 @@
 # Neutral colony reports
 952	¡Has colonizado el sistema estelar deshabitado {0}!
 953	{0} ha colonizado el sistema estelar deshabitado {1}.
+
+# Sound preference
+954	Sonido
+955	Reproducir sonidos de eventos y avisos. Al desactivar el sonido se detiene la reproducción actual.

@@ -1888,6 +1888,11 @@ class Game {
                 if(this.drawingPreferences)this.drawingPreferences.writeEnemyEvents(this.showEnemyEvents);
                 if(this.showEnemyEvents)this.queueObserverReports();
                 return true;
+            case 'toggleSound':
+                if(!this.sound)return false;
+                this.sound.setEnabled(!this.sound.isEnabled());
+                if(this.sound.isEnabled())this.sound.play(1001);
+                return true;
             case 'toggleControlHelp':
                 this.showControlHelp=this.showControlHelp===false;
                 if(this.drawingPreferences)this.drawingPreferences.writeControlHelp(this.showControlHelp);
