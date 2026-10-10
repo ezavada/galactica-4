@@ -5,7 +5,7 @@ function fixture(){const game=new Game(new Factory(),new Rules(false),new GameCo
 module.exports=function(){test.describe('Subtle presentation effects',()=>{
     test.it('measures button labels, shortcuts and inline icons at their actual font size',()=>{
         const {display:d}=fixture();let text,size;d.port.getTextWidth=(t,s)=>{text=t;size=s;return t.length*s;};
-        test.assertEqual(d.getButtonWidth('Long label','Enter',{size:10}),204);test.assertEqual(text,'Long label <Enter>');test.assertEqual(size,10);
+        test.assertEqual(d.getButtonWidth('Long label','Enter',{size:10}),183);test.assertEqual(text,'Long label');test.assertEqual(size,10);
         test.assertEqual(d.getButtonWidth('Settings',null,{size:10,icon:'gear'}),130);
         test.assertEqual(d.getButtonWidth('Very long icon label','H',{iconOnly:true,minWidth:98}),98);
     });
@@ -19,9 +19,9 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         }
         const icons=buttons.filter(b=>b.icon);test.assertEqual(icons.map(b=>b.icon).join(','),'menu,zoom-out,zoom-in,home,fit');
         icons.forEach((button,index)=>{
-            test.assertEqual(button.rect.width,44);test.assertEqual(button.rect.height,30);
+            test.assertEqual(button.rect.width,d.getButtonWidth(button.label,button.key,{iconOnly:true}));test.assertEqual(button.rect.height,30);
             test.assertEqual(button.rect.y,icons[0].rect.y);
-            if(index)test.assertEqual(button.rect.x,icons[index-1].rect.x+50);
+            if(index)test.assertEqual(button.rect.x,icons[index-1].rect.x+icons[index-1].rect.width+6);
             test.assertEqual(d.getUIActionAt(button.rect.x+2,button.rect.y+2).type,button.action.type);
         });
         test.assertTrue(buttons.filter(b=>!b.icon).every(b=>b.rect.y+b.rect.height<icons[0].rect.y));

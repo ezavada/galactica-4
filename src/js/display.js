@@ -13,6 +13,7 @@ const UIIcons = require('./ui-icons.js');
 const ScannerLayer = require('./scanner-layer.js');
 const PanelAppearance = require('./panel-appearance.js');
 const WindowBehavior = require('./window-behavior.js');
+const ButtonCaption=require('./button-caption.js');
 const LanguageSettings = require('./language-settings.js');
 const MapDisplayModes = require('./map-display-modes.js');
 const ControlHelp = require('./hover-help.js');
@@ -1382,11 +1383,9 @@ class Display {
     }
 
     getButtonWidth(label,hotkey=null,options={}) {
-        if(options.iconOnly)return options.minWidth || 44;
-        const text=hotkey?`${label} <${hotkey}>`:String(label || '');
-        const size=options.size || 11;
-        const measured=typeof this.port.getTextWidth==='function'?this.port.getTextWidth(text,size):Array.from(text).length*size*.62;
-        return Math.max(options.minWidth || 0,Math.ceil(measured)+24+(options.icon?26:0));
+        const measure=(text,size)=>typeof this.port.getTextWidth==='function'?this.port.getTextWidth(text,size):Array.from(text).length*size*.62;
+        if(options.iconOnly){const hint=ButtonCaption.parts(label,hotkey).key;return Math.ceil(Math.max(options.minWidth || 44,14+(hint?measure(hint,9)+22:0)));}
+        return Math.max(options.minWidth || 0,ButtonCaption.width(label,hotkey,measure,options));
     }
 
     layoutButtonRow(buttons,{x,y,width,height=26,size=11,gap=8,minWidth=50}) {
@@ -1405,37 +1404,31 @@ class Display {
         const drawRect = this.snapRectToPixels(rect);
         const active = !!options.active;
         const hovered = this.isHovered(drawRect);
-        if (hovered) this.hoverControl={rect:drawRect,label:hotkey?`${label} <${hotkey}>`:label};
+        if (hovered) this.hoverControl={rect:drawRect,label:ButtonCaption.tooltip(label,hotkey)};
         let fillColorName = active ? 'buttonFillActive' : 'buttonFill';
         if (hovered) {
             fillColorName = active ? 'buttonFillActiveHover' : 'buttonFillHover';
         }
         const light=this.isSystemWindowDrawing();
-        const style=light?(this.systemButtonStyle || (this.systemButtonStyle=this.createAttributes({lineColor:new pdg.Color(.32,.29,.20,1)}))):this.styles[fillColorName];
+        const style=light?(this.systemButtonStyle || (this.systemButtonStyle=this.createAttributes({lineColor:new pdg.Color(.32,.29,.20,.5)}))):this.styles[fillColorName];
         const color=light?new pdg.Color(active ? .70 : hovered ? .94 : .86,active ? .73 : hovered ? .94 : .86,active ? .75 : hovered ? .92 : .85,1):this.getUIColor(fillColorName);
         style.fillGradient(new pdg.Point(drawRect.x,drawRect.y),new pdg.Color(color.red+0.016,color.green+0.016,color.blue+0.016,color.alpha),new pdg.Point(drawRect.x,drawRect.y+drawRect.height),color);
         style.lineStyle(pdg.lineStyle_Solid).lineThickness(0.6);
         this.drawRoundedRect(drawRect, options.radius || 10, style);
-        if(options.icon) {
-            const inlineHotkey=hotkey && String(hotkey).length===1;
-            this.drawUIIcon(options.icon,drawRect.x+(options.iconOnly?drawRect.width/2-(inlineHotkey?4:0):18),drawRect.y+drawRect.height/2);
-            if(options.iconOnly) {
-                if(inlineHotkey)this.drawTextLine(hotkey,drawRect.x+drawRect.width-8,drawRect.y+drawRect.height/2+3,'labelgray',9,pdg.textStyle_RightJustified);
-                if(hovered)this.iconHint={rect:drawRect,inWindow:!!this.drawingActiveWindow,label:hotkey?`${label} <${hotkey}>`:label};
+        const caption=ButtonCaption.layout(drawRect,label,hotkey,(text,size)=>this.port.getTextWidth(text,size),options);
+        if(caption.key)this.drawTextLine(caption.key,caption.keyX,Math.round(drawRect.y+drawRect.height/2+3),
+            'labelgray',9,pdg.textStyle_RightJustified);
+        if(options.icon){
+            const iconX=options.iconOnly?Math.round(drawRect.x+(drawRect.width-caption.hintWidth)/2):drawRect.x+18;
+            this.drawUIIcon(options.icon,iconX,drawRect.y+drawRect.height/2);
+            if(options.iconOnly){
+                if(hovered)this.iconHint={rect:drawRect,inWindow:!!this.drawingActiveWindow,label:ButtonCaption.tooltip(label,hotkey)};
                 return;
             }
         }
-
-        const buttonText = hotkey ? `${label} <${hotkey}>` : label;
-        const size = options.size || 11;
-        this.drawTextLine(
-            buttonText,
-            Math.round(drawRect.x + drawRect.width / 2),
-            Math.round(drawRect.y + drawRect.height / 2 + 4),
-            hovered ? 'hovergray' : 'lightgray',
-            size,
-            pdg.textStyle_Centered | (options.bold?pdg.textStyle_Bold:0)
-        );
+        this.drawTextLine(caption.label,caption.labelX,Math.round(drawRect.y+drawRect.height/2+4),
+            hovered?'hovergray':'lightgray',options.size || 11,
+            pdg.textStyle_Centered | (options.bold?pdg.textStyle_Bold:0));
     }
 
     containsPoint(rect, x, y) {
@@ -1482,9 +1475,9 @@ class Display {
             y:Math.round(startY+Math.floor(index/cols)*(buttonHeight+gap)),
             width:index===textButtons.length-1 && index%cols===0?totalWidth:widths[index%cols],
             height:buttonHeight}));
-        const iconStartX=screen.width-iconButtons.length*iconWidth-(iconButtons.length-1)*iconGap-16;
-        iconButtons.forEach((button,index)=>rectangles.set(button,{
-            x:iconStartX+index*(iconWidth+iconGap),y:iconY,width:iconWidth,height:buttonHeight}));
+        const iconWidths=iconButtons.map(button=>this.getButtonWidth(button.label,button.key,{iconOnly:true,minWidth:iconWidth}));
+        let iconX=screen.width-iconWidths.reduce((sum,width)=>sum+width,0)-(iconButtons.length-1)*iconGap-16;
+        iconButtons.forEach((button,index)=>{rectangles.set(button,{x:iconX,y:iconY,width:iconWidths[index],height:buttonHeight});iconX+=iconWidths[index]+iconGap;});
         return buttons.map(button=>({...button,rect:rectangles.get(button)}));
     }
 

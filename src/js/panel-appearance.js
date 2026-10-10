@@ -2,7 +2,7 @@
 const colors = {
     panelFill: [0.135, 0.135, 0.135, 0.92],
     windowFill: [0.135, 0.135, 0.135, 0.96],
-    panelBorder: [0.50, 0.50, 0.50, 0.55]
+    panelBorder: [0.50, 0.50, 0.50, 0.50]
 };
 
 function color(name) {

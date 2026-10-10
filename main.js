@@ -202,8 +202,8 @@ const startupStyles = {
         textSize: 12,
         textStyle: pdg.textStyle_Plain
     }),
-    advantageButton: createStartupAttributes({fillColor:new pdg.Color(.86,.86,.85,1),lineColor:new pdg.Color(0.45,0.58,0.68,0.65)}),
-    advantageButtonActive: createStartupAttributes({fillColor:new pdg.Color(.70,.73,.75,1),lineColor:new pdg.Color(0.55,0.68,0.78,0.8)}),
+    advantageButton: createStartupAttributes({fillColor:new pdg.Color(.86,.86,.85,1),lineColor:new pdg.Color(.32,.29,.20,.5)}),
+    advantageButtonActive: createStartupAttributes({fillColor:new pdg.Color(.70,.73,.75,1),lineColor:new pdg.Color(.32,.29,.20,.5)}),
     advantageText: createStartupAttributes({fillColor:new pdg.Color('black'),textSize:13,textStyle:pdg.textStyle_Centered}),
     advantageSummary: createStartupAttributes({fillColor:new pdg.Color('black'),textSize:12,textStyle:pdg.textStyle_RightJustified}),
     startText: createStartupAttributes({
@@ -229,6 +229,18 @@ function drawStartupRoundedRect(rect, radius = 14, attrs = startupStyles.panel) 
         const light=startupStyles.goldLight || (startupStyles.goldLight=createStartupAttributes({lineColor:new pdg.Color(1,.91,.58,.95)}).lineThickness(1));
         const shade=startupStyles.goldShade || (startupStyles.goldShade=createStartupAttributes({lineColor:new pdg.Color(.52,.33,.06,.9)}).lineThickness(1));
         PanelAppearance.drawGoldEdges(port,rect,light,shade);
+    }
+}
+
+const ButtonCaption=require('./src/js/button-caption.js');
+function drawStartupButtonCaption(rect,label,attrs=startupStyles.advantageText,size=13){
+    const hintSize=Math.max(8,Math.min(9,size-2));
+    const caption=ButtonCaption.layout(rect,label,null,(text,fontSize)=>port.getTextWidth(text,fontSize),{hintSize});
+    attrs.textSize(size).textStyle(pdg.textStyle_Centered);
+    port.drawText(caption.label,new pdg.Point(caption.labelX,Math.round(rect.y+rect.height/2+size*.3)),attrs);
+    if(caption.key){
+        const hint=startupStyles.keyHint || (startupStyles.keyHint=createStartupAttributes({fillColor:new pdg.Color('black'),textStyle:pdg.textStyle_RightJustified}));
+        hint.textSize(hintSize);port.drawText(caption.key,new pdg.Point(caption.keyX,Math.round(rect.y+rect.height/2+3)),hint);
     }
 }
 
@@ -279,7 +291,7 @@ function drawStartupTextDialog(editor,labels) {
     port.drawText(visible.text,new pdg.Point(field.x+12,field.y+24),startupStyles.lineText);
     if(!editor.selected)port.drawLine(new pdg.Point(field.x+12+visible.caret,field.y+7),new pdg.Point(field.x+12+visible.caret,field.y+28),startupStyles.divider);
     port.drawText(editor.error?labels.error:'',new pdg.Point(rect.x+24,rect.y+178),startupStyles.hintText);
-    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);port.drawText(button.label,new pdg.Point(button.rect.x+button.rect.width/2,button.rect.y+20),startupStyles.advantageText);}
+    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,13);}
 }
 
 function drawStartupCheckbox(rect,label,checked,scale) {
@@ -334,9 +346,9 @@ function drawStartupDialog() {
     const titleRect=StartupSetup.titleRegion(panelRect),titleLabel=I18n.formatString(828,'Title: {0} <T>',pendingConfig.gameTitle);
     drawStartupRoundedRect(titleRect,6,startupStyles.advantageButton);
     let titleSize=Math.max(9,13*scale);
-    while(titleSize>9 && port.getTextWidth(titleLabel,titleSize)>titleRect.width-16)titleSize--;
+    while(titleSize>9 && ButtonCaption.width(titleLabel,null,(text,size)=>port.getTextWidth(text,size),{size:titleSize})>titleRect.width)titleSize--;
     startupStyles.subtitleText.textSize(titleSize);
-    port.drawText(titleLabel,new pdg.Point(screenWidth/2,titleRect.y+titleRect.height*.72),startupStyles.subtitleText);
+    drawStartupButtonCaption(titleRect,titleLabel,startupStyles.subtitleText,titleSize);
     drawStartupDivider(panelX + 28, panelY + step(88), panelWidth - 56);
 
     const x = panelX + 34;
@@ -390,7 +402,7 @@ function drawStartupDialog() {
     if(sessions.active){const cancel=StartupSetup.cancelRegion(panelRect);drawStartupRoundedRect(cancel,7,startupStyles.advantageButton);port.drawText(I18n.getString(683,'Cancel'),new pdg.Point(cancel.x+cancel.width/2,cancel.y+step(20)),startupStyles.startText);}
     drawStartupRoundedRect(StartupSetup.startRegion(panelRect),7,startupStyles.advantageButton);
     const start=StartupSetup.startRegion(panelRect),manual=StartupSetup.manualRegion(panelRect);
-    port.drawText(I18n.getString(528, '<Enter> Start'),new pdg.Point(start.x+start.width/2,y),startupStyles.startText);
+    drawStartupButtonCaption(start,I18n.getString(528,'<Enter> Start'),startupStyles.startText,Math.max(9,14*scale));
     drawStartupRoundedRect(manual,7,startupStyles.advantageButton);
     const label=I18n.getString(943,'User’s Manual');let size=Math.max(9,14*scale);
     while(size>9 && port.getTextWidth(label,size)>manual.width-16)size--;
@@ -607,7 +619,7 @@ function drawDocumentDialog() {
         }
         lines.slice(0,8).forEach((line,index)=>port.drawText(line,new pdg.Point(r.x+24,r.y+78+index*19),startupStyles.lineText));
     }
-    layout.buttons.forEach(button=>{drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);port.drawText(button.label,new pdg.Point(button.rect.x+button.rect.width/2,button.rect.y+21),startupStyles.advantageText);});
+    layout.buttons.forEach(button=>{drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,13);});
 }
 
 function startGame() {

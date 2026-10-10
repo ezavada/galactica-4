@@ -471,7 +471,7 @@ module.exports = function runCommandUITests() {
             display.setHoverPoint(button.rect.x + button.rect.width / 2, button.rect.y + button.rect.height / 2);
             display.drawUIButton(button.rect, button.label, button.key);
 
-            test.assertEqual(drawnText, `${button.label} <${button.key}>`);
+            test.assertEqual(drawnText,button.label);
             test.assertEqual(drawnColor, 'hovergray');
             test.assertTrue(roundedAttrs === display.styles.buttonFillHover, 'Hovered buttons should use the hover Attributes class');
         });

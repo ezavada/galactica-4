@@ -199,6 +199,7 @@ runTutorialSimulationTests();
 runTutorialControllerTests();
 runTutorialRuntimeTests();
 require('./window-behavior.test.js')();
+require('./button-caption.test.js')();
 runReusableColonyTests();
 runNeutralColonyReportTests();
 runRendezvousFormationReportTests();
