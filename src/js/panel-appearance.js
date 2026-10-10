@@ -9,9 +9,9 @@ function color(name) {
     return new pdg.Color(...colors[name]);
 }
 
-function applySurface(attrs, rect, topBase, bottomBase = topBase) {
+function applySurface(attrs, rect, topBase, bottomBase = topBase, topLift = 0.075) {
     attrs.fillGradient(new pdg.Point(rect.x, rect.y),
-        new pdg.Color(topBase.red + 0.022, topBase.green + 0.022, topBase.blue + 0.022, topBase.alpha),
+        new pdg.Color(topBase.red + topLift, topBase.green + topLift, topBase.blue + topLift, topBase.alpha),
         new pdg.Point(rect.x, rect.y + rect.height), bottomBase);
     attrs.lineStyle(pdg.lineStyle_Solid).lineThickness(0.7);
 }

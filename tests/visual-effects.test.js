@@ -114,7 +114,7 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         const appearance=require('../src/js/panel-appearance.js');let top,bottom,thickness,style;
         const attrs={fillGradient:(a,t,b,c)=>{top=t;bottom=c;},lineStyle:s=>{style=s;return attrs;},lineThickness:t=>thickness=t};
         appearance.applySurface(attrs,{x:0,y:0,width:100,height:100},appearance.color('panelFill'));
-        test.assertApproximately(top.red-bottom.red,.022,.000001);test.assertEqual(top.red,top.blue);test.assertEqual(bottom.red,bottom.blue);
+        test.assertApproximately(top.red-bottom.red,.075,.000001);test.assertEqual(top.red,top.blue);test.assertEqual(bottom.red,bottom.blue);
         test.assertEqual(style,pdg.lineStyle_Solid);test.assertEqual(thickness,.7);
         const border=appearance.color('panelBorder');test.assertEqual(border.red,border.blue);
     });

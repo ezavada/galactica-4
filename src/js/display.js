@@ -1116,7 +1116,8 @@ class Display {
     drawPanelSurface(rect,attrs=this.styles.panel) {
         const base=this.getUIColor(attrs===this.styles.windowPanel?'windowFill':attrs===this.styles.topInfoPanel?'topInfoFill':'panelFill');
         const color=this.panelStyleColors.get(attrs) || base;
-        PanelAppearance.applySurface(attrs,rect,color,this.panelStyleColors.has(attrs)?base:color);
+        PanelAppearance.applySurface(attrs,rect,color,this.panelStyleColors.has(attrs)?base:color,
+            this.panelStyleColors.has(attrs)?0.022:0.075);
         this.drawRoundedRect(rect,14,attrs);
     }
 
