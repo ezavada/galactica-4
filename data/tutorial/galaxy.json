@@ -1,0 +1,2052 @@
+{
+  "format": 1,
+  "sourceSha256": "56ff62f6dfdf2336ea4a3efa8c0a7c64c9c9aef05a970f3aceb5ad53530aad5d",
+  "sourceBytes": 6184,
+  "seed": 101,
+  "turn": 1,
+  "sequence": 42,
+  "config": {
+    "gameTitle": "Tutorial",
+    "numHumans": 1,
+    "numComputers": 2,
+    "compSkill": 3,
+    "compAdvantage": 0,
+    "sectorDensity": 3,
+    "sectorSize": 1,
+    "omniscient": true,
+    "fastGame": true
+  },
+  "players": [
+    {
+      "owner": 1,
+      "name": "Ed",
+      "homeStarId": 2,
+      "numPiecesRemaining": 1,
+      "lastTurnPosted": 0,
+      "hiStarTech": 1,
+      "hiShipTech": -5,
+      "builtColony": false,
+      "builtScout": false,
+      "builtSatellite": false
+    },
+    {
+      "owner": 2,
+      "name": "Merjia Pact",
+      "homeStarId": 18,
+      "numPiecesRemaining": 1,
+      "lastTurnPosted": 0,
+      "hiStarTech": 1,
+      "hiShipTech": -5,
+      "builtColony": false,
+      "builtScout": false,
+      "builtSatellite": false
+    },
+    {
+      "owner": 3,
+      "name": "Catambay Pact",
+      "homeStarId": 28,
+      "numPiecesRemaining": 1,
+      "lastTurnPosted": 0,
+      "hiStarTech": 1,
+      "hiShipTech": -5,
+      "builtColony": false,
+      "builtScout": false,
+      "builtSatellite": false
+    }
+  ],
+  "stars": [
+    {
+      "id": 2,
+      "owner": 1,
+      "name": "Andromeda",
+      "x": 904192,
+      "y": 604160,
+      "techLevel": 1,
+      "population": 1000000,
+      "buildCredits": [
+        0.0,
+        0.0,
+        4.454999923706055,
+        0.0
+      ],
+      "buildHull": 2,
+      "buildCost": 4.5,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 999,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 843,
+      "recordBytes": 132,
+      "recordSha256": "72acb2e85d92b79f097dab2b1acfc9f4a89bd9da4a1db31d32e9fe5baabdb375"
+    },
+    {
+      "id": 1,
+      "owner": 0,
+      "name": "S-1",
+      "x": 618496,
+      "y": 486400,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 975,
+      "recordBytes": 126,
+      "recordSha256": "6c10588b10041b50debaa6ca05bd4f643ec424e87a1e2ee0c74007211c4d3d94"
+    },
+    {
+      "id": 42,
+      "owner": 0,
+      "name": "S-42",
+      "x": 176128,
+      "y": 314368,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 1101,
+      "recordBytes": 127,
+      "recordSha256": "b93e406c86c1adb00391d396a02d0c13c43bc7498fb3c61957a42ef47e3e44ca"
+    },
+    {
+      "id": 3,
+      "owner": 0,
+      "name": "S-3",
+      "x": 732160,
+      "y": 89088,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 1228,
+      "recordBytes": 126,
+      "recordSha256": "d14fc309ef59c835bcca67305fb5625c27ea683a0753e52d68148084433634fb"
+    },
+    {
+      "id": 4,
+      "owner": 0,
+      "name": "S-4",
+      "x": 252928,
+      "y": 618496,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 1354,
+      "recordBytes": 126,
+      "recordSha256": "736ff761a0c4b0beaeaeca85d880708ec7d2d733b10e2064da90bddf4ddfea8c"
+    },
+    {
+      "id": 5,
+      "owner": 0,
+      "name": "S-5",
+      "x": 120832,
+      "y": 1031168,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 1480,
+      "recordBytes": 126,
+      "recordSha256": "310b52ad2d34822815df16ef382067030d1bc33f17dcee9dcc8cb42d51005234"
+    },
+    {
+      "id": 6,
+      "owner": 0,
+      "name": "S-6",
+      "x": 941056,
+      "y": 132096,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 1606,
+      "recordBytes": 126,
+      "recordSha256": "3ad453f07a5abde25eb6036e20e27b6a773f324731970c18cd15194342d0c11c"
+    },
+    {
+      "id": 7,
+      "owner": 0,
+      "name": "S-7",
+      "x": 921600,
+      "y": 567296,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 1732,
+      "recordBytes": 126,
+      "recordSha256": "5abe86f69d3749946cab8d9340b7fde7538779aa000b982a980a6d63bf1e8a32"
+    },
+    {
+      "id": 8,
+      "owner": 0,
+      "name": "S-8",
+      "x": 10240,
+      "y": 411648,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 1858,
+      "recordBytes": 126,
+      "recordSha256": "441fc0faf0750cc82becb6ca219507592525777baa8fb8ddc2b575e6f74ab640"
+    },
+    {
+      "id": 9,
+      "owner": 0,
+      "name": "S-20",
+      "x": 925696,
+      "y": 607232,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 1984,
+      "recordBytes": 127,
+      "recordSha256": "7691b18f4da820f2d445b80cbcd7b84a034a518be1e656b73b28a88600b58f54"
+    },
+    {
+      "id": 10,
+      "owner": 0,
+      "name": "S-10",
+      "x": 321536,
+      "y": 783360,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 2111,
+      "recordBytes": 127,
+      "recordSha256": "eb83b2b678d2c57c4b3ea8b2dbffc83248fc7b73231ad27b31a23b6f34df51d1"
+    },
+    {
+      "id": 11,
+      "owner": 0,
+      "name": "S-11",
+      "x": 91136,
+      "y": 253952,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 2238,
+      "recordBytes": 127,
+      "recordSha256": "a3751e8dea23cf9d8b97ad0f22dc84b3d506b8ca308e245e4f4ca2a798d3d2f7"
+    },
+    {
+      "id": 12,
+      "owner": 0,
+      "name": "S-12",
+      "x": 582656,
+      "y": 43008,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 2365,
+      "recordBytes": 127,
+      "recordSha256": "0881f3315c2f95e075c4f0a1c0ad932d2c603b75a5b283b7a73d2e0423f522a8"
+    },
+    {
+      "id": 13,
+      "owner": 0,
+      "name": "S-13",
+      "x": 1032192,
+      "y": 666624,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 2492,
+      "recordBytes": 127,
+      "recordSha256": "92973d41d181c29518d3c9e39dd90b9a48ef15ba5a81b7d519027f7745a60293"
+    },
+    {
+      "id": 14,
+      "owner": 0,
+      "name": "S-14",
+      "x": 905216,
+      "y": 292864,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 2619,
+      "recordBytes": 127,
+      "recordSha256": "7dccfc7575e5d830d2a8ec933639546f48c414379193597c88b5d726d9918804"
+    },
+    {
+      "id": 15,
+      "owner": 0,
+      "name": "S-15",
+      "x": 542720,
+      "y": 907264,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 2746,
+      "recordBytes": 127,
+      "recordSha256": "a36e3e4b3f88393ec1664e4aec109256900e4b4573c21bf63b51fb53d43cba99"
+    },
+    {
+      "id": 16,
+      "owner": 0,
+      "name": "S-16",
+      "x": 390144,
+      "y": 1008640,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 2873,
+      "recordBytes": 127,
+      "recordSha256": "05286f69308ad8ebbbf77a553452b8414ae4d4fdb0d8ef289bc481d8742bc3ee"
+    },
+    {
+      "id": 17,
+      "owner": 0,
+      "name": "S-17",
+      "x": 148480,
+      "y": 133120,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 3000,
+      "recordBytes": 127,
+      "recordSha256": "5580486a0138ef5627e8e550ec83506fb3675274cd572802f5f75125d8cd7da2"
+    },
+    {
+      "id": 18,
+      "owner": 2,
+      "name": "Merjia",
+      "x": 424960,
+      "y": 302080,
+      "techLevel": 1,
+      "population": 1000000,
+      "buildCredits": [
+        0.0,
+        0.0,
+        4.454999923706055,
+        0.0
+      ],
+      "buildHull": 2,
+      "buildCost": 4.5,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 999,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 3127,
+      "recordBytes": 129,
+      "recordSha256": "bcb21da7c250d5131c218e34af510a9656d419be6ba04bc34d80b07424e0f9a4"
+    },
+    {
+      "id": 19,
+      "owner": 0,
+      "name": "S-19",
+      "x": 354304,
+      "y": 484352,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 3256,
+      "recordBytes": 127,
+      "recordSha256": "81b2583995fafd2045753a698ad2879ecdbb1326ebada9bca6f4d9901baca82c"
+    },
+    {
+      "id": 20,
+      "owner": 0,
+      "name": "S-9",
+      "x": 699392,
+      "y": 1001472,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 3383,
+      "recordBytes": 126,
+      "recordSha256": "b7f8b43c6a7f6eb0021abd76ac98ba69b5b4774d746d83908029da7998500d95"
+    },
+    {
+      "id": 21,
+      "owner": 0,
+      "name": "S-21",
+      "x": 484352,
+      "y": 116736,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 3509,
+      "recordBytes": 127,
+      "recordSha256": "776dda7a8381d9cb101a993e36cdf84fdae1d77d8bc9b162c7b6a04ca7203c95"
+    },
+    {
+      "id": 22,
+      "owner": 0,
+      "name": "S-22",
+      "x": 522240,
+      "y": 323584,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 3636,
+      "recordBytes": 127,
+      "recordSha256": "9d1a33efd526da9eb237e524b081712d7a3f3795d8d722f666edf80c9fd2e24f"
+    },
+    {
+      "id": 23,
+      "owner": 0,
+      "name": "S-23",
+      "x": 350208,
+      "y": 573440,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 3763,
+      "recordBytes": 127,
+      "recordSha256": "6869b2855e9ccb12366f1727fa44c39c7799e8309f2f978dafd11dfbab1d6424"
+    },
+    {
+      "id": 24,
+      "owner": 0,
+      "name": "S-24",
+      "x": 885760,
+      "y": 1038336,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 3890,
+      "recordBytes": 127,
+      "recordSha256": "cef531f0c51a3928a148dd2c0d6c97f7c7615c23ce90cc85f71a3f81880befb0"
+    },
+    {
+      "id": 25,
+      "owner": 0,
+      "name": "S-25",
+      "x": 875520,
+      "y": 480256,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 4017,
+      "recordBytes": 127,
+      "recordSha256": "5784f271c17a8a1463f2aaa53b4aab34914f5e8a26361344de6319ab6c901cba"
+    },
+    {
+      "id": 26,
+      "owner": 0,
+      "name": "S-26",
+      "x": 39936,
+      "y": 506880,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 4144,
+      "recordBytes": 127,
+      "recordSha256": "9677310b92c40db663676fce366ec8b53154f5492f6d59413b7ce4f33a2b6e17"
+    },
+    {
+      "id": 27,
+      "owner": 0,
+      "name": "S-27",
+      "x": 513024,
+      "y": 775168,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 4271,
+      "recordBytes": 127,
+      "recordSha256": "8db6c33c72d3975d109ca5b88edecc6747c159a599ca45b8a2ec22c6824a3985"
+    },
+    {
+      "id": 28,
+      "owner": 3,
+      "name": "Catambay",
+      "x": 413696,
+      "y": 944128,
+      "techLevel": 1,
+      "population": 1000000,
+      "buildCredits": [
+        0.0,
+        0.0,
+        4.454999923706055,
+        0.0
+      ],
+      "buildHull": 2,
+      "buildCost": 4.5,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 999,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 4398,
+      "recordBytes": 131,
+      "recordSha256": "16dcccee75a4faff667b8152b394bcd9fbd9a15d84c21b4095f9774db113fdfb"
+    },
+    {
+      "id": 29,
+      "owner": 0,
+      "name": "S-29",
+      "x": 587776,
+      "y": 349184,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 4529,
+      "recordBytes": 127,
+      "recordSha256": "9ec448d6f735b240576916d6f83c0ea498072a566f4e291d706d485f58addea5"
+    },
+    {
+      "id": 30,
+      "owner": 0,
+      "name": "S-30",
+      "x": 804864,
+      "y": 293888,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 4656,
+      "recordBytes": 127,
+      "recordSha256": "71763ef1676f082c1bee65a38fc44b00e228da27b9b464729ce50f1642c98434"
+    },
+    {
+      "id": 31,
+      "owner": 0,
+      "name": "S-31",
+      "x": 1042432,
+      "y": 443392,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 4783,
+      "recordBytes": 127,
+      "recordSha256": "1c310ed667e2c72ece5a5189b19cbe9f35d310bf18938a81b92fb2aa610882f7"
+    },
+    {
+      "id": 32,
+      "owner": 0,
+      "name": "S-32",
+      "x": 196608,
+      "y": 1042432,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 4910,
+      "recordBytes": 127,
+      "recordSha256": "98ec94e5b17b3b1fbb3143c912474ede49d38d87f41d388e8b4c89e5692413a8"
+    },
+    {
+      "id": 33,
+      "owner": 0,
+      "name": "S-33",
+      "x": 820224,
+      "y": 660480,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 5037,
+      "recordBytes": 127,
+      "recordSha256": "f63e8ff810a492fc905c96453540c1b627d947e3534d54e5bbee389926822cec"
+    },
+    {
+      "id": 34,
+      "owner": 0,
+      "name": "S-34",
+      "x": 435200,
+      "y": 107520,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 5164,
+      "recordBytes": 127,
+      "recordSha256": "9ea2ad7ea99807aa58e869d4cbebe07ce54144e3e3f44eef8f0982df8431ab1c"
+    },
+    {
+      "id": 35,
+      "owner": 0,
+      "name": "S-35",
+      "x": 946176,
+      "y": 558080,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 5291,
+      "recordBytes": 127,
+      "recordSha256": "6a06cfca0de96213965f7c1b027c966d9415610143b18e15771c1c01e5e5db77"
+    },
+    {
+      "id": 36,
+      "owner": 0,
+      "name": "S-36",
+      "x": 416768,
+      "y": 432128,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 5418,
+      "recordBytes": 127,
+      "recordSha256": "4035f5157b8e40e0b1420507c5753475111d0eff536fde251985da5276aa03e1"
+    },
+    {
+      "id": 37,
+      "owner": 0,
+      "name": "S-37",
+      "x": 177152,
+      "y": 338944,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 5545,
+      "recordBytes": 127,
+      "recordSha256": "afcb90e1d23d9f79a06f37b58c7dce6e3ef6f9951078111aaafef62ce5b61036"
+    },
+    {
+      "id": 38,
+      "owner": 0,
+      "name": "S-38",
+      "x": 567296,
+      "y": 76800,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 5672,
+      "recordBytes": 127,
+      "recordSha256": "820e848dda3624ab2cec7101586a54930c1c263fbce13c5787cb9cd62f12cf91"
+    },
+    {
+      "id": 39,
+      "owner": 0,
+      "name": "S-39",
+      "x": 573440,
+      "y": 63488,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 5799,
+      "recordBytes": 127,
+      "recordSha256": "8bfddf3a1138240cec3879aa9e86bf5c403a032f570fecb80f456d754071be47"
+    },
+    {
+      "id": 40,
+      "owner": 0,
+      "name": "S-40",
+      "x": 68608,
+      "y": 858112,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 5926,
+      "recordBytes": 127,
+      "recordSha256": "222ace219f22645b4c02955041510b0117dd0cd23f565cd4dce49757da420084"
+    },
+    {
+      "id": 41,
+      "owner": 0,
+      "name": "S-41",
+      "x": 753664,
+      "y": 977920,
+      "techLevel": 0,
+      "population": 0,
+      "buildCredits": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "buildHull": -1,
+      "buildCost": 1.0,
+      "paidTowardResearch": 0,
+      "allocations": [
+        {
+          "value": 33.4,
+          "desired": 33.4,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        },
+        {
+          "value": 33.3,
+          "desired": 33.3,
+          "rate": 6.0,
+          "benefit": 6.0,
+          "economy": 0,
+          "locked": false
+        }
+      ],
+      "recordOffset": 6053,
+      "recordBytes": 127,
+      "recordSha256": "1aa86851094f10906b36c15e62f7e158010495de670af05020dd49e3951f99be"
+    }
+  ],
+  "originalUI": {
+    "turn": 1,
+    "selectedId": 2,
+    "zoom": 3.88671875,
+    "scroll": [
+      3032,
+      1938
+    ],
+    "drawFlags": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    "enemyEvents": true,
+    "showCourses": true
+  }
+}

@@ -34,7 +34,7 @@ as null with their original reference; the importer does not invent titles.
 `GalacticaSingleDoc.cp::DoNewGame` loads the tutorial plugin data fork as a saved
 turn instead of generating a random galaxy, then seeds the random generator with
 101. The shipped shareware plugin is a 6,184-byte game file; its source path and
-hash are recorded. The saved fixture must still be converted to the v4 graph.
+hash are recorded. The shipped fixture is now converted in data/tutorial/galaxy.json and built by src/js/tutorial-game.js; see data/tutorial/README.md.
 The original tutorial also modifies production during turns: home allocations
 are reset on turns 2–13, and CStar forces particular hull completions. These
 interventions must be confined to a tutorial session when ported.
@@ -43,7 +43,7 @@ Controller work still required:
 
 - Preserve an existing game while opening/exiting the tutorial, as recovery page
   100 promises; a tutorial must not overwrite normal saves or preferences.
-- Convert the fixed galaxy and its initial ship, ownership, names and economy.
+- Integrate the converted fixed galaxy into a separate tutorial session and preserve its initial ownership, names and economy.
 - Adapt all sixty lessons to current controls and require the corresponding
   actions. Cover setup, pan/select, target-versus-actual production, end turns,
   colony orders and naming, satellite/scout/battleship builds, attention, patrol,
