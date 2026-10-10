@@ -675,3 +675,7 @@
 999	Puedes cerrar esta pestaña o iniciar Galactica otra vez.
 1000	Iniciar otra vez
 1001	Salir de Galactica tras revisar los cambios sin guardar de cada partida abierta. Cancelar deja abiertas las partidas restantes.
+
+# Ship and fleet call-in reports
+1002	Tu nave {0} en {1} está esperando tus órdenes.
+1003	Tu flota {0} en {1} está esperando tus órdenes.

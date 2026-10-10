@@ -675,3 +675,7 @@
 999	You can close this tab or start Galactica again.
 1000	Start again
 1001	Quit Galactica after checking unsaved changes in every open game. Cancel keeps the remaining games open.
+
+# Ship and fleet call-in reports
+1002	Your starship {0} at {1} is awaiting your orders.
+1003	Your fleet {0} at {1} is awaiting your orders.

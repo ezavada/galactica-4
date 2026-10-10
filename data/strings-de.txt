@@ -675,3 +675,7 @@
 999	Du kannst diesen Tab schließen oder Galactica erneut starten.
 1000	Erneut starten
 1001	Galactica nach Prüfung ungespeicherter Änderungen in allen offenen Spielen beenden. Abbrechen lässt die verbleibenden Spiele geöffnet.
+
+# Ship and fleet call-in reports
+1002	Dein Raumschiff {0} bei {1} wartet auf deine Befehle.
+1003	Deine Flotte {0} bei {1} wartet auf deine Befehle.

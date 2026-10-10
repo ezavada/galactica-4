@@ -11,8 +11,14 @@ class Attention {
     request(object, notify=true) {
         if(!this.isHumanObject(object) || this.queue.some(entry=>entry.object===object))return false;
         const entry={object,handled:false};this.queue.push(entry);
-        if(notify && object.owner===this.game.getCurrentHumanPlayer())entry.event=this.game.recordEvent(
-            I18n.getString(744,'Attention'),I18n.formatString(745,'{0} requests orders',this.game.getObjectDisplayName(object)),{type:'callIn',subject:object,recipient:object.owner});
+        if(notify){
+            const game=this.game,fleet=game.factory.isFleet(object),name=game.getObjectDisplayName(object).replace(/\t/g,' · ');
+            const star=object.star,location=star && game.stars.includes(star) && star.name?star.name:
+                I18n.formatString(656,'({0}, {1})',I18n.formatDecimal(object.x/65536,2),I18n.formatDecimal(object.y/65536,2));
+            entry.event=game.recordEvent(I18n.getString(744,'Attention'),
+                I18n.formatString(fleet?1003:1002,'',name,location),{type:'callIn',subject:object,recipient:object.owner});
+            entry.event.callIn={name,location,fleet};entry.event.automatic=false;
+        }
         return true;
     }
     requestEvent(event) {

@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1373
-Passed: 1373 ✓
+Total: 1379
+Passed: 1379 ✓
 Failed: 0 ✗
 ```
 
@@ -335,3 +335,17 @@ to setup without a playable document. No synthetic lesson transitions are used.
 `tests/tutorial-modal.test.js` covers front-window resolution, Settings actions,
 startup preference-model entry, shortcut T, translated labels and hover help.
 The complete existing-game runner remains a regression for the normal lessons.
+
+
+## Ship and fleet call-in reports
+
+```bash
+node tools/test-web-callin-reports.cjs /path/to/web-build /path/to/screenshots en
+```
+
+Repeat in en/de/es/fr/ja/ru. The muted browser fixture prepares docked ship/fleet
+actors, then actual Course controls enable their call-in flags. Actual End Turn
+creates owner-private Events narratives; roster/Events selection and Go to are
+verified without another turn or a modal report. `tests/callin-reports.test.js`
+checks real turn delivery, ship/fleet distinction, system/fixed-point locations,
+snapshots, privacy including another human owner, complete saves and lost focus.

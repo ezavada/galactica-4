@@ -4,6 +4,7 @@
 // Uses PDG's built-in pdg.srand() and pdg.rand() for deterministic testing
 
 const test = require('./test-framework.js');
+const runCallInReportsTests=require('./callin-reports.test.js');
 const runTutorialModalTests=require('./tutorial-modal.test.js');
 const runMapSelectionTests=require('./map-selection.test.js');
 const runMapScrollbarTests=require('./map-scrollbars.test.js');
@@ -262,6 +263,7 @@ runDocumentFileTests();
     runApplicationVersionTests();
     runQuitDocumentsTests();
 runTutorialModalTests();
+runCallInReportsTests();
     runMapDisplayModeTests();
 
     // Print summary

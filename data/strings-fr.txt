@@ -675,3 +675,7 @@
 999	Tu peux fermer cet onglet ou relancer Galactica.
 1000	Relancer
 1001	Quitter Galactica après vérification des modifications de chaque partie ouverte. Annuler laisse les parties restantes ouvertes.
+
+# Ship and fleet call-in reports
+1002	Votre vaisseau {0} à {1} attend vos ordres.
+1003	Votre flotte {0} à {1} attend vos ordres.

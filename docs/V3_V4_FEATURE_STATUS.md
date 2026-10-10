@@ -157,7 +157,7 @@ The largest blockers to a complete game are:
 | Repeat/loop course | Repeats the waypoint circuit. | ✅ Implemented | ✅ Implemented | Loop <L> traverses the whole circuit including its origin, one leg per turn. Appending a courier’s second destination automatically enables looping, matching v3. |
 | Course memory | Save/swap a ship's course. | ✅ Implemented | ✅ Implemented | Memory <M> first copies a ship/fleet course, then swaps active and remembered courses, retaining waypoint values/references, progress, origin, Loop and Hunt flags. Initial copy excludes Patrol; the player action cancels Patrol and selects/reveals the active waypoint after refresh. Clear preserves memory. Empty/read-only contexts cannot use Memory. |
 | Call in | Human-controlled ship asks for attention next turn. | ✅ Implemented | ✅ Implemented | Call in <C> in the course editor toggles completed, independently controlled, movable human ships/fleets without changing course/Loop/Hunt/Patrol/memory. The request remains active each turn until canceled. Stationary, enemy/computer, satellite, unfinished, member and removed objects cannot use the control. |
-| Automatic idle call-ins | Newly built or idle ships request orders periodically. | ✅ Implemented | ✅ Implemented | Completed non-looping courses, newly built mobile ships and idle human ships/fleets in space enter attention. Idle requests start on the first eligible turn (v3 initial last-call-in value -5), then recur every five turns. Docked idle ships, active/looping courses, members, satellites and computer ships do not generate idle requests. Translated event text and queue navigation show the requests. Broader build/message presentation is tracked under Attention queue. |
+| Automatic idle call-ins | Newly built or idle ships request orders periodically. | ✅ Implemented | ✅ Implemented | Completed non-looping courses, newly built mobile ships and idle human ships/fleets in space enter attention. Idle requests start on the first eligible turn (v3 initial last-call-in value -5), then recur every five turns. Docked idle ships, active/looping courses, members, satellites and computer ships do not generate idle requests. Separate localized ship/fleet narratives identify the actor and docked system or galactic coordinates. Owner-private snapshots survive saves, and Events/Go to and the attention queue retain normal non-modal navigation. Broader build/message presentation is tracked under Attention queue. |
 | Patrol mode | Ship or fleet patrols a docked system and gains defensive advantages; satellites always patrol. | ✅ Implemented | ✅ Implemented | Human Patrol <P> requires a completed, docked, independently controlled mobile ship or nonempty fleet. Enabling it clears the whole active course/Loop/Hunt while preserving memory; new waypoints cancel Patrol. Satellites cannot toggle their mandatory state. Editor and context controls reflect active state; P on a selected mobile object takes precedence over production commands, while system P still opens production. Ship/fleet details report Patrol. Idle docked patrols are hidden on the map unless selected and cannot be clicked while hidden. Fleets propagate Patrol to members without independent courses and clear docking at departure. Existing AI, combat bonuses and repair exclusion remain wired. |
 | Hunt mode | Button/key and serialized course flag exist in v3; no active pursuit logic was found in audited C++ beyond that state. | ✅ Implemented | ✅ Implemented | Hunt <H> toggles the flag for editable, plotted ship/fleet courses with nonzero movement speed. The localized active button reflects the state. Memory preserves it; Clear, deleting the final destination and finishing the course reset it. Empty, stationary and read-only contexts cannot toggle it. Source-matched flag behavior does not introduce autonomous target seeking. |
 | Scrap ship/fleet | Mark for scrapping and recover part of build value. | ✅ Implemented | ✅ Implemented | Reversible localized Scrap/Cancel controls appear on eligible ship/fleet panels and system-list rows. Owner/container checks match v3’s ship-in-system/fleet controls; satellites and individual fleet members are supported. Turn processing scraps before movement, refunds one quarter of each hull’s own-tech build cost to its enclosing star, cleans containment/spatial/rendezvous references and removes empty fleets. Fleets propagate orders to members; adding an unmarked ship, assigning courses, using course memory or enabling Patrol cancels the appropriate scrap orders. Marking handles attention. Paused systems retain refunds until construction resumes. Private scrap reports keep the saved location. |
@@ -248,7 +248,7 @@ The largest blockers to a complete game are:
 | Attention queue | New ships, idle ships, colonies, messages, and other important events select themselves in sequence. | 🟡 Partial | 🟡 Partial | A per-turn subject queue covers human mobile ship/fleet call-ins, course completions, idle requests, completed mobile/satellite builds, complete ship/fleet repair notices, rendezvous fleet-creation notices and newly colonized/captured stars. Tab, menu and map Next item visit/center subjects; manual selection or report review handles linked requests. Colony reports focus the star while the colony ship remains available. UI End Turn confirms before discarding pending requests or presentations. Other v3 message types, enemy moves and notable event subjects remain to port. |
 | New technology lab presentation | Illustrated new-drive event. | ✅ Implemented | ✅ Implemented | Dimming lab overlay with blueprint art; Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
 | New hull/class Stardock presentation | Illustrated first-built satellite, scout/courier, colony or higher battleship class event. | ✅ Implemented | ✅ Implemented | Owner-only Stardock overlays use matching hull/class art and translated titles. Reports retain role explanations and focus the building system even after default-order departure. First-build flags, highest built class and queued presentation identities survive saves; repeated hulls and older classes are suppressed. Source-confirmed observer broadcasts now retain faction/class/technology/origin snapshots, follow current detection and Show enemy events, and replay as ordinary reports. Illustrated Stardock art stays owner-only. Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
-| Colonization/capture/battle event text | Player-relative narrative messages for 45 event types. | 🟡 Partial | 🟡 Partial | Participant battle outcomes, system capture, defeated resistance and individual ship/fleet destruction now have private winner/loser narratives, retained battle-time names, remembered-location navigation and replay. Commissioning, discovery and neutral colony naming/production reports are also present. Neutral colonization now has separate owner and observer narratives, automatic eligible playback, Events replay and retained colony-time names. Capture observer narratives are also available through Events with fog gating; resistance and destruction remain direct-participant notices. First-class construction now broadcasts owner/observer copies: detected observers receive automatic/plain reports and manual replay, while owner Stardock art remains private. Discovery now also broadcasts separate owner/observer copies with private Lab art, current detection checks and replay. Other observer variants, multiplayer messages and remaining event types are still incomplete. |
+| Colonization/capture/battle event text | 22 event codes select 45 player-relative text templates. | 🟡 Partial | 🟡 Partial | Participant battle outcomes, system capture, defeated resistance and individual ship/fleet destruction now have private winner/loser narratives, retained battle-time names, remembered-location navigation and replay. Commissioning, discovery and neutral colony naming/production reports are also present. Neutral colonization now has separate owner and observer narratives, automatic eligible playback, Events replay and retained colony-time names. Capture observer narratives are also available through Events with fog gating; resistance and destruction remain direct-participant notices. First-class construction now broadcasts owner/observer copies: detected observers receive automatic/plain reports and manual replay, while owner Stardock art remains private. Discovery now also broadcasts separate owner/observer copies with private Lab art, current detection checks and replay. Other observer variants, multiplayer messages and remaining event types are still incomplete. |
 | Compare players | Player summary table with best values blue and worst red; the audited v3 sort handler is empty. | ✅ Implemented | ✅ Implemented | Menu/V opens all eleven v3 numeric fields: systems, population in thousands, production, system min/max/average technology, completed ships, raw ship power and ship min/max/average technology. Unowned systems have an italic neutral row and no ship fields; unassigned names are italic Unknown; defeated rows show a localized suffix and dashes. Living category-specific extrema exclude neutral/dead rows; blue takes precedence for tied best values. Production comparisons retain hundredths before formatting. Names retain true enemy homeworld/faction identity under fog, with full hover text when needed. Viewport paging reaches every player; Close/V/Escape and modal map input are verified in all six languages. Full suites: 919 passed on release/current native PDG. Functional sorting and aggregate score columns were not confirmed in v3 C++. |
 | Send/show/hold player messages | Multiplayer chat to one/all/admin, with message history and repeat settings. | ❌ Missing | ❌ Missing | No chat or message model. |
 | Rename ship/fleet/colony/rendezvous | Edit menu rename workflow. | ✅ Implemented | ✅ Implemented | Owned ships, systems, fleets and rendezvous points have localized Unicode Rename/Save/Cancel controls. New human neutral colonies create the private v3 naming/production instruction and attention navigation, rather than a forced naming modal. Requests disappear for recaptured/removed colonies and do not target computer or captured enemy systems. |
@@ -2151,3 +2151,64 @@ This completes actual-entry verification for recovery 101. Recovery 103 remains
 a requirement of multiplayer hosting, and native Quit/window-close integration,
 other application/window commands, the wider parity inventory and Map Generation
 remain active work. No global completion or unavailable-help blocker is claimed.
+
+
+### Owner ship and fleet call-in narratives
+
+The event inventory is 22 nonzero event codes, with 45 recipient-relative text
+entries in STR#500. These are different counts: the checklist previously called
+all 45 entries event types. `Classes/GalacticaConsts.h:818–843` supplies the
+codes, `Classes/CMessage.h:27–45` supplies the three recipient columns, and
+`Resources/gal-mainrsrc.r` Evnt128 selects each code's sound, string, window and
+automatic-presentation behavior. `Resources/gal-en-shareware.r` STR#500 holds
+45 text entries. Resource definitions alone do not prove an event is emitted.
+
+## Ship and fleet call-ins
+
+`Classes/CShip.cpp:824–834` emits ShipCallin (8) or FleetCallin (9) for a living
+human-owned actor that wants attention; it sends to the owner, then clears the
+transient wants-attention flag. The user call-in setting stays enabled until
+canceled. Both Evnt128 rows select owner text only (STR#500/15 or /16), sound
+1001, no PPob and autoShow=0. The messages identify the starship or fleet and its
+location while awaiting orders. Observer strings are zero and there is no
+broadcast recipient.
+
+`CMessage::MakeReportString` substitutes the subject name for percent and the
+focus description for @. `GalacticaUtils.cpp:515–587` uses a named docked system
+without extra coordinates; coordinate positions use fixed-point galactic units
+and two decimal places. V4 follows this with existing localized coordinate
+formatting. Names, location text and numeric focus coordinates are retained in
+the report snapshot. Changing an actor's name/location does not rewrite an old
+report. Go to follows a living subject; a lost subject retains remembered focus.
+The report's private recipient is the owner even when another human is viewing
+the application. Owner reports use true system names rather than the viewer's
+fog-of-war aliases, without exposing those names to other recipients.
+
+V4 keeps the existing attention controls and non-modal Events/Go to behavior;
+it does not add automatic call-in dialogs. Sound 1001 remains the existing
+attention cue. New text IDs 1002–1003 are translated in en/de/es/fr/ja/ru.
+Duplicate requests and notify=false do not create extra reports. Complete saves
+retain the snapshot, subject identity, recipient and attention handling.
+
+Six new regressions cover ship/fleet distinction, docked and space locations,
+real end-turn delivery/manual flag persistence, privacy, complete saves/lost
+focus, duplicate/silent requests and all six resources. Both full native suites
+pass 1,379 tests. `tools/test-web-callin-reports.cjs` prepares deterministic
+actors, then uses actual Course Call in, roster selection, End Turn, Events
+selection and Go to controls. All six languages pass, and inspected before/after
+screens show the separate complete narratives with unchanged controls. Chrome
+and native output remain muted during automation.
+
+Evidence: `/private/tmp/galactica-callin-{tests,public-tests,<language>,before}.log`,
+`/private/tmp/galactica-parity/callin`, and
+`/private/tmp/galactica-callin-{before-after,languages}-review.png`.
+
+## Remaining audit scope
+
+Other recipient variants and multiplayer messages still need individual source
+and runtime coverage. NewTechLevel (13), FleetFormed (16) and PlayerSurrenders
+(19) currently occur only in their enum declarations across this checkout's
+C/C++ sources; no emitter was found. Their resource text establishes definitions,
+not observable normal-turn behavior. A complete event-matrix audit must preserve
+this distinction and must not invent broadcasts from unused resource entries.
+The broader parity and Map Generation objectives remain active.

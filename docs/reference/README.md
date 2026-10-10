@@ -66,3 +66,7 @@ See [STARTUP_ABOUT.md](STARTUP_ABOUT.md) and `v3-presentation.json` for the
 shipped windows, attribution, artwork provenance and scrolling parameters.
 This reference supports an unfinished runtime port; it does not close the
 presentation/preferences checklist.
+
+
+[Event reports](EVENT_REPORTS.md) audits shipped event-code/text counts and the
+owner ship/fleet call-in narratives, with source and runtime evidence.
