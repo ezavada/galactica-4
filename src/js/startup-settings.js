@@ -4,7 +4,9 @@ const GameConfig=require('./game-config.js'),Display=require('./display.js'),Col
 class StartupSettings {
     constructor(port,services){this.port=port;this.services=services;this.model=null;}
     get active(){return !!(this.model && this.model.uiWindow);}
-    open(){
+    open(mode='settings'){
+        if(mode!=='settings' && this.services.presentation.kind)return false;
+        const returnWindow=mode==='about' && this.active && this.model.uiWindow==='settings'?'settings':null;
         if(!this.model){
             this.model=new Game(new Factory(),new Rules(false),new GameConfig({numComputers:0,skipMapGeneration:true}));
             this.model.port=this.port;new Display(this.model);
@@ -18,7 +20,8 @@ class StartupSettings {
         model.endUIWindowDrag();model.display.clearControlHelp();
         model.windowPositions={};model.newGameDefaultsDraft=null;model.newGameDefaultsChoice=null;
         model.colonyDefaultsDraft=null;model.colonyDefaultsReturn=null;
-        model.settingsPage=0;model.uiWindow='settings';model.display.reloadUIStrings();return true;
+        model.settingsPage=0;model.uiWindow=mode==='settings'?'settings':'presentation';
+        if(mode!=='settings')model.presentation.open(mode,pdg.tm.getMilliseconds(),returnWindow);model.display.reloadUIStrings();return true;
     }
     draw(){
         const display=this.model.display;display.visualTime=pdg.tm.getMilliseconds();

@@ -640,3 +640,16 @@
 967	値を直接選択します。矢印キーで項目を選び、Enterで確定します。Escでこの設定を変更せずに初期設定へ戻ります。
 
 968	「保存」で、今後の植民地やゲームに使う船種と生産配分を記憶します。既存の星系の配分は変わりません。「キャンセル」で変更を破棄します。固定されたチュートリアルはこの設定を変更しません。
+
+# Startup and About presentation
+969	Galacticaについて
+970	Galactica
+973	起動時に導入物語を表示
+978	閉じる
+979	貧しい家庭に生まれたあなたは、かつて栄華を誇った銀河帝国について両親が語る物語に心を奪われ、幼いころの数え切れない時間を過ごした。|百の世界は今や伝説に近く、星空も沈黙している。それでも、あなたは運命の予感を振り払えない。あなたは最後の皇帝の直系の子孫なのだ。|成長するにつれ、あなたは生まれながらの指導者としての力を示した。人々は、あなたが政治や権力を超えた何かを求めていると感じたのかもしれない。あなたの理想を見たのかもしれない。理由はどうあれ、人々は忠誠を誓った。初めは数百人、やがて数千人、そして数百万人。母星の統治者に選ばれた日、あなたは壮大な計画を明かす。|「古の帝国の設計に基づく巨大な宇宙船を建造しよう。その船は虚空を渡り、旧帝国の失われた世界に再び植民するのだ！ 幾世代もかかるかもしれない。しかしいつの日か、私たちの子孫は再び偉大な人類帝国の一員となる。この瞬間を、人類史上最も偉大な時として振り返るだろう。今日、新たな帝国が始まるのだ！」|志願者たちは政府の施設に押し寄せ、この歴史的な事業への参加を懇願する。宇宙船の建造が進む中、世界の一流の科学者たちは古代の天文学と天体物理学を復興させる。そして、不穏な知らせをもたらす。|長く沈黙していた百の世界の中に、動き始めたものがある。遠い宮殿にいる別の支配者たち。旧帝国の再統一について独自の考えを持つ簒奪者たち。彼らはあなたを正統な後継者と認めるだろうか？ あなたの通信に返事はない……。|宇宙船の完成が近づくにつれ、疑念は深まる。あなたは不安を民衆に隠し、天文学者たちに秘密を守らせる。平和を夢見ながらも、暗雲が広がっていくのを感じる。これは、間違いなく、とても長い戦争になるだろう……。
+980	Edmund R. Zavada|James Whitehouse|アート|Claudio Berni|http://www.dreamstudio.com|特別な感謝|Charo Mina Rojas|Claude Errera|David Poteet|Amber Zavada|David “Dwarf” Clark|Nicolas Murphy|Yon Hardesty|翻訳者|Claudia Kopp|Shizuka Tanaka|Charo Mina Rojas|Edmund Zavada|Stéphan Bondier|v2.2 ベータテスター|Nicolas Murphy|Yon Hardisty|Mark Schultz|Daniel Henderson|Dale Henderson|Sean Callahan|Errol Owen|Tom Maughan|Andre Roane|v2.0 ベータテスター|Alain Antinori|Tom Berrett|Stéphan Bondier|Al Calambro|Jim Chandler|Kevin Collins|Grant Crawford|Jim Droste|Kai Engelhardt|Max Esquivel|Bruce Feist|J.D. Furlong|Russell Klegraefe|Jérôme Kraft|Tim Lewis|Fred Lotte|Nicolas Murphy|Pat Nagel|Ronald Porter|Pius Portman|Charles Ringer|Pter Rok|David Romm|Lane Rothe|Jonathan Rynd|Trevor Scott|Wade Tregaskis|Milos Udovicic|Michael Tregaskis|Michael Wardman
+981	前または次のページを読みます。手動でページを移動すると自動スクロールが止まります。
+982	このウィンドウを閉じ、設定画面またはゲームに戻ります。
+983	ゲームを変更せずにGalacticaのオリジナルアートとクレジットを表示します。
+984	Galacticaの起動時に導入物語を表示するかを切り替えます。
+985	操作を学ぶチュートリアルを開始します。戻るまで現在のゲームは保持されます。

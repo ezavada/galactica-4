@@ -30,6 +30,7 @@ function createPreferences(env=globalThis) {
     };
     return {
         readWindowPosition,writeWindowPosition,
+        readSplash:()=>read('ShowSplash'),writeSplash:show=>write('ShowSplash',show),
         readFullscreen:()=>read('fullscreen'),writeFullscreen:active=>write('fullscreen',active),
         readSound:()=>read('playSound'),writeSound:enabled=>write('playSound',enabled),
         readEnemyEvents:()=>read('showEnemyEvents'),writeEnemyEvents:show=>write('showEnemyEvents',show),

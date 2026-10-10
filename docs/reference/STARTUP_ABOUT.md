@@ -1,6 +1,6 @@
 # Shipped startup and About presentation
 
-This is source evidence for an unfinished runtime port. It does not mark the
+This is source evidence for the startup/About port; the core presentation is now implemented, with remaining startup lifecycle/version work tracked in the parity checklist. It does not mark the
 startup/About UI or its preferences as complete.
 
 Regenerate the four shipped English/German shareware/CD-ROM variants:

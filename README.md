@@ -33,7 +33,7 @@ to share that cache between clones, or `PDG_EXECUTABLE` to test with an
 already installed runtime. Pass `--refresh-pdg` (or `-RefreshPdg` in
 PowerShell) to replace the cached copy.
 
-Click **Tutorial** on the start screen, or open the in-game menu and choose
+Press **T** or click the triangle in the introduction/About window, click **Tutorial** on the start screen, or open the in-game menu and choose
 **Tutorial**. Follow the instruction window and use the indicated game controls.
 **Close tutorial** cancels practice and restores your previous game; **Finish**
 keeps the practice game open for further play.
@@ -67,6 +67,7 @@ use the same paths as the desktop launcher.
 - **Turn-based core**: Build ships, colonize stars, move ships/fleets, resolve v3-style combat/capture, repair docked ships/fleets, and update fog-of-war state.
 - **AI players**: Computer opponents participate in turns, use v3-backed economy/build rules, and send ships/fleets to destinations with v3-style decision scoring.
 - **Interactive tutorial**: Launch from startup or Menu → Tutorial for an illustrated sixty-lesson practice game in any supported language. Close tutorial restores your previous game; Finish keeps practice open for further play. Practice games can be saved; saves do not preserve the instruction step.
+- **Introduction and About**: A saved startup setting controls the original-art introduction. Settings opens About independently; both show localized content, offer manual paging, and preserve your setup/game.
 - **New game defaults**: Startup Settings or Menu → Settings → New game defaults remembers map size, density, AI skill/advantage, fast game and fog of war for future games. Save applies the defaults; Cancel leaves them unchanged. Current games and the tutorial keep their own configuration.
 - **Control help**: Rest the pointer over a control for a translated explanation, including startup options, allocation targets, course commands and saved-game dialogs. Settings → Control help enables or disables it; the choice persists.
 - **Command UI**: Startup player-name dialog with remembered Unicode names, runtime windows, event list, full v3 player comparison with production/power and system/ship technology statistics, best/worst highlighting, paged rosters, permanent map buttons, popup action buttons, and production sliders.

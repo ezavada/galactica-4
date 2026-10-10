@@ -3,6 +3,11 @@ const I18n=require('./i18n.js');
 const helpIds=Object.freeze({
   "startupSettings":888,
   "openNewGameDefaults":966,
+  "presentationPage":981,
+  "closePresentation":982,
+  "presentationTutorial":985,
+  "openAbout":983,
+  "toggleSplash":984,
   "openNewGameDefaultChoice":967,
   "setNewGameDefault":967,
   "cancelNewGameDefaultChoice":967,

@@ -1338,6 +1338,12 @@ class Game {
         }
 
         const lower = char.toLowerCase();
+        if(this.uiWindow==='presentation'){
+            if(lower==='t')return this.executeUIAction({type:'presentationTutorial'});
+            if([pdg.key_Escape,13,3].includes(key))return this.executeUIAction({type:'closePresentation'});
+            if([pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))return this.executeUIAction({type:'presentationPage',delta:key===pdg.key_LeftArrow?-1:1});
+            return true;
+        }
         if(this.uiWindow==='games') {
             if(key===pdg.key_Escape)this.uiWindow=null;
             else if(key===pdg.key_LeftArrow)this.gameSessionPage=Math.max(0,(this.gameSessionPage || 0)-1);
@@ -1982,6 +1988,17 @@ class Game {
                 if(this.drawingPreferences)this.drawingPreferences.writeEnemyEvents(this.showEnemyEvents);
                 if(this.showEnemyEvents)this.queueObserverReports();
                 return true;
+            case 'openAbout':
+                return this.openAbout?this.openAbout():false;
+            case 'toggleSplash':
+                if(!this.presentation)return false;this.presentation.toggleSplash();return true;
+            case 'closePresentation':
+                if(this.uiWindow!=='presentation')return false;this.uiWindow=this.presentation.close();return true;
+            case 'presentationTutorial':
+                return this.presentationTutorial?this.presentationTutorial():false;
+            case 'presentationPage': {
+                if(this.uiWindow!=='presentation')return false;const c=this.display.getPresentationContent();this.presentation.step(action.delta,c.rows,c.lines.length);return true;
+            }
             case 'toggleSound':
                 if(!this.sound)return false;
                 this.sound.setEnabled(!this.sound.isEnabled());

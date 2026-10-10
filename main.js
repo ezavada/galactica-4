@@ -96,7 +96,9 @@ console.log(`Random seed set to: ${randomSeed}${launchOptions.aiAutoplay ? ' (AI
 const port = pdg.gfx.createWindowPort(new pdg.Rect(0, 0, 800, 600), I18n.getString(568, 'Galactica-4'));
 const fullscreen = require('./src/js/fullscreen.js').createController(pdg,port,globalThis,drawingPreferences);
 fullscreen.restore();
-const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,colonyDefaultsPreferences,sound,fullscreen});
+const presentation=new (require('./src/js/presentation.js'))(drawingPreferences);
+const openAbout=()=>startupSettings.open('about');
+const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,colonyDefaultsPreferences,sound,fullscreen,presentation,openAbout,presentationTutorial:()=>{if(tutorialSession)return false;presentation.close();startupSettings.model.uiWindow=null;return beginTutorial();}});
 
 function createDefaultConfig(usePreferences=true) {
     if(usePreferences)return NewGameDefaults.createConfig(newGameDefaultsPreferences);
@@ -615,6 +617,7 @@ function attachGameServices(nextGame) {
     nextGame.fleetRosterSort = rosterPreferences.read();
     nextGame.fleetRosterGeometry = rosterPreferences.readGeometry();
     nextGame.fullscreen = fullscreen;
+    nextGame.presentation=presentation;nextGame.openAbout=openAbout;
     if(!nextGame.restoredFromSave)nextGame.showEnemyEvents=drawingPreferences.readEnemyEvents();
     if(!nextGame.restoredFromSave)nextGame.showGrid = drawingPreferences.readGrid();
     if(!nextGame.restoredFromSave)nextGame.showNebula = drawingPreferences.readNebula();
@@ -776,7 +779,7 @@ if (launchOptions.aiAutoplay) {
 
 // Create event handlers using the correct PDG syntax
 const drawHandler = new pdg.IEventHandler(function(event) {
-    if(startupSettings.active){drawStartupDialog();startupSettings.draw();return true;}
+    if(startupSettings.active){if(game && !sessions.starting)game.draw();else drawStartupDialog();startupSettings.draw();return true;}
     if(userManual.error()){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawManualFailure();return true;}
     if(documents.dialog){if(game && !sessions.starting){game.display.clearControlHelp();game.draw();}else drawStartupDialog();drawDocumentDialog();drawStartupControlHelp();return true;}
     if (!sessions.starting && game) {
@@ -794,7 +797,7 @@ const autoplayTimerHandler = new pdg.IEventHandler(function(event) {
         return false;
     }
 
-    if(userManual.error() || documents.dialog || sessions.starting || !sessions.active || sessions.active.autoplay!==autoplayController)return true;
+    if(startupSettings.active || userManual.error() || documents.dialog || sessions.starting || !sessions.active || sessions.active.autoplay!==autoplayController)return true;
     const status = autoplayController.step();
     if (!status.running) {
         stopAutoplayTimer();
@@ -1103,3 +1106,6 @@ console.log("Event handlers registered, starting PDG...");
 
 // Start PDG
 pdg.run();
+
+// Present the introduction once per interactive launch, independently of saved games.
+if(!launchOptions.aiAutoplay && presentation.showSplash)startupSettings.open('startup');

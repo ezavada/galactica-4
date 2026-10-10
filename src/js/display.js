@@ -2107,6 +2107,44 @@ class Display {
         this.drawTextLine(this.fitShipDiagnosticText(hint,rect.width-28,10),rect.x+14,rect.y+73,'gray',10);
     }
 
+    getPresentationRect(){
+        const screen=this.getScreenSize(),width=Math.min(650,screen.width-20),height=Math.min(530,screen.height-20);
+        return this.fitWindowToScreen('presentation',{x:(screen.width-width)/2,y:(screen.height-height)/2,width,height});
+    }
+    getPresentationContent(){
+        const r=this.getPresentationRect(),compact=r.width<480;
+        const x=r.x+(compact?14:250),y=r.y+(compact?88:64),width=r.width-(compact?28:264),height=r.height-(compact?156:132);
+        const lines=this.wrapEventMessage(this.game.presentation.text(),width,12);
+        return {x,y,width,height,lines,rows:Math.max(1,Math.floor(height/17))};
+    }
+    getPresentationActions(){
+        const r=this.getPresentationRect(),w=(r.width-46)/4;
+        return [
+            {rect:{x:r.x+14,y:r.y+r.height-42,width:w,height:28},label:'‹',key:'←',action:{type:'presentationPage',delta:-1}},
+            {rect:{x:r.x+20+w,y:r.y+r.height-42,width:w,height:28},label:'›',key:'→',action:{type:'presentationPage',delta:1}},
+            {rect:{x:r.x+26+2*w,y:r.y+r.height-42,width:w,height:28},label:'▶',key:'T',action:{type:'presentationTutorial'}},
+            {rect:{x:r.x+32+3*w,y:r.y+r.height-42,width:w,height:28},label:I18n.getString(978,'Close'),key:'Esc',action:{type:'closePresentation'}}];
+    }
+    drawPresentation(){
+        const p=this.game.presentation,r=this.getPresentationRect(),content=this.getPresentationContent();
+        this.drawWindowPanel(r,I18n.getString(p.kind==='about'?969:970,p.kind==='about'?'About Galactica':'Galactica'));
+        if(r.width>=480){
+            const image=this.getImageCached('presentationSplash','presentation/splash.png');
+            const h=Math.min(290,Math.max(60,r.height-180)),w=h*357/465;
+            if(image)this.port.drawImage(image,new pdg.Rect(r.x+14,r.y+60,r.x+14+w,r.y+60+h),this.styles.image);
+            this.drawTextLine('Edmund Zavada',r.x+14,r.y+82+h,'black',12);
+            this.drawTextLine('James Whitehouse',r.x+14,r.y+99+h,'black',12);
+            this.drawTextLine('Claudio Berni',r.x+14,r.y+116+h,'black',12);
+        }else this.drawTextLine('Galactica-4',r.x+14,r.y+66,'black',14);
+        if(p.kind==='about'){
+            const y=r.width<480?r.y+50:r.y+r.height-95,x=r.width<480?r.x+r.width-90:r.x+14;
+            for(const [key,file,dx] of [['sts','sts.png',0],['vendornation','vendornation.png',42]]){const logo=this.getImageCached('presentation'+key,'presentation/'+file);if(logo)this.port.drawImage(logo,new pdg.Rect(x+dx,y,x+dx+32,y+32),this.styles.image);}
+        }
+        const offset=p.sample(this.visualTime,content.lines.length,content.rows,this.visualEffects.reducedMotion);
+        content.lines.forEach((line,index)=>{const y=content.y+17+index*17-offset;if(y>=content.y+17 && y<=content.y+content.height)this.drawTextLine(line,content.x,y,'black',12);});
+        for(const button of this.getPresentationActions())this.drawUIButton(button.rect,button.label,button.key,{size:12});
+    }
+
     getSettingsWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(320,screen.width-40);
         return this.fitWindowToScreen('settings',{x:(screen.width-width)/2,y:84,width,height:Math.min(540,screen.height-20)});
@@ -2138,6 +2176,7 @@ class Display {
             {label:I18n.getString(938,'Show enemy events'),active:this.game.showEnemyEvents,action:{type:'toggleEnemyEvents'}},
             {label:I18n.getString(954,'Sound'),active:!!this.game.sound && this.game.sound.isEnabled(),action:{type:'toggleSound'}},
             ...(this.game.fullscreen && this.game.fullscreen.supported?[{label:I18n.getString(771,'Full screen'),active:this.game.fullscreen.active(),action:{type:'toggleFullscreen'}}]:[]),
+            ...(this.game.presentation?[{label:I18n.getString(973,'Show introduction at startup'),active:this.game.presentation.showSplash,action:{type:'toggleSplash'}},{label:I18n.getString(969,'About Galactica'),action:{type:'openAbout'}}]:[]),
             ...(this.game.newGameDefaultsPreferences?[{label:I18n.getString(965,'New game defaults'),action:{type:'openNewGameDefaults'}}]:[]),
             ...(this.game.colonyDefaultsPreferences?[{label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}}]:[])]);
         const failureHeight=this.getSettingsFullscreenFailureLines().length*15;
@@ -2500,6 +2539,7 @@ class Display {
 
     getActiveWindowRect() {
         switch (this.game.uiWindow) {
+            case 'presentation':return this.getPresentationRect();
             case 'endTurnConfirm':
                 return this.getEndTurnConfirmRect();
             case 'games':return this.getGameSessionLayout().rect;
@@ -2738,6 +2778,7 @@ class Display {
         const window = this.getActiveWindowRect();
         if (!window || !this.containsPoint(window, x, y)) return null;
         let controls = [];
+        if(this.game.uiWindow==='presentation')controls=this.getPresentationActions();
         if (this.game.uiWindow==='endTurnConfirm') controls=this.getEndTurnConfirmActions();
         if (this.game.uiWindow==='events') controls=this.getEventActionRegions();
         if (this.game.uiWindow==='games') controls=this.getGameSessionLayout().buttons;
@@ -3635,6 +3676,7 @@ class Display {
 
     drawActiveWindow() {
         switch (this.game.uiWindow) {
+            case 'presentation':this.drawPresentation();break;
             case 'endTurnConfirm':
                 this.drawEndTurnConfirm();break;
             case 'games':this.drawGameSessions();break;
