@@ -610,3 +610,6 @@
 # Sound preference
 954	Sonido
 955	Reproducir sonidos de eventos y avisos. Al desactivar el sonido se detiene la reproducción actual.
+
+# Containment navigation
+956	Sistema contenedor

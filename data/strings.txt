@@ -610,3 +610,6 @@
 # Sound preference
 954	Sound
 955	Play event and attention sounds. Turning sound off stops current playback.
+
+# Containment navigation
+956	Containing system

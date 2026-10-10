@@ -610,3 +610,6 @@
 # Sound preference
 954	サウンド
 955	イベントと注意喚起の音を再生します。オフにすると再生中の音も停止します。
+
+# Containment navigation
+956	所属星系

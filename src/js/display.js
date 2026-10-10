@@ -2244,7 +2244,7 @@ class Display {
             });
             const pages=Math.max(1,Math.ceil(rows.length/pageSize)),page=Math.min(state?state.pages[side]:0,pages-1);
             if(state)this.game.fleetExchange.pages[side]=page;
-            return {side,x:rect.x+14+index*(half+14),width:half,page,pages,rows:rows.slice(page*pageSize,(page+1)*pageSize)};
+            return {side,x:rect.x+14+index*(half+14),width:half,page,pages,allRows:rows,rows:rows.slice(page*pageSize,(page+1)*pageSize)};
         });
         return {state,rect,lists,pageSize};
     }
@@ -2278,11 +2278,13 @@ class Display {
         if(state.selection && this.game.canTogglePatrol(state.selection))buttons.push([577,'Patrol','fleetExchangePatrol']);
         buttons.push([531,'<Esc> Close','fleetExchangeClose']);
         const parent=state.container.fleet || state.container.getDockedStar && state.container.getDockedStar();
-        if(parent && this.game.canViewFleetExchange(parent))buttons.push([798,'Parent fleet','fleetExchangeParent']);
+        if(parent && this.game.canViewFleetExchange(parent))buttons.push(this.game.factory.isStar(parent)
+            ?[956,'Containing system','fleetExchangeParent']:[798,'Parent fleet','fleetExchangeParent']);
         buttons.forEach(([id,fallback,type])=>{
-            const label=I18n.getString(id,fallback),width=this.getButtonWidth(label,null,{size:10});
+            const label=I18n.getString(id,fallback),key=type==='fleetExchangeParent'?'←':type==='fleetExchangeOpen'?'→':null,
+                width=this.getButtonWidth(label,key,{size:10});
             if(x+width>rect.x+rect.width-14){x=rect.x+14;y+=30;}
-            regions.push({rect:{x,y,width,height:24},label,action:{type}});x+=width+8;
+            regions.push({rect:{x,y,width,height:24},label,key,action:{type}});x+=width+8;
         });
         return regions;
     }
@@ -2308,7 +2310,7 @@ class Display {
             });
             this.drawTextLine(`${list.page+1} / ${list.pages}`,list.x+list.width/2,rect.y+128+layout.pageSize*38,'gray',10,pdg.textStyle_Centered);
         });
-        this.getFleetExchangeActions().filter(row=>row.label).forEach(row=>this.drawUIButton(row.rect,row.label,null,{size:10}));
+        this.getFleetExchangeActions().filter(row=>row.label).forEach(row=>this.drawUIButton(row.rect,row.label,row.key || null,{size:10}));
     }
 
     getSystemShipWindowLayout() {

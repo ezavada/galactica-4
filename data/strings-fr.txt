@@ -610,3 +610,6 @@
 # Sound preference
 954	Son
 955	Jouer les sons des événements et des alertes. Désactiver le son arrête la lecture en cours.
+
+# Containment navigation
+956	Système parent

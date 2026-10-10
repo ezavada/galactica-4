@@ -1347,6 +1347,12 @@ class Game {
             return true;
         }
         if(this.uiWindow==='fleetExchange' || this.uiWindow==='fleets') {
+            if(this.uiWindow==='fleetExchange' && key===pdg.key_LeftArrow){
+                const state=this.getFleetExchangeState();if(state)this.selectContainingObject(state.container);return true;
+            }
+            if(this.uiWindow==='fleetExchange' && key===pdg.key_RightArrow){
+                if(!this.hasEventPresentation() && !this.uiWindowDrag)this.executeUIAction({type:'fleetExchangeOpen'});return true;
+            }
             if(key===pdg.key_Escape){this.saveTableWindowGeometry();this.uiWindow=null;}
             return true;
         }
@@ -1659,6 +1665,22 @@ class Game {
         this.fleetExchange={container,active:null,selection:null,side:'main',pages:{main:0,sub:0},
             sort:{key:'name',ascending:true}};
         this.uiWindow='fleetExchange';return true;
+    }
+
+    selectContainingObject(object=this.selectedObject) {
+        if(!this.display || this.pendingMapOrderObject || this.pendingCourseEdit || this.pendingRendezvousPlacement ||
+                this.mapSelectionPicker || this.uiSliderDrag || this.uiMapScrollDrag || this.uiWindowDrag || this.hasEventPresentation())return false;
+        if(!object || !(this.factory.isStar(object)?this.stars:this.factory.isFleet(object)?this.allFleets:this.allShips).includes(object))return false;
+        const parent=object.fleet || object.star;
+        if(!parent){if(this.sound)this.sound.noMore(this);return false;}
+        // Use the same visibility and membership rules as the container's UI.
+        if(!this.getFleetExchangeMembers(parent).includes(object) || !this.showFleetExchange(parent))return false;
+        this.setSelectedObject(parent);
+        this.selectFleetExchangeMember('main',object);
+        const layout=this.display.getFleetExchangeLayout(),list=layout.lists.find(list=>list.side==='main');
+        const index=list.allRows.findIndex(row=>row.object===object);
+        if(index>=0)this.fleetExchange.pages.main=Math.floor(index/layout.pageSize);
+        return true;
     }
 
     getFleetExchangeMembers(container) {
@@ -2076,12 +2098,18 @@ class Game {
             case 'fleetExchangeOpen': {
                 const state=this.getFleetExchangeState(),object=state && state.selection;
                 if(!object)return false;
-                if(this.factory.isFleet(object))return this.showFleetExchange(object);
+                if(this.factory.isFleet(object)){
+                    if(!this.showFleetExchange(object))return false;
+                    this.setSelectedObject(object);
+                    const first=this.display.getFleetExchangeLayout().lists[0].rows[0];
+                    if(first)this.selectFleetExchangeMember('main',first.object);
+                    return true;
+                }
                 this.setSelectedObject(object);this.uiWindow=null;return true;
             }
             case 'fleetExchangeParent': {
-                const state=this.getFleetExchangeState(),parent=state && (state.container.fleet || state.container.getDockedStar && state.container.getDockedStar());
-                return this.showFleetExchange(parent);
+                const state=this.getFleetExchangeState();
+                return !!state && this.selectContainingObject(state.container);
             }
             case 'showSystemShips':
                 if (!this.canViewSystemShips(action.star)) return false;
@@ -2670,6 +2698,9 @@ class Game {
         if (this.overlay && this.uiWindow!=='endTurnConfirm') {
             this.dismissEventPresentation();
             return true;
+        }
+        if(key===pdg.key_LeftArrow && (!this.uiWindow || this.uiWindow==='systemShips')){
+            this.selectContainingObject();return true;
         }
         const char = this.getKeyChar(key);
         if (this.handleCommandWindowKey(key, char)) {
