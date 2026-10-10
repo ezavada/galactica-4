@@ -500,7 +500,7 @@ class CombatSystem {
         return removed;
     }
 
-    cleanupEmptyFleets(opponentOwner) {
+    cleanupEmptyFleets(opponentOwner, opponentsByOwner = null) {
         if (!this.game || !this.game.allFleets) {
             return;
         }
@@ -510,7 +510,8 @@ class CombatSystem {
                 fleet.removeDeadShips();
             }
             if (fleet.isEmpty && fleet.isEmpty()) {
-                this.game.removeDestroyedFleet(fleet, opponentOwner);
+                this.game.removeDestroyedFleet(fleet, opponentsByOwner && opponentsByOwner.has(fleet.owner)
+                    ? opponentsByOwner.get(fleet.owner) : opponentOwner);
             } else if (fleet.calculateFleetStats) {
                 fleet.calculateFleetStats();
             }
@@ -649,6 +650,12 @@ class CombatSystem {
             addForce(ship.owner,root,'defender');
         }
 
+        // Preserve opposing owners before casualties detach ships from their fleets.
+        const opponentsByOwner = new Map();
+        opponentsByOwner.set(attackerOwner, spaceDefenders.length > 0
+            ? spaceDefenders[0].owner : originalDestinationOwner);
+        for (const ship of spaceDefenders) opponentsByOwner.set(ship.owner, attackerOwner);
+
         let spaceResult;
         if (spaceDefenders.length > 0) {
             spaceResult = this.runBattle(attackerCombatants, spaceDefenders);
@@ -675,6 +682,7 @@ class CombatSystem {
                 this.isEnemyOwnedStar(destination, attackerOwner)) {
             const startingPopulation = destination.population || 0;
             console.log(`Resolving ground combat at ${destination.name}`);
+            opponentsByOwner.set(attackerOwner, destination.owner || originalDestinationOwner);
             groundResult = this.runBattle(attackerSurvivors, [], { extraDefenderReserves: [destination] });
             this.cleanupDeadEntities(attackerSurvivors, destination.owner || originalDestinationOwner);
 
@@ -709,7 +717,7 @@ class CombatSystem {
         }
 
         this.dislodgeAttackersFromHostileStar(destination, attackerOwner, attackerSurvivors);
-        this.cleanupEmptyFleets(attackerOwner);
+        this.cleanupEmptyFleets(attackerOwner, opponentsByOwner);
 
         const attackersLost = spaceResult.attackersLost + (groundResult ? groundResult.attackersLost : 0);
         const defendersLost = spaceResult.defendersLost + (groundResult ? groundResult.defendersLost : 0);

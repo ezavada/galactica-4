@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1061
-Passed: 1061 ✓
+Total: 1063
+Passed: 1063 ✓
 Failed: 0 ✗
 ```
 
@@ -227,3 +227,6 @@ Occupation reports: seven new regressions in `tests/occupation-reports.test.js` 
 First-detection ownership: three new regressions in `tests/system-diagnostics.test.js` exercise actual halo drawing at all visibility levels, retained last-seen history with hidden current ownership/mobile markers after a visibility reset, allied/all-visible ownership and neutral stars. Full suites: 1055 passed on release/current native PDG. Actual browser star clicks and before/after knowledge-threshold, lost-detection, allied and all-visible views pass in all six languages; reviewed screenshots: `/private/tmp/galactica-parity/star-ownership-{before,after}`. Logs: `/private/tmp/galactica-star-ownership-{tests,native-tests}.log` and `/private/tmp/galactica-star-ownership-{before,after}-<language>.log`.
 
 Destruction feedback: six regressions in `tests/destruction-feedback.test.js` cover the eight-frame v3 cadence, simulation RNG isolation, actual destroyed-ship reports/locations, cached renderer calls, invisible control consumption and completed report controls, ground resistance without false colony explosions, restored/replayed effects, privacy, quiet autoplay and reduced motion. Full suites: 1061 passed on release/current native PDG. Actual browser fleet battles record all eight frames for winner/loser perspectives, reject invisible Continue clicks and verify final messages, Events replay and ground-resistance effects in all six languages. Reviewed evidence: `/private/tmp/galactica-parity/destruction-{before,after}`. Logs: `/private/tmp/galactica-destruction-{tests,native-tests}.log` and `/private/tmp/galactica-destruction-{before,after}-<language>.log`.
+
+
+Fleet casualty attribution: two regressions in `tests/combat.test.js` execute actual arrivals and assert that space/ground attacker losses are attributed to the opposing player and defender losses to the attacker. Both full native suites pass (1063 tests); logs `/private/tmp/galactica-fleet-attribution-{tests,native-tests}.log`. No rendering or localized strings changed.

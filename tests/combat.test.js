@@ -592,6 +592,59 @@ function runCombatTests() {
             test.assertEqual(target.owner, 2, 'Defended target should keep its owner');
         });
 
+        test.it('attributes a defeated arriving fleet to its space or ground opponent', () => {
+            for (const targetKind of ['fleet', 'star']) {
+                const game = createRuntimeCombatGame();
+                const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 1, 100);
+                const home = createOwnedStar(game, 1000, 0, 'Enemy', 2, 20, 100);
+                const attacker = createCompletedShip(game, origin, 'scout', 1);
+                const fleet = game.factory.createFleet(0, 0, 1, 'Lost attackers');
+                fleet.addShip(attacker); fleet.star = null;
+                attacker.getOneAttackAgainst = () => 0;
+                let target = home;
+                if (targetKind === 'fleet') {
+                    const defender = createCompletedShip(game, home, 'battleship', 20);
+                    target = game.factory.createFleet(1000, 0, 2, 'Defenders');
+                    target.addShip(defender); target.star = null;
+                    defender.getOneAttackAgainst = () => 10000;
+                } else home.getOneAttackAgainst = () => 10000;
+                const losses = [], remove = game.removeDestroyedFleet.bind(game);
+                game.removeDestroyedFleet = (object, opponent) => {
+                    if (game.allFleets.includes(object)) losses.push({ object, opponent });
+                    return remove(object, opponent);
+                };
+                fleet.setDestination(target); fleet.move();
+                test.assertFalse(game.allFleets.includes(fleet));
+                const loss = losses.find(item => item.object === fleet);
+                test.assertTrue(!!loss);
+                test.assertEqual(loss.opponent, 2);
+                test.assertEqual(target.owner, 2);
+            }
+        });
+
+        test.it('attributes a defeated defending fleet to the attacking player', () => {
+            const game = createRuntimeCombatGame();
+            const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 20, 100);
+            const home = createOwnedStar(game, 1000, 0, 'Enemy', 2, 1, 100);
+            const attacker = createCompletedShip(game, origin, 'battleship', 20);
+            const defender = createCompletedShip(game, home, 'scout', 1);
+            const target = game.factory.createFleet(1000, 0, 2, 'Lost defenders');
+            target.addShip(defender); target.star = null;
+            attacker.getOneAttackAgainst = () => 10000;
+            defender.getOneAttackAgainst = () => 0;
+            const losses = [], remove = game.removeDestroyedFleet.bind(game);
+            game.removeDestroyedFleet = (object, opponent) => {
+                if (game.allFleets.includes(object)) losses.push({ object, opponent });
+                return remove(object, opponent);
+            };
+            attacker.setDestination(target); attacker.move();
+            test.assertFalse(game.allFleets.includes(target));
+            const loss = losses.find(item => item.object === target);
+            test.assertTrue(!!loss);
+            test.assertEqual(loss.opponent, 1);
+            test.assertTrue(game.allShips.includes(attacker));
+        });
+
         test.it('treats same-owner ships as allies even without entity-specific ally methods', () => {
             const CombatSystem = require('../src/js/combat.js');
             const combatSystem = new CombatSystem({ players: [] });
