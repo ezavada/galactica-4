@@ -616,3 +616,7 @@
 
 # Observer first-class commissioning
 957	{0} a mis en service un nouveau vaisseau de classe {1}, de niveau technologique {2}, sur {3}.
+
+# Drive discovery broadcasts
+958	Vos scientifiques sur {0} ont découvert un nouveau moteur de vaisseau de niveau technologique {1}.
+959	Les scientifiques de {0}, au service de {1}, ont découvert un nouveau moteur de vaisseau de niveau technologique {2}.

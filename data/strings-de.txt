@@ -616,3 +616,7 @@
 
 # Observer first-class commissioning
 957	{0} hat bei {3} ein neues Raumschiff der Klasse {1} mit Technologiestufe {2} in Dienst gestellt.
+
+# Drive discovery broadcasts
+958	Ihre Wissenschaftler auf {0} haben einen neuen Raumschiffantrieb der Technologiestufe {1} entdeckt.
+959	Wissenschaftler auf {0}, die für {1} arbeiten, haben einen neuen Raumschiffantrieb der Technologiestufe {2} entdeckt.

@@ -616,3 +616,7 @@
 
 # Observer first-class commissioning
 957	{0} puso en servicio una nueva nave de clase {1}, nivel tecnológico {2}, en {3}.
+
+# Drive discovery broadcasts
+958	Tus científicos en {0} han descubierto un nuevo motor de nave de nivel tecnológico {1}.
+959	Los científicos de {0}, al servicio de {1}, han descubierto un nuevo motor de nave de nivel tecnológico {2}.

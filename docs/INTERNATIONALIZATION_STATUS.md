@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 463 IDs
-- localized files: 463 IDs each
+- `strings.txt`: 494 IDs
+- localized files: 494 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -180,7 +180,7 @@ Hull-role explanations add IDs 921–924 in all six languages (459 IDs per file)
 
 First-built hull presentations add ID 925 in all six languages (460 IDs per file), with literal hull/class and source-system names preserved through substitution. The report reuses role explanations 921–924; Stardock titles/footer reuse 571/572. Satellites, scouts and colony ships now use their own existing artwork. Reports and overlays are owner-only, including with fog disabled. Actual browser before/after checks and reviewed translated Stardock/report screenshots pass in every supported language under `/private/tmp/galactica-parity/first-hulls-{before,after}`. Full suites: 1036 passed on release/current native PDG.
 
-Participant combat reports add IDs 926–928 in all six languages (463 IDs per file). Winner, loser and inconclusive messages retain literal force/location names and distinguish own ship losses from destroyed enemy ships. Count labels avoid singular/plural agreement problems; Japanese uses native counters. Reports reuse existing Events, complete-text wrapping and Go to controls. Before/after browser checks and reviewed winner/loser reports pass in all six languages under `/private/tmp/galactica-parity/battle-reports-{before,after}`. Full suites: 1040 passed on release/current native PDG. Observer reports, automatic message presentation/replay and the remaining recipient-relative event variants are still pending.
+Participant combat reports add IDs 926–928 in all six languages (494 IDs per file). Winner, loser and inconclusive messages retain literal force/location names and distinguish own ship losses from destroyed enemy ships. Count labels avoid singular/plural agreement problems; Japanese uses native counters. Reports reuse existing Events, complete-text wrapping and Go to controls. Before/after browser checks and reviewed winner/loser reports pass in all six languages under `/private/tmp/galactica-parity/battle-reports-{before,after}`. Full suites: 1040 passed on release/current native PDG. Observer reports, automatic message presentation/replay and the remaining recipient-relative event variants are still pending.
 
 Automatic battle message windows reuse existing translated combat, Continue, Go to, View report and paging resources; resource counts remain 463 per language. Complete Unicode wrapping and measured control rows retain all text without overlap at 320×340 in unit checks. Actual browser automatic winner/loser dialogs, Events replay and smaller paged messages pass in all six languages; final screenshots were inspected under `/private/tmp/galactica-parity/message-windows-{before,after}`. Full suites: 1045 passed on release/current native PDG. Observer and other recipient-relative narrative variants remain pending.
 
@@ -195,3 +195,7 @@ Individual ship/fleet destruction notices add IDs 933–936 in all six languages
 Observer capture narrative ID 937 is translated in en/de/es/fr/ja/ru (472 IDs per file). It preserves literal system and attacker/previous-owner names, reusing translated Events, replay and navigation controls. Complete layouts at 320×340 pass unit checks; actual browser hidden/detected/all-visible capture, Events replay, Go to and lost-detection flows pass in all languages. Before/after, event lists and complete translated reports were inspected under /private/tmp/galactica-parity/capture-observers-{before,after}. Both native suites pass (1079 tests). Enemy-move playback and other event variants remain pending.
 
 Enemy-event playback adds label/help IDs 938–939 in all six languages (474 IDs per file). Settings preserves native-script language names; paging reuses translated Previous/Next and help. Complete Settings, explanatory hover text and automatic observer capture reports were inspected in en/de/es/fr/ja/ru alongside before/after comparisons. All short-layout pages are reachable through real browser clicks and keyboard input in a 320×340 logical-layout fixture (without resizing the native port). Evidence: /private/tmp/galactica-parity/enemy-events-{before,after}. Full native suites pass (1086 tests); other enemy event types remain pending.
+
+## Drive discovery broadcasts
+
+Owner and observer discovery narratives use IDs 958–959 in English, German, Spanish, French, Japanese and Russian. All six manuals explain private Lab artwork, detection, automatic observer playback and manual replay. Each language has 494 resource IDs.

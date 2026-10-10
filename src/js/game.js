@@ -1014,7 +1014,7 @@ class Game {
     }
 
     hasReplayableReport(event) {
-        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair || event.rendezvousFormation || event.colonization || event.commissioning));
+        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair || event.rendezvousFormation || event.colonization || event.commissioning || event.discovery));
     }
 
     queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense)), manual = false) {
@@ -1046,7 +1046,7 @@ class Game {
             return false;
         }
 
-        if(this.overlay && ['outcome','report','stardock'].includes(this.overlay.type)) {
+        if(this.overlay && ['outcome','report','stardock','lab'].includes(this.overlay.type)) {
             const event=this.eventLog.find(event=>event.id===this.overlay.eventId);
             if(event)this.focusEvent(event);
         }
@@ -3344,6 +3344,28 @@ class Game {
         return event;
     }
 
+    recordDiscoveryReports(star,classIndex) {
+        const owner=star.owner;
+        if(!this.stars.includes(star) || !this.players[owner])return [];
+        const ownerName=this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
+        const snapshot={owner,ownerName,starName:star.name,techLevel:star.techLevel,classIndex};
+        return Object.keys(this.players).map(Number).filter(recipient=>recipient>0 && this.players[recipient]).map(recipient=>{
+            const observer=recipient!==owner;
+            const message=observer?I18n.formatString(959,'Scientists on {0}, working for {1}, have discovered a new tech level {2} starship drive.',
+                star.name,ownerName,I18n.formatInteger(star.techLevel)):
+                I18n.formatString(958,'Your scientists on {0} have discovered a new tech level {1} starship drive.',
+                    star.name,I18n.formatInteger(star.techLevel));
+            const event=this.recordEvent(I18n.getString(610,'Research'),message,
+                {type:Common.EventType.NEW_TECH_DISCOVERY,subject:star,position:star,recipient});
+            event.discovery={...snapshot};event.observer=observer;
+            this.attention.requestEvent(event);
+            if(!observer) {
+                if(owner===this.getCurrentHumanPlayer())this.queueEventOverlay({type:'lab',classIndex,eventId:event.id});
+            } else if(this.showEnemyEvents && !this.movementTurn && !this.updatingStars)this.queueReport(event);
+            return event;
+        });
+    }
+
     recordCommissioningReports(ship,classIndex) {
         const star=ship.star,owner=ship.owner;
         if(!star || !this.stars.includes(star) || !this.players[owner])return [];
@@ -3438,14 +3460,8 @@ class Game {
                 eventMessage = I18n.formatString(632, '{0} reached tech level {1}', who.name, who.techLevel);
                 console.log(eventMessage); // who = Star, where = Tech Level
                 break;
-            case Common.EventType.NEW_TECH_DISCOVERY: {
-                const classIndex = where || Math.floor(who.techLevel / 5);
-                this.queueEventOverlay({ type: 'lab', classIndex });
-                eventTitle = I18n.getString(610, 'Research');
-                eventMessage = I18n.formatString(633, 'New drive class discovered: {0}', classIndex);
-                console.log(`🧪 ${eventMessage}`);
-                break;
-            }
+            case Common.EventType.NEW_TECH_DISCOVERY:
+                return this.recordDiscoveryReports(who,where || Math.floor(who.techLevel/5));
             case Common.EventType.NEW_SHIP_CLASS: {
                 const classIndex = where || (who.classIndex || 1);
                 return this.recordCommissioningReports(who,classIndex);

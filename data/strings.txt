@@ -616,3 +616,7 @@
 
 # Observer first-class commissioning
 957	{0} commissioned a new {1} class starship, tech level {2}, at {3}.
+
+# Drive discovery broadcasts
+958	Your scientists on {0} have discovered a new tech level {1} starship drive.
+959	Scientists on {0}, working for {1}, have discovered a new tech level {2} starship drive.
