@@ -1,0 +1,5499 @@
+{
+  "format": 1,
+  "purpose": "Source reference for interactive tutorial port; not runtime UI",
+  "lessonCount": 60,
+  "macOSOverrides": [
+    1001,
+    1002,
+    1060
+  ],
+  "fixture": {
+    "source": "release/shareware/Galactica.app/Contents/MacOS/Plug-ins/Galactica Tutorial",
+    "sha256": "56ff62f6dfdf2336ea4a3efa8c0a7c64c9c9aef05a970f3aceb5ad53530aad5d",
+    "bytes": 6184,
+    "signature": "game",
+    "seed": 101
+  },
+  "languages": {
+    "en": {
+      "source": "Resources/gal-tutorial-en.r",
+      "sourceSha256": "365ae0f9804e36bdb256eeb51959ee43c97ab7a222e15858883825e47ba23ef6",
+      "pages": [
+        {
+          "id": 1,
+          "variant": 0,
+          "size": {
+            "height": 186,
+            "width": 250
+          },
+          "title": "",
+          "titleResource": {
+            "id": 0,
+            "index": 0
+          },
+          "text": "\n\n\nThis tutorial is designed to quickly teach you the basics of game play in Galactica. Advanced players should refer to the Galactica Users Manual available under the \"Help\" menu.",
+          "textResource": 7001,
+          "button": "Start",
+          "buttonResource": {
+            "id": 7000,
+            "index": 0
+          },
+          "picture": 7000,
+          "pictureRect": [
+            0,
+            0,
+            61,
+            254
+          ],
+          "sound": 7000,
+          "binding": -1,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [
+            {
+              "window": 34,
+              "page": 3
+            },
+            {
+              "window": 4,
+              "page": 4
+            },
+            {
+              "window": 1,
+              "page": 100
+            },
+            {
+              "window": -1,
+              "page": 101
+            }
+          ],
+          "pageResourceSha256": "eb3d3279e7cc3d78484e4f4327a86b840e7eaba78784cce44209903a47d02bdb",
+          "textResourceSha256": "eac2a2bbb6f329bd7e3eb3d5ec64f1f0f7cf2a655dc5056ada8c475fcd4eeed4"
+        },
+        {
+          "id": 2,
+          "variant": 0,
+          "size": {
+            "height": 146,
+            "width": 250
+          },
+          "title": "Starting a Game",
+          "titleResource": {
+            "id": 7001,
+            "index": 0
+          },
+          "text": "To start a new game, go to the \"File\" menu at the top left of the screen and choose \"New Game...\"",
+          "textResource": 7002,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7001,
+          "pictureRect": [
+            84,
+            18,
+            137,
+            235
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [
+            {
+              "window": 34,
+              "page": 0
+            },
+            {
+              "window": -1,
+              "page": 101
+            }
+          ],
+          "pageResourceSha256": "081b9dc715ba5ed57341aa77fe7879ce37a767172bd745bc5cb9cafbaffa54b3",
+          "textResourceSha256": "c51cc99bcef4f5c62f4e903b27d77e739042710b541ad49b1e8211edebfb7aea"
+        },
+        {
+          "id": 3,
+          "variant": 0,
+          "size": {
+            "height": 184,
+            "width": 142
+          },
+          "title": "Starting a Game",
+          "titleResource": {
+            "id": 7001,
+            "index": 0
+          },
+          "text": "The game setup we have here should be fine for your first game. Click once on the \"Begin Game\" button to accept this as your desired game configuration.",
+          "textResource": 7003,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 34,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 2,
+          "exceptions": [
+            {
+              "window": 4,
+              "page": 0
+            },
+            {
+              "window": 34,
+              "page": 0
+            },
+            {
+              "window": -1,
+              "page": 101
+            }
+          ],
+          "pageResourceSha256": "89b17220975995adf6233878923df43e3c9cb9fd9a59741b3e9ed256c46939dc",
+          "textResourceSha256": "a9739d6ff4729710eefe823dab0d6d4c2a44c067b4d6fa781526b47d0be5a4e1"
+        },
+        {
+          "id": 4,
+          "variant": 0,
+          "size": {
+            "height": 92,
+            "width": 382
+          },
+          "title": "Starting a Game",
+          "titleResource": {
+            "id": 7001,
+            "index": 0
+          },
+          "text": "Now you need to type in the name you want to use in the box for \"Name:\".\nHit the \"OK\" button just below it when you have typed in a name.",
+          "textResource": 7004,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 4,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 3,
+          "exceptions": [
+            {
+              "window": 1,
+              "page": 0
+            }
+          ],
+          "pageResourceSha256": "15a07a53668a42f07ea3b7d8f4f5d6b9a9a534dbe1c28e92c302c8e3d90f07bd",
+          "textResourceSha256": "72265b005f73718847bf3256281707a042bfe1e9e406e1de2ab2882766623cd9"
+        },
+        {
+          "id": 5,
+          "variant": 2,
+          "size": {
+            "height": 165,
+            "width": 250
+          },
+          "title": "Introduction",
+          "titleResource": {
+            "id": 7002,
+            "index": 0
+          },
+          "text": "The majority of your game takes place in this main window. Galactica is turn based, so you have as much time as you need to make your moves. For now let's become aquainted with this window and other basic features of Galactica.",
+          "textResource": 7005,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "efd6cf2c03527265dcaa2d084c0fc14c586d40b6240e71d00a1878709b3ac232",
+          "textResourceSha256": "042f98ef814f60d957ee27313a40d81850e318148e409882fbe0a0e4cb1dff0c"
+        },
+        {
+          "id": 6,
+          "variant": 2,
+          "size": {
+            "height": 145,
+            "width": 250
+          },
+          "title": "The Starmap",
+          "titleResource": {
+            "id": 7004,
+            "index": 0
+          },
+          "text": "The large black area with grid lines is the starmap.  The green star at the center of the starmap is your home star system.  The pulsing white brackets around your star show that it's selected.\n\n",
+          "textResource": 7006,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "82c6e9c0789ac999afdab85ca9195d87aea3df5fea0089f711cf3cd53cc05e3d",
+          "textResourceSha256": "6f729a27c7e5fbfc8197588b95fae560f330c4651840cb1b15a82eb19a429fac"
+        },
+        {
+          "id": 7,
+          "variant": 2,
+          "size": {
+            "height": 168,
+            "width": 250
+          },
+          "title": "The Starmap",
+          "titleResource": {
+            "id": 7004,
+            "index": 0
+          },
+          "text": "You can move around the starmap using the scrollbars below and to the right of the map, or by holding down the option key and dragging the map. \n\nYou can also zoom in and out by using the + and – keys on your keyboard. \n\nGo ahead, try it!\n\n\n",
+          "textResource": 7007,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "250bfed9b42250fd1c6fda9a938851f5101feca43d961008fff3ea8516510677",
+          "textResourceSha256": "34fd8c3f88ecf74c770b24613fc1cd8edb4cc096b7ce3208b9d4e2dd5fa8e666"
+        },
+        {
+          "id": 8,
+          "variant": 1,
+          "size": {
+            "height": 168,
+            "width": 200
+          },
+          "title": "Your Star System",
+          "titleResource": {
+            "id": 7005,
+            "index": 0
+          },
+          "text": "The information about your star system appears in the panel to the right. Here you control the effort this system puts into Growth, Shipbuilding, or Technological development. \n",
+          "textResource": 7008,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "7ebba87052d026f512dae8f917d3e93cce8bb4f32189ea750701ad3a0c776bac",
+          "textResourceSha256": "d82eaf0f634c583e4dc2eee6fb0bc86e7dd97287665d8e2b4f5b9355f0ebdc2a"
+        },
+        {
+          "id": 9,
+          "variant": 1,
+          "size": {
+            "height": 168,
+            "width": 200
+          },
+          "title": "Your Star System",
+          "titleResource": {
+            "id": 7005,
+            "index": 0
+          },
+          "text": "You can also see what kind of ship is being built at that system, and how close it is to completion.\n\n99%! You're going to have a new colony ship next turn!",
+          "textResource": 7009,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "1750c32d15ec641d56864b53a713bf2ed4d3ed0fe875ee8768be209e8eaa8bb3",
+          "textResourceSha256": "a8821e1738d2d8aa48cf2442a4079d401766c093b6115720f6b3045fe35cd284"
+        },
+        {
+          "id": 10,
+          "variant": 1,
+          "size": {
+            "height": 150,
+            "width": 200
+          },
+          "title": "Adjusting Production",
+          "titleResource": {
+            "id": 7006,
+            "index": 0
+          },
+          "text": "Since we almost have a ship completed, let's cut back on shipbuilding a little (we'll still finish the colony ship).\n\nUse the Ships slider  to reduce shipbuilding effort a little.",
+          "textResource": 7010,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "7105decf828811040703df7608bdc0179a8ea6c59f3c87efa10bbb6075efea82",
+          "textResourceSha256": "0b944c2e5b63930705048fde337fa98eac9fc8af761414abf5dc86855580ea74"
+        },
+        {
+          "id": 11,
+          "variant": 1,
+          "size": {
+            "height": 240,
+            "width": 220
+          },
+          "title": "Adjusting Production",
+          "titleResource": {
+            "id": 7006,
+            "index": 0
+          },
+          "text": "Good! Did you notice how the sliders changed color? It takes a few turns for the actual production on your planets to adjust to your desired levels. The sliders are red while they are still adjusting, then turn green when done.",
+          "textResource": 7011,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 7002,
+          "pictureRect": [
+            138,
+            28,
+            192,
+            188
+          ],
+          "sound": 7000,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "fb0d2b91a0b4da6dc0a35345473bed059ab94bdeb000fa0732a050e38226602e",
+          "textResourceSha256": "4f5d86a01d0dd6e334e59b498e6d5ca46e2aecd57d19c44de5cd609e9ba08ff6"
+        },
+        {
+          "id": 12,
+          "variant": 1,
+          "size": {
+            "height": 174,
+            "width": 247
+          },
+          "title": "Turns",
+          "titleResource": {
+            "id": 7007,
+            "index": 0
+          },
+          "text": "As we mentioned before, Galactica is turn based. None of your changes take effect until you end the turn by clicking on the\n        button above or choosing End Turn \n        from the Game menu.\n\nGo ahead and hit the button to end this turn.",
+          "textResource": 7012,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7003,
+          "pictureRect": [
+            73,
+            8,
+            94,
+            28
+          ],
+          "sound": 0,
+          "binding": 105,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "a5b6fa5dbe4980c22d8a67f3b1663993050ab3d9f48287d7689432ee3148497e",
+          "textResourceSha256": "313d78ae3a9c5ab190c9117d7a6165b69eb60e81880835c19ece202164f8b887"
+        },
+        {
+          "id": 13,
+          "variant": 0,
+          "size": {
+            "height": 174,
+            "width": 247
+          },
+          "title": "Game Events",
+          "titleResource": {
+            "id": 7008,
+            "index": 0
+          },
+          "text": "Congratulations!\n\nImportant events like this are shown at the start of each turn. Notice that the message is also shown in the top right corner of the screen.\n\nHit the <tab> key on your keyboard to close this message and see the next event.",
+          "textResource": 7013,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 4002,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "4e5d5ab1ba8d79639b54128ffb21ba9ed9e11c77c06ef4831e813118a6407b5a",
+          "textResourceSha256": "e0a68c4e961e0518b7db98818c438a985f76fcfb596f7598ddeb0abc962db402"
+        },
+        {
+          "id": 14,
+          "variant": 1,
+          "size": {
+            "height": 58,
+            "width": 202
+          },
+          "title": "Game Events",
+          "titleResource": {
+            "id": 7008,
+            "index": 0
+          },
+          "text": "Your opponents have been busy:\n",
+          "textResource": 7014,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 1987538790,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "abed9fca5ac10f9963c0987ad555c2ca0d481ffdb1ee8eaa6055fd365dfd611e",
+          "textResourceSha256": "ec221484ad26c85b2f997906febed8e0df729500d82e82973d1b082c39337a2d"
+        },
+        {
+          "id": 15,
+          "variant": 2,
+          "size": {
+            "height": 168,
+            "width": 200
+          },
+          "title": "Moving Your Ships",
+          "titleResource": {
+            "id": 7009,
+            "index": 0
+          },
+          "text": "Now that you have a colony ship built, it's time to go establish a new colony.\n\nColonization is very important in Galactica, since it gives you more resources for building starships.",
+          "textResource": 7015,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "be00b5dacf76fa9dcfc671d05ca11adbcec517a6991647fa4df2dbea04a5eb9c",
+          "textResourceSha256": "5002d5e9e0d5adee48ab2dea6544299bd18bf47fd97fb00d934d7e9c7a2585fb"
+        },
+        {
+          "id": 16,
+          "variant": 2,
+          "size": {
+            "height": 189,
+            "width": 206
+          },
+          "title": "Moving Your Ships",
+          "titleResource": {
+            "id": 7009,
+            "index": 0
+          },
+          "text": "To set the destination for your starship, begin by clicking the Add Waypoint button in the\nnavigation dialog at the\nbottom right side of the\nscreen.\n\nYou can also use the \"A\" key on your keyboard rather than clicking on the button.",
+          "textResource": 7016,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7004,
+          "pictureRect": [
+            67,
+            157,
+            104,
+            193
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "305200c7998e8337816574fde39347b51a885b14fc6c27bb41d471cb3e11df72",
+          "textResourceSha256": "56378ca5bfa1c3e5d434c59a4fb883c68db8bf5c597c0878d0b393fbf4685dea"
+        },
+        {
+          "id": 17,
+          "variant": 2,
+          "size": {
+            "height": 167,
+            "width": 206
+          },
+          "title": "Moving Your Ships",
+          "titleResource": {
+            "id": 7009,
+            "index": 0
+          },
+          "text": "Now, as you move the mouse you will see  a tracking line that represents the course the ship will travel.\n\nClick on the star \nS-20 to set it as the\ndestination.",
+          "textResource": 7017,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7005,
+          "pictureRect": [
+            89,
+            129,
+            159,
+            189
+          ],
+          "sound": 7000,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "115474a264f551ccd3a208e8107f922c58584d5743387f3c851b5bcf35761d13",
+          "textResourceSha256": "3813c5dffc1b82587b5fdfef3e83ce6d7c372d166d741764aeb58578df243d6e"
+        },
+        {
+          "id": 18,
+          "variant": 2,
+          "size": {
+            "height": 110,
+            "width": 207
+          },
+          "title": "Opps!",
+          "titleResource": {
+            "id": 7010,
+            "index": 0
+          },
+          "text": "You didn't choose S-20 as the destination. ",
+          "textResource": 7018,
+          "button": "Retry",
+          "buttonResource": {
+            "id": 7012,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 16,
+          "exceptions": [],
+          "pageResourceSha256": "16006e95599566c535bcc103dfcfa5ffa266be8348a76912197276e552e289e0",
+          "textResourceSha256": "1ce38a959fd66c27e077108568378c080226e07a2d1c96b34faaacaef5725563"
+        },
+        {
+          "id": 19,
+          "variant": 2,
+          "size": {
+            "height": 210,
+            "width": 230
+          },
+          "title": "Building Defenses",
+          "titleResource": {
+            "id": 7013,
+            "index": 0
+          },
+          "text": "With all this enemy activity, you need to build a defense satellite to protect your homeworld.\n\nClick once on Andromeda to select it, then switch to producing Defense Satellites using the Build popup menu in the System Info panel.\n\n\n\n",
+          "textResource": 7019,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7006,
+          "pictureRect": [
+            151,
+            16,
+            206,
+            214
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "b72ce05ee67e5d3e50a0481a43c1f834927e947ac322810838e08d25fb18b02c",
+          "textResourceSha256": "887d6c3bbef0ea2a88e2b94c24f996f0d12b595d62fc80ef51ec8e92cf1dc5e9"
+        },
+        {
+          "id": 20,
+          "variant": 1,
+          "size": {
+            "height": 160,
+            "width": 200
+          },
+          "title": "Adjusting Production",
+          "titleResource": {
+            "id": 7006,
+            "index": 0
+          },
+          "text": "You want this satellite to be built quickly, so boost shipbuilding effort back where it was.\n\nClick on the = button \nbelow and to the right \nto set all the sliders \nequal.",
+          "textResource": 7020,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7008,
+          "pictureRect": [
+            94,
+            147,
+            128,
+            181
+          ],
+          "sound": 7000,
+          "binding": 1648719470,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "6ade05ef13b970e1119801ca162eab8f0238b1a801ea874f751ea7ecb46f0363",
+          "textResourceSha256": "f1733c75065f098dd0a0d748af584e529a1f035415bbebde3acf6787ca7536d7"
+        },
+        {
+          "id": 21,
+          "variant": 1,
+          "size": {
+            "height": 75,
+            "width": 200
+          },
+          "title": "Turn 2 Completed",
+          "titleResource": {
+            "id": 7014,
+            "index": 0
+          },
+          "text": "That's all you need to do for now. Go ahead and end the turn.",
+          "textResource": 7021,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 105,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "7930b9cc72b28fc4e7a42578c9e08feebc82671ab7fa1874607d5e32fbd95087",
+          "textResourceSha256": "608e838fe2a4abe846868ab7807ece9f6156ba0ec9adf5b03325abf483f7dc77"
+        },
+        {
+          "id": 22,
+          "variant": 2,
+          "size": {
+            "height": 144,
+            "width": 210
+          },
+          "title": "Moving Your Ships",
+          "titleResource": {
+            "id": 7009,
+            "index": 0
+          },
+          "text": "Here you can see that your colony ship moved toward S-20, and should arrive next turn. The green line is its motion vector, and shows how far it will move next turn.\n\nGo ahead and end the turn again.",
+          "textResource": 7022,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "6547569c63cec83a1bd067e3b38b2f90f8e8832229f43eb5e96a29bd5a99b8d0",
+          "textResourceSha256": "218cd5cffb0bb9310101004e1e15f8148228c64ca584286060d6ec5c53519ce0"
+        },
+        {
+          "id": 23,
+          "variant": 0,
+          "size": {
+            "height": 160,
+            "width": 240
+          },
+          "title": "New Satellite",
+          "titleResource": {
+            "id": 7015,
+            "index": 0
+          },
+          "text": "Satellites are useful only for defense, since they are permanently stationed in the star system where they were built. This one will be placed on patrol in the Andromeda system.\n\nHit the <tab> key on your keyboard to see the next event.",
+          "textResource": 7023,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 4002,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "103b4934d1070ea14b34c29315456ee4c853875264dcdff1801497abd2f1f069",
+          "textResourceSha256": "f3f17474e66fdf8a0a4ef9b4d4a0f21470d46de91731120b5a8429f724e7430e"
+        },
+        {
+          "id": 24,
+          "variant": 2,
+          "size": {
+            "height": 130,
+            "width": 198
+          },
+          "title": "New Colony Established",
+          "titleResource": {
+            "id": 7016,
+            "index": 0
+          },
+          "text": "You have established a new colony! Whenever a colony ship arrives at an unoccupied planet, it automatically colonizes it. ",
+          "textResource": 7024,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "dcad1c54a43cd599af80a0216923579bbe9ffdd4a0df8f2698bac75c81c95609",
+          "textResourceSha256": "e4866816c9d244d1987379c087a22f7642c3475720032d6194b03a8dbb1f28b1"
+        },
+        {
+          "id": 25,
+          "variant": 2,
+          "size": {
+            "height": 128,
+            "width": 201
+          },
+          "title": "Renaming",
+          "titleResource": {
+            "id": 7011,
+            "index": 0
+          },
+          "text": "You should give your new colony a name. \n\nName it \"New Terra\" by choosing \"Rename...\" from the \"Edit\" menu.\n",
+          "textResource": 7025,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "cb360e6292740ad07c501401ea5d73e3713fe54b3a267a9de8b70c02b830f555",
+          "textResourceSha256": "d2ce90cc2b4c0f1c7b4be71451180d39ef9def5a245dd57629ce2c0207c1bebc"
+        },
+        {
+          "id": 26,
+          "variant": 1,
+          "size": {
+            "height": 144,
+            "width": 200
+          },
+          "title": "Adjusting Production",
+          "titleResource": {
+            "id": 7006,
+            "index": 0
+          },
+          "text": "The next thing you should do with this new colony is set its production levels. In this case, the levels are fine, but you don't need a defense satellite here yet.\n\nSwitch to producing battleships.\n",
+          "textResource": 7026,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "5ece71114eb083ab2a25dd196d32d5cb625e47e706586ecd21380ac9f5faa283",
+          "textResourceSha256": "398c236b2712f7e806984bbba9529fc0e1f8496a00077f19262c4d072827e63a"
+        },
+        {
+          "id": 27,
+          "variant": 2,
+          "size": {
+            "height": 100,
+            "width": 200
+          },
+          "title": "Events",
+          "titleResource": {
+            "id": 7017,
+            "index": 0
+          },
+          "text": "Great!\n\nNow hit <tab> to check for more events.",
+          "textResource": 7027,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "cd13d5e4600c98d68791d873649e6a21844f00313187880fe181b501261d7061",
+          "textResourceSha256": "3490138ecef43bfa149e54104f5b6113a95bab3ea3dad2af4504a84def3c0d2e"
+        },
+        {
+          "id": 28,
+          "variant": 2,
+          "size": {
+            "height": 165,
+            "width": 200
+          },
+          "title": "Ships Awaiting Orders",
+          "titleResource": {
+            "id": 7018,
+            "index": 0
+          },
+          "text": "Now that your colony ship has completed its task, it needs new orders. Ships will notify you when they complete their last orders—or when they have been idle too long.\n\nSend your colony ship to S-7 to colonize that system.",
+          "textResource": 7028,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "5d93bca8c57e5727a60c885889d56f410aec5c944c26f40019cc2ff75eb3f6fc",
+          "textResourceSha256": "9fa8b86ec2f3c05b2df8196167646f3e5a48f0a4066a0485e586d33b02d1741c"
+        },
+        {
+          "id": 29,
+          "variant": 2,
+          "size": {
+            "height": 72,
+            "width": 200
+          },
+          "title": "Events",
+          "titleResource": {
+            "id": 7017,
+            "index": 0
+          },
+          "text": "Hit <tab> again to check for more events.",
+          "textResource": 7029,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 9,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "47bf47ca42dbaeb57350977e691712c8729b4e8151a44672aeffb10ac3035a6f",
+          "textResourceSha256": "355c745e3f97d8971b0c71f3ea22d695ec00c42de52784da171b2b3646cc98a9"
+        },
+        {
+          "id": 30,
+          "variant": 2,
+          "size": {
+            "height": 140,
+            "width": 200
+          },
+          "title": "Events",
+          "titleResource": {
+            "id": 7017,
+            "index": 0
+          },
+          "text": "That sound you heard indicates that there are no more events left to handle. But before you end the turn, take a look at Andromeda.\n\nClick once on Andromeda to select it.",
+          "textResource": 7030,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "bf42325f4d6b4d447f10f814c10e787660f30e7f43f128f298c826933ed268eb",
+          "textResourceSha256": "c07c4f29e5d48b483579e2575ba450a52b079e7e22d41daa4c62eb94179024bc"
+        },
+        {
+          "id": 31,
+          "variant": 1,
+          "size": {
+            "height": 168,
+            "width": 200
+          },
+          "title": "Distributing Technology",
+          "titleResource": {
+            "id": 7019,
+            "index": 0
+          },
+          "text": "If you look at the System Info panel, you'll see that thanks to research, the tech level on Andromeda has risen to level 2.\n\nSwitch Andromeda to building Couriers so it can distribute the new tech level to your other colony.",
+          "textResource": 7031,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "8b6b96d8b8f46a7365179bd24e9a1706000cbcb97867b14e49eb74eacbdc9940",
+          "textResourceSha256": "c5f7a2325cc752b0d4248fc31f65a514d01655011edc5133ba55070a78930ba7"
+        },
+        {
+          "id": 32,
+          "variant": 2,
+          "size": {
+            "height": 168,
+            "width": 200
+          },
+          "title": "Patrol Ring",
+          "titleResource": {
+            "id": 7020,
+            "index": 0
+          },
+          "text": "One last thing. You have probably noticed a faint ring around Andromeda. The ring indicates that the star is protected by the defense satellite you built. It is now on patrol around in the system.\n\nGo ahead and end the turn now.",
+          "textResource": 7032,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "93a44584cc9c5cf105b9f872d146fbff93f17ce255a12466397b622e77de8cc6",
+          "textResourceSha256": "dbd66c489fa47b96fb0460ec274587af6f06afa41b2977753f0ffbfa48fd3348"
+        },
+        {
+          "id": 33,
+          "variant": 0,
+          "size": {
+            "height": 154,
+            "width": 240
+          },
+          "title": "New Courier",
+          "titleResource": {
+            "id": 7021,
+            "index": 0
+          },
+          "text": "Courier ships are very fast, but have no combat abilities at all. Nevertheless, they are very useful for quickly transfering technology between star systems. Only couriers can pick up new technology from star systems.\n\nHit <tab> for the next event.\n",
+          "textResource": 7033,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 4002,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "85b4a7734ae9f44432cce9fd65d1c61bf7a8314670b35ea14b69757f816f85da",
+          "textResourceSha256": "66f071e7722ea053282c9ca50ee4cd82e701d6d4a0c327b520a1edde60cfd739"
+        },
+        {
+          "id": 34,
+          "variant": 2,
+          "size": {
+            "height": 128,
+            "width": 200
+          },
+          "title": "Distributing Technology",
+          "titleResource": {
+            "id": 7019,
+            "index": 0
+          },
+          "text": "Your courier is awaiting your command!\n\nSend it to New Terra to give your colonists the latest technologies from Andromeda.",
+          "textResource": 7034,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "8c355b0363817a8a76089f5cd86263d64dde803629e7429f424193314f2529e9",
+          "textResourceSha256": "e3573287a134cefa2f8cbee8d5550b82636faa37bb9e85c4caffe9308d3dbcee"
+        },
+        {
+          "id": 35,
+          "variant": 2,
+          "size": {
+            "height": 84,
+            "width": 200
+          },
+          "title": "Events",
+          "titleResource": {
+            "id": 7017,
+            "index": 0
+          },
+          "text": "Excellent!\n\nNow hit <tab> for the next event.",
+          "textResource": 7035,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 58,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "962cd09e967f2cfd387e2b254d314e09486bcf696ca31a2598cd5f686848b32d",
+          "textResourceSha256": "d6792a5bf40e12aa98e3a9664b3b03a7b77a8e4d0bc7b1db060991026512234a"
+        },
+        {
+          "id": 36,
+          "variant": 2,
+          "size": {
+            "height": 170,
+            "width": 200
+          },
+          "title": "Building Fleets",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "No more events, but there's something else you should do before ending the turn. Since you'll need a strong fleet to attack the enemy, you should start building\tbattleships on Andromeda and New Terra.\n\nStart by selecting Andromeda.",
+          "textResource": 7036,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "56d86050cc0921e1bda8b5b43c19c317c252e5e6290408fccda960b397a04d2c",
+          "textResourceSha256": "d2aed508810808df582659a027b5c722641721fa40badb8f6700d4bbf4333966"
+        },
+        {
+          "id": 37,
+          "variant": 1,
+          "size": {
+            "height": 80,
+            "width": 200
+          },
+          "title": "Building Fleets",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Now switch Andromeda to producing battleships.\n",
+          "textResource": 7037,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "e23319c96c6da6d8e0fda609b9dcca1b962586331c6960e06e1e1a85732ca8ae",
+          "textResourceSha256": "807b4aa94ec0ce990963006d412cd7eea5941d8ea1f9b48d03e7e8c10a2797c8"
+        },
+        {
+          "id": 38,
+          "variant": 0,
+          "size": {
+            "height": 206,
+            "width": 200
+          },
+          "title": "Building Fleets",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Good.\n\nNow you need to tell Andromeda to form the battleships into a fleet when they are finished. To do this, you will create a Rendezvous point on the starmap and set that as the auto-destination.\n\nChoose \"New Rendezvous\" from the \"Goto\" menu.",
+          "textResource": 7038,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "8a9bffd8b0e1738d7f8c112d6782c648a0feea394d7f6af678c21edeb757b713",
+          "textResourceSha256": "f35dc3497cdd2b6c4701121423b9794ed07bfcc96c3115abbfcd400055cf7868"
+        },
+        {
+          "id": 39,
+          "variant": 2,
+          "size": {
+            "height": 240,
+            "width": 200
+          },
+          "title": "Building Fleets",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "See how the cursor has changed to an X ? That means you are placing\ta Rendezvous Point.\n\nClick on the starmap between Andromeda and New Terra to place the Rendezvous Point.",
+          "textResource": 7039,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7007,
+          "pictureRect": [
+            140,
+            23,
+            228,
+            173
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "df55d739e07582dcef5eef17232544a02fde83891993aa65432402d953bea3fd",
+          "textResourceSha256": "be8cb033a7090a05caf8f8ebe36dfd3eeabcb750988cceb622f93b10131680c7"
+        },
+        {
+          "id": 40,
+          "variant": 0,
+          "size": {
+            "height": 100,
+            "width": 200
+          },
+          "title": "Building Fleets",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Perfect!\n\nNow name the new Rendezvous Point \"Alpha\".",
+          "textResource": 7040,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 35,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "ccc97397ac4b02438cf26f352084749c1bf633b969467db2dc4709e160b2e485",
+          "textResourceSha256": "edf1a710afbeb01ae4c6a451b31044c5d25a46f29a82ecf1e7bcb271e1e32211"
+        },
+        {
+          "id": 41,
+          "variant": 1,
+          "size": {
+            "height": 160,
+            "width": 200
+          },
+          "title": "Building Fleets",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Now click once on the \"Send To:\" button in the System Info panel, and choose Rendezvous Point Alpha as the auto-destination.",
+          "textResource": 7041,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7009,
+          "pictureRect": [
+            100,
+            48,
+            140,
+            148
+          ],
+          "sound": 7000,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "8c9bb8ad472da154c81b51d5b5678e3da642967f8aa6c40504e1f687cb29796f",
+          "textResourceSha256": "0ab29ddfcde547e4122abde92f37a7d869a3da2e30f6981a331740a6f9a75188"
+        },
+        {
+          "id": 42,
+          "variant": 2,
+          "size": {
+            "height": 90,
+            "width": 200
+          },
+          "title": "Building Fleets",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Now select New Terra and set its auto-destination to Rendezvous Point Alpha as well.",
+          "textResource": 7042,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "cfbeafb6a46f79c8a2b3133ab81197c95e79875e8b6422614ac69a7ebf942dae",
+          "textResourceSha256": "373fc03d3a299d18ddaf7088ce64369dc2cc43cb3f45303f0dd9048fb027898f"
+        },
+        {
+          "id": 43,
+          "variant": 2,
+          "size": {
+            "height": 170,
+            "width": 200
+          },
+          "title": "Building Fleets",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Very good!\n\nYou've now made it so both Andromeda and New Terra will build battleships and send them to Rendezvous Point Alpha to form a fleet.\n\nGo ahead and end the turn.",
+          "textResource": 7043,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "df7eaf1ece7ad60d222b14b059d9faffcc036a7dcbc6f26d1f7f446cafc1b584",
+          "textResourceSha256": "7cb19797ac22bfd3a6168b418a576ddbf09d1440c1a26c968275d73f48733a8f"
+        },
+        {
+          "id": 44,
+          "variant": 2,
+          "size": {
+            "height": 156,
+            "width": 200
+          },
+          "title": "Distributing Technology",
+          "titleResource": {
+            "id": 7019,
+            "index": 0
+          },
+          "text": "Upon arrival, your couriers will automatically update your system's tech level if it is lower, or pick up the system's tech level if it is higher.\n\nSend your courier to S-7, then hit \n<tab> to check for more events\n",
+          "textResource": 7044,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "c42b654dc7b0ddda84070aee46f5c3962f39012402ce913cfb8d26af9c95c5d6",
+          "textResourceSha256": "45dbf1c7a21791d82beb74742f5229e363dd401f4706748fcd00475bbb46dba9"
+        },
+        {
+          "id": 45,
+          "variant": 1,
+          "size": {
+            "height": 90,
+            "width": 200
+          },
+          "title": "Events",
+          "titleResource": {
+            "id": 7017,
+            "index": 0
+          },
+          "text": "No more events to handle this turn, so go ahead and end the turn.",
+          "textResource": 7045,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 105,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "0110588a42d8d7d1ff9066d9e7d34356e0d1f52385a4df0a2b51740c91560a16",
+          "textResourceSha256": "50094fb0e5dc703bd44d68cb3429aa1515d3f4d4b6bddbbcc29912cc101ef3d6"
+        },
+        {
+          "id": 46,
+          "variant": 1,
+          "size": {
+            "height": 60,
+            "width": 200
+          },
+          "title": "Events",
+          "titleResource": {
+            "id": 7017,
+            "index": 0
+          },
+          "text": "A lot happened this last turn:",
+          "textResource": 7046,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 1987538790,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "53b5f651f22bc295695dafff1a7c9de0cb8e5885951ea36f86f5c0bcb46ad3db",
+          "textResourceSha256": "7cef2cf86ba1171336ad6198d977629ee065d11832830e97746be6fd7314263c"
+        },
+        {
+          "id": 47,
+          "variant": 2,
+          "size": {
+            "height": 130,
+            "width": 198
+          },
+          "title": "New Colony Established",
+          "titleResource": {
+            "id": 7016,
+            "index": 0
+          },
+          "text": "Another colony established. We'll leave this one alone for now.\n\nHit <tab> to check for more events.",
+          "textResource": 7047,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 7,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "0a29bfbb33037d1b9e81138aae28e20c92bac6fd9d0a03cce229389cea601e48",
+          "textResourceSha256": "a3a3c9f281b7f20de44aa0147cae1a1c4aaf5b85816e1086b627d33641e6a5ec"
+        },
+        {
+          "id": 48,
+          "variant": 2,
+          "size": {
+            "height": 165,
+            "width": 200
+          },
+          "title": "Putting Ships on Patrol",
+          "titleResource": {
+            "id": 7023,
+            "index": 0
+          },
+          "text": "While it really makes more sense to colonize S-35 next, for tutorial purposes let's pretend we're done expanding.\n\nHit the <P> key on \nyour keyboard to put\nyour colony ship on \npatrol. ",
+          "textResource": 7048,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7012,
+          "pictureRect": [
+            105,
+            142,
+            145,
+            182
+          ],
+          "sound": 0,
+          "binding": 7,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "4bc155e69abba3907183ab117bb12cc86c3337d2991eceda78c6488078854705",
+          "textResourceSha256": "91b554b374d72ff1d58a0983e4ae04249652596a49bc66466107b55847c954af"
+        },
+        {
+          "id": 49,
+          "variant": 2,
+          "size": {
+            "height": 165,
+            "width": 202
+          },
+          "title": "Putting Ships on Patrol",
+          "titleResource": {
+            "id": 7023,
+            "index": 0
+          },
+          "text": "Your colony ship is now on patrol around S-7. Ships that are on patrol get to ambush incoming attackers, and since they coordinate with the planetary defenses, they have an advantage when defending, too.\n\nHit <tab> for the next event.\n",
+          "textResource": 7049,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 7,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "741f162ecf0e872c8edd6b4270ddf0bf1b4f5da6b8ccc1ffcf4f4854ec03bde6",
+          "textResourceSha256": "c0269c885794606219867d60bd5fd9c930a0c450827cea8194d301b95266ceb2"
+        },
+        {
+          "id": 50,
+          "variant": 0,
+          "size": {
+            "height": 156,
+            "width": 200
+          },
+          "title": "Comparing Players",
+          "titleResource": {
+            "id": 7024,
+            "index": 0
+          },
+          "text": "No more events. \n\nBefore you end the turn, take a quick look at how you are doing relative to the other players.\n\nChoose \"Compare Players...\" from the \"Game\" menu.",
+          "textResource": 7050,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "edc0c542cada77f84b9d3ca0b33d4f7b886e335cb7d80a462d46f7ae29df457e",
+          "textResourceSha256": "a91ba7cfc443122cf77497a59d046167ec27387b78a987876df2076e67b3dd23"
+        },
+        {
+          "id": 51,
+          "variant": 1,
+          "size": {
+            "height": 156,
+            "width": 200
+          },
+          "title": "Comparing Players",
+          "titleResource": {
+            "id": 7024,
+            "index": 0
+          },
+          "text": "The numbers shown in bold blue are the highest and best for that category, while red represents the lowest and worst.\n\nClick the \"OK\" button when you're done comparing the players.",
+          "textResource": 7051,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "1a4dacf339cfc0c5c62d72957346a8e8f690d2af0ec6f120072204e059a6785e",
+          "textResourceSha256": "64f2194c2999c2f6253558de9c19a3e1d91ec0d3eb083901564bc46542c910f2"
+        },
+        {
+          "id": 52,
+          "variant": 1,
+          "size": {
+            "height": 60,
+            "width": 200
+          },
+          "title": "Continue",
+          "titleResource": {
+            "id": 7025,
+            "index": 0
+          },
+          "text": "Go ahead and end the turn.",
+          "textResource": 7052,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 105,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "90ab0c972c580881a0c3477ce6f854078b01d0e9993bb1c6eef874f1dc70a55d",
+          "textResourceSha256": "72de39602975be3188fff9171288ec66cdf16f52aa5294f2cad76ede1c832ca0"
+        },
+        {
+          "id": 53,
+          "variant": 2,
+          "size": {
+            "height": 135,
+            "width": 200
+          },
+          "title": "Ignoring Ships",
+          "titleResource": {
+            "id": 7026,
+            "index": 0
+          },
+          "text": "Your courier has arrived at S-7 to update the technology level there. \n\nWe've got nothing else for it to do at the moment, so just ignore it and hit <tab> for the next event.",
+          "textResource": 7053,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 7,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "3b4d686ffca060d040f1edf907a20ed65626fb806c6e33edf6a7a41417583fd3",
+          "textResourceSha256": "cadc1d9ddc5a6871e8cdf388a54399f71720010e7a61468f285c1cfb0a7e21c4"
+        },
+        {
+          "id": 54,
+          "variant": 1,
+          "size": {
+            "height": 60,
+            "width": 200
+          },
+          "title": "Continue",
+          "titleResource": {
+            "id": 7025,
+            "index": 0
+          },
+          "text": "No more events, so end the turn.",
+          "textResource": 7054,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 105,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "16e2293fe35f31b19b0ddafdd16f39416fdc049cb1546df1913776cc4f8805fd",
+          "textResourceSha256": "105d86bf3e5c531be33626caa101fe6c792006b787fff0014f8e328ecfc91303"
+        },
+        {
+          "id": 55,
+          "variant": 0,
+          "size": {
+            "height": 154,
+            "width": 200
+          },
+          "title": "New Traveler",
+          "titleResource": {
+            "id": 7027,
+            "index": 0
+          },
+          "text": "The Traveler is the most basic design for a battleship. As your technology levels advance, you will discover new starship drives that are capable of producing better, faster battleships.\n\nHit <tab>.",
+          "textResource": 7055,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 4002,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "0ecf730eea6b4be3c4d7cfc49c3a3e31f2d5c08b360437115b54619026e99788",
+          "textResourceSha256": "9c8bbd5fee8fd3476e5e6f746942829cd8c40798d88c6bfb7d9543760425dd45"
+        },
+        {
+          "id": 56,
+          "variant": 2,
+          "size": {
+            "height": 160,
+            "width": 200
+          },
+          "title": "Fleet Built",
+          "titleResource": {
+            "id": 7028,
+            "index": 0
+          },
+          "text": "All the work we did setting up auto-destinations for Andromeda and New Terra is now paying off. New ships will continue to assemble in this fleet until we send it away from Rendezvous Alpha.",
+          "textResource": 7056,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 61,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "e2cb2a1508ca4f6e317a0c09a97540c45b4f523d5e38db1657a414cadcb1257d",
+          "textResourceSha256": "a0389831e8189f5a855acb32753830a063431a22a451f67f28323ebb8f3b0508"
+        },
+        {
+          "id": 57,
+          "variant": 1,
+          "size": {
+            "height": 140,
+            "width": 200
+          },
+          "title": "Examining Fleets",
+          "titleResource": {
+            "id": 7029,
+            "index": 0
+          },
+          "text": "Now click on the ships in fleet button to the right to see a list of the ships in your new fleet.",
+          "textResource": 7057,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7011,
+          "pictureRect": [
+            84,
+            69,
+            134,
+            129
+          ],
+          "sound": 0,
+          "binding": 2503,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "18132bda41588396760fbd0da6ca586f5dcafd1e84dfc6aef7d8135ea854283c",
+          "textResourceSha256": "123e30db157e906f40d68933d3a2529897b2bb4d5128a0539f71be8712398042"
+        },
+        {
+          "id": 58,
+          "variant": 1,
+          "size": {
+            "height": 192,
+            "width": 200
+          },
+          "title": "Removing Ships from Fleets",
+          "titleResource": {
+            "id": 7030,
+            "index": 0
+          },
+          "text": "As you can see, both the Travelers produced this turn were added to the fleet. You can remove ships from fleets by giving them a course to some other location, or \nby using the Exchange \nShips button while \nthe fleet is in a star \nsystem.",
+          "textResource": 7058,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 7013,
+          "pictureRect": [
+            108,
+            148,
+            148,
+            188
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": false,
+            "left": false,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "ca142a8b13aa32c3a19e84828d2151fe71d9f4330ac377ca416a77fd72b426f0",
+          "textResourceSha256": "d647b4cb663af0b128b0a0dd63eb8627b1c57b4d4927346721f21a63e086caf7"
+        },
+        {
+          "id": 59,
+          "variant": 1,
+          "size": {
+            "height": 252,
+            "width": 200
+          },
+          "title": "Damaged Ships",
+          "titleResource": {
+            "id": 7031,
+            "index": 0
+          },
+          "text": "You may notice a green bar beside each ship in the list. This is the Health Bar. The bar turns red as the ship is damaged. When the bar is completely red, the ship is destroyed. You can repair damaged ships by letting them rest in an allied star system.",
+          "textResource": 7059,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 7010,
+          "pictureRect": [
+            156,
+            10,
+            217,
+            192
+          ],
+          "sound": 0,
+          "binding": 0,
+          "position": {
+            "top": false,
+            "left": false,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "d5f6b84d61d8984e660936ff4083dfc36399ae1808a836600dd1620455557662",
+          "textResourceSha256": "a10342f65195a477a40e10ca2a054538ae5be0b7a402f786502cc8eb0d8b8f62"
+        },
+        {
+          "id": 60,
+          "variant": 1,
+          "size": {
+            "height": 182,
+            "width": 200
+          },
+          "title": "That's All Folks!",
+          "titleResource": {
+            "id": 7032,
+            "index": 0
+          },
+          "text": "That's it for the tutorial! We hope you enjoy the game. Be sure to check out the Strategy Guide that is available in the Users Manual (under the Apple menu).\n\nNow go put that colony ship on\nS-7 to work!",
+          "textResource": 7060,
+          "button": "Bye",
+          "buttonResource": {
+            "id": 7033,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 0,
+          "position": {
+            "top": false,
+            "left": false,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": -1,
+          "exceptions": [],
+          "pageResourceSha256": "f80e85ed524f945a99a1c8860af9a595e51e40031c3f3c4d5a54d95d8ecba06f",
+          "textResourceSha256": "9c41059f4a418749368cf5289925025205ae3575a6c4e162e58c8cd1223dc719"
+        },
+        {
+          "id": 100,
+          "variant": 0,
+          "size": {
+            "height": 200,
+            "width": 250
+          },
+          "title": null,
+          "titleResource": {
+            "id": 7000,
+            "index": 1
+          },
+          "text": "You've already started a game. The tutorial will hide that game while it runs, but you can go back to your game after you complete the tutorial by choosing it from the \"Window\" menu.\n\nIf you'd rather not run the tutorial, click the close box at the top left corner of this window.",
+          "textResource": 7100,
+          "button": "Hide it",
+          "buttonResource": {
+            "id": 7034,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            104,
+            20,
+            154,
+            230
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 1,
+          "exceptions": [],
+          "pageResourceSha256": "0d9453ae7025936712a5c15ba532b1c19ee2319e0fd8b67141f09dc5e5c6752c",
+          "textResourceSha256": "6021e96b41f6008b0b85f6238865054d4efd0b565c77e6ad72c33b78e509b09b"
+        },
+        {
+          "id": 101,
+          "variant": 0,
+          "size": {
+            "height": 200,
+            "width": 250
+          },
+          "title": null,
+          "titleResource": {
+            "id": 7000,
+            "index": 1
+          },
+          "text": "You've already started a game. The tutorial will hide that game while it runs, but you can go back to your game after you complete the tutorial by choosing it from the \"Window\" menu.\n\nIf you'd rather not run the tutorial, click the close box at the top left corner of this window.",
+          "textResource": 7100,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            104,
+            20,
+            154,
+            230
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 1,
+          "exceptions": [],
+          "pageResourceSha256": "f38c26b3b1e81c624e275943e6e6fc090bed407f852e014450896a4994eccbb9",
+          "textResourceSha256": "6021e96b41f6008b0b85f6238865054d4efd0b565c77e6ad72c33b78e509b09b"
+        },
+        {
+          "id": 103,
+          "variant": 0,
+          "size": {
+            "height": 200,
+            "width": 250
+          },
+          "title": null,
+          "titleResource": {
+            "id": 7000,
+            "index": 1
+          },
+          "text": "Sorry, but the \"Host New Game...\" option is for multiplayer games. For information on setting up a multiplayer game, please refer to the Galactica Docs under the \"Help\" menu.\n\nYou can hit \"Cancel\" to continue with the tutorial in a single player game.",
+          "textResource": 7103,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 2,
+          "exceptions": [
+            {
+              "window": -1,
+              "page": -1
+            }
+          ],
+          "pageResourceSha256": "19296e008432d5b5a802e24c0cf599437c1a67ca5d66a04ce602334d671fc8e7",
+          "textResourceSha256": "9a3e6b5f6dcb146c9f2270c568f3489749878e7b13c86ebbd571b85b671d87ed"
+        },
+        {
+          "id": 1001,
+          "variant": 0,
+          "size": {
+            "height": 186,
+            "width": 250
+          },
+          "title": "",
+          "titleResource": {
+            "id": 0,
+            "index": 0
+          },
+          "text": "\n\n\nThis tutorial is designed to quickly teach you the basics of game play in Galactica. Advanced players should refer to the Galactica Users Manual available under the \"Galactica: AD\" menu.",
+          "textResource": 8001,
+          "button": "Start",
+          "buttonResource": {
+            "id": 7000,
+            "index": 0
+          },
+          "picture": 7000,
+          "pictureRect": [
+            0,
+            0,
+            61,
+            254
+          ],
+          "sound": 7000,
+          "binding": -1,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [
+            {
+              "window": 34,
+              "page": 3
+            },
+            {
+              "window": 4,
+              "page": 4
+            },
+            {
+              "window": 1,
+              "page": 100
+            },
+            {
+              "window": -1,
+              "page": 101
+            }
+          ],
+          "pageResourceSha256": "d96dedcaef246c579280f82292e77d48caa5d5842f7228267f2c4df174cb8e72",
+          "textResourceSha256": "47234702a85ebd31c7dbc06a728cbde5923d3c2cfb6374099fe8bd46745ef6c6"
+        },
+        {
+          "id": 1002,
+          "variant": 0,
+          "size": {
+            "height": 146,
+            "width": 250
+          },
+          "title": "Starting a Game",
+          "titleResource": {
+            "id": 7001,
+            "index": 0
+          },
+          "text": "To start a new game, go to the \"File\" menu at the top left of the screen and choose \"New Game...\"",
+          "textResource": 7002,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 8001,
+          "pictureRect": [
+            84,
+            18,
+            137,
+            235
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [
+            {
+              "window": 34,
+              "page": 0
+            },
+            {
+              "window": -1,
+              "page": 101
+            }
+          ],
+          "pageResourceSha256": "25478c0f8010a13b31d162d1a537e0b5c5543809ef9310fd59b77d133dc30f8b",
+          "textResourceSha256": "c51cc99bcef4f5c62f4e903b27d77e739042710b541ad49b1e8211edebfb7aea"
+        },
+        {
+          "id": 1060,
+          "variant": 1,
+          "size": {
+            "height": 182,
+            "width": 200
+          },
+          "title": "That's All Folks!",
+          "titleResource": {
+            "id": 7032,
+            "index": 0
+          },
+          "text": "That's it for the tutorial! We hope you enjoy the game. Be sure to check out the Strategy Guide that is available in the Users Manual (under the Galactica: AD menu).\n\nNow go put that colony ship on\nS-7 to work!",
+          "textResource": 8060,
+          "button": "Bye",
+          "buttonResource": {
+            "id": 7033,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 0,
+          "position": {
+            "top": false,
+            "left": false,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": -1,
+          "exceptions": [],
+          "pageResourceSha256": "07dfcff2a657068a43c2f375f343c24363759a7e38b5fa13c7e954b779a2d992",
+          "textResourceSha256": "3bb2be4bd9afac15817f59223c64079fa8afc7219d9e8b5997e951dae7f3023d"
+        }
+      ],
+      "templatePageSha256": "286cc8e20312dc9fa5c0d4b90ae1373fa6b7018ead5097aa325c7ae022b11195",
+      "pictures": [
+        {
+          "id": 7000,
+          "sha256": "b8175e53944a0c9cb12a09319937d99e07a3cae933559c64833f305fc14f64b2",
+          "bytes": 44842
+        },
+        {
+          "id": 7001,
+          "sha256": "17999615b3654a6f4569d040f622321d3ed94e351be7c3040bfa976b74186fc8",
+          "bytes": 9560
+        },
+        {
+          "id": 7002,
+          "sha256": "9aa4a45040e47068a09542d2cbb6c11bfef5b556c7bcfcb086cfb1d216758c16",
+          "bytes": 10912
+        },
+        {
+          "id": 7003,
+          "sha256": "0f7dbb8dbe74727018acbf4aaed5810ec7821d1c064d05a0bd64117db1c7bd17",
+          "bytes": 358
+        },
+        {
+          "id": 7004,
+          "sha256": "40520b5b468fc7b83dbc34b0c79ba568f15e0bc599268dee53dabc158fb1dba7",
+          "bytes": 412
+        },
+        {
+          "id": 7005,
+          "sha256": "c491c64b840a61560425af46a99301c34dde787a55af821769a0bf1235f02c33",
+          "bytes": 2432
+        },
+        {
+          "id": 7006,
+          "sha256": "86aa709e53184511da840f991e5a5c666315fddbfb06959f63fb5831d13f32a3",
+          "bytes": 2994
+        },
+        {
+          "id": 7007,
+          "sha256": "66adce0c24590b7b0cedc29fda87ac8771d7b69e843cac49aa0f3e3a4ff6c2f7",
+          "bytes": 12074
+        },
+        {
+          "id": 7008,
+          "sha256": "8c46c38f70dae3d79be9b6074e0ed00ac7a8a7ee8cc17a67c3f4d24fecd06c8a",
+          "bytes": 424
+        },
+        {
+          "id": 7009,
+          "sha256": "ebea1ffe28a7b532fc1e2234607f00c3d51537cae8fe1d963c205a64fb8fffb8",
+          "bytes": 1762
+        },
+        {
+          "id": 7010,
+          "sha256": "64bbf279fb016a991c96bf5ff34e5bf057ee9ca414634c3f3baedfa45174a6ad",
+          "bytes": 4214
+        },
+        {
+          "id": 7011,
+          "sha256": "1a1586d49040e32f6f2462916c97af056fcbe12601f21f9807b280a2c2d40f76",
+          "bytes": 1434
+        },
+        {
+          "id": 7012,
+          "sha256": "7717e0f83bf36f4da8e62ecc299a5e151f82c63e17811931f5a36ae13567c3f2",
+          "bytes": 550
+        },
+        {
+          "id": 7013,
+          "sha256": "9c4f8d13d79c5b0f47a7393fbe0ea8180909c38010831236741745350ef7c6e8",
+          "bytes": 614
+        },
+        {
+          "id": 8001,
+          "sha256": "e84070edd2671723c640904b5b29a8c833fef435a47f031256ee71f2b1217cb8",
+          "bytes": 18174
+        }
+      ],
+      "sounds": [
+        {
+          "id": 7000,
+          "sha256": "e20a9dd1fdccf0f5b6f229764b06ea6a3d3de7347775a99338efc3c868edb5c5",
+          "bytes": 3866
+        }
+      ]
+    },
+    "de": {
+      "source": "Resources/gal-tutorial-de.r",
+      "sourceSha256": "0b71512d9a1b95113c7f8d26177c7d39b39d74d61452bfad62fdd7b8cb0f2739",
+      "pages": [
+        {
+          "id": 1,
+          "variant": 0,
+          "size": {
+            "height": 186,
+            "width": 250
+          },
+          "title": "",
+          "titleResource": {
+            "id": 0,
+            "index": 0
+          },
+          "text": "\n\n\nDiese Einführung wurde erstellt, um Ihnen die Grundlagen des Spieles Galactica schnell näherzubringen. Fortgeschrittene Spieler wenden sich bitte an das Galactica Benutzerhandbuch im \"Hilfe\" Menü.",
+          "textResource": 7001,
+          "button": "Beginn",
+          "buttonResource": {
+            "id": 7000,
+            "index": 0
+          },
+          "picture": 7000,
+          "pictureRect": [
+            0,
+            0,
+            61,
+            254
+          ],
+          "sound": 7000,
+          "binding": -1,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [
+            {
+              "window": 34,
+              "page": 3
+            },
+            {
+              "window": 4,
+              "page": 4
+            },
+            {
+              "window": 1,
+              "page": 100
+            },
+            {
+              "window": -1,
+              "page": 101
+            }
+          ],
+          "pageResourceSha256": "eb3d3279e7cc3d78484e4f4327a86b840e7eaba78784cce44209903a47d02bdb",
+          "textResourceSha256": "708fca2e0beb216c7dc7feb7f6f833099d39d2f04d91ae039e76ef002da8944f"
+        },
+        {
+          "id": 2,
+          "variant": 0,
+          "size": {
+            "height": 146,
+            "width": 250
+          },
+          "title": "Ein Spiel beginnen",
+          "titleResource": {
+            "id": 7001,
+            "index": 0
+          },
+          "text": "Um ein neues Spiel zu beginnen, gehen Sie bitte in den \"Datei\"  links oben und wählen Sie \"Neus Spiel...\"",
+          "textResource": 7002,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7001,
+          "pictureRect": [
+            84,
+            18,
+            137,
+            235
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [
+            {
+              "window": 34,
+              "page": 0
+            },
+            {
+              "window": -1,
+              "page": 101
+            }
+          ],
+          "pageResourceSha256": "081b9dc715ba5ed57341aa77fe7879ce37a767172bd745bc5cb9cafbaffa54b3",
+          "textResourceSha256": "4a0ea43c9a3bd5392fe17f64e83d569009a65c64abe929ded0f0d947a9491970"
+        },
+        {
+          "id": 3,
+          "variant": 0,
+          "size": {
+            "height": 194,
+            "width": 152
+          },
+          "title": "Ein Spiel beginnen",
+          "titleResource": {
+            "id": 7001,
+            "index": 0
+          },
+          "text": "Die momentane Einstellung des Spieles sollte vorerst ausreichen. Klicken Sie einmal auf die \"Spiel Starten\" Taste, um dies als Ihre gewünchte Spielkonfiguration zu akzeptieren.",
+          "textResource": 7003,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 34,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 2,
+          "exceptions": [
+            {
+              "window": 4,
+              "page": 0
+            },
+            {
+              "window": 34,
+              "page": 0
+            },
+            {
+              "window": -1,
+              "page": 101
+            }
+          ],
+          "pageResourceSha256": "e171f03c05fe2ed3a946907c108c40f845347b439f0e491d4aff314efdb87668",
+          "textResourceSha256": "f0afaf642761ec4a5e58822b1be32f3ff65a93fb54c769884dcaac3ea0727078"
+        },
+        {
+          "id": 4,
+          "variant": 0,
+          "size": {
+            "height": 102,
+            "width": 382
+          },
+          "title": "Ein Spiel beginnen",
+          "titleResource": {
+            "id": 7001,
+            "index": 0
+          },
+          "text": "Nun müssen Sie den Namen, welchen Sie nutzen möchten, im Feld \"Name:\" eingeben.\nBetätigen Sie die \"OK\" Taste darunter wenn Sie mit der Eingabe des Namens fertig sind.",
+          "textResource": 7004,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 4,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 3,
+          "exceptions": [
+            {
+              "window": 1,
+              "page": 0
+            }
+          ],
+          "pageResourceSha256": "c931b6e86202dad1602b6d870a5c4d63d4009f16f31fa9bde8d8d4d40a43dd6e",
+          "textResourceSha256": "831069ca9e513d9a0b8483f491253c6ed9ebb72fd4f5324871b6a8be74d41a74"
+        },
+        {
+          "id": 5,
+          "variant": 2,
+          "size": {
+            "height": 165,
+            "width": 250
+          },
+          "title": "Einführung",
+          "titleResource": {
+            "id": 7002,
+            "index": 0
+          },
+          "text": "Zum größten Teil wird Ihr Spiel in diesem Hauptfenster stattfinden.Galactica ist bezogen auf die unterschiedlichen Züge der Spieler. Damit haben Sie so viel Zeit wie für Sie notwendig ist.",
+          "textResource": 7005,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "efd6cf2c03527265dcaa2d084c0fc14c586d40b6240e71d00a1878709b3ac232",
+          "textResourceSha256": "af3921c8fb3f6ad02936d22da11db116b88837989bd77c1cf5a867872a245fc2"
+        },
+        {
+          "id": 6,
+          "variant": 2,
+          "size": {
+            "height": 150,
+            "width": 250
+          },
+          "title": "Die Sternenkarte",
+          "titleResource": {
+            "id": 7004,
+            "index": 0
+          },
+          "text": "Die große schwarze Fläche mit Rasterlinien ist die Sternenkarte. Der grüne Stern im Zentrum der Karte ist Ihr heimisches Sternensystem. Die pulsierenden weißen Klammern um Ihren Stern zeigen, daß es ausgewählt ist.",
+          "textResource": 7006,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "e75705d40225b5460e77923099afef6469f88a57e6bd3daa56a4830d56c03da6",
+          "textResourceSha256": "c83dcc4e80226b5db4afa8b8f24ff4abd01e526bd2ddbdc66a478c110b8a6969"
+        },
+        {
+          "id": 7,
+          "variant": 2,
+          "size": {
+            "height": 168,
+            "width": 250
+          },
+          "title": "Die Sternenkarte",
+          "titleResource": {
+            "id": 7004,
+            "index": 0
+          },
+          "text": "Sie können sich auf der Sternenkarte bewegen, indem Sie die Rolleisten im unteren Bereich und rechts der Karte benutzen oder die Optionen Taste halten und die Karte ziehen.\n\nSie können auch ein- und auszoomen, indem Sie die + und - Tasten auf Ihrer Tastatur benutzen.\n\nVersuchen Sie es!  ",
+          "textResource": 7007,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "250bfed9b42250fd1c6fda9a938851f5101feca43d961008fff3ea8516510677",
+          "textResourceSha256": "b0fb3184df7be4d0ca6afec9d602d6eedff4221094fa32b08c1cb2029dc15c29"
+        },
+        {
+          "id": 8,
+          "variant": 1,
+          "size": {
+            "height": 178,
+            "width": 200
+          },
+          "title": "Eigenes Sternensystem",
+          "titleResource": {
+            "id": 7005,
+            "index": 0
+          },
+          "text": "Die Information über Ihr Sternensystem erscheint in der Leiste zu Ihrer Rechten. Hier kontrollieren Sie die Bemühungen, welche dieses System in Wachstum, Schiffbau und Technologische Entwicklungen hineinsteckt.\n",
+          "textResource": 7008,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "9ff350efa4b07d2e56c9444c2c7c27aa86f31ebc0f76e2e4e20d5ea68125e467",
+          "textResourceSha256": "9fe5bc59e2c3335c5713ed23da0db1e048ddfc3527bbfd0cb79f96ce7d941718"
+        },
+        {
+          "id": 9,
+          "variant": 1,
+          "size": {
+            "height": 198,
+            "width": 200
+          },
+          "title": "Eigenes Sternensystem",
+          "titleResource": {
+            "id": 7005,
+            "index": 0
+          },
+          "text": "Sie können auch sehen, welche Art von Schiffen auf diesem System erbaut werden und wie lange es noch bis zum Abschluß des Baus dauert.\n\n99%! Sie werden ein neues Kolonieschiff bei Ihrem nächsten Zug haben.",
+          "textResource": 7009,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "78f25bfc4d1cb1ae5f0616bf7cfbc4126852711f05d4a2daeb30cb5892f85c61",
+          "textResourceSha256": "5d9bd5a6a3b66e7753e59cd4d63560a6bdbe59ee1dc1fd2768e534cc9e085ce0"
+        },
+        {
+          "id": 10,
+          "variant": 1,
+          "size": {
+            "height": 156,
+            "width": 200
+          },
+          "title": "Produktion anpassen",
+          "titleResource": {
+            "id": 7006,
+            "index": 0
+          },
+          "text": "Da wir schon fast ein komplettes Schiff haben, lassen Sie uns vom Schiffbau vorerst etwas Abstand halten (wir werden das Kolonieschiff noch fertigstellen).\n\nBetätigen Sie den Schiffe Schieber, um den Schiffbau zu reduzieren.",
+          "textResource": 7010,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "9b980a5f492333e42e95bbe2ad9999ebdffeeb02ce839764f69880c11a794799",
+          "textResourceSha256": "425a30c4b5d449241fd76b3a06a6392e2e6cb193a713cef4195d098255cb4ad5"
+        },
+        {
+          "id": 11,
+          "variant": 1,
+          "size": {
+            "height": 260,
+            "width": 220
+          },
+          "title": "Produktion anpassen",
+          "titleResource": {
+            "id": 7006,
+            "index": 0
+          },
+          "text": "Gut! haben Sie bemerkt, wie die Schieber die farbe gewechselt haben? Es wird einige Züge dauern, bis sich die eigentliche Produktion auf Ihren Planeten an Ihre gewünschte Stufen angepasst haben. Die Schieber sind rot während sie sich anpassen und werden grün, wenn die Arbeit abgeschlossen ist.",
+          "textResource": 7011,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 7002,
+          "pictureRect": [
+            168,
+            28,
+            222,
+            188
+          ],
+          "sound": 7000,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "3bacf85218654cddb093018bf7bd7f105ea54add6b2dc53e1758efb9e0a3d97f",
+          "textResourceSha256": "2607de935969c9cf4d6569e213999f6dd12c96e59ecc56da030fb14097ed4227"
+        },
+        {
+          "id": 12,
+          "variant": 1,
+          "size": {
+            "height": 190,
+            "width": 247
+          },
+          "title": "Spielzüge",
+          "titleResource": {
+            "id": 7007,
+            "index": 0
+          },
+          "text": "Wie schon zuvor erwähnt, Galactica ist auf Spielzüge bezogen. Keine Ihrer Änderungen werden vorgenommen bevor \n        Sie den Spielzug beendet haben, indem Sie die sich oberhalb befindende Taste betätigen oder \"Spielzug Beenden\" vom \"Spiel\" Menü auswählen.\n\nBetätigen Sie die Taste, um den Spielzug zu beenden.",
+          "textResource": 7012,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7003,
+          "pictureRect": [
+            73,
+            8,
+            94,
+            28
+          ],
+          "sound": 0,
+          "binding": 105,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "226dd20606c6ac9c4e0b40eb9a15af5b20c1ebb757ee2e63078fe9a6b01cce68",
+          "textResourceSha256": "7fd222c558fd3e66094f4295b3aedc0a205a68d4d92249973fbcc492a219240d"
+        },
+        {
+          "id": 13,
+          "variant": 0,
+          "size": {
+            "height": 190,
+            "width": 247
+          },
+          "title": "Spielereignisse",
+          "titleResource": {
+            "id": 7008,
+            "index": 0
+          },
+          "text": "Gratulation!\n\nWichtige Ereignisse wie diese werdem zu Beginn jedes Spielzuges gezeigt. Die Nachricht wird auch in der rechten Ecke des Bildschirmes gezeigt.\n\nKlicken Sie die <tab> Taste auf Ihrer Tastatur, um die Nachricht zu schließen und das nächste Ereignis zu sehen.",
+          "textResource": 7013,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 4002,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "9671e9082f76cd37ca55d2f657ce4c9ee7265208463f161bd2c494e6481e1760",
+          "textResourceSha256": "7b2229b5409b6d91747ef88ec756e0504b736b846ab1671d2ffa45f7eb413ab7"
+        },
+        {
+          "id": 14,
+          "variant": 1,
+          "size": {
+            "height": 68,
+            "width": 202
+          },
+          "title": "Spielereignisse",
+          "titleResource": {
+            "id": 7008,
+            "index": 0
+          },
+          "text": "Ihre Gegenspieler waren sehr beschäftigt:\n",
+          "textResource": 7014,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 1987538790,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "909fef34ec0ec636b90654b3f53808eba1256f740da6982113c8ad1782f9c515",
+          "textResourceSha256": "15776219831a29b713a9f48430e72d9724e4d302b46479208821607de5dd4d46"
+        },
+        {
+          "id": 15,
+          "variant": 2,
+          "size": {
+            "height": 168,
+            "width": 200
+          },
+          "title": "Eigene Schiffe bewegen",
+          "titleResource": {
+            "id": 7009,
+            "index": 0
+          },
+          "text": "Nun da Sie ein Kolonieschiff gebaut haben, ist es Zeit, eine neue Kolonie zu etablieren.\n\nKolonialisierung ist sehr wichtig in Galactica, da es Ihnen mehr Mittel für den Bau von Sternenschiffen gibt.",
+          "textResource": 7015,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "be00b5dacf76fa9dcfc671d05ca11adbcec517a6991647fa4df2dbea04a5eb9c",
+          "textResourceSha256": "8d6098a46eadcb22560264cfe9fa2f44e3b6324f6726bb74a4413c5c56b898b0"
+        },
+        {
+          "id": 16,
+          "variant": 2,
+          "size": {
+            "height": 189,
+            "width": 206
+          },
+          "title": "Eigene Schiffe bewegen",
+          "titleResource": {
+            "id": 7009,
+            "index": 0
+          },
+          "text": "Um das Bestimmungsziel für Ihr \nSternenschiff einzurichten, \nbetätigen Sie zuerst die \nWegpunkt Hinzufügen\nTaste im Navigations-\ndialog unten rechts auf Ihrem Bildschirm.\n\nSie können auch die \"A\" Taste auf Ihrer Tastatur betätigen.",
+          "textResource": 7016,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7004,
+          "pictureRect": [
+            67,
+            157,
+            104,
+            193
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "305200c7998e8337816574fde39347b51a885b14fc6c27bb41d471cb3e11df72",
+          "textResourceSha256": "db4b3576a81d1e268bfc973894caa46d0d013deb16858eafce15fec30d720327"
+        },
+        {
+          "id": 17,
+          "variant": 2,
+          "size": {
+            "height": 197,
+            "width": 206
+          },
+          "title": "Eigene Schiffe bewegen",
+          "titleResource": {
+            "id": 7009,
+            "index": 0
+          },
+          "text": "Nun, wenn Sie die Mouse bewegen, werden Sie eine Linie sehen, welche den Kurs, den das Schiff reisen wird, repräsentiert.\n\nKlicken Sie auf \nden Stern S-20, \num diesen als \nBestimmungsort \neinzurichten.",
+          "textResource": 7017,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7005,
+          "pictureRect": [
+            89,
+            129,
+            159,
+            189
+          ],
+          "sound": 7000,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "1ad3e969b8ec3e33125ee1e57fc53e287d7e70c1af882e8668ab5a08e1013359",
+          "textResourceSha256": "e505877fc1572899ee53748e5ea42da7d4ace008daf14002ff72594c7d13e249"
+        },
+        {
+          "id": 18,
+          "variant": 2,
+          "size": {
+            "height": 110,
+            "width": 207
+          },
+          "title": "Oops!",
+          "titleResource": {
+            "id": 7010,
+            "index": 0
+          },
+          "text": "Sie haben nicht den Stern S-20 als Bestimmungsziel gewählt.",
+          "textResource": 7018,
+          "button": "Erneuter Versuch",
+          "buttonResource": {
+            "id": 7012,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 16,
+          "exceptions": [],
+          "pageResourceSha256": "16006e95599566c535bcc103dfcfa5ffa266be8348a76912197276e552e289e0",
+          "textResourceSha256": "29385f9a7b2082107994a1fd77af68f45ae824b4246ab63f034095270837b80e"
+        },
+        {
+          "id": 19,
+          "variant": 2,
+          "size": {
+            "height": 230,
+            "width": 230
+          },
+          "title": "Abwehr schaffen",
+          "titleResource": {
+            "id": 7013,
+            "index": 0
+          },
+          "text": "Ihre Feinde sind sehr aktiv. Sie sollten einen Abwehrsatelliten bauen, welcher Ihre Heimat beschützt.\n\nKlicken Sie einmal auf Andromeda, um es auszuwählen. Stellen Sie danach auf die Produktion von Abwehrsatelliten um, indem Sie das Bau Menü aus der Infoleiste des Systems nutzen.\n\n",
+          "textResource": 7019,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7006,
+          "pictureRect": [
+            171,
+            16,
+            226,
+            214
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "90bc2eff26af3184cbffc551d2642a93a238d0b2ea10492afea9b9c21b777363",
+          "textResourceSha256": "79548d66ef8e2ca63bdf869c04dbbd76b710a7d51783409e9aeaac8dc2f6e6a0"
+        },
+        {
+          "id": 20,
+          "variant": 1,
+          "size": {
+            "height": 174,
+            "width": 200
+          },
+          "title": "Produktion anpassen",
+          "titleResource": {
+            "id": 7006,
+            "index": 0
+          },
+          "text": "Sie möchten, daß der Satellit schnell gebaut wird. Bringen Sie daher die Bemühungen um den Schiffbau in den alten Zustand.\n\nKlicken Sie auf die = \nTaste unterhalb und \nrechts von Ihnen, um alle Schieber gleichzusetzen.\n\n",
+          "textResource": 7020,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7008,
+          "pictureRect": [
+            94,
+            147,
+            128,
+            181
+          ],
+          "sound": 7000,
+          "binding": 1648719470,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "a6fa6c0065e7f9d26e1dd9ebab31cea46f000b696108287209550d2edea37576",
+          "textResourceSha256": "5a8c074fe187f7a737bfef5266bd2bd0dab9a7cc586604713d38c1dc995a51de"
+        },
+        {
+          "id": 21,
+          "variant": 1,
+          "size": {
+            "height": 80,
+            "width": 200
+          },
+          "title": "Spielzug 2 vollendet",
+          "titleResource": {
+            "id": 7014,
+            "index": 0
+          },
+          "text": "Das ist alles, was Sie für jetzt bewerkstelligen müssen. Beenden Sie den Spielzug.",
+          "textResource": 7021,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 105,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "376abc6f5fdc1ae694416c33075507d3c30ef1930ec8dd9ab5d9ab443e8c1a13",
+          "textResourceSha256": "68488f971e69b9e5e90d64288eb4aee0fbd21ad805c4ca09a357897b2b4ea94c"
+        },
+        {
+          "id": 22,
+          "variant": 2,
+          "size": {
+            "height": 180,
+            "width": 210
+          },
+          "title": "Eigene Schiffe bewegen",
+          "titleResource": {
+            "id": 7009,
+            "index": 0
+          },
+          "text": "Hier können Sie sehen, daß Ihr Kolonieschiff sich in Richtung S-20 bewegt und im nächsten Spielzug angekommen sein sollte. Die grüne Linie ist dessen Bewegungsvektor und zeigt an, wie weit es sich im nächsten Spielzug bewegen wird.\n\nBeenden Sie wieder Ihren Spielzug.",
+          "textResource": 7022,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "21ce5957a6621af53d68ada8a1bbaef0016fc3735d9754d25f03582da4882cb1",
+          "textResourceSha256": "d11d7875e8736b04755b7040c3acb54bc33701152ef3274104af969ed4dae6a8"
+        },
+        {
+          "id": 23,
+          "variant": 0,
+          "size": {
+            "height": 174,
+            "width": 240
+          },
+          "title": "Neuer Satellit",
+          "titleResource": {
+            "id": 7015,
+            "index": 0
+          },
+          "text": "Satelliten sind nur für die Abwehr von Nutzen, da sie permanent im Sternensystem, wo sie gebaut wurden, stationiert sind. Dieser wird auf Streife im Andromeda System gesetzt.\n\nBetätigen Sie die <tab> Taste auf Ihrer Tastatur, um das nächste Ereignis zu sehen.",
+          "textResource": 7023,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 4002,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "b8f7995086005652436b7a2bb4661c1a13e86c12f18315792645408127d59f1a",
+          "textResourceSha256": "466c8d8cc0aa744e486d2fd9cc5f87879c488e5c36fb177dc557664d7358d5de"
+        },
+        {
+          "id": 24,
+          "variant": 2,
+          "size": {
+            "height": 150,
+            "width": 198
+          },
+          "title": "Neue Kolonie erschaffen",
+          "titleResource": {
+            "id": 7016,
+            "index": 0
+          },
+          "text": "Sie haben eine neue Kolonie erstellt! Wann immer ein Kolonieschiff auf einem unbewohnten Planeten ankommt, wird es diesen automatisch kolonisieren.",
+          "textResource": 7024,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "fab10629609eb8a17b398690428f9d98e6a2d1e69497561a0fc94af16ea7e81b",
+          "textResourceSha256": "e72fb10abd9ff20e1cc87cf97331f6ae59189dd579bcb2977373b9053e0a0e66"
+        },
+        {
+          "id": 25,
+          "variant": 2,
+          "size": {
+            "height": 132,
+            "width": 201
+          },
+          "title": "Name ändern",
+          "titleResource": {
+            "id": 7011,
+            "index": 0
+          },
+          "text": "Sie sollten Ihrer neuen Kolonie einen Namen geben.\n\nBenennen Sie sie \"Neu Terra\" indem Sie \"Umbenennen...\"  vom \"Bearbeiten\" Menü auswählen.",
+          "textResource": 7025,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "ba64aa0f4ba80edfc0df889e5448eb3f46b309003d6431da99d15eb2c2aea65d",
+          "textResourceSha256": "ad83e49af3c92cc100ef0beb3069a368f085414fabccf9c19507cbcd8de7e40c"
+        },
+        {
+          "id": 26,
+          "variant": 1,
+          "size": {
+            "height": 180,
+            "width": 200
+          },
+          "title": "Produktion anpassen",
+          "titleResource": {
+            "id": 7006,
+            "index": 0
+          },
+          "text": "Als nächstes sollten Sie die Produktionsstufen der neuen Kolonie einstellen. In diesem Fall sind die Stufen in Ordnung, und Sie benötigen noch keinen Abwehrsatelliten.\n\nStellen Sie auf die Produktion von Kampfschiffen um.",
+          "textResource": 7026,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "97d0140cc12a966f3e5738fb9a1fd215c5ac82765008b19d0e3708a41911dcfc",
+          "textResourceSha256": "3b833fa177e7c8d6f79dc12e1c6363a7e503860f86901051e0f83463f9d80921"
+        },
+        {
+          "id": 27,
+          "variant": 2,
+          "size": {
+            "height": 100,
+            "width": 200
+          },
+          "title": "Ereignisse",
+          "titleResource": {
+            "id": 7017,
+            "index": 0
+          },
+          "text": "Super!\n\nBetätigen Sie nun die <tab> Taste, um weitere Ereignisse zu checken.",
+          "textResource": 7027,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "cd13d5e4600c98d68791d873649e6a21844f00313187880fe181b501261d7061",
+          "textResourceSha256": "60f7a1fc38a875e4a678fce8955c45461df6b61a2c78e852b321e85c6d868d29"
+        },
+        {
+          "id": 28,
+          "variant": 2,
+          "size": {
+            "height": 198,
+            "width": 200
+          },
+          "title": "Schiffe warten auf Kommandos",
+          "titleResource": {
+            "id": 7018,
+            "index": 0
+          },
+          "text": "Nun, da Ihr Kolonieschiff seine Aufgabe komplett erledigt hat, braucht es neue Anordnungen. Schiffe werden Sie informieren, wenn sie die letzten Aufgaben beendet habe - oder wenn es lange Zeit nichts zu tun gab.\n\nSenden Sie Ihr Kolonieschiff auf \nS-7, um dieses System zu kolonialisieren.",
+          "textResource": 7028,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "26441f64d0b7b159b60253e7ef7ad34cafc8f9c4d1879fd53dd05cf82b03fb7f",
+          "textResourceSha256": "82f88a924af5bb71fb0684b3dcec5f587fbf8dbbaea243630e3e92778ca063f0"
+        },
+        {
+          "id": 29,
+          "variant": 2,
+          "size": {
+            "height": 84,
+            "width": 200
+          },
+          "title": "Ereignisse",
+          "titleResource": {
+            "id": 7017,
+            "index": 0
+          },
+          "text": "Betätigen Sie wieder die <tab> Taste, um weitere Ereignisse zu checken.",
+          "textResource": 7029,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 9,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "b8dd831cd9050d12090ddaf8aeea1f1e49761ca46bd091e08e318b562ba70cfc",
+          "textResourceSha256": "c195878442971e3bddadf51e05131c866664a6a2608b07999328c38dc97f48ea"
+        },
+        {
+          "id": 30,
+          "variant": 2,
+          "size": {
+            "height": 180,
+            "width": 200
+          },
+          "title": "Ereignisse",
+          "titleResource": {
+            "id": 7017,
+            "index": 0
+          },
+          "text": "Das eben vernommene Geräusch weist Sie darauf hin, daß keine weiteren Ereignisse zu bewältigen sind. Bevor Sie jedoch diesen Spielzug beenden, wagen Sie einen Blick auf Andromeda.\n\nKlicken Sie einmal auf Andromeda, um es auszuwählen.",
+          "textResource": 7030,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "0bae2b628b52c5991d2ebafc9548ad1c05cc8e311d2b61ff172ab3fa16675a59",
+          "textResourceSha256": "2cd49b1dcefa158ac4cbdc78e77fa22b04da95694d260ae5b0a6956aeeeffb48"
+        },
+        {
+          "id": 31,
+          "variant": 1,
+          "size": {
+            "height": 200,
+            "width": 200
+          },
+          "title": "Technologie verbreiten",
+          "titleResource": {
+            "id": 7019,
+            "index": 0
+          },
+          "text": "Wenn Sie auf die Infoleiste des Systems schauen, werden Sie sehen, daß, dank der Forschung, die Technologie Stufe auf Andromeda auf Stufe 2 gestiegen ist.\n\nStellen Sie Andromeda auf den Bau von Kurieren ein, damit es die neue Technologie Stufe auf Ihre andere Kolonie überliefert.",
+          "textResource": 7031,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "e6656be9af4328ca0518ee36a6a3261135bf4f44798d523dd53f83f51e979b19",
+          "textResourceSha256": "3a2752c3046d91671080cb43e3f2e17c4428f9d76c906b0ab92fe121828fe94b"
+        },
+        {
+          "id": 32,
+          "variant": 2,
+          "size": {
+            "height": 196,
+            "width": 200
+          },
+          "title": "Streifenring",
+          "titleResource": {
+            "id": 7020,
+            "index": 0
+          },
+          "text": "Noch etwas. Sie haben wahrscheinlich eine leichten Ring um Andromeda bemerkt. Der Ring zeigt an, daß dieser Stern vom Abwehrsatelliten, welchen Sie bauen ließen, beschützt wird. Dieser befindet sich auf Streife im System.\n\nBeenden Sie den Spielzug.",
+          "textResource": 7032,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "9f68031658410938da1cf83b03864dd4b15b844596696c144ddce1586d288e5e",
+          "textResourceSha256": "b45599199064e3c90223811fb6f23feb519d7d45f1b6f3385c5de87f2fa98f18"
+        },
+        {
+          "id": 33,
+          "variant": 0,
+          "size": {
+            "height": 190,
+            "width": 240
+          },
+          "title": "Neuer Zubringer",
+          "titleResource": {
+            "id": 7021,
+            "index": 0
+          },
+          "text": "Kurier Schiffe sind sehr schnell aber haben keine Kampffähigkeit. Wie auch immer, sie sind sehr von Nutzem, Technologie schnell zwischen Sternensystemen zu transferieren. Nur Kuriere können neue Technologien von Sternensystemen abholen.\n\nBetätigen Sie die <tab> Taste für das nächste Ereignis.",
+          "textResource": 7033,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 4002,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "7244754f4349d295256c685082b6a03a26ed02b015cebc2c5c35ffcfd8af3889",
+          "textResourceSha256": "536ce07d26786d38c89b925deaf958b872fcc9e879d723f912dbdc7253ea61b3"
+        },
+        {
+          "id": 34,
+          "variant": 2,
+          "size": {
+            "height": 128,
+            "width": 200
+          },
+          "title": "Technologie verbreiten",
+          "titleResource": {
+            "id": 7019,
+            "index": 0
+          },
+          "text": "Ihr Kurier wartet auf Ihre Anordnung!\n\nSenden Sie es zu Neu Terra, um Ihren Kolonisten die neueste Technologie zu geben.\n\n",
+          "textResource": 7034,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "8c355b0363817a8a76089f5cd86263d64dde803629e7429f424193314f2529e9",
+          "textResourceSha256": "8961368b3ec76c0df4c54f2fbfd9db17bfb643537a5426fe6e454d848096751e"
+        },
+        {
+          "id": 35,
+          "variant": 2,
+          "size": {
+            "height": 100,
+            "width": 200
+          },
+          "title": "Ereignisse",
+          "titleResource": {
+            "id": 7017,
+            "index": 0
+          },
+          "text": "Sehr Gut!\n\nBetätigen Sie nun die <tab> Taste für das nächste Ereignis.",
+          "textResource": 7035,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 58,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "64d2775791f2e301d44e20f939de1161d5d659e8c5430343268c312964eb0cd3",
+          "textResourceSha256": "105c3833b3ed14754bdb7df62c8bc3458697fd57b55075943da714e163145c37"
+        },
+        {
+          "id": 36,
+          "variant": 2,
+          "size": {
+            "height": 210,
+            "width": 200
+          },
+          "title": "Flotten bauen",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Keine weiteren Ereignisse, aber es gibt noch etwas anderes zu tun, bevor Sie diesen Spielzug beenden. Da Sie eine starke Flotte benötigen werden, um Ihren Feind anzugreifen, sollten Sie mit dem Bau von Kampfschiffen auf Andromeda und Neu Terra beginnen.\n\nBeginnen Sie, indem Sie Andromeda auswählen.",
+          "textResource": 7036,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "0cc0e8718edbcc99c4b24635b9da3ae9a06d731d6652df07c65de6b0d5800ebb",
+          "textResourceSha256": "c0d7b4e1d7aba7f23a1e1f4cab4a948b04ec4eb8f3d6d4089cdeef29c28a5253"
+        },
+        {
+          "id": 37,
+          "variant": 1,
+          "size": {
+            "height": 80,
+            "width": 200
+          },
+          "title": "Flotten bauen",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Stellen Sie nun Andromeda auf den Bau von Kampfschiffen ein.",
+          "textResource": 7037,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "e23319c96c6da6d8e0fda609b9dcca1b962586331c6960e06e1e1a85732ca8ae",
+          "textResourceSha256": "32928be3945454b12464be5ff6c634900accaf7bf7c28ecae86691a5fa2f63e4"
+        },
+        {
+          "id": 38,
+          "variant": 0,
+          "size": {
+            "height": 230,
+            "width": 210
+          },
+          "title": "Flotten bauen",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Gut!\n\nNun müssen Sie Andromeda sagen, aus den Kampfschiffen, sobald diese komplett erstellt sind, eine Flotte zu formen. Dafür müssen Sie eine Treffpunkt auf der Sternenkarte erstellen und diesen als automatisches Bestimmungsziel angeben.\n\nWählen Sie \"Neuer Treffpunkt\" aus dem \"Gehen Zu\" Menü aus. ",
+          "textResource": 7038,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "02f36d0d29176fc3dd6a23e64f74b029a85e632e140d2fbfa55966bd4868c4a6",
+          "textResourceSha256": "ee93e26d2acd82b63e39d7af0c8dbade921f42481824c3de52484a68faf1aeaa"
+        },
+        {
+          "id": 39,
+          "variant": 2,
+          "size": {
+            "height": 250,
+            "width": 200
+          },
+          "title": "Flotten bauen",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Sehen Sie, wie sich der Curser in ein X gewandelt hat? Das bedeutet, daß Sie einen Treffpunkt plazieren.\n\nKlicken Sie auf der Sternenkarte zwischen Andromeda and Neu Terra, um den Treffpunkt zu plazieren.",
+          "textResource": 7039,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7007,
+          "pictureRect": [
+            150,
+            23,
+            238,
+            173
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "a96b9692c4ccb70265ac2063719a20fe5ce6691dd1bf93d6597e3e8625fb6233",
+          "textResourceSha256": "72c519870b3a136bf488d042fb9d605412731fabdc2ba2ed6517ecdc1fb3bd71"
+        },
+        {
+          "id": 40,
+          "variant": 0,
+          "size": {
+            "height": 100,
+            "width": 200
+          },
+          "title": "Flotten bauen",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Perfekt!\n\nNennen Sie den neuen Treffpunkt nun \"Alpha\".",
+          "textResource": 7040,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 35,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "ccc97397ac4b02438cf26f352084749c1bf633b969467db2dc4709e160b2e485",
+          "textResourceSha256": "b00a382f0daa80bc28daade4e9bb16f0c6a28e932830de4830e0ff4c4163bcc8"
+        },
+        {
+          "id": 41,
+          "variant": 1,
+          "size": {
+            "height": 160,
+            "width": 200
+          },
+          "title": "Flotten bauen",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Klicken Sie nun einmal auf \"Senden an:\" in der Infoleiste des Systems und wählen Sie den Treffpunkt Alpha als automtisches Bestimmungsziel aus. ",
+          "textResource": 7041,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7009,
+          "pictureRect": [
+            100,
+            48,
+            140,
+            148
+          ],
+          "sound": 7000,
+          "binding": 2501,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "8c9bb8ad472da154c81b51d5b5678e3da642967f8aa6c40504e1f687cb29796f",
+          "textResourceSha256": "4a68ad522b8a3dfac260fbeedf61d9d4e397080f39c0b156fc33bb671614b62a"
+        },
+        {
+          "id": 42,
+          "variant": 2,
+          "size": {
+            "height": 96,
+            "width": 200
+          },
+          "title": "Flotten bauen",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Wählen Sie nun Neu Terra aus, und stellen sie auch dessen automatisches Bestimmungsziel auf den Treffpunkt Alpha ein.",
+          "textResource": 7042,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "ea0c629689f8b50e471b52904f1e15a505c1bd0ebcebb8bb7952b06b3136642b",
+          "textResourceSha256": "82981c9b1ba6939b24d066284198c3b973fe453318c8bbfacebca60b01012987"
+        },
+        {
+          "id": 43,
+          "variant": 2,
+          "size": {
+            "height": 190,
+            "width": 200
+          },
+          "title": "Flotten bauen",
+          "titleResource": {
+            "id": 7022,
+            "index": 0
+          },
+          "text": "Sehr Gut!\n\nSie haben geschafft, daß sowohl Andromeda als auch Neu Terra Kampfschiffe bauen und  diese zum Treffpunkt Alpha schicken werden, um eine Flotte zu gründen.\n\nBeenden Sie diesen Spielzug.",
+          "textResource": 7043,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "f28af3ec18e2d6408b4c0ff7e38c073c021e5d08921547cbe7c76d592c7bbe19",
+          "textResourceSha256": "22757985424865d8cc6eb21d579e63799ce43a9d2f43ad55c0a5e57029632f54"
+        },
+        {
+          "id": 44,
+          "variant": 2,
+          "size": {
+            "height": 174,
+            "width": 200
+          },
+          "title": "Technologie verbreiten",
+          "titleResource": {
+            "id": 7019,
+            "index": 0
+          },
+          "text": "Wenn die Technologie Stufe Ihres Systems niedriger ist, werden Ihre Kuriere bei Ankunft diese höher einstufen. Ist die Stufe höher, findet eine Anpassung statt. \n\nSenden Sie Ihren Kurier auf S-7. Betätigen Sie danach die <tab> Taste, um weitere Ereignisse zu checken.",
+          "textResource": 7044,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 9,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "91c72d2f064692fe3540abcb414e6a8e785764207f1b515d6bea90671c6a7c27",
+          "textResourceSha256": "e1717373125df11ba4f30502ab4d0578436c7cb5b80c029979172cbb2d3de8f1"
+        },
+        {
+          "id": 45,
+          "variant": 1,
+          "size": {
+            "height": 90,
+            "width": 200
+          },
+          "title": "Ereignisse",
+          "titleResource": {
+            "id": 7017,
+            "index": 0
+          },
+          "text": "En diesem Spielzug sind keine weiteren Ereignisse zu bewältigen. Beenden Sie daher den Spielzug.",
+          "textResource": 7045,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 105,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "0110588a42d8d7d1ff9066d9e7d34356e0d1f52385a4df0a2b51740c91560a16",
+          "textResourceSha256": "a58074bc8a8edc63316218c1b83565ae6c438ce4ea9e1d8ed443afd6ffab5c63"
+        },
+        {
+          "id": 46,
+          "variant": 1,
+          "size": {
+            "height": 68,
+            "width": 200
+          },
+          "title": "Ereignisse",
+          "titleResource": {
+            "id": 7017,
+            "index": 0
+          },
+          "text": "Viel ist in diesem letzten Spielzug passiert:",
+          "textResource": 7046,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 1987538790,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "801dc690391126403c336183a361e8f5a5400a65684198c10c8006c452f7f5bd",
+          "textResourceSha256": "455428527a92b51c3fa59a17d196c4c0aba11671c78b713c3302d59059644f56"
+        },
+        {
+          "id": 47,
+          "variant": 2,
+          "size": {
+            "height": 130,
+            "width": 198
+          },
+          "title": "Neue Kolonie erschaffen",
+          "titleResource": {
+            "id": 7016,
+            "index": 0
+          },
+          "text": "Eine weitere Kolonie ist etabliert. Wir werden diese für jetzt in Ruhe lassen.\n\nBetätigen Sie die <tab> Taste, um weitere Ereignisse zu checken.",
+          "textResource": 7047,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 7,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "0a29bfbb33037d1b9e81138aae28e20c92bac6fd9d0a03cce229389cea601e48",
+          "textResourceSha256": "38f3636b3756bc8e963c0431dfaf5a8877e83447cd6cd76901b6d068d65653b4"
+        },
+        {
+          "id": 48,
+          "variant": 2,
+          "size": {
+            "height": 210,
+            "width": 200
+          },
+          "title": "Schiffe auf Streife schicken",
+          "titleResource": {
+            "id": 7023,
+            "index": 0
+          },
+          "text": "Obwohl es mehr Sinn macht, S-35 als nächstes zu kolonialisieren, schließen wir die Erweiterung vorest ab.\n\nBetätigen Sie die <P> \nTaste auf Ihrer \nTastatur, um Ihre \nKolonie auf Streife zu schicken.",
+          "textResource": 7048,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7012,
+          "pictureRect": [
+            105,
+            142,
+            145,
+            182
+          ],
+          "sound": 0,
+          "binding": 7,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "1edfc06768a8a8da7a96e55b9e8e8b550b542a589056e84f1e846c013bd258ca",
+          "textResourceSha256": "fafcae98bf496a1f2ea2de1321f40b34370a5f24de814f4414e4cf56312c28cd"
+        },
+        {
+          "id": 49,
+          "variant": 2,
+          "size": {
+            "height": 196,
+            "width": 202
+          },
+          "title": "Schiffe auf Streife schicken",
+          "titleResource": {
+            "id": 7023,
+            "index": 0
+          },
+          "text": "Ihr Kolonieschiff ist nun auf Streife um S-7. Schiffe, welche auf Streife sind, überfallen Eindringlinge. Sie haben weiterhin einen Vorteil während des Abwehrens, da sie mit der planetarischen Abwehr zusammenarbeiten.\n\nBetätigen Sie die <tab> Taste für das nächste Ereignis.",
+          "textResource": 7049,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 7,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "2d60bee00022d93e3bad20e8b3cf2af08052d18bea53d2ab6a1884fc51eb733b",
+          "textResourceSha256": "bc70391e6b1367240fe11c62284523c9670aa6de9c532c7baffb3d53b7e09c64"
+        },
+        {
+          "id": 50,
+          "variant": 0,
+          "size": {
+            "height": 162,
+            "width": 200
+          },
+          "title": "Spieler vergleichen",
+          "titleResource": {
+            "id": 7024,
+            "index": 0
+          },
+          "text": "Keine weiteren Ereignisse.\n\nBevor Sie diesen Spielzug beenden, vergleichen Sie Ihr Spiel mit den anderen Mitspielern.\n\nWählen Sie \"Spieler Vergleichen...\" aus dem \"Spiel\" Menü.",
+          "textResource": 7050,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "8c44a691823c07f184cddc146ced6fa4625afb0507be11e10132c7aee36af2e4",
+          "textResourceSha256": "0cf1458c277186ff8338df143e8b92128a5d186128b7eda27c6d687ea06d7488"
+        },
+        {
+          "id": 51,
+          "variant": 1,
+          "size": {
+            "height": 180,
+            "width": 200
+          },
+          "title": "Spieler vergleichen",
+          "titleResource": {
+            "id": 7024,
+            "index": 0
+          },
+          "text": "Die Nummern, welche in blauer Druckschrifft gezeigt werden, sind die höchsten und besten für diese Kategorie. Die roten Nummern repräsentieren die niedrigsten und schlechtesten.\n\nKlicken Sie auf \"OK\", wenn Sie den Vergleich der Spieler abgeschlossen haben.",
+          "textResource": 7051,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 2,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "b2b490f28aef18d744be1fb5d63727f0796d19fd5ffb5015114341661031b79d",
+          "textResourceSha256": "68d668a8717e5044bbc2d178ebfd5a459fd7a0839a28b73c3759a3d2da611a8c"
+        },
+        {
+          "id": 52,
+          "variant": 1,
+          "size": {
+            "height": 60,
+            "width": 200
+          },
+          "title": "Weiter",
+          "titleResource": {
+            "id": 7025,
+            "index": 0
+          },
+          "text": "Beenden Sie den Spielzug.",
+          "textResource": 7052,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 105,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "90ab0c972c580881a0c3477ce6f854078b01d0e9993bb1c6eef874f1dc70a55d",
+          "textResourceSha256": "4bc6bb93e2344f25296d13b5d132c4b3f1b608cbe4aa49daa9c0179acb66f0b0"
+        },
+        {
+          "id": 53,
+          "variant": 2,
+          "size": {
+            "height": 162,
+            "width": 200
+          },
+          "title": "Schiffe ignorieren",
+          "titleResource": {
+            "id": 7026,
+            "index": 0
+          },
+          "text": "Ihr Kurier ist auf S-7 angekommen, um dort die Technologie Stufe zu erhöhen.\n\nAnsonsten gibt es im Moment nichts weiter zu tun. Betätigen Sie daher die <tab> Taste für das nächste Ereignis.",
+          "textResource": 7053,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 7,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "e9ad34de0e18cf252630d82b10cfb5ed58ed9298171c585057488fd957d60e1b",
+          "textResourceSha256": "0ddadb3c93a54d215f0718dd8f348c521a81b2a688fc0089e28bdb29b2fb4f3b"
+        },
+        {
+          "id": 54,
+          "variant": 1,
+          "size": {
+            "height": 68,
+            "width": 200
+          },
+          "title": "Weiter",
+          "titleResource": {
+            "id": 7025,
+            "index": 0
+          },
+          "text": "Keine weiteren Ereignisse. Beenden Sie den Spielzug.",
+          "textResource": 7054,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 105,
+          "position": {
+            "top": false,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "4a59d3ac4f6f5901fd0f427a4a49f6ce925d02db4fcdde9f57b28933d13c4ff6",
+          "textResourceSha256": "ce1af0f1aee8ebf02f50b0534e3d7c5f70237fad583af555a3ae32c48fb42633"
+        },
+        {
+          "id": 55,
+          "variant": 0,
+          "size": {
+            "height": 180,
+            "width": 200
+          },
+          "title": "Neuer Reisender",
+          "titleResource": {
+            "id": 7027,
+            "index": 0
+          },
+          "text": "Der Reisende ist das Grunddesign für ein Kampfschiff. Wenn sich Ihre Technologie Stufen erhöhen, werden Sie neue Antriebe für Sternenschiffe entdecken, welche in der Lage sind, bessere und schnellere Kampfschiffe zu produzieren.\n\nBetätigen Sie die <tab> Taste.",
+          "textResource": 7055,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 4002,
+          "position": {
+            "top": true,
+            "left": false,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "76e1d31a9c86f44c631b2a785329d68324b9c0f7f488dee90506d01f0b357958",
+          "textResourceSha256": "c25d646bf6f09541d241742cab90dc3f0b38daf3b2a24a7fbe5645bc7199ad75"
+        },
+        {
+          "id": 56,
+          "variant": 2,
+          "size": {
+            "height": 160,
+            "width": 200
+          },
+          "title": "Flotte gebaut",
+          "titleResource": {
+            "id": 7028,
+            "index": 0
+          },
+          "text": "All die Arbeit, welche wir in die Erstellung des automatischen Bestimmungszieles für Andromeda und Neu Terra investiert haben, macht sich nun bezahlt. Neue Schiffe werden sich kontinuierlich in dieser Flotte ansammeln bis wir sie vom Treffpunkt Alpha wegschicken.",
+          "textResource": 7056,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 61,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "e2cb2a1508ca4f6e317a0c09a97540c45b4f523d5e38db1657a414cadcb1257d",
+          "textResourceSha256": "65dec6ab7df9cc620bd8245a122d4098d8cbffddb5933fc8154b486f7398aaa2"
+        },
+        {
+          "id": 57,
+          "variant": 1,
+          "size": {
+            "height": 140,
+            "width": 200
+          },
+          "title": "Flotten untersuchen",
+          "titleResource": {
+            "id": 7029,
+            "index": 0
+          },
+          "text": "Klicken Sie nun auf den \"Schiffe in Flotte\" Knopf zu Ihrer Rechten, um eine Liste der Schiffe in Ihrer Flotte zu sehen.",
+          "textResource": 7057,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 7011,
+          "pictureRect": [
+            84,
+            69,
+            134,
+            129
+          ],
+          "sound": 0,
+          "binding": 2503,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "18132bda41588396760fbd0da6ca586f5dcafd1e84dfc6aef7d8135ea854283c",
+          "textResourceSha256": "3932786f8d2559843a0d4f0a1d340dded3467ecedf30e22e59a7cb40aefba3b6"
+        },
+        {
+          "id": 58,
+          "variant": 1,
+          "size": {
+            "height": 192,
+            "width": 200
+          },
+          "title": "Schiffe von Flotten entfernen",
+          "titleResource": {
+            "id": 7030,
+            "index": 0
+          },
+          "text": "Wie Sie sehen können, wurden beide Reisende, welche in diesem Spielzug erstellt wurden, der Flotte beigefügt. Sie können Schiffe von Flotten entfernen, indem Sie sie zu einem anderen Ort umleiten oder indem Sie den \"Austausch von Schiffen\" Knopf betätigen während sich die Flotte in eienem Sternensystem befindet.",
+          "textResource": 7058,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 7013,
+          "pictureRect": [
+            108,
+            148,
+            148,
+            188
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": false,
+            "left": false,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "ca142a8b13aa32c3a19e84828d2151fe71d9f4330ac377ca416a77fd72b426f0",
+          "textResourceSha256": "43b31c7658e10fa2d80ce98358ae0e488dafca0f59dacf8668f1f8f6834c41ac"
+        },
+        {
+          "id": 59,
+          "variant": 1,
+          "size": {
+            "height": 252,
+            "width": 200
+          },
+          "title": "Beschädigte Schiffe",
+          "titleResource": {
+            "id": 7031,
+            "index": 0
+          },
+          "text": "Sie haben wahrscheinlich die grüne Leiste neben jedem der Schiffe in der Liste bemerkt. Dies ist die Gesundheitsleiste. Die Leiste wird rot, wenn ein Schiff beschädigt ist. Ist die Leiste vollkommen rot, ist das Schiff zerstört. Sie können beschädigte Schiffe reparieren, indem Sie diese in einem verbündeten Sternensystem ruhen lassen.",
+          "textResource": 7059,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 7010,
+          "pictureRect": [
+            156,
+            10,
+            217,
+            192
+          ],
+          "sound": 0,
+          "binding": 0,
+          "position": {
+            "top": false,
+            "left": false,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [],
+          "pageResourceSha256": "d5f6b84d61d8984e660936ff4083dfc36399ae1808a836600dd1620455557662",
+          "textResourceSha256": "513d9e9628c05363fac5643a386f717182bab857de453c725127733e837aec08"
+        },
+        {
+          "id": 60,
+          "variant": 1,
+          "size": {
+            "height": 182,
+            "width": 200
+          },
+          "title": "Das ist alles, Leute!",
+          "titleResource": {
+            "id": 7032,
+            "index": 0
+          },
+          "text": "Das war auch schon die Anleitung! Wir hoffen, daß Ihnen das Spiel gefällt. Schauen Sie sich auch den Strategieführer an. Dieser befindet sich im Benutzerhandbuch (im Apple Menü).\n\nPlatzieren Sie nun das Kolonieschiff auf S-7, um zu beginnen.",
+          "textResource": 7060,
+          "button": "Auf Wiedersehen",
+          "buttonResource": {
+            "id": 7033,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 0,
+          "position": {
+            "top": false,
+            "left": false,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": -1,
+          "exceptions": [],
+          "pageResourceSha256": "f80e85ed524f945a99a1c8860af9a595e51e40031c3f3c4d5a54d95d8ecba06f",
+          "textResourceSha256": "f4267d8f9c61710f34e17d6587cee785a2874b0c08fa75a3805bf6eed46d76c4"
+        },
+        {
+          "id": 100,
+          "variant": 0,
+          "size": {
+            "height": 200,
+            "width": 250
+          },
+          "title": null,
+          "titleResource": {
+            "id": 7000,
+            "index": 1
+          },
+          "text": "Sie haben bereits ein Spiel gestartet. Die Anleitung wird dieses verstecken während diese in Benutzung ist. Wenn Sie die Anleitung abgeschlossen haben, können Sie zu Ihrem Siel zurückkehren, indem sie dieses aus dem \"Fenster\" Menü  auswählen.\n\nWenn Sie die Anleitung nicht nutzen möchten, schließen Sie ganz einfach das Fenster oben links. ",
+          "textResource": 7100,
+          "button": "Verstecken!",
+          "buttonResource": {
+            "id": 7034,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            104,
+            20,
+            154,
+            230
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 1,
+          "exceptions": [],
+          "pageResourceSha256": "0d9453ae7025936712a5c15ba532b1c19ee2319e0fd8b67141f09dc5e5c6752c",
+          "textResourceSha256": "3c3882b0a71458a61146ef83b31c33f631ce4eea3d5a7e332fbed981f6857959"
+        },
+        {
+          "id": 101,
+          "variant": 0,
+          "size": {
+            "height": 200,
+            "width": 250
+          },
+          "title": null,
+          "titleResource": {
+            "id": 7000,
+            "index": 1
+          },
+          "text": "Sie haben bereits ein Spiel gestartet. Die Anleitung wird dieses verstecken während diese in Benutzung ist. Wenn Sie die Anleitung abgeschlossen haben, können Sie zu Ihrem Siel zurückkehren, indem sie dieses aus dem \"Fenster\" Menü  auswählen.\n\nWenn Sie die Anleitung nicht nutzen möchten, schließen Sie ganz einfach das Fenster oben links. ",
+          "textResource": 7100,
+          "button": "OK",
+          "buttonResource": {
+            "id": 7003,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            104,
+            20,
+            154,
+            230
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 1,
+          "exceptions": [],
+          "pageResourceSha256": "f38c26b3b1e81c624e275943e6e6fc090bed407f852e014450896a4994eccbb9",
+          "textResourceSha256": "3c3882b0a71458a61146ef83b31c33f631ce4eea3d5a7e332fbed981f6857959"
+        },
+        {
+          "id": 103,
+          "variant": 0,
+          "size": {
+            "height": 200,
+            "width": 250
+          },
+          "title": null,
+          "titleResource": {
+            "id": 7000,
+            "index": 1
+          },
+          "text": "Leider ist die \"Gastgeber Neues Spiel...\" Option nur für Spiele mit mehreren Mitspielern. Wenden Sie sich bitte an \"Galactica Benutzerhandbuch\" im \"Hilfe\" Menü , wenn Sie über die Erstellung eines solchen Spieles mehr erfahren möchten.\n\nSie können \"Abbrechen\" drücken, um mit der Anleitung für das Einmann Spiel fortzufahren.",
+          "textResource": 7103,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 2,
+          "exceptions": [
+            {
+              "window": -1,
+              "page": -1
+            }
+          ],
+          "pageResourceSha256": "19296e008432d5b5a802e24c0cf599437c1a67ca5d66a04ce602334d671fc8e7",
+          "textResourceSha256": "a5e10f0a92579261792ecdf1dc18f4638bde60030d72be478fac76393889fc11"
+        },
+        {
+          "id": 1001,
+          "variant": 0,
+          "size": {
+            "height": 186,
+            "width": 250
+          },
+          "title": "",
+          "titleResource": {
+            "id": 0,
+            "index": 0
+          },
+          "text": "\n\n\nDiese Einführung wurde erstellt, um Ihnen die Grundlagen des Spieles Galactica schnell näherzubringen. Fortgeschrittene Spieler wenden sich bitte an das Galactica Benutzerhandbuch im \"Galactica: AD\" Menü.",
+          "textResource": 8001,
+          "button": "Beginn",
+          "buttonResource": {
+            "id": 7000,
+            "index": 0
+          },
+          "picture": 7000,
+          "pictureRect": [
+            0,
+            0,
+            61,
+            254
+          ],
+          "sound": 7000,
+          "binding": -1,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": true,
+            "right": true
+          },
+          "nextPage": 0,
+          "exceptions": [
+            {
+              "window": 34,
+              "page": 3
+            },
+            {
+              "window": 4,
+              "page": 4
+            },
+            {
+              "window": 1,
+              "page": 100
+            },
+            {
+              "window": -1,
+              "page": 101
+            }
+          ],
+          "pageResourceSha256": "d96dedcaef246c579280f82292e77d48caa5d5842f7228267f2c4df174cb8e72",
+          "textResourceSha256": "e3d66b22b4f8101c240f64ae9776c4f757b67cc587bb50b252ec8f99820d6174"
+        },
+        {
+          "id": 1002,
+          "variant": 0,
+          "size": {
+            "height": 146,
+            "width": 250
+          },
+          "title": "Ein Spiel beginnen",
+          "titleResource": {
+            "id": 7001,
+            "index": 0
+          },
+          "text": "Um ein neues Spiel zu beginnen, gehen Sie bitte in den \"Datei\"  links oben und wählen Sie \"Neus Spiel...\"",
+          "textResource": 7002,
+          "button": "",
+          "buttonResource": {
+            "id": 0,
+            "index": 0
+          },
+          "picture": 8001,
+          "pictureRect": [
+            84,
+            18,
+            137,
+            235
+          ],
+          "sound": 7000,
+          "binding": 0,
+          "position": {
+            "top": true,
+            "left": true,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": 0,
+          "exceptions": [
+            {
+              "window": 34,
+              "page": 0
+            },
+            {
+              "window": -1,
+              "page": 101
+            }
+          ],
+          "pageResourceSha256": "25478c0f8010a13b31d162d1a537e0b5c5543809ef9310fd59b77d133dc30f8b",
+          "textResourceSha256": "4a0ea43c9a3bd5392fe17f64e83d569009a65c64abe929ded0f0d947a9491970"
+        },
+        {
+          "id": 1060,
+          "variant": 1,
+          "size": {
+            "height": 182,
+            "width": 200
+          },
+          "title": "Das ist alles, Leute!",
+          "titleResource": {
+            "id": 7032,
+            "index": 0
+          },
+          "text": "Das war auch schon die Anleitung! Wir hoffen, daß Ihnen das Spiel gefällt. Schauen Sie sich auch den Strategieführer an. Dieser befindet sich im Benutzerhandbuch (im Galactica: AD Menü).\n\nPlatzieren Sie nun das Kolonieschiff auf S-7, um zu beginnen.",
+          "textResource": 8060,
+          "button": "Auf Wiedersehen",
+          "buttonResource": {
+            "id": 7033,
+            "index": 0
+          },
+          "picture": 0,
+          "pictureRect": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sound": 0,
+          "binding": 0,
+          "position": {
+            "top": false,
+            "left": false,
+            "bottom": false,
+            "right": false
+          },
+          "nextPage": -1,
+          "exceptions": [],
+          "pageResourceSha256": "07dfcff2a657068a43c2f375f343c24363759a7e38b5fa13c7e954b779a2d992",
+          "textResourceSha256": "474bd121295cc4f270c490c60ffe8c0a8305401785961a0c607df01ce86686e2"
+        }
+      ],
+      "templatePageSha256": "286cc8e20312dc9fa5c0d4b90ae1373fa6b7018ead5097aa325c7ae022b11195",
+      "pictures": [
+        {
+          "id": 7000,
+          "sha256": "abb2dc7f2e30ba37c38d0e21c615e10eb048778596579a99ba065dea44d9484b",
+          "bytes": 44058
+        },
+        {
+          "id": 7001,
+          "sha256": "43467c83d2f8db6a01eefe3bfe891673f1911ec5a6c158e67f5bc6f4c9dc72aa",
+          "bytes": 10548
+        },
+        {
+          "id": 7002,
+          "sha256": "2feff290d11489a02ca8db16b0ff3ab7f1d7c3df22310766e291ce62e1bd7bdd",
+          "bytes": 9092
+        },
+        {
+          "id": 7003,
+          "sha256": "0f7dbb8dbe74727018acbf4aaed5810ec7821d1c064d05a0bd64117db1c7bd17",
+          "bytes": 358
+        },
+        {
+          "id": 7004,
+          "sha256": "40520b5b468fc7b83dbc34b0c79ba568f15e0bc599268dee53dabc158fb1dba7",
+          "bytes": 412
+        },
+        {
+          "id": 7005,
+          "sha256": "c491c64b840a61560425af46a99301c34dde787a55af821769a0bf1235f02c33",
+          "bytes": 2432
+        },
+        {
+          "id": 7006,
+          "sha256": "62e26b8bb5a35f2e4e6bbcf29ac280865f7343887590ba4e9fe066cb5cc8b818",
+          "bytes": 6292
+        },
+        {
+          "id": 7007,
+          "sha256": "66adce0c24590b7b0cedc29fda87ac8771d7b69e843cac49aa0f3e3a4ff6c2f7",
+          "bytes": 12074
+        },
+        {
+          "id": 7008,
+          "sha256": "8c46c38f70dae3d79be9b6074e0ed00ac7a8a7ee8cc17a67c3f4d24fecd06c8a",
+          "bytes": 424
+        },
+        {
+          "id": 7009,
+          "sha256": "d2614d5b5b86fd1398e2077a85bc4617a1a2a0ccfe4074d597536def2c4a0ca3",
+          "bytes": 3886
+        },
+        {
+          "id": 7010,
+          "sha256": "4754c8a2f20926b6203bd4003ae72ca28b35b6f876d5075294e524bd6aafe82c",
+          "bytes": 10374
+        },
+        {
+          "id": 7011,
+          "sha256": "1a1586d49040e32f6f2462916c97af056fcbe12601f21f9807b280a2c2d40f76",
+          "bytes": 1434
+        },
+        {
+          "id": 7012,
+          "sha256": "7717e0f83bf36f4da8e62ecc299a5e151f82c63e17811931f5a36ae13567c3f2",
+          "bytes": 550
+        },
+        {
+          "id": 7013,
+          "sha256": "9c4f8d13d79c5b0f47a7393fbe0ea8180909c38010831236741745350ef7c6e8",
+          "bytes": 614
+        },
+        {
+          "id": 8001,
+          "sha256": "f0a537712a5266159830c120001bc2eac793bbedcc350a1ce2b49dc866ee38b2",
+          "bytes": 19142
+        }
+      ],
+      "sounds": [
+        {
+          "id": 7000,
+          "sha256": "e20a9dd1fdccf0f5b6f229764b06ea6a3d3de7347775a99338efc3c868edb5c5",
+          "bytes": 3866
+        }
+      ]
+    }
+  }
+}
