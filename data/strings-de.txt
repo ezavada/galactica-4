@@ -582,3 +582,8 @@
 # Enemy event playback
 938	Fremde Ereignisse anzeigen
 939	Berichte über andere Spieler automatisch anzeigen, wenn ihre Ziele entdeckt, verbündet oder ohne Kriegsnebel sichtbar sind. Ausgeschaltet bleiben diese Berichte zur manuellen Ansicht in der Ereignisliste.
+
+# Surviving system defense losses
+940	Du hast die Schlacht bei {0} gewonnen, aber dabei {1} Schiffe in diesem System verloren.
+941	Bei deinem Angriff auf das Sternensystem {0} hast du {1} feindliche Schiffe zerstört.
+942	{2} verlor {1} Schiffe bei der Verteidigung des Sternensystems {0} gegen einen Angriff von {3}.

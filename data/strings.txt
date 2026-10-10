@@ -582,3 +582,8 @@
 # Enemy event playback
 938	Show enemy events
 939	Automatically show reports about other players when their subjects are detected, allied or visible with fog disabled. Turning this off keeps those reports in Events for manual review.
+
+# Surviving system defense losses
+940	While you won the battle at {0}, you lost {1} ships in that system.
+941	You destroyed {1} enemy ships in your attack on the star system {0}.
+942	{2} lost {1} ships defending the star system {0} from an attack by {3}.

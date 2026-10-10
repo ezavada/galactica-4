@@ -582,3 +582,8 @@
 # Enemy event playback
 938	Mostrar eventos enemigos
 939	Muestra automáticamente los informes de otros jugadores cuando sus objetivos están detectados, son aliados o son visibles sin niebla de guerra. Al desactivarlo, los informes quedan en Eventos para consultarlos.
+
+# Surviving system defense losses
+940	Ganaste la batalla en {0}, pero perdiste {1} naves en ese sistema.
+941	Destruiste {1} naves enemigas en tu ataque al sistema estelar {0}.
+942	{2} perdió {1} naves defendiendo el sistema estelar {0} de un ataque de {3}.

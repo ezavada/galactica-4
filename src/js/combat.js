@@ -760,6 +760,13 @@ class CombatSystem {
         this.recordCombatSummary(destination, finalOutcome, forces, casualties);
         // Destruction messages play their animation without an extra generic alert, as in v3.
         for (const event of destructionEvents) this.game.queueReport(event);
+        if (this.isStar(destination) && attackerSurvivors.length===0) {
+            // V3 subtracts the final reserve count, including the planet after ground combat.
+            // RemoveAllies attributes the notice to the last hostile defending ship owner.
+            const defenseOwner=spaceDefenders.length?spaceDefenders[spaceDefenders.length-1].owner:originalDestinationOwner;
+            this.game.recordSystemDefenseLosses(destination,attackerOwner,defenseOwner,
+                spaceDefenders.length-defenderSurvivors.length);
+        }
 
         if (this.game && typeof this.game.updatePlayerPieceCounts === 'function') {
             this.game.updatePlayerPieceCounts();

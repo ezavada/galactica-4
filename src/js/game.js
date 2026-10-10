@@ -1010,14 +1010,14 @@ class Game {
         if(!this.isEventAccessible(event) || !event.position)return null;
         const hasCasualties=event.combat && (event.combat.ownShipsLost>0 || event.combat.enemyShipsLost>0);
         const resistanceLost=event.occupation && event.occupation.kind==='defendersLost';
-        return hasCasualties || resistanceLost || event.destruction ? event.position : null;
+        return hasCasualties || resistanceLost || event.systemDefense || event.destruction ? event.position : null;
     }
 
     hasReplayableReport(event) {
-        return !!(event && (event.combat || event.occupation || event.destruction));
+        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction));
     }
 
-    queueReport(event, animationOnly = !!(event && event.destruction), manual = false) {
+    queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense)), manual = false) {
         if (!this.hasReplayableReport(event) || !this.isEventAccessible(event)) return false;
         return this.queueEventOverlay({type:'report',eventId:event.id,page:0,animationOnly,automaticObserver:!!event.observer && !manual});
     }
@@ -3211,6 +3211,26 @@ class Game {
         if(!previousOwner)this.requestColonySetup(star);
         this.removeDestroyedShip(colonyShip, colonyShip.owner, false);
         return true;
+    }
+
+    recordSystemDefenseLosses(star, attackerOwner, defenderOwner, shipsLost) {
+        if (!star || !attackerOwner || !defenderOwner || attackerOwner===defenderOwner || !(shipsLost>0)) return [];
+        const playerName=owner=>this.players[owner] && this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
+        const snapshot={starName:star.name,attackerOwner,defenderOwner,shipsLost,
+            attackerName:playerName(attackerOwner),defenderName:playerName(defenderOwner)};
+        return Object.keys(this.players).map(Number).filter(owner=>owner>0 && this.players[owner]).map(recipient=>{
+            const side=recipient===defenderOwner?'defender':recipient===attackerOwner?'attacker':'observer';
+            const event=this.recordEvent(I18n.getString(607,'Combat'),
+                I18n.formatString(side==='defender'?940:side==='attacker'?941:942,'',snapshot.starName,
+                    I18n.formatInteger(shipsLost),snapshot.defenderName,snapshot.attackerName),
+                {type:Common.EventType.SYSTEM_DEFENSE_LOSSES,subject:star,recipient,position:star});
+            event.systemDefense={...snapshot,side};
+            if(side==='observer') {
+                event.observer=true;
+                if(this.showEnemyEvents && !this.movementTurn)this.queueReport(event);
+            } else {this.queueReport(event);this.attention.requestEvent(event);}
+            return event;
+        });
     }
 
     recordOccupationReports(star, attackerOwner, previousOwner, kind) {
