@@ -556,6 +556,7 @@ function tutorialPanelContext(){
         if(game.overlay && game.overlay.type==='report')targets.push(display.getReportLayout(game.overlay).rect);
         if(game.overlay && game.overlay.type==='outcome')targets.push(display.getOutcomeLayout(game.overlay).rect);
         if(game.selectedObject){const inspector=display.getSelectedObjectPanelRect(game.selectedObject);if(inspector)targets.push(inspector);}
+        for(const control of display.getContextButtonRegions())targets.push({...control.rect,interactive:true});
     }
     return {screen,measure:(text,size)=>port.getTextWidth(text,size),targets};
 }

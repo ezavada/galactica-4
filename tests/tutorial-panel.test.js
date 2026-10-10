@@ -50,6 +50,26 @@ module.exports=()=>{const test=require('./test-framework.js');test.describe('Flo
   for(code of ['de','es','fr','ja','ru','en']){panel.layout(screen,measure);test.assertEqual(controller.page.language,code);test.assertEqual(JSON.stringify(controller.snapshot(200)),state);test.assertEqual(entries,1);}
   const bad=Lessons.load(path.join(__dirname,'../data'),'de');bad.find(p=>p.id===7).nextPage=60;let rejected=false;try{controller.replacePresentation(bad);}catch(e){rejected=true;}test.assertTrue(rejected);test.assertEqual(controller.page.language,'en');
  });
+ test.it('shows every source illustration below the text without covering footer controls, including narrow ports',()=>{
+  const Illustrations=require('../src/js/tutorial-illustrations.js');for(const code of ['en','de','es','fr','ja','ru'])for(const screen of [{width:800,height:600},{width:320,height:340}]){
+   const panel=create(code),seen=new Set();for(const page of panel.owner.controller.pages.values()){
+    panel.owner.controller.goto(page.id);const l=panel.layout(screen,measure);test.assertEqual(!!l.illustration,!!page.picture);if(!page.picture)continue;seen.add(page.picture);
+    test.assertTrue(l.illustration.y>=l.text.y+l.text.height);test.assertTrue(l.illustration.y+l.illustration.height<=l.close.y);test.assertTrue(l.illustration.x>=l.rect.x && l.illustration.x+l.illustration.width<=l.rect.x+l.rect.width);
+    const before=panel.owner.controller.snapshot(0);panel.mouseDown(l.illustration.x+3,l.illustration.y+3,screen,measure);panel.mouseUp();test.assertEqual(JSON.stringify(panel.owner.controller.snapshot(0)),JSON.stringify(before));
+   }test.assertEqual(seen.size,Object.keys(Illustrations.pictures).length);
+  }
+ });
+ test.it('keeps the real Orders control exposed when an illustration enlarges the lesson',()=>{
+  const panel=create(),screen={width:800,height:600};panel.owner.controller.goto(16);const inspector={x:16,y:158,width:350,height:274},orders={x:470,y:172,width:94,height:30,interactive:true};
+  const l=panel.layout(screen,measure,[inspector,orders]);test.assertTrue(l.rect.x+l.rect.width<=orders.x || l.rect.x>=orders.x+orders.width || l.rect.y+l.rect.height<=orders.y || l.rect.y>=orders.y+orders.height);
+ });
+ test.it('redraws illustrative control labels in the current language and reuses attributes',()=>{
+  const Illustrations=require('../src/js/tutorial-illustrations.js'),previous=pdg.res.getLanguage(),art=new Illustrations(),texts=[];
+  const port={getTextWidth:(t,size)=>measure(t,size),drawRect:()=>{},drawCircle:()=>{},drawLine:()=>{},drawText:t=>texts.push(t)};
+  try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);for(const id of Object.keys(Illustrations.pictures))art.draw(port,Number(id),{x:0,y:0,width:300,height:art.height(id)});
+   for(const id of [836,563,555,451,577,801])test.assertTrue(texts.includes(pdg.res.getString(id)));const styles=art.styles;art.draw(port,7003,{x:0,y:0,width:300,height:42});test.assertTrue(art.styles===styles);texts.length=0;
+  }}finally{pdg.res.setLanguage(previous);}
+ });
  test.it('wraps paragraphs and Unicode words without splitting surrogate pairs or losing their content',()=>{
   const source='LongUnbrokenText\n日本語の説明🌌星図\n\nChoose a star.';const lines=Panel.wrap(source,40,t=>Array.from(t).length*10);
   test.assertEqual(lines.join('').replace(/\s/g,''),source.replace(/\s/g,''));test.assertTrue(lines.includes(''));test.assertFalse(lines.some(l=>/[\ud800-\udbff]$/.test(l)));

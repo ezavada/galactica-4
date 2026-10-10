@@ -2,6 +2,7 @@
 // Action-only pages have no forward control; progression belongs to Controller.
 const Appearance=require('./panel-appearance.js');
 const Placement=require('./window-placement.js');
+const Illustrations=require('./tutorial-illustrations.js');
 const contains=(r,x,y)=>!!r && x>=r.x && y>=r.y && x<r.x+r.width && y<r.y+r.height;
 function wrap(text,width,measure){
     const lines=[];
@@ -25,7 +26,7 @@ class TutorialPanel {
     constructor(owner,options={}){
         this.owner=owner;this.options=options;this.page=null;this.scroll=0;this.captured=false;
         this.placement=new Placement(options.preferences || {readWindowPosition:()=>null,writeWindowPosition:()=>{}});
-        this.styles=null;this.wrapped=null;
+        this.styles=null;this.wrapped=null;this.illustrations=new Illustrations();
     }
     layout(screen,measure,targets=[]){
         const controller=this.owner.controller;
@@ -44,15 +45,17 @@ class TutorialPanel {
         if(!this.wrapped || this.wrapped.page!==page || this.wrapped.width!==inner)
             this.wrapped={page,width:inner,lines:wrap(page.text,inner,text=>measure(text,size))};
         const lines=this.wrapped.lines;
-        const height=Math.min(screen.height-20,Math.max(132,78+lines.length*leading));
-        const visible=Math.max(1,Math.floor((height-78)/leading));
+        const illustrationHeight=this.illustrations.height(page.picture),extra=illustrationHeight?illustrationHeight+10:0;
+        const height=Math.min(screen.height-20,Math.max(132,78+lines.length*leading+extra));
+        const visible=Math.max(1,Math.floor((height-78-extra)/leading));
         this.scroll=Math.min(this.scroll,Math.max(0,lines.length-visible));
         // Prefer the source edge, then choose an edge that covers less of the
         // current setup, inspector, report or comparison window.
         const positions=[{x:10,y:10},{x:screen.width-width-10,y:10},{x:10,y:screen.height-height-10},{x:screen.width-width-10,y:screen.height-height-10}];
         const preferred=(page.position.right && !page.position.left?1:0)+(page.position.bottom && !page.position.top?2:0);
         const ordered=[positions[preferred],...positions.filter((_,i)=>i!==preferred)];
-        ordered.sort((a,b)=>targets.reduce((s,t)=>s+overlap({...a,width,height},t)-overlap({...b,width,height},t),0));
+        const obstruction=position=>targets.reduce((score,target)=>{const area=overlap({...position,width,height},target);return score+area+(area && target.interactive?screen.width*screen.height:0);},0);
+        ordered.sort((a,b)=>obstruction(a)-obstruction(b));
         const base={...ordered[0],width,height};
         const closeWidth=Math.min(inner*.55,Math.max(68,measure(page.close,12)+24));
         const buttonWidth=page.button?Math.min(inner-closeWidth-8,Math.max(68,measure(page.button,12)+24)):0;
@@ -60,7 +63,8 @@ class TutorialPanel {
             title:{x:base.x+16,y:base.y+7,width:inner,height:25},
             close:{x:base.x+16,y:base.y+height-36,width:closeWidth,height:26},
             button:page.button?{x:base.x+width-16-buttonWidth,y:base.y+height-36,width:buttonWidth,height:26}:null,
-            text:{x:base.x+16,y:base.y+37,width:inner,height:visible*leading}},screen);
+            text:{x:base.x+16,y:base.y+37,width:inner,height:visible*leading},
+            illustration:illustrationHeight?{x:base.x+16,y:base.y+37+visible*leading+8,width:inner,height:illustrationHeight}:null},screen);
         return {...layout,lines,visible,size,leading,scroll:this.scroll,maxScroll:Math.max(0,lines.length-visible)};
     }
     mouseDown(x,y,screen,measure,targets=[]){
@@ -93,6 +97,7 @@ class TutorialPanel {
         let title=this.page.title;while(title && measure(title,15)>layout.title.width)title=Array.from(title).slice(0,-1).join('');
         port.drawText(title,new pdg.Point(layout.title.x,layout.title.y+18),s.title);
         layout.lines.slice(this.scroll,this.scroll+layout.visible).forEach((line,i)=>port.drawText(line,new pdg.Point(layout.text.x,layout.text.y+14+i*layout.leading),s.body));
+        this.illustrations.draw(port,this.page.picture,layout.illustration);
         for(const [r,label] of [[layout.close,this.page.close],[layout.button,this.page.button]])if(r){
             port.drawRect(rect(r),s.button);let size=12;while(size>8 && measure(label,size)>r.width-12)size--;
             s.caption.textSize(size);port.drawText(label,new pdg.Point(r.x+r.width/2,r.y+r.height/2+size*.3),s.caption);

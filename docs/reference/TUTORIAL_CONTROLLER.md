@@ -6,8 +6,8 @@ original lessons. It is connected to an explicitly bound tutorial game through
 panel. Launch it with Tutorial on the start screen or in-game command menu.
 The full normal guided route is verified through real UI input in all six
 languages; public launch/cancellation is also verified in each language, with a
-complete English run from the visible launch button. Illustrations and complete
-tutorial save/resume remain required work in `V3_V4_FEATURE_STATUS.md`.
+complete English run from the visible launch button. Complete
+tutorial save/resume remains required work in `V3_V4_FEATURE_STATUS.md`.
 
 The constructor accepts decoded page metadata and callbacks. Use `tutorial-lessons.js::load(dataDirectory, language)` for runtime pages;
 `v3-tutorial.json` is a source reference,
@@ -311,3 +311,48 @@ logs are `/private/tmp/galactica-tutorial-launch-{tests,native-tests,<language>}
 A complete English walkthrough from the visible startup button also proves
 Finish removes tutorial state and promotes practice to an ordinary unsaved
 local document; see `/private/tmp/galactica-tutorial-public-guided-en.log`.
+
+
+### Illustrated modern controls
+
+Audited every nonzero PICT reference in the shipped English/German lesson
+resources and the original teaching text (`Resources/gal-tutorial-en.r`,
+`Resources/gal-tutorial-de.r`, `GalacticaTutorial.cp::LoadPage`). The sixteen
+references use fifteen picture IDs, including two welcome pages and the macOS
+New Game alternative. `tutorial-illustrations.js` renders a modern equivalent
+for each ID using cached Attributes and live localized control labels:
+
+| Picture | Modern teaching example |
+| --- | --- |
+| 7000 | Galactica-4 welcome heading |
+| 7001, 8001 | New Game menu command |
+| 7002 | Actual production fills and target markers |
+| 7003 | End Turn and its shortcut |
+| 7004 | Orders and its shortcut |
+| 7005 | Half-alpha tracking line and target crosshair |
+| 7006 | Defense construction control |
+| 7007 | Rendezvous placement between Andromeda and New Terra |
+| 7008 | Equalize icon and shortcut |
+| 7009 | Send to/Set destination and Alpha marker |
+| 7010 | Three health bars at different damage levels |
+| 7011 | Fleet members and Exchange ships control |
+| 7012 | Patrol control and shortcut |
+| 7013 | Exchanging a member out of a fleet |
+
+The panel reserves illustration space below instruction text and above its
+footer. Long text retains independent scrolling in narrow ports. Illustrations
+consume clicks without progressing action-wait lessons. Placement includes
+real context controls and prioritizes exposing them over passive inspectors;
+this repairs the browser-detected Orders occlusion when the figure enlarged
+lesson 16. Switching language redraws figure labels from the same resource
+strings as the controls; no screenshot captions remain in another language.
+
+Both native lanes pass all 1,295 tests. Coverage includes every source ID in all
+six languages, 320×340 layouts, illustration input, label localization, reused
+Attributes and the real Orders placement regression. Actual browser input from
+the public Tutorial button completes the normal route through Finish in all
+six languages, including ordinary practice-document promotion. Reviewed lesson
+screenshots are under `/private/tmp/galactica-parity/tutorial-illustrations/<language>`;
+separate rendered galleries cover all picture IDs, including startup exceptions,
+under `/private/tmp/galactica-parity/tutorial-illustration-gallery/<language>`.
+Full tutorial save/resume remains unfinished.

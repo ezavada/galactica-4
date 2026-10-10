@@ -255,7 +255,7 @@ The largest blockers to a complete game are:
 | Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | 🟡 Partial | 🟡 Partial | The localized persistent Sound setting now controls cached PDG audio across open/restored games. Presented colony, battle, destruction, repair, lab and stardock reports and attention navigation select recipient cues from the shipped samples; explosions precede the later cue by the source animation cadence plus 20 ticks. Hidden reports and quiet autoplay are silent, and mute stops owned playback. Native suites and actual browser controls/playback are verified below. Empty Tab/Next item now plays the shipped No more cue without changing selection or the turn. Chat, background network-turn and tutorial cues remain tied to their unported features; Left Arrow at a top-level object also plays No more. Startup/About music is blocked by missing source movie metadata, documented below. |
 | Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen startup restoration and remaining game preferences are incomplete. |
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
-| Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | 🟡 Partial | ❌ Missing | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. Complete tutorial saves and lesson illustrations remain required. See docs/reference/TUTORIAL_CONTROLLER.md. |
+| Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | 🟡 Partial | ❌ Missing | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations; complete tutorial saves remain required. See docs/reference/TUTORIAL_CONTROLLER.md. |
 | Internationalization | v3 language plug-ins; menu can switch languages. | ✅ Implemented | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian resources and accepts runtime language with `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven/tested; Menu → Settings → Language switches cached UI labels and numeric formatting immediately, remembers the selection and always lists native-script language names. Unported v3 dialogs/help still need future resources. |
 | Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | 🟡 Partial | v4 uses background and lab/stardock/ship assets, while most UI buttons, panels, animations, and states are styled primitives/text. Remaining parity should be tied to specific shipped v3 event/help/window imagery. |
 
@@ -1213,3 +1213,32 @@ runtime/simulation removed (`/private/tmp/galactica-tutorial-public-guided-en.lo
 Tutorial illustrations and complete tutorial save/resume remain open, alongside
 the broader parity inventory and Map Generation. Launch availability does not
 claim the full tutorial or project checklist complete.
+
+
+### Localized tutorial illustrations
+
+Audited all fifteen PICT IDs referenced by the sixteen illustrated source pages,
+including welcome/macOS alternatives. Added modern teaching figures for each:
+New Game, actual/target production, End Turn, Orders, rubber-band course and
+crosshair, Defense, rendezvous placement, Equalize, Send to/Set, health bars,
+fleet members, Patrol and Exchange ships. The existing source picture IDs remain
+in runtime metadata. Figures use cached reusable Attributes and the same live
+localized labels as the real controls, so en/de/es/fr/ja/ru switching updates the
+illustrations without replaying lesson effects.
+
+Floating instructions reserve figure space separately from scrolling text and
+footer controls. An actual browser run exposed that the larger Orders lesson
+covered the real Orders button; placement now includes context controls and
+prioritizes keeping them exposed. Tests cover this concrete regression, all
+source IDs, all languages, narrow layouts, picture clicks and drawing reuse.
+Both complete native lanes pass all 1,295 tests.
+
+The full normal tutorial route from the public startup button completes through
+Finish in all six languages with illustrations enabled. Reviewed before/after
+lesson screenshots are under `/private/tmp/galactica-parity/tutorial-public-guided/en`
+and `/private/tmp/galactica-parity/tutorial-illustrations/<language>`; all-picture
+galleries are under `/private/tmp/galactica-parity/tutorial-illustration-gallery/<language>`.
+Logs are `/private/tmp/galactica-tutorial-illustrations-{tests,native-tests,<language>}.log`
+and `/private/tmp/galactica-tutorial-illustration-gallery-<language>.log`.
+Complete tutorial save/resume, the remaining parity inventory and Map Generation
+remain open; this does not mark the tutorial or project fully complete.
