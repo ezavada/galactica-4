@@ -22,7 +22,7 @@ module.exports=()=>test.describe('Temporary tutorial document lifecycle',()=>{
   f.owner.pressButton();test.assertEqual(f.owner.controller.pageId,6);test.assertEqual(played.length,count);
   f.owner.pressButton();test.assertEqual(f.owner.controller.pageId,7);test.assertEqual(played.length,count);
   f.owner.controller.observe({type:'zoomChanged'},1000);f.owner.controller.tick(4001);test.assertEqual(f.owner.controller.pageId,8);test.assertEqual(played.filter(x=>x==='tutorial/sounds/7000.wav').length,7);
-  f.owner.controller.goto(60);f.owner.pressButton();test.assertEqual(played[played.length-1],'stop');test.assertTrue(f.visible()===f.application);
+  f.owner.controller.goto(60);f.owner.pressButton();test.assertEqual(played[played.length-1],'stop');test.assertTrue(f.visible().game!==f.original);
  });
  test.it('respects mute without replaying a skipped tutorial cue and stops even before hiding a game',()=>{
   const f=setup(),played=[],Sound=require('../src/js/sound.js');
@@ -44,8 +44,33 @@ module.exports=()=>test.describe('Temporary tutorial document lifecycle',()=>{
   test.assertTrue(f.owner.stop());test.assertTrue(runtime.disposed);test.assertUndefined(game.tutorialRuntime);test.assertTrue(f.sessions.active===f.session);test.assertFalse(f.sessions.starting);test.assertEqual(f.sessions.nextId,nextId);test.assertEqual(Save.serialize(f.original),saved);
   test.assertEqual([f.view.camera.zoom,f.view.camera.panX,f.view.camera.panY].join(','),camera.join(','));test.assertTrue(f.visible()===f.application);test.assertTrue(f.sessions.active.file===f.session.file);test.assertTrue(f.sessions.active.autoplay===f.application.autoplay);test.assertEqual(f.events.filter(e=>e==='restore').length,1);test.assertFalse(f.owner.stop());
  });
- test.it('completion returns to a previously unfinished setup with the exact configuration and text editor',()=>{
-  const f=setup(true);enter(f.owner);install(f.owner);f.owner.controller.goto(60);f.owner.pressButton();test.assertFalse(f.owner.controller.active);test.assertTrue(f.owner.finished);test.assertTrue(f.sessions.starting);test.assertTrue(f.sessions.active===f.session);test.assertTrue(f.visible().config===f.application.config);test.assertTrue(f.visible().editor===f.application.editor);test.assertEqual(f.events[f.events.length-1],'complete');
+ test.it('completion keeps the practice graph and renderer as an unsaved ordinary document, without changing the previous game',()=>{
+  const f=setup(),original=Save.serialize(f.original),nextId=f.sessions.nextId;enter(f.owner);const {game,view}=install(f.owner),runtime=game.tutorialRuntime;
+  game.turn=9;game.stars[0].name='Practiced';view.camera.setZoom(2);view.camera.centerOn(400000,600000);const camera=[view.camera.zoom,view.camera.panX,view.camera.panY];let disposed=0;view.dispose=()=>disposed++;
+  const transient=f.sessions.active;f.owner.controller.goto(60);f.owner.pressButton();
+  test.assertFalse(f.owner.controller.active);test.assertTrue(f.owner.finished);test.assertTrue(runtime.disposed);test.assertUndefined(game.tutorialRuntime);test.assertUndefined(game.tutorialSimulation);
+  test.assertEqual(disposed,0);test.assertTrue(f.visible().game===game);test.assertTrue(f.visible().display===view);test.assertTrue(f.sessions.active===transient);test.assertEqual(transient.id,nextId);test.assertUndefined(transient.file);test.assertEqual(f.sessions.nextId,nextId+1);
+  test.assertEqual(game.turn,9);test.assertEqual(game.stars[0].name,'Practiced');test.assertEqual([view.camera.zoom,view.camera.panX,view.camera.panY].join(','),camera.join(','));
+  test.assertEqual(f.sessions.rows().length,2);test.assertNull(f.sessions.transient);test.assertFalse(f.sessions.starting);test.assertEqual(Save.serialize(f.original),original);test.assertTrue(f.session.file.name==='Original.gad4');
+  test.assertTrue(f.sessions.select(f.session.id)===f.session);test.assertTrue(f.sessions.select(transient.id).game===game);test.assertFalse(f.owner.stop());test.assertEqual(f.events.filter(x=>x==='restore').length,0);
+ });
+ test.it('continues normal production and saves the completed practice game without reattaching tutorial safeguards',()=>{
+  const f=setup();enter(f.owner);const {game}=install(f.owner),home=game.stars.find(s=>s.id===2);game.turn=3;
+  const turn=game.turn;home.growth.desired=10;home.shipBuilding.desired=20;home.research.desired=70;
+  const allocations=[home.growth.desired,home.shipBuilding.desired,home.research.desired];f.owner.controller.goto(60);f.owner.pressButton();
+  const saved=Save.serialize(game),loaded=Save.restore(saved);test.assertEqual(loaded.turn,turn);test.assertUndefined(loaded.tutorialSimulation);test.assertUndefined(loaded.tutorialRuntime);
+  game.rules.getStarShipBuildingAmount=()=>0;game.rules.getStarResearchAmount=()=>0;game.endTurn();test.assertEqual(game.turn,turn+1);test.assertEqual([home.growth.desired,home.shipBuilding.desired,home.research.desired].join(','),allocations.join(','));
+  test.assertEqual(game.tutorialRandom.state,loaded.tutorialRandom.state);
+ });
+ test.it('completion before accepting a practice game restores suspended setup rather than inventing a document',()=>{
+  const f=setup(true);f.owner.start({window:34,modal:true});f.owner.controller.goto(60);f.owner.pressButton();
+  test.assertTrue(f.sessions.starting);test.assertTrue(f.sessions.active===f.session);test.assertTrue(f.visible()===f.application);test.assertEqual(f.sessions.rows().length,1);
+ });
+ test.it('completion with no previous document leaves a playable practice game instead of returning to startup',()=>{
+  const sessions=new Sessions(),state={config:{title:'Initial'}},calls=[];let visible=state;
+  const owner=new Owner(pages,{sessions,captureApplication:()=>state,suspendApplication:()=>{},restoreApplication:()=>calls.push('restore'),installApplication:(game,display)=>{visible={game,display};}});
+  owner.start();owner.pressButton();owner.openSetup();owner.acceptSetup();const {game,view}=install(owner);owner.controller.goto(60);owner.pressButton();
+  test.assertFalse(sessions.starting);test.assertEqual(sessions.rows().length,1);test.assertTrue(sessions.active.game===game);test.assertTrue(visible.display===view);test.assertEqual(calls.length,0);test.assertTrue(sessions.active.id>0);
  });
  test.it('cancelling before hiding or during setup creates no tutorial document and restores only states that were suspended',()=>{
   const f=setup();f.owner.start({window:1});f.owner.stop();test.assertEqual(f.events.join(','),'cancel');test.assertTrue(f.visible()===f.application);

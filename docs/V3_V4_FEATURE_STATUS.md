@@ -892,3 +892,31 @@ language. Evidence: `/private/tmp/galactica-bookmatched-background-pixels.json`
 and `/private/tmp/galactica-bookmatched-background-{tests,native-tests}.log`.
 This completes the requested background treatment; the remaining parity,
 tutorial and Map Generation requirements are still open.
+
+
+### Tutorial completion retains the practice document
+
+Source audit of `GalacticaTutorial.cp:111–116,498–520` shows that completion
+closes the instructions and releases tutorial resources without closing the
+practice game. Corrected v4's previous completion cleanup: it now promotes the
+accepted temporary game into an unsaved ordinary open document, preserves its
+graph/renderer/camera/private RNG and removes the runtime wrappers and scripted
+production safeguards. Prior games and their file associations remain in Open
+games. Cancellation and failures still restore the suspended application; a
+completion request before accepting a practice game creates no document.
+
+Both full suites pass: 1,253 tests each with release and development PDG. Actual
+Chrome startup/name clicks, final controller completion, ordinary continuation,
+save/restore and switching to the previous game and back pass in en/de/es/fr/ja/ru.
+The previous graph serializes identically before switching; selecting an open
+game deliberately closes its Events panel under the existing session behavior.
+Before/after and six-language screenshots were inspected under
+`/private/tmp/galactica-parity/tutorial-completion-{before,after}`. Logs:
+`/private/tmp/galactica-tutorial-completion-{tests,native-tests}.log` and
+`/private/tmp/galactica-tutorial-completion-{before,after}-<language>.log`.
+
+No new visible strings. Browser fixtures explicitly enter the still-hidden
+session and advance the controller to its final lesson; this is a completion
+lifecycle check, not a full guided tutorial playthrough. Visible instruction UI,
+six-language lesson resources/art and complete tutorial save/resume remain open;
+this item does not complete the broader parity or Map Generation checklists.

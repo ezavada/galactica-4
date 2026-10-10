@@ -48,14 +48,24 @@ class TutorialSession {
     stop(reason='cancel'){return this.controller.stop(reason);}
     release(reason){
         if(this.finished)return;this.finished=true;
-        const application=this.application,engaged=this.engaged,display=this.display,runtime=this.runtime;
+        const application=this.application,engaged=this.engaged,game=this.game,display=this.display,runtime=this.runtime;
+        let retained=false;
         this.engaged=false;this.application=null;this.runtime=null;this.game=null;this.display=null;
-        try{if(this.options.sound)this.options.sound.stop();if(runtime)runtime.dispose();}
+        try{
+            if(this.options.sound)this.options.sound.stop();
+            if(runtime)runtime.dispose();
+            // V3 stops the instructions, not the practice game. Keep its graph,
+            // camera and file-free document; its scripted simulation ends here.
+            if(reason==='complete' && game && display && this.sessions.promoteTransient(game,display)){
+                delete game.tutorialSimulation;
+                retained=true;
+            }
+        }
         finally{
-            try{if(display && display.dispose)display.dispose();}
+            try{if(!retained && display && display.dispose)display.dispose();}
             finally{
-                if(engaged)this.sessions.endTransient();
-                try{if(engaged)this.options.restoreApplication(application,reason);}
+                if(engaged && !retained)this.sessions.endTransient();
+                try{if(engaged && !retained)this.options.restoreApplication(application,reason);}
                 finally{if(this.options.onStop)this.options.onStop(reason);}
             }
         }

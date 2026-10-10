@@ -9,6 +9,13 @@ class GameSessions {
         if(!this.transient)return false;
         const previous=this.transient;this.transient=null;this.active=previous.active;this.starting=previous.starting;return previous;
     }
+    promoteTransient(game,display) {
+        if(!this.transient || this.starting || !this.active || this.active.id!==0 ||
+                this.active.game!==game || this.active.display!==display)return false;
+        const session=this.active;
+        session.id=this.nextId++;this.sessions.push(session);this.transient=null;
+        return session;
+    }
     begin() {if(this.starting)return false;this.starting=true;return true;}
     cancel() {if(!this.starting || !this.active)return false;this.starting=false;return true;}
     accept(game,display) {

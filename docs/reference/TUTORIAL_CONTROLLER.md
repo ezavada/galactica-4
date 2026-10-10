@@ -109,12 +109,17 @@ and assigns a localized Tutorial title, with no ordinary document/file identity.
 The temporary session has ID 0, consumes no ordinary session ID, stays out of the
 open-game list and blocks session switching/replacement until it ends.
 
-Cancellation/completion disposes the runtime and temporary renderer and restores
-the exact prior game, renderer, configuration/editors, file association and
-autoplay controller. Autoplay timers resume only if that restored controller was
-running. Attachment and fixture-construction failures restore the original
-application; repeated cleanup is harmless. Unfinished initial setup is preserved
-when no ordinary game was open. Visible instruction controls, translated lesson
+Cancellation disposes the runtime and temporary renderer and restores the exact
+prior game, renderer, configuration/editors, file association and autoplay
+controller. Autoplay timers resume only if that restored controller was running.
+Successful completion disposes only the runtime, removes the scripted production
+helper and promotes the practice game to an unsaved ordinary open document,
+retaining its renderer, camera and private random stream. Prior open documents
+remain available in Open games. This follows `GalacticaTutorial.cp:111–116,
+498–520`: finishing closes the instructions while leaving the practice game open.
+Completion before accepting a practice game, attachment failures and fixture
+construction failures restore the original application; repeated cleanup is
+harmless. Cancellation preserves unfinished initial setup when no game was open. Visible instruction controls, translated lesson
 resources, tutorial save/resume and presentation pictures remain required.
 Lesson entry audio now uses the shared Sound preference and stops when the
 session ends, including cancellation before acknowledgment. Source-silent

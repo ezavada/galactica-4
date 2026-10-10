@@ -536,7 +536,7 @@ function beginTutorial(pages,context={window:game && !sessions.starting?1:34,mod
                 pdg.tm.startTimer(AUTOPLAY_TIMER_ID,game.config.autoplay.turnDelayMs,pdg.timer_Repeating);
         },
         installApplication:(nextGame,nextDisplay)=>{game=nextGame;display=nextDisplay;autoplayController=null;},
-        onStop:()=>{if(tutorialSession===owner)tutorialSession=null;}
+        onStop:()=>{clearSessionInput();if(tutorialSession===owner)tutorialSession=null;}
     });
     tutorialSession=owner;
     try{owner.start(context);}catch(error){tutorialSession=null;throw error;}

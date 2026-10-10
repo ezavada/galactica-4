@@ -4,6 +4,15 @@ function document(title='First') {const game=new Game(new Factory(),new Rules(),
 function fixture(){const sessions=new GameSessions(),first=document();sessions.accept(first.game,first.display);
  first.game.sessionCommands={begin:()=>sessions.begin(),rows:()=>sessions.rows(),select:id=>sessions.select(id)};return {sessions,...first};}
 module.exports=()=>test.describe('Local game documents and New Game lifecycle',()=>{
+ test.it('promotes only the accepted temporary document once, preserving previous IDs and file associations',()=>{
+  const {sessions,game,display}=fixture();const previous=sessions.active;previous.file={name:'Original.gad4'};
+  test.assertFalse(sessions.promoteTransient(game,display));sessions.beginTransient();test.assertFalse(sessions.promoteTransient(game,display));
+  const practice=document('Tutorial'),transient=sessions.accept(practice.game,practice.display),nextId=sessions.nextId;
+  test.assertFalse(sessions.promoteTransient(game,display));test.assertTrue(sessions.promoteTransient(practice.game,practice.display)===transient);
+  test.assertEqual(transient.id,nextId);test.assertEqual(sessions.nextId,nextId+1);test.assertTrue(sessions.active===transient);test.assertUndefined(transient.file);test.assertEqual(sessions.rows().length,2);
+  test.assertFalse(sessions.promoteTransient(practice.game,practice.display));test.assertEqual(sessions.nextId,nextId+1);test.assertTrue(sessions.select(previous.id)===previous);test.assertEqual(previous.file.name,'Original.gad4');
+ });
+
  test.it('keeps startup open until a complete document is accepted and prevents cancelling the initial setup',()=>{
   const sessions=new GameSessions();test.assertTrue(sessions.starting);test.assertFalse(sessions.cancel());test.assertFalse(sessions.accept(null,null));test.assertTrue(sessions.starting);
   const d=document();test.assertTrue(!!sessions.accept(d.game,d.display));test.assertFalse(sessions.starting);test.assertFalse(sessions.accept(d.game,d.display));test.assertEqual(sessions.sessions.length,1);

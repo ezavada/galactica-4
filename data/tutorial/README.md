@@ -47,8 +47,9 @@ random map, assigning a file, modifying existing sessions/preferences or
 reseeding the global generator. It accepts caller-supplied title/player name.
 It assigns original IDs before spatial registration, preserves allocator
 monotonicity, restores player milestones and initializes visibility/selection.
-The session owner preserves/restores the previous game and binds the original
-action-driven model. Each new tutorial now owns a private seed-101 random stream.
+The session owner preserves previous open games and binds the original
+action-driven model. Cancellation restores the previous application; successful
+completion keeps the practice game as an unsaved ordinary document. Each new tutorial now owns a private seed-101 random stream.
 Visible lessons and the public launch UI are unfinished; this fixture does not
 constitute a completed tutorial.
 
@@ -63,7 +64,9 @@ systems choose battleships after completing a hull. Paused/zero-effort builds
 are not guaranteed, and ordinary games do not attach these rules. Turn numbers
 here refer to the turn being processed, before v4 increments the displayed turn.
 
-The session owner manages lifetime and restores the previous application.
+The session owner manages lifetime. Cancellation restores the previous
+application; completion retains the practice renderer and graph, removing the
+scripted production helper and tutorial runtime. Prior open games stay selectable.
 Ordinary graph saves now retain the private RNG state, but complete tutorial
 save/resume remains unfinished: restoring the galaxy through the ordinary save
 API does not reinstall the simulation helper, runtime or previous session.
