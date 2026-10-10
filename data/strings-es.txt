@@ -653,3 +653,8 @@
 983	Consulta el arte original y los créditos de Galactica sin cambiar la partida.
 984	Muestra u oculta la introducción cuando se inicia Galactica.
 985	Inicia el tutorial guiado. Tu partida actual se conserva hasta que regreses.
+
+# Application build identity
+986	Versión de desarrollo {0}
+987	 (modificada)
+988	Información de compilación no disponible

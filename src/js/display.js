@@ -1,6 +1,7 @@
 // Display functions for Galactica-4
 // Contains all rendering and UI display logic
 
+const ApplicationVersion=require('./application-version.js');
 const Common = require('./common.js');
 const NewGameDefaults=require('./new-game-defaults.js');
 const GameConfig=require('./game-config.js');
@@ -2111,23 +2112,33 @@ class Display {
         const screen=this.getScreenSize(),width=Math.min(650,screen.width-20),height=Math.min(530,screen.height-20);
         return this.fitWindowToScreen('presentation',{x:(screen.width-width)/2,y:(screen.height-height)/2,width,height});
     }
+    getPresentationVersionLines(build=ApplicationVersion.info()){
+        const r=this.getPresentationRect(),width=Math.max(1,r.width-(r.width<480?100:28));
+        return this.wrapEventMessage(ApplicationVersion.label(build),width,11);
+    }
     getPresentationContent(){
         const r=this.getPresentationRect(),compact=r.width<480;
-        const x=r.x+(compact?14:250),y=r.y+(compact?88:64),width=r.width-(compact?28:264),height=r.height-(compact?156:132);
+        const extra=this.game.presentation.kind==='about'?Math.max(0,this.getPresentationVersionLines().length-(compact?2:1))*13:0;
+        const x=r.x+(compact?14:250),y=r.y+(compact?88:64)+extra,width=r.width-(compact?28:264),height=r.height-(compact?156:132)-extra;
         const lines=this.wrapEventMessage(this.game.presentation.text(),width,12);
         return {x,y,width,height,lines,rows:Math.max(1,Math.floor(height/17))};
     }
     getPresentationActions(){
-        const r=this.getPresentationRect(),w=(r.width-46)/4;
-        return [
-            {rect:{x:r.x+14,y:r.y+r.height-42,width:w,height:28},label:'‹',key:'←',action:{type:'presentationPage',delta:-1}},
-            {rect:{x:r.x+20+w,y:r.y+r.height-42,width:w,height:28},label:'›',key:'→',action:{type:'presentationPage',delta:1}},
-            {rect:{x:r.x+26+2*w,y:r.y+r.height-42,width:w,height:28},label:'▶',key:'T',action:{type:'presentationTutorial'}},
-            {rect:{x:r.x+32+3*w,y:r.y+r.height-42,width:w,height:28},label:I18n.getString(978,'Close'),key:'Esc',action:{type:'closePresentation'}}];
+        const r=this.getPresentationRect(),label=I18n.getString(978,'Close'),y=r.y+r.height-42;
+        const icons=[{label:'‹',key:'←',action:{type:'presentationPage',delta:-1}},
+            {label:'›',key:'→',action:{type:'presentationPage',delta:1}},
+            {label:'▶',key:'T',action:{type:'presentationTutorial'}}];
+        let x=r.x+14;
+        const actions=icons.map(button=>{const width=this.getButtonWidth(button.label,button.key,{iconOnly:true,minWidth:44});
+            const row={...button,rect:{x,y,width,height:28}};x+=width+6;return row;});
+        const width=this.getButtonWidth(label,'Esc',{size:12});
+        actions.push({rect:{x:r.x+r.width-14-width,y,width,height:28},label,key:'Esc',action:{type:'closePresentation'}});
+        return actions;
     }
     drawPresentation(){
         const p=this.game.presentation,r=this.getPresentationRect(),content=this.getPresentationContent();
         this.drawWindowPanel(r,I18n.getString(p.kind==='about'?969:970,p.kind==='about'?'About Galactica':'Galactica'));
+        if(p.kind==='about')this.getPresentationVersionLines().forEach((line,index)=>this.drawTextLine(line,r.x+14,r.y+47+index*13,'black',11));
         if(r.width>=480){
             const image=this.getImageCached('presentationSplash','presentation/splash.png');
             const h=Math.min(290,Math.max(60,r.height-180)),w=h*357/465;
@@ -2135,7 +2146,7 @@ class Display {
             this.drawTextLine('Edmund Zavada',r.x+14,r.y+82+h,'black',12);
             this.drawTextLine('James Whitehouse',r.x+14,r.y+99+h,'black',12);
             this.drawTextLine('Claudio Berni',r.x+14,r.y+116+h,'black',12);
-        }else this.drawTextLine('Galactica-4',r.x+14,r.y+66,'black',14);
+        }else if(p.kind!=='about')this.drawTextLine('Galactica-4',r.x+14,r.y+66,'black',14);
         if(p.kind==='about'){
             const y=r.width<480?r.y+50:r.y+r.height-95,x=r.width<480?r.x+r.width-90:r.x+14;
             for(const [key,file,dx] of [['sts','sts.png',0],['vendornation','vendornation.png',42]]){const logo=this.getImageCached('presentation'+key,'presentation/'+file);if(logo)this.port.drawImage(logo,new pdg.Rect(x+dx,y,x+dx+32,y+32),this.styles.image);}

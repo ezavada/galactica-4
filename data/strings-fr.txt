@@ -653,3 +653,8 @@
 983	Voir les illustrations originales et les crédits de Galactica sans modifier la partie.
 984	Afficher ou masquer l’introduction au démarrage de Galactica.
 985	Démarrer le didacticiel guidé. Votre partie actuelle est conservée jusqu’à votre retour.
+
+# Application build identity
+986	Version de développement {0}
+987	 (modifiée)
+988	Informations de compilation indisponibles

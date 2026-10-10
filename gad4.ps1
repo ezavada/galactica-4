@@ -11,6 +11,23 @@ Get-Content (Join-Path $rootDir "tools\pdg-release.env") | ForEach-Object {
     if ($_ -match '^([A-Z0-9_]+)=(.+)$') { $settings[$matches[1]] = $matches[2] }
 }
 
+# Application identity describes this checkout, independently of the PDG pin.
+$env:GALACTICA_BUILD_REVISION = $null
+$env:GALACTICA_BUILD_DIRTY = $null
+if (Get-Command git -ErrorAction SilentlyContinue) {
+    try {
+        $appRevision = & git -C $rootDir rev-parse --verify HEAD 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            $appStatus = & git -C $rootDir status --porcelain --untracked-files=normal 2>$null
+            if ($LASTEXITCODE -eq 0 -and $appRevision -match '^[0-9a-fA-F]{40}$') {
+                $env:GALACTICA_BUILD_REVISION = $appRevision
+                $env:GALACTICA_BUILD_DIRTY = if ($appStatus) { "true" } else { "false" }
+            }
+        }
+    } catch { # Build identity is optional in source archives without Git.
+    }
+}
+
 $appScript = Join-Path $rootDir "main.js"
 if ($AppArguments.Count -gt 0 -and $AppArguments[0] -eq "--") {
     $AppArguments = @($AppArguments | Select-Object -Skip 1)

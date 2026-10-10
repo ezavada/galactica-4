@@ -6,6 +6,7 @@
 const test = require('./test-framework.js');
 const runMapSelectionTests=require('./map-selection.test.js');
 const runMapScrollbarTests=require('./map-scrollbars.test.js');
+const runApplicationVersionTests=require('./application-version.test.js');
 const runStartupLifecycleTests=require('./startup-lifecycle.test.js');
 const runPresentationTests=require('./presentation.test.js');
 const runFullscreenTests = require('./fullscreen.test.js');
@@ -256,6 +257,7 @@ runDocumentFileTests();
     runFullscreenTests();
     runPresentationTests();
     runStartupLifecycleTests();
+    runApplicationVersionTests();
     runMapDisplayModeTests();
 
     // Print summary

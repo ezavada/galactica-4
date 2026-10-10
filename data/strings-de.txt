@@ -653,3 +653,8 @@
 983	Originalgrafik und Mitwirkende von Galactica ansehen, ohne das Spiel zu ändern.
 984	Die Einführung beim Start von Galactica anzeigen oder ausblenden.
 985	Das geführte Tutorial starten. Das aktuelle Spiel bleibt bis zur Rückkehr erhalten.
+
+# Application build identity
+986	Entwicklungsstand {0}
+987	 (geändert)
+988	Build-Informationen nicht verfügbar

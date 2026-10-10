@@ -653,3 +653,8 @@
 983	View the original Galactica artwork and credits without changing your game.
 984	Show or hide the introduction when Galactica starts.
 985	Start the guided tutorial. Your current game is preserved until you return.
+
+# Application build identity
+986	Development build {0}
+987	 (modified)
+988	Build information unavailable

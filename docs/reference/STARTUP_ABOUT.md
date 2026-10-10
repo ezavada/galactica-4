@@ -1,6 +1,6 @@
 # Shipped startup and About presentation
 
-This is source evidence for the startup/About port; the core presentation is now implemented, with remaining startup lifecycle/version work tracked in the parity checklist. It does not mark the
+This is source evidence for the startup/About port; the core presentation is now implemented, with remaining startup command work tracked in the parity checklist. It does not mark the
 startup/About UI or its preferences as complete.
 
 Regenerate the four shipped English/German shareware/CD-ROM variants:
@@ -60,7 +60,7 @@ before other factories initialize them; tutorial failure falls back to the manua
 Existing installations and later launches do not repeat automatic onboarding.
 See `docs/V3_V4_FEATURE_STATUS.md` for the test and screenshot evidence.
 
-Configured startup commands and accurate application-version presentation remain
-unfinished. Original music still needs intact composition metadata. These source
+About now identifies the actual development application build independently of
+the PDG dependency. Configured startup commands remain unfinished. Original music still needs intact composition metadata. These source
 references remain requirements for the remaining port; resource extraction alone
 is not runtime completion evidence.
