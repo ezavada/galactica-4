@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 309 IDs
-- localized files: 309 IDs each
+- `strings.txt`: 321 IDs
+- localized files: 321 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 788 passed, 0 failed.
+Current expected full-suite result: 795 passed, 0 failed.
 
 ## Future work
 
@@ -119,3 +119,5 @@ Course-visibility controls use IDs 768–769 for ordinary and courier routes, lo
 Scanner-range visibility uses ID 770 in all six languages. Native Settings/F6, selected scanner exceptions, influence-mask cache reuse and new-game persistence were checked in each language. Current resources: 307 IDs per language. Full suite: 783 passed.
 
 Fullscreen uses IDs 771–772 for the menu control and failure feedback in every supported language. Trusted browser clicks, rejected requests/retry, translated menu screenshots and wider-screen click accuracy passed in all six languages. Current resources: 309 IDs per language. Full suite: 788 passed. Native monitor transition validation remains pending because GLFW reports zero monitors in this session.
+
+Map display controls and brightness legends use IDs 773–784 in all six languages. Chooser labels, active state, known-system range, no-known-values message and allocation hint are resource driven. Actual browser clicks selected every mode; translated chooser/map/legend screenshots were inspected, including a smaller Russian viewport. Current resources: 321 IDs per language. Full suite: 795 passed.

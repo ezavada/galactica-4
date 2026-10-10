@@ -3,6 +3,7 @@
 
 const LanguageSettings = require('./language-settings.js');
 const Common = require('./common.js');
+const MapDisplayModes = require('./map-display-modes.js');
 const MapGenerator = require('./map-generator.js');
 const GameConfig = require('./game-config.js');
 const PlayerInfo = require('./player-info.js');
@@ -37,6 +38,7 @@ class Game {
         this.showCourierCourses = true;
         this.showShips = true;
         this.showGrid = true;
+        this.mapDisplayMode = 'ownership';
         this.showMapNames = true;
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
@@ -1196,7 +1198,7 @@ class Game {
 
         const lower = char.toLowerCase();
 
-        if(this.uiWindow==='settings') {
+        if(this.uiWindow==='settings' || this.uiWindow==='mapDisplay') {
             if(key===pdg.key_Escape)this.uiWindow=null;
             return true;
         }
@@ -1579,6 +1581,10 @@ class Game {
 
         switch (action.type) {
             case 'consume':
+                return true;
+            case 'setMapDisplayMode':
+                if(!MapDisplayModes.valid(action.mode))return false;
+                this.mapDisplayMode=action.mode;
                 return true;
             case 'toggleFullscreen':
                 return !!(this.fullscreen && this.fullscreen.toggle());

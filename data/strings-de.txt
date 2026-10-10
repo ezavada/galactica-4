@@ -377,3 +377,17 @@
 # Fullscreen window command
 771	Vollbild
 772	Der Vollbildmodus konnte nicht geändert werden. Bitte erneut versuchen.
+
+# Map display modes and brightness legend
+773	Kartenanzeige
+774	Besitz
+775	Produktion
+776	Technologie
+777	Verteidigung
+778	Wachstumsanteil
+779	Schiffbauanteil
+780	Forschungsanteil
+781	Höhere Werte erscheinen heller.
+782	Keine bekannten Werte
+783	Bekannte Systeme: {0}–{1}
+784	Zielanteil (%)

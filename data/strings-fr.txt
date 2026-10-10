@@ -377,3 +377,17 @@
 # Fullscreen window command
 771	Plein écran
 772	Impossible de changer le mode plein écran. Veuillez réessayer.
+
+# Map display modes and brightness legend
+773	Affichage de la carte
+774	Propriété
+775	Production
+776	Technologie
+777	Défense
+778	Allocation à la croissance
+779	Allocation à la construction
+780	Allocation à la recherche
+781	Les valeurs élevées sont plus lumineuses.
+782	Aucune valeur connue
+783	Systèmes connus : {0}–{1}
+784	Allocation cible (%)

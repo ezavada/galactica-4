@@ -377,3 +377,17 @@
 # Fullscreen window command
 771	Pantalla completa
 772	No se pudo cambiar la pantalla completa. Inténtalo de nuevo.
+
+# Map display modes and brightness legend
+773	Vista del mapa
+774	Propiedad
+775	Producción
+776	Tecnología
+777	Defensa
+778	Asignación al crecimiento
+779	Asignación a naves
+780	Asignación a investigación
+781	Los valores altos se ven más brillantes.
+782	Sin valores conocidos
+783	Sistemas conocidos: {0}–{1}
+784	Asignación objetivo (%)

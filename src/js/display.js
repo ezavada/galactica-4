@@ -11,6 +11,7 @@ const UIIcons = require('./ui-icons.js');
 const ScannerLayer = require('./scanner-layer.js');
 const PanelAppearance = require('./panel-appearance.js');
 const LanguageSettings = require('./language-settings.js');
+const MapDisplayModes = require('./map-display-modes.js');
 
 const debugSelectedObject = true;
 
@@ -186,6 +187,8 @@ class Display {
             textMuted: [0.56, 0.56, 0.58, 1.0],
             gridLine: [0.25, 0.25, 0.5, 0.5],
             overlayDim: [0, 0, 0, 0.65],
+            mapScaleLow: [.1,.1,.1,1],
+            mapScaleHigh: [1,1,1,1],
             selectionFrame: [1, 1, 1, 0.75],
             defaultDestination: [0, 1, 0, 0.8],
             rendezvousLine: [0.80, 0.80, 0.84, 0.75]
@@ -240,6 +243,7 @@ class Display {
         // and allow later UI passes to tune a style in one place.
         return {
             rendezvousMarker: this.createAttributes({lineStyle:pdg.lineStyle_None}),
+            mapDisplayLegendScale: this.createAttributes(),
             starTwinkle: this.createAttributes({lineColor:new pdg.Color('white'),lineStyle:pdg.lineStyle_Solid}),
             clear: this.createAttributes({ fillColor: new pdg.Color('black') }),
             image: this.createAttributes(),
@@ -651,7 +655,7 @@ class Display {
             const ownerColor = this.ownerColors[star.owner];
             const attrs = this.createAttributes({
                 fillColor: ownerColor,
-                fillOpacity: 0.25
+                fillOpacity: 0.25*this.getMapDisplayBrightness(star,true)
             });
             this.port.drawCircle(new pdg.Point(screenX, screenY), scaledRadius * 5.0, attrs);
         }
@@ -668,7 +672,7 @@ class Display {
         // Use radial gradient from center (bright) to edges (darker)
         const centerColor = new pdg.Color(color);
         const edgeColor = new pdg.Color(color);
-        const brightness=this.visualEffects.starBrightness(star.id,this.getVisualTime());
+        const brightness=this.visualEffects.starBrightness(star.id,this.getVisualTime())*this.getMapDisplayBrightness(star,true);
         for(const shade of [centerColor,edgeColor]) {
             shade.red*=brightness;shade.green*=brightness;shade.blue*=brightness;
         }
@@ -683,7 +687,7 @@ class Display {
         });
         this.port.drawPolygon(diamond, attrs);
         
-        const twinkle=this.starTwinkle && this.starTwinkle.id===star.id?this.starTwinkle.strength:0;
+        const twinkle=this.starTwinkle && this.starTwinkle.id===star.id?this.starTwinkle.strength*this.getMapDisplayBrightness(star,true):0;
         if(twinkle>0) {
             const glow=this.styles.starTwinkle;
             const reach=scaledRadius+4;
@@ -706,7 +710,7 @@ class Display {
                 color = 'white';
             }
             const textColor = new pdg.Color(color);
-            textColor.alpha = nameOpacity; // Apply fading
+            textColor.alpha = nameOpacity*Math.max(.35,this.getMapDisplayBrightness(star,true)); // Apply fading
             const textAttrs = this.createAttributes({
                 fillColor: textColor,
                 textSize: star.namedStar ? 11 : 10,
@@ -816,7 +820,7 @@ class Display {
         const viewer=this.game.getCurrentHumanPlayer() || 1;
         if(!this.isOmniscientMode() && !this.game.isOwnerAlliedWith(viewer,object.owner)
             && this.getVisibilityLevelForPlayer(object,viewer)<Common.VisibilityLevel.CLASS)return;
-        const opacity=object===this.selectedObject?1:this.mapEntityNameOpacity;
+        const opacity=(object===this.selectedObject?1:this.mapEntityNameOpacity)*this.getMapDisplayBrightness(object);
         if(opacity<=0)return;
         const color=new pdg.Color('white');color.alpha=opacity;
         this.port.drawText(this.fitShipDiagnosticText(this.game.getObjectDisplayName(object),160,10),
@@ -836,7 +840,7 @@ class Display {
             // too small to draw, skip
             return;
         }
-        const shipOpacity = selected ? 1.0 : this.mapEntityNameOpacity;
+        const shipOpacity = (selected ? 1.0 : this.mapEntityNameOpacity)*this.getMapDisplayBrightness(ship);
         
         // Offset for ships parked at stars
         if (ship.star) {
@@ -947,7 +951,7 @@ class Display {
             return;
         }
         
-        const fleetOpacity = selected ? 1.0 : this.mapEntityNameOpacity;
+        const fleetOpacity = (selected ? 1.0 : this.mapEntityNameOpacity)*this.getMapDisplayBrightness(fleet);
         
         // Offset for fleets parked at stars (same as ships)
         // Check if fleet is at a star by comparing positions
@@ -1693,7 +1697,7 @@ class Display {
 
     getCommandWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error ? 370 : 328) : 294 });
+        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error ? 404 : 362) : 328 });
     }
 
     getProductionWindowRect() {
@@ -1786,10 +1790,12 @@ class Display {
         const comparison={rect:{x:rect.x+14,y:rect.y+148,width:rect.width-28,height:28},
             label:this.STR.compare,key:'V',action:{type:'toggleWindow',window:'comparison'}};
         const fullscreen=this.game.fullscreen && this.game.fullscreen.supported ? [{
-            rect:{x:rect.x+14,y:rect.y+250,width:rect.width-28,height:28},
+            rect:{x:rect.x+14,y:rect.y+284,width:rect.width-28,height:28},
             label:I18n.getString(771,'Full screen'),active:this.game.fullscreen.active(),action:{type:'toggleFullscreen'}
         }] : [];
-        if(!this.game.getCurrentHumanPlayer())return [comparison,settings,...fullscreen];
+        const mapDisplay={rect:{x:rect.x+14,y:rect.y+250,width:rect.width-28,height:28},
+            label:I18n.getString(773,'Map display'),action:{type:'toggleWindow',window:'mapDisplay'}};
+        if(!this.game.getCurrentHumanPlayer())return [comparison,settings,mapDisplay,...fullscreen];
         return [{rect:{x:rect.x+14,y:rect.y+80,width:rect.width-28,height:28},
             icon:'gear',label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}},
             {rect:{x:rect.x+14,y:rect.y+114,width:rect.width-28,height:28},
@@ -1797,7 +1803,57 @@ class Display {
             comparison,
             {rect:{x:rect.x+14,y:rect.y+182,width:rect.width-28,height:28},
             label:I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`,key:'Tab',active:this.game.attention.pending().length>0,action:{type:'nextAttention'}},
-            settings,...fullscreen];
+            settings,mapDisplay,...fullscreen];
+    }
+
+    getMapDisplayWindowRect() {
+        const screen=this.getScreenSize(),width=Math.min(340,screen.width-40);
+        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:352});
+    }
+
+    getMapDisplayActionRegions() {
+        if(this.game.uiWindow!=='mapDisplay')return [];
+        const rect=this.getMapDisplayWindowRect();
+        return MapDisplayModes.modes.map((mode,index)=>({
+            rect:{x:rect.x+14,y:rect.y+64+index*32,width:rect.width-28,height:28},
+            label:I18n.getString(mode.id,mode.label),active:this.game.mapDisplayMode===mode.key,
+            action:{type:'setMapDisplayMode',mode:mode.key}
+        }));
+    }
+
+    drawMapDisplayWindow() {
+        const rect=this.getMapDisplayWindowRect();
+        this.drawWindowPanel(rect,I18n.getString(773,'Map display'));
+        this.getMapDisplayActionRegions().forEach(row=>this.drawUIButton(row.rect,row.label,null,{active:row.active}));
+        this.wrapEventMessage(I18n.getString(781,'Higher levels appear brighter.'),rect.width-28,11).slice(0,2)
+            .forEach((line,index)=>this.drawTextLine(line,rect.x+14,rect.y+309+index*14,'gray',11));
+        this.drawTextLine(this.STR.escClose,rect.x+14,rect.y+rect.height-12,'gray',10);
+    }
+
+    getMapDisplayBrightness(object,star=false) {
+        return MapDisplayModes.brightness(this.game,object,star,this.mapDisplayState);
+    }
+
+    drawMapDisplayLegend() {
+        this.mapDisplayLegendRect=null;
+        const state=this.mapDisplayState;
+        if(!state || state.key==='ownership')return;
+        const mode=MapDisplayModes.modes.find(mode=>mode.key===state.key);
+        const label=I18n.getString(mode.id,mode.label);
+        const range=state.low===null?I18n.getString(782,'No known values'):
+            I18n.formatString(783,'Known systems: {0}–{1}',I18n.formatPercentage(state.low),I18n.formatPercentage(state.high));
+        const screen=this.getScreenSize(),width=Math.min(screen.width-40,Math.max(260,this.port.getTextWidth(range,11)+28,this.port.getTextWidth(label,13)+28));
+        const rect={x:14,y:84,width,height:82};
+        this.mapDisplayLegendRect=rect;
+        this.drawPanelSurface(rect,this.styles.windowPanel);
+        this.drawTextLine(label,rect.x+14,rect.y+20,'lightgray',13);
+        this.drawTextLine(range,rect.x+14,rect.y+40,'lightgray',11);
+        const gradient=this.styles.mapDisplayLegendScale;
+        gradient.fillGradient(new pdg.Point(rect.x+14,rect.y+54),this.getUIColor('mapScaleLow'),
+            new pdg.Point(rect.x+rect.width-14,rect.y+54),this.getUIColor('mapScaleHigh'));
+        this.port.drawRect(new pdg.Rect(rect.x+14,rect.y+50,rect.x+rect.width-14,rect.y+56),gradient);
+        const hint=I18n.getString(mode.allocation?784:781,mode.allocation?'Target allocation (%)':'Higher levels appear brighter.');
+        this.drawTextLine(this.fitShipDiagnosticText(hint,rect.width-28,10),rect.x+14,rect.y+73,'gray',10);
     }
 
     getSettingsWindowRect() {
@@ -2042,6 +2098,8 @@ class Display {
                 return this.getComparisonWindowRect();
             case 'fleets':
                 return this.getFleetWindowRect();
+            case 'mapDisplay':
+                return this.getMapDisplayWindowRect();
             case 'settings':
                 return this.getSettingsWindowRect();
             case 'colonyDefaults':
@@ -2218,6 +2276,7 @@ class Display {
 
     getUIPanelRegions() {
         const regions = [];
+        if(this.mapDisplayLegendRect)regions.push(this.mapDisplayLegendRect);
         if (this.game.selectedObject) {
             const selectedPanel = this.getSelectedObjectPanelRect(this.game.selectedObject);
             if (selectedPanel) {
@@ -2245,6 +2304,7 @@ class Display {
         if (this.game.uiWindow==='events') controls=this.getEventActionRegions();
         if (this.game.uiWindow==='menu') controls=this.getCommandActionRegions();
         if (this.game.uiWindow==='settings') controls=this.getSettingsActionRegions();
+        if (this.game.uiWindow==='mapDisplay') controls=this.getMapDisplayActionRegions();
         if (this.game.uiWindow==='colonyDefaults') {
             controls=this.getColonyDefaultActionRegions();
             const slider=this.getColonyDefaultSliderRegions().find(region=>this.containsPoint(region.rect,x,y));
@@ -2277,7 +2337,7 @@ class Display {
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
-        if (['rename','colonyDefaults','settings','endTurnConfirm'].includes(this.game.uiWindow)) return { type: 'consume' };
+        if (['rename','colonyDefaults','settings','mapDisplay','endTurnConfirm'].includes(this.game.uiWindow)) return { type: 'consume' };
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
         if (contextButton) {
             return contextButton.action;
@@ -2729,7 +2789,7 @@ class Display {
         let y = this.getPanelContentStartY(rect);
         this.drawTextLine(this.STR.keyboardShortcutsActive, x, y, 'gray', 11);
         this.getCommandActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,region.key,{icon:region.icon,active:!!region.active}));
-        if(this.game.fullscreen && this.game.fullscreen.error)this.wrapEventMessage(I18n.getString(772,'Could not change full screen. Please try again.'),rect.width-28,11).slice(0,3).forEach((line,index)=>this.drawTextLine(line,x,rect.y+299+index*15,'lightgray',11));
+        if(this.game.fullscreen && this.game.fullscreen.error)this.wrapEventMessage(I18n.getString(772,'Could not change full screen. Please try again.'),rect.width-28,11).slice(0,3).forEach((line,index)=>this.drawTextLine(line,x,rect.y+333+index*15,'lightgray',11));
         this.drawTextLine(this.STR.escClose,x,rect.y+rect.height-16,'gray',10);
     }
 
@@ -3060,6 +3120,9 @@ class Display {
             case 'fleets':
                 this.drawFleetWindow();
                 break;
+            case 'mapDisplay':
+                this.drawMapDisplayWindow();
+                break;
             case 'settings':
                 this.drawSettingsWindow();
                 break;
@@ -3190,6 +3253,7 @@ class Display {
         this.iconHint=null;
         // Update star rendering cache once per frame
         this.updateMapRenderingCalculations();
+        this.mapDisplayState=MapDisplayModes.sample(this.game,this.game.mapDisplayMode || 'ownership');
         
         // Draw the distant background first.
         this.drawBackground();
@@ -3210,6 +3274,7 @@ class Display {
         
         // Draw UI
         this.drawMainUI(game.turn, game.stars.length, game.allShips.length);
+        this.drawMapDisplayLegend();
         
         // Draw selected object details
         this.drawTransitionLayer('inspector',game.selectedObject && !game.pendingCourseEdit?game.selectedObject:null,()=>{

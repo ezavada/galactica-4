@@ -5,6 +5,7 @@
 
 const test = require('./test-framework.js');
 const runFullscreenTests = require('./fullscreen.test.js');
+const runMapDisplayModeTests = require('./map-display-modes.test.js');
 const runStringResourceTests = require('./string-resources.test.js');
 const runMapGenerationTests = require('./map-generation.test.js');
 const runCoordinateMovementTests = require('./coordinate-movement.test.js');
@@ -150,6 +151,7 @@ try {
     runShipDiagnosticsTests();
 
     runFullscreenTests();
+    runMapDisplayModeTests();
 
     // Print summary
     const success = test.printSummary();
