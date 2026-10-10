@@ -867,3 +867,28 @@ translated tooltips and long destination layouts were inspected under
 
 These explicit UI deviations supersede the earlier pause/coordinate descriptions;
 remaining tutorial, parity and Map Generation items remain open.
+
+
+### Bookmatched nebula background
+
+Background repeats now alternate horizontal and vertical reflection using PDG's
+public image/Quad rendering. Tile identity is anchored to the original image,
+including negative offsets, so orientation is continuous across pan/repeat
+boundaries. Adjacent tiles meet the same source edge on both axes. Scaling,
+zoom-dependent parallax, reduced motion and the Nebula toggle retain their
+existing behavior; no image asset, UI text or simulation random stream changes.
+
+The new regression verifies both seam orientations and tile parity over eight
+positive/negative whole-tile shifts. Existing edge coverage checks still cover
+landscape, portrait and square art/viewports and extreme panning with at most
+four draws. Both full suites pass all 1,249 tests. Actual browser before/after
+seam, whole-repeat, tiny boundary-crossing and normal-game captures were inspected
+under `/private/tmp/galactica-parity/bookmatched-background-{before,after}`;
+all six language runs pass. Pixel comparisons show zero difference between
+reflected strips at both seams and offsets 1/10/50/100 pixels from them, versus
+baseline seam differences of 25.74 and 15.81 on an 8-bit channel scale. A 0.1px
+pan across a repeat boundary changes the full-frame mean by only 0.119 in every
+language. Evidence: `/private/tmp/galactica-bookmatched-background-pixels.json`
+and `/private/tmp/galactica-bookmatched-background-{tests,native-tests}.log`.
+This completes the requested background treatment; the remaining parity,
+tutorial and Map Generation requirements are still open.

@@ -141,11 +141,33 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
     test.it('covers every viewport edge with background tiles during unrestricted panning',()=>{
         const d=Object.create(Display.prototype);d.visualEffects=new VisualEffects();d.styles={image:{}};
         for(const [width,height] of [[800,600],[1600,900],[480,800]])for(const [iw,ih] of [[1920,1080],[1000,1000],[600,1000]])for(const sign of [-1,1]){
-            const rects=[];d.port={getDrawingArea:()=>new pdg.Rect(width,height),drawImage:(i,r)=>rects.push(r)};d.backgroundImage={getWidth:()=>iw,getHeight:()=>ih};d.camera={panX:sign*1e12,panY:-sign*1e12,scale:1/1024,zoom:10,minZoom:.1};
+            const rects=[];d.port={getDrawingArea:()=>new pdg.Rect(width,height),drawImage:(i,q)=>rects.push(q.getBounds())};d.backgroundImage={getWidth:()=>iw,getHeight:()=>ih};d.camera={panX:sign*1e12,panY:-sign*1e12,scale:1/1024,zoom:10,minZoom:.1};
             d.drawBackground();
             for(let x=0;x<=width;x+=width/4)for(let y=0;y<=height;y+=height/4)
                 test.assertTrue(rects.some(r=>r.left<=x&&r.right>=x&&r.top<=y&&r.bottom>=y));
             test.assertTrue(rects.length<=4);
+        }
+    });
+    test.it('bookmatches both background axes and retains tile parity across negative and positive repeat boundaries',()=>{
+        const d=Object.create(Display.prototype),quads=[];d.styles={image:{}};d.backgroundImage={getWidth:()=>824,getHeight:()=>624};
+        d.port={getDrawingArea:()=>new pdg.Rect(800,600),drawImage:(image,quad)=>quads.push(quad)};
+        d.visualEffects={parallax:()=>({x:412,y:312})};d.drawBackground();test.assertEqual(quads.length,4);
+        const tiles=quads.map(q=>({q,rect:q.getBounds()}));
+        for(const tile of tiles){const q=tile.q,rect=tile.rect;
+            test.assertEqual(q.points[0].x>q.points[1].x,rect.left<400);test.assertEqual(q.points[0].y>q.points[3].y,rect.top<300);
+            for(const other of tiles){const r=other.rect;
+                if(Math.abs(rect.right-r.left)<.000001 && rect.top===r.top){
+                    const edge=q.points[0].x===rect.right?0:1;const opposite=other.q.points[0].x===r.left?0:1;test.assertEqual(edge,opposite);
+                }
+                if(Math.abs(rect.bottom-r.top)<.000001 && rect.left===r.left){
+                    const edge=q.points[0].y===rect.bottom?0:1;const opposite=other.q.points[0].y===r.top?0:1;test.assertEqual(edge,opposite);
+                }
+            }
+        }
+        for(const shift of [-4,-3,-2,-1,0,1,2,3,4]){
+            quads.length=0;d.visualEffects.parallax=()=>({x:12+shift*824,y:12+shift*624});d.drawBackground();
+            const tile=quads.find(q=>q.getBounds().left===0 && q.getBounds().top===0);test.assertDefined(tile);
+            test.assertEqual(tile.points[0].x>tile.points[1].x,shift%2!==0);test.assertEqual(tile.points[0].y>tile.points[3].y,shift%2!==0);
         }
     });
     test.it('creates stable unnamed decorative positions only outside the playable map',()=>{

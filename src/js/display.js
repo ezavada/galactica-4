@@ -498,16 +498,24 @@ class Display {
             const offsetX = (screenWidth - scaledWidth) / 2+drift.x;
             const offsetY = (screenHeight - scaledHeight) / 2+drift.y;
             
-            // Repeat only when a translated edge enters view; unrestricted panning
-            // must keep a constant drift rate rather than saturating at an offset.
-            const tileX=((offsetX%scaledWidth)+scaledWidth)%scaledWidth;
-            const tileY=((offsetY%scaledHeight)+scaledHeight)%scaledHeight;
-            for(let y=tileY-scaledHeight;y<screenHeight;y+=scaledHeight) {
-                for(let x=tileX-scaledWidth;x<screenWidth;x+=scaledWidth) {
+            // Keep tile identities relative to the original image, including
+            // negative offsets, so panning across a repeat never changes parity.
+            const firstColumn=Math.floor(-offsetX/scaledWidth),firstRow=Math.floor(-offsetY/scaledHeight);
+            for(let row=firstRow;;row++) {
+                const y=offsetY+row*scaledHeight;
+                if(y>=screenHeight)break;
+                for(let column=firstColumn;;column++) {
+                    const x=offsetX+column*scaledWidth;
+                    if(x>=screenWidth)break;
                     if(x+scaledWidth<=0 || y+scaledHeight<=0)continue;
-                    this.port.drawImage(this.backgroundImage,this.toPDGRect({x,y,width:scaledWidth,height:scaledHeight}),this.styles.image);
+                    // Adjacent tiles meet at the same source edge (bookmatching).
+                    const left=x+(column%2?scaledWidth:0),right=x+(column%2?0:scaledWidth);
+                    const top=y+(row%2?scaledHeight:0),bottom=y+(row%2?0:scaledHeight);
+                    this.port.drawImage(this.backgroundImage,new pdg.Quad(new pdg.Point(left,top),
+                        new pdg.Point(right,top),new pdg.Point(right,bottom),new pdg.Point(left,bottom)),this.styles.image);
                 }
             }
+
         } else {
             // Fallback to a gradient background if image not loaded
             const backgroundRect = new pdg.Rect(0, 0, screenWidth, screenHeight);
