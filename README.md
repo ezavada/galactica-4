@@ -136,15 +136,33 @@ For a dedicated host with no game window or local player:
 ./gad4 tools/host-game.js /path/to/host.gad4.json 0 en
 ```
 
-The optional port defaults to 0; the final argument selects en/de/es/fr/ja/ru.
+Create a new dedicated host without a game window:
+
+```bash
+./gad4 tools/host-game.js --new /path/to/new.host.gad4.json \
+  --title "My game" --players 3 --ais 1 --size 2 --density 3 \
+  --skill 2 --turn-minutes 5 --end-early --port 0 --language en
+```
+
+`--players` is the total count, `--ais` the AI portion. Use `--ais` equal to
+`--players` for an AI-only host that advances automatically. Skill uses the same
+1 (Expert) to 5 (Novice) scale as game setup; density is 1–10 and size is 1–5.
+`--advantage` accepts -3 through 3. Turn limits are minutes (0 is unlimited).
+Defaults are two humans, no AIs, Tiny/lowest-density, Novice, fast game, fog on,
+no time limit and no early end for timed turns. `--slow` and `--no-fog` override
+speed and visibility. Existing files are never overwritten.
+
+Named reopening is `--load FILE --port 0 --language en`; it preserves saved
+setup. `--help --language CODE` lists options in any supported language.
+The positional form above remains supported. Its optional port defaults to 0;
+the final argument selects en/de/es/fr/ja/ru.
 The command prints the bound local address. Ctrl+C or SIGTERM saves and stops
 the host. Application and dedicated hosts use an exclusive `.host-lock`
 sidecar directory across atomic saves; a lease from a terminated process is
 retired on the next open. An incomplete or unreadable lease is retained for
 manual inspection rather than risking an active host file.
 
-Multiplayer remains incomplete: dedicated new-game creation options,
-administration UI, discovery, chat and
+Multiplayer remains incomplete: administration UI, discovery, chat and
 network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
@@ -154,7 +172,7 @@ network-game saving are still being ported. See [the parity checklist](docs/V3_V
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1487 passed, 0 failed.
+Current expected result: 1496 passed, 0 failed.
 
 AI-only parity observer:
 

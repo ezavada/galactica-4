@@ -12,7 +12,7 @@ function normalizeAddress(address){
 function validateInfo(data){
  if(!data || typeof data!=='object' || data.protocol!==protocol)throw fail('bad_protocol');
  const integer=(n,min,max)=>Number.isSafeInteger(n) && n>=min && n<=max;
- if(!hex(data.gameId) || typeof data.title!=='string' || data.title.length>4096 || !integer(data.turn,1,Number.MAX_SAFE_INTEGER) || !integer(data.humans,1,99) || !integer(data.computers,0,98) || data.humans+data.computers>99 || !Array.isArray(data.slots) || data.slots.length!==data.humans)throw fail('network_bad_response');
+ if(!hex(data.gameId) || typeof data.title!=='string' || data.title.length>4096 || !integer(data.turn,1,Number.MAX_SAFE_INTEGER) || !integer(data.humans,0,99) || !integer(data.computers,0,99) || data.humans+data.computers<1 || data.humans+data.computers>99 || !Array.isArray(data.slots) || data.slots.length!==data.humans)throw fail('network_bad_response');
  const slots=data.slots.map((slot,index)=>{
   if(!slot || slot.player!==index+1 || !['open','occupied'].includes(slot.status) || slot.status==='occupied' && (!Names.validName(slot.name) || typeof slot.online!=='boolean'))throw fail('network_bad_response');
   return {player:slot.player,status:slot.status,...(slot.status==='occupied'?{name:slot.name,online:slot.online}:{})};

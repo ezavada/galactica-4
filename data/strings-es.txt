@@ -789,3 +789,11 @@
 1097	Este turno guardado ya no está disponible. Ábrelo de nuevo.
 1098	Es un archivo de anfitrión. Usa Abrir como anfitrión en la aplicación de escritorio.
 1099	No se pudo crear el archivo del anfitrión. Comprueba el nombre y los permisos de escritura.
+
+1100	Uso: ./gad4 tools/host-game.js --new ARCHIVO [OPCIONES] | --load ARCHIVO [--port N] [--language CÓDIGO]
+1101	Jugadores: --title NOMBRE --players 1–99 --ais 0–JUGADORES; valores iniciales: 2 jugadores, 0 IA.
+1102	Mapa/IA: --size 1–5 --density 1–10 --skill 1–5 (1 experto, 5 novato) --advantage -3–3.
+1103	Turnos: --turn-minutes N (0 ilimitado) --end-early; valores iniciales: ilimitado, esperar el plazo.
+1104	Velocidad/visibilidad: --slow --no-fog; valores iniciales: juego rápido, niebla de guerra. Las partidas solo de IA avanzan automáticamente.
+1105	Red: --port 0–65535 (0 automático) --language en/de/es/fr/ja/ru. --help muestra estas opciones.
+1106	Opciones del anfitrión dedicado no válidas. Revisa la sintaxis y los intervalos siguientes.

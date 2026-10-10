@@ -6,7 +6,7 @@ const HostView=require('./host-view.js');
 const Orders=require('./player-orders.js');
 function failure(code){const error=new Error(code);error.code=code;return error;}
 function validate(config){
-    if(!(config instanceof Config) || config.validate().length || !config.hosting || config.numHumans<1 || config.skipMapGeneration ||
+    if(!(config instanceof Config) || config.validate().length || !config.hosting || config.skipMapGeneration ||
         !Number.isSafeInteger(config.maxTimePerTurn) || config.maxTimePerTurn<0 || config.maxTimePerTurn>Math.floor(Number.MAX_SAFE_INTEGER/1000) || typeof config.endEarly!=='boolean')throw failure('invalid_host_config');
 }
 class NetworkHost {
@@ -75,14 +75,16 @@ class NetworkHost {
         }catch(error){this.game=old;this.login.game=old;Object.assign(clock,clockState);types.forEach((type,index)=>{type.nextId=counters[index];});throw error;}
     }
     ready(game){
+        // V3 robot hosts advance continuously while multiple AIs survive.
+        if(game.config.numHumans===0)return game.players.filter(p=>p && p.isComputer && p.isAlive).length>1;
         const living=game.players.slice(1,game.config.numHumans+1).filter(p=>p.isAlive);
         if(!living.length)return game.players.some(p=>p && p.isLoggedIn) && game.players.filter(p=>p && p.isComputer && p.isAlive).length>1;
         return game.config.networkHost.players.every((claim,index)=>claim && (!game.players[index+1].isAlive || game.players[index+1].lastTurnPosted===game.turn));
     }
     tick(){
         if(!this.server || this.game.isGameOver || this.clock.paused)return false;
-        const ready=this.ready(this.game) && (this.game.turn===1 || this.game.config.maxTimePerTurn===0 || this.game.config.endEarly);
-        if(!ready && !this.clock.expired())return false;
+        const ready=this.ready(this.game) && (this.game.config.numHumans===0 || this.game.turn===1 || this.game.config.maxTimePerTurn===0 || this.game.config.endEarly);
+        if(!ready && (this.game.config.numHumans===0 || !this.clock.expired()))return false;
         this.transact(game=>game.endTurn());return true;
     }
     pauseClock(){this.transact(()=>this.clock.pause());}

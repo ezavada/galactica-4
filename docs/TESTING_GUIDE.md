@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1487
-Passed: 1487 ✓
+Total: 1496
+Passed: 1496 ✓
 Failed: 0 ✗
 ```
 
@@ -485,8 +485,8 @@ independent-process exclusive leases, duplicate game identities, malformed file
 preservation, failed-bind recovery with the lease retained, dedicated listener
 startup and save-before-SIGTERM shutdown, and stale lease recovery after a
 real SIGKILL. It passes on both native PDG runtimes. The dedicated command
-opens an existing host; new-game command options remain pending. Local-turn
-conversion is available in the desktop Open as host flow described below.
+opens existing hosts and supports named new-game options described below.
+Local-turn conversion is available in the desktop Open as host flow.
 
 `tools/test-web-host-setup.cjs` also covers File Open as host, localized missing
 file errors, preserved timed turn/claims, ordinary saved-player rejoining, and
@@ -545,3 +545,25 @@ Native results: `/private/tmp/galactica-host-conversion-{native,public-native}.l
 Full suites: `/private/tmp/galactica-host-conversion-{unit,public-unit}.log`.
 Before/after screenshots: `/private/tmp/galactica-parity/host-conversion-{before,after}/<language>`.
 UI logs: `/private/tmp/galactica-host-conversion-ui-<language>.log`.
+
+
+### Dedicated new-game commands
+
+```bash
+./gad4 tools/test-host-command.js
+./gad4 tools/host-game.js --help --language en
+```
+
+The awaited tool launches the actual dedicated entry in all six languages,
+checks localized help/invalid-input errors, forwards setup/AI/map/timer/speed/fog
+options into real saved hosts, joins and posts both human turns, saves on SIGTERM,
+rejoins through named load, rejects existing output without overwrite, and starts
+an AI-only host that advances without login. An occupied port on the same wildcard
+bind address must leave a complete reopenable host file with its lease released.
+All client-facing robot lobby data remains validated; no human admission slot is
+invented. Unit regressions cover parser bounds, conflicting/duplicate flags,
+positional compatibility, AI-only pause, completed/sole-survivor stopping and
+failed-save rollback/retry. This command-only item adds no graphical surface.
+
+Results: `/private/tmp/galactica-host-command-{unit,public-unit,native,public-native}.log`.
+The full unit suite expects 1,496 passes.

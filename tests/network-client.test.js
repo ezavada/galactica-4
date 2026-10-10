@@ -12,6 +12,9 @@ module.exports=()=>test.describe('Live network client protocol boundaries',()=>{
   for(const mutate of [d=>d.gameId='wrong',d=>d.version={},d=>d.endEarly='yes',d=>d.density=11,d=>d.humans=0,d=>d.slots.pop(),d=>d.slots[1].player=1,d=>d.slots[1].online='yes',d=>d.slots[1].name='Bad\nName']){const data=info();mutate(data);rejects(()=>Client.validateInfo(data),'network_bad_response');}
   rejects(()=>Client.validateInfo({...info(),protocol:2}),'bad_protocol');
  });
+ test.it('accepts AI-only public lobbies without inventing human admission slots',()=>{
+  const robots={...info(),humans:0,computers:99,slots:[]};test.assertEqual(Client.validateInfo(robots).computers,99);test.assertEqual(Client.validateInfo(robots).slots.length,0);rejects(()=>Client.validateInfo({...robots,computers:0}),'network_bad_response');rejects(()=>Client.validateInfo({...robots,computers:100}),'network_bad_response');rejects(()=>Client.validateLogin({protocol:1,gameId:id,token,name:'Voyager',player:1,turn:1},robots,'Voyager'),'network_bad_response');
+ });
  test.it('binds accepted identity and temporary token to the inspected game and submitted name',()=>{
   const response={protocol:1,gameId:id,name:'Voyager',player:2,token,turn:1};test.assertEqual(Client.validateLogin(response,info(),'Voyager').player,2);
   for(const mutate of [d=>d.name='Other',d=>d.player=3,d=>d.token='short',d=>d.turn=0]){const data={...response};mutate(data);rejects(()=>Client.validateLogin(data,info(),'Voyager'),'network_bad_response');}

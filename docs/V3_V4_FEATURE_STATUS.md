@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1487 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1496 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -265,7 +265,7 @@ The largest blockers to a complete game are:
 - Functional sorting for Compare Players, unless another shipped v3 path is found; the audited `SortCompareWindowByColumn()` body is empty.
 - Additional dashboard/scoring views beyond the v3 summary columns.
 
-## 9. Save/load, multiplayer, and host administration (Functionality 25%, UI 25%)
+## 9. Save/load, multiplayer, and host administration (Functionality 64%, UI 64%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -275,7 +275,7 @@ The largest blockers to a complete game are:
 | Close game | File-menu Close Game/W closes the active document; game changes mark it modified, save/load clears that state, and closing stops tutorial instructions. | ✅ Implemented | ✅ Implemented | File → Close game/W offers localized Save and close/Discard/Cancel for changed or new documents, closes clean saved games directly, waits for successful writes and preserves other open games. Navigation/report review does not dirty the document. Closing the last game returns to setup; tutorial closure restores the original and releases bindings. Both full suites pass 1,358 tests; dedicated async decisions and actual six-language browser paths are verified below. Application Quit and browser-tab protection are verified separately below; native OS/window-close interception remains pending. |
 | Quit application | Quit checks modified documents before exiting; Cancel prevents exit. | 🟡 Partial | 🟡 Partial | File → Quit/Q, Command/Ctrl+Q, startup Quit and configured command 10 now check every retained game, wait for writes and preserve remaining documents on Cancel. Browser unload warns for unsaved games; accepted Quit offers a localized restart screen. Both full suites pass 1,369 tests; actual all-six-language browser and real native shutdown checks pass. Native window-close/OS Quit requests still bypass save decisions in the pinned PDG runtime and require engine integration. Joined client documents log out on accepted Close/Quit. Host creation/stop defers Quit while busy; accepted Quit awaits saved shutdown of every application host. A failed host save leaves its listener active and the application open for retry. Native OS/window-close interception remains the separate engine blocker. |
 | Host new network game | Creates host data, starts server, and presents join flow. | ✅ Implemented | ✅ Implemented | Desktop startup Host/H and File → Host create an exclusive durable host file and independent listener. The localized modal offers player/map/timer options, actual port/address/status, ordinary Join, Stop, another host and retry after bind failure. Dismissing the status or closing a client keeps hosting alive. Browser hosting is explicitly unavailable. All six shared-UI flows against real native hosts and both native integration suites pass; see the audit below. |
-| Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | 🟡 Partial | 🟡 Partial | Created desktop hosts can run without joining a local player and independently of retained game documents. File → Open as host and the startup Host form reopen existing hosts with their galaxy, turn, claims/passwords and remaining/paused clock intact. A dedicated command opens the same host without a graphics window or local player. Exclusive application/dedicated file leases prevent concurrent writers; ordinary authenticated rejoin is available. Local saved turns can be converted into a separate host with first-N human roles, fresh open slots and no turn limit, preserving the inspected galaxy/turn and source. Dedicated new-game command options remain missing. |
+| Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | ✅ Implemented | ✅ Implemented | Created desktop hosts can run without joining a local player and independently of retained game documents. File → Open as host and the startup Host form reopen existing hosts with their galaxy, turn, claims/passwords and remaining/paused clock intact. A dedicated command opens the same host without a graphics window or local player. Exclusive application/dedicated file leases prevent concurrent writers; ordinary authenticated rejoin is available. Local saved turns can be converted into a separate host with first-N human roles, fresh open slots and no turn limit, preserving the inspected galaxy/turn and source. Dedicated --new/--load commands configure total/AI players, map, AI skill/advantage, timer, speed, fog, port and language; AI-only hosts advance without a local player. Localized command help/errors and real creation/posting/rejoin/shutdown are verified in all six languages on both native runtimes. |
 | LAN/Internet discovery | Browse advertised games and query the matchmaker. | ❌ Missing | ❌ Missing | No equivalent. |
 | Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | 🟡 Partial | 🟡 Partial | Startup Join/J and File → Join open a localized modal address/name/masked-password form with public game/slot information and paged player selection. Native HTTP/browser CORS admission installs the authenticated client as a retained game document; same-player rejoin reuses that document. Automatic refresh preserves same-turn orders and updates authoritative turns. Title dragging stays in the port and remembers its position. Six-language actual-control browser tests pass. Saved host lists/discovery remain missing; untimed order submission and authoritative turn resolution are now wired. |
 | Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🟡 Partial | 🟡 Partial | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit policy, optional saved-password preferences and host administration remain forthcoming. |
@@ -2864,3 +2864,53 @@ private admission/password preferences, chat, network-document saving, host repo
 localization and hosting tutorial recovery 103 remain pending. The Open as host /
 dedicated row therefore remains partial; Map Generation is still a separate
 unfinished checklist.
+
+
+### Dedicated new-game options and AI-only hosts — 2026-10-10
+
+Audited v3 `Galactica.cpp:537–558,585–677,2683–2700`: dedicated new/load commands,
+total player/AI counts, skill, density, size, turn minutes, slow/fog overrides,
+early-end and port. `GalacticaHost.cpp:566–578` explicitly advances robot-only
+games continuously while more than one computer remains; no login is required.
+
+V4's dedicated entry now accepts `--new FILE`, `--load FILE` and localized
+`--help --language CODE`, while retaining `HOST_FILE [PORT] [LANGUAGE]`.
+New-game options include `--title`, `--players` (total), `--ais`, `--skill`,
+`--advantage`, `--size`, `--density`, `--turn-minutes`, `--slow`, `--no-fog`,
+`--end-early`, `--port` and `--language`. Values and conflicting/duplicate options
+are validated before filesystem work; existing outputs cannot be overwritten.
+Load rejects new-game options rather than mutating saved setup. Separate title
+and file arguments support Unicode names and paths with spaces. Defaults are
+explicit, valid standalone setup rather than v3's zero-valued globals requiring
+hostconfig initialization. Skill and density use the normal v4 setup scales
+(1 Expert–5 Novice and 1–10), rather than v3's command-only inverse/zero-based
+scales. The v3 size parser's incorrect prefix/index check is not reproduced.
+
+AI-only hosts have zero human slots and run authoritative turns without a client,
+regardless of timer/early-end settings. Pause still holds them; completed games
+or a sole surviving AI do not advance. Failed persistence rolls back the entire
+turn and retries on the existing scheduler. Public robot lobbies validate with
+zero human slots, and actual attempted human admission returns game_full.
+The new entry uses the existing independent service, exclusive file lease,
+atomic publication and save-before-SIGTERM shutdown; bind failure saves the
+created host and releases the lease for later reopening.
+
+Both full suites pass 1,496 tests. Awaited actual dedicated processes pass new,
+load, help, invalid input, Unicode titles/paths, option forwarding, two-human
+posting, saved rejoin and non-overwrite checks in all six languages on both native
+runtimes. Real AI-only processes advance with no login. Port-conflict checks use
+the same wildcard bind address as the dedicated service and verify complete
+saved output plus lease cleanup. The existing reopening/process suite also
+passes its positional load, failed-save SIGTERM/retry and stale-owner cases.
+Logs: `/private/tmp/galactica-host-command-{unit,public-unit,native,public-native}.log`
+and `/private/tmp/galactica-host-command-reopen-regression.log`. This item adds
+no graphical surface; the existing host/conversion dialogs retain their separately
+verified six-language screenshots.
+
+The Open as host/dedicated row is now implemented. Section 9's estimates are
+recomputed from its current rows (implemented=1, partial=0.5, missing=0). Host
+administration (including persisted host/private-admission policies), discovery,
+saved-password preferences, chat, network-document saving, host-generated report
+localization and tutorial recovery 103 remain pending. The v3 hostconfig file
+format is not read by the dedicated command; administrative settings/persistence
+remain a separate task. Map Generation follows the remaining parity work.

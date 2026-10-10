@@ -789,3 +789,11 @@
 1097	This saved turn is no longer available. Open it again.
 1098	This is a host file. Use Open as host in the desktop application.
 1099	Could not create this host file. Check the filename and write permissions.
+
+1100	Usage: ./gad4 tools/host-game.js --new FILE [OPTIONS] | --load FILE [--port N] [--language CODE]
+1101	Players: --title NAME --players 1–99 --ais 0–PLAYERS; defaults: 2 players, 0 AIs.
+1102	Map/AI: --size 1–5 --density 1–10 --skill 1–5 (1 expert, 5 novice) --advantage -3–3.
+1103	Turns: --turn-minutes N (0 unlimited) --end-early; defaults: unlimited, wait for deadline.
+1104	Speed/visibility: --slow --no-fog; defaults: fast game, fog of war. AI-only hosts advance automatically.
+1105	Network: --port 0–65535 (0 automatic) --language en/de/es/fr/ja/ru. --help shows these options.
+1106	Invalid dedicated-host options. Check the syntax and ranges below.

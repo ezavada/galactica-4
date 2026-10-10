@@ -789,3 +789,11 @@
 1097	Cette sauvegarde n’est plus disponible. Ouvrez-la à nouveau.
 1098	C’est un fichier hôte. Utilisez Ouvrir comme hôte dans l’application de bureau.
 1099	Impossible de créer ce fichier hôte. Vérifiez le nom et les droits d’écriture.
+
+1100	Utilisation : ./gad4 tools/host-game.js --new FICHIER [OPTIONS] | --load FICHIER [--port N] [--language CODE]
+1101	Joueurs : --title NOM --players 1–99 --ais 0–JOUEURS ; valeurs initiales : 2 joueurs, 0 IA.
+1102	Carte/IA : --size 1–5 --density 1–10 --skill 1–5 (1 expert, 5 novice) --advantage -3–3.
+1103	Tours : --turn-minutes N (0 illimité) --end-early ; valeurs initiales : illimité, attendre le délai.
+1104	Vitesse/visibilité : --slow --no-fog ; valeurs initiales : partie rapide, brouillard de guerre. Les parties avec uniquement des IA avancent automatiquement.
+1105	Réseau : --port 0–65535 (0 automatique) --language en/de/es/fr/ja/ru. --help affiche ces options.
+1106	Options de serveur dédié non valides. Vérifiez la syntaxe et les limites ci-dessous.

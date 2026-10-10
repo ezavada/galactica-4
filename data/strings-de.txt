@@ -789,3 +789,11 @@
 1097	Dieser Spielstand ist nicht mehr verfügbar. Öffne ihn erneut.
 1098	Dies ist eine Host-Datei. Nutze Als Host öffnen in der Desktop-App.
 1099	Die Host-Datei konnte nicht erstellt werden. Prüfe Namen und Schreibrechte.
+
+1100	Aufruf: ./gad4 tools/host-game.js --new DATEI [OPTIONEN] | --load DATEI [--port N] [--language CODE]
+1101	Spieler: --title NAME --players 1–99 --ais 0–SPIELER; Standard: 2 Spieler, 0 KIs.
+1102	Karte/KI: --size 1–5 --density 1–10 --skill 1–5 (1 Experte, 5 Anfänger) --advantage -3–3.
+1103	Runden: --turn-minutes N (0 unbegrenzt) --end-early; Standard: unbegrenzt, auf Frist warten.
+1104	Tempo/Sicht: --slow --no-fog; Standard: schnelles Spiel, Kriegsnebel. Reine KI-Spiele laufen automatisch.
+1105	Netzwerk: --port 0–65535 (0 automatisch) --language en/de/es/fr/ja/ru. --help zeigt diese Optionen.
+1106	Ungültige Serveroptionen. Prüfe Syntax und Wertebereiche unten.
