@@ -1168,7 +1168,7 @@ class Display {
     drawAnchoredPanel(object, rect, title = null, borderColor = null) {
         this.drawPanelPointer(object, rect, borderColor);
         let style=null;
-        if(this.game.factory.isStar(object) && this.game.canHumanControl(object)) {
+        if(this.game.factory.isStar(object) && object.owner>0 && this.isStarOwnerKnown(object)) {
             if(!this.ownerPanelStyles.has(object.owner))this.ownerPanelStyles.set(object.owner,this.createAttributes({lineColor:this.getUIColor('panelBorder')}));
             style=this.ownerPanelStyles.get(object.owner);
             const base=this.getUIColor('panelFill'),owner=this.ownerColors[object.owner] || this.getUIColor('panelBorder');
@@ -2239,6 +2239,12 @@ class Display {
         return visible ? star.name : I18n.formatString(725,'S-{0}',star.id);
     }
 
+    isStarOwnerKnown(star) {
+        const player=this.game.getCurrentHumanPlayer();
+        return this.game.config.omniscient || this.game.canHumanControl(star) ||
+            star.isAllyOf(player) || star.getVisibilityTo(player)>Common.VisibilityLevel.NONE;
+    }
+
     getStarDiagnostics(star) {
         const player = this.game.getCurrentHumanPlayer();
         const allied = this.game.config.omniscient || star.isAllyOf(player);
@@ -2255,7 +2261,7 @@ class Display {
         const destination = allied ? star.getDefaultDestination() : null;
         return {
             title: this.getStarDisplayName(star),
-            owner: allied || visibility > Common.VisibilityLevel.NONE ? String(star.owner || this.STR.unclaimed) : '?',
+            owner: this.isStarOwnerKnown(star) ? String(star.owner || this.STR.unclaimed) : '?',
             population: classVisible ? I18n.formatInteger((star.population || 0)*1000) : '?',
             tech: techVisible ? String(Math.trunc(star.techLevel)) : '?',
             position: this.formatSpaceCoordinates(star),

@@ -57,12 +57,32 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         const v=new VisualEffects(true);test.assertEqual(v.twinkle(7,400),0);const p=v.parallax({panX:1e12,panY:1e12,scale:1});test.assertEqual(p.x,0);test.assertEqual(p.y,0);
         test.assertEqual(v.transition('window','menu',0).opacity,1);test.assertEqual(v.transition('window','menu',0).offset,0);test.assertEqual(v.transition('window',null,1).opacity,0);
     });
-    test.it('tints controlled planet panels and leaves unknown/enemy ownership unaccented',()=>{
+    test.it('tints controlled planet panels and leaves unknown ownership unaccented',()=>{
         const {game,display:d}=fixture();const home=game.factory.createStar(0,0,'Home');home.owner=1;let style;
         d.drawPanelPointer=()=>{};d.drawPanel=(rect,title,border,appearance)=>{style=appearance};const rect={x:0,y:0,width:100,height:100};d.drawAnchoredPanel(home,rect);
         const first=style;test.assertTrue(d.panelStyleColors.get(style).blue>d.getUIColor('panelFill').blue);d.drawAnchoredPanel(home,rect);test.assertTrue(style===first);
         home.owner=0;d.drawAnchoredPanel(home,rect);test.assertNull(style);home.owner=2;d.drawAnchoredPanel(home,rect);test.assertNull(style);
         home.owner=8;game.config.numHumans=8;d.drawAnchoredPanel(home,rect);test.assertTrue(!!style);test.assertTrue(Number.isFinite(d.panelStyleColors.get(style).red));
+    });
+    test.it('tints enemy panels at exactly the visibility where ownership is revealed',()=>{
+        const {display:d}=fixture(),star=d.game.factory.createStar(0,0,'Enemy');star.owner=2;
+        d.drawPanelPointer=()=>{};let style;d.drawPanel=(r,t,b,a)=>style=a;
+        for(const level of [0,1,2,3,4,0]) {
+            star.setVisibilityTo(1,level);d.drawAnchoredPanel(star,{x:0,y:0,width:100,height:100});
+            test.assertEqual(!!style,level>0);test.assertEqual(d.getStarDiagnostics(star).owner,level>0?'2':'?');
+            if(style)test.assertTrue(d.panelStyleColors.get(style).red>d.getUIColor('panelFill').red);
+        }
+    });
+    test.it('tints identifiable owners with fog disabled, but never unclaimed systems',()=>{
+        const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Enemy');star.owner=2;game.config.omniscient=true;
+        d.drawPanelPointer=()=>{};let style;d.drawPanel=(r,t,b,a)=>style=a;const rect={x:0,y:0,width:100,height:100};
+        d.drawAnchoredPanel(star,rect);test.assertTrue(!!style);const enemyStyle=style;
+        star.owner=1;d.drawAnchoredPanel(star,rect);test.assertTrue(style!==enemyStyle);
+        star.owner=0;d.drawAnchoredPanel(star,rect);test.assertNull(style);
+    });
+    test.it('tints known allied ownership without requiring a sensor observation',()=>{
+        const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Ally');star.owner=2;game.players[2].isAllyOf=player=>player===1;
+        test.assertTrue(d.isStarOwnerKnown(star));test.assertEqual(d.getStarDiagnostics(star).owner,'2');
     });
     test.it('keeps familiar icons tied to the original actions and localized labels',()=>{
         const {display}=fixture();const buttons=display.getMapButtonDefinitions();
