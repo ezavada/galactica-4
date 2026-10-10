@@ -125,6 +125,22 @@ function runMapGenerationTests() {
         });
     });
 
+    test.describe('MapGenerator - All sector sizes',()=>{
+        test.it('scales star counts by sector area for all five sizes with fixed randomness',()=>{
+            const generator=new MapGenerator(new Game(new Factory(),new Rules(),new GameConfig({skipMapGeneration:true})));
+            pdg.srand(TEST_SEED);const base=generator.calculateStarCount(1,1,2);
+            for(let size=1;size<=5;size++){pdg.srand(TEST_SEED);test.assertEqual(generator.calculateStarCount(1,size,2),base*size*size);}
+        });
+        test.it('constructs each size with in-bounds stars and all player homeworlds',()=>{
+            for(let size=1;size<=5;size++){
+                pdg.srand(TEST_SEED);const game=new Game(new Factory(),new Rules(),new GameConfig({sectorSize:size,numHumans:1,numComputers:2}));
+                for(const owner of [1,2,3])test.assertEqual(game.stars.filter(s=>s.owner===owner).length,1);
+                for(const star of game.stars){test.assertInRange(star.x,0,1024*1024*size);test.assertInRange(star.y,0,1024*1024*size);}
+                test.assertEqual(new Set(game.stars.map(s=>s.name)).size,game.stars.length);
+            }
+        });
+    });
+
     test.describe('MapGenerator - Star Name Generation', () => {
         test.it('generates unique star names with S- prefix for duplicates', () => {
             pdg.srand(TEST_SEED);

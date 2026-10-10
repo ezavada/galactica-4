@@ -15,7 +15,7 @@ class GameConfig {
         
         // Map configuration
         this.density = options.density !== undefined ? options.density : 1; // v3 stellar density: integer 1–10
-        this.sectorSize = options.sectorSize || 1;  // 1-4 typical (map size multiplier)
+        this.sectorSize = options.sectorSize !== undefined ? options.sectorSize : 1; // v3 sector size: integer 1–5
         
         // AI configuration
         this.compSkill = options.compSkill || 2;         // 1=Expert, 2=Good, 3=Average, 4=Passable, 5=Novice
@@ -178,8 +178,8 @@ class GameConfig {
             errors.push("density must be an integer between 1 and 10");
         }
         
-        if (this.sectorSize < 1 || this.sectorSize > 5) {
-            errors.push("sectorSize must be between 1 and 5");
+        if (!Number.isInteger(this.sectorSize) || this.sectorSize < 1 || this.sectorSize > 5) {
+            errors.push("sectorSize must be an integer between 1 and 5");
         }
         
         if (this.compSkill < 1 || this.compSkill > 5) {
@@ -225,13 +225,8 @@ class GameConfig {
     // Get map size description
     getMapSizeDescription() {
         // Load map size descriptions from resources (IDs 350-355)
-        const sizeIds = {
-            1: 350,  // Small
-            2: 351,  // Medium
-            3: 352,  // Large
-            4: 353,  // Huge
-            5: 354   // Gigantic
-        };
+        const sizeIds = {1:350,2:351,3:352,4:353,5:354}; // Tiny, Small, Average, Large, Huge
+
         const stringId = sizeIds[this.sectorSize];
         if (stringId !== undefined) {
             return I18n.getString(stringId, "Unknown");

@@ -57,11 +57,11 @@
 306	Unbekannt
 
 # Map Size Descriptions (350-399)
-350	Klein
-351	Mittel
-352	Groß
-353	Riesig
-354	Gigantisch
+350	Winzig
+351	Klein
+352	Mittel
+353	Groß
+354	Riesig
 355	Unbekannt
 
 # Density Descriptions (400-449)
@@ -94,7 +94,7 @@
 520	Neues Spiel einrichten
 521	Spieler: {0} {1}, {2} {3}
 522	KI-Fähigkeit: {0} ({1})
-523	Karte: {0} / {1}
+523	Kartengröße: {0}
 524	Optionen: {0}, {1}
 525	<C> KI-Spieler wechseln   <1-5> KI-Fähigkeit
 526	<S> Kartengröße   <D> Sterndichte

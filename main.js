@@ -197,7 +197,7 @@ function drawStartupDialog() {
 
     const panelRect=StartupSetup.panelRect(screenWidth,screenHeight);
     const {x:panelX,y:panelY,width:panelWidth}=panelRect;
-    const scale=panelRect.height/480,step=value=>value*scale;
+    const scale=panelRect.height/540,step=value=>value*scale;
     for(const [style,size] of [['titleText',24],['subtitleText',13],['lineText',13],['hintText',12],['startText',14],['advantageText',13],['advantageSummary',12]])startupStyles[style].textSize(Math.max(9,size*scale));
     drawStartupRoundedRect(panelRect, 16, startupStyles.panel);
 
@@ -226,7 +226,13 @@ function drawStartupDialog() {
         port.drawText(choice.label,new pdg.Point(choice.rect.x+choice.rect.width/2,choice.rect.y+step(19)),startupStyles.advantageText);
     }
     y += step(64);
-    port.drawText(I18n.formatString(523, 'Map: {0} / {1}', pendingConfig.getMapSizeDescription(), pendingConfig.getDensityDescription()), new pdg.Point(x, y), startupStyles.lineText);
+    port.drawText(I18n.formatString(523, 'Map size: {0}', pendingConfig.getMapSizeDescription()), new pdg.Point(x, y), startupStyles.lineText);
+    for(const choice of StartupSetup.sectorSizeRegions(panelRect,pendingConfig)) {
+        drawStartupRoundedRect(choice.rect,7,choice.active?startupStyles.advantageButtonActive:startupStyles.advantageButton);
+        port.drawText(choice.label,new pdg.Point(choice.rect.x+choice.rect.width/2,choice.rect.y+step(19)),startupStyles.advantageText);
+    }
+    y += step(64);
+    port.drawText(pendingConfig.getDensityDescription(),new pdg.Point(x,y),startupStyles.lineText);
     for(const choice of StartupSetup.densityRegions(panelRect,pendingConfig)) {
         drawStartupRoundedRect(choice.rect,7,choice.active?startupStyles.advantageButtonActive:startupStyles.advantageButton);
         port.drawText(choice.label,new pdg.Point(choice.rect.x+choice.rect.width/2,choice.rect.y+step(19)),startupStyles.advantageText);
@@ -273,7 +279,7 @@ function handleStartupKey(key) {
             refreshTotalPlayers(pendingConfig);
             return true;
         case 's':
-            pendingConfig.sectorSize = (pendingConfig.sectorSize % 5) + 1;
+            StartupSetup.cycleSectorSize(pendingConfig);
             return true;
         case 'd':
             StartupSetup.cycleDensity(pendingConfig);
@@ -408,6 +414,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
             const area=port.getDrawingArea();
             StartupSetup.clickAdvantage(pendingConfig,StartupSetup.panelRect(area.width(),area.height()),event.mousePos.x,event.mousePos.y);
             StartupSetup.clickDensity(pendingConfig,StartupSetup.panelRect(area.width(),area.height()),event.mousePos.x,event.mousePos.y);
+            StartupSetup.clickSectorSize(pendingConfig,StartupSetup.panelRect(area.width(),area.height()),event.mousePos.x,event.mousePos.y);
         }
         return true;
     }

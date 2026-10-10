@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 731 passed, 0 failed.
+Current expected full-suite result: 737 passed, 0 failed.
 
 ## Future work
 
@@ -103,3 +103,5 @@ Language switching adds 11 regressions covering fixed autonyms in all UI languag
 Computer-advantage setup adds localized heading, A-shortcut help and production percentage (IDs 761–763). The seven signed numeric choices are shared across languages. Real browser choices, shortcuts, reset and launch passed in all six languages; English/Russian smaller-window layouts were also inspected.
 
 Stellar-density setup now uses a localized numeric label (ID 764) in all six languages, with the same 1–10 choices in every locale. Browser input/reset/launch checks and setup screenshot comparisons passed in all six languages; the full suite has 725 passing tests. Translated star-name lists are deduplicated before generation and suffix exhaustion falls back to unique numbered names.
+
+Sector-size setup restores the v3 Tiny/Small/Average/Large/Huge scale in IDs 350–354 across all six languages. ID 523 now labels map size alone, alongside a separate density row. All five dimension choices, S cycling/reset, launch and screenshot checks passed in all six languages; the smaller Russian layout was inspected. Resource counts remain 301 per language; the full unit suite has 737 passing tests.

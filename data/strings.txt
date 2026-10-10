@@ -56,11 +56,11 @@
 306	Unknown
 
 # Map Size Descriptions (350-399)
-350	Small
-351	Medium
-352	Large
-353	Huge
-354	Gigantic
+350	Tiny
+351	Small
+352	Average
+353	Large
+354	Huge
 355	Unknown
 
 # Density Descriptions (400-449)
@@ -93,7 +93,7 @@
 520	New Game Setup
 521	Players: {0} {1}, {2} {3}
 522	AI skill: {0} ({1})
-523	Map: {0} / {1}
+523	Map size: {0}
 524	Options: {0}, {1}
 525	<C> cycle AI players   <1-5> AI skill
 526	<S> map size   <D> star density

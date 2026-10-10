@@ -57,11 +57,11 @@
 306	Inconnu
 
 # Map Size Descriptions (350-399)
-350	Petit
-351	Moyen
-352	Grand
-353	Énorme
-354	Gigantesque
+350	Minuscule
+351	Petit
+352	Moyen
+353	Grand
+354	Immense
 355	Inconnu
 
 # Density Descriptions (400-449)
@@ -94,7 +94,7 @@
 520	Configuration d'une nouvelle partie
 521	Joueurs : {0} {1}, {2} {3}
 522	Niveau IA : {0} ({1})
-523	Carte : {0} / {1}
+523	Taille de carte : {0}
 524	Options : {0}, {1}
 525	<C> changer joueurs IA   <1-5> niveau IA
 526	<S> taille de carte   <D> densité stellaire

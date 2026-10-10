@@ -72,4 +72,36 @@ module.exports=()=>{
             }
         });
     });
+    test.describe('Sector size setup',()=>{
+        test.it('offers every v3 dimension with selection highlighting and forwards it to map generation',()=>{
+            const config=new Config(),panel=Setup.panelRect(800,600);
+            test.assertEqual(Setup.sectorSizeRegions(panel,config).map(r=>r.label).join(','),'1×1,2×2,3×3,4×4,5×5');
+            for(const {value,rect:r} of Setup.sectorSizeRegions(panel,config)){
+                test.assertTrue(Setup.clickSectorSize(config,panel,r.x+r.width/2,r.y+r.height/2));test.assertEqual(config.sectorSize,value);
+                test.assertEqual(Setup.sectorSizeRegions(panel,config).filter(c=>c.active)[0].value,value);
+                test.assertEqual(config.toMapGeneratorConfig().sectorSize,value);test.assertEqual(config.density,1);test.assertEqual(config.compAdvantage,0);
+            }
+        });
+        test.it('cycles all five sizes with wraparound and ignores clicks in button gaps',()=>{
+            const config=new Config(),panel=Setup.panelRect(800,600),r=Setup.sectorSizeRegions(panel,config)[0].rect,seen=[];
+            for(let i=0;i<5;i++){Setup.cycleSectorSize(config);seen.push(config.sectorSize)}test.assertEqual(seen.join(','),'2,3,4,5,1');
+            test.assertFalse(Setup.clickSectorSize(config,panel,r.x+r.width+3,r.y+10));test.assertFalse(Setup.clickSectorSize(config,panel,0,0));
+        });
+        test.it('validates exactly the five v3 integer sizes without silently normalizing invalid input',()=>{
+            for(const value of Setup.sectorSizes)test.assertEqual(new Config({sectorSize:value}).validate().length,0);
+            for(const value of [0,-1,6,1.5,NaN,Infinity,null,'2']){
+                test.assertTrue(new Config({sectorSize:value}).validate().some(e=>e.includes('sectorSize')));test.assertFalse(Setup.setSectorSize(new Config(),value));
+            }
+        });
+        test.it('keeps the expanded setup controls separated and inside short and narrow panels',()=>{
+            for(const [w,h] of [[800,600],[480,600],[480,400]]){const panel=Setup.panelRect(w,h),config=new Config();
+                const groups=[Setup.advantageRegions(panel,config),Setup.sectorSizeRegions(panel,config),Setup.densityRegions(panel,config)];
+                for(const group of groups)for(const {rect:r} of group){test.assertTrue(r.x>=panel.x&&r.x+r.width<=panel.x+panel.width);test.assertTrue(r.y+r.height<panel.y+panel.height);}
+                test.assertTrue(groups[0][0].rect.y+groups[0][0].rect.height<groups[1][0].rect.y);
+                test.assertTrue(groups[1][0].rect.y+groups[1][0].rect.height<groups[2][0].rect.y);
+                test.assertTrue(panel.y+488*panel.height/540<panel.y+panel.height);
+            }
+        });
+    });
+
 };

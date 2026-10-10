@@ -277,8 +277,8 @@ function runPlayerConfigTests() {
             const small = new GameConfig({ sectorSize: 1 });
             const large = new GameConfig({ sectorSize: 3 });
 
-            test.assertEqual(small.getMapSizeDescription(), 'Small', 'Size 1 should be Small');
-            test.assertEqual(large.getMapSizeDescription(), 'Large', 'Size 3 should be Large');
+            test.assertEqual(small.getMapSizeDescription(), 'Tiny', 'Size 1 should be Tiny');
+            test.assertEqual(large.getMapSizeDescription(), 'Average', 'Size 3 should be Average');
         });
 
         test.it('generates full description', () => {
