@@ -13,7 +13,7 @@
 7	Aucun
 8	Cliquez sur les étoiles pour les gérer
 9	Cliquez sur les vaisseaux pour donner des ordres
-10	TAB pour terminer le tour
+10	TAB : suivant ; Entrée : fin du tour
 11	Coque de Vaisseau
 12	Vaisseau
 13	Niveau Technologique:
@@ -144,7 +144,7 @@
 568	Galactica-4
 570	Nouvelle technologie de propulsion
 571	Nouvelle classe {0} mise en service
-572	Appuyez sur une touche pour continuer
+572	Espace ou Échap pour continuer
 573	Renommer
 574	Supprimer
 575	Déplacer
@@ -330,3 +330,12 @@
 
 # V3 course hunt mode
 741	Chasse
+
+# Call-in and attention
+742	Appeler
+743	Suivant
+744	Attention
+745	{0} demande des ordres
+746	{0} élément demande encore votre attention.|{0} éléments demandent encore votre attention.
+747	Terminer quand même
+748	Examiner

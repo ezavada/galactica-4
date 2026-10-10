@@ -10,6 +10,7 @@ const { SpatialPartition } = require('./spatial-partition.js');
 const VisibilityCalculator = require('./visibility-calculator.js');
 const CombatSystem = require('./combat.js');
 const I18n = require('./i18n.js');
+const Attention = require('./attention.js');
 
 class Game {
     constructor(factory, rules, config = null) {
@@ -31,6 +32,7 @@ class Game {
         this.overlayQueue = [];
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
+        this.attention = new Attention(this);
         this.pendingMapOrderObject = null;
         this.pendingCourseEdit = null;
         this.courseWindowObject = null;
@@ -948,7 +950,7 @@ class Game {
             closedAny = true;
         }
 
-        if (this.uiWindow === 'events') {
+        if (['events','endTurnConfirm'].includes(this.uiWindow)) {
             this.uiWindow = null;
             closedAny = true;
         }
@@ -1151,6 +1153,11 @@ class Game {
             return true;
         }
 
+        if(this.uiWindow==='endTurnConfirm') {
+            if(key===13 || key===3)this.endTurn();
+            return true;
+        }
+
         if (this.uiWindow==='course') {
             if (lower==='a') this.beginCourseEdit(false);
             else if (lower==='e') this.beginCourseEdit(true);
@@ -1160,6 +1167,7 @@ class Game {
             else if (lower==='m') this.executeUIAction({type:'swapCourseMemory'});
             else if (lower==='h') this.executeUIAction({type:'toggleCourseHunt'});
             else if (lower==='p') this.togglePatrol(this.courseWindowObject);
+            else if (lower==='c') this.toggleCallIn(this.courseWindowObject);
             return true;
         }
 
@@ -1268,6 +1276,7 @@ class Game {
 
     setSelectedObject(object) {
         this.selectedObject = object;
+        this.attention.attend(object);
         if (this.display) {
             this.display.setSelectedObject(object);
         }
@@ -1514,8 +1523,21 @@ class Game {
             case 'selectHomeStar':
                 this.selectHomeStar();
                 return true;
+            case 'reviewAttention':
+                this.uiWindow=null;
+                if(this.hasEventPresentation()) {
+                    if(!this.overlay)this.dismissEventPresentation();
+                    return true;
+                }
+                this.attention.next();return true;
+            case 'nextAttention':
+                this.attention.next();return true;
+            case 'toggleCallIn':
+                return this.toggleCallIn(action.object || this.selectedObject);
+            case 'confirmEndTurn':
+                this.endTurn();return true;
             case 'endTurn':
-                this.endTurn();
+                this.requestEndTurn();
                 return true;
             case 'zoomToFit':
                 if (this.display) {
@@ -1777,6 +1799,23 @@ class Game {
         return true;
     }
 
+    requestEndTurn() {
+        if(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag)return false;
+        if(this.attention.pending().length || this.hasEventPresentation()) {this.uiWindow='endTurnConfirm';return false;}
+        this.endTurn();return true;
+    }
+
+    canToggleCallIn(object=this.selectedObject) {
+        const speed=this.factory.isFleet(object)?object.totalSpeed:object && object.speed;
+        return this.canEditCourse(object) && speed>0;
+    }
+
+    toggleCallIn(object=this.selectedObject) {
+        if(!this.canToggleCallIn(object))return false;
+        object.userCallIn=!object.userCallIn;
+        return true;
+    }
+
     canTogglePatrol(object=this.selectedObject) {
         return this.canEditCourse(object) && !!object.star;
     }
@@ -1993,8 +2032,9 @@ class Game {
     
     handleKeyPress(key) {
         if (['rename','colonyDefaults'].includes(this.uiWindow) && key === pdg.key_Tab) return true;
+        if ((key===13 || key===3) && !['rename','colonyDefaults','systemComparison','endTurnConfirm'].includes(this.uiWindow)) {this.requestEndTurn();return true;}
         if (key === pdg.key_Tab) {
-            this.endTurn();
+            if(!this.pendingMapOrderObject && !this.pendingRendezvousPlacement && !this.uiSliderDrag && !this.hasEventPresentation())this.attention.next();
             return true;
         }
 
@@ -2015,13 +2055,16 @@ class Game {
         }
 
         // Dismiss overlay on any key press
-        if (this.overlay) {
+        if (this.overlay && this.uiWindow!=='endTurnConfirm') {
             this.dismissEventPresentation();
             return true;
         }
         const char = this.getKeyChar(key);
         if (this.handleCommandWindowKey(key, char)) {
             return true;
+        }
+        if (key === 13 || key === 3) {
+            this.requestEndTurn();return true;
         }
         if (key === pdg.key_Escape) {
             this.selectedObject = null;
@@ -2246,6 +2289,7 @@ class Game {
             this.aiManager.processAITurns();
         }
         
+        this.attention.beginTurn();
         this.moveAllShips();
         this.refreshRendezvousFleetReferences();
         // Update all stars
@@ -2255,6 +2299,8 @@ class Game {
             }
         }
         
+        this.attention.finishTurn();
+
         // Update visibility after all movements and changes
         this.visibilityCalculator.updateAllVisibility();
         
@@ -2536,6 +2582,7 @@ class Game {
                 console.log(eventMessage); // who = Ship, where = position or Star or Ship
                 break;
             case Common.EventType.SHIP_BUILT:
+                this.attention.request(who,false);
                 eventTitle = I18n.getString(608, 'Build');
                 eventMessage = I18n.formatString(628, '{0} built a {1} ship', where.name, shipTypeName);
                 console.log(eventMessage); // who = Ship, where = Star

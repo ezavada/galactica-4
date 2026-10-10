@@ -23,6 +23,8 @@ class Fleet {
         this.name = name || I18n.formatString(560, 'Fleet {0}', this.id);
         this.star = null;
         this.onPatrol = false;
+        this.userCallIn = false;
+        this.lastCallInTurn = -5;
         
         // Fleet composition
         this.ships = [];

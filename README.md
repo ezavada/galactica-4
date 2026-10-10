@@ -82,7 +82,7 @@ use the same paths as the desktop launcher.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 602 passed, 0 failed.
+Current expected result: 626 passed, 0 failed.
 
 AI-only parity observer:
 
@@ -91,6 +91,10 @@ AI-only parity observer:
 ```
 
 The observer uses seed `424242` and a 250-turn default cap. Event presentation windows are hidden by default for unattended runs; add `--show-event-windows` to see lab/stardock overlays, with `--autoplay-event-ms=1000` controlling the hold time.
+
+In game, Tab visits the next ship or fleet needing attention. Enter ends the turn;
+unreviewed requests or presentations require confirmation. Call in <C> in the
+course editor keeps a request active each turn until canceled.
 
 ## Licensing and assets
 

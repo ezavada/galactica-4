@@ -124,7 +124,7 @@ class Display {
             max: I18n.getString(540, "Max"),
             closeComparison: I18n.getString(545, "<V>/<Esc> Close comparison"),
             newDriveTechnology: I18n.getString(570, "New Drive Technology"),
-            pressAnyKey: I18n.getString(572, "Press any key to continue"),
+            pressAnyKey: I18n.getString(572, "Space or Esc to continue"),
             rename: I18n.getString(573, "Rename"),
             delete: I18n.getString(574, "Delete"),
             move: I18n.getString(575, "Move"),
@@ -1254,7 +1254,8 @@ class Display {
             { key: 'V', label: this.STR.compare, window: 'comparison', action: { type: 'toggleWindow', window: 'comparison' } },
             { key: 'L', label: this.STR.fleets, window: 'fleets', action: { type: 'toggleWindow', window: 'fleets' } },
             { key: 'U', label: this.STR.rendezvous, action: { type: 'beginRendezvousPlacement' } },
-            { key: 'Tab', label: this.STR.endTurn, action: { type: 'endTurn' } },
+            { key: 'Tab', label: I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`, action: { type: 'nextAttention' } },
+            { key: 'Enter', label: this.STR.endTurn, action: { type: 'endTurn' } },
             { key: 'H', label: this.STR.home, action: { type: 'selectHomeStar' } },
             { key: 'F', label: this.STR.fit, action: { type: 'zoomToFit' } }
         ];
@@ -1278,7 +1279,7 @@ class Display {
             const rect = {
                 x: startX + col * (buttonWidth + gap),
                 y: startY + row * (buttonHeight + gap),
-                width: buttonWidth,
+                width: i===buttons.length-1 && buttons.length%cols===1 ? buttonWidth*cols+gap : buttonWidth,
                 height: buttonHeight
             };
             return { ...button, rect };
@@ -1288,7 +1289,7 @@ class Display {
     drawMapButtons() {
         const buttons = this.getMapButtonRegions();
         for (const button of buttons) {
-            this.drawUIButton(button.rect, button.label, button.key, { active: button.window && this.game.uiWindow === button.window });
+            this.drawUIButton(button.rect, button.label, button.key, { active: button.action.type==='nextAttention' ? this.game.attention.pending().length>0 : button.window && this.game.uiWindow === button.window });
         }
     }
 
@@ -1496,9 +1497,25 @@ class Display {
         return panelRect ? this.getContextButtonArc(object, panelRect) : [];
     }
 
+    getEndTurnConfirmRect() {
+        const screen=this.getScreenSize();
+        return this.fitPanelToScreen({x:(screen.width-440)/2,y:120,width:440,height:160});
+    }
+    getEndTurnConfirmActions() {
+        const r=this.getEndTurnConfirmRect();
+        return [{rect:{x:r.x+14,y:r.y+88,width:r.width/2-20,height:30},label:I18n.getString(748,'Review'),action:{type:'reviewAttention'}},
+            {rect:{x:r.x+r.width/2+6,y:r.y+88,width:r.width/2-20,height:30},label:I18n.getString(747,'End anyway'),key:'Enter',action:{type:'confirmEndTurn'}}];
+    }
+    drawEndTurnConfirm() {
+        const r=this.getEndTurnConfirmRect();this.drawWindowPanel(r,this.STR.endTurn);
+        this.drawTextLine(I18n.formatPluralString(746,'{0} item still needs attention.|{0} items still need attention.',this.game.attention.pending().length+(this.game.overlay?1:0)+(this.game.overlayQueue||[]).length),r.x+14,r.y+62,'lightgray',12);
+        for(const button of this.getEndTurnConfirmActions())this.drawUIButton(button.rect,button.label,button.key,{size:11});
+        this.drawTextLine(this.STR.escClose,r.x+14,r.y+142,'gray',10);
+    }
+
     getCommandWindowRect() {
         const screen = this.getScreenSize();
-        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 190 });
+        return this.fitPanelToScreen({ x: screen.width - 320, y: 54, width: 300, height: 226 });
     }
 
     getProductionWindowRect() {
@@ -1547,7 +1564,9 @@ class Display {
         return [{rect:{x:rect.x+14,y:rect.y+80,width:rect.width-28,height:28},
             label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}},
             {rect:{x:rect.x+14,y:rect.y+114,width:rect.width-28,height:28},
-            label:I18n.getString(708,'Your Star Systems'),action:{type:'showSystemComparison'}}];
+            label:I18n.getString(708,'Your Star Systems'),action:{type:'showSystemComparison'}},
+            {rect:{x:rect.x+14,y:rect.y+148,width:rect.width-28,height:28},
+            label:I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`,key:'Tab',active:this.game.attention.pending().length>0,action:{type:'nextAttention'}}];
     }
 
     getColonyDefaultsWindowRect() {
@@ -1611,7 +1630,7 @@ class Display {
                 regions.push({rect:{x:r.x+14+index*width,y:r.y+r.height-96,width:width-5,height:26},
                     label:I18n.getString(id,fallback),key,active:type==='togglePatrol' && object.isOnPatrol(),action:{type,object}});
             });
-            const modeWidth=(r.width-150)/3,modeRect=index=>({
+            const modeWidth=(r.width-150)/4,modeRect=index=>({
                 x:r.x+14+index*(modeWidth+8),y:r.y+r.height-64,width:modeWidth,height:24});
             regions.push({rect:modeRect(0),label:I18n.getString(733,'Loop'),
                 key:'L',active:object.course.loop,action:{type:'toggleCourseLoop'}});
@@ -1621,6 +1640,8 @@ class Display {
             if(this.game.canToggleCourseHunt(object))regions.push({
                 rect:modeRect(2),label:I18n.getString(741,'Hunt'),
                 key:'H',active:object.course.hunt,action:{type:'toggleCourseHunt'}});
+            if(this.game.canToggleCallIn(object))regions.push({rect:modeRect(3),label:I18n.getString(742,'Call in'),
+                key:'C',active:!!object.userCallIn,action:{type:'toggleCallIn',object}});
         }
         if(layout.page>0)regions.push({rect:{x:r.x+14,y:r.y+r.height-32,width:130,height:22},
             label:I18n.getString(690,'Previous'),action:{type:'coursePage',page:layout.page-1}});
@@ -1733,6 +1754,8 @@ class Display {
 
     getActiveWindowRect() {
         switch (this.game.uiWindow) {
+            case 'endTurnConfirm':
+                return this.getEndTurnConfirmRect();
             case 'menu':
                 return this.getCommandWindowRect();
             case 'production':
@@ -1938,6 +1961,7 @@ class Display {
         const window = this.getActiveWindowRect();
         if (!window || !this.containsPoint(window, x, y)) return null;
         let controls = [];
+        if (this.game.uiWindow==='endTurnConfirm') controls=this.getEndTurnConfirmActions();
         if (this.game.uiWindow==='menu') controls=this.getCommandActionRegions();
         if (this.game.uiWindow==='colonyDefaults') {
             controls=this.getColonyDefaultActionRegions();
@@ -1971,7 +1995,7 @@ class Display {
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
-        if (['rename','colonyDefaults'].includes(this.game.uiWindow)) return { type: 'consume' };
+        if (['rename','colonyDefaults','endTurnConfirm'].includes(this.game.uiWindow)) return { type: 'consume' };
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
         if (contextButton) {
             return contextButton.action;
@@ -2418,7 +2442,7 @@ class Display {
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
         this.drawTextLine(this.STR.keyboardShortcutsActive, x, y, 'gray', 11);
-        this.getCommandActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label));
+        this.getCommandActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,region.key,{active:!!region.active}));
         this.drawTextLine(this.STR.escClose,x,rect.y+rect.height-16,'gray',10);
     }
 
@@ -2727,6 +2751,8 @@ class Display {
 
     drawActiveWindow() {
         switch (this.game.uiWindow) {
+            case 'endTurnConfirm':
+                this.drawEndTurnConfirm();break;
             case 'menu':
                 this.drawCommandWindow();
                 break;
@@ -2860,7 +2886,7 @@ class Display {
         this.drawRendezvousPlacementPrompt();
         
         // Draw event overlay last
-        if (game.overlay) {
+        if (game.overlay && game.uiWindow!=='endTurnConfirm') {
             this.drawOverlay(game.overlay);
         }
     }

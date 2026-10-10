@@ -13,7 +13,7 @@
 7	Keine
 8	Klicken Sie auf Sterne, um sie zu verwalten
 9	Klicken Sie auf Schiffe, um Befehle zu erteilen
-10	TAB um Runde zu beenden
+10	TAB: nächstes Objekt; Enter: Runde beenden
 11	Schiffsrumpf
 12	Schiff
 13	Technologiestufe:
@@ -144,7 +144,7 @@
 568	Galactica-4
 570	Neue Antriebstechnologie
 571	Neue Klasse {0} in Dienst gestellt
-572	Drücken Sie eine Taste zum Fortfahren
+572	Leertaste oder Esc zum Fortfahren
 573	Umbenennen
 574	Löschen
 575	Bewegen
@@ -330,3 +330,12 @@
 
 # V3 course hunt mode
 741	Jagd
+
+# Call-in and attention
+742	Melden
+743	Nächstes
+744	Achtung
+745	{0} wartet auf Befehle
+746	{0} Objekt braucht noch Aufmerksamkeit.|{0} Objekte brauchen noch Aufmerksamkeit.
+747	Trotzdem beenden
+748	Prüfen

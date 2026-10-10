@@ -6,7 +6,7 @@ Run the full suite from the project root with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 602 passed, 0 failed.
+Current expected result: 626 passed, 0 failed.
 
 The launcher downloads the checksum-pinned public PDG release on first use;
 no sibling `pdg` or `pdg-devel` checkout is required.
@@ -22,6 +22,7 @@ no sibling `pdg` or `pdg-devel` checkout is required.
 - Map generation
 - Coordinate conversion and movement
 - Waypoint courses, memory, Hunt/Patrol controls and v3 pursuit ordering
+- Human call-ins, idle requests, attention navigation and End Turn confirmation
 - Player/config models
 - AI systems
 - Zoom and camera behavior

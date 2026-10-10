@@ -12,7 +12,7 @@
 7	None
 8	Click stars to manage them
 9	Click ships to give orders
-10	TAB to end turn
+10	TAB: next item; Enter: end turn
 11	Ship Hull
 12	Ship
 13	Tech Level:
@@ -143,7 +143,7 @@
 568	Galactica-4
 570	New Drive Technology
 571	New {0} Class Commissioned
-572	Press any key to continue
+572	Space or Esc to continue
 573	Rename
 574	Delete
 575	Move
@@ -330,3 +330,12 @@
 
 # V3 course hunt mode
 741	Hunt
+
+# Call-in and attention
+742	Call in
+743	Next item
+744	Attention
+745	{0} requests orders
+746	{0} item still needs attention.|{0} items still need attention.
+747	End anyway
+748	Review

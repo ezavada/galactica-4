@@ -13,7 +13,7 @@
 7	Ninguno
 8	Haz clic en las estrellas para gestionarlas
 9	Haz clic en las naves para dar órdenes
-10	TAB para terminar turno
+10	TAB: siguiente; Enter: terminar turno
 11	Casco de Nave
 12	Nave
 13	Nivel Tecnológico:
@@ -144,7 +144,7 @@
 568	Galactica-4
 570	Nueva tecnología de impulso
 571	Nueva clase {0} comisionada
-572	Pulsa cualquier tecla para continuar
+572	Espacio o Esc para continuar
 573	Renombrar
 574	Eliminar
 575	Mover
@@ -330,3 +330,12 @@
 
 # V3 course hunt mode
 741	Caza
+
+# Call-in and attention
+742	Avisar
+743	Siguiente
+744	Atención
+745	{0} solicita órdenes
+746	{0} elemento aún requiere atención.|{0} elementos aún requieren atención.
+747	Terminar igualmente
+748	Revisar

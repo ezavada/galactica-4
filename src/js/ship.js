@@ -30,6 +30,8 @@ class Ship {
         this.name = '';
         this.classIndex = 0; // 1-based class index for battleships per 5 tech levels
         this.onPatrol = false;
+        this.userCallIn = false;
+        this.lastCallInTurn = -5;
         
         // Fog of War properties
         this.scannerRange = 0;

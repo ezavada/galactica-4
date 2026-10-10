@@ -356,7 +356,7 @@ module.exports = function runCommandUITests() {
             test.assertFalse(result.isGameOver, 'Closing event windows should not force a game-over result');
         });
 
-        test.it('lets the end-turn hotkey advance while an event overlay is open', () => {
+        test.it('confirms the end-turn hotkey before discarding an event overlay', () => {
             const game = createGameForTests();
             createOwnedStar(game, 1, 'Sol');
             createOwnedStar(game, 2, 'Rigel');
@@ -364,7 +364,10 @@ module.exports = function runCommandUITests() {
             game.uiWindow = 'events';
 
             const turnBefore = game.turn;
-            game.handleKeyPress(pdg.key_Tab);
+            game.handleKeyPress(13);
+            test.assertEqual(game.uiWindow,'endTurnConfirm');
+            test.assertEqual(game.turn,turnBefore);
+            game.executeUIAction({type:'confirmEndTurn'});
 
             test.assertNull(game.overlay, 'End-turn hotkey should close the overlay');
             test.assertNull(game.uiWindow, 'End-turn hotkey should close the event list');
