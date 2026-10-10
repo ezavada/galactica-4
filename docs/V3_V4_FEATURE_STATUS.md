@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1391 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1398 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -274,7 +274,7 @@ The largest blockers to a complete game are:
 | Revert to saved turn | Restores the last saved state. | ✅ Implemented | ✅ Implemented | File → Revert asks before discarding changes, then restores the saved graph, turn, selection and camera under the same local document identity. Cancel preserves the running game. Native/file-handle backends reread the file; download-only browsers revert to the last successfully saved/imported snapshot. No-saved-file and load failures are localized. |
 | Close game | File-menu Close Game/W closes the active document; game changes mark it modified, save/load clears that state, and closing stops tutorial instructions. | ✅ Implemented | ✅ Implemented | File → Close game/W offers localized Save and close/Discard/Cancel for changed or new documents, closes clean saved games directly, waits for successful writes and preserves other open games. Navigation/report review does not dirty the document. Closing the last game returns to setup; tutorial closure restores the original and releases bindings. Both full suites pass 1,358 tests; dedicated async decisions and actual six-language browser paths are verified below. Application Quit and browser-tab protection are verified separately below; native OS/window-close interception remains pending. |
 | Quit application | Quit checks modified documents before exiting; Cancel prevents exit. | 🟡 Partial | 🟡 Partial | File → Quit/Q, Command/Ctrl+Q, startup Quit and configured command 10 now check every retained game, wait for writes and preserve remaining documents on Cancel. Browser unload warns for unsaved games; accepted Quit offers a localized restart screen. Both full suites pass 1,369 tests; actual all-six-language browser and real native shutdown checks pass. Native window-close/OS Quit requests still bypass save decisions in the pinned PDG runtime and require engine integration. Network logout/host-work deferral remain pending with multiplayer. |
-| Host new network game | Creates host data, starts server, and presents join flow. | ❌ Missing | ❌ Missing | `GameConfig.hosting` is data only. There is no network/server code in v4. |
+| Host new network game | Creates host data, starts server, and presents join flow. | 🧱 Scaffold only | ❌ Missing | The tested native host service now creates/reopens a durable multiplayer galaxy and listens over HTTP for read-only lobby information. It is not yet connected to startup/game commands. Host setup, player authentication/join and turn synchronization remain missing; see the prerequisite audit below. |
 | Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | ❌ Missing | ❌ Missing | No equivalent. |
 | LAN/Internet discovery | Browse advertised games and query the matchmaker. | ❌ Missing | ❌ Missing | No equivalent. |
 | Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | ❌ Missing | ❌ Missing | No equivalent. |
@@ -2282,3 +2282,44 @@ Evidence: `/private/tmp/galactica-high-art-{tests,public-tests,<language>,before
 `/private/tmp/galactica-parity/high-art` and
 `/private/tmp/galactica-high-art-{before-after,languages}.png`.
 The remaining v3 parity and Map Generation checklist remain active.
+
+### Native host document and listener prerequisite
+
+Source: `GalacticaHostDoc::DoNewGame` (`Classes/GalacticaHostDoc.cp:254–281`)
+asks for a host filename, creates host data, builds the galaxy and starts idling.
+`CGameSetupAttach::GetInfo` (339–448) distinguishes hosting, human/computer slots,
+turn limits and end-early settings from single-player setup. This establishes
+host persistence/listening as prerequisites; it does not make an isolated helper
+or listener equivalent to the complete host/join feature.
+
+`src/js/network-host.js` now creates a genuine multiplayer `Game` with the
+existing map, rules and human/computer slots. It validates host configuration,
+writes a complete graph in a private temporary directory, publishes it with an
+exclusive hard link, and cleans up staging files. Existing files are never
+replaced and interrupted writes leave no partially published host. Reopening
+restores the exact galaxy and turn; ordinary single-player files are rejected.
+
+The native HTTP listener uses embedded Node, verified in both available PDG
+runtimes. `GET /info` publishes protocol/setup/slot information only, with
+no-store caching. It does not expose the save graph, stars, ships, events,
+credentials or host filesystem path. Non-GET requests and private/state paths
+are rejected. Listener startup validates the address/port; a real port collision
+leaves the created document intact and the listener recoverable. Closing releases
+the socket, and reopening the document can listen again. This is a new v4
+transport prerequisite, not legacy v3 binary-protocol compatibility.
+
+Seven regressions cover generation/persistence, exclusive creation, interrupted
+writes, reopening, public disclosure bounds, invalid configuration and endpoint
+routing. Both native full suites pass 1,398 tests. `tools/test-network-host.js`
+executes actual HTTP requests through the native game runtime, tests port
+collision and close/reopen, and passes in both runtimes. Audio remains muted.
+No player-facing UI strings or rendered surfaces change in this prerequisite;
+protocol keys/errors are machine-readable identifiers and title data preserves
+Unicode. UI localization and screenshots remain required for the upcoming
+startup/host/join controls.
+
+Evidence: `/private/tmp/galactica-network-host-{tests,public-tests,sockets,public-sockets}.log`.
+Host setup commands, authenticated slots/rejoining, client projections, turn
+posting/synchronization, timed resolution, chat, discovery and administration
+remain unimplemented. The hosting row stays Scaffold only and the broader v3
+parity and Map Generation goals remain active.
