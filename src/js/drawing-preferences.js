@@ -18,6 +18,8 @@ function createPreferences(env=globalThis) {
         } catch(error) { /* The current drawing choice still applies. */ }
     };
     return {
+        readAllCourses:()=>read('showAllCourses'),writeAllCourses:show=>write('showAllCourses',show),
+        readCourierCourses:()=>read('showCourierCourses'),writeCourierCourses:show=>write('showCourierCourses',show),
         readShips:()=>read('showShips'),writeShips:show=>write('showShips',show),
         readGrid:()=>read('showGrid'),writeGrid:show=>write('showGrid',show),
         readMapNames:()=>read('showMapNames'),writeMapNames:show=>write('showMapNames',show)

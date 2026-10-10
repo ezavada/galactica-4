@@ -370,3 +370,5 @@
 765	Raster anzeigen
 766	Namen auf der Karte anzeigen
 767	Schiffe anzeigen
+768	Alle Kurse anzeigen
+769	Kurierkurse anzeigen

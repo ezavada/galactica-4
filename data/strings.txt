@@ -370,3 +370,5 @@
 765	Show grid
 766	Show map names
 767	Show ships
+768	Show all courses
+769	Show courier courses

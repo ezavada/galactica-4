@@ -370,3 +370,5 @@
 765	Mostrar cuadrícula
 766	Mostrar nombres en el mapa
 767	Mostrar naves
+768	Mostrar todos los recorridos
+769	Mostrar recorridos de mensajeros

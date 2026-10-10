@@ -137,6 +137,21 @@ module.exports=function(){
         const row=display.getCourseActionRegions()[0];test.assertEqual(display.getUIActionAt(row.rect.x+5,row.rect.y+5).type,'selectWaypoint');
         game.coursePage=99;test.assertEqual(display.getCourseWindowLayout().page,layout.pages-1);
     });
+    test.it('hides ordinary courses independently of selected-course and privacy rules',()=>{
+        const {game,ship,display}=fixture();ship.setDestination(point(100));game.setSelectedObject(null);
+        let lines=0;display.port.drawLine=()=>lines++;display.drawCourseLines(ship,0,0,{});test.assertTrue(lines>0);
+        game.showAllCourses=false;lines=0;display.drawCourseLines(ship,0,0,{});test.assertEqual(lines,0);
+        game.setSelectedObject(ship);display.drawCourseLines(ship,0,0,{});test.assertTrue(lines>0);
+        ship.owner=2;lines=0;display.drawCourseLines(ship,0,0,{});test.assertEqual(lines,0);
+    });
+    test.it('controls looping couriers separately from ordinary routes and keeps selected courier routes visible',()=>{
+        const {game,ship,display}=fixture('scout');game.issuePlayerWaypoint(ship,point(100));game.issuePlayerWaypoint(ship,point(200));ship.course.loop=true;
+        game.setSelectedObject(null);game.showAllCourses=false;
+        let lines=0;display.port.drawLine=()=>lines++;display.drawCourseLines(ship,0,0,{});test.assertTrue(lines>0);
+        game.showCourierCourses=false;lines=0;display.drawCourseLines(ship,0,0,{});test.assertEqual(lines,0);
+        game.showAllCourses=true;display.drawCourseLines(ship,0,0,{});test.assertEqual(lines,0);
+        game.setSelectedObject(ship);display.drawCourseLines(ship,0,0,{});test.assertTrue(lines>0);
+    });
     test.it('shows ally/omniscient courses read-only and never reveals enemy route lines',()=>{
         const {game,ship,display}=fixture();ship.owner=2;ship.setDestination(point(100));test.assertFalse(game.canViewCourse(ship));
         const lines=[];display.port.drawLine=(a,b)=>lines.push([a,b]);display.drawCourseLines(ship,0,0,{});test.assertEqual(lines.length,0);

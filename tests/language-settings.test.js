@@ -59,6 +59,16 @@ module.exports=()=>test.describe('Language settings',()=>{
         game.setSelectedObject(fleet);display.drawFleets(game.allFleets);test.assertEqual(fleets,1);test.assertTrue(game.findObjectAtPosition(400,200)===fleet);
         game.showShips=true;test.assertTrue(game.findObjectAtPosition(200,200)===ship);test.assertEqual(game.allShips.length,1);test.assertEqual(game.allFleets.length,1);
     });
+    test.it('toggles ordinary and courier courses through settings and F4/F5 with independent preferences',()=>{
+        const {game,display}=fixture();game.uiWindow='settings';const values=new Map();
+        game.drawingPreferences=require('../src/js/drawing-preferences.js').createPreferences({window:{localStorage:{getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)}}});
+        for(const [type,property,read,key] of [['toggleAllCourses','showAllCourses','readAllCourses',pdg.key_F4],['toggleCourierCourses','showCourierCourses','readCourierCourses',pdg.key_F5]]) {
+            const row=display.getSettingsActionRegions().find(row=>row.action.type===type);test.assertTrue(row.active);
+            game.handleUIClick(row.rect.x+5,row.rect.y+5);test.assertFalse(game[property]);test.assertFalse(game.drawingPreferences[read]());
+            game.handleKeyPress(key);test.assertTrue(game[property]);test.assertTrue(game.drawingPreferences[read]());
+        }
+        test.assertTrue(game.showShips);test.assertTrue(game.showGrid);test.assertTrue(game.showMapNames);
+    });
     test.it('always presents native names in their native scripts',()=>restoreLanguage(()=>{
         const {game,display}=fixture();game.uiWindow='settings';
         const names=['English','Deutsch','Español','Français','日本語','Русский'];

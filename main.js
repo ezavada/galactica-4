@@ -330,6 +330,8 @@ function startGame() {
     game.drawingPreferences = drawingPreferences;
     game.showGrid = drawingPreferences.readGrid();
     game.showShips = drawingPreferences.readShips();
+    game.showAllCourses = drawingPreferences.readAllCourses();
+    game.showCourierCourses = drawingPreferences.readCourierCourses();
     game.showMapNames = drawingPreferences.readMapNames();
     game.port = port;
     display = new Display(game);

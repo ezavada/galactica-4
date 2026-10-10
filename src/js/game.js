@@ -32,6 +32,8 @@ class Game {
         this.display = null;
         this.overlay = null; // UI overlay for lab/stardock events
         this.overlayQueue = [];
+        this.showAllCourses = true;
+        this.showCourierCourses = true;
         this.showShips = true;
         this.showGrid = true;
         this.showMapNames = true;
@@ -1577,6 +1579,14 @@ class Game {
         switch (action.type) {
             case 'consume':
                 return true;
+            case 'toggleAllCourses':
+                this.showAllCourses=!this.showAllCourses;
+                if(this.drawingPreferences)this.drawingPreferences.writeAllCourses(this.showAllCourses);
+                return true;
+            case 'toggleCourierCourses':
+                this.showCourierCourses=!this.showCourierCourses;
+                if(this.drawingPreferences)this.drawingPreferences.writeCourierCourses(this.showCourierCourses);
+                return true;
             case 'toggleShips':
                 this.showShips=!this.showShips;
                 if(this.drawingPreferences)this.drawingPreferences.writeShips(this.showShips);
@@ -2139,6 +2149,8 @@ class Game {
     }
     
     handleKeyPress(key) {
+        if(key === pdg.key_F4)return this.executeUIAction({type:'toggleAllCourses'});
+        if(key === pdg.key_F5)return this.executeUIAction({type:'toggleCourierCourses'});
         if(key === pdg.key_F1)return this.executeUIAction({type:'toggleShips'});
         if(key === pdg.key_F2)return this.executeUIAction({type:'toggleMapNames'});
         if(key === pdg.key_F3)return this.executeUIAction({type:'toggleGrid'});

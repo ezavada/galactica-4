@@ -1760,7 +1760,7 @@ class Display {
 
     getSettingsWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(320,screen.width-40);
-        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:430});
+        return this.fitPanelToScreen({x:(screen.width-width)/2,y:84,width,height:494});
     }
 
     getSettingsActionRegions() {
@@ -1775,7 +1775,11 @@ class Display {
             {rect:{x:rect.x+14,y:rect.y+316,width:rect.width-28,height:28},
             label:I18n.getString(766,'Show map names'),key:'F2',active:this.game.showMapNames,action:{type:'toggleMapNames'}},
             {rect:{x:rect.x+14,y:rect.y+348,width:rect.width-28,height:28},
-            label:I18n.getString(767,'Show ships'),key:'F1',active:this.game.showShips,action:{type:'toggleShips'}}]);
+            label:I18n.getString(767,'Show ships'),key:'F1',active:this.game.showShips,action:{type:'toggleShips'}},
+            {rect:{x:rect.x+14,y:rect.y+380,width:rect.width-28,height:28},
+            label:I18n.getString(768,'Show all courses'),key:'F4',active:this.game.showAllCourses,action:{type:'toggleAllCourses'}},
+            {rect:{x:rect.x+14,y:rect.y+412,width:rect.width-28,height:28},
+            label:I18n.getString(769,'Show courier courses'),key:'F5',active:this.game.showCourierCourses,action:{type:'toggleCourierCourses'}}]);
     }
 
     drawSettingsWindow() {
@@ -2880,6 +2884,9 @@ class Display {
 
     drawCourseLines(object,startX,startY,attributes) {
         if(!object.destination || !this.game.canViewCourse(object))return;
+        const courier=object.type==='scout' && object.course && object.course.loop;
+        const enabled=courier?this.game.showCourierCourses:this.game.showAllCourses;
+        if(enabled===false && object!==this.selectedObject)return;
         const points=object.course?object.course.waypoints.map(point=>object.course.resolve(point)):[object.destination];
         const current=object.course?object.course.current:0;
         let from={x:startX,y:startY};

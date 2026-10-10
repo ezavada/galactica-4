@@ -88,3 +88,9 @@ Ship/fleet labels now follow v3 drawing rules: at least half zoom, unselected do
 Settings → Show ships and F1 control ship/fleet map rendering. Default-on state persists independently of grid and name choices. The selected visible mobile object remains drawn with its diagnostics and course when hiding others, matching v3; fog still prevents disclosure of an invisible enemy even if selected. Patrol hiding remains in place. Hidden ships/fleets do not intercept map selection or order targets, and stars/rendezvous points are unaffected. Simulation collections and movement are unchanged.
 
 Full suite: 777 passed. Browser settings/F1, selected ship/fleet exceptions, hidden-hit checks and new-game persistence passed in all six languages; before/after translated settings and map views were inspected. Evidence: `/private/tmp/galactica-parity/ships-{before,after}` and `/private/tmp/galactica-ships-tests.log`.
+
+### Course visibility preferences (2026-10-09)
+
+Settings → Show all courses/F4 controls ordinary ship/fleet routes; Show courier courses/F5 independently controls looping scout routes, matching v3. Both default on and persist in browser/native preferences. A selected object's route remains visible when its own setting is off. Enemy routes stay private through the existing course-visibility rules. These controls only change rendering; waypoint state, movement and ship visibility are unaffected.
+
+Full suite: 780 passed. Native settings/keyboard controls, independent route counts, selected-course exceptions and new-game persistence passed in all six languages. Inspected translated settings and route-on/off screenshots. Evidence: `/private/tmp/galactica-parity/courses-{before,after}` and `/private/tmp/galactica-courses-tests.log`.
