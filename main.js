@@ -13,6 +13,7 @@ console.log("=== Galactica-4 PDG Game Starting ===");
 // This tells the ResourceManager where to look for localized string files
 const path = require('path');
 const dataPath = path.join(__dirname, 'data');
+const userManual=require('./src/js/user-manual.js').createManual(__dirname);
 const resourceRef = pdg.res.openResourceFile(dataPath);
 if (resourceRef) {
     console.log(`Resource path set to: ${dataPath}`);
@@ -362,7 +363,12 @@ function drawStartupDialog() {
     if(!sessions.active){const open=StartupSetup.cancelRegion(panelRect);drawStartupRoundedRect(open,7,startupStyles.advantageButton);port.drawText(I18n.getString(841,'Open Game…'),new pdg.Point(open.x+open.width/2,open.y+step(20)),startupStyles.startText);}
     if(sessions.active){const cancel=StartupSetup.cancelRegion(panelRect);drawStartupRoundedRect(cancel,7,startupStyles.advantageButton);port.drawText(I18n.getString(683,'Cancel'),new pdg.Point(cancel.x+cancel.width/2,cancel.y+step(20)),startupStyles.startText);}
     drawStartupRoundedRect(StartupSetup.startRegion(panelRect),7,startupStyles.advantageButton);
-    port.drawText(I18n.getString(528, '<Enter> Start'), new pdg.Point(screenWidth / 2, y), startupStyles.startText);
+    const start=StartupSetup.startRegion(panelRect),manual=StartupSetup.manualRegion(panelRect);
+    port.drawText(I18n.getString(528, '<Enter> Start'),new pdg.Point(start.x+start.width/2,y),startupStyles.startText);
+    drawStartupRoundedRect(manual,7,startupStyles.advantageButton);
+    const label=I18n.getString(943,'User’s Manual');let size=Math.max(9,14*scale);
+    while(size>9 && port.getTextWidth(label,size)>manual.width-16)size--;
+    startupStyles.startText.textSize(size);port.drawText(label,new pdg.Point(manual.x+manual.width/2,manual.y+step(20)),startupStyles.startText);
 }
 
 function drawStartupControlHelp() {
@@ -393,6 +399,7 @@ function drawStartupControlHelp() {
 }
 
 function handleStartupKey(key) {
+    if(key===pdg.key_Help){userManual.open(pdg.res.getLanguage());return true;}
     startupHelp.clear();startupHoverPoint=null;
     if(startupAISkill) {
         if(key===pdg.key_Escape)startupAISkill=false;
@@ -517,6 +524,7 @@ function attachGameServices(nextGame) {
     if(!nextGame.restoredFromSave)nextGame.showCourierCourses = drawingPreferences.readCourierCourses();
     if(!nextGame.restoredFromSave)nextGame.showMapNames = drawingPreferences.readMapNames();
     nextGame.port = port;
+    nextGame.manualCommands=userManual;
     nextGame.fileCommands={menu:()=>{clearSessionInput();return documents.menu();}};
     nextGame.sessionCommands={begin:beginNewGame,rows:()=>sessions.rows(),select:switchGameSession};
 }
@@ -533,6 +541,17 @@ function revertSavedGame(nextGame,reference) {
     clearSessionInput();stopAutoplayTimer();const session=sessions.replace(nextGame,nextDisplay);session.file=reference;
     game=nextGame;display=nextDisplay;autoplayController=null;if(previous)previous.dispose();
 }
+function drawManualFailure() {
+    const area=port.getDrawingArea(),layout=userManual.layout(area.width(),area.height(),text=>port.getTextWidth(text,13)),r=layout.rect;
+    port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.dim);
+    PanelAppearance.applySurface(startupStyles.panel,r,startupUIColor('panelFill'));drawStartupRoundedRect(r,14,startupStyles.panel);
+    startupStyles.subtitleText.textSize(16);startupStyles.lineText.textSize(13);startupStyles.startText.textSize(13);
+    port.drawText(I18n.getString(943),new pdg.Point(r.x+r.width/2,r.y+32),startupStyles.subtitleText);
+    layout.lines.forEach((line,index)=>port.drawText(line,new pdg.Point(r.x+24,r.y+60+index*18),startupStyles.lineText));
+    drawStartupRoundedRect(layout.button,7,startupStyles.advantageButton);
+    port.drawText(I18n.getString(834),new pdg.Point(layout.button.x+layout.button.width/2,layout.button.y+20),startupStyles.startText);
+}
+
 function drawDocumentDialog() {
     const dialog=documents.dialog;if(!dialog)return;
     if(dialog.kind==='editor') {
@@ -638,6 +657,7 @@ if (launchOptions.aiAutoplay) {
 
 // Create event handlers using the correct PDG syntax
 const drawHandler = new pdg.IEventHandler(function(event) {
+    if(userManual.error()){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawManualFailure();return true;}
     if(documents.dialog){if(game && !sessions.starting){game.display.clearControlHelp();game.draw();}else drawStartupDialog();drawDocumentDialog();drawStartupControlHelp();return true;}
     if (!sessions.starting && game) {
         game.draw();
@@ -653,7 +673,7 @@ const autoplayTimerHandler = new pdg.IEventHandler(function(event) {
         return false;
     }
 
-    if(documents.dialog || sessions.starting || !sessions.active || sessions.active.autoplay!==autoplayController)return true;
+    if(userManual.error() || documents.dialog || sessions.starting || !sessions.active || sessions.active.autoplay!==autoplayController)return true;
     const status = autoplayController.step();
     if (!status.running) {
         stopAutoplayTimer();
@@ -673,6 +693,12 @@ let hasDragged = false; // Track if user has dragged during left click
 const mouseHandler = new pdg.IEventHandler(function(event) {
     startupHelp.clear();startupHoverPoint=null;
     if(game && game.display)game.display.clearControlHelp();
+    if(userManual.error()) {
+        if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0) {
+            const area=port.getDrawingArea(),r=userManual.layout(area.width(),area.height(),text=>port.getTextWidth(text,13)).button,p=event.mousePos;
+            if(p.x>=r.x && p.x<r.x+r.width && p.y>=r.y && p.y<r.y+r.height)userManual.clearError();
+        }return true;
+    }
     if(documents.dialog){
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const area=port.getDrawingArea(),layout=documents.layout(area.width(),area.height()),p=event.mousePos;
             const contains=r=>p.x>=r.x&&p.x<=r.x+r.width&&p.y>=r.y&&p.y<=r.y+r.height;const button=layout.buttons.find(b=>contains(b.rect));
@@ -700,6 +726,8 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
                 else if(contains(layout.field)){editor.selected=true;editor.caret=Array.from(editor.text).length;}
                 return true;
             }
+            const manual=StartupSetup.manualRegion(StartupSetup.panelRect(area.width(),area.height()));
+            if(event.mousePos.x>=manual.x && event.mousePos.x<manual.x+manual.width && event.mousePos.y>=manual.y && event.mousePos.y<manual.y+manual.height){userManual.open(pdg.res.getLanguage());return true;}
             const cancel=StartupSetup.cancelRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(!sessions.active && event.mousePos.x>=cancel.x && event.mousePos.x<=cancel.x+cancel.width && event.mousePos.y>=cancel.y && event.mousePos.y<=cancel.y+cancel.height){documents.beginOpen();return true;}
             if(sessions.active && event.mousePos.x>=cancel.x && event.mousePos.x<=cancel.x+cancel.width && event.mousePos.y>=cancel.y && event.mousePos.y<=cancel.y+cancel.height){cancelNewGame();return true;}
@@ -804,7 +832,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse wheel handler for zooming
 const mouseWheelHandler = new pdg.IEventHandler(function(event) {
-    if(documents.dialog)return true;
+    if(userManual.error() || documents.dialog)return true;
     if (sessions.starting || !game) {
         return true;
     }
@@ -826,7 +854,7 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse move handler for drag scrolling
 const mouseMoveHandler = new pdg.IEventHandler(function(event) {
-    if(documents.dialog || sessions.starting || !game) {
+    if(userManual.error() || documents.dialog || sessions.starting || !game) {
         if(event && event.eventType===pdg.eventType_MouseMove)startupHoverPoint={x:event.mousePos.x,y:event.mousePos.y};
         return true;
     }
@@ -879,6 +907,8 @@ const mouseMoveHandler = new pdg.IEventHandler(function(event) {
 
 const keyHandler = new pdg.IEventHandler(function(event) {
     if(event && event.eventType===pdg.eventType_KeyPress){startupHelp.clear();startupHoverPoint=null;}
+    if(userManual.error()){if(event && event.eventType===pdg.eventType_KeyPress && [pdg.key_Escape,13,3,32].includes(event.unicode))userManual.clearError();return true;}
+    if(event && event.eventType===pdg.eventType_KeyPress && event.unicode===pdg.key_Help){userManual.open(pdg.res.getLanguage());return true;}
     if(documents.dialog){if(event && event.eventType===pdg.eventType_KeyPress)documents.key(event.unicode);return true;}
     // Check if this is a key press event
     if (event && event.eventType === pdg.eventType_KeyPress) {

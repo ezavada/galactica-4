@@ -587,3 +587,9 @@
 940	While you won the battle at {0}, you lost {1} ships in that system.
 941	You destroyed {1} enemy ships in your attack on the star system {0}.
 942	{2} lost {1} ships defending the star system {0} from an attack by {3}.
+
+# Bundled manual access
+943	User’s Manual
+944	The bundled manual could not be found. Please reinstall the complete game.
+945	The manual could not be opened. Allow new tabs or choose a default web browser, then try again.
+946	Open the bundled User’s Manual in your web browser. Your game and current turn stay open.

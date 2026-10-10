@@ -1321,6 +1321,7 @@ class Game {
             else if(key===pdg.key_RightArrow)this.gameSessionPage=(this.gameSessionPage || 0)+1;
             return true;
         }
+        if(this.uiWindow==='menu' && lower==='h')return this.executeUIAction({type:'openManual'});
         if(this.uiWindow==='menu' && this.sessionCommands) {
             if(lower==='n')return this.executeUIAction({type:'newGame'});
             if(lower==='g')return this.executeUIAction({type:'showGames'});
@@ -1815,6 +1816,9 @@ class Game {
         }
 
         switch (action.type) {
+            case 'openManual':
+                if(!this.manualCommands)return false;
+                this.manualCommands.open(pdg.res.getLanguage());return true;
             case 'fileMenu':return !!(this.fileCommands && this.fileCommands.menu());
             case 'newGame':return !!(this.sessionCommands && this.sessionCommands.begin());
             case 'showGames':
@@ -2613,6 +2617,7 @@ class Game {
     }
 
     handleKeyPress(key) {
+        if(key===pdg.key_Help)return this.executeUIAction({type:'openManual'});
         if(this.display && this.display.clearControlHelp)this.display.clearControlHelp();
         if(this.overlay && ['outcome','report'].includes(this.overlay.type)) {
             if(key===pdg.key_LeftArrow || key===pdg.key_RightArrow) {

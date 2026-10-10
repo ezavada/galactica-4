@@ -587,3 +587,9 @@
 940	Tu as gagné la bataille à {0}, mais tu as perdu {1} vaisseaux dans ce système.
 941	Tu as détruit {1} vaisseaux ennemis lors de ton attaque du système stellaire {0}.
 942	{2} a perdu {1} vaisseaux en défendant le système stellaire {0} contre une attaque de {3}.
+
+# Bundled manual access
+943	Manuel
+944	Le manuel fourni est introuvable. Réinstalle le jeu complet.
+945	Impossible d’ouvrir le manuel. Autorise les nouveaux onglets ou choisis un navigateur par défaut, puis réessaie.
+946	Ouvre le manuel fourni dans ton navigateur. La partie et le tour actuel restent ouverts.

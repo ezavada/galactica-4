@@ -587,3 +587,9 @@
 940	Du hast die Schlacht bei {0} gewonnen, aber dabei {1} Schiffe in diesem System verloren.
 941	Bei deinem Angriff auf das Sternensystem {0} hast du {1} feindliche Schiffe zerstört.
 942	{2} verlor {1} Schiffe bei der Verteidigung des Sternensystems {0} gegen einen Angriff von {3}.
+
+# Bundled manual access
+943	Handbuch
+944	Das mitgelieferte Handbuch wurde nicht gefunden. Bitte installiere das vollständige Spiel erneut.
+945	Das Handbuch konnte nicht geöffnet werden. Erlaube neue Tabs oder wähle einen Standardbrowser und versuche es erneut.
+946	Öffne das mitgelieferte Handbuch im Webbrowser. Dein Spiel und der aktuelle Zug bleiben geöffnet.

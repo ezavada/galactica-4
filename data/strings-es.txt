@@ -587,3 +587,9 @@
 940	Ganaste la batalla en {0}, pero perdiste {1} naves en ese sistema.
 941	Destruiste {1} naves enemigas en tu ataque al sistema estelar {0}.
 942	{2} perdió {1} naves defendiendo el sistema estelar {0} de un ataque de {3}.
+
+# Bundled manual access
+943	Manual
+944	No se encontró el manual incluido. Reinstala el juego completo.
+945	No se pudo abrir el manual. Permite nuevas pestañas o elige un navegador predeterminado e inténtalo de nuevo.
+946	Abre el manual incluido en tu navegador. La partida y el turno actual permanecen abiertos.

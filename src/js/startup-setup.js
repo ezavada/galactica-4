@@ -89,7 +89,8 @@ function clickSectorSize(config,rect,x,y) {
     return choice?setSectorSize(config,choice.value):false;
 }
 function cancelRegion(rect) {return {x:rect.x+rect.width/2-75,y:rect.y+503*rect.height/540,width:150,height:26*rect.height/540};}
-function startRegion(rect) {return {x:rect.x+rect.width/2-90,y:rect.y+467*rect.height/540,width:180,height:30*rect.height/540};}
+function startRegion(rect) {return {x:rect.x+28,y:rect.y+467*rect.height/540,width:(rect.width-64)/2,height:30*rect.height/540};}
+function manualRegion(rect) {const start=startRegion(rect);return {...start,x:start.x+start.width+8};}
 function helpRegions(width,height,config,active=false) {
  const rect=panelRect(width,height);
  const region=(rect,type)=>({rect,action:{type}});
@@ -98,6 +99,6 @@ function helpRegions(width,height,config,active=false) {
   ...sectorSizeRegions(rect,config).map(r=>region(r.rect,'startupSize')),
   ...densityRegions(rect,config).map(r=>region(r.rect,'startupDensity')),
   region(fastGameRegion(rect),'startupFast'),region(fogOfWarRegion(rect),'startupFog'),
-  region(startRegion(rect),'startGame'),region(cancelRegion(rect),active?'cancel':'open')];
+  region(startRegion(rect),'startGame'),region(manualRegion(rect),'openManual'),region(cancelRegion(rect),active?'cancel':'open')];
 }
-module.exports={helpRegions,cancelRegion,setFogOfWar,toggleFogOfWar,fogOfWarRegion,setFastGame,toggleFastGame,fastGameRegion,skills,setSkill,skillRegion,skillMenu,setComputerCount,acceptComputerCount,computerCountRegion,maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};
+module.exports={manualRegion,helpRegions,cancelRegion,setFogOfWar,toggleFogOfWar,fogOfWarRegion,setFastGame,toggleFastGame,fastGameRegion,skills,setSkill,skillRegion,skillMenu,setComputerCount,acceptComputerCount,computerCountRegion,maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};
