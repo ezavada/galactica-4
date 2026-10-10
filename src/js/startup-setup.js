@@ -1,4 +1,5 @@
 const PlayerName=require('./player-name.js');
+const I18n=require('./i18n.js');
 const maximumTitleLength=27;
 function setGameTitle(config,value) {
     if(!PlayerName.validName(value,maximumTitleLength))return false;
@@ -10,6 +11,15 @@ function setComputerCount(config,value) {
 }
 function acceptComputerCount(config,text) {
     return typeof text==='string' && /^\d{1,2}$/.test(text.trim()) && setComputerCount(config,Number(text.trim()));
+}
+const skills=Object.freeze([1,2,3,4,5]);
+function setSkill(config,value) {if(!skills.includes(value))return false;config.compSkill=value;return true;}
+function skillRegion(rect) {return {x:rect.x+28,y:rect.y+124*rect.height/540,width:rect.width-56,height:24*rect.height/540};}
+function skillMenu(width,height,config) {
+    const rect={x:(width-Math.min(400,width-40))/2,y:(height-300)/2,width:Math.min(400,width-40),height:300};
+    return {rect,choices:skills.map((value,index)=>({value,label:I18n.getString(300+value),active:config.compSkill===value,
+        rect:{x:rect.x+24,y:rect.y+58+index*34,width:rect.width-48,height:28}})),
+        cancel:{x:rect.x+rect.width/2-75,y:rect.y+252,width:150,height:30}};
 }
 function computerCountRegion(rect) {return {x:rect.x+28,y:rect.y+96*rect.height/540,width:rect.width-56,height:24*rect.height/540};}
 function titleRegion(rect) {return {x:rect.x+28,y:rect.y+56*rect.height/540,width:rect.width-56,height:26*rect.height/540};}
@@ -73,4 +83,4 @@ function clickSectorSize(config,rect,x,y) {
     return choice?setSectorSize(config,choice.value):false;
 }
 function startRegion(rect) {return {x:rect.x+rect.width/2-90,y:rect.y+467*rect.height/540,width:180,height:30*rect.height/540};}
-module.exports={setComputerCount,acceptComputerCount,computerCountRegion,maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};
+module.exports={skills,setSkill,skillRegion,skillMenu,setComputerCount,acceptComputerCount,computerCountRegion,maximumTitleLength,setGameTitle,titleRegion,startRegion,advantages,panelRect,advantageRegions,setAdvantage,cycleAdvantage,clickAdvantage,densities,densityRegions,setDensity,cycleDensity,clickDensity,sectorSizes,sectorSizeRegions,setSectorSize,cycleSectorSize,clickSectorSize};

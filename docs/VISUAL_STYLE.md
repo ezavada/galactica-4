@@ -156,3 +156,7 @@ The setup title is a clickable control with T shortcut. The title editor reuses 
 ### Editable opponent count
 
 The player-count row is a button opening a selected numeric draft through a click or C. The editor uses the existing title/name window style with localized range and validation text, Save/Cancel and unchanged neighboring setup controls. Inspected six translated editors, smaller layouts, errors, before/after setup and actual solo/twelve-opponent games under `/private/tmp/galactica-parity/opponents-{before,after}`. Full suites: 941 passed on release/current native PDG.
+
+### Shared startup AI skill
+
+The skill row opens five vertically stacked choices in the existing neutral window style, with the current skill highlighted. All translated labels and Cancel fit normal and smaller layouts. Choosing a value returns to setup; Cancel/Escape/outside-click keeps the previous skill. Inspected six translated popups and before/after setup under `/private/tmp/galactica-parity/skill-{before,after}`. Full suites: 947 passed on release/current native PDG.

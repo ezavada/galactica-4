@@ -21,7 +21,7 @@ class GameConfig {
         this.sectorSize = options.sectorSize !== undefined ? options.sectorSize : 1; // v3 sector size: integer 1–5
         
         // AI configuration
-        this.compSkill = options.compSkill || 2;         // 1=Expert, 2=Good, 3=Average, 4=Passable, 5=Novice
+        this.compSkill = options.compSkill !== undefined ? options.compSkill : 2;         // 1=Expert, 2=Good, 3=Average, 4=Passable, 5=Novice
         this.compAdvantage = options.compAdvantage !== undefined ? options.compAdvantage : 0; // v3 range: -3 through +3, 20% production modifier per level
         this.aiSkillByPlayer = options.aiSkillByPlayer ? { ...options.aiSkillByPlayer } : {};
         
@@ -191,7 +191,7 @@ class GameConfig {
             errors.push("sectorSize must be an integer between 1 and 5");
         }
         
-        if (this.compSkill < 1 || this.compSkill > 5) {
+        if (!Number.isInteger(this.compSkill) || this.compSkill < 1 || this.compSkill > 5) {
             errors.push("compSkill must be between 1 (Expert) and 5 (Novice)");
         }
 
@@ -201,7 +201,7 @@ class GameConfig {
 
         for (const playerNum of Object.keys(this.aiSkillByPlayer)) {
             const skill = this.aiSkillByPlayer[playerNum];
-            if (skill < 1 || skill > 5) {
+            if (!Number.isInteger(skill) || skill < 1 || skill > 5) {
                 errors.push(`aiSkillByPlayer[${playerNum}] must be between 1 (Expert) and 5 (Novice)`);
             }
         }

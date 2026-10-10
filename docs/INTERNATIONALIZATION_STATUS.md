@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 941 passed, 0 failed.
+Current expected full-suite result: 947 passed, 0 failed.
 
 ## Future work
 
@@ -155,3 +155,5 @@ Player-name startup adds IDs 822–824 in all six languages for the title, promp
 Game-title setup adds IDs 825–828 in all six languages for the editor title, prompt, blank-title validation and setup title button. Save/Cancel reuse existing translations. Browser typing, validation, Save/Cancel, title-limit and generated-game header flows passed in en/de/es/fr/ja/ru, with translated screenshots inspected. Current resources: 363 IDs per language; full suites: 934 passed on release/current native PDG.
 
 Computer-opponent setup adds IDs 829–831 and updates shortcut hint 525 in en/de/es/fr/ja/ru. Count prompts and errors format the available opponent limit; Save/Cancel reuse existing translations. Actual browser editor, invalid input, cancellation, twelve-opponent and solo launches/turns passed in every language. Translated normal/smaller layouts were inspected. Current resources: 366 IDs per language; full suites: 941 passed on release/current native PDG.
+
+The startup skill popup reuses IDs 301–305, 522 and 683 for all five native-language skill names, heading and Cancel. No new string IDs are needed (366 per language). Actual pointer selection of every choice, cancellation, keyboard selection, modal isolation and smaller layouts passed in all six languages; screenshots were inspected. Full suites: 947 passed on release/current native PDG.

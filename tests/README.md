@@ -6,7 +6,7 @@ Run the full suite from the project root with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 941 passed, 0 failed.
+Current expected result: 947 passed, 0 failed.
 
 The launcher downloads the checksum-pinned public PDG release on first use;
 no sibling `pdg` or `pdg-devel` checkout is required.
@@ -61,3 +61,5 @@ Use `docs/TESTING_GUIDE.md` for details on adding or debugging tests.
 - `game-title.test.js`: isolated title drafts, Save/Cancel behavior, the v3 27-character limit, Unicode validation, configuration/header integration, measured header fitting and six-language setup controls.
 
 - `computer-count.test.js`: full opponent range, numeric drafts and cancellation isolation, integer validation, solo generation/turns, twelve-opponent generation, a complete 99-player galaxy and six-language setup controls.
+
+- `startup-skill.test.js`: ordered five-choice shared popup, current-choice highlighting, setup isolation, strict skill validation, AI forwarding, smaller layout bounds and translated labels.

@@ -105,6 +105,7 @@ let pendingConfig = launchOptions.aiAutoplay ?
 let startupPlayerName=null;
 let startupGameTitle=null;
 let startupComputerCount=null;
+let startupAISkill=false;
 let game = null;
 let display = null;
 let autoplayController = null;
@@ -248,7 +249,22 @@ function drawStartupTextDialog(editor,labels) {
     for(const button of layout.buttons){drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);port.drawText(button.label,new pdg.Point(button.rect.x+button.rect.width/2,button.rect.y+20),startupStyles.advantageText);}
 }
 
+function drawStartupSkillMenu() {
+    const area=port.getDrawingArea(),layout=StartupSetup.skillMenu(area.width(),area.height(),pendingConfig),rect=layout.rect;
+    port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.background);
+    PanelAppearance.applySurface(startupStyles.panel,rect,startupUIColor('panelFill'));drawStartupRoundedRect(rect,14,startupStyles.panel);
+    startupStyles.subtitleText.textSize(16);startupStyles.advantageText.textSize(14);
+    port.drawText(I18n.formatString(522,'AI skill: {0} ({1})',pendingConfig.getDifficultyName(),pendingConfig.compSkill),new pdg.Point(rect.x+rect.width/2,rect.y+36),startupStyles.subtitleText);
+    for(const choice of layout.choices) {
+        drawStartupRoundedRect(choice.rect,7,choice.active?startupStyles.advantageButtonActive:startupStyles.advantageButton);
+        port.drawText(choice.label+' <'+choice.value+'>',new pdg.Point(choice.rect.x+choice.rect.width/2,choice.rect.y+20),startupStyles.advantageText);
+    }
+    drawStartupRoundedRect(layout.cancel,7,startupStyles.advantageButton);
+    port.drawText(I18n.getString(683,'Cancel'),new pdg.Point(layout.cancel.x+layout.cancel.width/2,layout.cancel.y+20),startupStyles.advantageText);
+}
+
 function drawStartupDialog() {
+    if(startupAISkill){drawStartupSkillMenu();return;}
     if(startupComputerCount){drawStartupTextDialog(startupComputerCount,{title:I18n.getString(829,'Computer opponents'),prompt:I18n.formatString(830,'Enter the number of opponents (0–{0}).',99-pendingConfig.numHumans),error:I18n.formatString(831,'Enter a whole number from 0 to {0}.',99-pendingConfig.numHumans),submit:I18n.getString(682,'Save')});return;}
     if(startupGameTitle){drawStartupTextDialog(startupGameTitle,{title:I18n.getString(825,'Game title'),prompt:I18n.getString(826,'Enter a game title.'),error:I18n.getString(827,'Enter a title before saving.'),submit:I18n.getString(682,'Save')});return;}
     if(startupPlayerName){drawStartupTextDialog(startupPlayerName,{title:I18n.getString(822,'Player name'),prompt:I18n.getString(823,'Enter your player name.'),error:I18n.getString(824,'Enter a name before starting.'),submit:I18n.getString(528,'<Enter> Start')});return;}
@@ -287,6 +303,7 @@ function drawStartupDialog() {
         I18n.getString(504, 'AI')
     ), new pdg.Point(x, y), startupStyles.lineText);
     y += step(24);
+    drawStartupRoundedRect(StartupSetup.skillRegion(panelRect),6,startupStyles.advantageButton);
     port.drawText(I18n.formatString(522, 'AI skill: {0} ({1})', pendingConfig.getDifficultyName(), pendingConfig.compSkill), new pdg.Point(x, y), startupStyles.lineText);
     y += step(24);
     port.drawText(I18n.getString(761,'Computer advantage'),new pdg.Point(x,y),startupStyles.lineText);
@@ -330,6 +347,12 @@ function drawStartupDialog() {
 }
 
 function handleStartupKey(key) {
+    if(startupAISkill) {
+        if(key===pdg.key_Escape)startupAISkill=false;
+        else if(typeof key==='number' && key>=49 && key<=53){StartupSetup.setSkill(pendingConfig,key-48);startupAISkill=false;}
+        return true;
+    }
+
     if(startupComputerCount) {
         const action=PlayerName.edit(startupComputerCount,key);
         if(action==='submit')submitComputerCount();
@@ -360,7 +383,7 @@ function handleStartupKey(key) {
     }
 
     if (char >= '1' && char <= '5') {
-        pendingConfig.compSkill = Number(char);
+        StartupSetup.setSkill(pendingConfig,Number(char));
         return true;
     }
 
@@ -515,6 +538,14 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     if (!game) {
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0) {
             const area=port.getDrawingArea();
+            if(startupAISkill) {
+                const layout=StartupSetup.skillMenu(area.width(),area.height(),pendingConfig),x=event.mousePos.x,y=event.mousePos.y;
+                const contains=r=>x>=r.x && x<=r.x+r.width && y>=r.y && y<=r.y+r.height;
+                const choice=layout.choices.find(choice=>contains(choice.rect));
+                if(choice){StartupSetup.setSkill(pendingConfig,choice.value);startupAISkill=false;}
+                else if(contains(layout.cancel) || !contains(layout.rect))startupAISkill=false;
+                return true;
+            }
             if(startupComputerCount || startupGameTitle || startupPlayerName) {
                 const count=!!startupComputerCount,title=!!startupGameTitle,editor=startupComputerCount || startupGameTitle || startupPlayerName;
                 const layout=PlayerName.layout(area.width(),area.height()),x=event.mousePos.x,y=event.mousePos.y;
@@ -525,6 +556,8 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
                 else if(contains(layout.field)){editor.selected=true;editor.caret=Array.from(editor.text).length;}
                 return true;
             }
+            const skill=StartupSetup.skillRegion(StartupSetup.panelRect(area.width(),area.height()));
+            if(event.mousePos.x>=skill.x && event.mousePos.x<=skill.x+skill.width && event.mousePos.y>=skill.y && event.mousePos.y<=skill.y+skill.height){startupAISkill=true;return true;}
             const count=StartupSetup.computerCountRegion(StartupSetup.panelRect(area.width(),area.height()));
             if(event.mousePos.x>=count.x && event.mousePos.x<=count.x+count.width && event.mousePos.y>=count.y && event.mousePos.y<=count.y+count.height){beginComputerCount();return true;}
             const title=StartupSetup.titleRegion(StartupSetup.panelRect(area.width(),area.height()));
