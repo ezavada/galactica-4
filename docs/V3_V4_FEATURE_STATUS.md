@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1273 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1275 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -1023,3 +1023,34 @@ These checks prove instruction presentation and integration, not a complete
 sixty-lesson guided playthrough. Public launch controls, illustrations and
 complete tutorial save/resume remain open; broader parity and Map Generation
 requirements remain open.
+
+
+### First tutorial report acknowledgment
+
+A real browser walkthrough found that Enter in the first stardock report
+reached the end-turn confirmation path. Confirming discarded reports and
+advanced to turn 3 before the first colony ship could receive orders. V3
+`CMessage.cpp:241–257, 916–942` separates message appearance and movable-alert
+acknowledgment from turn processing. Corrected keyboard precedence for lab
+and stardock presentations, matching report/outcome acknowledgment; an explicit
+foreground end-turn confirmation still takes priority. Tab remains attention
+navigation and cannot bypass an open report. The End key is not treated as
+Enter for paginated report/outcome confirmation.
+
+The class/outcome continuation hint now includes Enter in all six languages.
+The first attention lesson explains acknowledging remaining reports before
+using Tab. Actual browser input starts from setup, zooms, changes production,
+ends turn 1, acknowledges the class and opponent reports, and selects the first
+colony ship with Tab, still on turn 2, in en/de/es/fr/ja/ru. Screenshots before
+and after are reviewed under `/private/tmp/galactica-parity/tutorial-guided-before`
+and `/private/tmp/galactica-parity/tutorial-report-input`. Logs:
+`/private/tmp/galactica-tutorial-report-input-{tests,native-tests,<language>}.log`.
+Both full native lanes pass all 1,275 tests, including report queues, confirmation
+cancel/review and tutorial input progression.
+
+The continued English walkthrough reaches lesson 28 through real controls. It
+then exposes a separate attention issue: a new defense satellite is selected
+before the colony ship, although satellites cannot receive movement orders.
+That is the next repair, not an unavailable-help blocker. The full guided
+walkthrough, public launch, illustrations, complete tutorial saves, broader
+parity and Map Generation remain unfinished.

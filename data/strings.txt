@@ -143,7 +143,7 @@
 568	Galactica-4
 570	New Drive Technology
 571	New {0} Class Commissioned
-572	Space or Esc to continue
+572	Enter, Space or Esc to continue
 573	Rename
 574	Delete
 575	Move

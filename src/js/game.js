@@ -2677,11 +2677,12 @@ class Game {
     handleKeyPress(key) {
         if(key===pdg.key_Help)return this.executeUIAction({type:'openManual'});
         if(this.display && this.display.clearControlHelp)this.display.clearControlHelp();
-        if(this.overlay && ['outcome','report'].includes(this.overlay.type)) {
-            if(key===pdg.key_LeftArrow || key===pdg.key_RightArrow) {
+        if(this.overlay && this.uiWindow!=='endTurnConfirm' && ['outcome','report','stardock','lab'].includes(this.overlay.type)) {
+            if(['outcome','report'].includes(this.overlay.type) && (key===pdg.key_LeftArrow || key===pdg.key_RightArrow)) {
                 const layout=this.display && (this.overlay.type==='report'?this.display.getReportLayout(this.overlay):this.display.getOutcomeLayout(this.overlay));
                 if(layout)this.overlay.page=Math.max(0,Math.min(layout.pages-1,layout.page+(key===pdg.key_LeftArrow?-1:1)));
-            } else if(key===13 || key===3 || key===32 || key===pdg.key_Escape)this.dismissEventPresentation();
+            } else if(key===13 || key===10 || key===32 || key===pdg.key_Escape ||
+                    ['stardock','lab'].includes(this.overlay.type) && key!==pdg.key_Tab)this.dismissEventPresentation();
             return true;
         }
 

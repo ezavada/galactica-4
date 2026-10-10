@@ -154,7 +154,7 @@ class Display {
             max: I18n.getString(540, "Max"),
             closeComparison: I18n.getString(545, "<V>/<Esc> Close comparison"),
             newDriveTechnology: I18n.getString(570, "New Drive Technology"),
-            pressAnyKey: I18n.getString(572, "Space or Esc to continue"),
+            pressAnyKey: I18n.getString(572, "Enter, Space or Esc to continue"),
             rename: I18n.getString(573, "Rename"),
             delete: I18n.getString(574, "Delete"),
             move: I18n.getString(575, "Move"),
@@ -3884,7 +3884,7 @@ class Display {
         this.drawWindowPanel(r,layout.title);
         layout.summaryLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,r.y+58+index*20,'lightgray',14));
         layout.visibleLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,layout.bodyY+index*18,'lightgray',13));
-        this.drawTextLine(I18n.getString(572,'Space or Esc to continue'),r.x+20,r.y+r.height-70,'labelgray',11);
+        this.drawTextLine(I18n.getString(572,'Enter, Space or Esc to continue'),r.x+20,r.y+r.height-70,'labelgray',11);
         layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,null));
     }
 

@@ -144,7 +144,7 @@
 568	Galactica-4
 570	Nouvelle technologie de propulsion
 571	Nouvelle classe {0} mise en service
-572	Espace ou Échap pour continuer
+572	Entrée, Espace ou Échap pour continuer
 573	Renommer
 574	Supprimer
 575	Déplacer

@@ -359,22 +359,28 @@ module.exports = function runCommandUITests() {
             test.assertFalse(result.isGameOver, 'Closing event windows should not force a game-over result');
         });
 
-        test.it('confirms the end-turn hotkey before discarding an event overlay', () => {
-            const game = createGameForTests();
-            createOwnedStar(game, 1, 'Sol');
-            createOwnedStar(game, 2, 'Rigel');
-            game.overlay = { type: 'stardock', classIndex: 1 };
-            game.uiWindow = 'events';
+        test.it('acknowledges lab and stardock reports before handling the end-turn shortcut', () => {
+            for(const type of ['lab','stardock'])for(const key of [13,10,32,pdg.key_Escape]) {
+                const game=createGameForTests();createOwnedStar(game,1,'Sol');createOwnedStar(game,2,'Rigel');
+                game.overlay={type,classIndex:1};game.overlayQueue=[{type:'report',eventId:-1}];game.uiWindow='events';
+                const turnBefore=game.turn;game.handleKeyPress(key);
+                test.assertEqual(game.turn,turnBefore);test.assertEqual(game.uiWindow,'events');
+                test.assertEqual(game.overlay.type,'report');test.assertEqual(game.overlayQueue.length,0);
+            }
+        });
 
-            const turnBefore = game.turn;
-            game.handleKeyPress(13);
-            test.assertEqual(game.uiWindow,'endTurnConfirm');
-            test.assertEqual(game.turn,turnBefore);
-            game.executeUIAction({type:'confirmEndTurn'});
-
-            test.assertNull(game.overlay, 'End-turn hotkey should close the overlay');
-            test.assertNull(game.uiWindow, 'End-turn hotkey should close the event list');
-            test.assertEqual(game.turn, turnBefore + 1, 'End-turn hotkey should advance instead of only dismissing the overlay');
+        test.it('blocks attention navigation during a class report and preserves the turn on ordinary-key dismissal', () => {
+            for(const type of ['lab','stardock']) {
+                const game=createGameForTests();game.overlay={type,classIndex:1};const original=game.overlay;
+                game.handleKeyPress(pdg.key_Tab);test.assertTrue(game.overlay===original);
+                // End is an ordinary non-Tab key on the legacy class surface,
+                // not the end-turn shortcut: dismissal must preserve the turn.
+                const turn=game.turn;game.handleKeyPress(pdg.key_End);test.assertNull(game.overlay);test.assertEqual(game.turn,turn);
+            }
+            for(const type of ['report','outcome']) {
+                const game=createGameForTests();game.overlay={type};const original=game.overlay;
+                game.handleKeyPress(pdg.key_End);test.assertTrue(game.overlay===original);
+            }
         });
 
         test.it('queues event presentations and advances them on dismissal', () => {

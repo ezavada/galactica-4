@@ -204,3 +204,13 @@ language through Settings. Finale lifecycle checks still use a fixture jump to
 page 60; they do not prove a complete guided playthrough. There is no public
 Tutorial menu item yet. Lesson illustrations and complete tutorial save/resume
 remain separate unfinished requirements.
+
+
+Lab and stardock overlays acknowledge Enter/Return before the end-turn shortcut,
+so the first ship report preserves the current turn and queued reports. An
+explicit foreground end-turn confirmation still takes precedence. The first
+attention lesson asks the player to acknowledge remaining reports before Tab;
+actual six-language browser runs reach the first colony ship on turn 2. The
+longer walkthrough still needs repairs after lesson 27: a defense-build entry
+can precede the colony ship in attention. This verification does not establish
+a full guided playthrough.

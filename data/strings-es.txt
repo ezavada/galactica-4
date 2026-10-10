@@ -144,7 +144,7 @@
 568	Galactica-4
 570	Nueva tecnología de impulso
 571	Nueva clase {0} comisionada
-572	Espacio o Esc para continuar
+572	Enter, Espacio o Esc para continuar
 573	Renombrar
 574	Eliminar
 575	Mover

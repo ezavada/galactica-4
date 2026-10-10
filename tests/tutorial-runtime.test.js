@@ -26,6 +26,12 @@ module.exports=()=>test.describe('Tutorial bindings to real game actions',()=>{
  test.it('uses real event windows and acknowledgment rather than treating End Turn as Next',()=>{
   const {game,tutorial}=setup();tutorial.goto(12);game.endTurn();test.assertEqual(game.turn,2);test.assertEqual(tutorial.pageId,13);test.assertEqual(game.overlay.type,'stardock');game.dismissEventPresentation();test.assertEqual(tutorial.pageId,14);game.overlay=null;game.overlayQueue=[];game.attention.next();test.assertEqual(tutorial.pageId,15);
  });
+ test.it('acknowledges the first real ship report through Enter without processing another tutorial turn',()=>{
+  const {game,tutorial}=setup();tutorial.goto(12);game.endTurn();test.assertEqual(tutorial.pageId,13);test.assertEqual(game.overlay.type,'stardock');
+  const turn=game.turn;game.handleKeyPress(13);test.assertEqual(game.turn,turn);test.assertEqual(tutorial.pageId,14);
+  for(let i=0;i<20 && game.overlay;i++)game.handleKeyPress(13);test.assertNull(game.overlay);
+  game.handleKeyPress(pdg.key_Tab);test.assertEqual(tutorial.pageId,15);test.assertEqual(game.turn,turn);test.assertEqual(game.selectedObject.type,'colony');
+ });
  test.it('distinguishes a real attention item from an empty queue and applies the source courier correction',()=>{
   const {game,tutorial,home,s7}=setup(),ship=game.factory.createShip(home.x,home.y,'scout',home,true);home.shipArrived(ship);tutorial.goto(29);game.attention.request(ship);game.attention.next();test.assertEqual(tutorial.pageId,29);game.attention.next();test.assertEqual(tutorial.pageId,30);game.setSelectedObject(home);test.assertEqual(tutorial.pageId,31);tutorial.goto(44);game.attention.next();test.assertEqual(tutorial.pageId,45);test.assertTrue(ship.destination===s7);
  });

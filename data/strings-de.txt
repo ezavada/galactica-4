@@ -144,7 +144,7 @@
 568	Galactica-4
 570	Neue Antriebstechnologie
 571	Neue Klasse {0} in Dienst gestellt
-572	Leertaste oder Esc zum Fortfahren
+572	Enter, Leertaste oder Esc zum Fortfahren
 573	Umbenennen
 574	Löschen
 575	Bewegen
