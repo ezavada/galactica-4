@@ -87,11 +87,13 @@ module.exports = function runShipNamingEventsTests() {
                 game.overlay=null;game.overlayQueue=[];star.startBuildingShip(type);star.completeShip();test.assertEqual(game.overlay,null);
             }
         });
-        test.it('keeps enemy first-built hull and class presentations private even without fog',()=>{
+        test.it('keeps enemy Stardock art private while broadcasting the source observer narratives',()=>{
             const game=createGameForTests();game.config.omniscient=true;const star=game.factory.createStar(0,0,'Enemy');star.owner=2;
             for(const type of ['defense','scout','colony','battleship']){star.startBuildingShip(type);star.completeShip();}
-            test.assertEqual(game.overlay,null);test.assertEqual(game.overlayQueue.length,0);
-            game.turn++;test.assertFalse(game.getEventRows().some(e=>e.type===require('../src/js/common.js').EventType.NEW_SHIP_CLASS));
+            test.assertEqual(game.overlay.type,'report');test.assertTrue(game.overlay.automaticObserver);
+            test.assertFalse([game.overlay,...game.overlayQueue].some(o=>o.type==='stardock'));
+            game.turn++;const reports=game.getEventRows().filter(e=>e.type===require('../src/js/common.js').EventType.NEW_SHIP_CLASS);
+            test.assertEqual(reports.length,4);test.assertTrue(reports.every(e=>e.observer&&e.commissioning));
         });
         test.it('does not announce older battleship classes after commissioning a higher one',()=>{
             const game=createGameForTests(),star=game.factory.createStar(0,0,'Home');star.owner=1;star.techLevel=15;

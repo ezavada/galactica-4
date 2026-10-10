@@ -115,7 +115,9 @@ module.exports=function(){test.describe('V3 human call-ins and attention',()=>{
     });
     test.it('queues newly built mobile ships without a duplicate call-in log',()=>{
         const {g,home}=fixture();home.startBuildingShip('scout');g.rules.getShipBuildCost=()=>1;home.currentShip.cost=1;
-        g.rules.getStarShipBuildingAmount=()=>1;g.endTurn();test.assertEqual(g.attention.pending().length,1);
+        g.rules.getStarShipBuildingAmount=()=>1;g.endTurn();
+        test.assertEqual(g.attention.pending().length,2); // first-class report plus the built ship
+        g.dismissEventPresentation();test.assertEqual(g.attention.pending().length,1);
         test.assertFalse(g.eventLog.some(e=>e.type==='callIn'));
     });
     test.it('exposes the next-attention menu action and fits the final map row inside the screen',()=>{

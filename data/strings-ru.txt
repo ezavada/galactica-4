@@ -613,3 +613,6 @@
 
 # Containment navigation
 956	Родительская система
+
+# Observer first-class commissioning
+957	{0} ввёл в строй новый корабль класса {1}, технологический уровень {2}, в системе {3}.

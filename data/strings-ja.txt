@@ -613,3 +613,6 @@
 
 # Containment navigation
 956	所属星系
+
+# Observer first-class commissioning
+957	{0}が星系「{3}」で技術レベル{2}の新しい{1}級艦を就役させました。

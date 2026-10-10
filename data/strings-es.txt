@@ -613,3 +613,6 @@
 
 # Containment navigation
 956	Sistema contenedor
+
+# Observer first-class commissioning
+957	{0} puso en servicio una nueva nave de clase {1}, nivel tecnológico {2}, en {3}.

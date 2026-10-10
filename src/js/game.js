@@ -1014,7 +1014,7 @@ class Game {
     }
 
     hasReplayableReport(event) {
-        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair || event.rendezvousFormation || event.colonization));
+        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair || event.rendezvousFormation || event.colonization || event.commissioning));
     }
 
     queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense)), manual = false) {
@@ -1046,7 +1046,7 @@ class Game {
             return false;
         }
 
-        if(this.overlay && ['outcome','report'].includes(this.overlay.type)) {
+        if(this.overlay && ['outcome','report','stardock'].includes(this.overlay.type)) {
             const event=this.eventLog.find(event=>event.id===this.overlay.eventId);
             if(event)this.focusEvent(event);
         }
@@ -2973,12 +2973,13 @@ class Game {
         this.attention.beginTurn();
         this.moveAllShips();
         this.refreshRendezvousFleetReferences();
-        // Update all stars
-        for (const star of [...this.stars]) {
-            if (this.stars.includes(star)) {
-                star.update();
+        // Observer presentations must wait for the post-update visibility pass.
+        this.updatingStars=true;
+        try {
+            for (const star of [...this.stars]) {
+                if (this.stars.includes(star))star.update();
             }
-        }
+        } finally {this.updatingStars=false;}
         
         this.attention.finishTurn();
 
@@ -3343,6 +3344,30 @@ class Game {
         return event;
     }
 
+    recordCommissioningReports(ship,classIndex) {
+        const star=ship.star,owner=ship.owner;
+        if(!star || !this.stars.includes(star) || !this.players[owner])return [];
+        const ownerName=this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
+        const name=ship.type==='battleship'?ship.name.split('\t')[0]:I18n.getShipTypeName(ship.type,{capitalized:true});
+        const snapshot={owner,ownerName,name,shipType:ship.type,classIndex,techLevel:ship.techLevel,starName:star.name};
+        return Object.keys(this.players).map(Number).filter(recipient=>recipient>0 && this.players[recipient]).map(recipient=>{
+            const observer=recipient!==owner;
+            const message=observer?I18n.formatString(957,'{0} commissioned a new {1} class starship, tech level {2}, at {3}.',
+                ownerName,name,I18n.formatInteger(ship.techLevel),star.name):
+                I18n.formatString(925,'First {0} commissioned at {1}.',name,star.name)+'\n\n'+
+                    I18n.getString({defense:921,scout:922,colony:923,battleship:924}[ship.type]);
+            const event=this.recordEvent(I18n.getString(611,'Stardock'),message,
+                {type:Common.EventType.NEW_SHIP_CLASS,subject:star,position:star,recipient});
+            event.commissioning={...snapshot};event.observer=observer;
+            this.attention.requestEvent(event);
+            if(!observer) {
+                if(owner===this.getCurrentHumanPlayer())this.queueEventOverlay({type:'stardock',classIndex,
+                    shipType:ship.type,ship,origin:star,eventId:event.id});
+            } else if(this.showEnemyEvents && !this.movementTurn && !this.updatingStars)this.queueReport(event);
+            return event;
+        });
+    }
+
     noteworthyEvent(who, what, where, how, why, other) {
         let eventTitle = I18n.getString(600, 'Event');
         let eventMessage = null;
@@ -3423,14 +3448,7 @@ class Game {
             }
             case Common.EventType.NEW_SHIP_CLASS: {
                 const classIndex = where || (who.classIndex || 1);
-                if (who.owner===this.getCurrentHumanPlayer())
-                    this.queueEventOverlay({ type: 'stardock', classIndex, shipType: who.type, ship: who, origin: who.star });
-                eventTitle = I18n.getString(611, 'Stardock');
-                const name=who.type==='battleship'?who.name.split('\t')[0]:I18n.getShipTypeName(who.type,{capitalized:true});
-                eventMessage = I18n.formatString(925, 'First {0} commissioned at {1}.', name, who.star ? who.star.name : '')+'\n\n'+
-                    I18n.getString({defense:921,scout:922,colony:923,battleship:924}[who.type]);
-                console.log(`🏭 ${eventMessage}`);
-                break;
+                return this.recordCommissioningReports(who,classIndex);
             }
             case Common.EventType.STAR_COLONIZED:
                 eventTitle = I18n.getString(612, 'Colonization');

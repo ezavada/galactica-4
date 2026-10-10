@@ -613,3 +613,6 @@
 
 # Containment navigation
 956	Système parent
+
+# Observer first-class commissioning
+957	{0} a mis en service un nouveau vaisseau de classe {1}, de niveau technologique {2}, sur {3}.

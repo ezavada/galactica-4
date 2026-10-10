@@ -613,3 +613,6 @@
 
 # Containment navigation
 956	Containing system
+
+# Observer first-class commissioning
+957	{0} commissioned a new {1} class starship, tech level {2}, at {3}.

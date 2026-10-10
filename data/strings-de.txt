@@ -613,3 +613,6 @@
 
 # Containment navigation
 956	Übergeordnetes System
+
+# Observer first-class commissioning
+957	{0} hat bei {3} ein neues Raumschiff der Klasse {1} mit Technologiestufe {2} in Dienst gestellt.
