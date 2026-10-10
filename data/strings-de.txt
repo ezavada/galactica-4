@@ -492,3 +492,4 @@
 853	Wählen Sie eine Datei zum Öffnen.
 854	Es ist kein gespeicherter Spielstand verfügbar.
 855	Vorhandene Datei ersetzen: {0}?
+856	Bitte benennen Sie Ihre neue Kolonie und stellen Sie ihre Produktionsanteile ein.

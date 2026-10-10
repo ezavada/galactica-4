@@ -492,3 +492,4 @@
 853	Choose a file to open.
 854	No saved version is available.
 855	Replace the existing file: {0}?
+856	Please name your new colony and set its production levels.

@@ -62,6 +62,7 @@ use the same paths as the desktop launcher.
 - **Turn-based core**: Build ships, colonize stars, move ships/fleets, resolve v3-style combat/capture, repair docked ships/fleets, and update fog-of-war state.
 - **AI players**: Computer opponents participate in turns, use v3-backed economy/build rules, and send ships/fleets to destinations with v3-style decision scoring.
 - **Command UI**: Startup player-name dialog with remembered Unicode names, runtime windows, event list, full v3 player comparison with production/power and system/ship technology statistics, best/worst highlighting, paged rosters, permanent map buttons, popup action buttons, and production sliders.
+- **New-colony guidance**: Neutral human colonies request attention to name the colony and set production. Tab or report Go to centers the colony and shows the instruction beside its existing controls.
 - **Multiple local games**: Menu → New Game reopens setup without discarding your current game. Cancel returns to it; Menu → Open Games switches among retained games, preserving each turn, selection and camera. Menu → File provides Save, Save As, Open and Revert for versioned `.gad4.json` documents. Native saves use atomic file replacement; browsers use file handles where available, or downloads/uploads. Open Game is also available on the startup screen.
 - **Conclusion reports**: Localized v3 victory and defeat narratives, opponent defeat notices, and stalemate reports. Acknowledge without advancing the turn; reopen a retained outcome from the event list.
 - **Subtle visual effects**: Occasional star twinkles, gentle background parallax, shaded and outlined controls, known-owner system tint, brief window transitions, and familiar icons with localized hints. Browser reduced-motion preferences are respected.
@@ -86,7 +87,7 @@ use the same paths as the desktop launcher.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 992 passed, 0 failed.
+Current expected result: 1001 passed, 0 failed.
 
 AI-only parity observer:
 

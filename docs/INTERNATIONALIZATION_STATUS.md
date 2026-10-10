@@ -20,8 +20,8 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 390 IDs
-- localized files: 390 IDs each
+- `strings.txt`: 391 IDs
+- localized files: 391 IDs each
 
 Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
 
@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 992 passed, 0 failed.
+Current expected full-suite result: 1001 passed, 0 failed.
 
 ## Future work
 
@@ -167,3 +167,5 @@ Victory/defeat conclusion reports add IDs 832–835 in all six languages: three-
 Local game documents add IDs 836–837 for New Game and Open Games in en/de/es/fr/ja/ru. Setup Cancel and chooser paging reuse existing translations. New/retained document titles preserve Unicode and the chooser uses the current language for Turn. Inspected translated setup, normal/smaller menus, chooser pages and restored game screenshots. Current resources: 372 IDs per language; full suites: 979 passed on release/current native PDG.
 
 Local Save/Save As/Open/Revert adds IDs 838–855 in en/de/es/fr/ja/ru. Commands, filename/path prompts, confirmation, progress, success and failure messages use localized resources; user filenames retain native Unicode. Browser download/upload, existing-file Save, cancellation, revert, malformed-file rejection and startup import after a fresh-page reload passed in every language. Translated file menus, filename editors, confirmations, errors and restored games were inspected under `/private/tmp/galactica-parity/save-after`. Native file/controller integration and six-language bounds checks pass. Current resources: 390 IDs per language; full suites: 992 passed on release/current native PDG.
+
+New-colony setup reports add ID 856 in all six languages. The private report and inspector guidance ask the owner to name the new colony and adjust production, matching v3 STR#500/45. Actual browser End Turn, Tab navigation, Unicode Rename/Save, production clicks, report Go to and recapture suppression pass in every language. Before/after inspectors and reports, translated naming dialogs and recaptured-system screens were inspected under `/private/tmp/galactica-parity/colony-setup-{before,after}`. Current resources: 391 IDs per language; full suites: 1001 passed on release/current native PDG.

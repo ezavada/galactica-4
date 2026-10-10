@@ -492,3 +492,4 @@
 853	Elige un archivo para abrir.
 854	No hay ninguna versión guardada.
 855	¿Reemplazar el archivo existente: {0}?
+856	Pon nombre a tu nueva colonia y ajusta sus niveles de producción.

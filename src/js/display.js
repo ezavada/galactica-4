@@ -2789,9 +2789,13 @@ class Display {
         };
     }
 
+    getColonySetupLines(star) {
+        return this.game.getColonySetupReport(star)?this.wrapEventMessage(I18n.getString(856),332,11):[];
+    }
+
     getStarDetailsPanelHeight(star) {
         const data = this.getStarDiagnostics(star);
-        if (this.game.canHumanControl(star)) return 394;
+        if (this.game.canHumanControl(star)) {const lines=this.getColonySetupLines(star);return 394+(lines.length?lines.length*15+8:0);}
         if (data.allied) return 364;
         if (data.showProduction) return 325;
         return this.game.canViewSystemShips(star) ? 254 : 224;
@@ -2801,12 +2805,13 @@ class Display {
         const data = this.getStarDiagnostics(star);
         const rect = this.getAnchoredPanelRect(star, 360, this.getStarDetailsPanelHeight(star));
         const x = rect.x + 12;
-        let y = this.getPanelContentStartY(rect) + 8*18;
+        const hintLines=this.getColonySetupLines(star),hintHeight=hintLines.length?hintLines.length*15+8:0;
+        let y = this.getPanelContentStartY(rect) + hintHeight + 8*18;
         if (data.eta !== null) y += 18;
         const dividerY = y - 1;
         const productionTitleY = dividerY + 19;
         const sliderStartY = productionTitleY + 18;
-        return {rect,x,basicStartY:this.getPanelContentStartY(rect),dividerY,productionTitleY,sliderStartY,sliderWidth:150};
+        return {rect,x,hintLines,basicStartY:this.getPanelContentStartY(rect)+hintHeight,dividerY,productionTitleY,sliderStartY,sliderWidth:150};
     }
 
     getStarAllocationSliderRegions(star) {
@@ -2873,6 +2878,7 @@ class Display {
         const owned = this.game.canHumanControl(star), data = this.getStarDiagnostics(star);
         const layout = this.getStarDetailsLayout(star), rect = layout.rect, x = layout.x;
         this.drawAnchoredPanel(star, rect, this.fitShipDiagnosticText(data.title,rect.width-32,14));
+        layout.hintLines.forEach((line,index)=>this.drawTextLine(line,x,this.getPanelContentStartY(rect)+index*15,'lightgray',11));
         let y = layout.basicStartY;
         const labels = [this.STR.owner,this.STR.pop,this.STR.tech,this.STR.building,
             I18n.getString(721,'Position:'),I18n.getString(722,'Total defense:'),

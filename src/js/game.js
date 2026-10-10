@@ -1068,6 +1068,7 @@ class Game {
         if(!event || !this.eventLog.includes(event))return false;
         const player=this.getCurrentHumanPlayer();
         if(event.recipient!==undefined && event.recipient!==player)return false;
+        if(event.type===Common.EventType.RENAME_COLONY && (!this.stars.includes(event.subject) || event.subject.owner!==player))return false;
         const subject=event.subject;
         return !subject || event.recipient===player || this.config.omniscient ||
             subject.owner===player || subject.isAllyOf && subject.isAllyOf(player) ||
@@ -1096,6 +1097,7 @@ class Game {
     focusEvent(event,closeWindow=false) {
         if(!this.isEventAccessible(event))return false;
         event.handled=true;this.attention.handleEvent(event);
+        if(event.type===Common.EventType.RENAME_COLONY)this.eventSelection=event.id;
         const focus=this.getEventFocus(event);
         if(focus) {
             this.setSelectedObject(focus.object);
@@ -1452,6 +1454,8 @@ class Game {
     setSelectedObject(object) {
         if (this.selectedObject !== object) this.fleetMemberPage = 0;
         this.selectedObject = object;
+        const colonyRequest=this.attention.pending().find(entry=>entry.object===object && entry.event && entry.event.type===Common.EventType.RENAME_COLONY);
+        if(colonyRequest)this.eventSelection=colonyRequest.event.id;
         this.attention.attend(object);
         if (this.display) {
             this.display.setSelectedObject(object);
@@ -3101,8 +3105,24 @@ class Game {
 
         const eventType = previousOwner ? Common.EventType.STAR_CAPTURED : Common.EventType.STAR_COLONIZED;
         this.noteworthyEvent(colonyShip, eventType, star);
+        if(!previousOwner)this.requestColonySetup(star);
         this.removeDestroyedShip(colonyShip, colonyShip.owner, false);
         return true;
+    }
+
+    requestColonySetup(star) {
+        const player=this.players[star.owner];
+        if(!player || player.isComputer)return false;
+        const event=this.recordEvent(I18n.getString(612,'Colonization'),
+            I18n.getString(856,'Please name your new colony and set its production levels.'),
+            {type:Common.EventType.RENAME_COLONY,subject:star,recipient:star.owner});
+        this.attention.requestEvent(event);
+        return event;
+    }
+
+    getColonySetupReport(star) {
+        return this.eventLog.find(event=>event.id===this.eventSelection && event.subject===star &&
+            event.type===Common.EventType.RENAME_COLONY && this.isEventAccessible(event)) || null;
     }
 
     noteworthyEvent(who, what, where, how, why, other) {
@@ -3218,7 +3238,7 @@ class Game {
             const event=this.recordEvent(eventTitle,eventMessage,{type:what,subject,
                 recipient:subject?subject.owner:undefined,position:what===Common.EventType.SHIP_DESTROYED?where:subject});
             if(what===Common.EventType.PLAYER_DIED)this.queueOutcome(event,'defeat',who.playerNum);
-            if([Common.EventType.SHIP_BUILT,Common.EventType.STAR_COLONIZED,Common.EventType.STAR_CAPTURED].includes(what))this.attention.requestEvent(event);
+            if([Common.EventType.SHIP_BUILT,Common.EventType.STAR_CAPTURED].includes(what))this.attention.requestEvent(event);
         }
     }
     

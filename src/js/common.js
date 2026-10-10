@@ -30,7 +30,8 @@ const EventType = {
     FLEET_FORMED: 17,    // A fleet was created or assembled
     RENDEZVOUS_UPDATED: 18, // A rendezvous point changed
     NEW_TECH_DISCOVERY: 20, // Lab event: reached a new drive class (tech/5)
-    NEW_SHIP_CLASS: 21      // Stardock event: first battleship class built for player
+    NEW_SHIP_CLASS: 21,      // Stardock event: first battleship class built for player
+    RENAME_COLONY: 22 // Private request to name a new colony and set production
 }
 
 const EventWhy = {

@@ -492,3 +492,4 @@
 853	Choisissez un fichier à ouvrir.
 854	Aucune version enregistrée n’est disponible.
 855	Remplacer le fichier existant : {0} ?
+856	Nommez votre nouvelle colonie et réglez ses niveaux de production.
