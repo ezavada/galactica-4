@@ -35,7 +35,7 @@ PowerShell) to replace the cached copy.
 
 On a new installation, closing the introduction starts the tutorial automatically.
 You can also press **T** or click the triangle in the introduction/About window, click **Tutorial** on the start screen, or open the in-game menu and choose
-**Tutorial**. Follow the instruction window and use the indicated game controls.
+**Tutorial**. Settings → Tutorial/T is another entry point. Close a blocking dialog first, then acknowledge the tutorial’s recovery instruction. Follow the instruction window and use the indicated game controls.
 **Close tutorial** cancels practice and restores your previous game; **Finish**
 keeps the practice game open for further play.
 
@@ -67,13 +67,13 @@ use the same paths as the desktop launcher.
 - **Local setup dialog**: Editable Unicode game titles (up to 27 characters), followed by player-name entry. Click the player-count row or press C to edit 0–98 AI opponents, including solo exploration. Click the AI-skill row for the five localized v3 choices, or use keys 1–5. Startup configuration for the full −3 through +3 computer-advantage range, map size, density, fast-game, and fog/all-visible mode. Advantage choices are clickable or cycled with A; Fast Game and Fog of War have clickable checkboxes and F/O shortcuts.
 - **Turn-based core**: Build ships, colonize stars, move ships/fleets, resolve v3-style combat/capture, repair docked ships/fleets, and update fog-of-war state.
 - **AI players**: Computer opponents participate in turns, use v3-backed economy/build rules, and send ships/fleets to destinations with v3-style decision scoring.
-- **Interactive tutorial**: Launch from startup or Menu → Tutorial for an illustrated sixty-lesson practice game in any supported language. Close tutorial restores your previous game; Finish keeps practice open for further play. Practice games can be saved; saves do not preserve the instruction step.
+- **Interactive tutorial**: Launch from startup, Menu → Tutorial, or Settings → Tutorial/T for an illustrated sixty-lesson practice game in any supported language. Close tutorial restores your previous game; Finish keeps practice open for further play. Practice games can be saved; saves do not preserve the instruction step.
 - **Introduction and About**: A saved startup setting controls the original-art introduction. Settings opens About independently; both show localized content, offer manual paging, and preserve your setup/game. About identifies the development build for problem reports.
 - **New game defaults**: Startup Settings or Menu → Settings → New game defaults remembers map size, density, AI skill/advantage, fast game and fog of war for future games. Save applies the defaults; Cancel leaves them unchanged. Current games and the tutorial keep their own configuration.
 - **Control help**: Rest the pointer over a control for a translated explanation, including startup options, allocation targets, course commands and saved-game dialogs. Settings → Control help enables or disables it; the choice persists.
 - **Command UI**: Startup player-name dialog with remembered Unicode names, runtime windows, event list, full v3 player comparison with production/power and system/ship technology statistics, best/worst highlighting, paged rosters, permanent map buttons, popup action buttons, and production sliders.
 - **New colony defaults**: Settings and the game menu remember the hull and coupled production allocations for future colonies and games. Existing systems keep their allocations; fixed tutorial practice is isolated.
-- **New-colony guidance**: Neutral human colonies request attention to name the colony and set production. Tab or report Go to centers the colony and shows the instruction beside its existing controls.
+- **New-colony guidance**: Neutral human colonies request attention to name the colony and set production. Tab or report Go to centers the colony and shows the instruction beside its existing controls. Settings → Tutorial/T also starts the lesson; modal recovery waits for Settings to close before continuing.
 - **Multiple local games**: Menu → New Game reopens setup without discarding your current game. Cancel returns to it; Menu → Open Games switches among retained games, preserving each turn, selection and camera. Menu → File provides Save, Save As, Open and Revert for versioned `.gad4.json` documents. File → Close game offers Save and close, Discard and Cancel for unsaved changes; other games stay open, and closing the last game returns to setup. Native saves use atomic file replacement; browsers use file handles where available, or downloads/uploads. Open Game and Quit are also available on the startup screen. File → Quit checks all open games and waits for successful saves; Cancel preserves remaining games. Browsers warn before leaving unsaved games and offer a restart screen after Quit. Native window-close/OS Quit integration remains pending.
 - **Conclusion reports**: Localized v3 victory and defeat narratives, opponent defeat notices, and stalemate reports. Acknowledge without advancing the turn; reopen a retained outcome from the event list.
 - **Subtle visual effects**: Occasional star twinkles, gentle background parallax, shaded and outlined controls, known-owner system tint, brief window transitions, and familiar icons with localized hints. Browser reduced-motion preferences are respected.
@@ -98,7 +98,7 @@ use the same paths as the desktop launcher.
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1369 passed, 0 failed.
+Current expected result: 1373 passed, 0 failed.
 
 AI-only parity observer:
 

@@ -527,3 +527,46 @@ This verifies recovery page 100. Modal recovery 101 still needs an actual
 application-command entry path and rendered verification. Hosting recovery 103
 still depends on the unported multiplayer setup. No runtime or localization
 resource changes were needed for page 100.
+
+
+### Modal tutorial recovery through actual application commands
+
+Verified shipped v3 `Classes/Galactica.cpp:2176–2240`: Tutorial examines the
+front modal window, automatically dismisses Intro/About, allows New Game and
+Enter Name, and selects recovery page 101 for another modal. Its OK command
+restarts entry against the current front window. The existing star-map path
+then uses page 100 before hiding the original. No automatic closure or fake
+progression through the obstructing dialog is part of this behavior.
+
+V4 now resolves the real front application state for both tutorial launch and
+instruction acknowledgment. Settings → Tutorial/T is available from startup
+and the running game. Starting it retains Settings and the original document
+while showing the localized Close the dialog recovery lesson. Retry while
+Settings stays open remains on page 101. Closing the tutorial leaves Settings
+open and the game unchanged. Closing Settings then acknowledging the lesson
+rechecks the real state: startup proceeds to Welcome, and an open game proceeds
+to Hide before entering practice. The instruction panel remains visible and
+receives its own pointer/scroll/drag events above startup Settings. Modal clicks
+and turn keys continue to respect the blocking window. A second tutorial cannot
+be launched while the first is active.
+
+Four new regressions cover front-window classification and the New Game/Enter
+Name exceptions, actual Settings action/keyboard routing, the startup preference
+model and translated Tutorial labels/help. All six existing lesson resources
+remain the source of recovery text; no English-only UI strings were added.
+Both native runtime suites pass 1,373 tests. The complete existing-game normal
+walkthrough still passes using actual controls. The new repeatable muted browser
+runner `tools/test-web-tutorial-modal.cjs` checks actual Settings entry, outside
+clicks/turn keys, retry, Cancel, modal closure, Hide and restoration in both
+startup and running-game modes for en/de/es/fr/ja/ru. Before/after Settings,
+translated commands/recovery panels and restored originals were inspected.
+The six bundled manuals now describe the available tutorial and modal recovery,
+correcting their stale statement that the interactive tutorial was unavailable.
+
+Evidence: `/private/tmp/galactica-modal-{tests,public-tests,game-<language>,startup-<language>,full-existing-game,final-en,before}.log`,
+`/private/tmp/galactica-parity/tutorial-modal`, and
+`/private/tmp/galactica-modal-{before-after,languages,settings}-review.png`.
+This completes actual-entry verification for recovery 101. Recovery 103 remains
+a requirement of multiplayer hosting, and native Quit/window-close integration,
+other application/window commands, the wider parity inventory and Map Generation
+remain active work. No global completion or unavailable-help blocker is claimed.

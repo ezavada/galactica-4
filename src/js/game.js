@@ -1402,6 +1402,7 @@ class Game {
             return true;
         }
         if(this.uiWindow==='settings' || this.uiWindow==='mapDisplay') {
+            if(this.uiWindow==='settings' && lower==='t')return this.executeUIAction({type:'startTutorial'});
             if(this.uiWindow==='settings' && [pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))
                 return this.executeUIAction({type:'settingsPage',delta:key===pdg.key_RightArrow?1:-1});
             if(key===pdg.key_Escape)this.uiWindow=null;

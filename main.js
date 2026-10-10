@@ -117,7 +117,7 @@ const startupLifecycle=new StartupLifecycle.StartupLifecycle(installation,()=>be
     quit:()=>quitDocuments.request(),fullscreen:()=>fullscreen.toggle(),help:()=>userManual.open(pdg.res.getLanguage()),tutorial:()=>beginTutorial()
 }));
 const openAbout=()=>startupSettings.open('about');
-const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,colonyDefaultsPreferences,sound,fullscreen,presentation,openAbout,presentationClosed:kind=>{if(kind==='startup')startupLifecycle.finishIntroduction();},presentationTutorial:()=>{if(tutorialSession)return false;const kind=presentation.kind;presentation.close();startupSettings.model.uiWindow=null;const result=beginTutorial();if(kind==='startup')startupLifecycle.finishIntroduction();return result;}});
+const startupSettings=new (require('./src/js/startup-settings.js'))(port,{drawingPreferences,languagePreferences,newGameDefaultsPreferences,colonyDefaultsPreferences,sound,fullscreen,presentation,openAbout,tutorialCommands:{available:()=>!tutorialSession,start:()=>beginTutorial()},presentationClosed:kind=>{if(kind==='startup')startupLifecycle.finishIntroduction();},presentationTutorial:()=>{if(tutorialSession)return false;const kind=presentation.kind;presentation.close();startupSettings.model.uiWindow=null;const result=beginTutorial();if(kind==='startup')startupLifecycle.finishIntroduction();return result;}});
 
 function createDefaultConfig(usePreferences=true) {
     if(usePreferences)return NewGameDefaults.createConfig(newGameDefaultsPreferences);
@@ -553,8 +553,14 @@ function clearSessionInput() {
     isDragging=false;isLeftClickDragging=false;hasDragged=false;
     if(game){game.endUIWindowDrag();game.endMapScrollDrag();game.endUISliderDrag();}
 }
-// Both public launch controls share the same temporary tutorial document owner.
-function beginTutorial(pages=require('./src/js/tutorial-lessons.js').load(dataPath),context={window:game && !sessions.starting?1:34,modal:sessions.starting}) {
+// Tutorial entry and recovery share the current front-window context.
+function currentTutorialContext(){
+    return require('./src/js/tutorial-context.js').current({game,starting:sessions.starting,
+        settingsWindow:startupSettings.active?startupSettings.model.uiWindow:null,
+        documentDialog:documents.dialog,manualError:userManual.error(),playerName:startupPlayerName,
+        titleEditor:startupGameTitle,computerEditor:startupComputerCount,skillMenu:startupAISkill});
+}
+function beginTutorial(pages=require('./src/js/tutorial-lessons.js').load(dataPath),context=currentTutorialContext()) {
     if(tutorialSession && tutorialSession.controller.active)return false;
     startupLifecycle.consume();
     const owner=new (require('./src/js/tutorial-session.js'))(pages,{
@@ -576,7 +582,7 @@ function beginTutorial(pages=require('./src/js/tutorial-lessons.js').load(dataPa
         onStop:()=>{clearSessionInput();if(tutorialSession===owner){tutorialSession=null;tutorialPanel=null;}}
     });
     tutorialSession=owner;
-    tutorialPanel=new (require('./src/js/tutorial-panel.js'))(owner,{preferences:drawingPreferences,language:()=>LanguageSettings.current(),loadPages:code=>require('./src/js/tutorial-lessons.js').load(dataPath,code),context:()=>({window:game && !sessions.starting?1:startupPlayerName?4:34,modal:sessions.starting})});
+    tutorialPanel=new (require('./src/js/tutorial-panel.js'))(owner,{preferences:drawingPreferences,language:()=>LanguageSettings.current(),loadPages:code=>require('./src/js/tutorial-lessons.js').load(dataPath,code),context:currentTutorialContext});
     try{owner.start(context);}catch(error){tutorialSession=null;tutorialPanel=null;throw error;}
     return owner;
 }
@@ -584,6 +590,7 @@ function beginTutorial(pages=require('./src/js/tutorial-lessons.js').load(dataPa
 function tutorialPanelContext(){
     const area=port.getDrawingArea(),screen={width:area.width(),height:area.height()},targets=[];
     const foreground=foregroundApplicationWindow();if(foreground)targets.push(foreground.rect);
+    if(startupSettings.active)targets.push(startupSettings.model.display.getActiveWindowRect());
     if(display && game){
         const active=display.getActiveWindowRect();if(active)targets.push(active);
         if(game.overlay && game.overlay.type==='report')targets.push(display.getReportLayout(game.overlay).rect);
@@ -718,7 +725,7 @@ function attachGameServices(nextGame) {
     if(!nextGame.restoredFromSave)nextGame.showMapNames = drawingPreferences.readMapNames();
     nextGame.port = port;
     nextGame.manualCommands=userManual;
-    nextGame.tutorialCommands={available:()=>!tutorialSession,start:()=>{nextGame.uiWindow=null;return beginTutorial();}};
+    nextGame.tutorialCommands={available:()=>!tutorialSession,start:()=>{if(nextGame.uiWindow==='menu')nextGame.uiWindow=null;return beginTutorial();}};
     nextGame.fileCommands={quit:()=>quitDocuments.request(),menu:()=>{clearSessionInput();return documents.menu();}};
     nextGame.sessionCommands={begin:beginNewGame,rows:()=>sessions.rows(),select:switchGameSession};
 }
@@ -869,7 +876,7 @@ if (launchOptions.aiAutoplay) {
 
 // Create event handlers using the correct PDG syntax
 const drawHandler = new pdg.IEventHandler(function(event) {
-    if(startupSettings.active){if(game && !sessions.starting)game.draw();else drawStartupDialog();startupSettings.draw();return true;}
+    if(startupSettings.active){if(game && !sessions.starting)game.draw();else drawStartupDialog();startupSettings.draw();drawTutorialPanel();return true;}
     if(userManual.error()){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawManualFailure();return true;}
     if(documents.dialog){if(game && !sessions.starting){game.display.clearControlHelp();game.draw();}else drawStartupDialog();drawDocumentDialog();drawStartupControlHelp();return true;}
     if (!sessions.starting && game) {
@@ -906,7 +913,6 @@ let hasDragged = false; // Track if user has dragged during left click
 
 const mouseHandler = new pdg.IEventHandler(function(event) {
     startupHelp.clear();startupHoverPoint=null;
-    if(startupSettings.active)return startupSettings.mouse(event);
     if(game && game.display)game.display.clearControlHelp();
     if(event && event.eventType===pdg.eventType_MouseUp && windowPlacement.end(event.mousePos.x,event.mousePos.y))return true;
     if(event && event.eventType===pdg.eventType_MouseUp && event.buttonNumber===0 && tutorialPointerCapture){tutorialPointerCapture=false;if(tutorialPanel)tutorialPanel.mouseUp(event.mousePos.x,event.mousePos.y);return true;}
@@ -915,6 +921,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
         if(event.eventType===pdg.eventType_MouseUp && tutorialPanel.mouseUp(p.x,p.y))return true;
         if(event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const c=tutorialPanelContext();if(tutorialPanel.mouseDown(p.x,p.y,c.screen,c.measure,c.targets)){tutorialPointerCapture=true;return true;}}
     }
+    if(startupSettings.active)return startupSettings.mouse(event);
     const foreground=foregroundApplicationWindow();
     if(foreground && event && event.eventType===pdg.eventType_MouseDown){
         const area=port.getDrawingArea(),p=event.mousePos;
@@ -1067,11 +1074,10 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse wheel handler for zooming
 const mouseWheelHandler = new pdg.IEventHandler(function(event) {
-    if(startupSettings.active)return true;
     if(tutorialPanel && !userManual.error() && !documents.dialog && event && event.eventType===pdg.eventType_ScrollWheel){
         const p=pdg.gfx.getMouse(),c=tutorialPanelContext();if(tutorialPanel.wheel(p.x,p.y,event.vertDelta || 0,c.screen,c.measure,c.targets))return true;
     }
-    if(userManual.error() || documents.dialog)return true;
+    if(startupSettings.active || userManual.error() || documents.dialog)return true;
     if (sessions.starting || !game) {
         return true;
     }
@@ -1093,9 +1099,9 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse move handler for drag scrolling
 const mouseMoveHandler = new pdg.IEventHandler(function(event) {
-    if(startupSettings.active)return startupSettings.move(event);
     if(tutorialPointerCapture && event && event.eventType===pdg.eventType_MouseMove && event.leftButton===false)tutorialPointerCapture=false;
     if(tutorialPanel && !documents.dialog && event && event.eventType===pdg.eventType_MouseMove && tutorialPanel.mouseMove(event.mousePos.x,event.mousePos.y,event.leftButton))return true;
+    if(startupSettings.active)return startupSettings.move(event);
     if(event && event.eventType===pdg.eventType_MouseMove && windowPlacement.drag){
         if(event.leftButton===false)windowPlacement.end();else windowPlacement.move(event.mousePos.x,event.mousePos.y);return true;
     }

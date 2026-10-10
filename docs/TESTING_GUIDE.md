@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1369
-Passed: 1369 ✓
+Total: 1373
+Passed: 1373 ✓
 Failed: 0 ✗
 ```
 
@@ -316,3 +316,22 @@ Quit and configured startup command 10. Repeat ordinary, startup and tutorial br
 languages. Chrome is muted; file pickers use in-memory handles. Native window
 close and OS Quit integration are still pending and are not covered by these
 application-command tests.
+
+
+## Tutorial modal-window recovery
+
+```bash
+node tools/test-web-tutorial-modal.cjs /path/to/web-build /path/to/screenshots en game
+node tools/test-web-tutorial-modal.cjs /path/to/web-build /path/to/screenshots en startup
+```
+
+Run both modes in en/de/es/fr/ja/ru. The muted browser runner launches Tutorial
+through actual Settings buttons, verifies recovery page 101, retries while the
+blocking modal is still open, checks outside clicks/turn keys, cancels without
+closing Settings, then closes Settings and retries against the real front
+window. In-game entry continues through Hide; tutorial cancellation restores
+the original document, renderer, camera and selection. Startup entry returns
+to setup without a playable document. No synthetic lesson transitions are used.
+`tests/tutorial-modal.test.js` covers front-window resolution, Settings actions,
+startup preference-model entry, shortcut T, translated labels and hover help.
+The complete existing-game runner remains a regression for the normal lessons.

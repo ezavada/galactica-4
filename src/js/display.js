@@ -2189,7 +2189,8 @@ class Display {
             ...(this.game.fullscreen && this.game.fullscreen.supported?[{label:I18n.getString(771,'Full screen'),active:this.game.fullscreen.active(),action:{type:'toggleFullscreen'}}]:[]),
             ...(this.game.presentation?[{label:I18n.getString(973,'Show introduction at startup'),active:this.game.presentation.showSplash,action:{type:'toggleSplash'}},{label:I18n.getString(969,'About Galactica'),action:{type:'openAbout'}}]:[]),
             ...(this.game.newGameDefaultsPreferences?[{label:I18n.getString(965,'New game defaults'),action:{type:'openNewGameDefaults'}}]:[]),
-            ...(this.game.colonyDefaultsPreferences?[{label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}}]:[])]);
+            ...(this.game.colonyDefaultsPreferences?[{label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}}]:[]),
+            ...(this.game.canStartTutorial()?[{label:I18n.getString(960,'Tutorial'),key:'T',action:{type:'startTutorial'}}]:[])]);
         const failureHeight=this.getSettingsFullscreenFailureLines().length*15;
         const capacity=Math.max(1,Math.floor((rect.height-112-failureHeight)/28)),pages=Math.ceil(rows.length/capacity);
         const page=this.clamp(this.game.settingsPage||0,0,pages-1);this.game.settingsPage=page;
