@@ -38,6 +38,7 @@ function getIntegerArg(name, fallback = null) {
 }
 
 const LanguageSettings = require('./src/js/language-settings.js');
+const StartupSetup = require('./src/js/startup-setup.js');
 const languagePreferences = LanguageSettings.createPreferences();
 LanguageSettings.initialize(args,pdg.res,languagePreferences);
 
@@ -158,6 +159,10 @@ const startupStyles = {
         textSize: 12,
         textStyle: pdg.textStyle_Plain
     }),
+    advantageButton: createStartupAttributes({fillColor:new pdg.Color(0.16,0.21,0.27,0.98),lineColor:new pdg.Color(0.45,0.58,0.68,0.65)}),
+    advantageButtonActive: createStartupAttributes({fillColor:new pdg.Color(0.24,0.35,0.42,1),lineColor:new pdg.Color(0.55,0.68,0.78,0.8)}),
+    advantageText: createStartupAttributes({fillColor:startupUIColor('textLight'),textSize:13,textStyle:pdg.textStyle_Centered}),
+    advantageSummary: createStartupAttributes({fillColor:startupUIColor('textMuted'),textSize:12,textStyle:pdg.textStyle_RightJustified}),
     startText: createStartupAttributes({
         fillColor: startupUIColor('textLight'),
         textSize: 14,
@@ -190,19 +195,18 @@ function drawStartupDialog() {
 
     port.drawRect(new pdg.Rect(0, 0, screenWidth, screenHeight), startupStyles.background);
 
-    const panelWidth = Math.min(560, screenWidth - 40);
-    const panelHeight = 390;
-    const panelX = (screenWidth - panelWidth) / 2;
-    const panelY = Math.max(30, (screenHeight - panelHeight) / 2);
-    const panelRect = { x: panelX, y: panelY, width: panelWidth, height: panelHeight };
+    const panelRect=StartupSetup.panelRect(screenWidth,screenHeight);
+    const {x:panelX,y:panelY,width:panelWidth}=panelRect;
+    const scale=panelRect.height/480,step=value=>value*scale;
+    for(const [style,size] of [['titleText',24],['subtitleText',13],['lineText',13],['hintText',12],['startText',14],['advantageText',13],['advantageSummary',12]])startupStyles[style].textSize(Math.max(9,size*scale));
     drawStartupRoundedRect(panelRect, 16, startupStyles.panel);
 
-    port.drawText(I18n.getString(568, 'Galactica-4'), new pdg.Point(screenWidth / 2, panelY + 44), startupStyles.titleText);
-    port.drawText(I18n.getString(520, 'New Game Setup'), new pdg.Point(screenWidth / 2, panelY + 72), startupStyles.subtitleText);
-    drawStartupDivider(panelX + 28, panelY + 88, panelWidth - 56);
+    port.drawText(I18n.getString(568, 'Galactica-4'), new pdg.Point(screenWidth / 2, panelY + step(44)), startupStyles.titleText);
+    port.drawText(I18n.getString(520, 'New Game Setup'), new pdg.Point(screenWidth / 2, panelY + step(72)), startupStyles.subtitleText);
+    drawStartupDivider(panelX + 28, panelY + step(88), panelWidth - 56);
 
     const x = panelX + 34;
-    let y = panelY + 112;
+    let y = panelY + step(112);
     port.drawText(I18n.formatString(
         521,
         'Players: {0} {1}, {2} {3}',
@@ -211,24 +215,34 @@ function drawStartupDialog() {
         pendingConfig.numComputers,
         I18n.getString(504, 'AI')
     ), new pdg.Point(x, y), startupStyles.lineText);
-    y += 24;
+    y += step(24);
     port.drawText(I18n.formatString(522, 'AI skill: {0} ({1})', pendingConfig.getDifficultyName(), pendingConfig.compSkill), new pdg.Point(x, y), startupStyles.lineText);
-    y += 24;
+    y += step(24);
+    port.drawText(I18n.getString(761,'Computer advantage'),new pdg.Point(x,y),startupStyles.lineText);
+    port.drawText(I18n.formatString(763,'Production: {0}%',100+pendingConfig.compAdvantage*20),
+        new pdg.Point(panelX+panelWidth-34,y),startupStyles.advantageSummary);
+    for(const choice of StartupSetup.advantageRegions(panelRect,pendingConfig)) {
+        drawStartupRoundedRect(choice.rect,7,choice.active?startupStyles.advantageButtonActive:startupStyles.advantageButton);
+        port.drawText(choice.label,new pdg.Point(choice.rect.x+choice.rect.width/2,choice.rect.y+step(19)),startupStyles.advantageText);
+    }
+    y += step(64);
     port.drawText(I18n.formatString(523, 'Map: {0} / {1}', pendingConfig.getMapSizeDescription(), pendingConfig.getDensityDescription()), new pdg.Point(x, y), startupStyles.lineText);
-    y += 24;
+    y += step(24);
     port.drawText(I18n.formatString(
         524,
         'Options: {0}, {1}',
         pendingConfig.fastGame ? I18n.getString(505, 'Fast Game') : I18n.getString(509, 'Normal speed'),
         pendingConfig.getFogOfWarDescription()
     ), new pdg.Point(x, y), startupStyles.lineText);
-    y += 36;
+    y += step(36);
     port.drawText(I18n.getString(525, '<C> cycle AI players   <1-5> AI skill'), new pdg.Point(x, y), startupStyles.hintText);
-    y += 22;
+    y += step(22);
+    port.drawText(I18n.getString(762,'<A> cycle computer advantage'),new pdg.Point(x,y),startupStyles.hintText);
+    y += step(22);
     port.drawText(I18n.getString(526, '<S> map size   <D> star density'), new pdg.Point(x, y), startupStyles.hintText);
-    y += 22;
+    y += step(22);
     port.drawText(I18n.getString(527, '<F> fast game   <O> fog/all visible   <R> defaults'), new pdg.Point(x, y), startupStyles.hintText);
-    y += 42;
+    y += step(42);
 
     port.drawText(I18n.getString(528, '<Enter> Start'), new pdg.Point(screenWidth / 2, y), startupStyles.startText);
 }
@@ -248,6 +262,8 @@ function handleStartupKey(key) {
     }
 
     switch (lower) {
+        case 'a':
+            return StartupSetup.cycleAdvantage(pendingConfig);
         case 'c':
             pendingConfig.numComputers = (pendingConfig.numComputers % 5) + 1;
             refreshTotalPlayers(pendingConfig);
@@ -384,6 +400,10 @@ let hasDragged = false; // Track if user has dragged during left click
 
 const mouseHandler = new pdg.IEventHandler(function(event) {
     if (!game) {
+        if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0) {
+            const area=port.getDrawingArea();
+            StartupSetup.clickAdvantage(pendingConfig,StartupSetup.panelRect(area.width(),area.height()),event.mousePos.x,event.mousePos.y);
+        }
         return true;
     }
     // Check if this is a mouse down event

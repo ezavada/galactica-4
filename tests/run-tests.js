@@ -34,6 +34,7 @@ const runAllocationPrecisionTests = require('./allocation-precision.test.js');
 const runSliderDragTests = require('./slider-drag.test.js');
 const runColonyDefaultsTests = require('./colony-defaults.test.js');
 const runPursuitMovementTests = require('./pursuit-movement.test.js');
+const runStartupSetupTests = require('./startup-setup.test.js');
 const runLanguageSettingsTests = require('./language-settings.test.js');
 const runVisualEffectTests = require('./visual-effects.test.js');
 const runScrappingTests = require('./scrapping.test.js');
@@ -131,6 +132,7 @@ try {
     runScrappingTests();
     runVisualEffectTests();
     runLanguageSettingsTests();
+    runStartupSetupTests();
     runPursuitMovementTests();
     runColonyDefaultsTests();
     runSliderDragTests();

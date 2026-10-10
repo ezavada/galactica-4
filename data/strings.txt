@@ -357,3 +357,8 @@
 # Settings
 759	Settings
 760	Language
+
+# Computer advantage setup
+761	Computer advantage
+762	<A> cycle computer advantage
+763	Production: {0}%

@@ -19,7 +19,7 @@ class GameConfig {
         
         // AI configuration
         this.compSkill = options.compSkill || 2;         // 1=Expert, 2=Good, 3=Average, 4=Passable, 5=Novice
-        this.compAdvantage = options.compAdvantage || 0; // v3 range: -3 through +3, 20% production modifier per level
+        this.compAdvantage = options.compAdvantage !== undefined ? options.compAdvantage : 0; // v3 range: -3 through +3, 20% production modifier per level
         this.aiSkillByPlayer = options.aiSkillByPlayer ? { ...options.aiSkillByPlayer } : {};
         
         // Game speed and mechanics
@@ -184,6 +184,10 @@ class GameConfig {
         
         if (this.compSkill < 1 || this.compSkill > 5) {
             errors.push("compSkill must be between 1 (Expert) and 5 (Novice)");
+        }
+
+        if (!Number.isInteger(this.compAdvantage) || this.compAdvantage < -3 || this.compAdvantage > 3) {
+            errors.push("compAdvantage must be an integer between -3 and 3");
         }
 
         for (const playerNum of Object.keys(this.aiSkillByPlayer)) {

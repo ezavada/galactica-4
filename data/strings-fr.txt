@@ -357,3 +357,8 @@
 # Settings
 759	Paramètres
 760	Langue
+
+# Computer advantage setup
+761	Avantage de l’ordinateur
+762	<A> changer l’avantage de l’ordinateur
+763	Production : {0}%
