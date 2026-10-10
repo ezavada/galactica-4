@@ -1718,8 +1718,7 @@ class Game {
     }
 
     issuePlayerWaypoint(object,target,index=null,replace=false) {
-        if (!this.canHumanControl(object) || !object.course || !target) return false;
-        if (object.type==='defense') return false;
+        if (!this.canEditCourse(object) || !object.course || !target) return false;
         const changed=replace?object.course.edit(index,target):object.course.addPlayerWaypoint(target,index);
         if (!changed) return false;
         object.setPatrol(false);
@@ -1745,6 +1744,8 @@ class Game {
             );
             return true;
         }
+
+        if (objectType !== Common.ObjectType.STAR && !this.canEditCourse(object)) return false;
 
         this.pendingCourseEdit = null;
         this.pendingMapOrderObject = object;

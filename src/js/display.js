@@ -1489,8 +1489,8 @@ class Display {
             );
         } else if (objectType === Common.ObjectType.SHIP || objectType === Common.ObjectType.FLEET) {
             if (this.game.canHumanControl(object)) {
-                actions.push({ key: 'O', label: this.STR.orders, action: { type: 'beginOrders' } });
-                if (object.destination) {
+                if (this.game.canEditCourse(object)) actions.push({ key: 'O', label: this.STR.orders, action: { type: 'beginOrders' } });
+                if (this.game.canEditCourse(object) && object.destination) {
                     actions.push({ key: 'X', label: this.STR.clear, action: { type: 'clearOrders' } });
                 }
                 if(this.game.canToggleScrap(object))actions.push({key:null,label:I18n.getString(object.isToBeScrapped()?755:754,object.isToBeScrapped()?'Cancel scrap':'Scrap'),action:{type:'toggleScrap'}});

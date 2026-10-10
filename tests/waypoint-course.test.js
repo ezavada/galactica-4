@@ -178,6 +178,40 @@ module.exports=function(){
         const completed=game.factory.createShip(0,0,'battleship',home,true);const fleet=game.factory.createFleet(0,0,1,'Fleet');fleet.addShip(completed);
         test.assertFalse(game.canEditCourse(completed));test.assertTrue(game.canEditCourse(fleet));game.entityRemoved(fleet);test.assertFalse(game.canEditCourse(fleet));
     });
+    test.it('offers destination entry only for independently movable completed hulls',()=>{
+        for(const type of ['defense','scout','colony','battleship']) {
+            const {game,ship,display}=fixture(type);
+            const movable=type!=='defense';
+            test.assertEqual(display.getContextActions(ship).some(a=>a.action.type==='beginOrders'),movable);
+            test.assertEqual(game.beginMapOrder(ship),movable);
+            test.assertTrue(game.pendingMapOrderObject===(movable?ship:null));
+            test.assertEqual(game.issuePlayerWaypoint(ship,point(100)),movable);
+            if(!movable) {
+                test.assertEqual(ship.course.waypoints.length,0);
+                test.assertTrue(game.showCourse(ship));
+                test.assertFalse(display.getCourseActionRegions().some(a=>a.action.type==='addWaypoint'));
+                game.uiWindow=null;
+                test.assertFalse(game.handleShipKeyPress(ship,79));
+                test.assertEqual(game.pendingMapOrderObject,null);
+            }
+        }
+    });
+    test.it('rejects direct orders to unfinished ships and individual fleet members',()=>{
+        const {game,home,ship,display}=fixture();
+        const pending=game.factory.createShip(0,0,'scout',home);
+        const fleet=game.factory.createFleet(0,0,1,'Fleet');fleet.addShip(ship);
+        for(const blocked of [pending,ship]) {
+            test.assertFalse(display.getContextActions(blocked).some(a=>a.action.type==='beginOrders'));
+            test.assertFalse(game.beginMapOrder(blocked));
+            test.assertFalse(game.issuePlayerWaypoint(blocked,point(100)));
+            test.assertEqual(blocked.course.waypoints.length,0);
+        }
+        test.assertTrue(game.beginMapOrder(fleet));
+        test.assertTrue(game.issuePlayerWaypoint(fleet,point(100)));
+        game.pendingMapOrderObject=null;
+        test.assertTrue(game.beginMapOrder(home));
+        test.assertTrue(game.pendingMapOrderObject===home);
+    });
     test.it('clears removed rendezvous references from future legs without losing other destinations',()=>{
         const {game,ship}=fixture();const rendezvous=game.createRendezvousAt(200,0,1,'Meet');
         game.issuePlayerWaypoint(ship,point(100));game.issuePlayerWaypoint(ship,rendezvous);game.issuePlayerWaypoint(ship,point(300));
