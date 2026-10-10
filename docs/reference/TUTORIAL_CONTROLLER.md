@@ -1,8 +1,9 @@
 # Tutorial progression controller
 
 `src/js/tutorial-controller.js` implements the progression model for the sixty
-original lessons. It is not yet connected to startup, the game input path or a
-rendered instruction panel. A successful model walkthrough is not proof of a
+original lessons. It is connected to an explicitly bound tutorial game through
+`src/js/tutorial-runtime.js`, but has no startup entry or rendered instruction
+panel. A successful model walkthrough is not proof of a
 playable tutorial. Session preservation and localized runtime lessons remain
 required work in `V3_V4_FEATURE_STATUS.md`.
 
@@ -59,3 +60,39 @@ serialize the game or a previous session. Restore rejects unknown destinations,
 missing recovery metadata, corrupt identifiers and timers outside their two
 waiting pages. Restoring progress does not replay game-entry effects or stop
 callbacks, so it cannot reset a restored selection or preferences by itself.
+
+
+## Binding one tutorial game
+
+Construct `TutorialRuntime(game, controller)` only for the separate tutorial
+game. It installs removable instance wrappers, without modifying Game/Display
+prototypes. It observes successful allocation/build/waypoint/name/patrol actions,
+rendezvous creation, auto-destination clicks, comparison windows, the existing
+fleet Exchange ships contents table, attention, report windows and turn delivery.
+Failed changes and blocked controls do not advance lessons.
+
+Wrong first-course choices are rejected before course mutation. Invalid
+rendezvous clicks retain captured placement; accepted creation binds its actual
+ID and opens the existing localized rename dialog. Required names are applied
+before the normal rename event is recorded. These source proper names remain
+New Terra and Alpha rather than locale-dependent map identifiers.
+
+Message acknowledgment notifies the controller before the next queued report is
+considered, matching v3's late playback suppression. Animation-only destruction
+presentations do not count as modal acknowledgments. The runtime remembers the
+first human colony/courier identities; destruction cannot substitute a different
+ship for an original tutorial actor. Effects affect only the tutorial game and
+do not write drawing preferences.
+
+`Game.draw` ticks the controller using the game clock. Existing display zoom
+methods report successful changes; call `attachDisplay` after assigning a new
+renderer. `dispose` restores the original instance property descriptors and
+callbacks and is idempotent. Attachment failures roll back partial wrappers.
+
+Runtime `snapshot()` includes actor IDs and controller progress; `restore()`
+validates hull/owner identities and progress before applying them. This is not a
+complete tutorial save: the session owner must also preserve the game graph,
+renderer/camera, file association, previous game and progress in setup. Normal
+Save/restore does not install or persist the runtime automatically. The startup
+actions for lessons 1–4, visible instructions and full walkthrough remain
+unconnected. No startup/menu command advertises this partial tutorial yet.

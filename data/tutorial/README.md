@@ -62,6 +62,14 @@ are not guaranteed, and ordinary games do not attach these rules. Turn numbers
 here refer to the turn being processed, before v4 increments the displayed turn.
 
 This component has no new user-facing text or startup entry. Session lifetime,
-restoring the previous game and preserving tutorial progress across saves must
-be implemented by the pending controller; restoring the galaxy through the
+restoring the previous game and preserving a complete tutorial across saves must
+be implemented by the pending session owner; restoring the galaxy through the
 ordinary save API currently restores a normal game without the tutorial helper.
+
+
+`TutorialRuntime` can explicitly bind a constructed tutorial game to the
+progression model. It drives lessons from real game actions and remembers
+original actors; its snapshots retain actor IDs and model progress. It is not
+installed automatically by the builder or ordinary save restoration. Startup
+entry, six-language instructions and previous-session preservation are still
+missing. See `docs/reference/TUTORIAL_CONTROLLER.md`.
