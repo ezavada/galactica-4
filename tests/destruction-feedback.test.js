@@ -40,10 +40,10 @@ module.exports=()=>test.describe('V3 destruction visual feedback',()=>{
   display.visualTime=1000+Effect.duration;display.drawOverlay(overlay);test.assertEqual(reports,1);test.assertEqual(display.getUIActionAt(rect.x+1,rect.y+1).type,'dismissReport');
   game.handleUIClick(rect.x+1,rect.y+1);test.assertTrue(event.handled);test.assertEqual(game.overlay,null);test.assertEqual(game.turn,1);
  });
- test.it('shows defeated resistance but excludes neutral colonization, a consumed colony and zero-loss encounters',()=>{
+ test.it('shows defeated resistance but excludes neutral colonization, a surviving colony and zero-loss encounters',()=>{
   const {game,display,home}=fixture();const event=report(game,home,0);test.assertNull(game.getReportDestructionPosition(event));test.assertFalse(display.drawDestructionEffect(game.overlay));game.dismissEventPresentation();
   const target=game.factory.createStar(1000,0,'Neutral'),colony=game.factory.createShip(0,0,'colony',home,true);game.colonizeStar(target,colony);
-  test.assertFalse(game.eventLog.some(e=>game.getReportDestructionPosition(e)));test.assertFalse(game.allShips.includes(colony));test.assertFalse(display.drawDestructionEffect(game.overlay));game.handleKeyPress(pdg.key_Escape);
+  test.assertFalse(game.eventLog.some(e=>game.getReportDestructionPosition(e)));test.assertTrue(game.allShips.includes(colony));test.assertFalse(display.drawDestructionEffect(game.overlay));game.handleKeyPress(pdg.key_Escape);
   const events=game.recordOccupationReports(target,1,2,'defendersLost');test.assertTrue(game.getReportDestructionPosition(events[0])===events[0].position);
   test.assertTrue(display.drawDestructionEffect(game.overlay));
  });

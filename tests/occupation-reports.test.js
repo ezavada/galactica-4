@@ -19,8 +19,8 @@ module.exports=()=>test.describe('V3 system resistance and capture reports',()=>
   test.assertContains(events[0].message,'crushed the last resistance');test.assertContains(events[1].message,'last defenders');
   test.assertEqual(f.game.overlay.eventId,events[0].id);test.assertFalse(f.game.eventLog.some(e=>e.type===Common.EventType.STAR_CAPTURED));
  });
- test.it('queues resistance then capture reports after actual fleet arrival, retains the old owner and consumes the colony',()=>{
-  const f=fixture(),events=invade(f);test.assertEqual(f.target.owner,1);test.assertEqual(events.length,5);test.assertFalse(f.game.allShips.includes(f.colonyShip));
+ test.it('queues resistance then capture reports after actual fleet arrival, retains the old owner and preserves the colony ship',()=>{
+  const f=fixture(),events=invade(f);test.assertEqual(f.target.owner,1);test.assertEqual(events.length,5);test.assertTrue(f.game.allShips.includes(f.colonyShip));
   test.assertEqual(events[0].occupation.kind,'defendersLost');test.assertEqual(events[2].occupation.kind,'capture');
   test.assertContains(events[2].message,'You took');test.assertContains(events[2].message,'Defender 星');test.assertContains(events[3].message,'You lost');test.assertContains(events[3].message,'Attacker Д');
   for(const e of events){test.assertEqual(e.occupation.previousOwner,2);test.assertEqual(e.occupation.attackerOwner,1);test.assertTrue(e.subject===f.target);}

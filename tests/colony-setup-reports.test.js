@@ -13,7 +13,7 @@ const report=game=>game.eventLog.find(event=>event.type===Common.EventType.RENAM
 module.exports=()=>test.describe('V3 new colony naming and production reports',()=>{
  test.it('queues one private actionable report after actual neutral-system arrival',()=>{
   const {game,target,colony}=fixture();colony.destination=target;colony.move();const event=report(game);
-  test.assertEqual(target.owner,1);test.assertFalse(game.allShips.includes(colony));test.assertDefined(event);test.assertEqual(event.recipient,1);test.assertTrue(event.subject===target);test.assertContains(event.message,'name your new colony');test.assertEqual(game.attention.pending().length,2);test.assertEqual(game.overlay.type,'report');game.handleKeyPress(pdg.key_Escape);test.assertEqual(game.attention.pending().length,0);test.assertTrue(game.selectedObject===target);test.assertFalse(game.uiWindow==='rename');
+  test.assertEqual(target.owner,1);test.assertTrue(game.allShips.includes(colony));test.assertDefined(event);test.assertEqual(event.recipient,1);test.assertTrue(event.subject===target);test.assertContains(event.message,'name your new colony');test.assertEqual(game.attention.pending().length,2);test.assertEqual(game.overlay.type,'report');game.handleKeyPress(pdg.key_Escape);test.assertEqual(game.attention.pending().length,0);test.assertTrue(game.selectedObject===target);test.assertFalse(game.uiWindow==='rename');
  });
  test.it('retains player defaults and the ordinary colonization report',()=>{
   const {game,target,colony}=fixture();game.players[1].defaultGrowth=600;game.players[1].defaultShips=250;game.players[1].defaultTech=150;

@@ -470,13 +470,13 @@ function runCombatTests() {
             const reports=game.eventLog.filter(e=>e.type===Common.EventType.BATTLE_RESOLVED);test.assertEqual(reports.length,2);
             for(const event of reports){test.assertEqual(event.combat.result,'inconclusive');test.assertEqual(event.combat.ownShipsLost,0);test.assertEqual(event.combat.enemyShipsLost,0);test.assertTrue(event.message.includes('inconclusive'));}
         });
-        test.it('counts ships rather than the planet or consumed colony in invasion reports',()=>{
+        test.it('counts ships rather than the planet or surviving colony in invasion reports',()=>{
             const game=createRuntimeCombatGame(),origin=createOwnedStar(game,0,0,'Home',1,20),target=createOwnedStar(game,1000,0,'Target',2,1,1);
             const fleet=game.factory.createFleet(0,0,1,'Liberation'),battleship=createCompletedShip(game,origin,'battleship',20),colony=createCompletedShip(game,origin,'colony',20);
             fleet.addShip(battleship);fleet.addShip(colony);pdg.srand(42);game.combatSystem.resolveCombat(fleet,target);
             const event=game.eventLog.find(e=>e.type===Common.EventType.BATTLE_RESOLVED&&e.recipient===1);
             test.assertEqual(event.combat.enemyShipsLost,0);test.assertEqual(event.combat.ownShipsLost,0);
-            test.assertFalse(game.allShips.includes(colony));test.assertEqual(target.owner,1);
+            test.assertTrue(game.allShips.includes(colony));test.assertEqual(target.owner,1);
             const saved=JSON.stringify(event.combat),Save=require('../src/js/game-save.js'),loaded=Save.restore(Save.serialize(game));
             test.assertEqual(JSON.stringify(loaded.eventLog.find(e=>e.id===event.id).combat),saved);
         });
@@ -523,8 +523,8 @@ function runCombatTests() {
 
             test.assertEqual(target.owner, 1, 'Target star should be captured by the colony owner');
             test.assertGreaterThan(target.population, 0, 'Captured star should retain colonized population');
-            test.assertFalse(game.allShips.includes(colony), 'Colony ship should be converted into the colony');
-            test.assertFalse(target.ships.includes(colony), 'Converted colony ship should be removed from the star ship list');
+            test.assertTrue(game.allShips.includes(colony), 'Colony ship should survive the capture');
+            test.assertTrue(target.ships.includes(colony), 'Surviving colony ship should dock at the captured system');
         });
 
         test.it('updates defeat and victory immediately after a last-star capture', () => {

@@ -747,7 +747,7 @@ class CombatSystem {
         const finalOutcome = this.getCombatOutcome(destination, attackerOwner, attackerSurvivors, defenderSurvivors);
         const destructionEvents = [];
         for (const snapshot of destructionSubjects) {
-            // Only battle casualties count; a colony consumed by occupation is not destroyed in combat.
+            // Only battle casualties count; surviving colony ships remain available after occupation.
             if (snapshot.members.length && snapshot.members.every(ship => casualties.includes(ship)) &&
                     (this.isShip(snapshot.subject) || !this.game.allFleets.includes(snapshot.subject))) {
                 const opponentOwner = this.isShip(snapshot.subject)

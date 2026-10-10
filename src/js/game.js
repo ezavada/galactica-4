@@ -3237,11 +3237,11 @@ class Game {
     }
 
     colonizeStar(star, colonyShip, previousOwner = 0) {
-        if (!star || !colonyShip || colonyShip.isDead() || star.owner !== 0) {
+        if (!star || !colonyShip || colonyShip.type!=='colony' || colonyShip.underConstruction() || colonyShip.isDead() || star.owner !== 0) {
             return false;
         }
 
-        star.population = Math.max(1, star.population || 0);
+        if (!previousOwner) star.population = (star.population || 0)+1;
         star.techLevel = Math.max(star.techLevel || 0, colonyShip.techLevel || 0);
         star.owner = colonyShip.owner;
         star.setScannerRange(this.rules.getScanRangeForTechLevel(star.techLevel));
@@ -3250,7 +3250,7 @@ class Game {
         if(previousOwner)this.recordOccupationReports(star, colonyShip.owner, previousOwner, 'capture');
         else this.recordColonizationReports(star);
         if(!previousOwner)this.requestColonySetup(star);
-        this.removeDestroyedShip(colonyShip, colonyShip.owner, false);
+        // V3 retains the surviving colony ship for further colonization/orders.
         return true;
     }
 

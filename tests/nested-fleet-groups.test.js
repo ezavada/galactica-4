@@ -87,12 +87,12 @@ module.exports=()=>test.describe('Nested fleet groups',()=>{
         group.setVisibilityTo(1,Common.VisibilityLevel.CLASS);test.assertEqual(display.getShipDiagnostics(group).title,'Private Group');
         test.assertTrue(display.getShipDiagnostics(group).healthRatio!==null);
     });
-    test.it('cleans nested containers immediately when the last colony member is consumed',()=>{
+    test.it('preserves nested containers when their last colony member establishes a system',()=>{
         const {game,root,ships}=fixture();game.removeDestroyedShip(ships[0],1,false);game.removeDestroyedShip(ships[1],1,false);
         const group=game.createFleetGroup(root,ships[2]),planet=game.factory.createStar(root.x+100000,root.y,'Colony');
         test.assertTrue(game.colonizeStar(planet,ships[2]));test.assertEqual(planet.owner,1);
-        test.assertFalse(game.allFleets.includes(group));test.assertFalse(game.allFleets.includes(root));
-        test.assertFalse(game.allShips.includes(ships[2]));
+        test.assertTrue(game.allFleets.includes(group));test.assertTrue(game.allFleets.includes(root));
+        test.assertTrue(game.allShips.includes(ships[2]));test.assertTrue(ships[2].fleet===group);
     });
     test.it('finds a nested target group or member’s docked system for technology delivery',()=>{
         const {game,root,ships,star}=fixture();const group=game.createFleetGroup(root,ships[0]);

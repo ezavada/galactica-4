@@ -16,10 +16,10 @@ module.exports=()=>test.describe('V3 highest-container arrival and survivor plac
  });
  test.it('colonizes a neutral system when the navigation target is a docked ship',()=>{
   const {game,home,target,ship}=fixture(0),resident=ship(target),colony=ship(home,'colony');colony.destination=resident;colony.arriveAtDestination();
-  test.assertEqual(target.owner,1);test.assertFalse(game.allShips.includes(colony));test.assertEqual(game.attention.pending().length,2);test.assertEqual(game.overlay.type,'report');
+  test.assertEqual(target.owner,1);test.assertTrue(game.allShips.includes(colony));test.assertEqual(game.attention.pending().length,2);test.assertEqual(game.overlay.type,'report');
  });
- test.it('removes the empty arriving fleet when its last colony ship establishes the system',()=>{
-  const {game,home,target,ship}=fixture(0),incoming=game.factory.createFleet(home.x,home.y,1,'Colonists');incoming.addShip(ship(home,'colony'));home.shipArrived(incoming);incoming.destination=target;incoming.arriveAtDestination();test.assertEqual(target.owner,1);test.assertFalse(game.allFleets.includes(incoming));test.assertFalse(home.ships.includes(incoming));test.assertFalse(target.ships.includes(incoming));
+ test.it('preserves and docks an arriving fleet containing a colony ship after establishing the system',()=>{
+  const {game,home,target,ship}=fixture(0),incoming=game.factory.createFleet(home.x,home.y,1,'Colonists');incoming.addShip(ship(home,'colony'));home.shipArrived(incoming);incoming.destination=target;incoming.arriveAtDestination();test.assertEqual(target.owner,1);test.assertTrue(game.allFleets.includes(incoming));test.assertFalse(home.ships.includes(incoming));test.assertTrue(target.ships.includes(incoming));
  });
  test.it('docks at an allied system when the named satellite cannot hold ships',()=>{
   const {game,home,target,ship}=fixture(),defense=ship(target,'defense'),arriving=ship(home);target.addDefenseSatellite(defense);arriving.destination=defense;arriving.arriveAtDestination();

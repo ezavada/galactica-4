@@ -561,7 +561,7 @@
 920	Den Pfad eines gespeicherten Galactica-4-Spiels zum Öffnen eingeben. Abbrechen lässt das aktuelle Spiel unverändert.
 921	Satellit: preiswerte stationäre Verteidigung. Er patrouilliert immer in seinem System und kann weder reisen noch einer Flotte beitreten. Er hat keinen Scanner.
 922	Späher/Kurier: schnell und unbewaffnet, mit einem Scanner. Erkunde den Weltraum und transportiere Technologie zwischen verbündeten Systemen; Kuriere übernehmen die Technologie besuchter Systeme.
-923	Kolonieschiff: teuer und langsam. Es wird beim Besiedeln eines neutralen Systems oder Erobern eines besiegten feindlichen Systems verbraucht. Gib ihm Geleitschutz in feindlichem Raum.
+923	Kolonieschiff: teuer und langsam. Es bleibt nach Koloniegründung und Eroberung erhalten und kann weitere Kolonien gründen. Begleiten Sie es durch feindlichen Raum.
 924	Schlachtschiff: ein mobiles Kampfschiff für Angriffe und Geleitschutz. Höhere Technologie steigert seine Kampfkraft und schaltet stärkere benannte Klassen frei. Es hat keinen Scanner.
 925	Erste Einheit vom Typ {0} bei {1} in Dienst gestellt.
 926	Du hast die Schlacht bei {0} gewonnen. Deine Streitmacht: {1}. Eigene Schiffsverluste: {2}. Zerstörte feindliche Schiffe: {3}.
