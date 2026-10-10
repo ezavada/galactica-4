@@ -339,3 +339,10 @@
 746	{0} elemento aún requiere atención.|{0} elementos aún requieren atención.
 747	Terminar igualmente
 748	Revisar
+
+# Event reports
+749	Ir a
+750	Sin ubicación
+751	Revisado
+752	Selecciona un evento
+753	Detalles

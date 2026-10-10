@@ -339,3 +339,10 @@
 746	{0} Objekt braucht noch Aufmerksamkeit.|{0} Objekte brauchen noch Aufmerksamkeit.
 747	Trotzdem beenden
 748	Prüfen
+
+# Event reports
+749	Anzeigen
+750	Kein Ort
+751	Gelesen
+752	Ereignis auswählen
+753	Details

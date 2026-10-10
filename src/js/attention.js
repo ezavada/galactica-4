@@ -10,19 +10,27 @@ class Attention {
     }
     request(object, notify=true) {
         if(!this.isHumanObject(object) || this.queue.some(entry=>entry.object===object))return false;
-        this.queue.push({object,handled:false});
-        if(notify && object.owner===this.game.getCurrentHumanPlayer())this.game.recordEvent(
-            I18n.getString(744,'Attention'),I18n.formatString(745,'{0} requests orders',this.game.getObjectDisplayName(object)),{type:'callIn'});
+        const entry={object,handled:false};this.queue.push(entry);
+        if(notify && object.owner===this.game.getCurrentHumanPlayer())entry.event=this.game.recordEvent(
+            I18n.getString(744,'Attention'),I18n.formatString(745,'{0} requests orders',this.game.getObjectDisplayName(object)),{type:'callIn',subject:object,recipient:object.owner});
         return true;
     }
-    pending() {
-        return this.queue.filter(entry=>!entry.handled && this.isHumanObject(entry.object) &&
-            entry.object.owner===this.game.getCurrentHumanPlayer());
+    requestEvent(event) {
+        const player=this.game.players[event.recipient];
+        if(!player || player.isComputer || !(event.subject || event.position) || this.queue.some(entry=>entry.event===event))return false;
+        this.queue.push({object:event.subject,event,recipient:event.recipient,handled:false,eventRequest:true});return true;
     }
-    attend(object) { const entry=this.pending().find(entry=>entry.object===object);if(entry)entry.handled=true; }
+    handleEvent(event) { const entry=this.queue.find(entry=>entry.event===event);if(entry){entry.handled=true;if(entry.event)entry.event.handled=true;} }
+    pending() {
+        return this.queue.filter(entry=>!entry.handled && (entry.eventRequest
+            ?entry.recipient===this.game.getCurrentHumanPlayer() && !!this.game.getEventFocus(entry.event)
+            :this.isHumanObject(entry.object) && entry.object.owner===this.game.getCurrentHumanPlayer()));
+    }
+    attend(object) { const entry=this.pending().find(entry=>entry.object===object);if(entry){entry.handled=true;if(entry.event)entry.event.handled=true;} }
     next() {
         const entry=this.pending()[0];if(!entry)return false;
-        entry.handled=true;this.game.uiWindow=null;this.game.setSelectedObject(entry.object);
+        entry.handled=true;if(entry.event) {this.game.focusEvent(entry.event,true);return true;}
+        this.game.uiWindow=null;this.game.setSelectedObject(entry.object);
         if(this.game.display)this.game.display.centerOn(entry.object.x,entry.object.y);
         return true;
     }

@@ -339,3 +339,10 @@
 746	{0} item still needs attention.|{0} items still need attention.
 747	End anyway
 748	Review
+
+# Event reports
+749	Go to
+750	No location
+751	Reviewed
+752	Select an event
+753	Details

@@ -14,8 +14,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 626
-Passed: 626 ✓
+Total: 651
+Passed: 651 ✓
 Failed: 0 ✗
 ```
 
@@ -46,6 +46,8 @@ Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and run
 - `fleet-formation.test.js`
 - `rendezvous.test.js`
 - `ship-naming-events.test.js`
+- `attention.test.js`
+- `event-reports.test.js`
 - `autoplay.test.js`
 
 ## What the tests cover

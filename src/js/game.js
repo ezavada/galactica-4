@@ -32,6 +32,10 @@ class Game {
         this.overlayQueue = [];
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
+        this.nextEventId = 0;
+        this.eventSelection = null;
+        this.eventPage = 0;
+        this.eventDetailPage = 0;
         this.attention = new Attention(this);
         this.pendingMapOrderObject = null;
         this.pendingCourseEdit = null;
@@ -976,16 +980,64 @@ class Game {
         if (!this.eventLog) {
             this.eventLog = [];
         }
-        this.eventLog.push({
-            turn: options.turn || this.turn,
-            title,
-            message,
-            type: options.type || 'game',
-            createdAt: (typeof pdg !== 'undefined' && pdg.tm && pdg.tm.getMilliseconds) ? pdg.tm.getMilliseconds() : Date.now()
-        });
-        if (this.eventLog.length > 80) {
-            this.eventLog.splice(0, this.eventLog.length - 80);
+        const subject=options.subject || null;
+        const source=options.position || subject;
+        const position=source && Number.isFinite(source.x) && Number.isFinite(source.y)?{x:source.x,y:source.y}:null;
+        const event={
+            id:++this.nextEventId,turn:options.turn || this.turn,title,message,
+            type:options.type || 'game',subject,position,recipient:options.recipient,
+            handled:false,
+            createdAt:(typeof pdg!=='undefined' && pdg.tm && pdg.tm.getMilliseconds)?pdg.tm.getMilliseconds():Date.now()
+        };
+        this.eventLog.push(event);
+        // Keep every current/last-turn report, even in a busy construction turn.
+        while(this.eventLog.length>80 && this.eventLog[0].turn<Math.max(1,this.turn-1))this.eventLog.shift();
+        return event;
+    }
+
+    isEventAccessible(event) {
+        if(!event || !this.eventLog.includes(event))return false;
+        const player=this.getCurrentHumanPlayer();
+        if(event.recipient!==undefined && event.recipient!==player)return false;
+        const subject=event.subject;
+        return !subject || event.recipient===player || this.config.omniscient ||
+            subject.owner===player || subject.isAllyOf && subject.isAllyOf(player) ||
+            subject.getVisibilityTo && subject.getVisibilityTo(player)>Common.VisibilityLevel.NONE;
+    }
+
+    getEventRows() {
+        const reportTurn=Math.max(1,this.turn-1);
+        return this.eventLog.filter(event=>event.turn===reportTurn && this.isEventAccessible(event));
+    }
+
+    getEventFocus(event) {
+        if(!this.isEventAccessible(event))return null;
+        const player=this.getCurrentHumanPlayer(),subject=event.subject;
+        const live=subject && (this.stars.includes(subject) || this.allShips.includes(subject) && !subject.isDead() ||
+            this.allFleets.includes(subject) && !subject.isEmpty() || this.allRendezvous.includes(subject));
+        if(live && (subject.owner===player || this.config.omniscient || subject.isAllyOf && subject.isAllyOf(player) ||
+            subject.getVisibilityTo && subject.getVisibilityTo(player)>Common.VisibilityLevel.NONE))return {object:subject.fleet || subject,x:subject.x,y:subject.y};
+        // Private reports may still point to the remembered position of a lost subject.
+        if(event.position && (!subject || event.recipient===player || this.config.omniscient))return {...event.position,object:null};
+        return null;
+    }
+
+    focusEvent(event,closeWindow=false) {
+        if(!this.isEventAccessible(event))return false;
+        event.handled=true;this.attention.handleEvent(event);
+        const focus=this.getEventFocus(event);
+        if(focus) {
+            this.setSelectedObject(focus.object);
+            if(this.display)this.display.centerOn(focus.x,focus.y);
         }
+        if(closeWindow)this.uiWindow=null;
+        return true;
+    }
+
+    selectEvent(event) {
+        if(!this.getEventRows().includes(event))return false;
+        this.eventSelection=event.id;this.eventDetailPage=0;
+        return this.focusEvent(event);
     }
 
     getRecentEvents(limit = 12) {
@@ -1156,6 +1208,14 @@ class Game {
         if(this.uiWindow==='endTurnConfirm') {
             if(key===13 || key===3)this.endTurn();
             return true;
+        }
+
+        if(this.uiWindow==='events') {
+            if(key===13 || key===3) {
+                const event=this.getEventRows().find(event=>event.id===this.eventSelection);
+                if(event)this.focusEvent(event,true);else this.requestEndTurn();
+                return true;
+            }
         }
 
         if (this.uiWindow==='course') {
@@ -1523,6 +1583,16 @@ class Game {
             case 'selectHomeStar':
                 this.selectHomeStar();
                 return true;
+            case 'selectEvent':
+                this.selectEvent(action.event);return true;
+            case 'goToEvent':
+                if(this.getEventRows().includes(action.event))this.focusEvent(action.event,true);return true;
+            case 'eventPage':
+                if(!Number.isInteger(action.page) || action.page<0)return false;
+                this.eventPage=action.page;return true;
+            case 'eventDetailPage':
+                if(!Number.isInteger(action.page) || action.page<0)return false;
+                this.eventDetailPage=action.page;return true;
             case 'reviewAttention':
                 this.uiWindow=null;
                 if(this.hasEventPresentation()) {
@@ -2032,7 +2102,8 @@ class Game {
     
     handleKeyPress(key) {
         if (['rename','colonyDefaults'].includes(this.uiWindow) && key === pdg.key_Tab) return true;
-        if ((key===13 || key===3) && !['rename','colonyDefaults','systemComparison','endTurnConfirm'].includes(this.uiWindow)) {this.requestEndTurn();return true;}
+        if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}
+        if ((key===13 || key===3) && !['rename','colonyDefaults','systemComparison','events','endTurnConfirm'].includes(this.uiWindow)) {this.requestEndTurn();return true;}
         if (key === pdg.key_Tab) {
             if(!this.pendingMapOrderObject && !this.pendingRendezvousPlacement && !this.uiSliderDrag && !this.hasEventPresentation())this.attention.next();
             return true;
@@ -2582,7 +2653,6 @@ class Game {
                 console.log(eventMessage); // who = Ship, where = position or Star or Ship
                 break;
             case Common.EventType.SHIP_BUILT:
-                this.attention.request(who,false);
                 eventTitle = I18n.getString(608, 'Build');
                 eventMessage = I18n.formatString(628, '{0} built a {1} ship', where.name, shipTypeName);
                 console.log(eventMessage); // who = Ship, where = Star
@@ -2652,7 +2722,11 @@ class Game {
         }
 
         if (eventMessage) {
-            this.recordEvent(eventTitle, eventMessage, { type: what });
+            const subject=[Common.EventType.STAR_COLONIZED,Common.EventType.STAR_CAPTURED].includes(what)?where:
+                who && [Common.ObjectType.STAR,Common.ObjectType.SHIP,Common.ObjectType.FLEET].includes(this.getObjectType(who))?who:null;
+            const event=this.recordEvent(eventTitle,eventMessage,{type:what,subject,
+                recipient:subject?subject.owner:undefined,position:what===Common.EventType.SHIP_DESTROYED?where:subject});
+            if([Common.EventType.SHIP_BUILT,Common.EventType.STAR_COLONIZED,Common.EventType.STAR_CAPTURED].includes(what))this.attention.requestEvent(event);
         }
     }
     

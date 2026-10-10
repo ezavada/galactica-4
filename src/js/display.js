@@ -1524,14 +1524,56 @@ class Display {
     }
 
     getEventWindowRect() {
-        const events = this.game.getRecentEvents(10);
-        const screen = this.getScreenSize();
-        return this.fitPanelToScreen({
-            x: screen.width - 430,
-            y: 84,
-            width: 410,
-            height: Math.max(150, 62 + Math.max(events.length, 1) * 36)
-        });
+        const screen=this.getScreenSize(),width=Math.min(480,screen.width-40);
+        return this.fitPanelToScreen({x:screen.width-width-20,y:64,width,height:Math.min(500,screen.height-80)});
+    }
+
+    wrapEventMessage(message,width,size=11) {
+        const lines=[];
+        for(const paragraph of String(message).split('\n')) {
+            let chars=Array.from(paragraph);
+            if(!chars.length){lines.push('');continue;}
+            while(chars.length) {
+                let end=0;
+                while(end<chars.length && this.port.getTextWidth(chars.slice(0,end+1).join(''),size)<=width)end++;
+                end=Math.max(1,end);
+                if(end<chars.length) {
+                    const space=chars.slice(0,end).lastIndexOf(' ');
+                    if(space>0)end=space;
+                }
+                lines.push(chars.slice(0,end).join(''));
+                chars=chars.slice(end);while(chars[0]===' ')chars.shift();
+            }
+        }
+        return lines;
+    }
+
+    getEventWindowLayout() {
+        const rect=this.getEventWindowRect(),rows=this.game.getEventRows();
+        const pageSize=Math.max(1,Math.min(6,Math.floor((rect.height-260)/32)));
+        const pages=Math.max(1,Math.ceil(rows.length/pageSize)),page=Math.min(this.game.eventPage,pages-1);
+        const selected=rows.find(event=>event.id===this.game.eventSelection);
+        const detailLines=selected?this.wrapEventMessage(selected.message,rect.width-28):[];
+        const detailStart=48+pageSize*32+12;
+        const detailSize=Math.max(1,Math.floor((rect.height-82-detailStart-44)/15)+1);
+        const detailPages=Math.max(1,Math.ceil(detailLines.length/detailSize));
+        const detailPage=Math.min(this.game.eventDetailPage,detailPages-1);
+        return {rect,rows,pages,page,pageSize,visibleRows:rows.slice(page*pageSize,(page+1)*pageSize),selected,
+            detailStart,detailLines,detailPages,detailPage,visibleLines:detailLines.slice(detailPage*detailSize,(detailPage+1)*detailSize)};
+    }
+
+    getEventActionRegions() {
+        if(this.game.uiWindow!=='events')return [];
+        const l=this.getEventWindowLayout(),r=l.rect;
+        const controls=l.visibleRows.map((event,index)=>({rect:{x:r.x+14,y:r.y+48+index*32,width:r.width-28,height:30},
+            action:{type:'selectEvent',event}}));
+        if(l.page>0)controls.push({rect:{x:r.x+14,y:r.y+r.height-36,width:90,height:24},label:I18n.getString(690,'Previous'),action:{type:'eventPage',page:l.page-1}});
+        if(l.page<l.pages-1)controls.push({rect:{x:r.x+110,y:r.y+r.height-36,width:90,height:24},label:I18n.getString(691,'Next'),action:{type:'eventPage',page:l.page+1}});
+        if(l.selected && this.game.getEventFocus(l.selected))controls.push({rect:{x:r.x+r.width-174,y:r.y+r.height-36,width:160,height:24},
+            label:I18n.getString(749,'Go to'),key:'Enter',action:{type:'goToEvent',event:l.selected}});
+        if(l.detailPage>0)controls.push({rect:{x:r.x+14,y:r.y+r.height-70,width:90,height:24},label:I18n.getString(690,'Previous'),action:{type:'eventDetailPage',page:l.detailPage-1}});
+        if(l.detailPage<l.detailPages-1)controls.push({rect:{x:r.x+110,y:r.y+r.height-70,width:90,height:24},label:I18n.getString(691,'Next'),action:{type:'eventDetailPage',page:l.detailPage+1}});
+        return controls;
     }
 
     getComparisonWindowRect() {
@@ -1962,6 +2004,7 @@ class Display {
         if (!window || !this.containsPoint(window, x, y)) return null;
         let controls = [];
         if (this.game.uiWindow==='endTurnConfirm') controls=this.getEndTurnConfirmActions();
+        if (this.game.uiWindow==='events') controls=this.getEventActionRegions();
         if (this.game.uiWindow==='menu') controls=this.getCommandActionRegions();
         if (this.game.uiWindow==='colonyDefaults') {
             controls=this.getColonyDefaultActionRegions();
@@ -2471,24 +2514,26 @@ class Display {
     }
 
     drawEventWindow() {
-        const events = this.game.getRecentEvents(10);
-        const rect = this.getEventWindowRect();
-        this.drawWindowPanel(rect, this.STR.eventList);
-
-        let y = this.getPanelContentStartY(rect);
-        const x = rect.x + 14;
-        if (events.length === 0) {
-            this.drawTextLine(this.STR.noEventsYet, x, y, 'gray', 12);
-            return;
-        }
-
-        for (const event of events) {
-            this.drawTextLine(`T${event.turn}  ${event.title}`, x, y, 'lightgray', 11);
-            y += 15;
-            this.drawTextLine(this.trimText(event.message, 56), x + 8, y, 'gray', 10);
-            y += 21;
-            this.drawDivider(x, y - 8, rect.width - 28);
-        }
+        const l=this.getEventWindowLayout(),r=l.rect;
+        this.drawWindowPanel(r,`${this.STR.eventList} · ${this.STR.turn} ${Math.max(1,this.game.turn-1)}`);
+        if(!l.rows.length) {this.drawTextLine(this.STR.noEventsYet,r.x+14,r.y+62,'gray',12);return;}
+        l.visibleRows.forEach((event,index)=>{
+            const row={x:r.x+14,y:r.y+48+index*32,width:r.width-28,height:30},selected=event===l.selected;
+            if(selected || this.isHovered(row))this.drawRoundedRect(row,4,this.styles[selected?'buttonFillActive':'buttonFillHover']);
+            const color=selected || !event.handled?'lightgray':'gray';
+            this.drawTextLine(this.fitShipDiagnosticText(event.title,row.width-12,11),row.x+6,row.y+12,color,11);
+            this.drawTextLine(this.fitShipDiagnosticText(event.message,row.width-12,10),row.x+6,row.y+27,color,10);
+        });
+        this.drawDivider(r.x+14,r.y+l.detailStart,r.width-28);
+        const status=l.selected && l.selected.handled?' · '+I18n.getString(751,'Reviewed'):'';
+        this.drawTextLine(I18n.getString(753,'Details')+status,r.x+14,r.y+l.detailStart+22,'lightgray',12);
+        if(l.selected) {
+            l.visibleLines.forEach((line,index)=>this.drawTextLine(line,r.x+14,r.y+l.detailStart+44+index*15,'lightgray',11));
+            if(!this.game.getEventFocus(l.selected))this.drawTextLine(I18n.getString(750,'No location'),r.x+r.width-14,r.y+r.height-20,'gray',10,pdg.textStyle_RightJustified);
+        } else this.drawTextLine(I18n.getString(752,'Select an event'),r.x+14,r.y+l.detailStart+44,'gray',11);
+        this.getEventActionRegions().filter(region=>region.label).forEach(region=>this.drawUIButton(region.rect,region.label,region.key,{size:10}));
+        if(l.detailPages>1)this.drawTextLine(`${I18n.getString(753,'Details')} ${l.detailPage+1}/${l.detailPages}`,r.x+r.width-14,r.y+r.height-54,'gray',10,pdg.textStyle_RightJustified);
+        this.drawTextLine(`${l.page+1}/${l.pages}`,r.x+r.width/2,r.y+r.height-10,'gray',10,pdg.textStyle_Centered);
     }
 
     drawComparisonWindow() {
