@@ -255,7 +255,7 @@ The largest blockers to a complete game are:
 | Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | 🟡 Partial | 🟡 Partial | The localized persistent Sound setting now controls cached PDG audio across open/restored games. Presented colony, battle, destruction, repair, lab and stardock reports and attention navigation select recipient cues from the shipped samples; explosions precede the later cue by the source animation cadence plus 20 ticks. Hidden reports and quiet autoplay are silent, and mute stops owned playback. Native suites and actual browser controls/playback are verified below. Empty Tab/Next item now plays the shipped No more cue without changing selection or the turn. Chat, background network-turn and tutorial cues remain tied to their unported features; Left Arrow at a top-level object also plays No more. Startup/About music is blocked by missing source movie metadata, documented below. |
 | Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen startup restoration and remaining game preferences are incomplete. |
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
-| Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | 🟡 Partial | ❌ Missing | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; safe Open/Revert ownership during active instructions remains to be verified and repaired. See docs/reference/TUTORIAL_CONTROLLER.md. |
+| Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | 🟡 Partial | ❌ Missing | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; Revert retains active instruction bindings and production safeguards; Open ownership during active instructions remains to be verified and repaired. See docs/reference/TUTORIAL_CONTROLLER.md. |
 | Internationalization | v3 language plug-ins; menu can switch languages. | ✅ Implemented | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian resources and accepts runtime language with `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven/tested; Menu → Settings → Language switches cached UI labels and numeric formatting immediately, remembers the selection and always lists native-script language names. Unported v3 dialogs/help still need future resources. |
 | Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | 🟡 Partial | v4 uses background and lab/stardock/ship assets, while most UI buttons, panels, animations, and states are styled primitives/text. Remaining parity should be tied to specific shipped v3 event/help/window imagery. |
 
@@ -1284,3 +1284,37 @@ lanes passed all 1,295 tests, with zero failures. Logs:
 `/private/tmp/galactica-tutorial-save-audit-tests.log` and
 `/private/tmp/galactica-tutorial-save-audit-native-tests.log`. No rendered UI was
 changed, so existing tutorial screenshots remain applicable.
+
+
+### Revert keeps active tutorial bindings
+
+V3 rebuilds a reverted document and calls `GalacticaDoc::ShowWindow`, which
+reassigns the active tutorial commander (`GalacticaSingleDoc.cp:832–858`,
+`GalacticaDoc.cp:2638–2651`). V4 now routes Revert through the tutorial owner
+when its practice document is active. It keeps the same instruction controller,
+lesson, wait deadline and captured actor identities, replaces the graph/display
+and file reference in the temporary session, and attaches actions to the restored
+game. The scripted production helper remains active until Finish. Old runtime
+wrappers are removed and the old renderer is disposed only after successful
+replacement; binding failure restores the previous game/runtime/session.
+
+Three lifecycle regressions verify restored bindings and timed progression,
+failure rollback, cancellation restoring the original document, and Finish
+promoting the reverted graph with its saved-file association. Both full native
+lanes pass all 1,298 tests. Logs:
+`/private/tmp/galactica-tutorial-revert-{tests,native-tests}.log`.
+
+Actual browser mouse input follows the public Tutorial launch, File menu,
+Revert confirmation, instruction buttons and zoom shortcut in en/de/es/fr/ja/ru.
+Every run verifies unchanged lesson 5 after Revert, then progression through
+zoom to lesson 8 on the restored display and cancellation back to startup.
+The read adapter supplies a serialized practice save; production Revert parsing,
+confirmation, document installation and action handling are exercised unchanged.
+Reviewed before/after, confirmation and zoom screenshots are under
+`/private/tmp/galactica-parity/tutorial-revert/<language>`; browser logs are
+`/private/tmp/galactica-tutorial-revert-<language>.log`. Existing localized controls
+are reused; no new user-facing text was introduced.
+
+Opening another saved document during active instructions remains a separate
+ownership item. This change does not establish cross-launch tutorial resume or
+mark tutorial, broader v3 parity, or Map Generation complete.

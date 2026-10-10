@@ -7,8 +7,8 @@ panel. Launch it with Tutorial on the start screen or in-game command menu.
 The full normal guided route is verified through real UI input in all six
 languages; public launch/cancellation is also verified in each language, with a
 complete English run from the visible launch button. V3 saves the practice game
-without persisting instruction progress. Active-tutorial Open/Revert ownership
-remains open; see the source audit below.
+without persisting instruction progress. Active-tutorial Revert now retains bindings; Open ownership remains open. See
+the source audit and Revert verification below.
 
 The constructor accepts decoded page metadata and callbacks. Use `tutorial-lessons.js::load(dataDirectory, language)` for runtime pages;
 `v3-tutorial.json` is a source reference,
@@ -379,3 +379,37 @@ That defect requires a separate implementation and verification item. Ordinary
 practice saves preserve the graph and private RNG; they do not reactivate the
 instruction runtime when opened. This source audit changes documentation only
 and does not claim full tutorial or project parity.
+
+
+### Revert keeps active tutorial bindings
+
+V3 rebuilds a reverted document and calls `GalacticaDoc::ShowWindow`, which
+reassigns the active tutorial commander (`GalacticaSingleDoc.cp:832–858`,
+`GalacticaDoc.cp:2638–2651`). V4 now routes Revert through the tutorial owner
+when its practice document is active. It keeps the same instruction controller,
+lesson, wait deadline and captured actor identities, replaces the graph/display
+and file reference in the temporary session, and attaches actions to the restored
+game. The scripted production helper remains active until Finish. Old runtime
+wrappers are removed and the old renderer is disposed only after successful
+replacement; binding failure restores the previous game/runtime/session.
+
+Three lifecycle regressions verify restored bindings and timed progression,
+failure rollback, cancellation restoring the original document, and Finish
+promoting the reverted graph with its saved-file association. Both full native
+lanes pass all 1,298 tests. Logs:
+`/private/tmp/galactica-tutorial-revert-{tests,native-tests}.log`.
+
+Actual browser mouse input follows the public Tutorial launch, File menu,
+Revert confirmation, instruction buttons and zoom shortcut in en/de/es/fr/ja/ru.
+Every run verifies unchanged lesson 5 after Revert, then progression through
+zoom to lesson 8 on the restored display and cancellation back to startup.
+The read adapter supplies a serialized practice save; production Revert parsing,
+confirmation, document installation and action handling are exercised unchanged.
+Reviewed before/after, confirmation and zoom screenshots are under
+`/private/tmp/galactica-parity/tutorial-revert/<language>`; browser logs are
+`/private/tmp/galactica-tutorial-revert-<language>.log`. Existing localized controls
+are reused; no new user-facing text was introduced.
+
+Opening another saved document during active instructions remains a separate
+ownership item. This change does not establish cross-launch tutorial resume or
+mark tutorial, broader v3 parity, or Map Generation complete.

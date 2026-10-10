@@ -44,6 +44,35 @@ class TutorialSession {
             return session;
         }catch(error){if(runtime && runtime!==this.runtime)runtime.dispose();this.stop('error');throw error;}
     }
+    revert(game,display,reference){
+        const session=this.sessions.active;
+        if(!this.engaged || !this.runtime || !this.controller.active || !session ||
+                session.id!==0 || session.game!==this.game || session.display!==this.display ||
+                !game || !display)return false;
+        const previous={game:this.game,display:this.display,runtime:this.runtime,file:session.file};
+        const roles={...previous.runtime.roleIds};
+        previous.runtime.dispose();
+        let runtime;
+        try{
+            runtime=new Runtime(game,this.controller);
+            runtime.roleIds=roles;
+            if(previous.game.tutorialSimulation)game.tutorialSimulation=previous.game.tutorialSimulation;
+            this.game=game;this.display=display;this.runtime=runtime;
+            session.game=game;session.display=display;session.file=reference;session.autoplay=null;
+            this.options.installApplication(game,display,session);
+        }catch(error){
+            if(runtime)runtime.dispose();
+            delete game.tutorialSimulation;
+            this.game=previous.game;this.display=previous.display;
+            this.runtime=new Runtime(previous.game,this.controller);this.runtime.roleIds=roles;
+            session.game=previous.game;session.display=previous.display;session.file=previous.file;
+            if(display.dispose)display.dispose();
+            throw error;
+        }
+        delete previous.game.tutorialSimulation;
+        if(previous.display.dispose)previous.display.dispose();
+        return session;
+    }
     pressButton(context={}){return this.controller.pressButton(context);}
     stop(reason='cancel'){return this.controller.stop(reason);}
     release(reason){

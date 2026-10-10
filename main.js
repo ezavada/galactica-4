@@ -627,7 +627,12 @@ function installSavedGame(nextGame,reference) {
 }
 function revertSavedGame(nextGame,reference) {
     attachGameServices(nextGame);const nextDisplay=new Display(nextGame),previous=display;
-    clearSessionInput();stopAutoplayTimer();const session=sessions.replace(nextGame,nextDisplay);session.file=reference;
+    clearSessionInput();stopAutoplayTimer();
+    if(tutorialSession && tutorialSession.runtime){
+        if(!tutorialSession.revert(nextGame,nextDisplay,reference))throw new Error('Tutorial document could not be reverted');
+        return;
+    }
+    const session=sessions.replace(nextGame,nextDisplay);session.file=reference;
     game=nextGame;display=nextDisplay;autoplayController=null;if(previous)previous.dispose();
 }
 function drawManualFailure() {

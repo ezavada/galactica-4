@@ -69,6 +69,37 @@ module.exports=()=>test.describe('Temporary tutorial document lifecycle',()=>{
   test.assertEqual(f.sessions.rows().length,2);test.assertNull(f.sessions.transient);test.assertFalse(f.sessions.starting);test.assertEqual(Save.serialize(f.original),original);test.assertTrue(f.session.file.name==='Original.gad4');
   test.assertTrue(f.sessions.select(f.session.id)===f.session);test.assertTrue(f.sessions.select(transient.id).game===game);test.assertFalse(f.owner.stop());test.assertEqual(f.events.filter(x=>x==='restore').length,0);
  });
+ test.it('reverts a saved practice graph while retaining the current lesson and binding only the restored document',()=>{
+  const f=setup();enter(f.owner);const {game,view}=install(f.owner),session=f.sessions.active;
+  f.owner.pressButton();f.owner.pressButton();test.assertEqual(f.owner.controller.pageId,7);
+  view.zoomIn();const progress=JSON.stringify(f.owner.controller.snapshot(1000));
+  const saved=Save.serialize(game),loaded=Save.restore(saved),nextView=display(loaded),runtime=f.owner.runtime;
+  let disposed=0;view.dispose=()=>disposed++;const file={name:'Practice.gad4',text:saved};
+  test.assertTrue(f.owner.revert(loaded,nextView,file)===session);test.assertEqual(disposed,1);test.assertTrue(runtime.disposed);
+  test.assertUndefined(game.tutorialRuntime);test.assertUndefined(game.tutorialSimulation);test.assertTrue(!!loaded.tutorialSimulation);
+  test.assertTrue(f.owner.game===loaded);test.assertTrue(f.owner.display===nextView);test.assertTrue(f.visible().game===loaded);
+  test.assertTrue(session.file===file);test.assertTrue(session.game===loaded);test.assertEqual(JSON.stringify(f.owner.controller.snapshot(1000)),progress);
+  f.owner.controller.tick(loaded.getCurrentMilliseconds()+4000);test.assertEqual(f.owner.controller.pageId,8);
+  f.owner.pressButton();test.assertEqual(f.owner.controller.pageId,9);f.owner.pressButton();test.assertEqual(f.owner.controller.pageId,10);
+  loaded.stars.find(star=>star.id===2).shipBuilding.desired=20;f.owner.runtime.notify({type:'productionChanged',starId:2});
+  f.owner.stop();test.assertTrue(f.sessions.active===f.session);test.assertTrue(f.visible()===f.application);test.assertUndefined(loaded.tutorialRuntime);
+ });
+ test.it('rolls back a failed restored renderer binding without disposing the active practice document',()=>{
+  const f=setup();enter(f.owner);const {game,view}=install(f.owner),session=f.sessions.active,file=session.file;
+  const loaded=Save.restore(Save.serialize(game)),badView=display(loaded);badView.zoomIn=null;
+  let previousDisposed=0,failed=false;view.dispose=()=>previousDisposed++;
+  try{f.owner.revert(loaded,badView,{name:'Practice.gad4'});}catch(error){failed=true;}
+  test.assertTrue(failed);test.assertEqual(previousDisposed,0);test.assertTrue(f.owner.game===game);test.assertTrue(f.owner.display===view);
+  test.assertTrue(session.game===game);test.assertTrue(session.display===view);test.assertTrue(session.file===file);
+  test.assertTrue(game.tutorialRuntime===f.owner.runtime);test.assertFalse(f.owner.runtime.disposed);test.assertUndefined(loaded.tutorialRuntime);
+  test.assertEqual(f.owner.controller.pageId,5);f.owner.stop();test.assertTrue(f.sessions.active===f.session);
+ });
+ test.it('finishes after revert with the restored practice document and saved file association intact',()=>{
+  const f=setup();enter(f.owner);const {game}=install(f.owner),text=Save.serialize(game),loaded=Save.restore(text),view=display(loaded),file={name:'Practice.gad4',text};
+  f.owner.revert(loaded,view,file);f.owner.controller.goto(60);f.owner.pressButton();
+  test.assertTrue(f.sessions.active.game===loaded);test.assertTrue(f.sessions.active.file===file);test.assertTrue(f.sessions.active.id>0);
+  test.assertUndefined(loaded.tutorialRuntime);test.assertUndefined(loaded.tutorialSimulation);test.assertTrue(f.visible().display===view);
+ });
  test.it('continues normal production and saves the completed practice game without reattaching tutorial safeguards',()=>{
   const f=setup();enter(f.owner);const {game}=install(f.owner),home=game.stars.find(s=>s.id===2);game.turn=3;
   const turn=game.turn;home.growth.desired=10;home.shipBuilding.desired=20;home.research.desired=70;
