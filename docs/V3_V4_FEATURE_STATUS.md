@@ -748,3 +748,10 @@ aliases, so the browser snapshot is taken after that ordinary rendering step.
 Inspected original/restored views, name dialog and all six tutorial maps under
 `/private/tmp/galactica-parity/tutorial-session`; logs are
 `/private/tmp/galactica-tutorial-session-{tests,native-tests,<language>}.log`.
+
+
+### Animated map navigation
+
+Applied the requested modern UI deviation to the shared camera navigation path: jumps now use a 240ms whip pan with quintic acceleration/braking. Home, Center, system/fleet tables, event/report navigation, attention and tutorial focus use that path, and Fit/Reset animate their positional changes. Retargeting begins at the sampled current pose; dragging, scroll positions and anchored zoom cancel motion. Initial framing and reduced-motion preferences remain immediate. Rendering and inverse transforms use the same camera pose, including background parallax and map scroll bars. No strings or simulation randomness change.
+
+Five regressions cover exact landing, inverse transforms during movement, continuous retargeting, manual-control interruption, initial/reduced-motion behavior and fit/reset. Both full test lanes pass all 1,233 tests. Actual browser Home, double-clicked system comparison and event Go to controls pass in all six languages, with precise final centering and manual interruption. Before/after and timed start/mid/end screenshots were inspected under `/private/tmp/galactica-parity/whip-pan-{before,after}`; logs are `/private/tmp/galactica-whip-pan-{tests,native-tests,<language>}.log`. Tooltip surfaces are separately committed as white at 75% alpha with 4px corners. The parity and Map Generation checklists remain active.

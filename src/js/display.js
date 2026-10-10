@@ -352,11 +352,12 @@ class Display {
             // console.log('Camera not available yet, skipping centerOn');
             return;
         }
-        this.camera.centerOn(galacticX, galacticY);
+        if(this.hasDrawn && !this.visualEffects.reducedMotion)this.camera.whipPanTo(galacticX,galacticY);
+        else this.camera.centerOn(galacticX,galacticY);
     }
     
     resetView() {
-        this.camera.resetView();
+        this.navigateCamera(()=>this.camera.resetView());
     }
     
     // Handle screen size changes
@@ -368,13 +369,25 @@ class Display {
         // Calculate the actual bounds of all game content
         const bounds = this.calculateContentBounds();
         if (bounds) {
-            this.camera.zoomToFitBounds(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+            this.navigateCamera(()=>this.camera.zoomToFitBounds(bounds.minX,bounds.minY,bounds.maxX,bounds.maxY));
         } else {
             // Fallback to default zoom to fit
-            this.camera.zoomToFit();
+            this.navigateCamera(()=>this.camera.zoomToFit());
         }
     }
     
+    navigateCamera(change) {
+        const camera=this.camera;
+        camera.stopWhipPan();
+        const area=camera.getDrawingArea();
+        const fromX=camera.toGalacticX(area.width()/2),fromY=camera.toGalacticY(area.height()/2);
+        change();
+        if(!this.hasDrawn || this.visualEffects.reducedMotion)return;
+        const toX=camera.toGalacticX(area.width()/2),toY=camera.toGalacticY(area.height()/2);
+        camera.centerOn(fromX,fromY);
+        camera.whipPanTo(toX,toY);
+    }
+
     // Calculate the bounds of all visible game content
     calculateContentBounds() {
         let minX = Infinity;
@@ -3670,6 +3683,8 @@ class Display {
     // Main draw function that orchestrates all drawing
     drawGame() {
         this.visualTime=pdg.tm.getMilliseconds();
+        this.camera.update(this.visualTime);
+        this.hasDrawn=true;
         const scrollDrag=this.game.uiMapScrollDrag;
         if(scrollDrag && scrollDrag.part)this.game.updateMapScrollDrag(scrollDrag.x,scrollDrag.y);
         this.iconHint=null;

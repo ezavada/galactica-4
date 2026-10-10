@@ -91,6 +91,7 @@ class Camera {
 
     // Zoom functions
     setZoom(newZoom) {
+        this.stopWhipPan();
         this.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, newZoom));
         this.updateScaleAndOffsets();
         this.updatePanLimits();
@@ -152,18 +153,21 @@ class Camera {
     }
     
     zoomIn(factor = 1.2, selectedObject = null, mouseX, mouseY) {
+        this.stopWhipPan();
         if (this.zoom >= this.maxZoom) return;
         const target = this.getZoomTargetPoint(selectedObject, mouseX, mouseY);
         this.zoomToPoint(this.zoom * factor, target.galacticX, target.galacticY, target.screenX, target.screenY);
     }
 
     zoomOut(factor = 1.2, selectedObject = null, mouseX, mouseY) {
+        this.stopWhipPan();
         if (this.zoom <= this.minZoom) return;
         const target = this.getZoomTargetPoint(selectedObject, mouseX, mouseY);
         this.zoomToPoint(this.zoom / factor, target.galacticX, target.galacticY, target.screenX, target.screenY);
     }
 
     zoomToScreenPoint(newZoom, screenX, screenY) {
+        this.stopWhipPan();
         const x = this.toGalacticX(screenX);
         const y = this.toGalacticY(screenY);
         this.zoomToPoint(newZoom, x, y, screenX, screenY);
@@ -171,6 +175,7 @@ class Camera {
 
     // Pan functions
     pan(deltaX, deltaY) {
+        this.stopWhipPan();
         // Convert screen coordinate delta to galactic coordinate delta
         // deltaX and deltaY are in screen coordinates, but panX/panY are in galactic coordinates
         const galacticDeltaX = deltaX / (this.zoom * this.scale);
@@ -181,6 +186,7 @@ class Camera {
     }
     
     setPan(x, y) {
+        this.stopWhipPan();
         this.panX = x;
         this.panY = y;
         this.clampPan();
@@ -188,14 +194,41 @@ class Camera {
     
     // Center view on a specific galactic coordinate
     centerOn(galacticX, galacticY) {
+        this.stopWhipPan();
         const area = this.getDrawingArea();
         this.panX += galacticX - this.toGalacticX(area.width() / 2);
         this.panY += galacticY - this.toGalacticY(area.height() / 2);
         this.clampPan();
     }
 
+    // Presentation-only fast navigation. All transforms use the interpolated
+    // pose, so picking, backgrounds and scroll bars stay aligned with the map.
+    whipPanTo(galacticX,galacticY,time=pdg.tm.getMilliseconds()) {
+        this.update(time);this.whipPan=null;
+        const fromX=this.panX,fromY=this.panY;
+        this.centerOn(galacticX,galacticY);
+        const toX=this.panX,toY=this.panY;
+        if(fromX===toX && fromY===toY)return;
+        this.panX=fromX;this.panY=fromY;
+        this.whipPan={fromX,fromY,toX,toY,start:time,duration:240};
+    }
+
+    update(time=pdg.tm.getMilliseconds()) {
+        const motion=this.whipPan;if(!motion)return;
+        const t=Math.max(0,Math.min(1,(time-motion.start)/motion.duration));
+        const eased=t<.5?16*t**5:1-((-2*t+2)**5)/2;
+        this.panX=motion.fromX+(motion.toX-motion.fromX)*eased;
+        this.panY=motion.fromY+(motion.toY-motion.fromY)*eased;
+        if(t===1){this.panX=motion.toX;this.panY=motion.toY;this.whipPan=null;}
+    }
+
+    stopWhipPan() {
+        this.update();this.whipPan=null;
+    }
+
     // Reset to default view (show entire map)
     resetView() {
+        this.stopWhipPan();
         this.zoom = 1.0;
         this.panX = 0;
         this.panY = 0;
