@@ -64,3 +64,9 @@ Removed the saturating background offset. Equal scrolling distances now produce 
 A deterministic field of small, dim blue-gray stars fills space outside the playable coordinate rectangle. Positions remain anchored while scrolling/zooming, with cached shared drawing styles. These are unnamed presentation points, never factory objects: they have no selection, detection, ownership or simulation RNG effects. No localized strings are added.
 
 Full suite: 767 passed. Regressions cover zoom scaling, zero minimum/reduced-motion drift, constant scrolling, viewport coverage, deterministic exterior-only positions, RNG isolation, dim rendered colors and style reuse. Browser zoom/scroll/reduced-motion and unchanged game-star counts were checked in all six languages, with before/after screenshots at 10%, 50%, 100% and 200% zoom. Evidence: `/private/tmp/galactica-parity/parallax-{before,after}` and `/private/tmp/galactica-parallax-tests.log`.
+
+### Allocation slider current and target levels (2026-10-09)
+
+The solid colored fill now represents actual output (`value`), and the vertical marker represents the requested target (`desired`). The adjacent percentage continues to show the editable target. Clicking or dragging the track changes the target only; actual output follows the existing per-turn adjustment rules. This shared rendering applies to both system information and production windows, including read-only allocation summaries. Locking, coupled allocation totals and localized percentage formatting are preserved.
+
+Full suite: 769 passed, including fill/marker checks in both adjustment directions and click tests confirming actual output stays unchanged. Native track clicks and before/after screenshots were checked for both allocation views in all six languages. Evidence: `/private/tmp/galactica-parity/slider-{before,after}` and `/private/tmp/galactica-slider-tests.log`.

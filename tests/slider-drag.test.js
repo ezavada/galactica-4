@@ -14,6 +14,24 @@ function fixture(window=null) {
 }
 module.exports = function() {
     test.describe('Captured slider dragging', () => {
+        test.it('fills allocation sliders to actual output and marks the target separately', () => {
+            const {display,star}=fixture();star.growth.value=20;star.growth.desired=70;
+            let filled,marker;display.drawRightTextLine=()=>{};display.drawTextLine=()=>{};display.drawUIButton=()=>{};
+            display.drawBar=(x,y,w,h,value)=>{filled=value;};display.port.drawLine=(from)=>{marker=from.x;};
+            display.drawAllocationSlider('Growth',star.growth,40,100,150,'green');
+            const track=display.getAllocationSliderRects(40,100,150).track;
+            test.assertEqual(filled,.2);test.assertEqual(marker,track.x+105);
+            star.growth.value=80;star.growth.desired=10;
+            display.drawAllocationSlider('Growth',star.growth,40,100,150,'green');
+            test.assertEqual(filled,.8);test.assertEqual(marker,track.x+15);
+        });
+        test.it('clicking the track changes the target without changing actual output in either allocation view', () => {
+            for(const window of [null,'production']) {
+                const {game,star,x,y}=fixture(window);star.growth.value=20;
+                test.assertTrue(game.handleUIClick(x(.7),y));
+                test.assertEqual(star.growth.desired,70);test.assertEqual(star.growth.value,20);
+            }
+        });
         test.it('updates an owned system continuously and clamps beyond either endpoint', () => {
             const {game,star,x,y}=fixture(); test.assertTrue(game.beginUISliderDrag(x(.4),y));
             game.updateUISliderDrag(x(.7),y+100); test.assertEqual(star.growth.desired,70);

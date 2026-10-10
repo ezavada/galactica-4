@@ -2263,15 +2263,15 @@ class Display {
         const labelColor = hovered ? 'hovergray' : 'labelgray';
         const valueColor = hovered ? 'hovergray' : 'lightgray';
         this.drawRightTextLine(`${label}:`, rects.track.x - 8, y, labelColor, 11);
-        this.drawBar(rects.track.x, rects.track.y, rects.track.width, rects.track.height, desired / 100.0, color);
+        this.drawBar(rects.track.x, rects.track.y, rects.track.width, rects.track.height, current / 100.0, color);
         this.drawTextLine(options.unknown ? '?' : `${I18n.formatPercentage(desired)}%`, rects.percent.x, y, valueColor, 11);
 
         if (options.interactive !== false) this.drawUIButton({ x: rects.track.x + width + 48, y: y - 13, width: 26, height: 18 },
             allocation.locked ? I18n.getString(675, 'Unlock') : I18n.getString(674, 'Lock'), null,
             { size: 9, radius: 6, icon: allocation.locked ? 'lock' : 'unlock', iconOnly: true, active: allocation.locked });
 
-        const currentMarkerX = rects.track.x + this.clamp(Math.round(width * current / 100.0), 0, width);
-        this.port.drawLine(new pdg.Point(currentMarkerX, y - 11), new pdg.Point(currentMarkerX, y + 1), this.getLineAttributes(valueColor));
+        const targetMarkerX = rects.track.x + this.clamp(Math.round(width * desired / 100.0), 0, width);
+        this.port.drawLine(new pdg.Point(targetMarkerX, y - 11), new pdg.Point(targetMarkerX, y + 1), this.getLineAttributes(valueColor));
     }
 
     drawStarAllocationSummary(star, x, y, width = 150) {
