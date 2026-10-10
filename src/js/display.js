@@ -8,6 +8,7 @@ const SelectionPulse = require('./selection-pulse.js');
 const I18n = require('./i18n.js');
 const VisualEffects = require('./visual-effects.js');
 const UIIcons = require('./ui-icons.js');
+const PanelAppearance = require('./panel-appearance.js');
 const LanguageSettings = require('./language-settings.js');
 
 const debugSelectedObject = true;
@@ -165,9 +166,9 @@ class Display {
 
     createUIColorPalette() {
         const colors = {
-            panelFill: [0.105, 0.135, 0.17, 0.92],
-            windowFill: [0.105, 0.135, 0.17, 0.96],
-            panelBorder: [0.38, 0.50, 0.61, 0.55],
+            panelFill: PanelAppearance.colors.panelFill,
+            windowFill: PanelAppearance.colors.windowFill,
+            panelBorder: PanelAppearance.colors.panelBorder,
             buttonFill: [0.16, 0.21, 0.27, 0.98],
             buttonFillHover: [0.23, 0.31, 0.39, 1.0],
             buttonFillActive: [0.18, 0.29, 0.35, 1.0],
@@ -176,7 +177,7 @@ class Display {
             divider: [0.34, 0.34, 0.36, 0.85],
             connector: [0.56, 0.56, 0.58, 0.50],
             barTrack: [0.22, 0.22, 0.23, 0.95],
-            topInfoFill: [0.11, 0.11, 0.12, 0.86],
+            topInfoFill: [0.11, 0.11, 0.11, 0.86],
             textLight: [0.86, 0.89, 0.92, 1.0],
             textLabel: [0.64, 0.64, 0.66, 1.0],
             textHover: [0.96, 0.96, 0.98, 1.0],
@@ -1101,11 +1102,9 @@ class Display {
     }
 
     drawPanelSurface(rect,attrs=this.styles.panel) {
-        const base=attrs===this.styles.windowPanel?this.getUIColor('windowFill'):this.getUIColor('panelFill');
+        const base=this.getUIColor(attrs===this.styles.windowPanel?'windowFill':attrs===this.styles.topInfoPanel?'topInfoFill':'panelFill');
         const color=this.panelStyleColors.get(attrs) || base;
-        attrs.fillGradient(new pdg.Point(rect.x,rect.y),new pdg.Color(color.red+0.022,color.green+0.022,color.blue+0.022,color.alpha),
-            new pdg.Point(rect.x,rect.y+rect.height),this.panelStyleColors.has(attrs)?base:color);
-        attrs.lineStyle(pdg.lineStyle_Solid).lineThickness(0.7);
+        PanelAppearance.applySurface(attrs,rect,color,this.panelStyleColors.has(attrs)?base:color);
         this.drawRoundedRect(rect,14,attrs);
     }
 
@@ -1177,7 +1176,7 @@ class Display {
         const style=this.ownerPanelStyles.get(object.owner);
         const base=this.getUIColor('panelFill'),owner=this.ownerColors[object.owner] || this.getUIColor('panelBorder');
         const tint=new pdg.Color(base.red*0.94+owner.red*0.06,base.green*0.94+owner.green*0.06,base.blue*0.94+owner.blue*0.06,base.alpha);
-        style.fillColor(tint);
+        style.fillColor(tint).lineColor(PanelAppearance.ownerBorder(owner));
         this.panelStyleColors.set(style,tint);
         return style;
     }
@@ -2327,7 +2326,7 @@ class Display {
                 `${gameName}  •  ${I18n.getString(653, 'No winner')}`;
         }
 
-        this.drawRoundedRect(rect, 16, this.styles.topInfoPanel);
+        this.drawPanelSurface(rect,this.styles.topInfoPanel);
         this.drawTextLine(headline, screen.width / 2, rect.y + 24, 'lightgray', 15, pdg.textStyle_Centered);
         this.drawTextLine(`${this.STR.stars} ${starCount}   ${this.STR.ships} ${shipCount}   ${this.STR.zoom} ${this.getZoomPercentage()}%`, screen.width / 2, rect.y + 44, 'gray', 11, pdg.textStyle_Centered);
         this.drawMapButtons();

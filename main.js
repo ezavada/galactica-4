@@ -4,6 +4,7 @@
 // AI autoplay observer: ./gad4 -- --ai-autoplay
 
 const pdg = require('pdg');
+const PanelAppearance = require('./src/js/panel-appearance.js');
 globalThis.pdg = pdg;
 
 console.log("=== Galactica-4 PDG Game Starting ===");
@@ -103,8 +104,8 @@ function clamp(value, min, max) {
 
 function startupUIColor(name) {
     const colors = {
-        panelFill: [0.13, 0.13, 0.14, 0.92],
-        panelBorder: [0.42, 0.42, 0.44, 0.95],
+        panelFill: PanelAppearance.colors.panelFill,
+        panelBorder: PanelAppearance.colors.panelBorder,
         divider: [0.34, 0.34, 0.36, 0.85],
         textLight: [0.78, 0.78, 0.80, 1.0],
         textMuted: [0.56, 0.56, 0.58, 1.0],
@@ -199,7 +200,8 @@ function drawStartupDialog() {
     const {x:panelX,y:panelY,width:panelWidth}=panelRect;
     const scale=panelRect.height/540,step=value=>value*scale;
     for(const [style,size] of [['titleText',24],['subtitleText',13],['lineText',13],['hintText',12],['startText',14],['advantageText',13],['advantageSummary',12]])startupStyles[style].textSize(Math.max(9,size*scale));
-    drawStartupRoundedRect(panelRect, 16, startupStyles.panel);
+    PanelAppearance.applySurface(startupStyles.panel,panelRect,startupUIColor('panelFill'));
+    drawStartupRoundedRect(panelRect, 14, startupStyles.panel);
 
     port.drawText(I18n.getString(568, 'Galactica-4'), new pdg.Point(screenWidth / 2, panelY + step(44)), startupStyles.titleText);
     port.drawText(I18n.getString(520, 'New Game Setup'), new pdg.Point(screenWidth / 2, panelY + step(72)), startupStyles.subtitleText);

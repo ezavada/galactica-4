@@ -84,6 +84,33 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Ally');star.owner=2;game.players[2].isAllyOf=player=>player===1;
         test.assertTrue(d.isStarOwnerKnown(star));test.assertEqual(d.getStarDiagnostics(star).owner,'2');
     });
+    test.it('keeps every neutral panel and dialog gradient free of color bias',()=>{
+        const {display:d}=fixture();d.drawRoundedRect=()=>{};
+        for(const key of ['panel','windowPanel','topInfoPanel']) {
+            const attrs=d.styles[key];let top,bottom;
+            attrs.fillGradient=(a,t,b,c)=>{top=t;bottom=c;return attrs;};
+            d.drawPanelSurface({x:0,y:0,width:100,height:200},attrs);
+            for(const c of [top,bottom]){test.assertApproximately(c.red,c.green,.000001);test.assertApproximately(c.green,c.blue,.000001);}
+            test.assertTrue(top.red>bottom.red);test.assertApproximately(top.alpha,bottom.alpha,.000001);
+        }
+    });
+    test.it('uses the same neutral gradient and border recipe on the start screen',()=>{
+        const appearance=require('../src/js/panel-appearance.js');let top,bottom,thickness,style;
+        const attrs={fillGradient:(a,t,b,c)=>{top=t;bottom=c;},lineStyle:s=>{style=s;return attrs;},lineThickness:t=>thickness=t};
+        appearance.applySurface(attrs,{x:0,y:0,width:100,height:100},appearance.color('panelFill'));
+        test.assertApproximately(top.red-bottom.red,.022,.000001);test.assertEqual(top.red,top.blue);test.assertEqual(bottom.red,bottom.blue);
+        test.assertEqual(style,pdg.lineStyle_Solid);test.assertEqual(thickness,.7);
+        const border=appearance.color('panelBorder');test.assertEqual(border.red,border.blue);
+    });
+    test.it('adds a restrained owner tint to cached borders without revealing unknown owners',()=>{
+        const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Home');star.owner=1;
+        let border;const original=d.createAttributes.bind(d);d.createAttributes=definition=>{const attrs=original(definition);attrs.lineColor=c=>{border=c;return attrs;};return attrs;};
+        const style=d.getOwnerPanelStyle(star),base=d.getUIColor('panelBorder');
+        test.assertTrue(border.blue>border.red);test.assertApproximately(border.alpha,base.alpha,.000001);
+        test.assertApproximately(border.blue,base.blue*.8+d.ownerColors[1].blue*.2,.000001);
+        test.assertTrue(d.getOwnerPanelStyle(star)===style);star.owner=2;test.assertNull(d.getOwnerPanelStyle(star));
+        game.config.omniscient=true;d.getOwnerPanelStyle(star);test.assertTrue(border.red>border.blue);
+    });
     test.it('fades owner-tinted panels from the existing top color to neutral gray at the bottom',()=>{
         const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Home');star.owner=1;
         const appearance=d.getOwnerPanelStyle(star),tint=d.panelStyleColors.get(appearance),base=d.getUIColor('panelFill');let colors;
