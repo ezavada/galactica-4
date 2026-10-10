@@ -7,6 +7,7 @@ const RetainedPanel = require('./retained-panel.js');
 const SelectionPulse = require('./selection-pulse.js');
 const I18n = require('./i18n.js');
 const VisualEffects = require('./visual-effects.js');
+const UIIcons = require('./ui-icons.js');
 const LanguageSettings = require('./language-settings.js');
 
 const debugSelectedObject = true;
@@ -34,7 +35,7 @@ class Display {
         this.uiSurfaces=new Map();
         this.ownerPanelStyles=new Map();
         this.panelStyleColors=new WeakMap();
-        this.iconAttributes=this.createAttributes({lineColor:this.getUIColor('textLight'),lineStyle:pdg.lineStyle_Solid,fillOpacity:0});
+        this.uiIcons=new UIIcons();
         
         // Overlay images (loaded lazily)
         this.images = {
@@ -1264,21 +1265,7 @@ class Display {
     }
 
     drawUIIcon(name,x,y,size=14) {
-        const paths={menu:[[-6,-4,6,-4],[-6,0,6,0],[-6,4,6,4]],
-            home:[[-7,0,0,-6],[0,-6,7,0],[-5,-1,-5,6],[-5,6,5,6],[5,6,5,-1],[-1,6,-1,2],[-1,2,2,2],[2,2,2,6]],
-            fit:[[-6,-2,-6,-6],[-6,-6,-2,-6],[2,-6,6,-6],[6,-6,6,-2],[-6,2,-6,6],[-6,6,-2,6],[2,6,6,6],[6,6,6,2]]};
-        const attrs=this.iconAttributes;attrs.lineThickness(1.2);
-        if(name==='lock' || name==='unlock') {
-            const scale=size/14,line=(a,b,c,d)=>this.port.drawLine(new pdg.Point(x+a*scale,y+b*scale),new pdg.Point(x+c*scale,y+d*scale),attrs);
-            for(const points of [[-4,-1,4,-1],[4,-1,4,6],[4,6,-4,6],[-4,6,-4,-1],[0,1,0,3]])line(...points);
-            // A closed/open shackle shows the current allocation state.
-            const shift=name==='unlock'?3:0;
-            for(const points of [[-3+shift,-1,-3+shift,-4],[-3+shift,-4,-1+shift,-6],[-1+shift,-6,1+shift,-6],[1+shift,-6,3+shift,-4]])line(...points);
-            if(name==='lock')line(3,-4,3,-1);
-        } else if(name==='gear') {
-            this.port.drawCircle(new pdg.Point(x,y),size*0.25,attrs);
-            for(let i=0;i<8;i++){const a=i*Math.PI/4;this.port.drawLine(new pdg.Point(x+Math.cos(a)*size*.33,y+Math.sin(a)*size*.33),new pdg.Point(x+Math.cos(a)*size*.46,y+Math.sin(a)*size*.46),attrs);}
-        } else for(const [a,b,c,d] of paths[name] || [])this.port.drawLine(new pdg.Point(x+a*size/14,y+b*size/14),new pdg.Point(x+c*size/14,y+d*size/14),attrs);
+        this.uiIcons.draw(this.port,name,x,y,size,this.getUIColor('textLight'));
     }
 
     drawUIButton(rect, label, hotkey = null, options = {}) {
@@ -3014,6 +3001,7 @@ class Display {
     }
 
     dispose() {
+        this.uiIcons.dispose();
         for(const layer of this.uiSurfaces.values())this.releaseUISurface(layer);
         this.uiSurfaces.clear();
     }
