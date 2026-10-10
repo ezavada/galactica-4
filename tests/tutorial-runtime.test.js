@@ -32,6 +32,13 @@ module.exports=()=>test.describe('Tutorial bindings to real game actions',()=>{
   for(let i=0;i<20 && game.overlay;i++)game.handleKeyPress(13);test.assertNull(game.overlay);
   game.handleKeyPress(pdg.key_Tab);test.assertEqual(tutorial.pageId,15);test.assertEqual(game.turn,turn);test.assertEqual(game.selectedObject.type,'colony');
  });
+ test.it('selects the real newly commissioned Scout after its report before the next lesson orders',()=>{
+  const {game,tutorial,home,runtime}=setup();game.turn=4;home.startBuildingShip('scout');tutorial.goto(32);game.endTurn();
+  test.assertEqual(tutorial.pageId,33);test.assertEqual(game.overlay.type,'stardock');test.assertTrue(game.turnAttentionPending);
+  game.handleKeyPress(13);test.assertEqual(tutorial.pageId,34);for(let i=0;i<20 && game.overlay;i++)game.handleKeyPress(13);test.assertNull(game.overlay);test.assertTrue(game.presentTurnAttention());
+  test.assertEqual(game.selectedObject.type,'scout');test.assertEqual(game.selectedObject.id,runtime.roleIds.scout);test.assertEqual(tutorial.pageId,34);
+  test.assertTrue(game.beginMapOrder(game.selectedObject));test.assertTrue(game.issuePlayerWaypoint(game.selectedObject,game.stars.find(s=>s.id===9)));test.assertEqual(tutorial.pageId,35);
+ });
  test.it('distinguishes a real attention item from an empty queue and applies the source courier correction',()=>{
   const {game,tutorial,home,s7}=setup(),ship=game.factory.createShip(home.x,home.y,'scout',home,true);home.shipArrived(ship);tutorial.goto(29);game.attention.request(ship);game.attention.next();test.assertEqual(tutorial.pageId,29);game.attention.next();test.assertEqual(tutorial.pageId,30);game.setSelectedObject(home);test.assertEqual(tutorial.pageId,31);tutorial.goto(44);game.attention.next();test.assertEqual(tutorial.pageId,45);test.assertTrue(ship.destination===s7);
  });

@@ -1089,3 +1089,37 @@ the new Scout class leaves Andromeda selected rather than the Scout. That next
 action-selection repair still needs source verification. These construction
 checks do not prove a full guided tutorial. Public launch, illustrations, full
 tutorial saves, the remaining parity inventory and Map Generation remain open.
+
+
+### Automatic first attention after turn reports
+
+Audited v3 `GalacticaDoc.cp:1449–1453, 2648–2673`: completed-turn activation
+and resumed playback call `ShowMessages`, then `ShowNextNeedyThingy`. V4 now
+presents one queued non-modal attention request after reports finish, deferred
+to drawing so callbacks complete first. Foreground dialogs and active map
+interactions defer it; manual attention navigation suppresses a second jump;
+quiet autoplay does not navigate. Saves preserve the deferred action, while
+older saves without it preserve their selection and do not invent a new jump.
+
+A report previously handled its event and then consumed another attention
+entry by selecting the same subject. V3 handles one entry at a time
+(`GalacticaDoc.cp:3044–3077`, `CMessage.cpp:869–874`). Report focus and explicit
+attention now handle only their own entry. Colony regressions verify that
+acknowledging the colonization report leaves the private naming/production
+request pending; visiting that request handles it separately, including after
+save/load. Additional checks cover shared subjects, modal/report deferral,
+manual navigation, quiet playback and old/corrupt saves.
+
+Both complete native lanes pass all 1,285 tests. Real browser input in
+en/de/es/fr/ja/ru walks from setup through lesson 34 and issues Scout orders to
+New Terra, reaching lesson 35. Reviewed before/after screenshots are under
+`/private/tmp/galactica-parity/tutorial-build-notify/en/page-34.png` and
+`/private/tmp/galactica-parity/tutorial-turn-attention/<language>/page-34.png`;
+logs are `/private/tmp/galactica-tutorial-turn-attention-{tests,native-tests,<language>}.log`.
+No visible strings changed; existing localized instructions remain resource-driven.
+
+A continued English browser walkthrough reaches lesson 41 and encounters a
+map-selection problem in the automatic-destination step. Its cause still needs
+investigation; it is not documented as an unavailable-help blocker. Public
+launch, full guided verification, illustrations, complete tutorial saves, the
+remaining parity inventory and Map Generation remain unfinished.

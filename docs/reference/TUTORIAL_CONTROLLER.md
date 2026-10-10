@@ -210,15 +210,34 @@ Lab and stardock overlays acknowledge Enter/Return before the end-turn shortcut,
 so the first ship report preserves the current turn and queued reports. An
 explicit foreground end-turn confirmation still takes precedence. The first
 attention lesson asks the player to acknowledge remaining reports before Tab;
-actual six-language browser runs reach the first colony ship on turn 2. The
-longer walkthrough still needs repairs after lesson 27: a defense-build entry
-can precede the colony ship in attention. This verification does not establish
-a full guided playthrough.
+actual six-language browser runs reach the first colony ship on turn 2. Subsequent construction and deferred-attention repairs below extend that
+verification. These checks do not establish a full guided playthrough.
 
 
 Ordinary construction now follows v3's notification rules: first-class stardock
 reports remain, but satellites and mobile hulls assigned an automatic destination
 do not add a built-ship order request. Real six-language tutorial walks now select
 the original colony ship at lesson 28. Continued English input reaches lesson 34,
-where Scout-class acknowledgment still leaves the home system selected; this
-remaining selection integration is not yet repaired.
+where Scout-class acknowledgment previously left the home system selected.
+The shared deferred-attention behavior below repairs that transition.
+
+
+### First attention request after turn reports
+
+V3 calls `ShowMessages` followed by `ShowNextNeedyThingy` when activating a
+completed turn (`GalacticaDoc.cp:2648–2673`) and when resuming pending playback
+on window activation (1449–1453). Ordinary v4 turns now defer one attention
+request until report playback and foreground interactions finish, at the draw
+boundary. Manual Next item/Tab suppresses a second automatic jump. Quiet
+playback does not navigate. Saves retain pending navigation; older saves that
+lack this field keep their original selection without scheduling a new jump.
+
+Report focus handles its own entry, without consuming an additional naming or
+production instruction sharing the same subject. This follows v3's single-entry
+handling (`GalacticaDoc.cp:3044–3077`, `CMessage.cpp:869–874`). Explicit attention
+also handles exactly one request. Actual six-language walkthroughs now reach
+lesson 34 with the Scout selected and issue its New Terra course to reach 35.
+The continued English walkthrough reaches the automatic-destination lesson 41,
+where the browser's map-object selection still needs investigation. No public
+launch, illustration or complete tutorial save/resume requirement is claimed
+complete by this focused verification.

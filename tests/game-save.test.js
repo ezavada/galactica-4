@@ -12,6 +12,13 @@ module.exports=()=>test.describe('Complete local game save documents',()=>{
   const {game}=fixture(true),loaded=restored(game);test.assertEqual(loaded.config.gameTitle,'Save 星');test.assertEqual(loaded.stars.length,game.stars.length);test.assertFalse(loaded.stars[0]===game.stars[0]);
   test.assertEqual(JSON.stringify(Save.snapshot(loaded)),JSON.stringify(Save.snapshot(game)));test.assertFalse(loaded.config.skipMapGeneration);test.assertTrue(loaded.restoredFromSave);
  });
+ test.it('loads older saves without scheduling a new camera jump and rejects corrupt deferred attention',()=>{
+  const {game,home}=fixture(),ship=game.factory.createShip(home.x,home.y,'scout',home,true);game.attention.request(ship);game.selectedObject=home;
+  const old=Save.snapshot(game),root=old.graph.nodes[old.graph.root.ref];root.properties=root.properties.filter(p=>p[0]!=='turnAttentionPending');
+  const loaded=Save.restore(JSON.stringify(old));loaded.display={centerOn:()=>{throw new Error('Unexpected camera jump');},setSelectedObject:()=>{}};
+  test.assertFalse(loaded.turnAttentionPending);test.assertFalse(loaded.presentTurnAttention());test.assertTrue(loaded.selectedObject===loaded.stars[0]);test.assertEqual(loaded.attention.pending().length,1);
+  const corrupt=Save.snapshot(game);corrupt.graph.nodes[corrupt.graph.root.ref].properties.find(p=>p[0]==='turnAttentionPending')[1]='true';throws(()=>Save.restore(JSON.stringify(corrupt)));
+ });
  test.it('retains allocation targets, fractional credits, paused/switched hulls and commissioning milestones',()=>{
   const {game,home}=fixture();home.growth.value=20;home.growth.desired=70;home.growth.locked=true;home.paidTowardResearch=998.5;home.startBuildingShip('colony');home.currentShip.progress=67.25;home.paidTowardShipBuilding=123.5;home.buildCredits.battleship=444;game.players[1].builtFighterClasses.add(3);
   const loaded=restored(game),star=loaded.stars[0];test.assertEqual(star.growth.value,20);test.assertEqual(star.growth.desired,70);test.assertTrue(star.growth.locked);test.assertTrue(typeof star.growth.adjustValue==='function');test.assertEqual(star.paidTowardResearch,998.5);test.assertEqual(star.currentShip.progress,67.25);test.assertEqual(star.buildCredits.battleship,444);test.assertTrue(loaded.players[1].builtFighterClasses.has(3));

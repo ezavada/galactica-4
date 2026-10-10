@@ -28,6 +28,7 @@ class Attention {
     }
     attend(object) { const entry=this.pending().find(entry=>entry.object===object);if(entry){entry.handled=true;if(entry.event)entry.event.handled=true;} }
     next() {
+        this.game.turnAttentionPending=false;
         const entry=this.pending()[0];
         if(!entry){if(this.game.sound)this.game.sound.noMore(this.game);return false;}
         entry.handled=true;if(entry.event) {
@@ -37,7 +38,7 @@ class Attention {
             return true;
         }
         if(this.game.sound)this.game.sound.attention(this.game);
-        this.game.uiWindow=null;this.game.setSelectedObject(entry.object);
+        this.game.uiWindow=null;this.game.setSelectedObject(entry.object,{attend:false});
         if(this.game.display)this.game.display.centerOn(entry.object.x,entry.object.y);
         return true;
     }

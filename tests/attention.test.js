@@ -113,6 +113,36 @@ module.exports=function(){test.describe('V3 human call-ins and attention',()=>{
         g.executeUIAction({type:'reviewAttention'});test.assertNotNull(g.overlay);test.assertEqual(g.uiWindow,null);
         g.requestEndTurn();g.handleKeyPress(13);test.assertEqual(g.overlay,null);test.assertEqual(g.uiWindow,null);
     });
+    test.it('presents the first completed-turn request after report playback and only once',()=>{
+        const {g,home,ship}=fixture();g.uiWindow=null;g.attention.request(ship);g.turnAttentionPending=true;g.overlay={type:'lab'};
+        test.assertFalse(g.presentTurnAttention());test.assertTrue(g.turnAttentionPending);
+        g.dismissEventPresentation();test.assertTrue(g.presentTurnAttention());test.assertTrue(g.selectedObject===ship);
+        test.assertFalse(g.turnAttentionPending);test.assertFalse(g.presentTurnAttention());
+    });
+    test.it('handles one request at a time when independent entries share a subject',()=>{
+        const {g,ship}=fixture();g.uiWindow=null;g.attention.request(ship,false);
+        const event=g.recordEvent('Attention','Separate report',{type:'callIn',subject:ship,recipient:1});g.attention.requestEvent(event);
+        g.turnAttentionPending=true;test.assertTrue(g.presentTurnAttention());test.assertTrue(g.selectedObject===ship);
+        test.assertEqual(g.attention.pending().length,1);test.assertTrue(g.attention.pending()[0].event===event);test.assertFalse(event.handled);
+        test.assertTrue(g.attention.next());test.assertTrue(event.handled);test.assertEqual(g.attention.pending().length,0);
+    });
+    test.it('does not consume deferred attention while a foreground dialog or map interaction is active',()=>{
+        const {g,ship}=fixture();g.attention.request(ship);g.turnAttentionPending=true;
+        for(const name of ['settings','rename','endTurnConfirm']){g.uiWindow=name;test.assertFalse(g.presentTurnAttention());test.assertTrue(g.turnAttentionPending);}
+        g.uiWindow=null;g.pendingMapOrderObject=ship;test.assertFalse(g.presentTurnAttention());g.pendingMapOrderObject=null;
+        test.assertTrue(g.presentTurnAttention());
+    });
+    test.it('manual attention navigation prevents a second automatic jump and quiet playback suppresses it',()=>{
+        const {g,home,ship}=fixture(),other=g.factory.createShip(0,0,'scout',home,true);g.uiWindow=null;g.attention.request(ship);g.attention.request(other);g.turnAttentionPending=true;
+        g.attention.next();test.assertFalse(g.turnAttentionPending);test.assertFalse(g.presentTurnAttention());test.assertTrue(g.selectedObject===ship);
+        g.config.autoplay.enabled=true;g.config.autoplay.showEventWindows=false;g.turnAttentionPending=true;test.assertFalse(g.presentTurnAttention());test.assertEqual(g.attention.pending().length,1);
+    });
+    test.it('retains deferred turn attention across a save made during report playback',()=>{
+        const Save=require('../src/js/game-save.js'),{g,ship}=fixture();g.attention.request(ship);g.overlay={type:'lab',classIndex:1};g.turnAttentionPending=true;
+        const loaded=Save.restore(Save.serialize(g));loaded.display={centerOn:()=>{},setSelectedObject:()=>{}};
+        test.assertTrue(loaded.turnAttentionPending);test.assertFalse(loaded.presentTurnAttention());loaded.handleKeyPress(13);test.assertTrue(loaded.presentTurnAttention());
+        test.assertEqual(loaded.selectedObject.id,ship.id);test.assertFalse(loaded.turnAttentionPending);
+    });
     test.it('queues newly built mobile ships without a duplicate call-in log',()=>{
         const {g,home}=fixture();home.startBuildingShip('scout');g.rules.getShipBuildCost=()=>1;home.currentShip.cost=1;
         g.rules.getStarShipBuildingAmount=()=>1;g.endTurn();

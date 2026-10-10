@@ -78,6 +78,7 @@ class Game {
         this.systemComparisonLastClick = null;
         this.systemComparisonGeometry = null;
         this.pendingRendezvousPlacement = null;
+        this.turnAttentionPending=false;
         this.renameTarget = null;
         this.renameText = '';
         this.isGameOver = false;
@@ -562,8 +563,20 @@ class Game {
 
     draw() {
         if (this.display) {
+            this.presentTurnAttention();
             this.display.drawGame();
         }
+    }
+
+    presentTurnAttention() {
+        if(!this.turnAttentionPending || !this.display || this.hasEventPresentation() ||
+                this.uiWindow && this.uiWindow!=='events' || this.pendingMapOrderObject ||
+                this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag || this.uiWindowDrag)return false;
+        // V3 finishes ShowMessages, then presents exactly one non-modal goto.
+        // Defer to the draw boundary so turn/report callbacks finish first.
+        this.turnAttentionPending=false;
+        if(!this.shouldShowEventWindows() || !this.getCurrentHumanPlayer())return false;
+        return this.attention.pending().length>0 && this.attention.next();
     }
 
     getKeyChar(key) {
@@ -1147,7 +1160,7 @@ class Game {
         if(event.type===Common.EventType.RENAME_COLONY)this.eventSelection=event.id;
         const focus=this.getEventFocus(event);
         if(focus) {
-            this.setSelectedObject(focus.object);
+            this.setSelectedObject(focus.object,{attend:false});
             if(this.display)this.display.centerOn(focus.x,focus.y);
         }
         if(closeWindow)this.uiWindow=null;
@@ -1507,12 +1520,12 @@ class Game {
         }
     }
 
-    setSelectedObject(object) {
+    setSelectedObject(object,options={}) {
         if (this.selectedObject !== object) this.fleetMemberPage = 0;
         this.selectedObject = object;
         const colonyRequest=this.attention.pending().find(entry=>entry.object===object && entry.event && entry.event.type===Common.EventType.RENAME_COLONY);
         if(colonyRequest)this.eventSelection=colonyRequest.event.id;
-        this.attention.attend(object);
+        if(options.attend!==false)this.attention.attend(object);
         if (this.display) {
             this.display.setSelectedObject(object);
         }
@@ -2973,6 +2986,7 @@ class Game {
             return this.getGameResult();
         }
 
+        this.turnAttentionPending=false;
         if (this.tutorialSimulation) this.tutorialSimulation.beforeEndTurn(this);
         this.closeEventWindowsForTurnAdvance();
 
@@ -3022,6 +3036,7 @@ class Game {
         }
 
         this.turn++;
+        this.turnAttentionPending=this.shouldShowEventWindows() && !!this.getCurrentHumanPlayer();
         console.log(`=== Start of Turn ${this.turn} ===`);
         return this.getGameResult();
     }
