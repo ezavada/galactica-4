@@ -46,6 +46,33 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
             test.assertTrue(button.rect.x+button.rect.width<=layout.rect.x+layout.rect.width);
         }
     });
+    test.it('cycles every star within ten percent of its average with individual phases and speeds',()=>{
+        const v=new VisualEffects(),initials=new Set(),changes=new Set();
+        for(let id=1;id<=50;id++) {
+            initials.add(v.starBrightness(id,0));changes.add(v.starBrightness(id,1500)-v.starBrightness(id,0));
+            for(let time=0;time<20000;time+=250){const a=v.starBrightness(id,time);test.assertTrue(a>=.81&&a<=.99);v.starBrightness(id+1,time);test.assertEqual(v.starBrightness(id,time),a);}
+        }
+        test.assertTrue(initials.size>40&&changes.size>40);
+    });
+    test.it('lets white stars brighten as well as dim without clipping the color range',()=>{
+        const v=new VisualEffects();for(const id of [1,9,20]) {
+            const hash=Math.imul(id,0x9e3779b1)>>>0,period=4800+hash%4801,phase=hash%period;
+            test.assertApproximately(v.starBrightness(id,period/4-phase),.99,.000001);
+            test.assertApproximately(v.starBrightness(id,period*3/4-phase),.81,.000001);
+            test.assertApproximately(v.starBrightness(id,period+1234),v.starBrightness(id,1234),.000001);
+        }
+    });
+    test.it('applies continuous brightness to the actual star gradient while preserving hue',()=>{
+        const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Test');star.namedStar=true;
+        d.scaledStarRadius=3;d.mapEntityNameOpacity=0;d.port.drawPolygon=()=>{};d.port.drawText=()=>{};d.port.getTextWidth=text=>text.length*6;
+        const original=d.createAttributes.bind(d);let center;
+        d.createAttributes=definition=>{if(definition.fillRadialGradient)center=definition.fillRadialGradient.centerColor;return original(definition);};
+        for(const brightness of [.81,.99]){d.visualEffects.starBrightness=()=>brightness;d.drawStar(star);test.assertApproximately(center.red,brightness,.000001);test.assertApproximately(center.green,brightness,.000001);test.assertEqual(center.blue,0);}
+    });
+    test.it('slows rendezvous color pulsing to a 4.4 second cycle and disables both continuous effects with reduced motion',()=>{
+        const v=new VisualEffects();test.assertEqual(v.rendezvousPulse(0),0);test.assertApproximately(v.rendezvousPulse(2200),1,.000001);test.assertApproximately(v.rendezvousPulse(4400),0,.000001);
+        const reduced=new VisualEffects(true);test.assertEqual(reduced.rendezvousPulse(2200),0);test.assertEqual(reduced.starBrightness(42,1234),1);
+    });
     test.it('twinkles one visible star every 1.8 seconds with a quiet interval between pulses',()=>{
         const v=new VisualEffects(),ids=[3,19,200];
         for(let slot=0;slot<20;slot++){
@@ -77,7 +104,7 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
     });
     test.it('does not consume game randomness while sampling effects',()=>{
         const v=new VisualEffects();pdg.srand(424242);const expected=pdg.rand();pdg.srand(424242);
-        for(let id=1;id<500;id++){v.twinkleFrame([id,id+1],45000);v.parallax({panX:id,panY:-id,scale:1/1024});v.transition('window','menu',id);}
+        for(let id=1;id<500;id++){v.twinkleFrame([id,id+1],45000);v.starBrightness(id,45000);v.rendezvousPulse(45000);v.parallax({panX:id,panY:-id,scale:1/1024});v.transition('window','menu',id);}
         test.assertEqual(pdg.rand(),expected);
     });
     test.it('moves the background only a small distance opposite camera movement',()=>{

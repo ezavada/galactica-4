@@ -15,8 +15,15 @@ class VisualEffects {
         }
         return {id:selected,strength:Math.sin(Math.PI*phase/duration)**2};
     }
+    starBrightness(id,milliseconds) {
+        if(this.reducedMotion)return 1;
+        const hash=Math.imul(id,0x9e3779b1)>>>0;
+        const period=4800+hash%4801,phase=hash%period;
+        // Leave room above the average so white stars can brighten without clipping.
+        return .9*(1+.1*Math.sin(2*Math.PI*(milliseconds+phase)/period));
+    }
     rendezvousPulse(milliseconds) {
-        return this.reducedMotion?0:(1-Math.cos(2*Math.PI*milliseconds/2200))/2;
+        return this.reducedMotion?0:(1-Math.cos(2*Math.PI*milliseconds/4400))/2;
     }
     parallax(camera) {
         if(this.reducedMotion)return {x:0,y:0};

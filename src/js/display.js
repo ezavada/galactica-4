@@ -660,6 +660,10 @@ class Display {
         // Use radial gradient from center (bright) to edges (darker)
         const centerColor = new pdg.Color(color);
         const edgeColor = new pdg.Color(color);
+        const brightness=this.visualEffects.starBrightness(star.id,this.getVisualTime());
+        for(const shade of [centerColor,edgeColor]) {
+            shade.red*=brightness;shade.green*=brightness;shade.blue*=brightness;
+        }
         edgeColor.alpha = 0.1;  // Make edges more transparent/darker
         const attrs = this.createAttributes({
             fillRadialGradient: {
@@ -948,9 +952,9 @@ class Display {
         const opacity = selected ? 1.0 : Math.max(0.85, this.mapEntityNameOpacity || 0);
         const owner = this.ownerColors[rendezvous.owner] || new pdg.Color('white');
         const pulse=this.visualEffects.rendezvousPulse(this.getVisualTime());
-        const blend=0.85*pulse;
-        const color=new pdg.Color(owner.red*(1-blend)+0.96*blend,
-            owner.green*(1-blend)+0.96*blend,owner.blue*(1-blend)+0.96*blend,opacity);
+        const blend=0.5*pulse;
+        const color=new pdg.Color(owner.red*(1-blend)+blend,
+            owner.green*(1-blend)+blend,owner.blue*(1-blend)+blend,opacity);
         const attrs=this.styles.rendezvousMarker.fillColor(color);
         const radius = Math.max(7, (this.scaledShipRadius || Common.ShipRadius) + 3);
         // Filled strokes stay three pixels thick even where WebGL ignores line width.

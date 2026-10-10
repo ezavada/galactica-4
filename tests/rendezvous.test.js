@@ -199,9 +199,9 @@ module.exports = function runRendezvousTests() {
             display.camera.zoom=.1;let polygons=0,color;game.port.drawPolygon=()=>polygons++;
             display.styles.rendezvousMarker.fillColor=c=>{color=c;return display.styles.rendezvousMarker;};
             display.visualTime=0;display.drawRendezvous(point);test.assertEqual(polygons,2);const base=color;
-            display.visualTime=1100;display.drawRendezvous(point);test.assertTrue(color.red>base.red);test.assertTrue(color.green>base.green);test.assertTrue(color.alpha>=.85);
-            display.visualTime=2200;display.drawRendezvous(point);test.assertApproximately(color.red,base.red,.000001);
-            display.visualEffects.reducedMotion=true;display.visualTime=1100;display.drawRendezvous(point);test.assertApproximately(color.red,base.red,.000001);
+            display.visualTime=2200;display.drawRendezvous(point);test.assertApproximately(color.red,(base.red+1)/2,.000001);test.assertTrue(color.green>base.green);test.assertTrue(color.alpha>=.85);
+            display.visualTime=4400;display.drawRendezvous(point);test.assertApproximately(color.red,base.red,.000001);
+            display.visualEffects.reducedMotion=true;display.visualTime=2200;display.drawRendezvous(point);test.assertApproximately(color.red,base.red,.000001);
             point.owner=2;const count=polygons;display.drawRendezvous(point);test.assertEqual(polygons,count);
         });
         test.it('renames, moves, and deletes rendezvous points from popup actions', () => {
