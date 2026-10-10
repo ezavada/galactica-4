@@ -509,7 +509,7 @@
 868	Solicita atención cada turno hasta cancelar este aviso.
 869	Activa o desactiva la marca de caza de la ruta. No elige objetivos enemigos automáticamente.
 870	Marca para desguace o cancela la orden. El próximo turno se recuperará parte del coste del casco.
-871	Edita el nombre. Guardar lo acepta; Cancelar conserva el original.
+871	Edita el nombre directamente en el mapa. Intro lo acepta; Escape cancela sin cambiar el nombre original.
 872	Elige una flota de destino y transfiere naves seleccionadas o grupos completos.
 873	Devuelve este miembro a su sistema o flota superior.
 874	Crea un grupo de flota anidado con el miembro seleccionado.

@@ -27,7 +27,7 @@ module.exports=function() {
             const {game,star,display}=fixture(),previous=pdg.res.getLanguage(),target=game.factory.createStar(0,0,'京都 '+ '航'.repeat(80));target.owner=1;star.setDefaultDestination(target);
             try{for(const lang of ['en','de','es','fr','ja','ru']){
                 pdg.res.setLanguage(lang);display.reloadUIStrings();const layout=display.getStarDetailsLayout(star),destination=display.getDefaultDestinationLayout(star,layout),regions=destination.regions;
-                test.assertEqual(regions.length,2);test.assertEqual(regions[0].rect.x,destination.x+display.port.getTextWidth(destination.text,11)+4);
+                test.assertEqual(regions.length,2);test.assertEqual(regions[0].rect.x,destination.valueX+display.port.getTextWidth(destination.text,11)+4);
                 test.assertTrue(regions[0].rect.x+regions[0].rect.width+4<=regions[1].rect.x);test.assertTrue(regions[1].rect.x+regions[1].rect.width<=layout.rect.x+layout.rect.width-12);
                 test.assertEqual(destination.y,layout.basicStartY+72);test.assertTrue(destination.text.endsWith('…'));
             }}finally{pdg.res.setLanguage(previous);}
@@ -101,12 +101,12 @@ module.exports=function() {
         test.it('friendly ships at neutral systems allow inspection without revealing unscanned economy',()=>{
             const {game,star,display}=fixture();star.owner=0;const ship=game.factory.createShip(star.x,star.y,'scout',star,true);ship.owner=1;
             test.assertTrue(game.canViewSystemShips(star));const data=display.getStarDiagnostics(star);
-            test.assertEqual(data.population,'?');test.assertFalse(data.showProduction);test.assertNotNull(display.getSystemShipButtonRegion());
+            test.assertEqual(data.population,'?');test.assertFalse(data.showProduction);test.assertTrue(display.getContextActions(star).some(a=>a.action.type==='showSystemShips'));
         });
         test.it('shows allied production and destination as read-only',()=>{
             const {game,star,display}=fixture();star.owner=2;game.players[1].isAllyOf=owner=>owner===2;game.players[2].isAllyOf=owner=>owner===1;
             const data=display.getStarDiagnostics(star);test.assertTrue(data.showProduction);test.assertTrue(data.showDestination);
-            test.assertEqual(data.production,'12');test.assertEqual(data.completion,99);test.assertNotNull(display.getSystemShipButtonRegion());test.assertTrue(game.canViewSystemShips(star));test.assertEqual(data.destination,'(2.50, 3.50)');
+            test.assertEqual(data.production,'12');test.assertEqual(data.completion,99);test.assertFalse(display.getContextActions(star).some(a=>a.action.type==='showSystemShips'));test.assertTrue(game.canViewSystemShips(star));test.assertEqual(data.destination,'(2.50, 3.50)');
             test.assertEqual(display.getStarAllocationSliderRegions(star).length,0);test.assertEqual(display.getDefaultDestinationRegions().length,0);
             test.assertEqual(display.getAllocationEqualizeRegions().length,0);test.assertFalse(display.getContextActions(star).some(a=>a.action.type==='buildShip'));
         });

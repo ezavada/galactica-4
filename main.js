@@ -514,6 +514,7 @@ function handleStartupKey(key) {
 
 function clearSessionInput() {
     windowPlacement.end();
+    if(display && display.mapCursor)display.mapCursor.set('default');
     isDragging=false;isLeftClickDragging=false;hasDragged=false;
     if(game){game.endUIWindowDrag();game.endMapScrollDrag();game.endUISliderDrag();}
 }

@@ -509,7 +509,7 @@
 868	In jedem Zug Aufmerksamkeit anfordern, bis diese Meldung abgestellt wird.
 869	Die Jagdmarkierung des Kurses umschalten. Sie wählt keine Gegnerziele automatisch aus.
 870	Zur Verschrottung vormerken oder den Auftrag aufheben. Im nächsten Zug wird ein Teil der Baukosten erstattet.
-871	Den Objektnamen bearbeiten. Speichern übernimmt ihn; Abbrechen behält den bisherigen Namen.
+871	Den Namen direkt auf der Karte bearbeiten. Eingabe übernimmt ihn; Escape bricht ab und behält den ursprünglichen Namen.
 872	Eine Zielflotte wählen und ausgewählte Schiffe oder ganze Gruppen übertragen.
 873	Dieses Mitglied in das übergeordnete System oder die Flotte zurückbringen.
 874	Aus dem ausgewählten Mitglied eine untergeordnete Flottengruppe bilden.

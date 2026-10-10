@@ -82,7 +82,7 @@ module.exports = function() {
         test.it('routes the system button, sorting, pagination and row selection ahead of hidden controls', () => {
             const {game,star}=fixture(); for(let i=0;i<20;i++)shipAt(game,star,'scout',`Ship ${i}`);
             game.port={getDrawingArea:()=>new pdg.Rect(800,600)}; const display=new Display(game);
-            let r=display.getSystemShipButtonRegion().rect;
+            display.camera.centerOn(star.x,star.y);let r=display.getSystemShipButtonRegion().rect;
             game.executeUIAction(display.getUIActionAt(r.x+5,r.y+5)); test.assertEqual(game.uiWindow,'systemShips');
             const regions=display.getSystemShipActionRegions(); r=regions[0].rect;
             test.assertEqual(display.getUIActionAt(r.x+5,r.y+5).type,'sortSystemShips');

@@ -53,14 +53,12 @@ module.exports = function() {
             const ship = star.completeShip(); test.assertFalse(!!ship.destination);
             test.assertTrue(ship.star === star); test.assertEqual(ship.x,star.x);
         });
-        test.it('routes compact Set and Clear buttons even when no default is set', () => {
-            const {game, star} = fixture(); game.port = {getDrawingArea: () => new pdg.Rect(800,600)};
-            const display = new Display(game); let regions = display.getDefaultDestinationRegions();
-            test.assertEqual(regions.length,2);
-            let r=regions[0].rect; test.assertEqual(display.getUIActionAt(r.x+5,r.y+5).type,'beginOrders');
-            star.setDefaultDestination({x:1,y:2}); regions=display.getDefaultDestinationRegions();
-            test.assertEqual(regions.length,2); r=regions[1].rect;
-            test.assertEqual(display.getUIActionAt(r.x+5,r.y+5).type,'clearDefaultDestination');
+        test.it('shows compact Set alone until a default destination is assigned, then routes Clear', () => {
+            const {game, star} = fixture(); game.port = {getDrawingArea:()=>new pdg.Rect(800,600)};
+            const display=new Display(game);let regions=display.getDefaultDestinationRegions();test.assertEqual(regions.length,1);
+            game.executeUIAction(regions[0].action);test.assertTrue(game.pendingMapOrderObject===star);
+            star.setDefaultDestination({x:100,y:200});regions=display.getDefaultDestinationRegions();test.assertEqual(regions.length,2);
+            test.assertEqual(regions[0].rect.height,16);game.executeUIAction(regions[1].action);test.assertNull(star.getDefaultDestination());test.assertEqual(display.getDefaultDestinationRegions().length,1);
         });
     });
     test.describe('Continuous ship production', () => {
@@ -187,11 +185,10 @@ module.exports = function() {
             game.executeUIAction({type:'cancelRename'}); test.assertEqual(star.name, 'Test');
             star.owner = 2; game.beginRenameObject(star); test.assertNull(game.renameTarget);
         });
-        test.it('routes explicit Save and Cancel controls inside the rename window', () => {
+        test.it('accepts inline rename with Enter and has no separate Save/Cancel buttons', () => {
             const {game, star} = fixture(); game.port = { getDrawingArea: () => new pdg.Rect(800,600) };
             const display = new Display(game); game.beginRenameObject(star); game.renameText = 'Changed';
-            const region = display.getRenameActionRegions()[0];
-            game.executeUIAction(display.getUIActionAt(region.rect.x+20,region.rect.y+10));
+            test.assertEqual(display.getRenameActionRegions().length,0);game.handleKeyPress(13);
             test.assertEqual(star.name, 'Changed'); test.assertNull(game.uiWindow);
         });
     });

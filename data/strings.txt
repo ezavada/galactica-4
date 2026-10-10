@@ -509,7 +509,7 @@
 868	Request attention each turn until this call-in is canceled.
 869	Toggle the course's Hunt flag. It does not automatically choose enemy targets.
 870	Mark for scrapping, or cancel the order. Scrapping takes place next turn and returns part of the hull cost.
-871	Edit this object's name. Save accepts the name; Cancel keeps the original.
+871	Edit the name directly on the map. Enter accepts it; Escape cancels without changing the original name.
 872	Choose a destination fleet and transfer selected ships or intact groups.
 873	Return this member to its enclosing system or fleet.
 874	Create a nested fleet group from the selected member.

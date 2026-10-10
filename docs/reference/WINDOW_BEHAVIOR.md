@@ -4,7 +4,7 @@ Game-wide windows (commands, open games, Compare Players, your systems, fleets, 
 
 These windows and startup/file dialogs use a nearly white to light grey surface, black text and controls, and a gold border with bright upper/left and shaded lower reflection accents. Object inspectors retain their owner tint. Events retains its neutral dark surface and is non-modal: map input outside it remains available.
 
-All window title areas can be dragged, including Events, object inspectors, production/course/rename dialogs and foreground event reports. Dragging moves controls together with the panel. Windows stay within the drawing port. Startup dialogs recover capture on release or Escape; game windows also end capture when the viewport changes.
+All window title areas can be dragged, including Events, object inspectors, production/course dialogs and foreground event reports. Dragging moves controls together with the panel. Windows stay within the drawing port. Startup dialogs recover capture on release or Escape; game windows also end capture when the viewport changes.
 
 Application positions are configuration preferences, independent of saved simulation state. Browser storage uses `galactica.windowPosition.<name>`; native configuration uses `windowPosition.<name>` in the Galactica configuration. Each stores finite x/y coordinates. Invalid or unavailable preferences fall back to default layout. Restored bounds are constrained to the current port. Fleet and system tables continue to use their existing persistent geometry preferences, including height. Object and Events positions last for the current game and are not written as application defaults.
 
@@ -23,3 +23,9 @@ is hidden. Both old coordinate rows remain commented in source. Production
 locks use bare cached glyphs; the compact = control sits beside the sliders and
 uses = as its shortcut. Public system pause actions and the Continuous caption
 are removed. Build-button hover headings describe switching production.
+
+Renaming is now an inline white text field over the map label, rather than a
+window with a draggable title. Its text is 150% of the map name size. The cursor
+becomes a text caret; Enter accepts the draft and Escape keeps the original name.
+Target selection uses a crosshair, with a 50% alpha rubber-band line for system
+destinations and course waypoint editing.

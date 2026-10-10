@@ -18,6 +18,7 @@ const LanguageSettings = require('./language-settings.js');
 const MapDisplayModes = require('./map-display-modes.js');
 const ControlHelp = require('./hover-help.js');
 const Tooltip = require('./tooltip.js');
+const MapCursor=require('./map-cursor.js');
 
 const debugSelectedObject = true;
 
@@ -28,6 +29,7 @@ class Display {
         this.factory = game.getFactory();
         this.selectedObject = null;
         this.hoverPoint = null;
+        this.mapCursor=new MapCursor(this.port);
         this.controlHelp = new ControlHelp.HoverHelp();
         this.hoverControl = null;
         game.setDisplay(this);
@@ -742,7 +744,7 @@ class Display {
 
         // Draw star name with fading based on star size, but never dim home system names
         const nameOpacity = isHomeSystem || star.namedStar ? 1.0 : this.mapEntityNameOpacity;
-        if (nameOpacity > 0 && this.game.showMapNames!==false) {
+        if (star!==this.game.renameTarget && nameOpacity > 0 && this.game.showMapNames!==false) {
             color = 'gray';
             if (star.population > 0 && visibilityLevel > Common.VisibilityLevel.NONE) {
                 color = 'white';
@@ -859,7 +861,7 @@ class Display {
     }
 
     drawMobileMapName(object,x,y,radius,docked) {
-        if(this.game.showMapNames===false || this.camera.zoom<.5 || docked && object!==this.selectedObject)return;
+        if(object===this.game.renameTarget || this.game.showMapNames===false || this.camera.zoom<.5 || docked && object!==this.selectedObject)return;
         const viewer=this.game.getCurrentHumanPlayer() || 1;
         if(!this.isOmniscientMode() && !this.game.isOwnerAlliedWith(viewer,object.owner)
             && this.getVisibilityLevelForPlayer(object,viewer)<Common.VisibilityLevel.CLASS)return;
@@ -1060,7 +1062,7 @@ class Display {
             this.port.drawCircle(new pdg.Point(x, y), radius + 6 + pulse, this.styles.selectionFrame);
         }
 
-        if (opacity > 0.3 && this.game.showMapNames!==false) {
+        if (rendezvous!==this.game.renameTarget && opacity > 0.3 && this.game.showMapNames!==false) {
             const textColor = new pdg.Color('white');
             textColor.alpha = opacity;
             this.port.drawText(
@@ -1528,7 +1530,6 @@ class Display {
     getContextActions(object) {
         const objectType = this.game.getObjectType(object);
         const actions = [];
-        if(this.game.canViewFleetExchange(object))actions.push({key:null,label:I18n.getString(801,'Exchange ships'),action:{type:'showFleetExchange',container:object}});
 
         if (objectType === Common.ObjectType.STAR && this.game.canHumanControl(object)) {
             actions.push({ key: 'N', label: this.STR.rename, action: { type: 'beginRename' } });
@@ -1536,7 +1537,7 @@ class Display {
                 { key: 'S', label: this.STR.scoutName, action: { type: 'buildShip', shipType: 'scout' } },
                 { key: 'D', label: this.STR.defenseName, action: { type: 'buildShip', shipType: 'defense' } },
                 { key: 'B', label: this.STR.battleshipName, action: { type: 'buildShip', shipType: 'battleship' } },
-                { key: 'c', label: this.STR.colonyName, action: { type: 'buildShip', shipType: 'colony' } }
+                { key: 'C', label: this.STR.colonyName, action: { type: 'buildShip', shipType: 'colony' } }
             );
         } else if (objectType === Common.ObjectType.SHIP || objectType === Common.ObjectType.FLEET) {
             if (this.game.canHumanControl(object)) {
@@ -1580,6 +1581,10 @@ class Display {
 
         if(this.factory.isFleet(object) && object.fleet && this.getFleetKnowledge(object.fleet).contents)
             actions.push({key:null,label:I18n.getString(798,'Parent fleet'),action:{type:'selectFleetParent'}});
+        if(this.factory.isStar(object) && this.game.canViewSystemShips(object) && this.game.getSystemShipRows(object).length)
+            actions.push({key:null,label:I18n.getString(688,'Ships in system'),action:{type:'showSystemShips',star:object}});
+        if(this.game.canViewFleetExchange(object) && this.game.getFleetExchangeMembers(object).length)
+            actions.push({key:null,label:I18n.getString(801,'Exchange ships'),action:{type:'showFleetExchange',container:object}});
         return actions;
     }
 
@@ -2409,21 +2414,32 @@ class Display {
     }
 
     getSystemShipButtonRegion() {
-        const star = this.game.getSelectedStar();
-        if (!this.game.canViewSystemShips(star)) return null;
-        const panel = this.getStarDetailsLayout(star).rect;
-        return {rect:{x:panel.x+184,y:panel.y+panel.height-34,width:164,height:22},
-            label:I18n.getString(688,'Ships in system'),action:{type:'showSystemShips',star}};
+        const star=this.game.getSelectedStar();
+        if(!star)return null;
+        return this.getContextButtonArc(star,this.getStarDetailsLayout(star).rect).find(button=>button.action.type==='showSystemShips') || null;
     }
 
     getRenameWindowRect() {
-        const screen = this.getScreenSize();
-        return this.fitWindowToScreen('rename',{
-            x: (screen.width - 340) / 2,
-            y: 96,
-            width: 340,
-            height: 160
-        });
+        const target=this.game.renameTarget,screen=this.getScreenSize();
+        if(!target)return {x:10,y:10,width:100,height:26};
+        const marker=this.getMapMarker(target) || {...this.getObjectScreenPosition(target),radius:8};
+        if(this.factory.isRendezvous(target))marker.radius=Math.max(7,(this.scaledShipRadius || Common.ShipRadius)+3);
+        const size=this.factory.isStar(target) && target.namedStar?16.5:15;
+        const text=this.game.renameText || '',width=Math.min(screen.width-20,Math.max(100,(this.port.getTextWidth?this.port.getTextWidth(text,size):Array.from(text).length*size/2)+14));
+        const height=Math.ceil(size)+10;
+        // Overlay the normal centered map label, independent of inspector geometry.
+        return {x:this.clamp(marker.x-width/2,10,screen.width-width-10),
+            y:this.clamp(marker.y+marker.radius+12-size-5,10,screen.height-height-10),width,height,size};
+    }
+
+    getRenameTextLayout() {
+        const rect=this.getRenameWindowRect(),editor=this.game.renameEditor;
+        const characters=Array.from(this.game.renameText || ''),caret=editor?Math.min(editor.caret,characters.length):characters.length;
+        const measure=text=>this.port.getTextWidth(text,rect.size),available=rect.width-12;
+        let start=0,end=characters.length;
+        while(start<caret && measure(characters.slice(start,caret).join(''))>available)start++;
+        while(end>caret && measure(characters.slice(start,end).join(''))>available)end--;
+        return {rect,start,end,text:characters.slice(start,end).join(''),caret:measure(characters.slice(start,caret).join(''))};
     }
 
     getRendezvousPlacementPromptRect() {
@@ -2525,21 +2541,28 @@ class Display {
         return regions;
     }
 
+    getStarDiagnosticLabelWidth(star) {
+        const labels=[this.STR.owner,this.STR.pop,this.STR.tech,this.STR.building,
+            I18n.getString(684,'Send to:'),I18n.getString(722,'Total defense:'),
+            I18n.getString(723,'Satellites:'),I18n.getString(724,'Ship defense:')];
+        return Math.max(70,...labels.map(label=>(this.port.getTextWidth?this.port.getTextWidth(label,11):Array.from(label).length*5.5)+8));
+    }
+
     getDefaultDestinationLayout(star,layout=this.getStarDetailsLayout(star)) {
         const data=this.getStarDiagnostics(star),owned=this.game.canHumanControl(star),gap=4;
-        const buttons=owned?[{label:I18n.getString(962,'Set'),action:{type:'beginOrders',object:star}},
-            {label:I18n.getString(963,'Clear'),action:{type:'clearDefaultDestination',object:star}}]:[];
+        const buttons=owned?[{label:I18n.getString(962,'Set'),action:{type:'beginOrders',object:star}}]:[];
+        if(owned && star.getDefaultDestination())buttons.push({label:I18n.getString(963,'Clear'),action:{type:'clearDefaultDestination',object:star}});
         const widths=buttons.map(button=>this.getButtonWidth(button.label,null,{size:10,minWidth:36}));
         const buttonWidth=widths.reduce((sum,width)=>sum+width,0)+buttons.length*gap;
-        const available=layout.rect.width-24-buttonWidth;
-        const full=I18n.getString(684,'Send to:')+' '+data.destination;
-        const measure=text=>this.port.getTextWidth?this.port.getTextWidth(text,11):Array.from(text).length*6;
-        let text=full;
+        const labelWidth=this.getStarDiagnosticLabelWidth(star),valueX=layout.x+labelWidth;
+        const available=layout.rect.width-24-labelWidth-buttonWidth;
+        const measure=text=>this.port.getTextWidth?this.port.getTextWidth(text,11):Array.from(text).length*5.5;
+        let text=data.destination;
         while(Array.from(text).length>1 && measure(text)>available)text=Array.from(text).slice(0,-2).join('')+'…';
-        let x=layout.x+measure(text)+gap;
+        let x=valueX+(this.port.getTextWidth?this.port.getTextWidth(text,11):Array.from(text).length*5.5)+gap;
         const y=layout.basicStartY+4*18;
-        const regions=buttons.map((button,index)=>{const region={...button,rect:{x,y:y-15,width:widths[index],height:22}};x+=widths[index]+gap;return region;});
-        return {text,x:layout.x,y,regions};
+        const regions=buttons.map((button,index)=>{const region={...button,rect:{x,y:y-12,width:widths[index],height:16}};x+=widths[index]+gap;return region;});
+        return {text,label:I18n.getString(684,'Send to:'),labelWidth,x:layout.x,valueX,y,regions};
     }
 
     getDefaultDestinationRegions() {
@@ -2687,7 +2710,7 @@ class Display {
         if (this.game.uiWindow === 'systemComparison') controls = this.getSystemComparisonActionRegions();
         if (this.game.uiWindow === 'fleetExchange') controls = this.getFleetExchangeActions();
         if (this.game.uiWindow === 'systemShips') controls = this.getSystemShipActionRegions();
-        if (this.game.uiWindow === 'rename') controls = this.getRenameActionRegions();
+        if(this.game.uiWindow==='rename')return {type:'placeRenameCaret',x};
         if (this.game.uiWindow === 'fleets') controls = this.getFleetListActionRegions();
         if (this.game.uiWindow === 'production') {
             const sliders = this.getProductionWindowSliderRegions();
@@ -2980,7 +3003,7 @@ class Display {
             // data.position,
             ...(data.showDestination?[null]:[]),
             data.totalDefense,data.satelliteDefense,data.shipDefense];
-        const labelWidth = Math.max(70,...labels.filter(Boolean).map(label=>this.port.getTextWidth(label,11)+8));
+        const labelWidth = this.getStarDiagnosticLabelWidth(star);
         labels.forEach((label,index) => {
             let valueWidth = rect.width-labelWidth-24;
             if (index===3 && data.completion!==null) valueWidth -= 105;
@@ -3005,13 +3028,11 @@ class Display {
                     ['green','cyan','purple'][index],{interactive:false,unknown:!data.allied}));
             }
         }
-        const shipButton = this.getSystemShipButtonRegion();
-        if (shipButton) this.drawUIButton(shipButton.rect,shipButton.label,null,{size:10});
         const equalize = this.getAllocationEqualizeRegions().find(region=>!region.inWindow);
         if (owned && equalize) this.drawUIButton(equalize.rect,'=',null,{size:18,tooltipLabel:ButtonCaption.tooltip(I18n.getString(676,'Equalize'),'=')});
         if (data.showDestination) {
             const destination=this.getDefaultDestinationLayout(star,layout);
-            this.drawTextLine(destination.text,destination.x,destination.y,'lightgray',11);
+            this.drawLabelValue(destination.label,destination.text,destination.x,destination.y,{labelWidth:destination.labelWidth,size:11});
             destination.regions.forEach(region=>this.drawUIButton(region.rect,region.label,null,
                 {size:10,active:region.action.type==='beginOrders' && this.game.pendingMapOrderObject===star}));
         }
@@ -3378,13 +3399,7 @@ class Display {
         this.drawTableWindowResizeGrip(rect);
     }
 
-    getRenameActionRegions() {
-        const rect = this.getRenameWindowRect();
-        return [
-            { rect: { x: rect.x + 14, y: rect.y + 112, width: 144, height: 26 }, action: { type: 'commitRename' }, label: I18n.getString(682, 'Save') },
-            { rect: { x: rect.x + 182, y: rect.y + 112, width: 144, height: 26 }, action: { type: 'cancelRename' }, label: I18n.getString(683, 'Cancel') }
-        ];
-    }
+    getRenameActionRegions() { return []; }
 
     drawColonyDefaultsWindow() {
         const rect = this.getColonyDefaultsWindowRect(), draft = this.game.colonyDefaultsDraft;
@@ -3522,24 +3537,34 @@ class Display {
     }
 
     drawRenameWindow() {
-        const rect = this.getRenameWindowRect();
-        const target = this.game.renameTarget;
-        const title = target ? I18n.formatString(673, 'Rename {0}', this.game.getObjectDisplayName(target)) : this.STR.rename;
-        this.drawWindowPanel(rect, title);
-
-        const x = rect.x + 14;
-        let y = this.getPanelContentStartY(rect);
-        this.drawTextLine(this.STR.name, x, y, 'labelgray', 12);
-        let text = this.game.renameText || '';
-        if (this.port.getTextWidth) {
-            // Keep the insertion end visible even for a long Japanese name.
-            while (text && this.port.getTextWidth(text, 12) > rect.width - 96) text = Array.from(text).slice(1).join('');
+        const {rect,text,caret}=this.getRenameTextLayout(),editor=this.game.renameEditor;
+        this.drawRoundedRect(rect,1,this.getFillAttributes('white'));
+        if(editor && editor.selected && text)this.drawRoundedRect({x:rect.x+6,y:rect.y+4,
+            width:Math.min(rect.width-12,this.port.getTextWidth(text,rect.size)),height:rect.height-8},0,this.renameSelectionStyle || (this.renameSelectionStyle=this.createAttributes({fillColor:new pdg.Color(.7,.82,1)})));
+        this.drawTextLine(text,rect.x+6,rect.y+rect.height-5,'black',rect.size);
+        if(!editor || !editor.selected){
+            if(Math.floor(this.getVisualTime()/500)%2===0)this.port.drawLine(
+                new pdg.Point(rect.x+6+caret,rect.y+4),new pdg.Point(rect.x+6+caret,rect.y+rect.height-4),this.getLineAttributes('black'));
         }
-        this.drawTextLine(text, x + 68, y, 'lightgray', 12);
-        this.drawDivider(x, y + 10, rect.width - 28);
-        y += 34;
-        this.drawTextLine(this.STR.renameHelp, x, y, 'gray', 10);
-        this.getRenameActionRegions().forEach(button => this.drawUIButton(button.rect, button.label));
+    }
+
+    drawMapTargetPreview() {
+        const object=this.game.pendingMapOrderObject,point=this.hoverPoint;
+        if(!object || !point || this.game.mapSelectionPicker || this.game.hasEventPresentation() || WindowBehavior.isSystem(this.game.uiWindow))return;
+        // Use the preceding waypoint as the origin when extending a plotted course.
+        let origin=object;
+        const edit=this.game.pendingCourseEdit,course=object.course;
+        if(course && edit){const index=edit.replace?edit.index:edit.index===null?course.waypoints.length:edit.index+1;
+            if(index>0)origin=course.resolve(course.waypoints[index-1]) || object;}
+        const position=origin===object?this.getObjectScreenPosition(object):{x:this.toScreenX(origin.x),y:this.toScreenY(origin.y)};
+        if(!this.targetPreviewStyle)this.targetPreviewStyle=this.createAttributes({lineColor:new pdg.Color(1,1,1,.5)});
+        this.port.drawLine(new pdg.Point(position.x,position.y),new pdg.Point(point.x,point.y),this.targetPreviewStyle);
+    }
+
+    updateMapCursor() {
+        if(!this.mapCursor)return;
+        const game=this.game,blocked=game.hasEventPresentation() || game.mapSelectionPicker || WindowBehavior.isSystem(game.uiWindow);
+        this.mapCursor.set(game.uiWindow==='rename'?'text':!blocked && game.isAwaitingMapTarget()?'crosshair':'default');
     }
 
     drawRendezvousPlacementPrompt() {
@@ -3669,6 +3694,8 @@ class Display {
     }
 
     dispose() {
+        if(this.mapCursor)this.mapCursor.dispose();
+        for(const attrs of [this.targetPreviewStyle,this.renameSelectionStyle])if(attrs && attrs.delete)attrs.delete();
         for(const effect of [this.destructionGlow,this.destructionStreak])if(effect && typeof effect.delete==='function')effect.delete();
         this.destructionGlow=null;this.destructionStreak=null;
         this.uiIcons.dispose();
@@ -3742,6 +3769,7 @@ class Display {
         this.drawShips(game.allShips);
         this.drawRendezvousPoints(game.allRendezvous);
         this.drawFleets(game.allFleets);
+        this.drawMapTargetPreview();
         
         // Draw UI
         this.drawMainUI(game.turn, game.stars.length, game.allShips.length);
@@ -3752,7 +3780,7 @@ class Display {
 
         // Draw selected object details
         this.drawTransitionLayer('inspector',game.selectedObject && !game.pendingCourseEdit?game.selectedObject:null,()=>{
-        if (game.selectedObject && !game.pendingCourseEdit) {
+        if (game.selectedObject && !game.pendingCourseEdit && game.uiWindow!=='rename') {
             const objectType = game.getObjectType(game.selectedObject);
             if (objectType === Common.ObjectType.STAR) {
                 this.drawStarDetails(game.selectedObject);
@@ -3785,6 +3813,7 @@ class Display {
         }
         this.drawControlHelp();
         this.drawIconHint();
+        this.updateMapCursor();
     }
 
     clearControlHelp() { this.controlHelp.clear(); this.hoverPoint=null; }

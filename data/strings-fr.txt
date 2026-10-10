@@ -509,7 +509,7 @@
 868	Demandez de l'attention à chaque tour jusqu'à l'annulation de cet appel.
 869	Activez ou désactivez l'indicateur Chasse du parcours. Il ne choisit pas automatiquement de cible ennemie.
 870	Marquez pour démantèlement ou annulez l'ordre. Au prochain tour, une partie du coût de la coque sera récupérée.
-871	Modifiez le nom. Enregistrer l'accepte ; Annuler conserve le nom initial.
+871	Modifiez le nom directement sur la carte. Entrée le valide ; Échap annule sans changer le nom initial.
 872	Choisissez une flotte de destination et transférez les vaisseaux sélectionnés ou des groupes entiers.
 873	Renvoyez ce membre dans son système ou sa flotte parente.
 874	Créez un groupe de flotte imbriqué à partir du membre sélectionné.

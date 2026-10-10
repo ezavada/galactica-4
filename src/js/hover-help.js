@@ -17,6 +17,7 @@ const helpIds=Object.freeze({
   "toggleCourseHunt": 869,
   "toggleScrap": 870,
   "beginRename": 871,
+  "placeRenameCaret": 871,
   "beginFleetTransfer": 872,
   "transferFleetShip": 872,
   "fleetExchangeSelect": 872,

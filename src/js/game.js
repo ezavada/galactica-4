@@ -16,6 +16,7 @@ const I18n = require('./i18n.js');
 const Attention = require('./attention.js');
 const RosterPreferences = require('./roster-preferences.js');
 const ChartNames = require('./chart-names.js');
+const NameEditor=require('./player-name.js');
 
 class Game {
     constructor(factory, rules, config = null) {
@@ -876,6 +877,10 @@ class Game {
         }
         this.renameTarget = object;
         this.renameText = this.getObjectDisplayName(object, { rawName: true });
+        this.renameEditor=NameEditor.createEditor(this.renameText);
+        this.pendingMapOrderObject=null;this.pendingCourseEdit=null;
+        if(this.display){const p=this.display.getObjectScreenPosition(object),screen=this.display.getScreenSize();
+            if(p.x<10 || p.y<10 || p.x>screen.width-10 || p.y>screen.height-10)this.display.centerOn(object.x,object.y);}
         this.uiWindow = 'rename';
         return true;
     }
@@ -907,18 +912,10 @@ class Game {
     }
 
     handleRenameKey(key, char) {
-        if (key === 13 || key === 3 || char === '\r' || char === '\n') {
-            return this.commitRename();
-        }
-        if (key === 8 || key === 127) {
-            this.renameText = Array.from(this.renameText).slice(0, -1).join('');
-            return true;
-        }
-        if (char && Array.from(char).length === 1 && char.codePointAt(0) >= 32 &&
-                !/[\u007f-\u009f]/.test(char) && Array.from(this.renameText).length < 32) {
-            this.renameText += char;
-            return true;
-        }
+        if (key === pdg.key_Enter || key===10 || char === '\r' || char === '\n')return this.commitRename();
+        if(!this.renameEditor || this.renameEditor.text!==this.renameText){this.renameEditor=NameEditor.createEditor(this.renameText);this.renameEditor.selected=false;}
+        NameEditor.edit(this.renameEditor,key,pdg);
+        this.renameText=this.renameEditor.text;
         return true;
     }
 
@@ -2195,6 +2192,14 @@ class Game {
                 return this.beginRendezvousPlacement();
             case 'deleteRendezvous':
                 return this.deleteRendezvous(action.rendezvous || action.object);
+            case 'placeRenameCaret': {
+                if(this.uiWindow!=='rename' || !this.display || !Number.isFinite(action.x))return false;
+                const layout=this.display.getRenameTextLayout(),chars=Array.from(this.renameText);
+                if(!this.renameEditor)this.renameEditor=NameEditor.createEditor(this.renameText);
+                let caret=layout.start;
+                while(caret<layout.end && action.x-layout.rect.x-6>this.display.port.getTextWidth(chars.slice(layout.start,caret+1).join(''),layout.rect.size))caret++;
+                this.renameEditor.caret=caret;this.renameEditor.selected=false;return true;
+            }
             case 'commitRename':
                 return this.commitRename();
             case 'cancelRename':
@@ -2311,6 +2316,7 @@ class Game {
     saveFleetRosterGeometry() {if(this.uiWindow==='fleets')this.saveTableWindowGeometry();}
 
     beginUIWindowDrag(x,y) {
+        if(this.uiWindow==='rename')return false;
         this.endUIWindowDrag();
         const state=this.overlay?null:this.getTableWindowState();
         if(!Number.isFinite(x) || !Number.isFinite(y))return false;

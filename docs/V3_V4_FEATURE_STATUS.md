@@ -920,3 +920,41 @@ session and advance the controller to its final lesson; this is a completion
 lifecycle check, not a full guided tutorial playthrough. Visible instruction UI,
 six-language lesson resources/art and complete tutorial save/resume remain open;
 this item does not complete the broader parity or Map Generation checklists.
+
+
+### Map destination controls and inline name editing
+
+Implemented the requested v4 UI refinements. System destinations and course
+waypoint targeting use a crosshair and a 50% alpha line to the current mouse
+position; extending a course starts at its preceding waypoint. Rendezvous
+placement also uses a crosshair. Browser cursors use CSS, native cursors use
+cached PDG software images, and finishing/cancelling/restoring sessions resets
+the cursor. Set/Clear are six pixels shorter; Send to shares the other diagnostic
+labels’ style and value alignment. Clear is absent without a destination.
+
+Ships in system and Exchange ships are now the final radial actions and appear
+only for accessible completed ships/fleets. Empty and unfinished-only systems
+show neither; enemy knowledge gates remain respected. Colony’s shortcut hint is
+capital C. The old inspector footer button is no longer drawn.
+
+Rename overlays the map label with a white field and black text at 150% map-name
+size. Initial selection permits replacement; Unicode caret movement, clicking,
+backspace/delete and long-name viewport limits use a draft. Escape leaves the
+original name/event history unchanged; Return/Enter accepts it. PDG End is code
+3, so the previous code-3-as-Enter convention was corrected for this editor.
+Owned systems, ships, fleets and rendezvous points share the control. The field
+is anchored to its object and has no draggable title or separate Save/Cancel.
+Help and all six manuals describe the new behavior in en/de/es/fr/ja/ru.
+
+Both complete unit suites pass: 1,259 tests each with release and development
+PDG. Actual Chrome checks pass in all six languages for radial list clicks,
+Set/map/Clear, targeting and cancellation, draft rollback, clicked caret, End and
+backspace, Return/keypad Enter, native-script input and all four object renames.
+Before/after, six-language radial menus and inline editors were inspected under
+`/private/tmp/galactica-parity/map-edit-{before,after}`. Logs:
+`/private/tmp/galactica-map-edit-{tests,native-tests}.log` and
+`/private/tmp/galactica-map-edit-{before,after}-<language>.log`. All six manuals
+parse with their seventeen chapters retained. Actual native cursor appearance
+still requires a connected native display; the browser appearance/behavior and
+both native model suites were checked. The overall parity, tutorial presentation
+and Map Generation checklists remain active.
