@@ -85,7 +85,7 @@ When adding user-visible strings:
    ./gad4 tests/run-tests.js
    ```
 
-Current expected full-suite result: 830 passed, 0 failed.
+Current expected full-suite result: 836 passed, 0 failed.
 
 ## Future work
 
@@ -129,3 +129,5 @@ Camera commands use IDs 786–790 for View, Zoom in/out, Reset view and Center s
 Map scroll bars use IDs 791–792 for horizontal/vertical hover hints in all six supported languages. Help ID 548 now includes Alt dragging and retains middle dragging/wheel zoom. Browser interactions and translated hint/help screenshots passed in en/de/es/fr/ja/ru. Current resources: 329 IDs per language; full suite: 815 passed.
 
 The overlapping-map-object chooser uses IDs 793–794 for its heading and selection/cancel help in en/de/es/fr/ja/ru. Previous/Next, unknown Ship/Fleet labels and marked-for-scrap status reuse translated resources. Object names remain user content; hidden enemy names are never substituted into chooser rows/tooltips. Actual translated chooser/page/target screenshots and interactions passed in all six languages. Current resources: 331 IDs per language; full suite: 830 passed.
+
+Fleet inspector privacy uses existing translated Fleet, ships, power, speed, technology, composition and member labels in all six languages. Speed uses localized decimal drive units, composition counts/power/technology use grouped integers, and label columns measure translated text widths. Native browser before/after fleet panels at Speed/Tech/Class and owned states passed and were inspected in all six languages. No new resource IDs; 331 IDs per language. Current full suite: 836 passed.

@@ -940,7 +940,8 @@ class Display {
         const {x,y}=marker,selected=fleet===this.selectedObject;
         const fleetOpacity=(selected?1:this.mapEntityNameOpacity)*this.getMapDisplayBrightness(fleet);
         const fleetAtStar=!!fleet.star || this.game.stars.some(star=>Math.abs(star.x-fleet.x)<5 && Math.abs(star.y-fleet.y)<5);
-        const fleetSize=fleet.getSize(),hexRadius=marker.radius;
+        const knowledge=this.getFleetKnowledge(fleet);
+        const fleetSize=knowledge.contents?fleet.getSize():0,hexRadius=marker.radius;
         // Create hexagon points
         const hexPoints = [];
         for (let i = 0; i < 6; i++) {
@@ -954,7 +955,7 @@ class Display {
         
         // Fleet appearance
         const fleetAttrs = this.createAttributes({
-            fillColor: this.ownerColors[fleet.owner],
+            fillColor: knowledge.tech ? this.ownerColors[fleet.owner] : this.getUIColor('gray'),
             fillOpacity: fleetOpacity * 0.7,
             lineStyle: pdg.lineStyle_Solid,
             lineColor: new pdg.Color(1, 1, 1, fleetOpacity)
@@ -1240,7 +1241,7 @@ class Display {
         if(!object || object.owner<=0)return null;
         const viewer=this.game.getCurrentHumanPlayer() || 1;
         const known=this.game.factory.isStar(object)?this.isStarOwnerKnown(object):
-            this.game.factory.isShip(object) && (this.game.config.omniscient ||
+            (this.game.factory.isShip(object) || this.game.factory.isFleet(object)) && (this.game.config.omniscient ||
                 this.game.isOwnerAlliedWith(viewer,object.owner) || object.getVisibilityTo(viewer)>=Common.VisibilityLevel.TECH);
         if(!known)return null;
         if(!this.ownerPanelStyles.has(object.owner))this.ownerPanelStyles.set(object.owner,this.createAttributes({lineColor:this.getUIColor('panelBorder')}));
@@ -1276,7 +1277,7 @@ class Display {
         const position=this.getObjectScreenPosition(object);
         const starRadius=this.scaledStarRadius || Common.StarRadius,shipRadius=this.scaledShipRadius || Common.ShipRadius;
         const radius=type===Common.ObjectType.STAR?starRadius:type===Common.ObjectType.SHIP?shipRadius+1:
-            type===Common.ObjectType.FLEET?shipRadius*1.5+object.getSize()*.5:8;
+            type===Common.ObjectType.FLEET?shipRadius*1.5+(this.getFleetKnowledge(object).contents?object.getSize()*.5:0):8;
         return {...position,radius,type,height:radius*(type===Common.ObjectType.STAR?1.25:1)};
     }
 
@@ -1563,7 +1564,7 @@ class Display {
             return Common.ShipRadius + 6;
         }
         if (objectType === Common.ObjectType.FLEET) {
-            const fleetSize = object.getSize ? object.getSize() : 1;
+            const fleetSize = this.getFleetKnowledge(object).contents && object.getSize ? object.getSize() : 0;
             return ((this.scaledShipRadius || Common.ShipRadius) * 1.5) + (fleetSize * 0.5) + 8;
         }
         if (objectType === Common.ObjectType.RENDEZVOUS) {
@@ -1609,18 +1610,40 @@ class Display {
         }
     }
 
+    getFleetKnowledge(fleet) {
+        const viewer = this.game.getCurrentHumanPlayer() || 1;
+        const full = this.isOmniscientMode() || this.game.isOwnerAlliedWith(viewer, fleet.owner);
+        const level = full ? Common.VisibilityLevel.DETAILS : fleet.getVisibilityTo(viewer);
+        return { full, level, tech: level >= Common.VisibilityLevel.TECH,
+            contents: level >= Common.VisibilityLevel.CLASS };
+    }
+
+    getFleetDiagnostics(fleet) {
+        const knowledge = this.getFleetKnowledge(fleet);
+        return {
+            knowledge,
+            title: knowledge.contents ? this.game.getObjectDisplayName(fleet) : I18n.getString(591, 'Fleet'),
+            count: knowledge.contents ? String(fleet.getSize()) : '?',
+            power: knowledge.contents ? I18n.formatInteger(fleet.totalPower) : '?',
+            speed: knowledge.level >= Common.VisibilityLevel.SPEED ?
+                (fleet.totalSpeed ? I18n.formatDecimal(fleet.totalSpeed / 16380) : '-') : '?',
+            tech: knowledge.tech ? I18n.formatInteger(fleet.techLevel) : '?'
+        };
+    }
+
     getFleetDetailsLayout(fleet) {
-        const visibleShips = (fleet.ships || []).slice(0, 6);
+        const knowledge = this.getFleetKnowledge(fleet);
+        const visibleShips = knowledge.contents ? (fleet.ships || []).slice(0, 6) : [];
         const transferTargets = this.game.getFleetTransferTargets ? this.game.getFleetTransferTargets(fleet) : [];
         const shipTypes = {};
-        for (const ship of fleet.ships || []) {
+        for (const ship of knowledge.contents ? fleet.ships || [] : []) {
             shipTypes[ship.type] = (shipTypes[ship.type] || 0) + 1;
         }
         const compositionRows = Object.entries(shipTypes);
         const memberRowHeight = 22;
         const extraMemberHeight = visibleShips.length > 0 ? 16 + (visibleShips.length * memberRowHeight) : 0;
         const transferHeight = transferTargets.length > 0 ? 8 : 0;
-        const destinationHeight = fleet.destination ? 18 : 0;
+        const destinationHeight = knowledge.full && fleet.destination ? 18 : 0;
         const patrolHeight=(fleet.isOnPatrol() || fleet.isToBeScrapped()) && this.game.canViewCourse(fleet)?18:0;
         const height = 170 + (compositionRows.length * 16) + extraMemberHeight + transferHeight + destinationHeight + patrolHeight;
         return {
@@ -1628,7 +1651,7 @@ class Display {
             visibleShips,
             transferTargets,
             compositionRows,
-            memberRowHeight,patrolHeight,
+            memberRowHeight,patrolHeight,knowledge,
             memberStartOffset: 18 + 18 + 18 + 22 + (compositionRows.length * 16) + destinationHeight + patrolHeight + 30
         };
     }
@@ -2797,17 +2820,21 @@ class Display {
         const layout = this.getFleetDetailsLayout(fleet);
         const compositionRows = layout.compositionRows;
         const rect = layout.rect;
-        this.drawAnchoredPanel(fleet, rect, this.game.getObjectDisplayName ? this.game.getObjectDisplayName(fleet) : I18n.formatString(560, 'Fleet {0}', fleet.id));
+        const data = this.getFleetDiagnostics(fleet);
+        this.drawAnchoredPanel(fleet, rect, this.fitShipDiagnosticText(data.title, rect.width - 32, 14));
+        const labelWidth = Math.max(92, ...[this.STR.ships, this.STR.totalPower, this.STR.speed, this.STR.techLevel,
+            ...compositionRows.map(([type]) => this.getShipTypeName(type, {capitalized:true}) + ':')]
+            .map(label => Math.ceil(this.port.getTextWidth(label, 11)) + 8));
 
         const x = rect.x + 12;
         let y = this.getPanelContentStartY(rect);
-        this.drawLabelValue(this.STR.ships, fleet.getSize().toString(), x, y, { labelWidth: 92 });
+        this.drawLabelValue(this.STR.ships, data.count, x, y, { labelWidth });
         y += 18;
-        this.drawLabelValue(this.STR.totalPower, fleet.totalPower.toString(), x, y, { labelWidth: 92 });
+        this.drawLabelValue(this.STR.totalPower, data.power, x, y, { labelWidth });
         y += 18;
-        this.drawLabelValue(this.STR.speed, fleet.totalSpeed.toString(), x, y, { labelWidth: 92 });
+        this.drawLabelValue(this.STR.speed, data.speed, x, y, { labelWidth });
         y += 18;
-        this.drawLabelValue(this.STR.techLevel, fleet.techLevel.toString(), x, y, { labelWidth: 92 });
+        this.drawLabelValue(this.STR.techLevel, data.tech, x, y, { labelWidth });
         y += 22;
 
         if(layout.patrolHeight) {
@@ -2816,11 +2843,11 @@ class Display {
         }
 
         for (const [shipType, count] of compositionRows) {
-            this.drawLabelValue(`${this.getShipTypeName(shipType, { capitalized: true })}:`, count.toString(), x, y, { labelWidth: 92, size: 11, valueColor: 'gray' });
+            this.drawLabelValue(`${this.getShipTypeName(shipType, { capitalized: true })}:`, I18n.formatInteger(count), x, y, { labelWidth, size: 11, valueColor: 'gray' });
             y += 16;
         }
 
-        if (fleet.destination) {
+        if (layout.knowledge.full && fleet.destination) {
             const destinationName = this.getSpacePointDescription(fleet.destination);
             this.drawLabelValue(this.STR.movingTo, destinationName, x, y, { labelWidth: 92, size: 11, valueColor: 'gray' });
             y += 18;
@@ -2835,7 +2862,7 @@ class Display {
             const transferTargets = layout.transferTargets;
             const memberRegions = this.getFleetMemberActionRegions(fleet);
             for (const ship of layout.visibleShips) {
-                const shipName = ship.name || `${this.getShipTypeName(ship.type, { capitalized: true })} ${ship.id}`;
+                const shipName = this.getShipDiagnostics(ship).title;
                 this.drawTextLine(this.trimText(shipName, 24), x, y, 'lightgray', 10);
                 const removeRegion = memberRegions.find(region =>
                     region.action.type === 'removeFleetShip' &&
@@ -2981,7 +3008,7 @@ class Display {
             } else if (selectedType === Common.ObjectType.SHIP) {
                 label = I18n.formatString(543, 'Selected ship: {0}', this.getShipTypeName(this.game.selectedObject.type));
             } else if (selectedType === Common.ObjectType.FLEET) {
-                label = I18n.formatString(544, 'Selected fleet: {0} ships', this.game.selectedObject.getSize());
+                label = I18n.formatString(544, 'Selected fleet: {0} ships', this.getFleetDiagnostics(this.game.selectedObject).count);
             }
             this.drawTextLine(label, x, y, 'lightgray', 11);
             y += 18;
