@@ -51,6 +51,24 @@ module.exports=()=>test.describe('Tutorial bindings to real game actions',()=>{
   test.assertEqual(game.selectedObject.type,'scout');test.assertEqual(game.selectedObject.id,runtime.roleIds.scout);test.assertEqual(tutorial.pageId,34);
   test.assertTrue(game.beginMapOrder(game.selectedObject));test.assertTrue(game.issuePlayerWaypoint(game.selectedObject,game.stars.find(s=>s.id===9)));test.assertEqual(tutorial.pageId,35);
  });
+ test.it('advances source playback lessons on automatic notices without requiring a nonexistent modal acknowledgment',()=>{
+  for(const page of [13,23,33,45,55]) {
+   const {game,tutorial}=setup();tutorial.goto(page);
+   const enemy=game.stars.find(s=>s.owner===2);enemy.setVisibilityTo(1,2);
+   const observer=game.recordColonizationReports(enemy).find(e=>e.recipient===1);
+   test.assertDefined(observer);test.assertTrue(game.overlay.animationOnly);
+   test.assertEqual(tutorial.pageId,page+1);test.assertEqual(game.overlay.eventId,observer.id);
+   if(page===55)test.assertFalse(game.showEnemyEvents);
+  }
+ });
+ test.it('does not advance playback lessons for explicit manual notices or held notices before they play',()=>{
+  const {game,tutorial}=setup();tutorial.goto(45);game.holdGameReports=true;
+  const enemy=game.stars.find(s=>s.owner===2);enemy.setVisibilityTo(1,2);game.recordColonizationReports(enemy);
+  test.assertNull(game.overlay);test.assertEqual(tutorial.pageId,45);
+  game.showEventOverlay({type:'report',animationOnly:true,manual:true});test.assertEqual(tutorial.pageId,45);
+  game.overlay=null;game.holdGameReports=false;game.queueEventOverlay({type:'lab',classIndex:1});
+  test.assertEqual(tutorial.pageId,45);game.dismissEventPresentation();test.assertEqual(tutorial.pageId,46);
+ });
  test.it('distinguishes a real attention item from an empty queue and applies the source courier correction',()=>{
   const {game,tutorial,home,s7}=setup(),ship=game.factory.createShip(home.x,home.y,'scout',home,true);home.shipArrived(ship);tutorial.goto(29);game.attention.request(ship);game.attention.next();test.assertEqual(tutorial.pageId,29);game.attention.next();test.assertEqual(tutorial.pageId,30);game.setSelectedObject(home);test.assertEqual(tutorial.pageId,31);tutorial.goto(44);game.attention.next();test.assertEqual(tutorial.pageId,45);test.assertTrue(ship.destination===s7);
  });

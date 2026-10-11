@@ -122,7 +122,7 @@ class TutorialController {
         else if(page===7 && event.type==='zoomChanged' || page===10 && event.type==='allocationChanged') {
             if(Number.isFinite(now))this.deadline=now+(page===7?3000:2000);
         } else if(messagePages.has(page) && event.type==='messageWindowOpened' ||
-                acknowledgedPages.has(page) && event.type==='messageAcknowledged' ||
+                acknowledgedPages.has(page) && ['messageAcknowledged','automaticNoticePlayed'].includes(event.type) ||
                 attentionPages.has(page) && event.type==='attentionPresented' ||
                 emptyAttentionPages.has(page) && event.type==='attentionEmpty') {
             if(page===44)result.effects.push({type:'setCourierDestination',starId:S7});

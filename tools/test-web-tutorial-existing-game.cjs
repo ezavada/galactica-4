@@ -63,6 +63,8 @@ await click('visual.getDisplay().getGameSessionLayout().buttons.find(b=>b.action
 await check('visual.getGame()===original && visual.getDisplay()===originalDisplay && originalSession.file===originalFile && visual.serialize(original)===saved && savedText===originalDisk','Games selection failed to recover unchanged original');await capture('restored-original-after-finish');
 completed=true;console.log('PASS full existing-game recovery '+lang+' '+visited.join(','));break;}
  if(st.page===last){if(++repeats>5)throw Error('Stuck at page '+st.page);}else{last=st.page;repeats=0;visited.push(st.page);await capture('page-'+String(st.page).padStart(2,'0'));}
+ if(st.page===47)await check('visual.getGame().turn===7 && visual.getGame().selectedObject===visual.getGame().stars.find(s=>s.id===7)', 'New colony lesson did not select S-7 on the intended turn');
+ if(st.page===48)await check('visual.getGame().turn===7 && visual.getGame().selectedObject && visual.getGame().selectedObject.id===visual.getGame().tutorialRuntime.roleIds.colony && visual.getGame().selectedObject.star && visual.getGame().selectedObject.star.id===7', 'Patrol lesson did not retain the original colony ship at S-7');
  if(st.overlay && await evaluate('visual.getGame().overlay.animationOnly && !visual.getGame().overlay.manual')){await advanceClock(8500);repeats=0;continue;}
  const mapActions=new Set([7,10,16,17,19,20,25,26,28,30,31,34,36,37,38,39,40,41,42,48,50,51,57]);
  if((mapActions.has(st.page) || [14,27,29,35,44,46,47,49,53].includes(st.page)) && st.overlay){await drain();continue;}

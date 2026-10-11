@@ -5114,7 +5114,49 @@ now), stop draining when the lesson changes, and allow long playback batches
 within its overall 180-iteration bound. This stronger check exposed an existing
 failure: both unchanged `447df5a` and current code stall at page 47 after natural
 playback, with no attention item left for the expected second Tab. English
-baseline/current and German current reproduce the same state. These full tutorial
-runs are **not passing**; this is a concrete next repair, not an unavailable-help
-blocker. The six-language focused interruption checks and both full native unit
+baseline/current and German current reproduce the same state. Those recorded pre-repair full tutorial
+runs did **not pass**; the repair and subsequent verification are recorded below.
+This was not an unavailable-help blocker. The six-language focused interruption checks and both full native unit
 suites above pass. No complete tutorial-regression claim is made here.
+
+
+### Tutorial progression after automatic no-dialog notices
+
+Source: `Classes/GalacticaDoc.cp:1667–1680` advances the New Colony Ship,
+New Satellite, New Traveler, End Turn Six and New Courier lessons after
+`msg->PlayMessage()` returns. This applies to both modal messages (after their
+acknowledgment) and notices that have no modal window. `ShowNextNeedyThingy`,
+lines 1784–1804, then advances the following attention lessons after each real
+non-autoshow message. V4 had only observed modal acknowledgment for the first
+set. At lesson 45 it therefore ran extra turns until another owner dialog
+appeared, leaving lesson 47 without its intended colony/ship attention item.
+
+`TutorialRuntime` now observes successful automatic no-dialog playback as well
+as modal acknowledgment. `TutorialController` accepts that event for the same
+five source lessons. Manual report review does not count as automatic playback;
+held notices do not advance instruction until actually presented. Ordinary game
+sessions are unaffected because these removable wrappers belong only to the
+tutorial game. Existing lesson strings and instructions remain unchanged in all
+six languages. Lesson 47 now shows S-7's colony on turn seven; lesson 48 selects
+the original colony ship at S-7 for Patrol, without advancing additional turns.
+
+Both local public/development PDG unit suites pass all 1,718 tests. Two new
+runtime cases cover all five no-dialog transitions, held/manual exceptions and
+continued owner-dialog acknowledgment. The actual browser driver checks the
+turn-seven S-7 selection and original colony-ship identity explicitly, uses real
+mouse/keyboard controls and keeps audio muted. Before/after English comparison
+has 48 pixel-identical scenes and two corrected scenes (46 and 47); the former
+baseline reaches the wrong fleet on turn nine and cannot complete. The new
+colony and patrol screens were inspected visually in the supported languages.
+
+Full muted Chromium existing-game tutorial runs now pass in English, German,
+Spanish, French, Japanese and Russian. Each route completes every ordinary
+lesson, preserves the original document/file through cancellation and practice,
+finishes with an ordinary unsaved practice game, and restores the original via
+the actual Open Games controls with unchanged serialized content and saved
+bytes. The repaired patrol screen was visually inspected in all six languages.
+English, Spanish, Japanese and Russian runs include the new explicit turn/role
+assertions; German and French completed before those assertions were added,
+and their recorded states/screens show the same turn-seven S-7 colony/ship.
+The prior page-47 failure is repaired; the remaining map replay selection and
+emitted-event inventory audits remain open.

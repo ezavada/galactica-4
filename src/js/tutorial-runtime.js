@@ -158,7 +158,14 @@ class TutorialRuntime {
         });
         this.wrap(g.attention,'next',(call)=>{const result=call();this.notify({type:result?'attentionPresented':'attentionEmpty'});return result;});
         this.wrap(g,'showEventOverlay',(call,[overlay])=>{
-            const result=call();if(result && overlay && !overlay.animationOnly && ['report','stardock','lab','outcome'].includes(overlay.type))this.notify({type:'messageWindowOpened'});return result;
+            const result=call();
+            if(result && overlay && ['report','stardock','lab','outcome'].includes(overlay.type)) {
+                if(!overlay.animationOnly)this.notify({type:'messageWindowOpened'});
+                // V3 ShowMessages advances these lessons after PlayMessage,
+                // including automatic notices that have no modal window.
+                else if(!overlay.manual)this.notify({type:'automaticNoticePlayed'});
+            }
+            return result;
         });
         this.wrap(g,'dismissEventPresentation',(call)=>{
             const modal=g.overlay && !g.overlay.animationOnly && ['report','stardock','lab','outcome'].includes(g.overlay.type);
