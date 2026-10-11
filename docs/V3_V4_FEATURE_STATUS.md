@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1650 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1672 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -182,7 +182,7 @@ The largest blockers to a complete game are:
 | Form fleet by meeting ships | Friendly ship targeting another friendly ship automatically forms a fleet. | ✅ Implemented | ➖ N/A | `handleFleetFormation()` and ship/fleet arrival paths cover the runtime rule. |
 | Join/merge fleets | Ship joins friendly fleet; two fleets can merge. | ✅ Implemented | ✅ Implemented | Arrivals join the destination fleet while preserving an arriving fleet as a nested group; explicit `mergeFleets()` combines fleets. The shared-container exchange window lets players select a destination fleet, move selected ships or intact groups into it, return contents to the enclosing system/fleet, or form a new fleet. Nested groups retain identity; self/ancestor cycles are refused. |
 | Exchange/remove ships | Fleet/group panels move selected ships between fleets or out of a fleet. | ✅ Implemented | ✅ Implemented | Exchange ships opens a v3-style main/sub-list window at a system or fleet. Selecting a main-list fleet keeps it active as the destination while selecting other members. Exchange moves a main member into that destination, or a sub-list member back to the enclosing container. With no active destination it creates a new top-level/nested fleet; New fleet clears the destination while preserving a main selection. Paging, sorting, inspection, parent navigation, patrol/scrap and modal close work in all six languages. Live membership, ownership, completed/alive state, location, patrol and cycles are checked before mutation; stale destination/source references cannot create replacement fleets. Knowledge-safe row diagnostics preserve enemy privacy. Full suites: 877 passed on release/current native PDG; final browser flows and inspected before/after views in all six languages. Evidence: `/private/tmp/galactica-parity/exchange-{before,after}`. |
-| Fleet contents panel | Lists ships/groups and health; enemy information respects knowledge. | ✅ Implemented | ✅ Implemented | Selected fleet map markers now show aggregate health at normal zoom or closer, gated by Class knowledge as in v3. Paged direct-member rows show measured names, technology/speed/power and live health. Group rows open their own contents, with Parent fleet navigation through multiple levels. Group/Transfer/Remove preserve hierarchy and reject containment cycles. Recursive stats, movement, repair, defense, combat, technology delivery and cleanup account for nested members without duplicate processing; contained groups leave AI decisions to their parent. Knowledge gates apply separately to group/member names and health; contained groups have no independent map marker. Owner gradients/borders and translated controls fit below the status bar. Full suites: 866 passed; native browser flows and inspected before/after captures in all six languages. Evidence: `/private/tmp/galactica-parity/groups-{before,after}`. |
+| Fleet contents panel | Lists ships/groups and health; enemy information respects knowledge. | ✅ Implemented | ✅ Implemented | Selected fleet map markers now show aggregate health at normal zoom or closer, gated by Class knowledge as in v3. Paged direct-member rows show measured names, technology/speed/power and live health. Group rows open their own contents, with Parent fleet navigation through multiple levels. Group/Transfer/Remove preserve hierarchy and reject containment cycles. Recursive stats, movement, repair, defense, combat, technology delivery and cleanup account for nested members without duplicate processing; contained groups leave AI decisions to their parent. Class-visible fleet tables expose member technology, speed, power and health as in v3; member names and standalone inspectors retain independent knowledge gates. Contained groups have no independent map marker. Owner gradients/borders and translated controls fit below the status bar. Full suites: 866 passed; native browser flows and inspected before/after captures in all six languages. Evidence: `/private/tmp/galactica-parity/groups-{before,after}`. |
 | Fleet navigation | Fleet course panel and the same course tools as ships. | ✅ Implemented | ✅ Implemented | The shared ship/fleet course model and editor provide waypoint add/edit/delete, looping, memory, clear, Call in and Hunt controls, with current leg progress and visibility-safe course drawing. Their implemented rules and validation are tracked in Section 4. Overlap targeting now preserves the pending command and chosen reference for fleets as for ships. |
 | Named fleets | Human-created fleets prompt for a name; rename is available. | ✅ Implemented | ✅ Implemented | Fleets have localized default names and can be renamed through the simple rename window. The v3 computer-move source has a TODO for unique computer fleet names, so AI-generated fleet naming is not counted as shipped parity. |
 | Rendezvous points | Place/name/move/delete a point in open space, on a system, or on another ship. | ✅ Implemented | ✅ Implemented | `rendezvous.js` adds first-class owned rendezvous markers. Map and context buttons create/place them; selected rendezvous can be renamed, moved, deleted, centered, and inspected. |
@@ -4036,3 +4036,57 @@ Evidence: `/private/tmp/galactica-fleet-health/{before,after}/<language>`,
 `/private/tmp/galactica-fleet-health-{public,devel}-unit.log`. This closes the
 selected-fleet map health omission; the broader drawing and contextual-window
 parity audit remains active.
+
+
+### Class-visible fleet member statistics (2026-10-11)
+
+`Classes/GalacticaPanels.cp:1508–1524` promotes Class-visible fleet access to
+Details for its contents table. `Classes/GalacticaTables.cp:264–275` renders
+member technology, speed, power and health without an individual visibility
+check. Names still use `ANamedThingy::GetName` knowledge, and the standalone
+ship navigation inspector retains its individual gates. The earlier v4 table
+privacy interpretation incorrectly hid statistics that shipped v3 displays.
+
+The fleet inspector and exchange table now share fleet-context diagnostics.
+A Class-visible fleet supplies member statistics without changing the member's
+scanner visibility, name, private orders, standalone panel or command authority.
+System tables retain their existing individual gates. The client projection
+already carries these fleet-context numbers; this fixes their display and sorting.
+This item does not close the separate nested-group navigation audit.
+
+Both full native suites pass **1,672 tests**. The added regression checks damaged
+member health in both table contexts, independent hidden names and standalone
+knowledge, enemy command denial, and loss of contents access below Class.
+Existing privacy expectations now distinguish table statistics from private names.
+
+Actual client browser flows pass before/after in en/de/es/fr/ja/ru using
+`tools/test-web-client-state.cjs` modes `before-fleet-member-stats` and
+`fleet-member-stats`. Real mouse selection opens the Class fleet, then Exchange
+ships; Escape closes it and Compare Players still works. All localized inspector
+and exchange before/after images were inspected, including Russian's long health
+label. Existing translations and numeric formatting suffice; no new strings.
+Of 36 screenshot pairs, 18 remain byte-identical (owned system, production and
+Speed fleet). Class, exchange and comparison captures change with the intended
+member statistics, including the inspector beneath translucent windows. Audio
+remains muted throughout automated runs.
+
+Evidence: `/private/tmp/galactica-fleet-member-stats/{before,after}/<language>`,
+`/private/tmp/galactica-fleet-member-stats-{before,after}-<language>.log` and
+`/private/tmp/galactica-fleet-member-stats-{public,devel}-unit.log`. The broader
+fog, contextual-window and drawing parity audit remains active.
+
+
+#### Next confirmed fleet-table gap: nested inspection
+
+`Classes/GalacticaTables.cp:333–366` installs a selected fleet row's contents
+in the sister table without rechecking that subgroup's independent visibility.
+V4 `Game.selectFleetExchangeMember` currently requires
+`canViewFleetExchange(object)` for a subgroup, which checks the subgroup's own
+Class visibility. A hidden subgroup inside a Class-visible parent therefore
+cannot become the active sub-list. `HostView` already projects nested membership
+at inherited Class access while preserving independent visibility and private
+names. This is an implementation gap, not an external blocker: add validated
+container-context access without promoting standalone/map knowledge or enemy
+command authority, then verify live and projected clients, revoked/stale access,
+all units and localized actual-input screenshots. Section 5's historical
+implemented claims do not prove this nested enemy-table path is complete.

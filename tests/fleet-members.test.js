@@ -58,12 +58,20 @@ module.exports=()=>test.describe('Complete fleet member inspector',()=>{
         ship.damage=0;text.length=0;bars.length=0;display.drawFleetDetails(fleet);
         test.assertTrue(bars.every(v=>v===1));
     });
-    test.it('keeps unknown member values private and permits read-only selection of detected enemy contents',()=>{
+    test.it('shares fleet-context member health with exchange tables without changing independent scanner knowledge',()=>{
+        const {game,display,fleet}=fixture(1),ship=fleet.ships[0];fleet.owner=2;ship.owner=2;fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);ship.setVisibilityTo(1,Common.VisibilityLevel.NONE);ship.damage=ship.power*35;
+        let standalone=display.getShipDiagnostics(ship);test.assertEqual(standalone.health,'?');test.assertEqual(standalone.tech,'?');
+        const member=display.getFleetMemberDiagnostics(fleet,ship);test.assertEqual(member.health,'65%');test.assertEqual(member.healthRatio,.65);test.assertEqual(member.tech,'8');test.assertEqual(member.power,'8');test.assertFalse(member.title.includes('Member'));
+        test.assertTrue(game.showFleetExchange(fleet));const row=display.getFleetExchangeLayout().lists[0].rows[0];test.assertTrue(row.object===ship);test.assertEqual(row.data.health,'65%');test.assertEqual(row.data.tech,'8');
+        test.assertEqual(ship.getVisibilityTo(1),Common.VisibilityLevel.NONE);test.assertEqual(display.getShipDiagnostics(ship).health,'?');test.assertFalse(game.canHumanControl(ship));
+        fleet.setVisibilityTo(1,Common.VisibilityLevel.TECH);test.assertEqual(display.getFleetMemberDiagnostics(fleet,ship).health,'?');test.assertNull(game.getFleetExchangeState());
+    });
+    test.it('shows source-backed member stats in detected fleets while keeping names and commands private',()=>{
         const {game,display,fleet}=fixture(8);fleet.owner=2;fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);
         for(const ship of fleet.ships){ship.owner=2;ship.setVisibilityTo(1,Common.VisibilityLevel.NONE);}
         const text=[],bars=[];display.drawAnchoredPanel=()=>{};display.drawLabelValue=()=>{};display.drawTextLine=t=>text.push(t);
         display.drawDivider=()=>{};display.drawUIButton=()=>{};display.drawContextButtonArc=()=>{};display.drawBar=(...args)=>bars.push(args);
-        display.drawFleetDetails(fleet);test.assertTrue(text.includes('Health: ?'));test.assertTrue(text.includes('? / ? / ?'));test.assertEqual(bars.length,0);
+        display.drawFleetDetails(fleet);test.assertTrue(text.includes('Health: 100%'));test.assertTrue(text.includes('8 / 1.4 / 8'));test.assertTrue(bars.every(b=>b[4]===1));test.assertFalse(text.some(t=>String(t).startsWith('Member ')));
         let regions=display.getFleetMemberActionRegions(fleet);test.assertFalse(regions.some(r=>['removeFleetShip','transferFleetShip'].includes(r.action.type)));
         test.assertTrue(click(game,regions.find(r=>r.action.type==='fleetMemberPage')));
         regions=display.getFleetMemberActionRegions(fleet);test.assertTrue(click(game,regions.find(r=>r.action.type==='selectFleetMember')));

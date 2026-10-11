@@ -46,12 +46,12 @@ module.exports=()=>test.describe('Shared-container fleet exchange',()=>{
   game.entityRemoved(fleet);const count=game.allFleets.length;
   test.assertFalse(game.exchangeFleetMember());test.assertEqual(game.allFleets.length,count);test.assertNull(ships[2].fleet);
  });
- test.it('prevents self exchange, patrol transfers and foreign edits and masks unknown member diagnostics',()=>{
+ test.it('prevents self exchange, patrol transfers and foreign edits and exposes fleet-table statistics while masking unknown names',()=>{
   const {game,display,star,fleet,ships,select}=fixture();game.showFleetExchange(star);select('main',fleet);test.assertFalse(game.canExchangeFleetMember());
   select('main',ships[2]);ships[2].setPatrol(true);test.assertFalse(game.canExchangeFleetMember());ships[2].setPatrol(false);ships[2].owner=2;test.assertFalse(game.canExchangeFleetMember());
   fleet.owner=2;fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);ships[0].owner=2;ships[0].name='Secret';ships[0].setVisibilityTo(1,0);
   game.showFleetExchange(fleet);const row=display.getFleetExchangeLayout().lists[0].rows.find(r=>r.object===ships[0]);
-  test.assertFalse(row.data.title.includes('Secret'));test.assertNull(row.data.healthRatio);
+  test.assertFalse(row.data.title.includes('Secret'));test.assertEqual(row.data.healthRatio,1);test.assertEqual(display.getShipDiagnostics(ships[0]).healthRatio,null);
  });
  test.it('pages through both lists and revalidates selection after removals',()=>{
   const {game,display,star,fleet,ships,click}=fixture();for(let i=0;i<20;i++)fleet.addShip(game.factory.createShip(star.x,star.y,'scout',star,true));

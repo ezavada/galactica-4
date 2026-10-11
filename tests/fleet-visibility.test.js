@@ -36,7 +36,7 @@ module.exports=()=>test.describe('V3 fleet information visibility',()=>{
     test.it('does not render hidden fleet names, members, stats, composition or orders',()=>{
         const {display,fleet}=fixture();const text=[];
         display.drawAnchoredPanel=(o,r,title)=>text.push(title);display.drawLabelValue=(l,v)=>text.push(l,v);
-        display.drawTextLine=t=>text.push(t);display.drawDivider=()=>{};display.drawUIButton=()=>{};display.drawContextButtonArc=()=>{};
+        display.drawBar=()=>{};display.drawTextLine=t=>text.push(t);display.drawDivider=()=>{};display.drawUIButton=()=>{};display.drawContextButtonArc=()=>{};
         display.drawFleetDetails(fleet);test.assertFalse(text.some(t=>/Private|Secret|Battleship|Scout/.test(t)));
         test.assertEqual(text.filter(t=>t==='?').length,3);
         fleet.setVisibilityTo(1,Common.VisibilityLevel.DETAILS);text.length=0;display.drawFleetDetails(fleet);

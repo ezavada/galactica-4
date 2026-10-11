@@ -2403,7 +2403,8 @@ class Display {
         const half=(width-42)/2;
         const lists=['main','sub'].map((side,index)=>{
             const objects=state?state[side]:[];
-            const rows=objects.map(object=>({object,data:this.getShipDiagnostics(object)}));
+            const container=state && (side==='main'?state.container:state.active);
+            const rows=objects.map(object=>({object,data:this.getFleetMemberDiagnostics(container,object)}));
             if(state)rows.sort((a,b)=>{
                 const key=state.sort.key,values=key==='name'?[a.data.title,b.data.title]:[a.data[key],b.data[key]];
                 const order=String(values[0]).localeCompare(String(values[1]),undefined,{numeric:true});
@@ -3202,6 +3203,17 @@ class Display {
         };
     }
 
+    getFleetMemberDiagnostics(container,member) {
+        const data=this.getShipDiagnostics(member);
+        // V3's Class-visible fleet table exposes member statistics while the
+        // member's own visibility still controls its name and standalone panel.
+        if(!container || !this.factory.isFleet(container) || !this.getFleetKnowledge(container).contents)return data;
+        const health=Math.max(0,Math.min(100,100-member.getDamagePercent()));
+        return {...data,tech:String(Math.trunc(member.techLevel)),
+            speed:member.speed?I18n.formatDecimal(member.speed/16380):'-',
+            power:String(Math.trunc(member.power)),health:health+'%',healthRatio:health/100};
+    }
+
     fitShipDiagnosticText(text, width, size = 11) {
         const chars = Array.from(String(text));
         if (this.port.getTextWidth(chars.join(''), size) <= width) return chars.join('');
@@ -3302,7 +3314,7 @@ class Display {
             const transferTargets = layout.transferTargets;
             const memberRegions = this.getFleetMemberActionRegions(fleet);
             for (const ship of layout.visibleShips) {
-                const member = this.getShipDiagnostics(ship);
+                const member = this.getFleetMemberDiagnostics(fleet,ship);
                 const removeRegion = memberRegions.find(region =>
                     region.action.type === 'removeFleetShip' &&
                     region.action.ship === ship
