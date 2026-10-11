@@ -1455,3 +1455,23 @@ The 162 common image pairs change only within the combined footer/help band
 comparisons. Earlier unstyled screenshots reflected the helper's MIME mistake,
 not a product/manual stylesheet bug. Compressed command-menu presentation and
 other compact toolbar variants remain separate work. Audio remains muted.
+
+
+### Readable constrained Command Menu verification
+
+The arrival-course helper's `GALACTICA_MAP_INSTRUCTIONS=1` path now exercises
+scrolling menus when the layout reports a constrained body. Real Page Down/Up
+and wheel events expose lower commands; wheel traversal uses the measured limit
+rather than assuming one event reaches the bottom. Checks retain Close position
+and camera zoom, toggle Hold reports twice, open the real styled localized manual,
+then click the fixed Close footer after returning. Audio remains muted.
+
+Both complete native suites pass 1,794 tests. Native menu coverage includes six
+languages, owner/observer/administrator fixtures, full-screen feedback and three
+sizes. Tutorial/attention checks scroll to the actual command before asserting
+its layout/semantics. Thirty-six before/after workflows, eighteen final indicator
+checks and six final narrow Close checks pass. Evidence roots:
+`/private/tmp/galactica-command-menu`, `galactica-command-menu-final`.
+Common comparisons record 180 pairs: 162 identical and eighteen menu changes.
+All six ordinary/short/narrow top and bottom views were inspected. Browser cases
+use local owners; role and error fixtures do not claim new remote-host UI paths.

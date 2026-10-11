@@ -2,7 +2,7 @@ const test=require('./test-framework.js'),fs=require('fs'),path=require('path');
 const Sessions=require('../src/js/game-sessions.js'),Owner=require('../src/js/tutorial-session.js'),Game=require('../src/js/game.js'),Factory=require('../src/js/factory.js'),Config=require('../src/js/game-config.js'),Rules=require('../src/js/rules.js'),Display=require('../src/js/display.js'),Save=require('../src/js/game-save.js'),{createTutorialGame}=require('../src/js/tutorial-game.js');
 const pages=JSON.parse(fs.readFileSync(path.join(__dirname,'../docs/reference/v3-tutorial.json'),'utf8')).languages.en.pages;
 const galaxy=JSON.parse(fs.readFileSync(path.join(__dirname,'../data/tutorial/galaxy.json'),'utf8'));
-function display(game){game.port={getDrawingArea:()=>new pdg.Rect(800,600)};return new Display(game);}
+function display(game){game.port={getDrawingArea:()=>new pdg.Rect(800,600),getTextWidth:(text,size=11)=>Array.from(String(text)).length*size/2};return new Display(game);}
 function setup(starting=false){
  const sessions=new Sessions(),original=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true,gameTitle:'Original'})),view=display(original),session=sessions.accept(original,view);
  const home=original.factory.createStar(200000,200000,'Home');home.owner=1;original.setSelectedObject(home);original.turn=7;original.uiWindow='events';view.camera.setZoom(1.8);view.centerOn(home.x,home.y);session.file={name:'Original.gad4'};session.autoplay={getStatus:()=>({running:true})};
@@ -31,6 +31,7 @@ module.exports=()=>test.describe('Temporary tutorial document lifecycle',()=>{
  test.it('keeps localized launch controls reachable alongside setup and menu controls in short viewports',()=>{
   const Setup=require('../src/js/startup-setup.js'),Help=require('../src/js/hover-help.js'),language=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);for(const [width,height] of [[800,600],[640,480],[320,340]]){
    const f=setup();f.original.port.getDrawingArea=()=>new pdg.Rect(width,height);f.original.tutorialCommands={start:()=>true};f.original.manualCommands={};f.original.sessionCommands={};f.original.fileCommands={};f.original.uiWindow='menu';
+   for(let i=0;i<30 && !f.view.getCommandActionRegions().some(r=>r.action.type==='startTutorial' && r.rect.height>=28);i++)f.original.scrollCommandMenu(80);
    const rows=f.view.getCommandActionRegions(),tutorial=rows.find(r=>r.action.type==='startTutorial');test.assertDefined(tutorial);test.assertEqual(tutorial.label,pdg.res.getString(960));test.assertEqual(Help.describe(tutorial.action),pdg.res.getString(964));
    const setupRows=Setup.helpRegions(width,height,f.original.config),launch=setupRows.find(r=>r.action.type==='startTutorial'),cancel=setupRows.find(r=>r.action.type==='open');test.assertTrue(launch.rect.x+launch.rect.width<=cancel.rect.x);
    for(const row of [...rows,launch,cancel])test.assertTrue(row.rect.x>=0 && row.rect.y>=0 && row.rect.x+row.rect.width<=width && row.rect.y+row.rect.height<=height);

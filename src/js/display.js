@@ -1979,11 +1979,12 @@ class Display {
 
     getFleetWindowRect() {return this.getFleetRosterLayout().rect;}
 
-    getCommandActionRegions() {
+    getCommandActionRegions({source=false}={}) {
         if (this.game.uiWindow!=='menu') return [];
         const rect = this.getCommandWindowRect();
         const scale=Math.min(1,(rect.height-104)/(this.getCommandWindowHeight()-104));
-        const fit=buttons=>buttons.map(button=>({...button,rect:{...button.rect,y:rect.y+66+(button.rect.y-rect.y-66)*scale,height:button.rect.height*scale}})).concat(this.getWindowCloseActions('menu',rect));
+        const fit=buttons=>{const all=buttons.map(button=>({...button,rect:{...button.rect,y:rect.y+66+(button.rect.y-rect.y-66)*scale,height:button.rect.height*scale}})).concat(this.getWindowCloseActions('menu',rect));
+            return !source && (this.getScreenSize().width<400 || rect.height<this.getCommandWindowHeight())?require('./command-menu-compact.js').regions(require('./command-menu-compact.js').layout(this,all,rect)):all;};
         const settings={rect:{x:rect.x+14,y:rect.y+216,width:rect.width-28,height:28},
             icon:'gear',label:I18n.getString(759,'Settings'),action:{type:'toggleWindow',window:'settings'}};
         const comparison={rect:{x:rect.x+14,y:rect.y+148,width:rect.width-28,height:28},
@@ -2016,6 +2017,10 @@ class Display {
             label:I18n.getString(743,'Next item')+` (${this.game.attention.manualPending().length})`,key:'Tab',active:this.game.attention.manualPending().length>0,action:{type:'nextAttention'}},
             settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial,...chat,...reports,
             {rect:{x:rect.x+14,y:reportsY+68,width:rect.width-28,height:28},label:this.game.networkCommands && this.game.networkCommands.status()?I18n.getString(this.game.networkCommands.status()):this.STR.endTurn,key:'Enter',active:this.game.getUnreviewedItemCount()>0,disabled:!this.game.canRequestEndTurn(),action:{type:'endTurn'}}]);
+    }
+
+    getCommandMenuLayout() {
+        const rect=this.getCommandWindowRect();return this.getScreenSize().width<400 || rect.height<this.getCommandWindowHeight()?require('./command-menu-compact.js').layout(this,this.getCommandActionRegions({source:true}),rect):{compact:false};
     }
 
     getMapSelectionRect() {
@@ -3458,6 +3463,7 @@ class Display {
     }
 
     drawCommandWindow() {
+        const layout=this.getCommandMenuLayout();if(layout.compact)return require('./command-menu-compact.js').draw(this,layout);
         const rect = this.getCommandWindowRect();
         this.drawWindowPanel(rect, this.STR.commandMenu);
 

@@ -42,10 +42,30 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
                     test.assertTrue(layout.lines.every(line=>d.port.getTextWidth(line.text,line.size)<=layout.rect.width));
                     layout.paragraphs.forEach(paragraph=>test.assertEqual(layout.lines.filter(line=>line.size===paragraph.size && line.color===paragraph.color).map(line=>line.text).join(''),paragraph.text));
                 }else{test.assertEqual(layout.mode,'manual');test.assertEqual(layout.lines.length,0);}
-                game.uiWindow='menu';test.assertTrue(d.getCommandActionRegions().some(button=>button.action.type==='openManual'));
+                game.uiWindow='menu';test.assertTrue(d.getCommandActionRegions({source:true}).some(button=>button.action.type==='openManual'));
                 test.assertTrue(game.executeUIAction({type:'openManual'}));test.assertEqual(opened,lang);game.uiWindow=null;
                 game.pendingRendezvousPlacement={mode:'create',owner:1};test.assertEqual(d.getMapInstructionsLayout().mode,'targeting');test.assertEqual(d.getMapInstructionsLayout().lines.length,0);game.pendingRendezvousPlacement=null;
             }
+        }}finally{pdg.res.setLanguage(language);}
+    });
+    test.it('keeps compact menu commands readable and reachable across languages and roles',()=>{
+        const {game,display:d}=fixture(),language=pdg.res.getLanguage(),human=game.getCurrentHumanPlayer.bind(game);let opened;
+        d.port.getDrawingArea=()=>new pdg.Rect(320,340);d.port.getTextWidth=(text,size)=>Array.from(String(text)).length*size*.8;
+        game.manualCommands={open:lang=>{opened=lang;return true;}};game.sessionCommands={};game.fileCommands={};game.chatCommands={};game.fullscreen={supported:true,active:()=>false,error:'fixture'};
+        try{for(const lang of ['en','de','es','fr','ja','ru'])for(const role of ['owner','observer','administrator'])for(const size of [[800,600],[640,340],[320,340]]){
+            d.port.getDrawingArea=()=>new pdg.Rect(...size);
+            pdg.res.setLanguage(lang);d.reloadUIStrings();game.clientAdministrator=role==='administrator';game.getCurrentHumanPlayer=()=>role==='observer'?null:human();game.uiWindow=null;game.toggleUIWindow('menu');
+            const l=d.getCommandMenuLayout(),source=d.getCommandActionRegions({source:true});
+            test.assertTrue(l.compact,lang+' '+role+' '+size);test.assertEqual(l.buttons.length,source.length-1);
+            for(const button of l.buttons){test.assertTrue(button.rect.height>=28);test.assertEqual(button.labelLines.join(''),require('../src/js/button-caption.js').parts(button.label,button.key).label);}
+            test.assertEqual(l.error.join(''),pdg.res.getString(772));const close=l.close.rect;
+            const seen=new Set();for(let offset=0;offset<=l.scrollLimit+80;offset+=80){game.commandMenuScroll=offset;const current=d.getCommandMenuLayout(),regions=d.getCommandActionRegions();
+                test.assertEqual(current.close.rect.y,close.y);test.assertTrue(regions.every(button=>button.rect.y>=current.bodyClip.y || button.action.type==='closeWindow'));
+                regions.filter(button=>button.action.type!=='closeWindow').forEach(button=>{test.assertTrue(button.rect.y+button.rect.height<=current.bodyClip.y+current.bodyClip.height);seen.add(button.action.type+':'+(button.action.window || ''));});}
+            test.assertTrue(l.buttons.every(button=>seen.has(button.action.type+':'+(button.action.window || ''))));
+            game.handleKeyPress(pdg.key_PageUp);test.assertTrue(game.commandMenuScroll<l.scrollLimit || l.scrollLimit===0);
+            test.assertTrue(game.executeUIAction({type:'openManual'}));test.assertEqual(opened,lang);
+            game.executeUIAction({type:'closeWindow',window:'menu'});game.toggleUIWindow('menu');test.assertEqual(d.getCommandMenuLayout().bodyScroll,0);
         }}finally{pdg.res.setLanguage(language);}
     });
     test.it('expands popup buttons together with their click areas and connectors',()=>{

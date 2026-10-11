@@ -525,3 +525,18 @@ Reviewed all six compact map/styled-manual and short map comparisons under
 `/private/tmp/galactica-map-instructions`. Initial missing styles came from a
 helper MIME error, now corrected. Command-menu/toolbar variants and broader
 localization audits remain open.
+
+
+### Constrained Command Menu readability (2026-10-11)
+
+Existing en/de/es/fr/ja/ru commands/headings/shortcut hints and full-screen feedback
+now retain complete text and readable row heights through body scrolling. Close
+stays fixed; no new IDs or command behavior are introduced. Native regressions
+cover all six languages and owner/observer/administrator fixtures at three sizes.
+Both full suites pass 1,794 tests. Thirty-six before/after, eighteen final indicator
+and six final narrow Close browser checks pass, including actual styled localized
+manual access. All six top/bottom menu comparisons at all three sizes were viewed.
+Of 180 common scenes, 162 are identical and eighteen menu views change. Evidence:
+`/private/tmp/galactica-command-menu`, `galactica-command-menu-final`.
+This closes the compressed Command Menu gap; broader toolbar/dialog/localization
+and native GUI audits remain open.

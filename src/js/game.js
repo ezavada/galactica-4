@@ -957,6 +957,7 @@ class Game {
         this.saveTableWindowGeometry();
         if (this.mapSelectionPicker) this.cancelMapSelection();
         this.uiWindow = windowName;
+        if(windowName==='menu' && this.uiWindow==='menu')this.commandMenuScroll=0;
         if(windowName==='fleets')this.fleetRosterLastClick=null;
         if(windowName==='systemComparison')this.systemComparisonLastClick=null;
         return true;
@@ -967,6 +968,7 @@ class Game {
         this.saveTableWindowGeometry();
         if (this.mapSelectionPicker) this.cancelMapSelection();
         this.uiWindow = (this.uiWindow === windowName) ? null : windowName;
+        if(windowName==='menu' && this.uiWindow==='menu')this.commandMenuScroll=0;
         if(windowName==='fleets')this.fleetRosterLastClick=null;
         if(windowName==='systemComparison')this.systemComparisonLastClick=null;
         return true;
@@ -1433,6 +1435,7 @@ class Game {
             else if(key===pdg.key_RightArrow)this.gameSessionPage=(this.gameSessionPage || 0)+1;
             return true;
         }
+        if(this.uiWindow==='menu' && [pdg.key_PageUp,pdg.key_PageDown].includes(key)){this.scrollCommandMenu(key===pdg.key_PageUp?-80:80);return true;}
         if(this.uiWindow==='menu' && lower==='q')return this.executeUIAction({type:'quit'});
         if(this.uiWindow==='menu' && lower==='h')return this.executeUIAction({type:'openManual'});
         if(this.uiWindow==='menu' && this.sessionCommands) {
@@ -2648,6 +2651,12 @@ class Game {
 
     getMapShipCount() {
         return this.remoteComparisons?this.remoteComparisons.reduce((total,row)=>total+row.ships+row.shipsBuilding,0):this.allShips.length;
+    }
+
+    scrollCommandMenu(delta) {
+        if(this.uiWindow!=='menu' || !this.display || !Number.isFinite(delta))return false;
+        const layout=this.display.getCommandMenuLayout();if(!layout.compact || !layout.scrollLimit)return false;
+        this.commandMenuScroll=Math.max(0,Math.min(layout.scrollLimit,layout.bodyScroll+delta));return true;
     }
 
     scrollCourse(delta) {

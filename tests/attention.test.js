@@ -269,7 +269,7 @@ module.exports=function(){test.describe('V3 human call-ins and attention',()=>{
         const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){
             pdg.res.setLanguage(lang);const {g,home}=fixture();g.uiWindow='menu';g.toggleHoldGameReports();g.recordDiscoveryReports(home,1);
             g.sessionCommands={};g.fileCommands={};g.manualCommands={};g.chatCommands={};g.fullscreen={supported:true,error:'failure',active:()=>false};
-            for(const height of [600,480]){g.port.getDrawingArea=()=>new pdg.Rect(800,height);const rows=g.display.getCommandActionRegions(),end=rows.find(row=>row.action.type==='endTurn');
+            for(const height of [600,480]){g.port.getDrawingArea=()=>new pdg.Rect(800,height);g.scrollCommandMenu(99999);const rows=g.display.getCommandActionRegions(),end=rows.find(row=>row.action.type==='endTurn');
                 test.assertEqual(end.label,pdg.res.getString(563));test.assertEqual(end.key,'Enter');test.assertTrue(end.active);test.assertFalse(end.disabled);
                 test.assertTrue(g.display.getMapButtonRegions().find(row=>row.action.type==='endTurn').active);
                 test.assertTrue(end.rect.y+end.rect.height<=height);for(let i=1;i<rows.length;i++)test.assertTrue(rows[i].rect.y>=rows[i-1].rect.y+rows[i-1].rect.height);

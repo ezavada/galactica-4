@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1793 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1794 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -7975,3 +7975,48 @@ entire presentation is complete. Other compact toolbar states, tables/lists/
 inspectors, broader localization/native GUI audits and Map Generation remain
 open. No engine or unrelated artwork changes are included. Automated audio is
 muted throughout.
+
+
+### Readable constrained Command Menu (completed)
+
+The Command Menu previously compressed every command row when the window was
+shorter than its contents. It now retains 28px minimum command heights, wraps
+complete labels/headings/feedback, clips a scrolling body and keeps Close fixed.
+Wheel and Page Up/Down expose every command; reopening resets to the top. A visible
+scroll-position indicator shows the remaining body. This applies to narrow ports
+and any height-constrained menu, including ordinary windows with enough optional
+services to overflow. Menus that fit retain their prior layout. Existing order,
+commands, enabled/active states, keyboard shortcuts, modality and persisted title
+positions remain. Full-screen failure feedback is no longer limited to three
+lines in the scrolling layout. No new localized IDs are needed.
+
+Source context: v3 `GalacticaDoc.cp` 805–817 dispatches Compare Players, Systems
+and Fleets; 1029–1038 checks their availability. This item changes v4 menu layout,
+not the existing command inventory or authorization behavior.
+
+Both full native suites pass **1,794 tests, zero failures**. New regressions cover
+all six languages, owner/observer/administrator fixtures and three viewport sizes:
+complete text, every command reachable, clipped hit targets, fixed Close, full
+error text, manual routing, keyboard scrolling and reset. Existing tutorial and
+unread-notice tests now scroll to the relevant controls instead of assuming all
+rows are simultaneously visible; the tutorial fake port supplies text metrics.
+Menus whose measured body fits need no scrolling. Initial fixture assumptions
+and one-step wheel-range failures remain in separate logs; browser traversal now
+uses enough real wheel events for the measured range.
+
+All 36 before/after browser workflows and eighteen final-indicator workflows pass
+at 800×600, 640×340 and 320×340 in all six languages. Actual input verifies Page
+Up/Down, wheel traversal, fixed footer/map-zoom isolation, Hold reports toggling
+and actual styled localized manual opening. Six final narrow workflows also click
+the fixed Close button after returning from the manual. These are local owner
+browser fixtures; role/error coverage is native, not new remote-host browser
+coverage. Automated audio remains muted.
+
+Evidence: `/private/tmp/galactica-command-menu/`,
+`galactica-command-menu-final/` and matching logs. Of 180 common screenshot pairs,
+162 are pixel-identical and eighteen menu views change. Inspected all six top/
+bottom menu comparisons at ordinary, short and narrow sizes. The new indicator's
+contrast was corrected after visual review. This closes the compressed menu item
+noted in map-help verification. Other compact toolbar states, tables/lists/
+inspectors, busy/error variants and broader parity/localization/native GUI/Map
+Generation audits remain open. No PDG or unrelated artwork changes are included.
