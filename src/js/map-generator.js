@@ -216,38 +216,21 @@ class MapGenerator {
      * Find next star for a player with distance constraints - matches original algorithm
      */
     findNextPlayerStar(unused, taken, minHomeDist, numExtraStars, minimumStarsToKeep = 0) {
-        let attempts = 0;
-        const maxAttempts = unused.length * 2; // Prevent infinite loops
-        
-        while (attempts < maxAttempts && unused.length > 0) {
+        // Only spare candidates may be rejected. Once every remaining star
+        // is needed by a player, v3 accepts the random choice without a spacing
+        // check. Each rejected candidate shrinks this list, so the loop is bounded.
+        while (unused.length > 0) {
             const randomIndex = this.random(unused.length);
             const candidateStar = unused[randomIndex];
-            
-            // Check distance to all taken stars
-            let tooClose = false;
-            for (const takenStar of taken) {
-                const distance = this.calculateDistance(candidateStar, takenStar);
-                if (distance < minHomeDist) {
-                    tooClose = true;
-                    break;
-                }
-            }
-            
-            if (!tooClose) {
+            if (numExtraStars <= 0 || unused.length <= minimumStarsToKeep) {
                 return candidateStar;
             }
-            
-            // Remove star if too close and we have extras
-            if (numExtraStars > 0 && unused.length > minimumStarsToKeep) {
-                unused.splice(randomIndex, 1);
-                numExtraStars--;
-            }
-            
-            attempts++;
+            const tooClose = taken.some(star => this.calculateDistance(candidateStar, star) < minHomeDist);
+            if (!tooClose) return candidateStar;
+            unused.splice(randomIndex, 1);
+            numExtraStars--;
         }
-        
-        // Fallback: return any remaining star
-        return unused.length > 0 ? unused[0] : null;
+        return null;
     }
 
     /**

@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1692 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1700 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4760,3 +4760,14 @@ readability. A partially redrawn German baseline was recaptured before the
 final comparison. Screenshots and comparison totals are under
 `/private/tmp/galactica-class-names`; native/source/browser logs use the
 `/private/tmp/galactica-class-names-` prefix. Tests remain muted.
+
+
+### Map homeworld rejection-budget parity
+
+The map-port audit found and corrected the exhausted-candidate selection rule:
+v3 accepts the random candidate when there are no spare stars; v4 previously
+rechecked distance and fell back to the first remaining star. Remaining-player
+reservations are preserved, and each rejection reduces the eligible pool.
+Source comparison, three new native regressions, 1700 passing tests on both
+native runtimes, six-language browser checks and 12 identical startup/map
+screenshot pairs are recorded in `MAP_GENERATION_PORT_STATUS.md`.

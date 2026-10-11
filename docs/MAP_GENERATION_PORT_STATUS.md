@@ -1,6 +1,6 @@
 # Map Generation Port Status
 
-Last reviewed: 2026-10-09
+Last reviewed: 2026-10-11 (homeworld candidate selection; broader checklist audit remains in progress)
 
 This document used to be a forward-looking port plan. The core map-generation work described here has since been implemented, so this file now records the current status, remaining differences from Galactica v3, and the tests that cover the area.
 
@@ -49,7 +49,7 @@ The full suite was last verified with:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1086 passed, 0 failed.
+Latest verified result: 1700 passed, 0 failed on both rebuilt public/development native PDG runtimes.
 
 ## Maintenance notes
 
@@ -69,3 +69,31 @@ The v3 numeric 1–10 range is now available in actual setup and reaches the ori
 ### Sector-size setup validation (2026-10-09)
 
 All five v3 sector sizes now have clickable startup controls, active highlighting, S cycling/wraparound and R reset. Their labels match the v3 1×1 Tiny to 5×5 Huge scale in all six languages. Configuration accepts only integer sizes 1–5. Tests check the original square-area star-count scaling at every size and generate each size with in-bounds coordinates, unique labels and all player homeworlds. Actual browser selection/shortcuts/reset and a 3×3 launch with correct map extent passed in all six languages; setup screenshots and a smaller Russian layout were inspected. Full suite: 737 passed. The other map-port caveats above remain.
+
+
+### Exhausted homeworld candidate selection (2026-10-11)
+
+`GalacticaProcessor::FillSector` checks minimum homeworld spacing only while
+there are spare stars to reject. When no spare candidates remain, it accepts
+the randomly chosen star immediately. V4 previously kept checking distance
+and eventually chose the first remaining star, changing the source selection
+rule and consuming unnecessary random draws. It now accepts the random
+candidate when the rejection allowance is exhausted or all remaining stars
+are reserved for the remaining players. Every rejected spare candidate leaves
+the eligible list, so the search terminates without an arbitrary attempt cap.
+Rejected candidates remain ordinary stars in the galaxy, as in v3.
+
+Three regressions cover immediate random acceptance, the remaining-player
+reserve across successive selections, and the strict distance boundary.
+Both full native lanes pass 1700 tests. The muted browser helper
+`tools/test-web-homeworld-selection.cjs` proves the former first-star fallback
+on the baseline and the corrected one-draw choice on the new build, then
+checks that normal startup assigns every player a homeworld. Actual startup
+and the algorithm check pass in all six languages. All 12 setup/new-game
+before/after screenshot pairs are byte-identical; the six localized final
+map screens were inspected. This seeded normal game has spare candidates and
+is unaffected; the exhausted-candidate branch is proved by the focused
+regression, not inferred from those screenshots. Evidence is under
+`/private/tmp/galactica-homeworld-selection`, with logs sharing that prefix.
+No user-facing strings changed. The remaining checklist still needs its
+separate audit; this entry closes only this selection-rule difference.

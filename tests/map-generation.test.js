@@ -141,6 +141,32 @@ function runMapGenerationTests() {
         });
     });
 
+    test.describe('MapGenerator - Shipped homeworld rejection budget',()=>{
+        test.it('accepts the random candidate immediately when there are no spare stars',()=>{
+            const generator=new MapGenerator({}),a={x:1,y:0},b={x:2,y:0},unused=[a,b];let calls=0;
+            generator.random=()=>{calls++;return 1;};
+            test.assertTrue(generator.findNextPlayerStar(unused,[{x:0,y:0}],100,0,2)===b);
+            test.assertEqual(calls,1);test.assertEqual(unused.length,2);
+        });
+        test.it('preserves the remaining-player reserve even when a later call receives the initial spare count',()=>{
+            const generator=new MapGenerator({}),unused=[{x:1,y:0},{x:2,y:0},{x:3,y:0},{x:4,y:0}];
+            generator.random=max=>max-1;
+            const first=generator.findNextPlayerStar(unused,[{x:0,y:0}],100,2,2);
+            test.assertEqual(unused.length,2);test.assertTrue(first===unused[1]);
+            unused.splice(unused.indexOf(first),1);
+            test.assertTrue(generator.findNextPlayerStar(unused,[{x:0,y:0},first],100,2,1)===unused[0]);
+            test.assertEqual(unused.length,1);
+        });
+        test.it('rejects close spare candidates and accepts a candidate at the minimum distance',()=>{
+            const generator=new MapGenerator({}),close={x:3,y:4},boundary={x:6,y:8},unused=[close,boundary];
+            generator.random=()=>0;
+            test.assertTrue(generator.findNextPlayerStar(unused,[{x:0,y:0}],10,1,1)===boundary);
+            test.assertEqual(unused.length,1);
+            test.assertTrue(generator.findNextPlayerStar([boundary],[{x:0,y:0}],10,1,0)===boundary);
+            test.assertNull(generator.findNextPlayerStar([],[],10,0,0));
+        });
+    });
+
     test.describe('MapGenerator - Star Name Generation', () => {
         test.it('generates unique star names with S- prefix for duplicates', () => {
             pdg.srand(TEST_SEED);
