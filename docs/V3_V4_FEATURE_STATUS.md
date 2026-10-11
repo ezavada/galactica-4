@@ -257,7 +257,7 @@ The largest blockers to a complete game are:
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
 | Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | ✅ Implemented | ✅ Implemented | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; Open and Revert retain active instruction bindings and production safeguards, with independent documents preserved. The optional wrong-course retry is verified through actual controls in all six languages. Existing-game recovery (100) is verified through actual Hide/Close controls, full completion and Open Games restoration in all six languages. Modal recovery (101) is verified through actual startup/in-game Settings entry, retry, Cancel and original restoration in all six languages; hosting recovery (103) is verified through actual Host, Cancel/Escape, local practice continuation, instruction cancellation and native-backed host creation in all six languages. The floating recovery panel stays visible and interactive above the Host modal; original documents and setup are preserved. See docs/reference/TUTORIAL_CONTROLLER.md. |
 | Internationalization | v3 language plug-ins; menu can switch languages. | ✅ Implemented | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian resources and accepts runtime language with `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven/tested; Menu → Settings → Language switches cached UI labels and numeric formatting immediately, remembers the selection and always lists native-script language names. Unported v3 dialogs/help still need future resources. |
-| Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | 🟡 Partial | v4 uses background, lab/stardock/ship assets, original outcome illustrations and fixed-size explosion frames, while most UI buttons, panels, animations, and states are styled primitives/text. The Lab now preserves source proportions, additive blueprint blending and the full shipped layer lookup/fallback, with source-generated metadata and supplemental pictures. Remaining parity should be tied to specific shipped v3 event/help/window imagery. |
+| Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | 🟡 Partial | v4 uses background, lab/stardock/ship assets, original outcome illustrations and fixed-size explosion frames, while most UI buttons, panels, animations, and states are styled primitives/text. The Lab now preserves source proportions, additive blueprint blending and the full shipped layer lookup/fallback, with source-generated metadata and supplemental pictures. Stardock now follows its own source class requests and decimal fallback, independently of the detail-view image cap. Remaining parity should be tied to specific shipped v3 event/help/window imagery. |
 
 ### Possible UI enhancements beyond v3, not counted in Section 8
 
@@ -4707,3 +4707,30 @@ size of PICT2999 are explicitly recorded in `docs/reference/EVENT_REPORTS.md`;
 this does not claim original-platform pixel equivalence for those payloads or
 completion of other window/art roles. The broader parity/map-generation goal
 remains active.
+
+
+### Original Stardock class and missing-layer composition
+
+Restored CStar's Stardock request rules and original layered pictures. Basic
+hulls use source classes0/1/2, and the v4 battleship index adds2 to match native
+Fighter3. The signed/decimal lookup is now shared with Lab, with source class
+limit23 verified across all four shipped language/edition string resources.
+This supersedes the earlier blanket high-class Banshee fallback, which was
+based on the different small-detail-view picture cap. Real ship identities,
+names, technology and translated captions remain unchanged; source asset
+selection is independent of the name shown.
+
+Both rebuilt native runtimes pass all 1,696 unit tests. Nine source resource
+checks pass. Actual ship completion and report controls pass before and after
+in en/de/es/fr/ja/ru; the 114 paired captures comprise 90 identical ordinary,
+Lab, observer and available-class views and 24 changed true high-class
+fallback views. English before/after and translated final Viper captures were
+visually inspected under `/private/tmp/galactica-stardock-source/{before,after}`.
+Logs use `/private/tmp/galactica-stardock-source-{before,after}-<language>.log`
+and `/private/tmp/galactica-stardock-source-{public,devel}-unit.log`.
+The separate actual research/production/End Turn workflow is verified in
+`/private/tmp/galactica-stardock-source-high-class-en.log`.
+
+The overall parity and map-generation goal remains active; other window/art
+roles, decoded payload limitations and platform/runtime blockers are not
+claimed complete by this Stardock change.

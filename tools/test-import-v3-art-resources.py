@@ -71,6 +71,18 @@ class ArtReferenceTests(unittest.TestCase):
         for number,row in provenance['pictures'].items():
             self.assertEqual(row['pictSha256'],art.digest(inventory[('PICT',int(number))]))
 
+    def test_shipped_ship_class_limits_and_basic_hull_order(self):
+        root=ROOT.parent/'galactica-anno-dominari-3/Resources'
+        if not root.exists():self.skipTest('Original source unavailable')
+        spec=importlib.util.spec_from_file_location('presentation',ROOT/'tools/import-v3-presentation.py')
+        presentation=importlib.util.module_from_spec(spec);spec.loader.exec_module(presentation)
+        for name in ('gal-en-shareware.r','gal-de-shareware.r','gal-en-cdrom.r','gal-de-cdrom.r'):
+            blob=presentation.resource((root/name).read_bytes().decode('mac_roman'),'STR#',401)
+            self.assertEqual(struct.unpack_from('>H',blob)[0],23)
+        self.assertEqual([self.reference['layers'][str(n)]['layers'][1]['picture'] for n in range(300,304)],
+                         [3000,3001,3002,3003])
+        for n in (313,314):self.assertEqual(self.reference['layers'][str(n)]['layers'][1]['picture'],3012)
+
     def test_appledouble_entry_selection_and_corruption(self):
         # Finder metadata precedes the resource fork; do not treat it as art.
         header = struct.pack('>II16sH',0x00051607,0x00020000,b'\0'*16,2)

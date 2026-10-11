@@ -39,9 +39,9 @@ await capture('before-high-class-completion');
 const turn=await evaluate('g.turn');await click('visual.getDisplay().getMapButtonRegions().find(r=>r.action.type==="endTurn").rect');
 await check('g.turn==='+ (turn+1),'Actual End Turn failed');
 await check('home.techLevel===50 && g.overlay.type==="lab"','Actual research did not produce Lab');await capture('high-class-lab');
-if(!before)await check('!!visual.getDisplay().images["tech/blue-11.png"]','High-class blueprint did not load');
+if(!before)await check('!!visual.getDisplay().images["tech/blue-12.png"]','High-class blueprint did not load');
 await key('Escape');await check('g.overlay && g.overlay.type==="stardock" && g.overlay.classIndex===11','High-class commissioning missing');await capture('high-class-stardock');
-if(!before)await check('!!visual.getDisplay().images["ship:banshee"] && g.overlay.ship.name.startsWith("Talon")','Illustration fallback lost actual class name or failed to load');
+if(!before)await check('!!visual.getDisplay().images["events/layers/pict-3012.png"] && g.overlay.ship.name.startsWith("Talon")','Illustration fallback lost actual class name or failed to load');
 
 await evaluate('window.report=g.eventLog.find(e=>e.type===1 && e.recipient===1);window.ship=report && report.subject;void 0');
 await check('!!ship && !ship.underConstruction() && g.eventLog.some(e=>e.commissioning)','Completion or separate first-class report missing');

@@ -418,3 +418,38 @@ cover explicit lookup boundaries, signed IDs, all runtime assets and decoded
 PNG integrity. Resource tests regenerate runtime metadata and check each
 export's original PICT hash. Broader art/window requirements and exact
 PICT2208 decoding remain independent of this implemented lookup requirement.
+
+
+### Stardock source class selection and missing-layer artwork
+
+The message path differs from the small detail viewer: CStar supplies
+Layr300 + completed ship class to Evnt11/PPob4002. CShip's detail-view picture
+cap is not applied here. Source classes0/1/2 mean satellite/scout/colony;
+source battleships start at3, so v4's one-based battleship index adds2.
+CStar bounds its native class by STR#401's count23, verified in all four
+English/German shareware/CD-ROM variants. V4 now resolves these requests
+against the recovered layer table with the shared signed/decimal lookup.
+
+Thus v4 battleship classes11/12 select Layr313/314 and PICT3012, but class13
+requests315 and falls back310/PICT3010; class18 requests320 and falls back300.
+The prior implementation incorrectly used the final detail-view illustration
+for every high Stardock class. The restored source pictures and transparent
+background colors now supply the actual three-layer Stardock composites.
+The generated assets were already recovered by the Lab fallback work. Class
+names, technology and event identity remain intact; the caption reads the
+actual ship name or the existing localized class list, independently of art.
+
+`drawClassArt` shares only composition between Lab and Stardock; their request
+bases and class rules remain separate. Native regressions check basic hulls,
+each available battleship picture, source fallback boundaries, malformed
+inputs and an actual tech75 Viper commissioning without changing its name or
+stats. `tools/test-web-stardock-source-art.cjs` completes first-build hull/class
+fixtures through Star.completeShip and uses actual dismissal input. Its fixtures
+reset prior first-build flags and disable carried-credit auto-commissioning so
+that the explicit completion call is the event under test. The existing
+`test-web-high-class-art.cjs` retains actual production/research and End Turn
+coverage, with current source-backed Lab/Stardock asset expectations.
+
+This closes the source Stardock composition/lookup gap, not every remaining
+art/window requirement. The decoder limits and broader checklist remain
+separately tracked above and in V3_V4_FEATURE_STATUS.md.

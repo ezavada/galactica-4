@@ -14,6 +14,7 @@ const I18n = require('./i18n.js');
 const VisualEffects = require('./visual-effects.js');
 const DestructionEffect = require('./destruction-effect.js');
 const LabArt=require('./lab-art.js');
+const StardockArt=require('./stardock-art.js');
 const UIIcons = require('./ui-icons.js');
 const ScannerLayer = require('./scanner-layer.js');
 const PanelAppearance = require('./panel-appearance.js');
@@ -4015,14 +4016,6 @@ class Display {
         return this.images[key];
     }
 
-    // V3 caps the image offset at hull types + available battleship pictures
-    // (CShip::GetViewLayrResIDOffset). Class names and statistics keep advancing.
-    getShipArtNameForClass(classIndex) {
-        const art = ['traveller','rama','hawk','falcon','riviel','raven','valkyrie','wolven','avenger','banshee'];
-        const index = Number.isFinite(classIndex) ? Math.trunc(classIndex) : 1;
-        return art[Math.max(0, Math.min(art.length - 1, index - 1))];
-    }
-
     getOutcomeLayout(overlay) {
         const screen=this.getScreenSize(),width=Math.min(640,screen.width-40),height=Math.min(460,screen.height-40);
         const rect=this.fitWindowToScreen('outcome',{x:(screen.width-width)/2,y:(screen.height-height)/2,width,height});
@@ -4155,6 +4148,17 @@ class Display {
         });
     }
 
+    drawClassArt(layers,rect) {
+        for (const layer of layers) {
+            const key = layer.mode === 36 ? new pdg.Color(...layer.background.map(c=>c/65535)) :
+                layer.mode === 33 ? new pdg.Color('black') : undefined;
+            const image = this.getImageCached(layer.path, layer.path, key);
+            if (!image) continue;
+            if (layer.mode === 33) this.port.drawRect(rect, this.styles.labBlueprint.texture(image));
+            else this.port.drawImage(image, rect, this.styles.image);
+        }
+    }
+
     drawOverlay(overlay) {
         const exploding=this.drawDestructionEffect(overlay);
         if(this.game.sound)this.game.sound.present(this.game,overlay,exploding);
@@ -4177,27 +4181,16 @@ class Display {
         }
         if (overlay.type === 'lab') {
             const centerRect = this.getClassArtRect(drawingArea);
-            for (const layer of LabArt.resolve(overlay.classIndex).layers) {
-                const key = layer.mode === 36 ? new pdg.Color(...layer.background.map(c=>c/65535)) :
-                    layer.mode === 33 ? new pdg.Color('black') : undefined;
-                const image = this.getImageCached(layer.path, layer.path, key);
-                if (!image) continue;
-                if (layer.mode === 33) this.port.drawRect(centerRect, this.styles.labBlueprint.texture(image));
-                else this.port.drawImage(image, centerRect, this.styles.image);
-            }
+            this.drawClassArt(LabArt.resolve(overlay.classIndex).layers, centerRect);
             this.port.drawText(this.STR.newDriveTechnology, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.1), this.getTextAttributes('yellow', 16, pdg.textStyle_Centered));
         } else if (overlay.type === 'stardock') {
-            const back = this.getImageCached('stardock', 'events/newstardock.png');
-            const front = this.getImageCached('stardockfront', 'events/newstardockfront.png');
             const hull=overlay.shipType || overlay.ship && overlay.ship.type;
-            const base = hull && hull!=='battleship' ? {defense:'satellite',scout:'scout',colony:'colony'}[hull] : this.getShipArtNameForClass(overlay.classIndex);
-            const shipImg = this.getImageCached(`ship:${base}`, `ships/${base}.png`);
-            const centerRect = this.getClassArtRect(drawingArea);
-            if (back) this.port.drawImage(back, centerRect, this.styles.image);
-            if (shipImg) this.port.drawImage(shipImg, centerRect, this.styles.image);
-            if (front) this.port.drawImage(front, centerRect, this.styles.image);
+            this.drawClassArt(StardockArt.resolve(hull,overlay.classIndex).layers, this.getClassArtRect(drawingArea));
+            const classNames=I18n.getString(800,'').split('|');
+            const index=Number.isFinite(overlay.classIndex)?Math.max(1,Math.floor(overlay.classIndex)):1;
             const name = hull && hull!=='battleship' ? I18n.getShipTypeName(hull,{capitalized:true}) :
-                overlay.ship && overlay.ship.name ? overlay.ship.name.split('\t')[0] : this.getShipArtNameForClass(overlay.classIndex);
+                overlay.ship && overlay.ship.name ? overlay.ship.name.split('\t')[0] :
+                    classNames[Math.min(classNames.length-1,index-1)] || I18n.getShipTypeName('battleship',{capitalized:true});
             this.port.drawText(I18n.formatString(571, 'New {0} Class Commissioned', name), new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.1), this.getTextAttributes('cyan', 16, pdg.textStyle_Centered));
         }
         // Footer hint
