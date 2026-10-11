@@ -25,10 +25,44 @@ function eventCue(event,viewer=event && event.recipient) {
     // Fleet formation, tech levels and draw notices have no shipped audible sample.
     return null;
 }
-function createSound(resourceManager,preferences) {
+function createSound(resourceManager,preferences,now=()=>pdg.tm.getMilliseconds(),schedule={start:callback=>setInterval(callback,50),stop:timer=>clearInterval(timer)}) {
     let enabled=preferences.readSound();
     const cache=new Map(),presentations=new WeakMap();
     const stop=()=>{for(const sound of cache.values())try{sound.stop();}catch(error){/* Backend may be unavailable. */}};
+    // Presentation music has its own handle: event cues and document changes
+    // must not interrupt its dismissal fade.
+    let music=null,musicRequested=false,musicPlaying=false,fadeStarted=null,fadeTimer=null;
+    const stopMusic=()=>{
+        if(fadeTimer!==null){schedule.stop(fadeTimer);fadeTimer=null;}
+        try{if(music)music.stop();}catch(error){/* Backend may be unavailable. */}
+        musicPlaying=false;fadeStarted=null;
+    };
+    const startMusic=()=>{
+        musicRequested=true;
+        if(!enabled)return false;
+        stopMusic();
+        try{
+            if(!music)music=resourceManager.getSound('sounds/startup.wav');
+            if(!music)return false;
+            music.setLooping(true);music.setVolume(1);music.start();musicPlaying=true;return true;
+        }catch(error){stopMusic();return false;}
+    };
+    const endMusic=()=>{
+        musicRequested=false;
+        if(!musicPlaying || fadeStarted!==null)return false;
+        fadeStarted=now();fadeTimer=schedule.start(update);
+        if(fadeTimer && typeof fadeTimer.unref==='function')fadeTimer.unref();
+        return true;
+    };
+    const update=()=>{
+        if(fadeStarted===null)return false;
+        const elapsed=Math.max(0,now()-fadeStarted);
+        try{
+            music.setVolume(Math.max(0,1-elapsed/5000));
+            if(elapsed>=5000)stopMusic();
+            return true;
+        }catch(error){stopMusic();return false;}
+    };
     const play=id=>{
         if(!enabled || !available.has(id))return false;
         try {
@@ -39,8 +73,8 @@ function createSound(resourceManager,preferences) {
     };
     return {
         isEnabled:()=>enabled,
-        setEnabled(value){enabled=!!value;preferences.writeSound(enabled);if(!enabled)stop();return enabled;},
-        stop,play,
+        setEnabled(value){const changed=enabled!==!!value;enabled=!!value;preferences.writeSound(enabled);if(!enabled){stop();stopMusic();}else if(changed && musicRequested)startMusic();return enabled;},
+        stop,play,startMusic,endMusic,update,
         isPending:overlay=>enabled && presentations.has(overlay) && !presentations.get(overlay).cue,
         noMore(game){
             if(!game.shouldShowEventWindows() || game.hasEventPresentation() || game.pendingMapOrderObject ||

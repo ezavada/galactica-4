@@ -1,5 +1,13 @@
 const test=require('./test-framework.js'),Presentation=require('../src/js/presentation.js'),Preferences=require('../src/js/drawing-preferences.js');
 module.exports=()=>test.describe('Startup and About presentation',()=>{
+ test.it('starts presentation music only for a valid opening and fades it once on dismissal',()=>{
+  const calls=[],p=new Presentation({readSplash:()=>true,writeSplash:()=>{}},{startMusic:()=>calls.push('start'),endMusic:()=>calls.push('fade')});
+  test.assertFalse(p.open('invalid',0));test.assertEqual(calls.length,0);
+  p.open('startup',0);test.assertFalse(p.open('about',10));test.assertEqual(calls.join(','),'start');
+  p.close();p.close();test.assertEqual(calls.join(','),'start,fade');
+  p.open('about',20,'settings');test.assertEqual(p.close(),'settings');test.assertEqual(calls.join(','),'start,fade,start,fade');
+ });
+
  test.it('defaults on and persists independently of game saves, including unavailable storage',()=>{
   const values={},env={window:{localStorage:{getItem:k=>values[k],setItem:(k,v)=>values[k]=v}}},prefs=Preferences.createPreferences(env),p=new Presentation(prefs);
   test.assertTrue(p.showSplash);p.toggleSplash();test.assertFalse(p.showSplash);test.assertFalse(new Presentation(Preferences.createPreferences(env)).showSplash);

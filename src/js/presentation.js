@@ -1,13 +1,13 @@
 // Startup and About are application presentation, separate from saved games.
 const I18n=require('./i18n.js');
 class Presentation {
-    constructor(preferences){this.preferences=preferences;this.showSplash=preferences.readSplash();this.kind=null;this.started=0;this.offset=0;this.paused=false;this.returnWindow=null;}
+    constructor(preferences,sound=null){this.sound=sound;this.preferences=preferences;this.showSplash=preferences.readSplash();this.kind=null;this.started=0;this.offset=0;this.paused=false;this.returnWindow=null;}
     open(kind,now,returnWindow=null){
         if(!['startup','about'].includes(kind) || this.kind)return false;
-        this.kind=kind;this.started=now;this.offset=0;this.paused=false;this.returnWindow=returnWindow;return true;
+        this.kind=kind;this.started=now;this.offset=0;this.paused=false;this.returnWindow=returnWindow;if(this.sound)this.sound.startMusic();return true;
     }
     toggleSplash(){this.showSplash=!this.showSplash;this.preferences.writeSplash(this.showSplash);return this.showSplash;}
-    close(){const result=this.returnWindow;this.kind=null;return result;}
+    close(){const result=this.returnWindow;if(this.kind && this.sound)this.sound.endMusic();this.kind=null;return result;}
     step(delta,visibleRows,totalRows){this.paused=true;this.offset=Math.max(0,Math.min(Math.max(0,totalRows-visibleRows),this.offset+delta*visibleRows));}
     sample(now,totalRows,visibleRows,reducedMotion=false){
         if(!this.paused && !reducedMotion){

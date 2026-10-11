@@ -76,8 +76,10 @@ movie's media clock. All six original editions export identically.
 
 The source movie loops after 58007 ticks (96.678333 seconds), while its final
 notes extend to 58721 ticks. MIDI preserves those complete note durations;
-audio rendering must use the movie's shorter loop boundary. The render below uses the shorter movie loop boundary. Looped startup/About
-playback and the original five-second dismissal fade still need runtime integration. No new asset license is granted; see ASSET_RIGHTS.md.
+audio rendering must use the movie's shorter loop boundary. The render below
+uses that boundary. Startup/About loops this asset while open, then fades
+linearly for five seconds on dismissal. The persistent Sound switch stops it immediately. A
+separate application timer completes fading even without drawn frames. No new asset license is granted; see ASSET_RIGHTS.md.
 
 
 Regenerate the playable startup composition on macOS with:
