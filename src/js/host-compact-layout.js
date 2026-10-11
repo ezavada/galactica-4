@@ -36,9 +36,9 @@ function layout(host,width,height,source,measure,message=host.message){
  const limit=Math.max(0,y-bodyClip.y-bodyClip.height);host.scrollLimit=limit;
  if(host.compactStage!==host.stage){host.bodyScroll=0;host.compactFocus=null;host.compactStage=host.stage;}
  let scroll=clamp(host.bodyScroll || 0,limit);
- if(host.revealFocus || host.compactFocus!==host.focus){const field=fields.find(field=>field.name===host.focus);
+ if(host.revealFocus || host.compactFocus!==host.focus || host.compactBodyHeight!==bodyClip.height){const field=fields.find(field=>field.name===host.focus);
   if(field){const focus=field.focusRect;if(focus.y<bodyClip.y+scroll)scroll=clamp(focus.y-bodyClip.y,limit);else if(focus.y+focus.height>bodyClip.y+scroll+bodyClip.height)scroll=clamp(focus.y+focus.height-bodyClip.y-bodyClip.height,limit);}
-  host.revealFocus=false;host.compactFocus=host.focus;
+  host.revealFocus=false;host.compactFocus=host.focus;host.compactBodyHeight=bodyClip.height;
  }
  host.bodyScroll=scroll;for(const item of [...fields,...labels,...checks,...choices,...bodyButtons]){item.rect.y-=scroll;if(item.labelRect)item.labelRect.y-=scroll;if(item.focusRect)item.focusRect.y-=scroll;}
  const scrollTrack={x:left+bodyWidth+4,y:bodyClip.y,width:5,height:bodyClip.height},thumbHeight=Math.max(16,bodyClip.height*bodyClip.height/(bodyClip.height+limit));

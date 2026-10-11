@@ -101,7 +101,23 @@ if(mode!=='before' && viewWidth<400){
 }
 await action('pause');await wait('!hostAudit.host.busy && hostAudit.host.record.info.clock.paused','Pause failed');await capture('hosting-paused');
 await action('resumeClock');await wait('!hostAudit.host.busy && !hostAudit.host.record.info.clock.paused','Resume failed');
-await action('settings');await capture('hosting-settings');await key('Escape');
+await action('settings');await capture('hosting-settings');
+if(viewWidth<400){
+ if(await evaluate(layout+'.compact')){for(let i=0;i<24 && await evaluate('hostAudit.host.bodyScroll>0');i++)await key('PageUp');}
+ await capture('hosting-settings-top');
+ if(await evaluate(layout+'.compact')){for(let i=0;i<24 && await evaluate('hostAudit.host.bodyScroll<hostAudit.host.scrollLimit');i++)await key('PageDown');}
+ await capture('hosting-settings-bottom');
+}
+await inspect('hosting-settings');
+const setting=async(kind,action,value)=>{const item=layout+'.'+kind+'.find(c=>c.action==='+JSON.stringify(action)+(value===undefined?'':' && c.value==='+JSON.stringify(value))+')';await visible(item+'.rect');await click(item+'.rect');};
+await evaluate('window.settingsBefore=JSON.stringify(hostAudit.host.record.administration.settings);void 0');
+await setting('checks','fog');await setting('choices','skill',1);await setting('choices','advantage',2);
+await field('time');await type('0');await action('saveSettings');await check('hostAudit.host.stage==="settings" && !!hostAudit.host.message','Invalid timer accepted');await capture('hosting-settings-invalid');
+if(mode!=='before' && viewWidth<400)await check(layout+'.statusLines.map(line=>line.text).join("")===hostAudit.host.message','Settings error truncated');
+await key('Escape');await check('JSON.stringify(hostAudit.host.record.administration.settings)===settingsBefore','Cancel changed native host settings');
+await action('settings');await setting('choices','unit',4);await field('time');await type('17');await setting('checks','fog');await setting('choices','skill',1);await setting('choices','advantage',2);await capture('hosting-settings-edited');
+await action('saveSettings');await wait('!hostAudit.host.busy && hostAudit.host.stage==="hosting"','Host Settings save failed');
+await check('hostAudit.host.record.administration.settings.maxTimePerTurn===17 && hostAudit.host.record.administration.settings.compSkill===1 && hostAudit.host.record.administration.settings.compAdvantage===2 && hostAudit.host.record.administration.settings.omniscient','Saved settings did not reach native host');await capture('hosting-settings-saved');
 await action('players');await capture('hosting-players');await key('Escape');
 await action('endNow');await wait('!hostAudit.host.busy && hostAudit.host.record.info.turn===2','End Now failed');
 await check(`${layout}.buttons.find(b=>b.action==='initialState').disabled`,'Initial state did not disable after turn one');await capture('hosting-turn-two');

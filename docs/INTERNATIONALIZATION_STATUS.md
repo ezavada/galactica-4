@@ -370,3 +370,17 @@ Both full native suites pass 1,779 tests. Evidence is under
 `/private/tmp/galactica-host-status-compact/` and
 `/private/tmp/galactica-remote-admin-compact/`. Nested compact administration
 surfaces and the broader localization completion audit remain open.
+
+
+### Compact Host Settings (2026-10-11)
+
+Existing translated AI choices, fixed game metadata, visibility/timer controls,
+units, warnings and Save/Cancel captions now reflow below 400px wide. Full
+validation feedback stays visible, and focused input remains inside the clipped
+body when feedback changes its height. No resource IDs added. All six languages
+pass 36 local ordinary/short/narrow before/after runs plus twelve authenticated
+remote narrow runs; all narrow body-end, invalid/edited and remote original/
+dragged Settings comparisons were inspected. Both native suites pass 1,780 tests.
+Evidence: `/private/tmp/galactica-host-settings/` and
+`/private/tmp/galactica-remote-settings/`. Other compact administration dialogs
+and the broader localization completion audit remain open.

@@ -1228,3 +1228,24 @@ and authorization-loss reviews are recorded there. Ordinary local differences
 are confined to connection/file/clock/input metadata. See the parity entry for
 remaining scope and exact counts; these checks do not establish physical LAN
 or packaged native GUI behavior.
+
+
+### Compact active Host Settings checks
+
+The Host status helper now also exercises real AI/visibility choices, invalid
+timer validation, Cancel preservation and durable exact-second Save. All 36
+six-language before/after runs pass at 800×600, 640×340 and 320×340; twelve narrow
+runs additionally capture both ends of the Settings body. The remote helper
+scrolls clipped Settings controls before actual clicks, and detects compact
+status by layout metadata in either baseline. All twelve narrow authenticated
+before/after runs pass, including Save/Cancel, revocation and disconnect.
+
+Both full native suites pass 1,780 tests. Logs/screenshots use the
+`/private/tmp/galactica-host-settings` and
+`/private/tmp/galactica-remote-settings` prefixes. Comparison JSON records 264
+local pairs (ordinary Settings unchanged) and 108 remote pairs (administrator
+and disconnected maps unchanged). All six narrow top/bottom, invalid/edited
+and remote original/dragged Settings comparisons were visually reviewed. Native
+fixtures and Chrome remain muted. These localhost checks do not establish
+physical LAN or packaged native GUI behavior; other compact admin dialogs remain
+separate parity work.

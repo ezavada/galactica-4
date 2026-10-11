@@ -97,6 +97,22 @@ module.exports=()=>test.describe('Multiplayer Host setup controls',()=>{
   const w=form();let discarded=null;w.backend.discardConversion=token=>{discarded=token;};w.stage='conversion';w.conversion={token:'snapshot'};w.busy=true;test.assertFalse(w.cancel());test.assertEqual(discarded,null);w.busy=false;test.assertTrue(w.cancel());test.assertEqual(discarded,'snapshot');test.assertEqual(w.conversion,null);test.assertFalse(w.active);
  });
 
+ test.it('keeps compact active Host Settings readable, scrollable and transactional in all languages',()=>{
+  const original=pdg.res.getLanguage(),Caption=require('../src/js/button-caption.js'),measure=(text,size=12)=>Array.from(text).length*size*.65;
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const w=form(),info={address:'http://localhost',info:{title:'Host 星',humans:2,computers:1,sectorSize:5,density:10},administration:{complete:false,settingsRevision:4,settings:{compSkill:3,compAdvantage:0,fastGame:true,omniscient:false,maxTimePerTurn:17,endEarly:false}}};
+   w.record={};w.backend.describe=()=>info;w.editSettings();w.message=pdg.res.getString(1067);const l=w.layout(320,340,measure);
+   test.assertTrue(l.compact);test.assertEqual(l.fields.map(f=>f.name).join(','),'time');test.assertTrue(w.scrollLimit>0);
+   test.assertEqual(l.statusLines.map(line=>line.text).join(''),w.message);test.assertTrue(l.buttons.every(b=>!b.body));
+   test.assertEqual(l.buttons.map(b=>b.action).join(','),'cancel,saveSettings');test.assertFalse(l.choices.some(c=>['size','density'].includes(c.action)));
+   for(const c of l.choices)test.assertTrue(measure(c.label,c.size)+16<=c.rect.width+.001);
+   for(const b of l.buttons)test.assertTrue(Caption.width(b.label,b.key,measure,{size:b.size})+16<=b.rect.width+.001);
+   const warning=pdg.res.getString(1119);test.assertTrue(l.labels.map(label=>label.text).join('').includes(warning));
+   w.key(pdg.key_PageUp);w.layout(320,340,measure);const before=w.bodyScroll;w.key(pdg.key_PageDown);test.assertTrue(w.bodyScroll>before);
+   w.key(pdg.key_Tab);const focused=w.layout(320,340,measure),time=focused.fields[0];test.assertTrue(time.rect.y>=focused.bodyClip.y);test.assertTrue(time.rect.y+time.rect.height<=focused.bodyClip.y+focused.bodyClip.height);
+   w.message='';w.layout(320,340,measure);w.message=pdg.res.getString(1067);const resized=w.layout(320,340,measure);test.assertTrue(resized.fields[0].rect.y>=resized.bodyClip.y);test.assertTrue(resized.fields[0].rect.y+26<=resized.bodyClip.y+resized.bodyClip.height);
+   w.action('skill',1);w.action('fog');test.assertEqual(info.administration.settings.compSkill,3);test.assertFalse(info.administration.settings.omniscient);w.cancel();test.assertEqual(w.stage,'hosting');
+  }}finally{pdg.res.setLanguage(original);}
+ });
  test.it('edits only active settings and preserves exact second limits without changing the host draft on Cancel',()=>{
   const w=form(),info={address:'http://localhost',info:{title:'Host 星',humans:2,computers:1,sectorSize:1,density:1},administration:{complete:false,settingsRevision:4,settings:{compSkill:3,compAdvantage:0,fastGame:true,omniscient:false,maxTimePerTurn:17,endEarly:false}}};w.record={};w.backend.describe=()=>info;
   test.assertTrue(w.editSettings());test.assertEqual(w.stage,'settings');test.assertEqual(w.unit,4);test.assertEqual(w.time.text,'17');test.assertEqual(w.settingsOptions().maxTimePerTurn,17);test.assertEqual(w.settingsRevision,4);test.assertFalse(w.action('size',3));test.assertFalse(w.action('density',3));w.action('skill',1);test.assertEqual(info.administration.settings.compSkill,3);test.assertTrue(w.cancel());test.assertTrue(w.active);test.assertEqual(w.stage,'hosting');
