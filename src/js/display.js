@@ -3207,7 +3207,7 @@ class Display {
         const data=this.getShipDiagnostics(member);
         // V3's Class-visible fleet table exposes member statistics while the
         // member's own visibility still controls its name and standalone panel.
-        if(!container || !this.factory.isFleet(container) || !this.getFleetKnowledge(container).contents)return data;
+        if(!container || !this.factory.isFleet(container) || !this.game.canViewFleetExchange(container))return data;
         const health=Math.max(0,Math.min(100,100-member.getDamagePercent()));
         return {...data,tech:String(Math.trunc(member.techLevel)),
             speed:member.speed?I18n.formatDecimal(member.speed/16380):'-',

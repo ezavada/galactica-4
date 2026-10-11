@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1672 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1674 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4076,17 +4076,42 @@ Evidence: `/private/tmp/galactica-fleet-member-stats/{before,after}/<language>`,
 fog, contextual-window and drawing parity audit remains active.
 
 
-#### Next confirmed fleet-table gap: nested inspection
+### Nested fleet-table inspection (2026-10-11)
 
 `Classes/GalacticaTables.cp:333–366` installs a selected fleet row's contents
 in the sister table without rechecking that subgroup's independent visibility.
-V4 `Game.selectFleetExchangeMember` currently requires
-`canViewFleetExchange(object)` for a subgroup, which checks the subgroup's own
-Class visibility. A hidden subgroup inside a Class-visible parent therefore
-cannot become the active sub-list. `HostView` already projects nested membership
-at inherited Class access while preserving independent visibility and private
-names. This is an implementation gap, not an external blocker: add validated
-container-context access without promoting standalone/map knowledge or enemy
-command authority, then verify live and projected clients, revoked/stale access,
-all units and localized actual-input screenshots. Section 5's historical
-implemented claims do not prove this nested enemy-table path is complete.
+V4 required the subgroup's own Class visibility and could not activate or inspect
+an independently hidden group inside a visible parent. `HostView` already projects
+nested membership at inherited Class access while preserving private names.
+
+Fleet exchange access now follows a live, registered, reciprocal fleet containment
+chain to a Class-visible ancestor. A visited set refuses hidden cycles. Selecting
+a subgroup activates its contents; Inspect opens its table and Parent returns to
+the enclosing fleet. Table diagnostics inherit the same access. Independent map
+and standalone inspector knowledge remain unchanged, as do ownership checks for
+exchange, patrol and scrap. Removing an ancestor, breaking membership or losing
+ancestor Class visibility revokes inherited access. Independently visible groups
+retain their ordinary access.
+
+Two added full-suite regressions cover multiple nested levels, actual table actions,
+damaged member statistics, hidden names, standalone knowledge, enemy edit denial,
+visibility revocation, nonreciprocal membership, unregistered ancestors and cycles.
+The existing transport regression now reconstructs a real projected client and
+checks inherited access with independent visibility still zero. Both native suites
+pass **1,674 tests**, with sound muted.
+
+`tools/test-web-client-state.cjs` modes `before-nested-table` and `nested-table`
+pass in en/de/es/fr/ja/ru. Actual projected-client mouse input selects the subgroup,
+opens Inspect, uses Parent and closes with Escape; subsequent Compare Players
+still opens. Every localized selected/inspected before/after screenshot and the
+updated Parent view was reviewed. Existing translations fit, including Russian's
+long member-health label. No new strings are required. Of 48 screenshot pairs,
+24 remain byte-identical (owned system, production, Speed fleet and initial Class
+fleet); subgroup views change intentionally, and comparison retains the changed
+selection behind its translucent window. Browser audio is muted.
+
+Evidence: `/private/tmp/galactica-nested-table/{before,after}/<language>`,
+`/private/tmp/galactica-nested-table-{before,after}-<language>.log` and
+`/private/tmp/galactica-nested-table-{public,devel}-unit.log`. This closes the
+identified nested table access gap; the broader contextual and drawing audit
+remains active.

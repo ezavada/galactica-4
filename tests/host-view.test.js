@@ -45,6 +45,14 @@ module.exports=()=>test.describe('Authenticated player-state transport',()=>{
   let view=View.snapshot(game,1);test.assertFalse(!!entity(view,'fleet',fleet));test.assertFalse(!!entity(view,'ship',ship));test.assertFalse(!!entity(view,'rendezvous',marker));
   fleet.setVisibilityTo(1,1);view=View.snapshot(game,1);const speed=entity(view,'fleet',fleet);test.assertFalse('ships' in speed);test.assertFalse('name' in speed);test.assertEqual(speed.owner,2);test.assertFalse(!!entity(view,'fleet',child));
   fleet.setVisibilityTo(1,3);view=View.snapshot(game,1);test.assertEqual(entity(view,'fleet',fleet).ships[0].id,child.id);test.assertEqual(entity(view,'fleet',child).ships[0].id,ship.id);test.assertFalse('name' in entity(view,'ship',ship));test.assertEqual(entity(view,'ship',ship).visibility,0);test.assertEqual(entity(view,'ship',ship).type,'battleship');test.assertFalse('course' in entity(view,'ship',ship));
+  const model=require('../src/js/client-state.js').restore({...view,gameId:'a'.repeat(64)});
+  model.port={getDrawingArea:()=>new pdg.Rect(800,600),getTextWidth:(s,size=11)=>String(s).length*size/2};
+  model.display=new (require('../src/js/display.js'))(model);
+  const copy=model.allFleets.find(e=>e.id===child.id),member=model.allShips.find(e=>e.id===ship.id);
+  test.assertTrue(model.showFleetExchange(copy));test.assertTrue(model.getFleetExchangeState().main.includes(member));
+  test.assertEqual(copy.getVisibilityTo(1),0);test.assertFalse(model.canHumanControl(member));
+  test.assertEqual(model.display.getFleetMemberDiagnostics(copy,member).health,'100%');
+  test.assertEqual(model.display.getShipDiagnostics(member).health,'?');
  }));
  test.it('keeps the existing ship faction marker at Speed while gating inspector fields and enemy courses',()=>fixture(({game,ship,fleet})=>{
   fleet.removeShip(ship);ship.course.replace({x:1234,y:5678,name:'Secret order'});

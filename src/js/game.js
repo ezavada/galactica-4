@@ -1758,8 +1758,19 @@ class Game {
 
     canViewFleetExchange(container) {
         if(this.factory.isStar(container))return this.stars.includes(container) && this.canViewSystemShips(container);
-        return this.factory.isFleet(container) && this.allFleets.includes(container) &&
-            !!this.display && this.display.getFleetKnowledge(container).contents;
+        // V3's fleet table opens a selected subgroup without rechecking its
+        // independent scanner visibility. Inherit table access only through a
+        // live, registered and reciprocal containment chain; never alter map knowledge.
+        const seen=new Set();
+        while(this.factory.isFleet(container) && this.allFleets.includes(container) &&
+                !container.isDead() && !container.underConstruction() && !seen.has(container)) {
+            seen.add(container);
+            if(this.display && this.display.getFleetKnowledge(container).contents)return true;
+            const parent=container.fleet;
+            if(!parent || !parent.ships.includes(container))return false;
+            container=parent;
+        }
+        return false;
     }
 
     showFleetExchange(container) {

@@ -41,6 +41,33 @@ module.exports=()=>test.describe('Shared-container fleet exchange',()=>{
   test.assertTrue(click('fleetExchangeParent'));test.assertTrue(game.fleetExchange.container===fleet);
   test.assertTrue(click('fleetExchangeParent'));test.assertTrue(game.fleetExchange.container===star);
  });
+ test.it('opens independently hidden subgroups through Class-visible fleet tables and revokes inherited access',()=>{
+  const {game,display,fleet,ships,select,click}=fixture();
+  const child=game.factory.createFleet(fleet.x,fleet.y,2,'Secret subgroup');child.addShip(ships[0]);fleet.addShip(child);
+  const inner=game.factory.createFleet(fleet.x,fleet.y,2,'Secret inner');inner.addShip(ships[0]);child.addShip(inner);
+  fleet.owner=2;fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);
+  for(const object of [child,inner,ships[0]]){object.owner=2;object.setVisibilityTo(1,Common.VisibilityLevel.NONE);}
+  ships[0].name='Private member';ships[0].damage=ships[0].power*25;
+  test.assertTrue(game.showFleetExchange(fleet));test.assertTrue(select('main',child));
+  test.assertTrue(game.fleetExchange.active===child);test.assertTrue(game.getFleetExchangeState().sub.includes(inner));
+  test.assertTrue(click('fleetExchangeOpen'));test.assertTrue(game.fleetExchange.container===child);
+  test.assertTrue(select('main',inner));test.assertTrue(click('fleetExchangeOpen'));
+  const row=display.getFleetExchangeLayout().lists[0].rows[0];test.assertTrue(row.object===ships[0]);test.assertEqual(row.data.health,'75%');
+  test.assertFalse(row.data.title.includes(ships[0].name));test.assertFalse(game.canExchangeFleetMember());
+  test.assertEqual(display.getFleetKnowledge(inner).level,Common.VisibilityLevel.NONE);
+  test.assertEqual(display.getShipDiagnostics(ships[0]).health,'?');
+  test.assertTrue(click('fleetExchangeParent'));test.assertTrue(game.fleetExchange.container===child);
+  fleet.setVisibilityTo(1,Common.VisibilityLevel.TECH);test.assertFalse(game.canViewFleetExchange(inner));test.assertNull(game.getFleetExchangeState());
+  fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);test.assertTrue(game.canViewFleetExchange(inner));
+  child.ships.splice(child.ships.indexOf(inner),1);test.assertFalse(game.canViewFleetExchange(inner));child.ships.push(inner);
+  game.entityRemoved(child);test.assertFalse(game.canViewFleetExchange(inner));
+ });
+ test.it('refuses inherited table access through a hidden containment cycle',()=>{
+  const {game,fleet}=fixture(),child=game.factory.createFleet(fleet.x,fleet.y,2,'Cycle');
+  fleet.owner=2;fleet.setVisibilityTo(1,0);child.setVisibilityTo(1,0);
+  fleet.fleet=child;child.ships.push(fleet);child.fleet=fleet;fleet.ships.push(child);
+  test.assertFalse(game.canViewFleetExchange(child));test.assertFalse(game.canViewFleetExchange(fleet));
+ });
  test.it('refuses stale destinations without silently creating a replacement fleet',()=>{
   const {game,star,fleet,ships,select}=fixture();game.showFleetExchange(star);select('main',fleet);select('main',ships[2]);
   game.entityRemoved(fleet);const count=game.allFleets.length;
