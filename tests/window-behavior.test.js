@@ -63,6 +63,17 @@ module.exports=()=>test.describe('System window modality and title dragging',()=
    }
   }}finally{pdg.res.setLanguage(language);}
  });
+ test.it('keeps complete literal document messages accessible without overlapping controls in all six languages',()=>{
+  const Documents=require('../src/js/documents.js'),{game}=fixture(),session={game},docs=new Documents({cancelPick:()=>{}},()=>session,()=>{},()=>{}),language=pdg.res.getLanguage(),name=Array.from({length:8},(_,i)=>'Folder '+i+' '+('path'.repeat(14))).join('/')+'/Final  星.gad4.json';
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);for(const [width,height] of [[800,600],[640,340],[320,340]]){
+   docs.status(848,name);const expected=docs.dialog.message;let text='',pages=0;
+   do{const layout=docs.layout(width,height,(t,size)=>Array.from(t).length*size/2);test.assertTrue(layout.messageLines.length>0);test.assertTrue(layout.messageLines.every(line=>Array.from(line).length*13/2<=layout.rect.width-48));
+    const bottom=layout.rect.y+78+(layout.messageLines.length-1)*19;test.assertTrue(layout.buttons.every(b=>bottom+8<=b.rect.y));text+=layout.messageLines.join('');pages++;
+    if(layout.messagePage===layout.messagePageCount-1)break;test.assertTrue(docs.key(pdg.key_RightArrow));
+   }while(pages<100);
+   test.assertEqual(text,expected);test.assertTrue(pages>1);test.assertEqual(docs.dialog.kind,'status');test.assertTrue(docs.key(pdg.key_LeftArrow));test.assertEqual(docs.dialog.messagePage,pages-2);test.assertTrue(docs.key(13));test.assertEqual(docs.dialog,null);
+  }}}finally{pdg.res.setLanguage(language);}
+ });
  test.it('clunks outside system windows without changing the map, while Events allows map input',()=>{
   const {game,display}=fixture(),cues=[];game.sound={play:id=>cues.push(id)};
   for(const name of ['settings','comparison','menu','games','view','mapDisplay','colonyDefaults','fleets','systemComparison']){

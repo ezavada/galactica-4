@@ -1,3 +1,4 @@
+const wrap=require('./text-wrapping.js');
 const Save=require('./game-save.js'),Files=require('./document-files.js'),Name=require('./player-name.js'),I18n=require('./i18n.js');
 class Documents {
     constructor(files,active,install,replace,close=()=>false) {this.files=files;this.active=active;this.install=install;this.replace=replace;this.close=close;this.pendingClose=null;this.dialog=null;this.sequence=0;this.onClosed=()=>{};this.onCanceled=()=>{};this.quitPending=false;}
@@ -70,6 +71,7 @@ class Documents {
         }catch(error){if(token===this.sequence)this.status(846);return false;}
     }
     action(action) {
+        if(['messagePrevious','messageNext'].includes(action)){const d=this.dialog;if(!d || !d.messagePageCount || d.messagePageCount<2)return false;d.messagePage=Math.max(0,Math.min(d.messagePageCount-1,(d.messagePage || 0)+(action==='messageNext'?1:-1)));return true;}
         if(action==='cancel' || action==='ack')return this.cancel();
         if(action==='openHost')return !!(this.openHost && this.openHost());
         if(action==='host')return !!(this.host && this.host());
@@ -85,6 +87,7 @@ class Documents {
     key(key) {
         const dialog=this.dialog;if(!dialog)return false;
         if(key===pdg.key_Escape)return this.cancel();
+        if(dialog.messagePageCount>1 && [pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))return this.action(key===pdg.key_LeftArrow?'messagePrevious':'messageNext');
         if(dialog.kind==='menu' && (key===81 || key===113))return !!(this.quit && this.quit());
         if(dialog.kind==='menu' && [72,104].includes(key))return !!(this.host && this.host());
         if(dialog.kind==='menu' && [74,106].includes(key))return !!(this.join && this.join());
@@ -93,7 +96,7 @@ class Documents {
         if(key===13 || key===3){if(dialog.kind==='close')this.beginSave();else if(dialog.kind==='revert')this.revert();else if(dialog.kind==='overwrite')this.save(dialog.name,true);else if(dialog.kind==='status')this.cancel();}
         return true;
     }
-    layout(width,height,measure=(text,size)=>Array.from(String(text)).length*size/2) {
+    layout(width,height,measure=this.measure || ((text,size)=>Array.from(String(text)).length*size/2)) {
         const dialog=this.dialog;if(!dialog)return null;
         if(dialog.kind==='editor')return Name.layout(width,height,dialog.operation==='save'?I18n.getString(839):I18n.getString(841));
         const dialogHeight=dialog.kind==='menu'?Math.min(384,height-20):300,rect={x:(width-Math.min(480,width-40))/2,y:(height-dialogHeight)/2,width:Math.min(480,width-40),height:dialogHeight};
@@ -114,7 +117,20 @@ class Documents {
             const startY=dialog.kind==='close'?164:stacked?rect.height-18-(buttons.length*40-10):248;
             buttons=buttons.map((button,index)=>({...button,key:keys[index],rect:{x:rect.x+24+(stacked?0:index*(buttonWidth+gap)),y:rect.y+startY+(stacked?index*40:0),width:stacked?rect.width-48:buttonWidth,height:30}}));
         }
-        return {rect,title,message,buttons};
+        let messageLines=[],messagePage=0,messagePageCount=1;
+        if(message){
+            const lines=wrap(message,rect.width-48,text=>measure(text,13)),firstButtonY=buttons.length?Math.min(...buttons.map(b=>b.rect.y-rect.y)):rect.height-18;
+            const capacity=bottom=>Math.max(1,Math.floor((bottom-12-78)/19)+1);
+            let count=capacity(firstButtonY);
+            if(lines.length>count){
+                const pagerY=firstButtonY-38;count=capacity(pagerY);messagePageCount=Math.ceil(lines.length/count);
+                messagePage=Math.max(0,Math.min(messagePageCount-1,dialog.messagePage || 0));
+                buttons.push(...['messagePrevious','messageNext'].map((action,index)=>({action,label:I18n.getString(index?1034:1033),key:index?'→':'←',disabled:index?messagePage===messagePageCount-1:messagePage===0,rect:{x:rect.x+24+index*((rect.width-48)/2+4),y:rect.y+pagerY,width:(rect.width-48)/2-4,height:26}})));
+            }
+            messageLines=lines.slice(messagePage*count,(messagePage+1)*count);
+            dialog.messagePage=messagePage;dialog.messagePageCount=messagePageCount;
+        }
+        return {rect,title,message,messageLines,messagePage,messagePageCount,buttons};
     }
 }
 module.exports=Documents;

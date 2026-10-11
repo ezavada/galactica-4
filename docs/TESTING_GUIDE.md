@@ -935,3 +935,30 @@ real post-game production, the unchanged recorded result and complete save data.
 No direct `markGameWon`/`endTurn` call substitutes for the tested UI actions.
 Local continuation is implemented; multiplayer host clocks/posting still need
 separate post-game work.
+
+
+### Desktop document busy/status/error windows
+
+```bash
+node tools/test-web-document-status.cjs BUILD_DIR SCREENSHOT_DIR en after 640 340
+```
+
+Repeat for de/es/fr/ja/ru and 800×600/320×340. Use `before` with the preceding
+application build to verify its truncated caption and compare screenshots.
+`PDG_EXECUTABLE` selects the native bridge runtime; otherwise `gad4` uses the
+configured release runtime. The helper starts its own temporary localhost
+bridge and muted Chrome, then opens an actual saved game and exercises real
+native writes/reads, saved-content checks, canceled late Open/Revert results,
+noncancelable atomic Save, true ENOTDIR/corrupt/missing-file errors and recovery.
+It also checks each busy/status/error modal's drag, clunk and action behavior.
+The fixed build must reconstruct the entire long literal caption using actual
+paging buttons and Left/Right shortcuts. Both the native bridge and browser
+are muted; ordinary gameplay sound remains enabled. This does not exercise
+an operating-system picker or establish physical native-window focus behavior.
+
+Current audit: 36 actual-input runs pass in all six languages and three
+viewport sizes. Of 342 paired screenshots, 288 match exactly; only the 54
+saved-message scenes change. Evidence is in
+`/private/tmp/galactica-document-message/verified` and
+`galactica-document-message-verified-comparison.json`. Full native suites on
+public/private runtimes pass 1,761 tests; no public PDG changes are made.

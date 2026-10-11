@@ -78,6 +78,8 @@ let tutorialPanel=null;
 let tutorialPointerCapture=false;
 const documents=new (require('./src/js/documents.js'))(require('./src/js/document-files.js').createFiles(),()=>sessions.active,installSavedGame,revertSavedGame,closeActiveGame);
 
+documents.measure=(text,size)=>port.getTextWidth(text,size);
+
 const QuitDocuments=require('./src/js/quit-documents.js');
 const quitDocuments=new QuitDocuments.QuitDocuments(sessions,documents,{
     activate:activateQuitDocument,capture:captureQuitState,restore:restoreQuitState,exit:finishQuit
@@ -962,22 +964,8 @@ function drawDocumentDialog() {
     PanelAppearance.applySystemSurface(startupStyles.panel,r);drawStartupRoundedRect(r,14,startupStyles.panel);
     startupStyles.subtitleText.textSize(16);startupStyles.lineText.textSize(13);startupStyles.advantageText.textSize(13);
     port.drawText(layout.title,new pdg.Point(r.x+r.width/2,r.y+34),startupStyles.subtitleText);
-    if(layout.message) {
-        const lines=[];let remaining=Array.from(layout.message);
-        while(remaining.length) {
-            let count=remaining.length;
-            while(count>1 && port.getTextWidth(remaining.slice(0,count).join(''),13)>r.width-48)count--;
-            if(count<remaining.length) {
-                let boundary=count;
-                while(boundary>0 && !/\s/.test(remaining[boundary]))boundary--;
-                if(boundary>0)count=boundary;
-            }
-            lines.push(remaining.splice(0,count).join('').trim());
-            while(remaining.length && /\s/.test(remaining[0]))remaining.shift();
-        }
-        lines.slice(0,8).forEach((line,index)=>port.drawText(line,new pdg.Point(r.x+24,r.y+78+index*19),startupStyles.lineText));
-    }
-    layout.buttons.forEach(button=>{drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,13,button.key);});
+    layout.messageLines.forEach((line,index)=>port.drawText(line,new pdg.Point(r.x+24,r.y+78+index*19),startupStyles.lineText));
+    layout.buttons.forEach(button=>{drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);const attrs=button.disabled?(startupStyles.documentDisabledText || (startupStyles.documentDisabledText=createStartupAttributes({fillColor:new pdg.Color(.35,.35,.35,.65)}))):startupStyles.advantageText;drawStartupButtonCaption(button.rect,button.label,attrs,13,button.key);});
 }
 
 function startGame() {
@@ -1166,7 +1154,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     if(documents.dialog){
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const area=port.getDrawingArea(),layout=documents.layout(area.width(),area.height()),p=event.mousePos;
             const contains=r=>p.x>=r.x&&p.x<=r.x+r.width&&p.y>=r.y&&p.y<=r.y+r.height;const button=layout.buttons.find(b=>contains(b.rect));
-            if(button)documents.action(button.action==='cancel'?'cancel':button.action);else if(layout.field&&contains(layout.field))documents.dialog.editor.selected=true;
+            if(button && !button.disabled)documents.action(button.action==='cancel'?'cancel':button.action);else if(layout.field&&contains(layout.field))documents.dialog.editor.selected=true;
         }return true;
     }
     if (sessions.starting || !game) {

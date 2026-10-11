@@ -215,3 +215,16 @@ and actual browser input checks all six languages at 800×600, 640×340 and
 recovery. Long user-supplied titles remain literal; optional legacy host fields
 are omitted rather than assigned invented defaults. Both full native suites
 pass 1,759 tests. Evidence shares `/private/tmp/galactica-lobby-information`.
+
+
+Desktop document status captions now preserve complete literal paths through
+measured wrapping and paging. Existing Previous/Next and acknowledgment
+resources are reused in en/de/es/fr/ja/ru; no new strings are required. Native
+coverage reconstructs the exact caption, including double spaces and Unicode,
+and checks that text stays clear of controls. Actual browser/native-I/O
+before/after runs pass in all six languages at 800×600, 640×340 and 320×340,
+including localized save, corrupt-file and missing-file errors and canceled
+late reads. Compact/narrow first/final pages were visually inspected. Both
+full native suites pass 1,761 tests. Evidence:
+`/private/tmp/galactica-document-message/verified` and the corresponding
+`galactica-document-message-*` logs/comparison report.
