@@ -7,6 +7,19 @@ function fixture(owner=2) {
  return {game,display,star,homes,build:type=>{star.startBuildingShip(type);return star.completeShip();},reports:()=>game.eventLog.filter(e=>e.commissioning)};
 }
 module.exports=()=>test.describe('V3 first-class commissioning broadcasts',()=>{
+ test.it('retains source owner technology, class and origin in every localized hull commissioning narrative',()=>{
+  const I18n=require('../src/js/i18n.js'),language=pdg.res.getLanguage();
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);for(const type of ['defense','scout','colony','battleship']){
+   const f=fixture(1);f.star.techLevel=15;f.build(type);const event=f.reports().find(e=>e.recipient===1);
+   test.assertTrue(event.message.includes(I18n.formatInteger(15)),lang+' '+type+' owner tech level missing');
+   test.assertContains(event.message,event.commissioning.name);test.assertContains(event.message,'Origin 星 $&');test.assertFalse(/\{\d+\}/.test(event.message));
+   const original=event.message;f.star.name='Changed';f.star.techLevel=20;test.assertEqual(event.message,original);
+   f.game.clearEventPresentations();test.assertTrue(f.game.replayReport(event));const layout=f.display.getReportLayout(f.game.overlay);
+   for(const line of layout.lines)test.assertTrue(f.game.port.getTextWidth(line,13)<=layout.rect.width-40);
+   delete f.game.rules.getStarResearchAmount;const loaded=Save.restore(Save.serialize(f.game));test.assertEqual(loaded.eventLog.find(e=>e.id===event.id).message,original);
+  }}}finally{pdg.res.setLanguage(language);}
+ });
+
  test.it('automatically plays the observer cue without dimming or a dialog and retains manual narrative review',()=>{
   const f=fixture();f.star.setVisibilityTo(1,Common.VisibilityLevel.CLASS);f.build('scout');const event=f.reports().find(e=>e.recipient===1);
   test.assertTrue(f.game.overlay.animationOnly);test.assertTrue(f.game.overlay.automaticObserver);

@@ -5744,3 +5744,47 @@ No new user-facing strings are required. The Galaxy map with grid row is
 complete; Section 2's estimate is recomputed over its 19 counted rows,
 with replay and fullscreen still partial. The broader parity and Map
 Generation goal remains open.
+
+
+### Owner commissioning reports: retain the source technology detail
+
+A direct STR#500 comparison found a concrete omission in the owner first-class
+commissioning narrative. Shipped entry 18 identifies the new class, technology
+level and construction system. V4 already retained all three in metadata and
+its observer text, but owner text 925 omitted the technology level. The owner
+Stardock illustration/caption did not make the saved narrative complete.
+
+Owner text 925 now includes the locale-formatted technology level in English,
+German, Spanish, French, Japanese and Russian. Class/role, origin and the
+existing role-help paragraph remain. Values are substituted when the report
+is created, retaining literal Unicode and `$&` names and immutable history
+through later technology/name changes and saves. Historical saved strings
+remain unchanged rather than being reconstructed from current objects.
+No emitter, recipient, privacy, cue or illustration behavior changes.
+
+A real hull-completion regression covers all four hull roles in all six
+languages, checking the owner technology/class/origin, resolved placeholders,
+name-safe snapshots, wrapped report layout and save/restore. The baseline
+failed this new requirement while 1730 other tests passed. Both complete
+muted native suites now pass 1731 tests, zero failures, recorded in
+`/private/tmp/galactica-owner-commissioning-{public,devel}-unit.log`.
+The fixture's research override is removed before serialization, consistent
+with the existing save tests and actual save format.
+
+`tools/test-web-owner-commissioning.cjs` retains the existing class/discovery
+observer and private owner-art checks, and adds actual Events owner-row
+selection and View report. Before/after runs pass in all six languages.
+The 60 paired screenshots under
+`/private/tmp/galactica-owner-commissioning/{before,after}/<language>` contain
+12 changed owner event-list/narrative views and 48 pixel-identical views,
+including owner artwork and every discovery/observer view. All six localized
+narrative comparisons were visually inspected; the added technology fits
+the layout, with normal wrapping in Russian. Comparison evidence is in
+`/private/tmp/galactica-owner-commissioning-comparison.json`; browser logs use
+`/private/tmp/galactica-owner-commissioning-{before,after}-<language>.log`.
+The updated independent web app is
+`/private/tmp/galactica-owner-commissioning-after-app`.
+The five event-resource import checks also pass against the peer shipped-v3
+checkout (`/private/tmp/galactica-event-coverage-source.log`). This completes
+the concrete owner-text omission, while the broader event/attention and
+Map Generation audits remain open.

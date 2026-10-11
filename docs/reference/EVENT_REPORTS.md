@@ -453,3 +453,19 @@ coverage, with current source-backed Lab/Stardock asset expectations.
 This closes the source Stardock composition/lookup gap, not every remaining
 art/window requirement. The decoder limits and broader checklist remain
 separately tracked above and in V3_V4_FEATURE_STATUS.md.
+
+
+## Owner commissioning technology detail audit
+
+The owner STR#500/18 narrative names the class, technology and construction
+system. Owner v4 text 925 now includes the locale-formatted technology in all
+six supported languages, alongside the existing class/origin and role help.
+Observer text 957 already included it. Commissioning snapshots stay immutable;
+old saved text is preserved. Real completion tests cover all four hull roles
+and all six languages, including literal names, wrapping and save/restore.
+Both complete native suites pass 1731 tests. Actual owner Events review and
+class/discovery browser checks pass in all six languages; 60 before/after
+captures contain 12 changed owner list/narrative views and 48 identical views.
+Evidence and scope are recorded in the owner commissioning audit in
+`docs/V3_V4_FEATURE_STATUS.md`. This fixes one verified STR#500 omission and
+does not by itself establish blanket parity of every event or artwork role.

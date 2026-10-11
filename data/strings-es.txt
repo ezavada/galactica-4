@@ -563,7 +563,7 @@
 922	Explorador/Mensajero: rápido y desarmado, con escáner. Explora el espacio y transporta tecnología entre sistemas aliados; los mensajeros adquieren la tecnología de los sistemas que visitan.
 923	Nave colonial: costosa y lenta. Sobrevive a la colonización y la conquista y puede fundar más colonias. Escóltala por el espacio hostil.
 924	Acorazado: nave de combate móvil para atacar y escoltar. Una tecnología superior aumenta su potencia de combate y desbloquea clases más fuertes con nombre propio. No tiene escáner.
-925	Primera unidad de tipo {0} puesta en servicio en {1}.
+925	Primera unidad de tipo {0}, nivel tecnológico {2}, puesta en servicio en {1}.
 926	Ganaste la batalla en {0}. Tu fuerza: {1}. Naves propias perdidas: {2}. Naves enemigas destruidas: {3}.
 927	Perdiste la batalla en {0}. Tu fuerza: {1}. Naves propias perdidas: {2}. Naves enemigas destruidas: {3}.
 928	La batalla en {0} no tuvo un vencedor. Tu fuerza: {1}. Naves propias perdidas: {2}. Naves enemigas destruidas: {3}.

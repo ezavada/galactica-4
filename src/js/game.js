@@ -3635,7 +3635,7 @@ class Game {
             const observer=recipient!==owner;
             const message=observer?I18n.formatString(957,'{0} commissioned a new {1} class starship, tech level {2}, at {3}.',
                 ownerName,name,I18n.formatInteger(ship.techLevel),star.name):
-                I18n.formatString(925,'First {0} commissioned at {1}.',name,star.name)+'\n\n'+
+                I18n.formatString(925,'First {0} commissioned at {1}, tech level {2}.',name,star.name,I18n.formatInteger(ship.techLevel))+'\n\n'+
                     I18n.getString({defense:921,scout:922,colony:923,battleship:924}[ship.type]);
             const event=this.recordEvent(I18n.getString(611,'Stardock'),message,
                 {type:Common.EventType.NEW_SHIP_CLASS,subject:star,position:star,recipient});
