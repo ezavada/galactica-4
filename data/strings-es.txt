@@ -882,3 +882,4 @@
 1179	Número de propietario: 0–{0}. Cero significa sin propietario.
 1180	Nivel tecnológico: 0–65535.
 1181	Edita población, tecnología y propietario de los sistemas o crea naves terminadas en el primer turno.
+1182	Recordar la contraseña en este dispositivo

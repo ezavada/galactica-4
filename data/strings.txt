@@ -882,3 +882,4 @@
 1179	Owner number: 0–{0}. Zero means unowned.
 1180	Technology level: 0–65535.
 1181	Edit system population, technology, ownership or create completed ships during turn one.
+1182	Remember password on this device

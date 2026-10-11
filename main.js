@@ -86,7 +86,7 @@ documents.quit=()=>requestApplicationQuit();
 const networkDisconnects=new Set();
 function disconnectNetworkClient(client){const pending=client.disconnect();networkDisconnects.add(pending);Promise.resolve(pending).finally(()=>networkDisconnects.delete(pending));return pending;}
 const networkJoin=new (require('./src/js/network-join.js')).JoinWindow({
-    install:installNetworkGame,find:(address,gameId,name,role)=>{const s=sessions.sessions.find(s=>s.network && s.network.address===address && s.network.identity && s.network.identity.gameId===gameId && (role==='administrator'?s.network.identity.role==='administrator':s.network.identity.role!=='administrator' && s.network.identity.name===name));return s?s.network:null;},defaultName:()=>playerNamePreferences.read() || I18n.getString(17,'You')
+    passwordPreferences:require('./src/js/network-password-preferences.js').createPreferences(),install:installNetworkGame,find:(address,gameId,name,role)=>{const s=sessions.sessions.find(s=>s.network && s.network.address===address && s.network.identity && s.network.identity.gameId===gameId && (role==='administrator'?s.network.identity.role==='administrator':s.network.identity.role!=='administrator' && s.network.identity.name===name));return s?s.network:null;},defaultName:()=>playerNamePreferences.read() || I18n.getString(17,'You')
 });
 documents.join=openNetworkJoin;
 const hostedGames=require('./src/js/host-games.js').createService();
@@ -437,11 +437,12 @@ function drawNetworkJoin(){
         if(networkJoin.focus===field.name && !editor.selected)port.drawLine(new pdg.Point(f.x+10+visible.caret,f.y+5),new pdg.Point(f.x+10+visible.caret,f.y+f.height-5),startupStyles.checkboxMark);
     }
     if(networkJoin.info){const info=networkJoin.info,title=I18n.formatString(1014,'',info.title,info.turn),counts=I18n.formatString(1015,'',info.humans,info.computers);
-        startupStyles.lineText.textSize(fit(title,r.width-48));port.drawText(title,new pdg.Point(r.x+24,r.y+260*scale),startupStyles.lineText);
-        startupStyles.lineText.textSize(12);port.drawText(counts,new pdg.Point(r.x+24,r.y+282*scale),startupStyles.lineText);
+        startupStyles.lineText.textSize(fit(title,r.width-48));port.drawText(title,new pdg.Point(r.x+24,r.y+(layout.infoTitleY || 260)*scale),startupStyles.lineText);
+        startupStyles.lineText.textSize(12);port.drawText(counts,new pdg.Point(r.x+24,r.y+(layout.infoCountsY || 282)*scale),startupStyles.lineText);
     }
     for(const row of layout.slots){drawStartupRoundedRect(row.rect,4,startupStyles.advantageButton);startupStyles.lineText.textSize(fit(row.label,row.rect.width-20,12));port.drawText(row.label,new pdg.Point(row.rect.x+10,row.rect.y+18*scale),startupStyles.lineText);}
-    startupStyles.hintText.textSize(fit(networkJoin.message,r.width-48,12));port.drawText(networkJoin.message,new pdg.Point(r.x+24,r.y+477*scale),startupStyles.hintText);
+    startupStyles.hintText.textSize(fit(networkJoin.message,r.width-48,12));port.drawText(networkJoin.message,new pdg.Point(r.x+24,r.y+(layout.messageY || 477)*scale),startupStyles.hintText);
+    for(const check of layout.checks || [])drawStartupCheckbox(check.rect,check.label,check.value,scale);
     for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,button.action===networkJoin.mode?startupStyles.advantageButtonActive:startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,fit(button.label,button.rect.width-16,12),button.key);}
 }
 
@@ -1079,7 +1080,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     if(networkJoin.active){
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const area=port.getDrawingArea(),layout=networkJoin.layout(area.width(),area.height()),p=event.mousePos;
             const contains=r=>p.x>=r.x&&p.x<=r.x+r.width&&p.y>=r.y&&p.y<=r.y+r.height,button=layout.buttons.find(b=>contains(b.rect)),field=layout.fields.find(f=>contains(f.rect)),slot=layout.slots.find(s=>contains(s.rect));
-            if(button)networkJoin.action(button.action);else if(!networkJoin.busy && field){networkJoin.focus=field.name;networkJoin[field.name].selected=true;}else if(slot)networkJoin.selectSlot(slot.slot);
+            if(button)networkJoin.action(button.action);else if((layout.checks || []).some(c=>p.x>=c.rect.x && p.x<c.rect.x+c.rect.width && p.y>=c.rect.y && p.y<c.rect.y+c.rect.height))networkJoin.action('rememberPassword');else if(!networkJoin.busy && field){networkJoin.focus=field.name;networkJoin[field.name].selected=true;}else if(slot)networkJoin.selectSlot(slot.slot);
         }return true;
     }
     if(userManual.error()) {

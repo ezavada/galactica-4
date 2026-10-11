@@ -712,3 +712,22 @@ editing, administrator login and map editing, observer refresh and rejection
 when the turn advances with a draft open. Inspect before/after host status,
 translated system lists and numeric/hull dialogs. Full current suite:
 **1,581 passed on both PDG runtimes**.
+
+### Remembered multiplayer passwords
+
+```sh
+./gad4 tools/test-network-join.js
+./gad4 tools/test-network-passwords.js
+PDG_EXECUTABLE=/path/to/public/pdg ./gad4 tools/test-network-join.js
+PDG_EXECUTABLE=/path/to/public/pdg ./gad4 tools/test-network-passwords.js
+node tools/test-web-host-setup.cjs BEFORE_BUILD_DIR BEFORE_SCREENSHOTS en before-passwords
+node tools/test-web-host-setup.cjs BUILD_DIR AFTER_SCREENSHOTS en passwords
+```
+
+The native password runner covers all six languages with isolated test preferences
+and actual host listeners. Browser checks should be repeated for de/es/fr/ja/ru:
+default-off checkbox, opt-in, masked restoration, failed/cancelled preservation,
+role separation, actual application reload, forgetting after a successful
+unchecked login, and public descriptor privacy. Inspect before/after Join,
+restored/rejected rejoin and administrator layouts. Output remains muted.
+Current full suite: **1,589 passed on both PDG runtimes**.

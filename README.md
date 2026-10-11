@@ -237,8 +237,16 @@ Host ownership changes seed empty population/technology to one, as in v3; local
 ownership changes preserve zeros. Editing closes after turn one. Host writes
 are atomic, and failed writes keep the draft available for retry.
 
+**Remember password on this device** is optional in Join/Rejoin, including
+administrator login. It starts off for new identities. After a successful login,
+checked credentials are saved in this device’s browser or native application
+preferences and restored only for the same host, game, player and role. To forget
+a saved password, uncheck the option and log in successfully. Failed or cancelled
+logins preserve the previous preference. Password fields stay masked; connection
+descriptors and game/host saves contain no remembered plaintext credentials.
+
 Multiplayer remains incomplete: discovery, chat,
-optional saved passwords and network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
+saved host lists and network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
 
@@ -247,7 +255,7 @@ optional saved passwords and network-game saving are still being ported. See [th
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1581 passed, 0 failed.
+Current expected result: 1589 passed, 0 failed.
 
 AI-only parity observer:
 

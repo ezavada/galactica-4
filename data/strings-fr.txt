@@ -882,3 +882,4 @@
 1179	Numéro du propriétaire : 0–{0}. Zéro signifie sans propriétaire.
 1180	Niveau technologique : 0–65535.
 1181	Au premier tour, modifiez la population, la technologie et le propriétaire des systèmes ou créez des vaisseaux achevés.
+1182	Mémoriser le mot de passe sur cet appareil

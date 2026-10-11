@@ -882,3 +882,4 @@
 1179	Besitzernummer: 0–{0}. Null bedeutet unbesetzt.
 1180	Technologiestufe: 0–65535.
 1181	In Runde eins Bevölkerung, Technologie und Besitz von Systemen ändern oder fertige Schiffe erstellen.
+1182	Passwort auf diesem Gerät speichern
