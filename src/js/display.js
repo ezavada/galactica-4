@@ -1812,7 +1812,7 @@ class Display {
     }
     drawEndTurnConfirm() {
         const r=this.getEndTurnConfirmRect();this.drawWindowPanel(r,this.STR.endTurn);
-        this.drawTextLine(I18n.formatPluralString(746,'{0} item still needs attention.|{0} items still need attention.',this.game.attention.pending().length+(this.game.overlay?1:0)+(this.game.overlayQueue||[]).length),r.x+14,r.y+62,'lightgray',12);
+        this.drawTextLine(I18n.formatPluralString(746,'{0} item still needs attention.|{0} items still need attention.',this.game.getUnreviewedItemCount()),r.x+14,r.y+62,'lightgray',12);
         for(const button of this.getEndTurnConfirmActions())this.drawUIButton(button.rect,button.label,button.key,{size:11});
         this.drawTextLine(this.STR.escClose,r.x+14,r.y+142,'gray',10);
     }

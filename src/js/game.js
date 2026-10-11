@@ -2701,11 +2701,20 @@ class Game {
         return true;
     }
 
+    getUnreviewedItemCount() {
+        // A presentation and its attention entry refer to the same report.
+        // Anonymous requests/presentations still represent independent items.
+        const items=new Set(this.attention.pending().map(entry=>entry.event?entry.event.id:entry));
+        for(const overlay of [this.overlay,...(this.overlayQueue || [])])
+            if(overlay)items.add(overlay.eventId ?? overlay);
+        return items.size;
+    }
+
     requestEndTurn() {
         if(this.clientAdministrator)return false;
         if(this.clientPlayerNum && this.clientTurnPosted)return false;
         if(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag || this.uiWindowDrag || this.mapSelectionPicker)return false;
-        if(this.attention.pending().length || this.hasEventPresentation()) {this.uiWindow='endTurnConfirm';return false;}
+        if(this.getUnreviewedItemCount()>0) {this.uiWindow='endTurnConfirm';return false;}
         this.endTurn();return true;
     }
 

@@ -215,6 +215,25 @@ module.exports=function(){test.describe('V3 human call-ins and attention',()=>{
         test.assertTrue(g.toggleCallIn(fleet));test.assertFalse(ship.userCallIn);g.endTurn();
         test.assertEqual(g.attention.pending().length,1);test.assertTrue(g.attention.pending()[0].object===fleet);
     });
+    test.it('counts actual commissioning reports once across attention and visible or queued presentations, including saves',()=>{
+        const Save=require('../src/js/game-save.js'),{g,home}=fixture();g.uiWindow=null;
+        home.startBuildingShip('scout');home.paidTowardShipBuilding=home.currentShip.cost;home.commissionPaidHulls();g.turn=2;
+        test.assertEqual(g.attention.pending().length,2);test.assertDefined(g.overlay.eventId);test.assertEqual(g.getUnreviewedItemCount(),2);
+        g.overlayQueue.unshift(g.overlay);g.overlay=null;test.assertEqual(g.getUnreviewedItemCount(),2);
+        const turn=g.turn;test.assertFalse(g.requestEndTurn());test.assertEqual(g.turn,turn);
+        const loaded=Save.restore(Save.serialize(g));test.assertEqual(loaded.getUnreviewedItemCount(),2);
+        g.executeUIAction({type:'reviewAttention'});test.assertEqual(g.getUnreviewedItemCount(),2);test.assertNotNull(g.overlay);
+        g.dismissEventPresentation();test.assertEqual(g.getUnreviewedItemCount(),1);
+        g.attention.next();test.assertEqual(g.getUnreviewedItemCount(),0);test.assertEqual(g.turn,turn);
+    });
+    test.it('counts independent anonymous requests and presentations without merging a shared subject',()=>{
+        const {g,ship}=fixture();g.uiWindow=null;g.attention.request(ship,false);
+        const event=g.recordEvent('Attention','Separate report',{subject:ship,recipient:1});g.attention.requestEvent(event);
+        g.overlayQueue=[{type:'lab',classIndex:1}];test.assertEqual(g.getUnreviewedItemCount(),3);
+        test.assertFalse(g.requestEndTurn());g.handleKeyPress(pdg.key_Escape);test.assertEqual(g.getUnreviewedItemCount(),3);
+        g.clearEventPresentations();test.assertEqual(g.getUnreviewedItemCount(),2);
+        g.attention.next();test.assertEqual(g.getUnreviewedItemCount(),1);g.attention.next();test.assertEqual(g.getUnreviewedItemCount(),0);
+    });
     test.it('keeps confirmation modal and restores an event presentation when canceled',()=>{
         const {g}=fixture();g.overlay={type:'lab',classIndex:1};g.requestEndTurn();
         const turn=g.turn;test.assertTrue(g.handleUIClick(2,2));test.assertEqual(g.uiWindow,'endTurnConfirm');

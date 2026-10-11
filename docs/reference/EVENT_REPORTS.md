@@ -521,3 +521,20 @@ report if no manual goto remains. Real paid construction and retained-notice
 browser flows pass in all six languages; both full native suites pass 1736
 tests. Detailed source, privacy/order/save coverage and screenshot evidence are
 recorded in the manual Next audit in `docs/V3_V4_FEATURE_STATUS.md`.
+
+
+## End Turn count and remaining foreign-manual filter
+
+End Turn confirmation now counts each report once across its attention entry
+and active/queued presentation, retaining independent anonymous items. Actual
+localized caption, Cancel/Review and save checks pass in all six languages;
+both full native suites pass 1738 tests. The count audit in
+`docs/V3_V4_FEATURE_STATUS.md` records the source and 72 image comparisons.
+
+The wider source counter pass also excludes foreign manual messages:
+`GalacticaDoc.cp:1568–1570` removes non-autoshow notices that are not about the
+local player, and `CMessage::MessageIsAboutMe` distinguishes winner/loser from
+observer. NewFleet's other-recipient text is emitted, but it is not a source
+manual Next requirement. V4 currently queues that detected observer notice;
+the attention row is reopened for this concrete follow-up. Existing explicit
+observer Events narratives are retained as a v4 review capability.
