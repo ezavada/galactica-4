@@ -883,3 +883,11 @@
 1180	Technologiestufe: 0–65535.
 1181	In Runde eins Bevölkerung, Technologie und Besitz von Systemen ändern oder fertige Schiffe erstellen.
 1182	Passwort auf diesem Gerät speichern
+1183	Gespeicherte Spiele
+1184	Adresse hinzufügen
+1185	Aus Liste entfernen
+1186	Auswahl öffnen
+1187	Keine gespeicherten Spiele. Adresse hinzufügen oder einem Spiel beitreten.
+1188	Die Spieleliste konnte nicht gespeichert werden. Bitte erneut versuchen.
+1189	Adresse eingeben
+1190	Administrator

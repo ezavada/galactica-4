@@ -883,3 +883,11 @@
 1180	Niveau technologique : 0–65535.
 1181	Au premier tour, modifiez la population, la technologie et le propriétaire des systèmes ou créez des vaisseaux achevés.
 1182	Mémoriser le mot de passe sur cet appareil
+1183	Parties mémorisées
+1184	Ajouter une adresse
+1185	Retirer de la liste
+1186	Ouvrir la sélection
+1187	Aucune partie mémorisée. Ajoutez une adresse ou rejoignez une partie.
+1188	Impossible d’enregistrer la liste des parties. Réessayez.
+1189	Saisir une adresse
+1190	Administrateur

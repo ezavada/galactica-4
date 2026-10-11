@@ -302,6 +302,7 @@ runClientStateTests();
 runPlayerOrdersTests();
 runNetworkJoinTests();
 require('./network-password-preferences.test.js')();
+require('./network-host-preferences.test.js')();
 runNetworkClientTests();
     runMapDisplayModeTests();
 

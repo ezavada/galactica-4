@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1501
-Passed: 1501 ✓
+Total: 1597
+Passed: 1597 ✓
 Failed: 0 ✗
 ```
 
@@ -731,3 +731,24 @@ role separation, actual application reload, forgetting after a successful
 unchecked login, and public descriptor privacy. Inspect before/after Join,
 restored/rejected rejoin and administrator layouts. Output remains muted.
 Current full suite: **1,589 passed on both PDG runtimes**.
+
+### Saved multiplayer game lists
+
+```bash
+./gad4 tools/test-network-saved-hosts.js
+PDG_EXECUTABLE=/path/to/public/pdg ./gad4 tools/test-network-saved-hosts.js
+node tools/test-web-host-setup.cjs BEFORE_BUILD_DIR BEFORE_SCREENSHOTS en before-saved-hosts
+node tools/test-web-host-setup.cjs BUILD_DIR AFTER_SCREENSHOTS en saved-hosts
+```
+
+Repeat browser checks for de/es/fr/ja/ru. The native script checks all six
+languages against real temporary hosts. Unit regressions cover canonical
+addresses, authenticated metadata upgrades, game/player/admin identity scope,
+bounded lists, malformed or unavailable preferences, native config isolation,
+keyboard/pager selection and translated layouts. Browser controls exercise
+empty/disabled states, manual address entry, paging/removal, write-failure retry,
+actual player and administrator admission, masked saved passwords and application
+reload. Preferences use an isolated browser profile or in-memory native fixture;
+all hosts and temporary files are cleaned up. Audio output is muted.
+
+Evidence for this item is recorded in V3_V4_FEATURE_STATUS.md after validation.

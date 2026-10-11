@@ -883,3 +883,11 @@
 1180	Nivel tecnológico: 0–65535.
 1181	Edita población, tecnología y propietario de los sistemas o crea naves terminadas en el primer turno.
 1182	Recordar la contraseña en este dispositivo
+1183	Partidas guardadas
+1184	Añadir dirección
+1185	Quitar de la lista
+1186	Abrir selección
+1187	No hay partidas guardadas. Añade una dirección o únete a una partida.
+1188	No se pudo guardar la lista de partidas. Inténtalo de nuevo.
+1189	Introducir dirección
+1190	Administrador

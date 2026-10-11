@@ -86,7 +86,7 @@ documents.quit=()=>requestApplicationQuit();
 const networkDisconnects=new Set();
 function disconnectNetworkClient(client){const pending=client.disconnect();networkDisconnects.add(pending);Promise.resolve(pending).finally(()=>networkDisconnects.delete(pending));return pending;}
 const networkJoin=new (require('./src/js/network-join.js')).JoinWindow({
-    passwordPreferences:require('./src/js/network-password-preferences.js').createPreferences(),install:installNetworkGame,find:(address,gameId,name,role)=>{const s=sessions.sessions.find(s=>s.network && s.network.address===address && s.network.identity && s.network.identity.gameId===gameId && (role==='administrator'?s.network.identity.role==='administrator':s.network.identity.role!=='administrator' && s.network.identity.name===name));return s?s.network:null;},defaultName:()=>playerNamePreferences.read() || I18n.getString(17,'You')
+    hostPreferences:require('./src/js/network-host-preferences.js').createPreferences(),passwordPreferences:require('./src/js/network-password-preferences.js').createPreferences(),install:installNetworkGame,find:(address,gameId,name,role)=>{const s=sessions.sessions.find(s=>s.network && s.network.address===address && s.network.identity && s.network.identity.gameId===gameId && (role==='administrator'?s.network.identity.role==='administrator':s.network.identity.role!=='administrator' && s.network.identity.name===name));return s?s.network:null;},defaultName:()=>playerNamePreferences.read() || I18n.getString(17,'You')
 });
 documents.join=openNetworkJoin;
 const hostedGames=require('./src/js/host-games.js').createService();
@@ -425,7 +425,7 @@ function drawNetworkJoin(){
     port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.dim);
     PanelAppearance.applySystemSurface(startupStyles.panel,r);drawStartupRoundedRect(r,14,startupStyles.panel);
     startupStyles.subtitleText.textSize(16);startupStyles.lineText.textSize(13);startupStyles.hintText.textSize(12);
-    port.drawText(I18n.getString(1005),new pdg.Point(r.x+r.width/2,r.y+34*scale),startupStyles.subtitleText);
+    port.drawText(layout.title || I18n.getString(1005),new pdg.Point(r.x+r.width/2,r.y+34*scale),startupStyles.subtitleText);
     const fit=(text,width,size=13)=>{while(size>9 && port.getTextWidth(text,size)>width)size--;return size;};
     for(const field of layout.fields){const editor=networkJoin[field.name],f=field.rect;
         startupStyles.lineText.textSize(fit(field.label,108));port.drawText(field.label,new pdg.Point(field.labelPoint.x,field.labelPoint.y),startupStyles.lineText);
@@ -440,10 +440,12 @@ function drawNetworkJoin(){
         startupStyles.lineText.textSize(fit(title,r.width-48));port.drawText(title,new pdg.Point(r.x+24,r.y+(layout.infoTitleY || 260)*scale),startupStyles.lineText);
         startupStyles.lineText.textSize(12);port.drawText(counts,new pdg.Point(r.x+24,r.y+(layout.infoCountsY || 282)*scale),startupStyles.lineText);
     }
+    for(const label of layout.labels || []){startupStyles.lineText.textSize(fit(label.text,label.rect.width,12));const visible=PlayerName.visibleText({...PlayerName.createEditor(label.text,1024),caret:0},label.rect.width,t=>port.getTextWidth(t,12));port.drawText(visible.text,new pdg.Point(label.rect.x,label.rect.y+18*scale),startupStyles.lineText);}
+    for(const choice of layout.choices || []){drawStartupRoundedRect(choice.rect,5,choice.active?startupStyles.advantageButtonActive:startupStyles.advantageButton);for(const [index,text] of [choice.label,choice.detail].entries()){const size=fit(text,choice.rect.width-20,index?11:13),visible=PlayerName.visibleText({...PlayerName.createEditor(text,1024),caret:0},choice.rect.width-20,t=>port.getTextWidth(t,size));startupStyles.lineText.textSize(size);port.drawText(visible.text,new pdg.Point(choice.rect.x+10,choice.rect.y+(18+index*20)*scale),startupStyles.lineText);}}
     for(const row of layout.slots){drawStartupRoundedRect(row.rect,4,startupStyles.advantageButton);startupStyles.lineText.textSize(fit(row.label,row.rect.width-20,12));port.drawText(row.label,new pdg.Point(row.rect.x+10,row.rect.y+18*scale),startupStyles.lineText);}
     startupStyles.hintText.textSize(fit(networkJoin.message,r.width-48,12));port.drawText(networkJoin.message,new pdg.Point(r.x+24,r.y+(layout.messageY || 477)*scale),startupStyles.hintText);
     for(const check of layout.checks || [])drawStartupCheckbox(check.rect,check.label,check.value,scale);
-    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,button.action===networkJoin.mode?startupStyles.advantageButtonActive:startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,fit(button.label,button.rect.width-16,12),button.key);}
+    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,button.action===networkJoin.mode?startupStyles.advantageButtonActive:startupStyles.advantageButton);const disabled=button.disabled || networkJoin.busy,attrs=disabled?(startupStyles.hostDisabledText || (startupStyles.hostDisabledText=createStartupAttributes({fillColor:new pdg.Color(0.45,0.45,0.45),textSize:12,textStyle:pdg.textStyle_Centered}))):startupStyles.advantageText;drawStartupButtonCaption(button.rect,button.label,attrs,fit(button.label,button.rect.width-16,12),disabled?null:button.key);}
 }
 
 function drawStartupCheckbox(rect,label,checked,scale,buttonStyle=startupStyles.advantageButton,activeStyle=startupStyles.advantageButtonActive) {
@@ -1080,7 +1082,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     if(networkJoin.active){
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const area=port.getDrawingArea(),layout=networkJoin.layout(area.width(),area.height()),p=event.mousePos;
             const contains=r=>p.x>=r.x&&p.x<=r.x+r.width&&p.y>=r.y&&p.y<=r.y+r.height,button=layout.buttons.find(b=>contains(b.rect)),field=layout.fields.find(f=>contains(f.rect)),slot=layout.slots.find(s=>contains(s.rect));
-            if(button)networkJoin.action(button.action);else if((layout.checks || []).some(c=>p.x>=c.rect.x && p.x<c.rect.x+c.rect.width && p.y>=c.rect.y && p.y<c.rect.y+c.rect.height))networkJoin.action('rememberPassword');else if(!networkJoin.busy && field){networkJoin.focus=field.name;networkJoin[field.name].selected=true;}else if(slot)networkJoin.selectSlot(slot.slot);
+            if(button && !button.disabled)networkJoin.action(button.action);else if((layout.choices || []).some(c=>contains(c.rect))) {const choice=layout.choices.find(c=>contains(c.rect));networkJoin.action(choice.action,choice.value);}else if((layout.checks || []).some(c=>p.x>=c.rect.x && p.x<c.rect.x+c.rect.width && p.y>=c.rect.y && p.y<c.rect.y+c.rect.height))networkJoin.action('rememberPassword');else if(!networkJoin.busy && field){networkJoin.focus=field.name;networkJoin[field.name].selected=true;}else if(slot)networkJoin.selectSlot(slot.slot);
         }return true;
     }
     if(userManual.error()) {

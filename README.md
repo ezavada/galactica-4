@@ -96,6 +96,10 @@ use the same paths as the desktop launcher.
 Use startup **Join** (J), or **File → Join** while a game is open. Enter the
 host address (hostname/IP and optional port), inspect its player slots, and
 enter your name and optional password. Select a claimed player to rejoin.
+**Saved games** in the Join dialog stores hostname/IP bookmarks and remembers
+the game title and player or administrator identity after successful login.
+Select an entry to inspect and rejoin it, or add/remove addresses in the paged
+list. Removing an entry leaves the host and remembered passwords intact.
 Joined and local games remain available through **Open Games**. A joined game
 refreshes automatically; rejoining the same player reuses its document.
 
@@ -245,8 +249,8 @@ a saved password, uncheck the option and log in successfully. Failed or cancelle
 logins preserve the previous preference. Password fields stay masked; connection
 descriptors and game/host saves contain no remembered plaintext credentials.
 
-Multiplayer remains incomplete: discovery, chat,
-saved host lists and network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
+Multiplayer remains incomplete: discovery, chat and network-game saving are
+still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
 
@@ -255,7 +259,7 @@ saved host lists and network-game saving are still being ported. See [the parity
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1589 passed, 0 failed.
+Current expected result: 1597 passed, 0 failed.
 
 AI-only parity observer:
 

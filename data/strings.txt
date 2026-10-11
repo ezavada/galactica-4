@@ -883,3 +883,11 @@
 1180	Technology level: 0–65535.
 1181	Edit system population, technology, ownership or create completed ships during turn one.
 1182	Remember password on this device
+1183	Saved games
+1184	Add address
+1185	Remove from list
+1186	Open selected
+1187	No saved games. Add an address or join a game to remember it.
+1188	Could not save the game list. Please try again.
+1189	Enter address
+1190	Administrator

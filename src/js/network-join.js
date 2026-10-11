@@ -6,15 +6,29 @@ const errorIds={admin_disabled:1166,invalid_admin_password:1157,invalid_admin_st
  host_save_failed:1030,host_state_failed:1030,not_logged_in:1031,admin_ejected:1142,not_admitted:1150,stale_server_state:1029,bad_orders:1040,wrong_turn:1041,already_posted:1042,game_complete:1043,orders_too_large:1044};
 function errorText(error){return I18n.getString(errorIds[error && error.code] || 1032);}
 class JoinWindow {
- constructor({create=address=>new Network.NetworkClient(address),createAdmin=address=>new (require('./network-admin-client.js').NetworkAdminClient)(address),install,find=()=>null,defaultName=()=>'',passwordPreferences=null}={}){
-  this.passwordPreferences=passwordPreferences;this.create=create;this.createAdmin=createAdmin;this.install=install;this.find=find;this.defaultName=defaultName;this.active=false;this.sequence=0;
+ constructor({create=address=>new Network.NetworkClient(address),createAdmin=address=>new (require('./network-admin-client.js').NetworkAdminClient)(address),install,find=()=>null,defaultName=()=>'',passwordPreferences=null,hostPreferences=null}={}){
+  this.hostPreferences=hostPreferences;this.passwordPreferences=passwordPreferences;this.create=create;this.createAdmin=createAdmin;this.install=install;this.find=find;this.defaultName=defaultName;this.active=false;this.sequence=0;
  }
  open(descriptor=null){
   if(this.active)return false;
-  this.active=true;this.busy=false;this.client=null;this.owned=false;this.info=null;this.message='';this.page=0;
+  this.stage='form';this.active=true;this.busy=false;this.client=null;this.owned=false;this.info=null;this.message='';this.page=0;
   this.address=Names.createEditor(descriptor?descriptor.address:'',256);
   this.name=Names.createEditor(descriptor && descriptor.role!=='administrator'?descriptor.name:this.defaultName());this.password=Names.createEditor('',64);this.admissionCode=Names.createEditor('',64);
   this.rememberPassword=false;this.savedPasswordLoaded=false;this.mode=descriptor && descriptor.role==='administrator'?'administrator':descriptor?'rejoin':'join';this.expectedId=descriptor?descriptor.gameId:null;this.focus=descriptor?'password':'address';if(descriptor)this.loadSavedPassword();return true;
+ }
+ openSavedHosts(){
+  if(!this.hostPreferences || !this.active || this.busy)return false;if(this.owned && this.client)this.client.disconnect({keepView:true});this.client=null;this.owned=false;this.clearPasswordIdentity();this.admissionCode.text='';this.clearInfo();this.savedHosts=this.hostPreferences.list();this.savedSelection=this.savedHosts.length?require('./network-host-preferences.js').identity(this.savedHosts[0]):null;this.page=0;this.stage='hosts';this.focus=this.savedHosts.length?'savedHosts':'address';this.message='';return true;
+ }
+ addSavedHost(){
+  if(this.stage!=='hosts' || this.busy)return false;let address;try{address=Network.normalizeAddress(this.address.text);}catch(error){this.message=errorText(error);return false;}
+  if(!this.hostPreferences.upsert({address})){this.message=I18n.getString(1188);return false;}this.savedHosts=this.hostPreferences.list();this.savedSelection=require('./network-host-preferences.js').identity(this.savedHosts.find(r=>r.address===address && r.gameId===null));this.page=0;this.focus='savedHosts';this.message='';return true;
+ }
+ removeSavedHost(){
+  if(this.stage!=='hosts' || this.busy || !this.savedSelection)return false;if(!this.hostPreferences.remove(this.savedSelection)){this.message=I18n.getString(1188);return false;}this.savedHosts=this.hostPreferences.list();this.page=Math.min(this.page,Math.max(0,Math.ceil(this.savedHosts.length/4)-1));this.savedSelection=this.savedHosts[this.page*4]?require('./network-host-preferences.js').identity(this.savedHosts[this.page*4]):null;this.message='';return true;
+ }
+ async chooseSavedHost(){
+  if(this.stage!=='hosts' || this.busy)return false;const row=this.savedHosts.find(r=>require('./network-host-preferences.js').identity(r)===this.savedSelection);if(!row)return false;
+  this.stage='form';this.address=Names.createEditor(row.address,256);this.name=Names.createEditor(row.name || this.defaultName());this.mode=row.role==='administrator'?'administrator':row.gameId?'rejoin':'join';this.expectedId=row.gameId;this.clearPasswordIdentity();this.info=null;this.page=0;this.loadSavedPassword();return this.inspect();
  }
  passwordIdentity(){return this.expectedId?{address:this.client?this.client.address:this.address.text,gameId:this.expectedId,role:this.mode==='administrator'?'administrator':'player',name:this.mode==='administrator'?'':this.name.text.trim()}:null;}
  loadSavedPassword(){
@@ -54,12 +68,13 @@ class JoinWindow {
    const client=this.client,password=this.password.text,remember=this.rememberPassword,passwordId=this.passwordIdentity();
    const model=existing?await existing.rejoin(this.password.text):this.mode==='administrator'?await this.client.connect({password:this.password.text,gameId:this.info.gameId}):await this.client.connect({name,password:this.password.text,mode:this.mode,gameId:this.info.gameId,admissionCode:this.mode==='join'?this.admissionCode.text.trim():''});
    if(sequence!==this.sequence || !this.active){if(this.owned)client.disconnect({keepView:true});return false;}
-   this.install(model,this.client);if(this.passwordPreferences && passwordId)this.passwordPreferences.write(passwordId,password,remember);this.savedPasswordLoaded=false;this.rememberPassword=false;this.password.text='';this.admissionCode.text='';this.client=null;this.active=false;this.message='';return true;
+   this.install(model,this.client);if(this.hostPreferences)this.hostPreferences.upsert({...this.client.descriptor(),title:this.info.title});if(this.passwordPreferences && passwordId)this.passwordPreferences.write(passwordId,password,remember);this.savedPasswordLoaded=false;this.rememberPassword=false;this.password.text='';this.admissionCode.text='';this.client=null;this.active=false;this.message='';return true;
   }catch(error){if(sequence===this.sequence && this.active)this.message=errorText(error);return false;}
   finally{if(sequence===this.sequence)this.busy=false;}
  }
- action(action){
+ action(action,value){
   if(action==='cancel')return this.cancel();if(this.busy)return false;
+  if(action==='savedHosts')return this.openSavedHosts();if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();if(action==='removeSavedHost')return this.removeSavedHost();if(action==='chooseSavedHost')return this.chooseSavedHost();if(action==='directAddress'){this.stage='form';this.clearInfo();this.focus='address';this.message='';return true;}if(action==='selectSavedHost'){if(!this.savedHosts.some(r=>require('./network-host-preferences.js').identity(r)===value))return false;this.savedSelection=value;this.focus='savedHosts';return true;}if(action==='previous' || action==='next'){this.page=Math.max(0,Math.min(Math.ceil(this.savedHosts.length/4)-1,this.page+(action==='next'?1:-1)));this.savedSelection=this.savedHosts[this.page*4]?require('./network-host-preferences.js').identity(this.savedHosts[this.page*4]):null;return true;}return false;}
   if(action==='rememberPassword'){if(!this.passwordPreferences)return false;this.rememberPassword=!this.rememberPassword;return true;}if(action==='inspect')return this.inspect();if(action==='connect')return this.connect();
   if(['join','rejoin','administrator'].includes(action)){if((this.mode==='administrator')!==(action==='administrator')){if(this.owned && this.client)this.client.disconnect({keepView:true});this.client=null;this.owned=false;this.info=null;this.clearPasswordIdentity();}this.mode=action;if(action!=='join'){this.admissionCode.text='';if(action==='administrator' || this.focus==='admissionCode')this.focus='password';}this.loadSavedPassword();this.message='';return true;}
   if((action==='previous' || action==='next') && this.info){this.page=Math.max(0,Math.min(Math.ceil(this.info.slots.length/4)-1,this.page+(action==='next'?1:-1)));return true;}
@@ -67,6 +82,7 @@ class JoinWindow {
  }
  key(key,pdgRef=globalThis.pdg){
   if(key===pdgRef.key_Escape)return this.cancel();if(this.busy)return true;
+  if(this.stage==='hosts'){if(key===pdgRef.key_Tab){this.focus=this.focus==='address'?'savedHosts':'address';return true;}if(key===pdgRef.key_UpArrow || key===pdgRef.key_DownArrow){const keyFor=require('./network-host-preferences.js').identity,index=Math.max(0,Math.min(this.savedHosts.length-1,this.savedHosts.findIndex(r=>keyFor(r)===this.savedSelection)+(key===pdgRef.key_UpArrow?-1:1)));this.savedSelection=this.savedHosts[index]?keyFor(this.savedHosts[index]):null;this.page=Math.floor(index/4);this.focus='savedHosts';return true;}if([13,10,3].includes(key)){this.focus==='address'?this.addSavedHost():this.chooseSavedHost();return true;}if(this.focus==='address')Names.edit(this.address,key,pdgRef);return true;}
   if(key===pdgRef.key_Tab){const fields=[...this.layout(800,600).fields.map(f=>f.name),...(this.passwordPreferences?['rememberPassword']:[])];this.focus=fields[(fields.indexOf(this.focus)+1)%fields.length];if(this.focus!=='rememberPassword')this[this.focus].selected=true;return true;}
   if(this.focus==='rememberPassword'){if(key===32)this.action('rememberPassword');else if([13,10,3].includes(key))this.connect();return true;}
   if([13,10,3].includes(key)){if(this.focus==='address')this.inspect();else this.connect();return true;}
@@ -76,6 +92,10 @@ class JoinWindow {
  layout(width,height){
   if(!this.active)return null;const rect={width:Math.min(560,width-24),height:Math.min(548,height-24)};
   rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;const scale=rect.height/548,at=(x,y,w,h)=>({x:rect.x+x,y:rect.y+y*scale,width:w,height:h*scale});
+  if(this.stage==='hosts'){
+   const inner=rect.width-48,keyFor=require('./network-host-preferences.js').identity,buttons=[{action:'addSavedHost',id:1184,rect:at(24,104,inner/2-4,28)},{action:'directAddress',id:1189,rect:at(28+inner/2,104,inner/2-4,28)},...(this.savedHosts.length>4?[{action:'previous',id:1033,disabled:this.page===0,rect:at(24,398,inner/2-4,24)},{action:'next',id:1034,disabled:(this.page+1)*4>=this.savedHosts.length,rect:at(28+inner/2,398,inner/2-4,24)}]:[]),{action:'removeSavedHost',id:1185,disabled:!this.savedSelection,rect:at(24,436,inner,28)},{action:'cancel',id:683,key:'Esc',rect:at(24,496,inner/2-4,30)},{action:'chooseSavedHost',id:1186,key:'Enter',disabled:!this.savedSelection,rect:at(28+inner/2,496,inner/2-4,30)}];
+   return {rect,scale,title:I18n.getString(1183),messageY:480,fields:[{name:'address',label:I18n.getString(1006),rect:at(140,62,inner-116,32),labelPoint:{x:rect.x+24,y:rect.y+83*scale}}],slots:[],checks:[],labels:!this.savedHosts.length?[{text:I18n.getString(1187),rect:at(24,180,inner,40)}]:[],choices:this.savedHosts.slice(this.page*4,this.page*4+4).map((row,i)=>({action:'selectSavedHost',value:keyFor(row),active:keyFor(row)===this.savedSelection,label:row.title || row.address,detail:[row.title?row.address:'',row.role==='administrator'?I18n.getString(1190):row.name].filter(Boolean).join(' · '),rect:at(24,158+i*56,inner,50)})),buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
+  }
   const inner=rect.width-48,fieldWidth=inner-116;
   const names=this.mode==='administrator'?['address','password']:['address','name','password',...(this.mode==='join'?['admissionCode']:[])],start=this.mode==='join'?46:62,step=this.mode==='join'?34:42;
   const fields=names.map((name,index)=>({name,label:I18n.getString(name==='admissionCode'?1147:name==='password'?1008:name==='name'?1007:1006),rect:at(140,start+index*step,fieldWidth,32),labelPoint:{x:rect.x+24,y:rect.y+(start+21+index*step)*scale}}));
@@ -85,6 +105,7 @@ class JoinWindow {
    {action:'administrator',id:1163,rect:at(24+inner*3/4,190,inner/4,30)},
    {action:'cancel',id:683,key:'Esc',rect:at(24,496,inner/2-4,30)},
    {action:'connect',id:this.mode==='administrator'?1163:this.mode==='rejoin'?1011:1010,key:'Enter',rect:at(28+inner/2,496,inner/2-4,30)}];
+  if(this.hostPreferences){const third=(inner-16)/3;buttons.find(b=>b.action==='cancel').rect=at(24,496,third,30);buttons.find(b=>b.action==='connect').rect=at(40+2*third,496,third,30);buttons.push({action:'savedHosts',id:1183,rect:at(32+third,496,third,30)});}
   if(this.mode!=='administrator' && this.info && this.info.slots.length>4)buttons.push({action:'previous',id:1033,rect:at(24,404,inner/2-4,24)},{action:'next',id:1034,rect:at(28+inner/2,404,inner/2-4,24)});
   const slots=this.mode!=='administrator' && this.info?this.info.slots.slice(this.page*4,this.page*4+4).map((slot,index)=>({slot,rect:at(24,282+index*28,inner,26),label:slot.status==='open'?I18n.formatString(1016,'',slot.player):I18n.formatString(1017,'',slot.player,slot.name,I18n.getString(slot.online?1018:1019))})):[];
   return {rect,scale,infoTitleY:244,infoCountsY:266,messageY:480,fields,slots,checks:this.passwordPreferences?[{action:'rememberPassword',label:I18n.getString(1182),value:this.rememberPassword,rect:at(24,436,inner,24)}]:[],buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
