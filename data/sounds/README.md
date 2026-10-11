@@ -59,3 +59,24 @@ sample rates. WAV requires an integer rate; the conversion rounds the original
 All PCM bytes are copied unchanged. Discovery has two commands before its
 sample data; the importer finds its buffer command rather than assuming a fixed
 header position.
+
+The note-based startup/About composition can now be exported to standard MIDI:
+
+```sh
+python3 tools/export-v3-startup-midi.py /path/to/gad-3.0.2-cdrom.zip /tmp/galactica-startup.mid
+python3 tools/test-export-v3-startup-midi.py
+```
+
+The exporter decodes the original QuickTime NoteRequest, note, extended note,
+volume and sustain events using Apple's QuickTimeMusic.h definitions. Its two
+parts request General MIDI instruments 1 and 45 (MIDI programs 0 and 44).
+It retains all 967 notes and 15 controllers without quantization. The MIDI
+uses 600 ticks per quarter note at one quarter note per second, matching the
+movie's media clock. All six original editions export identically.
+
+The source movie loops after 58007 ticks (96.678333 seconds), while its final
+notes extend to 58721 ticks. MIDI preserves those complete note durations;
+audio rendering must use the movie's shorter loop boundary. This export is
+an intermediate conversion, not a finished playback asset. Instrument synthesis,
+looped startup/About playback and the original five-second dismissal fade
+remain to be implemented. No new asset license is granted; see ASSET_RIGHTS.md.

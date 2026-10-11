@@ -4896,3 +4896,31 @@ metadata; source/native/browser logs use the matching prefix. This closes the
 previous outcome cue asset/playback gap. The separate startup/About `musi`
 track still requires faithful note-data synthesis and source loop/fade behavior;
 the broad Sound and attention cues row stays partial.
+
+### 2026-10-11 — Original startup/About note sequence exported
+
+The original startup/About music is now decoded by
+`tools/export-v3-startup-midi.py` using Apple's historical
+[QuickTimeMusic.h definitions](https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX10.6.sdk/System/Library/Frameworks/QuickTime.framework/Versions/A/Headers/QuickTimeMusic.h).
+The two NoteRequests identify General MIDI instruments 1 and 45. All 967 notes
+(including eleven extended notes) and fifteen volume/sustain controller events
+retain their source timing, pitches, velocities and durations in standard MIDI.
+Each of the six sample rest totals matches its movie duration, establishing
+that this asset's clock is the 600-unit media scale. All six shipped editions
+produce byte-identical MIDI.
+
+The movie loop ends at tick 58007; the last note tails reach tick 58721.
+The export preserves the tails, so the render must explicitly retain the
+shorter movie loop boundary. This is a completed conversion step toward the
+Sound row, which remains partial: instrument synthesis, the playable loop,
+startup/About lifecycle and the original five-second fade still need runtime
+implementation and validation. No substitute composition or acoustic equivalence
+claim is made.
+
+Five dedicated checks independently read back MIDI events, verify instrument
+assignments, compare all original editions and reject unsupported/damaged music
+and timing. The four earlier music-recovery tests also pass. Both full native
+suites pass all 1705 tests with muted output. No UI, translated text or gameplay
+behavior changes, so screenshot comparisons are not applicable to this export.
+The temporary MIDI is `/private/tmp/galactica-startup.mid`; native test logs are
+`/private/tmp/galactica-startup-midi-{public,devel}-unit.log`.
