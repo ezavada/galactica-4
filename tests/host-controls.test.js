@@ -1,7 +1,19 @@
+const I18n=require('../src/js/i18n.js');
 const test=require('./test-framework.js'),fs=require('fs'),path=require('path'),os=require('os'),Host=require('../src/js/network-host.js').NetworkHost,Save=require('../src/js/game-save.js'),{HostWindow}=require('../src/js/network-host-setup.js');
 function fixture(fn){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-host-controls-'));try{const host=Host.create({numHumans:2,numComputers:1,sectorSize:1,density:1,maxTimePerTurn:300,endEarly:false},path.join(dir,'host.json'));fn(host);}finally{fs.rmSync(dir,{recursive:true,force:true});}}
 function form(pending=Array.from({length:7},(_,i)=>({player:i+1,name:'Captain '+i+' 星'}))){const record={},state={address:'http://127.0.0.1:1',title:'Host',info:{turn:2,clock:{paused:false,secondsRemaining:300}},administration:{complete:false,pending,players:[]}},backend={latest:()=>record,supported:true,describe:()=>state};const window=new HostWindow(backend,()=>true);window.open();return {window,state,backend};}
 module.exports=()=>test.describe('Desktop host turn administration',()=>{
+ test.it('shows the selected remote host connection failure above a stale operation caption in every language',()=>{
+  const status=require('../src/js/network-host-status.js'),language=pdg.res.getLanguage(),client={},other={};
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const expired=I18n.getString(1031),window={record:{remoteAdministrator:true,client},message:I18n.getString(1030)},sessions=[{network:other,networkError:I18n.getString(1032)},{network:client,networkError:expired}];
+   test.assertEqual(status.message(window,sessions),expired);sessions[1].networkError=null;test.assertEqual(status.message(window,sessions),window.message);window.message='';test.assertEqual(status.message(window,sessions),'');
+  }}finally{pdg.res.setLanguage(language);}
+ });
+ test.it('isolates host status from unrelated client sessions and local host windows',()=>{
+  const status=require('../src/js/network-host-status.js'),client={},sessions=[{network:client,networkError:'expired'},{network:undefined,networkError:'unrelated'}];
+  for(const record of [null,{}, {client}, {remoteAdministrator:true,client:{} }])test.assertEqual(status.message({record,message:'local'},sessions),'local');
+  test.assertEqual(status.message({record:{remoteAdministrator:true,client},message:''},sessions),'expired');test.assertEqual(status.message({record:null},sessions),'');
+ });
  test.it('forces each requested turn once, rejects stale requests and continues after a recorded result',()=>fixture(host=>{
   host.server={};host.pauseClock();host.forceEndTurn(1);test.assertEqual(host.game.turn,2);test.assertTrue(host.clock.paused);test.assertEqual(Host.open(host.file).game.turn,2);const before=Save.serialize(host.game);let code;try{host.forceEndTurn(1);}catch(e){code=e.code;}test.assertEqual(code,'stale_host_turn');test.assertEqual(Save.serialize(host.game),before);host.game.markGameWon(1);host.forceEndTurn(2);test.assertEqual(host.game.turn,3);test.assertTrue(host.game.postGame);test.assertEqual(host.game.victoryTurn,2);
  }));

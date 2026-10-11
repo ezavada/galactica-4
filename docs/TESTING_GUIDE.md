@@ -962,3 +962,32 @@ saved-message scenes change. Evidence is in
 `/private/tmp/galactica-document-message/verified` and
 `galactica-document-message-verified-comparison.json`. Full native suites on
 public/private runtimes pass 1,761 tests; no public PDG changes are made.
+
+
+### Remote-host modal connection feedback
+
+```bash
+node tools/test-web-remote-admin-status.cjs BUILD_DIR SCREENSHOT_DIR en after 640 340
+```
+
+Repeat for de/es/fr/ja/ru and 800×600. Use `before` with the preceding build
+(which already preserves refresh-time title drags) to assert the connection
+error is hidden in the host modal. The fixed build must draw the complete
+actual session error after real native-host administrator password revocation,
+with mutation controls disabled. The muted helper also rechecks existing
+remote saves, cancellation, forced turn, title dragging across refresh, DOM
+blur release and disconnect leaving the host running. It records drawn
+caption text as well as screenshots and layout/control metadata.
+
+All 24 input runs pass. Initial 216-pair comparison: 114 identical, 57
+temporary-address-only, 24 intended caption changes and 21 disabled-label
+intensity differences. German/Spanish fixed-build repeats match the baseline
+outside addresses/caption. An unchanged Russian baseline repeat reproduces
+its intensity variation; using that repeat leaves only the intended caption
+change. Retain these artifacts rather than claiming all ordinary scenes were
+initially identical. Evidence is under
+`/private/tmp/galactica-remote-admin-status/{verified,repeat,repeat-baseline}`
+and corresponding comparison reports. Both full native suites pass 1,763
+tests; `tools/test-host-admin.js` also passes its actual six-language native
+authorization checks. Physical focus, other busy/error variants and compact
+gameplay layouts remain separate audits.

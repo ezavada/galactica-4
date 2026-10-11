@@ -228,3 +228,16 @@ late reads. Compact/narrow first/final pages were visually inspected. Both
 full native suites pass 1,761 tests. Evidence:
 `/private/tmp/galactica-document-message/verified` and the corresponding
 `galactica-document-message-*` logs/comparison report.
+
+
+Remote-administrator connection feedback now remains visible inside its host
+modal instead of being hidden by the ordinary map status bar. The panel uses
+its own session's existing localized error; no strings are added. Native
+regressions cover en/de/es/fr/ja/ru and isolate unrelated/local host feedback.
+Actual password revocation, disabled mutation controls and complete drawn
+captions pass in all six languages at 800×600 and 640×340; both sizes were
+visually reviewed. Both full native suites pass 1,763 tests. Evidence:
+`/private/tmp/galactica-remote-admin-status/verified`. Minor disabled-label
+intensity variation in short-window screenshots was separately repeated; it
+also occurs on the unchanged preceding build. See the feature-status audit
+for the retained comparison evidence and remaining runtime investigation.
