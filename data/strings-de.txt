@@ -947,3 +947,5 @@
 1242	Kein Zeitlimit
 1243	Zurück
 1244	{0} Tag|{0} Tage
+1245	Musik
+1246	Musik im Intro und Abspann abspielen, ohne Soundeffekte zu ändern. Ton muss eingeschaltet sein; sein Schalter schaltet beides gemeinsam.

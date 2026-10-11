@@ -329,3 +329,47 @@ unit logs. Existing six-language dialog strings are reused, including browser
 hosting feedback; no untranslated command chooser was added. This completes
 these three startup routes, not arbitrary inherited/window commands or the
 remaining preference/runtime requirements.
+
+
+### Independent Music preference (2026-10-11)
+
+Source audit found a remaining Preferences gap: `Galactica.cpp:763–765`
+assigns separate Sound and Music checkboxes, `GalacticaDoc.cp:1336–1341`
+loads their flags independently, and `USound.cp:230,277–280` requires both
+flags for presentation music. The combined Sound command deliberately assigns
+both flags together (`Galactica.cpp:2285–2290`). V4 now follows those rules:
+Settings has a separate persistent Music control, while Sound still switches
+both flags. Turning Music off stops only the presentation handle and cancels
+its fade; event effects remain governed by Sound. Re-enabling Music starts an
+open requested presentation, but does not restart dismissed credits.
+Missing/unavailable storage retains the enabled default. The preference uses
+v4's existing native/browser string storage (`playMusic`), independently of
+saved game state. Native configuration and browser persistence are covered.
+
+The label and hover help (IDs 1245–1246), plus the manual's Settings section,
+are localized in en/de/es/fr/ja/ru. Five new native regressions cover independent
+effects/music, fade cancellation and restart, combined Sound persistence,
+actual Settings action eligibility, and native storage/failure fallback.
+Both complete native suites pass **1,775 tests, zero failures**; logs are
+`/private/tmp/galactica-music-preference-{public,devel}-unit.log`.
+
+`tools/test-web-music-preference.cjs` exercises real canvas Settings and pager
+buttons, About playback through the actual audio backend, stopping an active
+fade, combined Sound toggles, and a fresh browser reload. All six languages
+pass at 800×600 and 320×340. Six baseline runs prove the previous code ignores
+the stored disabled music flag. Chrome output is muted throughout; playback
+logic remains enabled. The compact fixture follows translated pagination:
+Music can be on the page after Sound because translated failure feedback
+reduces page capacity. No product paging change was required.
+
+The 18 ordinary before/after pairs are recorded in
+`/private/tmp/galactica-music-preference/comparison.json`: six introduction
+pairs are identical, six Settings pairs add the Music row, and six About pairs
+differ only in their build-revision caption (zero changed pixels outside that
+caption's region). Reviewed all six Settings pairs and all six compact Music
+pages; labels and fixed footer controls remain readable and separate. The
+comparison and compact reviews are `review-1.png`, `review-2.png` and
+`compact-review.png` in the same evidence directory. This closes the separate
+Music preference gap, not the remaining Preferences, runtime/hardware,
+localization completion or Map Generation audits. Unrelated in-progress
+optional artwork changes remain outside this commit; no PDG checkout changed.

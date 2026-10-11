@@ -947,3 +947,5 @@
 1242	Sin límite de tiempo
 1243	Volver
 1244	{0} día|{0} días
+1245	Música
+1246	Reproduce la música de la introducción y los créditos sin cambiar los efectos. Sonido debe estar activo; su control cambia ambos a la vez.

@@ -33,6 +33,7 @@ function createPreferences(env=globalThis) {
         readSplash:()=>read('ShowSplash'),writeSplash:show=>write('ShowSplash',show),
         readFullscreen:()=>read('fullscreen'),writeFullscreen:active=>write('fullscreen',active),
         readSound:()=>read('playSound'),writeSound:enabled=>write('playSound',enabled),
+        readMusic:()=>read('playMusic'),writeMusic:enabled=>write('playMusic',enabled),
         readEnemyEvents:()=>read('showEnemyEvents'),writeEnemyEvents:show=>write('showEnemyEvents',show),
         readControlHelp:()=>read('showControlHelp'),writeControlHelp:show=>write('showControlHelp',show),
         readNebula:()=>read('showNebula'),writeNebula:show=>write('showNebula',show),

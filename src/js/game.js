@@ -2125,6 +2125,10 @@ class Game {
                 this.sound.setEnabled(!this.sound.isEnabled());
                 if(this.sound.isEnabled())this.sound.play(1001);
                 return true;
+            case 'toggleMusic':
+                if(this.uiWindow!=='settings' || !this.sound || !this.sound.setMusicEnabled)return false;
+                this.sound.setMusicEnabled(!this.sound.isMusicEnabled());
+                return true;
             case 'toggleControlHelp':
                 this.showControlHelp=this.showControlHelp===false;
                 if(this.drawingPreferences)this.drawingPreferences.writeControlHelp(this.showControlHelp);

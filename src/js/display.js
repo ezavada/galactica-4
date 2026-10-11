@@ -2216,6 +2216,7 @@ class Display {
             label:I18n.getString(857,'Control help'),active:this.game.showControlHelp!==false,action:{type:'toggleControlHelp'}},
             {label:I18n.getString(938,'Show enemy events'),active:this.game.showEnemyEvents,action:{type:'toggleEnemyEvents'}},
             {label:I18n.getString(954,'Sound'),active:!!this.game.sound && this.game.sound.isEnabled(),action:{type:'toggleSound'}},
+            ...(this.game.sound && this.game.sound.isMusicEnabled?[{label:I18n.getString(1245,'Music'),active:this.game.sound.isMusicEnabled(),action:{type:'toggleMusic'}}]:[]),
             ...(this.game.fullscreen && this.game.fullscreen.supported?[{label:I18n.getString(771,'Full screen'),active:this.game.fullscreen.active(),action:{type:'toggleFullscreen'}}]:[]),
             ...(this.game.presentation?[{label:I18n.getString(973,'Show introduction at startup'),active:this.game.presentation.showSplash,action:{type:'toggleSplash'}},{label:I18n.getString(969,'About Galactica'),action:{type:'openAbout'}}]:[]),
             ...(this.game.newGameDefaultsPreferences?[{label:I18n.getString(965,'New game defaults'),action:{type:'openNewGameDefaults'}}]:[]),

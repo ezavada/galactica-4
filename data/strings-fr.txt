@@ -947,3 +947,5 @@
 1242	Sans limite de temps
 1243	Retour
 1244	{0} jour|{0} jours
+1245	Musique
+1246	Jouer la musique de l’introduction et du générique sans modifier les effets. Son doit être actif ; sa commande active ou désactive les deux.

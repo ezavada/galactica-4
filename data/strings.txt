@@ -947,3 +947,5 @@
 1242	No time limit
 1243	Back
 1244	{0} day|{0} days
+1245	Music
+1246	Play introduction and credits music without changing sound effects. Sound must be on; its control toggles both together.

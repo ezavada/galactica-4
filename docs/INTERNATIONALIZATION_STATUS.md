@@ -330,3 +330,15 @@ each target view was inspected. Camera framing separates the named stars by 90px
 without changing their world positions. Both native suites pass 1,770 tests.
 Evidence: `/private/tmp/galactica-tutorial-target`. Both user-reported tutorial
 map-visibility issues are now addressed; broader parity audits remain open.
+
+
+### Independent Music preference (2026-10-11)
+
+IDs 1245–1246 add Music and its hover help in English, German, Spanish, French,
+Japanese and Russian. Each bundled manual describes separate Music and combined
+Sound behavior. Actual Music controls, persisted reloads and audio playback pass
+in all six languages at 800×600 and 320×340; the ordinary before/after Settings
+pairs and compact final pages were visually reviewed. Both native suites pass
+1,775 tests. Evidence: `/private/tmp/galactica-music-preference/`, including
+`comparison.json` and `compact-review.png`. The broader localization completion
+audit remains open.

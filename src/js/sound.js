@@ -26,7 +26,7 @@ function eventCue(event,viewer=event && event.recipient) {
     return null;
 }
 function createSound(resourceManager,preferences,now=()=>pdg.tm.getMilliseconds(),schedule={start:callback=>setInterval(callback,50),stop:timer=>clearInterval(timer)}) {
-    let enabled=preferences.readSound();
+    let enabled=preferences.readSound(),musicEnabled=preferences.readMusic?preferences.readMusic():true;
     const cache=new Map(),presentations=new WeakMap();
     const stop=()=>{for(const sound of cache.values())try{sound.stop();}catch(error){/* Backend may be unavailable. */}};
     // Presentation music has its own handle: event cues and document changes
@@ -39,7 +39,7 @@ function createSound(resourceManager,preferences,now=()=>pdg.tm.getMilliseconds(
     };
     const startMusic=()=>{
         musicRequested=true;
-        if(!enabled)return false;
+        if(!enabled || !musicEnabled)return false;
         // Credits can reopen while the opening track is still fading. Keep
         // that playback rather than stopping/restarting a native audio queue.
         if(musicPlaying && music){
@@ -80,7 +80,20 @@ function createSound(resourceManager,preferences,now=()=>pdg.tm.getMilliseconds(
     };
     return {
         isEnabled:()=>enabled,
-        setEnabled(value){const changed=enabled!==!!value;enabled=!!value;preferences.writeSound(enabled);if(!enabled){stop();stopMusic();}else if(changed && musicRequested)startMusic();return enabled;},
+        isMusicEnabled:()=>musicEnabled,
+        setMusicEnabled(value){
+            const changed=musicEnabled!==!!value;musicEnabled=!!value;
+            if(preferences.writeMusic)preferences.writeMusic(musicEnabled);
+            if(!musicEnabled)stopMusic();else if(changed && enabled && musicRequested)startMusic();
+            return musicEnabled;
+        },
+        setEnabled(value){
+            const changed=enabled!==!!value || musicEnabled!==!!value;
+            enabled=musicEnabled=!!value;preferences.writeSound(enabled);
+            if(preferences.writeMusic)preferences.writeMusic(musicEnabled);
+            if(!enabled){stop();stopMusic();}else if(changed && musicRequested)startMusic();
+            return enabled;
+        },
         stop,play,startMusic,endMusic,update,
         isPending:overlay=>enabled && presentations.has(overlay) && !presentations.get(overlay).cue,
         noMore(game){

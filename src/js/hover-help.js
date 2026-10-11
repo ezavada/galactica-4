@@ -119,6 +119,7 @@ const helpIds=Object.freeze({
   "toggleControlHelp": 891,
   "toggleEnemyEvents": 939,
   "toggleSound": 955,
+  "toggleMusic": 1246,
   "settingsPage": 879,
   "startupOptions": 892,
   "startupFast": 893,

@@ -7,6 +7,53 @@ function fixture(enabled=true) {
 let clock=0;
 const visible=events=>({getCurrentMilliseconds:()=>clock,eventLog:events,shouldShowEventWindows:()=>true,isEventAccessible:e=>!!e});
 module.exports=()=>test.describe('Shipped sound playback and preferences',()=>{
+ test.it('persists independent music choices without muting event effects',()=>{
+  const values=new Map(),env={window:{localStorage:{getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)}}};
+  let preferences=Preferences.createPreferences(env);test.assertTrue(preferences.readMusic());
+  preferences.writeMusic(false);preferences=Preferences.createPreferences(env);
+  test.assertFalse(preferences.readMusic());test.assertTrue(preferences.readSound());
+  const starts=[],resources={getSound:file=>({setLooping:()=>{},setVolume:()=>{},start:()=>starts.push(file),stop:()=>{}})};
+  const audio=Sound.createSound(resources,preferences,()=>clock,{start:()=>1,stop:()=>{}});
+  test.assertFalse(audio.startMusic());test.assertTrue(audio.play(1001));test.assertEqual(starts.join(','),'sounds/1001.wav');
+  audio.endMusic();audio.setMusicEnabled(true);test.assertEqual(starts.length,1);
+  test.assertTrue(Preferences.createPreferences(env).readMusic());test.assertTrue(audio.startMusic());
+  audio.setMusicEnabled(false);test.assertTrue(audio.isEnabled());test.assertTrue(audio.play(1003));
+  test.assertFalse(Preferences.createPreferences(env).readMusic());
+ });
+ test.it('music changes stop an active fade and resume only an open requested presentation',()=>{
+  clock=0;const f=fixture();f.audio.startMusic();f.audio.endMusic();clock=2500;f.tick();
+  f.audio.setMusicEnabled(false);clock=6000;f.tick();test.assertFalse(f.audio.update());
+  f.audio.setMusicEnabled(true);test.assertEqual(f.starts().length,1);
+  f.audio.startMusic();f.audio.setMusicEnabled(false);f.audio.setMusicEnabled(true);
+  test.assertEqual(f.starts().length,3);f.audio.setMusicEnabled(true);test.assertEqual(f.starts().length,3);
+  f.audio.setEnabled(false);f.audio.setMusicEnabled(true);test.assertEqual(f.starts().length,3);
+  f.audio.setEnabled(true);test.assertEqual(f.starts().length,4);
+  f.audio.endMusic();f.audio.setMusicEnabled(false);
+ });
+ test.it('the source combined Sound command writes both persistent flags',()=>{
+  const flags={sound:true,music:false},audio=Sound.createSound({getSound:()=>null},{readSound:()=>flags.sound,readMusic:()=>flags.music,writeSound:v=>flags.sound=v,writeMusic:v=>flags.music=v});
+  audio.setEnabled(false);test.assertFalse(flags.sound);test.assertFalse(flags.music);
+  audio.setEnabled(true);test.assertTrue(flags.sound);test.assertTrue(flags.music);test.assertTrue(audio.isMusicEnabled());
+ });
+ test.it('offers the translated Music control in standalone and game Settings only',()=>{
+  const game=new Game(new Factory(),new Rules(false),new Config({numComputers:0,skipMapGeneration:true}));
+  game.port={getDrawingArea:()=>new pdg.Rect(800,600)};new Display(game);
+  const f=fixture();game.sound=f.audio;game.uiWindow='settings';
+  let region;
+  for(let page=0;page<5;page++){game.settingsPage=page;region=game.display.getSettingsActionRegions().find(r=>r.action.type==='toggleMusic');if(region)break;}
+  test.assertTrue(!!region);test.assertTrue(region.active);test.assertEqual(region.label,pdg.res.getString(1245));
+  test.assertTrue(game.executeUIAction(region.action));test.assertFalse(f.audio.isMusicEnabled());test.assertTrue(f.audio.isEnabled());
+  test.assertEqual(f.starts().length,0);game.uiWindow=null;test.assertFalse(game.executeUIAction(region.action));
+  test.assertFalse(f.audio.isMusicEnabled());
+ });
+ test.it('uses native application configuration and tolerates unavailable music preference storage',()=>{
+  const values=new Map(),cfg={useConfig:name=>test.assertEqual(name,'Galactica'),getConfigString:key=>values.get(key),setConfigString:(key,value)=>values.set(key,value)};
+  let prefs=Preferences.createPreferences({pdg:{cfg}});test.assertTrue(prefs.readMusic());prefs.writeMusic(false);
+  prefs=Preferences.createPreferences({pdg:{cfg}});test.assertFalse(prefs.readMusic());test.assertTrue(prefs.readSound());
+  prefs.writeMusic(true);test.assertTrue(prefs.readMusic());test.assertEqual(values.get('playMusic'),'true');
+  const broken=Preferences.createPreferences({window:{get localStorage(){throw Error('denied');}}});
+  broken.writeMusic(false);test.assertTrue(broken.readMusic());
+ });
  test.it('loops startup/About music and fades linearly for five seconds without event cues cutting it off',()=>{
   clock=100;const f=fixture();test.assertTrue(f.audio.startMusic());
   test.assertTrue(f.calls.some(c=>c[0]==='loop' && c[1]==='sounds/startup.wav' && c[2]));
