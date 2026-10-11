@@ -48,10 +48,31 @@ module.exports=()=>test.describe('V3 surviving system defense reports',()=>{
   const g=Save.restore(Save.serialize(f.game)),report=g.eventLog.find(e=>e.id===event.id);test.assertEqual(report.message,text);test.assertEqual(report.systemDefense.starName,'Survivor 星 $&');while(g.overlay)g.dismissEventPresentation();
   const count=g.eventLog.length;test.assertTrue(g.replayReport(report));test.assertEqual(g.overlay.eventId,report.id);g.dismissEventPresentation();test.assertEqual(g.turn,1);test.assertEqual(g.eventLog.length,count);
  });
+
+ test.it('uses the correct ship count forms for every defense perspective in all six languages',()=>{
+  const language=pdg.res.getLanguage();
+  const words={en:['ship','ships'],de:['Schiff','Schiffe'],es:['nave','naves'],fr:['vaisseau','vaisseaux'],ru:['корабль','корабля','кораблей']};
+  const counts=[[1,0],[2,1],[5,2],[11,2],[21,0],[22,1],[25,2],[101,0],[111,2],[1001,0]];
+  try{for(const code of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(code);
+   for(const [attacker,defender] of [[1,2],[2,1],[2,3]])for(const [count,russianForm] of counts){
+    const f=fixture(attacker,defender),event=f.game.recordSystemDefenseLosses(f.target,attacker,defender,count).find(e=>e.recipient===1);
+    const number=I18n.formatInteger(count),index=code==='ru'?russianForm:count===1?0:1;
+    let unit=code==='ja'?number+'隻':number+' '+words[code][index];
+    if(event.systemDefense.side==='attacker'){
+     if(code==='en')unit=number+' enemy '+words.en[index];
+     if(code==='de')unit=number+(count===1?' feindliches Schiff':' feindliche Schiffe');
+    }
+    test.assertContains(event.message,unit);test.assertContains(event.message,'Survivor 星 $&');
+    test.assertFalse(event.message.includes('|'));test.assertFalse(/\{\d+\}/.test(event.message));
+    test.assertEqual(event.systemDefense.shipsLost,count);
+   }
+  }}finally{pdg.res.setLanguage(language);}
+ });
  test.it('fits complete defender, attacker and observer text in all six languages',()=>{
   const language=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);for(const owners of [[1,2],[2,1],[2,3]]){
    const f=fixture(...owners);f.game.config.omniscient=true;const e=battle(f).find(e=>e.recipient===1);test.assertNotNull(e);test.assertFalse(/\{\d+\}/.test(e.message));test.assertContains(e.message,'Survivor 星 $&');test.assertTrue(f.game.replayReport(e));
-   const id=e.systemDefense.side==='defender'?940:e.systemDefense.side==='attacker'?941:942;test.assertEqual(e.message,I18n.formatString(id,'','Survivor 星 $&',I18n.formatInteger(1),'Defender 星','Attacker Д $&'));
+   const id=e.systemDefense.side==='defender'?940:e.systemDefense.side==='attacker'?941:942;test.assertEqual(e.message,I18n.formatPluralString(id,'',1,'Survivor 星 $&',I18n.formatInteger(1),'Defender 星','Attacker Д $&'));
    const layout=f.display.getReportLayout({eventId:e.id,page:0});for(const line of layout.lines)test.assertTrue(f.game.port.getTextWidth(line,13)<=layout.rect.width-40);
   }}}finally{pdg.res.setLanguage(language);}
  });

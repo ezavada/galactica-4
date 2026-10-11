@@ -256,7 +256,7 @@ The largest blockers to a complete game are:
 | Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen choices now persist across launch: native restoration is immediate, while browsers defer until the first user gesture and remember external exits. Startup Settings and Menu → Settings → New game defaults now select numeric values directly and saves map size, density, AI skill/advantage, fast game and fog of war separately from ordinary setup and current games. Startup and New Game apply these defaults; tutorial setup is isolated. Colony hull and coupled production defaults now persist independently and are available from startup/in-game Settings and the game menu. Save applies them to the local human and future games; opening saves reapplies application colony defaults as in v3, while existing systems and computer defaults stay unchanged. Fixed tutorial practice is isolated. Startup now offers a persistent introduction and independent About presentation with original artwork, localized narrative/credits, paging, modal dragging and tutorial entry. First-install automatic tutorial is implemented. Stored numeric startup actions now dispatch available About/New/Open/Save/Revert/Quit/Host/Open as Host/Join/Fullscreen/Sound/Preferences/Flyby Help/Help/Tutorial handlers once after introduction/onboarding. Browser commands requiring activation wait for trusted input. Arbitrary inherited/window commands remain unfinished, alongside other preference coverage and the pinned native runtime update. |
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
 | Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | ✅ Implemented | ✅ Implemented | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; Open and Revert retain active instruction bindings and production safeguards, with independent documents preserved. The optional wrong-course retry is verified through actual controls in all six languages. Existing-game recovery (100) is verified through actual Hide/Close controls, full completion and Open Games restoration in all six languages. Modal recovery (101) is verified through actual startup/in-game Settings entry, retry, Cancel and original restoration in all six languages; hosting recovery (103) is verified through actual Host, Cancel/Escape, local practice continuation, instruction cancellation and native-backed host creation in all six languages. The floating recovery panel stays visible and interactive above the Host modal; original documents and setup are preserved. See docs/reference/TUTORIAL_CONTROLLER.md. |
-| Internationalization | v3 language plug-ins; menu can switch languages. | ✅ Implemented | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian resources and accepts runtime language with `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven/tested; Menu → Settings → Language switches cached UI labels and numeric formatting immediately, remembers the selection and always lists native-script language names. Unported v3 dialogs/help still need future resources. |
+| Internationalization | v3 language plug-ins; menu can switch languages. | ✅ Implemented | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian resources and accepts runtime language with `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven/tested; Menu → Settings → Language switches cached UI labels and numeric formatting immediately, remembers the selection and always lists native-script language names. Defense-loss reports now use singular/plural forms and Russian singular/few/many forms while preserving Japanese counters, literal names and locale-formatted numbers; actual six-language comparisons and numeric edge regressions pass. The remaining dialog/help/localization completion audit is still open. |
 | Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | 🟡 Partial | v4 uses background, lab/stardock/ship assets, original outcome illustrations and fixed-size explosion frames, while most UI buttons, panels, animations, and states are styled primitives/text. The Lab now preserves source proportions, additive blueprint blending and the full shipped layer lookup/fallback, with source-generated metadata and supplemental pictures. Stardock now follows its own source class requests and decimal fallback, independently of the detail-view image cap. Remaining parity should be tied to specific shipped v3 event/help/window imagery. |
 
 ### Possible UI enhancements beyond v3, not counted in Section 8
@@ -5536,3 +5536,46 @@ The changed source was independently packaged at
 All three counted Section 7 UI rows are now implemented, so its local UI
 estimate is 100%. This does not close other project sections, Map Generation,
 or the remaining localization/art/platform completion requirements.
+
+### Defense-loss report pluralization (2026-10-11)
+
+The six-language presentation audit exposed a localization defect: the defense
+reports always selected the plural ship noun, including English “1 ships”.
+Resources 940–942 now have singular/plural alternatives in English, German,
+Spanish and French, and singular/few/many alternatives in Russian. Japanese
+retains its correct single-form counter text. These preserve the shipped
+PlanetDamaged perspectives and count semantics while improving localized
+grammar; emitter conditions, privacy, sound, timing and combat rules are
+unchanged.
+
+`I18n.formatPluralString` now accepts optional numbered substitution values
+in addition to the raw numeric count used for form selection. This lets the
+existing star/faction placeholders and `formatInteger` output remain intact;
+previous count-only callers still use `{0}` as their count. Substitution uses a
+callback, retaining literal Unicode and `$&` characters. Defense reports choose
+the form from the raw loss count, independently of localized number separators.
+Historical saved report text remains an immutable event snapshot.
+
+A new native regression covers all three perspectives in all six languages
+with counts 1,2,5,11,21,22,25,101,111 and 1001. It checks actual report creation,
+ship forms, literal names, numeric metadata and absence of unresolved template
+alternatives/placeholders. Existing full specs also verify saved report text,
+layout, private access, source tally/suppression and the previous turn-count
+plural helper behavior. Both full muted native suites pass 1726 tests, zero
+failures (`/private/tmp/galactica-defense-plurals-public-unit.log` and
+`/private/tmp/galactica-defense-plurals-devel-unit.log`).
+
+The real arrival-combat system-defense browser audit passes before and after
+in all six languages. The 132 matched captures under
+`/private/tmp/galactica-defense-plurals/{before,after}/<language>` contain 80
+changed event-list/report-text images in the five inflected languages and 52
+pixel-identical images, including all Japanese captures and every explosion
+frame. Six-language report comparisons were visually inspected; corrected
+text fits the existing controls and preserves literal names. The comparison
+record is `/private/tmp/galactica-defense-plurals-comparison.json`; browser logs
+use `/private/tmp/galactica-defense-plurals-{before,after}-<language>.log`.
+The updated independent web package is
+`/private/tmp/galactica-defense-plurals-after-app`.
+
+This fixes a confirmed localization issue, but does not close the broader
+internationalization row or the remaining parity/Map Generation requirements.

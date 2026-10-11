@@ -18,7 +18,8 @@ function formatString(id, fallback, ...values) {
 
 // Resource alternatives use one form (Japanese), singular/plural, or the
 // singular/few/many forms needed by Russian. Values stay in the resource.
-function formatPluralString(id, fallback, count) {
+// Optional values format numbered placeholders; otherwise {0} is the count.
+function formatPluralString(id, fallback, count, ...values) {
     const forms = getString(id, fallback).split('|');
     let index = count === 1 ? 0 : 1;
     if (forms.length === 3) {
@@ -26,7 +27,11 @@ function formatPluralString(id, fallback, count) {
         index = last === 1 && lastTwo !== 11 ? 0
             : last >= 2 && last <= 4 && !(lastTwo >= 12 && lastTwo <= 14) ? 1 : 2;
     }
-    return (forms[index] || forms[0]).replace(/\{0\}/g, String(count));
+    const args = values.length ? values : [count];
+    return (forms[index] || forms[0]).replace(/\{(\d+)\}/g, (match, position) => {
+        const value = args[Number(position)];
+        return value !== undefined && value !== null ? String(value) : match;
+    });
 }
 
 function formatDecimal(value, digits = 1) {

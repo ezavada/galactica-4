@@ -3536,7 +3536,7 @@ class Game {
         return Object.keys(this.players).map(Number).filter(owner=>owner>0 && this.players[owner]).map(recipient=>{
             const side=recipient===defenderOwner?'defender':recipient===attackerOwner?'attacker':'observer';
             const event=this.recordEvent(I18n.getString(607,'Combat'),
-                I18n.formatString(side==='defender'?940:side==='attacker'?941:942,'',snapshot.starName,
+                I18n.formatPluralString(side==='defender'?940:side==='attacker'?941:942,'',shipsLost,snapshot.starName,
                     I18n.formatInteger(shipsLost),snapshot.defenderName,snapshot.attackerName),
                 {type:Common.EventType.SYSTEM_DEFENSE_LOSSES,subject:star,recipient,position:star});
             event.systemDefense={...snapshot,side};
