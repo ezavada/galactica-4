@@ -4,6 +4,10 @@ import importlib.util
 import json
 from pathlib import Path
 import struct
+import shutil
+import subprocess
+import tempfile
+import zipfile
 import sys
 import unittest
 sys.dont_write_bytecode = True
@@ -22,6 +26,25 @@ class ArtReferenceTests(unittest.TestCase):
         if not source.exists():
             self.skipTest('Original release archive unavailable')
         self.assertEqual(art.import_reference(source), self.reference)
+
+    def test_decodable_shipped_blueprint_pixels_match_packaged_images(self):
+        archive = ROOT.parent/'galactica-anno-dominari-3/release/gad-3.0.2-cdrom.zip'
+        magick = shutil.which('magick')
+        if not archive.exists() or not magick:
+            self.skipTest('Original release archive and ImageMagick required')
+        with zipfile.ZipFile(archive) as source:
+            inventory = art.resources(art.resource_fork(source.read(self.reference['appleDoubleEntry'])))
+        with tempfile.TemporaryDirectory(prefix='galactica-blueprints-') as directory:
+            # PICT2208 fails the available decoder; see EVENT_REPORTS.md.
+            for number in [*range(2202,2208),*range(2209,2213)]:
+                pict = Path(directory)/f'{number}.pict'
+                png = Path(directory)/f'{number}.png'
+                pict.write_bytes(b'\0'*512+inventory[('PICT',number)])
+                subprocess.run([magick,str(pict),str(png)],check=True,capture_output=True)
+                packaged = ROOT/'data/tech'/f'blue-{number-2200:02d}.png'
+                result = subprocess.run([magick,'compare','-metric','AE',str(png),str(packaged),'null:'],capture_output=True,text=True)
+                self.assertEqual(result.returncode,0,f'PICT{number}: {result.stderr}')
+                self.assertEqual(result.stderr.strip(),'0 (0)')
 
     def test_appledouble_entry_selection_and_corruption(self):
         # Finder metadata precedes the resource fork; do not treat it as art.

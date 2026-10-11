@@ -266,6 +266,7 @@ class Display {
             starTwinkle: this.createAttributes({lineColor:new pdg.Color('white'),lineStyle:pdg.lineStyle_Solid}),
             clear: this.createAttributes({ fillColor: new pdg.Color('black') }),
             image: this.createAttributes(),
+            labBlueprint: this.createAttributes({lineStyle:pdg.lineStyle_None}).blendMode(pdg.blendMode_Additive),
             panel: this.createAttributes({
                 fillColor: this.getUIColor('panelFill'),
                 lineColor: this.getUIColor('panelBorder')
@@ -4181,7 +4182,7 @@ class Display {
             const blueprint = this.getImageCached(blueprintName, blueprintName, new pdg.Color('black'));
             const centerRect = this.getClassArtRect(drawingArea);
             if (back) this.port.drawImage(back, centerRect, this.styles.image);
-            if (blueprint) this.port.drawImage(blueprint, centerRect, this.styles.image);
+            if (blueprint) this.port.drawRect(centerRect, this.styles.labBlueprint.texture(blueprint));
             if (top) this.port.drawImage(top, centerRect, this.styles.image);
             this.port.drawText(this.STR.newDriveTechnology, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.1), this.getTextAttributes('yellow', 16, pdg.textStyle_Centered));
         } else if (overlay.type === 'stardock') {

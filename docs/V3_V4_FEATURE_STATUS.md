@@ -4630,3 +4630,26 @@ logs `/private/tmp/galactica-class-proportions-{before,after}-<language>.log`.
 The source additive blueprint blend, precise blueprint-resource mapping and
 decoded PICT/PNG comparisons remain separate active checks; the Original art
 row and the overall parity/map-generation goal are not marked complete.
+
+
+### Original Lab additive blueprint composition
+
+The shipped Layr records specify additive mode33 for the Lab blueprint. V4
+now applies this through a reusable PDG textured-rectangle style, with no
+outline, while preserving the normal background and foreground layers and
+neutral transparent black. Both rebuilt runtimes pass all 1,693 unit tests.
+Six art-resource checks pass, including exact decoded pixel equality for ten
+shipped blueprints. PICT2208 is available but the installed decoder rejects
+its payload; its PNG equality remains explicitly unverified (see
+`docs/reference/EVENT_REPORTS.md`). Blueprint selection mapping remains next.
+
+Six-language browser controls and captures use
+`/private/tmp/galactica-lab-blend/{before,after}/<language>`; logs use
+`/private/tmp/galactica-lab-blend-{before,after}-<language>.log`.
+All twelve before/after browser runs pass; the 48 paired scenes comprise six
+changed Lab composites and 42 identical unrelated views. Final translated Lab
+captures and English before/after images were visually inspected.
+`tools/check-lab-blend-images.py` passes in all six languages and verifies a
+real additive brightness change, retained room imagery and unchanged unrelated reports. All changed functionality
+is visual and reuses the six existing localized headings and dismissal hints.
+The broader parity and map-generation goal remains active.

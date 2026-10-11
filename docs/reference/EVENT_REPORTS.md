@@ -329,11 +329,42 @@ Missing Layr IDs fall back through decimal boundaries in SetLayrResID.
 
 V4 now fits all three Lab/Stardock layers to one centered 408:240 rectangle
 between the heading and dismissal hint, preserving the shipped proportions
-on wide, short and tall layouts. The PNG blueprint still uses transparency
-rather than proving the source additive composition. Additive rendering and
-blueprint mapping remain actionable follow-up work, not missing-resource blockers. The newly
+on wide, short and tall layouts. The blueprint now uses an additive textured rectangle, matching the source
+mode33 color operation; neutral black pixels remain transparent. The dedicated
+style has no outline and is reused. Blueprint selection mapping remains an
+actionable follow-up, not a missing-resource blocker. The newly
 recovered victory and defeat PICTs are 500×432; their raw hashes now allow a
 future decoded comparison against the retained PNGs. PICT1000 is absent from
 this art fork and must be checked in the application resource fork separately.
 These records prove resource availability and composition rules, not runtime
 visual equivalence or completion of the Original art checklist row.
+
+
+### Lab additive composition and decoded blueprint evidence
+
+The recovered Lab records specify mode33 (`addPin`), with maximum operation
+colors. V4 now draws its blueprint through an additive textured rectangle:
+`Attributes.texture(image).blendMode(pdg.blendMode_Additive)`, with line style
+None. The backdrop and foreground keep their normal image draws. Retaining
+transparent black is neutral for addition (black contributes zero) and allows
+the same cached asset to be reused without altering its visible colors.
+The image draw path did not apply the requested blend in browser captures;
+using PDG's textured rectangle provides the actual color addition.
+
+Ten recovered blueprint PICTs (2202–2207 and 2209–2212) decode with ImageMagick
+and match the packaged `blue-02`–`blue-07` and `blue-09`–`blue-12` PNGs exactly:
+zero changed pixels. This is reproduced by
+`tools/test-import-v3-art-resources.py` when the archive and decoder are available.
+PICT2208 is present and hashed, but ImageMagick rejects it with “insufficient
+image data”; macOS sips emits a blank white picture even for other valid PICTs,
+so its output is not accepted as evidence. Exact decoded equality for blueprint
+08 remains unverified, pending a decoder that supports this payload or an
+original-platform rendered export. No asset is replaced with that blank output.
+
+`tools/check-lab-blend-images.py` checks the deterministic six-language browser
+captures: substantial positive blueprint brightness change, unchanged right-hand
+room pixels, and seven unrelated scenes identical per language. This catches
+both an ignored blend setting and black-background overwrite. It complements
+the native tests for cache reuse, real style modes, no outline and layer roles.
+The source LabBase + tech/5 picture mapping is a separate remaining requirement;
+this blend change does not claim to close it or full Original art parity.
