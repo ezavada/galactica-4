@@ -86,3 +86,50 @@ C/C++ sources; no emitter was found. Their resource text establishes definitions
 not observable normal-turn behavior. A complete event-matrix audit must preserve
 this distinction and must not invent broadcasts from unused resource entries.
 The broader parity and Map Generation objectives remain active.
+
+
+## FleetDamaged: defined, but not an ordinary shipped-source emitter
+
+Source audit on 2026-10-10 found two apparent FleetDamaged (5) emitters in
+`Classes/CShip.cpp:397–414`. They test `defendersInFleetLosses > 1` after a
+failed attack on a non-system destination, or `attackersInFleetLosses > 1`
+after a surviving attack. Both numbers come from
+`Classes/UShipUtils.cpp:398–428`, `FinalizeLosses`.
+
+That implementation starts `numDead` at zero and does:
+
+```cpp
+UInt32 startingShips = infoP->numShips;
+fleet->RecordCombatResults();
+UInt32 remainingShips = infoP->numShips;
+numDead -= (startingShips - remainingShips);
+```
+
+Ordinary combat removes ships; `CFleet::RecordCombatResults:567–590` counts
+remaining live members. Thus no losses return zero and positive losses return
+a negative count, which does not pass either `> 1` test. A resource definition
+and a syntactic CreateEvent call do not establish a reachable normal-combat
+notice. Other FleetDamaged references in the C/C++ source are its enum; no
+independent emitter was found.
+
+This is the built helper, not a guess from a similarly named old file:
+`Galactica.xcodeproj/project.pbxproj:16,885` includes UShipUtils.cpp in Sources.
+The CodeWarrior XML `x-misc/Galactica.mcp.xml` also selects UShipUtils.cpp for
+Carbon Final, Carbon Beta, Carbon Debug, Carbon on Classic Debug and Profile.
+The older `Classes/UStarUtils.cp:317–350` adds starting ships then subtracts
+survivors, but those audited build manifests do not select that file. It must
+not be substituted silently to infer shipped behavior.
+
+Evnt128 still defines FleetDamaged with STR#500/34 (winner), /35 (loser), /36
+(observer), no recipient sound or PPob, and autoShow=1. It is classified as a
+dormant defined event in this source version, rather than another confirmed
+missing v4 combat broadcast. This audit does not claim execution of an archived
+v3 binary. If a release built from different source is shown to emit the
+notice, its exact helper/build must be audited and the parity requirement
+reopened. Restoring the apparent intended positive count would be a deliberate
+behavior change, requiring a separate decision.
+
+V4 retains its recipient-private battle summaries with casualty counts,
+remembered-location navigation and replay, alongside the reachable v3-backed
+system-defense loss notices. No gameplay, UI or user-visible strings changed
+for this audit; no new screenshot or translation artifact is needed.
