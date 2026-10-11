@@ -237,11 +237,11 @@ The largest blockers to a complete game are:
 - Strategic uses of computer advantage beyond the v3 production-style modifiers.
 - Combat-odds estimation, retreat/avoidance, and late-game attack-pressure tuning beyond matching the v3 decision factors.
 
-## 8. Events, messages, comparison, help, and general UI (Functionality 88%, UI 82%)
+## 8. Events, messages, comparison, help, and general UI (Functionality 91%, UI 85%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
-| Main information/navigation panels | Context-sensitive system, ship, fleet, rendezvous, and list panels with command buttons. | 🟡 Partial | 🟡 Partial | v4 draws anchored context panels for systems, ships, fleets, and rendezvous points plus simple menu/event/comparison/fleet-roster windows. Permanent map buttons and popup arc buttons are clickable. The full v3 contextual button architecture, sortable fleet tables, and richer command workflows remain incomplete. The sortable system comparison is implemented. |
+| Main information/navigation panels | Context-sensitive system, ship, fleet, rendezvous, and list panels with command buttons. | ✅ Implemented | ✅ Implemented | System production/allocation/destination controls, owned ship/fleet orders and member operations, rendezvous controls, paged system/member lists and the eight-column sortable fleet roster cover the shipped contextual workflows. Actual-input browser checks pass in all six languages for production, equalizing, member exchange, fleet navigation/sorting, rendezvous and read-only foreign inspectors, including save/restore. See the completion audit below. The deliberately modern radial architecture, removed pause/position controls and separate window chrome audit remain explicit. |
 | Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Remaining parity is concrete window/menu/list coverage, not an open-ended final visual redesign. |
 | Keyboard shortcuts and hover help | Buttons advertise shortcuts; balloon/flyby help describes controls. | ✅ Implemented | ✅ Implemented | Current controls advertise their working v4 shortcuts. Delayed explanatory help uses the same hit targets as clicks across inspectors, allocation sliders, command/list/course/report windows, startup options and local file dialogs. Text wraps by measured Unicode glyph width and stays within the viewport; covered controls behind modal windows, active drags, destination placement and illustrated overlays cannot show help. Clicks/keys clear it without intercepting input. Settings → Control help persists through native/browser preferences, reload and open-game switching. Eleven regressions and actual six-language browser comparisons cover timing, privacy/input isolation, allocation semantics, current action coverage, persistence, complete text and viewport bounds. New commands introduced with the remaining unported dialogs will need their own help alongside those implementations. |
 | Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | ✅ Implemented | ✅ Implemented | E/Events lists recipient-visible last-turn reports in chronological order, including retained held reports and unread offline messages. Paged rows select and center live subjects, preserve lost-subject locations and show reviewed state; narratives page independently without another turn. The complete source-reachable event inventory is implemented. View report replays full combat, colony, repair, rendezvous, message and outcome narratives. Owner commissioning/discovery now also restore their snapshot-based Stardock/Lab illustrations; observers never receive owner artwork. Actual six-language Events/button checks and before/after image comparisons pass, with both full suites at 1734 tests. Art pixel equivalence, attention sequencing and enemy movement playback remain their separate checklist rows. |
@@ -6232,3 +6232,40 @@ separate partially verified Full screen row, rounded to Functionality/UI 97%.
 The dormant starlanes and danger entries are excluded as documented source
 non-blockers. Native/package validation, other UI rows and Map Generation
 completion retain their original scope and remain active.
+
+
+### Main information/navigation panels completion audit
+
+Verified the shipped contextual panel architecture against
+`Classes/GalacticaPanels.cp` (CbxNaPanel, CbxSI, CbxIn and CbxSh),
+`Classes/CFleetInfoLine.cpp:15–29` and
+`Classes/GalacticaDoc.cp:2436–2530` in the v3 source repository. The native
+PPob/CBoxView cache is an implementation detail; v4 retains the user's requested
+radial controls and anchored inspectors.
+
+| Shipped requirement | Current implementation and verification |
+|---|---|
+| System production, equalize and new-ship destination | Production controls implement balanced target allocation/locks, hull selection, Set/Clear and completed mobile-ship dispatch. `tests/production-controls.test.js` covers the real model, ownership, save/restore and UI routing. Pause/Continuous was deliberately removed; exactly 100% is complete, as requested. |
+| Navigation commands | Course rows and Add/Edit/Delete/Clear, Patrol, Loop, Memory, Hunt and Call-in use the actual course model. Waypoint, course-memory, hunt, patrol, pursuit and command UI suites cover their behavior and privacy. The new browser workflow clicks Call-in and Loop on an actual fleet. |
+| Ship/fleet and system contents | Paged member/system tables support inspecting, grouping, removing, nested parents, scrapping, patrol and exchange/new fleet operations. Fleet-members, system-ships, containment-navigation and fleet-exchange suites cover transfers, stale selections, visibility and small ports. The browser workflow transfers an actual colony ship into a fleet and verifies the restored graph. |
+| Fleet roster | All eight source columns—name, technology, speed, power, ship count, damage, colony capability and destination—are present. `tests/fleet-roster.test.js` verifies source sort priorities, aggregates, paging, stable selection and localized small-port layouts. Browser clicks the Power header and photographs the result. |
+| Rendezvous and foreign inspectors | Ownership gates controls; rendezvous supports rename/move/delete and matching fleet inspection. Browser checks actual rendezvous controls, read-only enemy context and save/restore. Existing rendezvous and visibility suites verify placement, arrival and unknown subject restrictions. |
+
+Fresh full muted native suites pass 1744 tests with zero failures on both public
+and development PDG: `/private/tmp/galactica-context-panels-{public,devel}-unit.log`.
+`tools/test-web-context-panels.cjs` exercises the combined workflow through
+actual browser input in English, German, Spanish, French, Japanese and Russian.
+All twelve baseline/current runs finish with status zero. All 48 matched images
+are pixel-identical, recorded in
+`/private/tmp/galactica-context-panels-comparison.json` and the matching
+`galactica-context-panels/{before,after}/<language>` screenshot directories.
+English production/exchange/roster pairs and all six localized roster,
+navigation and exchange layouts were visually inspected. No gameplay code or
+localized strings changed in this audit.
+
+The main-panels row is implemented in both columns. Section 8 now rounds to
+Functionality 91%, UI 85% across its seventeen rows. Window/dialog chrome,
+preferences, native sound, original-art equality and the broader localization
+completion audit remain separately open. In particular, contextual course/list
+surfaces still need their concrete window-style review; completing their
+commands does not close that separate requirement.
