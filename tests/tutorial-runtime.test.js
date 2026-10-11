@@ -11,6 +11,15 @@ module.exports=()=>test.describe('Tutorial bindings to real game actions',()=>{
  test.it('rejects a wrong first course without mutating the actual ship, then retries successfully',()=>{
   const {game,tutorial,home,terra,s7}=setup(),ship=colony(game,home);tutorial.goto(16);test.assertTrue(game.beginMapOrder(ship));test.assertEqual(tutorial.pageId,17);test.assertFalse(game.issuePlayerWaypoint(ship,s7));test.assertEqual(ship.course.waypoints.length,0);test.assertNull(ship.destination);test.assertEqual(tutorial.pageId,18);tutorial.pressButton();game.beginMapOrder(ship);test.assertTrue(game.issuePlayerWaypoint(ship,terra));test.assertEqual(tutorial.pageId,19);test.assertTrue(ship.destination===terra);
  });
+ test.it('frames and labels S-20 only during the first destination lesson without changing galaxy or orders',()=>{
+  const {game,display,tutorial,runtime,home,terra}=setup(),ship=colony(game,home);game.overlay=null;game.overlayQueue=[];
+  const positions=game.stars.map(s=>[s.id,s.x,s.y]),originalZoom=display.camera.zoom;game.setSelectedObject(ship);tutorial.goto(16);test.assertNull(runtime.getMapTarget());
+  game.beginMapOrder(ship);test.assertEqual(tutorial.pageId,17);test.assertTrue(runtime.getMapTarget()===terra);test.assertTrue(game.selectedObject===ship);test.assertTrue(display.camera.zoom>originalZoom);
+  test.assertTrue(Math.hypot(display.toScreenX(terra.x)-display.toScreenX(home.x),display.toScreenY(terra.y)-display.toScreenY(home.y))>=89.99);
+  display.port.getTextWidth=(text,size)=>Array.from(text).length*size/2;const cue=display.getTutorialMapTargetCue();test.assertTrue(cue.target===terra);test.assertEqual(cue.lines[0],'S-20');test.assertEqual(ship.course.waypoints.length,0);
+  tutorial.goto(18);test.assertTrue(runtime.getMapTarget()===terra);tutorial.goto(19);test.assertNull(runtime.getMapTarget());test.assertNull(display.getTutorialMapTargetCue());test.assertDeepEqual(game.stars.map(s=>[s.id,s.x,s.y]),positions);
+  tutorial.goto(17);runtime.dispose();test.assertNull(display.getTutorialMapTargetCue());
+ });
  test.it('advances build lessons only for successful human hull choices through buttons or keys',()=>{
   const {game,tutorial,home}=setup(),enemy=game.stars.find(s=>s.owner===2);tutorial.goto(19);game.executeUIAction({type:'buildShip',object:enemy,shipType:'defense'});test.assertEqual(tutorial.pageId,19);game.executeUIAction({type:'buildShip',object:home,shipType:'scout'});test.assertEqual(tutorial.pageId,19);game.executeUIAction({type:'buildShip',object:home,shipType:'defense'});test.assertEqual(tutorial.pageId,20);game.executeUIAction({type:'equalizeAllocations',star:home});test.assertEqual(tutorial.pageId,21);tutorial.goto(31);game.handleStarKeyPress(home,'s'.charCodeAt(0));test.assertEqual(tutorial.pageId,32);test.assertEqual(home.currentShip.type,'scout');
  });

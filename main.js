@@ -783,6 +783,7 @@ function tutorialPanelContext(){
         if(game.overlay && game.overlay.type==='outcome')targets.push(display.getOutcomeLayout(game.overlay).rect);
         if(game.selectedObject){const inspector=display.getSelectedObjectPanelRect(game.selectedObject);if(inspector)targets.push(inspector);}
         for(const control of display.getContextButtonRegions())targets.push({...control.rect,interactive:true});
+        const cue=display.getTutorialMapTargetCue();if(cue)targets.push(cue.anchor,cue.rect);
     }
     return {screen,measure:(text,size)=>port.getTextWidth(text,size),targets};
 }

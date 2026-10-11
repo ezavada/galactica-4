@@ -3744,6 +3744,30 @@ class Display {
         this.port.drawLine(new pdg.Point(position.x,position.y),new pdg.Point(point.x,point.y),this.targetPreviewStyle);
     }
 
+    getTutorialMapTargetCue() {
+        const target=this.game.tutorialRuntime && this.game.tutorialRuntime.getMapTarget();
+        if(!target || this.game.hasEventPresentation() || WindowBehavior.isSystem(this.game.uiWindow))return null;
+        const marker=this.getMapMarker(target),screen=this.getScreenSize();
+        if(marker.x<0 || marker.x>=screen.width || marker.y<0 || marker.y>=screen.height)return null;
+        const radius=Math.max(14,marker.radius+7),anchor={x:marker.x-radius,y:marker.y-radius,width:radius*2,height:radius*2};
+        const rect=Tooltip.place(anchor,this.port.getTextWidth(target.name,11)+24,26,screen);
+        return {target,marker,radius,anchor,rect,lines:[target.name]};
+    }
+
+    drawTutorialMapTarget() {
+        const cue=this.getTutorialMapTargetCue();if(!cue)return;
+        const {marker,radius}=cue;
+        const gold=this.tutorialTargetGold || (this.tutorialTargetGold=this.createAttributes({lineColor:new pdg.Color(1,.86,.35)}).lineThickness(2.5));
+        const shadow=this.tutorialTargetShadow || (this.tutorialTargetShadow=this.createAttributes({lineColor:new pdg.Color(0,0,0,.9)}).lineThickness(4.5));
+        // Draw above ranges and inspector connectors, with a legible name pointer.
+        for(const style of [shadow,gold])for(const x of [-1,1])for(const y of [-1,1]){
+            const corner=new pdg.Point(marker.x+x*radius,marker.y+y*radius);
+            this.port.drawLine(corner,new pdg.Point(corner.x-x*7,corner.y),style);
+            this.port.drawLine(corner,new pdg.Point(corner.x,corner.y-y*7),style);
+        }
+        Tooltip.draw(this.port,cue);
+    }
+
     updateMapCursor() {
         if(!this.mapCursor)return;
         const game=this.game,blocked=game.hasEventPresentation() || game.mapSelectionPicker || WindowBehavior.isSystem(game.uiWindow);
@@ -3977,6 +4001,7 @@ class Display {
             try{this.drawActiveWindow();}finally{this.drawingActiveWindow=false;}
         });
         this.drawRendezvousPlacementPrompt();
+        this.drawTutorialMapTarget();
         
         // Draw event overlay last
         if (!deferEvents && game.overlay && game.uiWindow!=='endTurnConfirm') {

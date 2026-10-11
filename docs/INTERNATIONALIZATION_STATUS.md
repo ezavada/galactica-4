@@ -319,3 +319,14 @@ six-language tutorial input and inspected before/after screenshots confirm
 Add orders, crosshair, cancellation and S-20 selection. Both native suites
 pass 1,769 tests; evidence: `/private/tmp/galactica-map-target-ui`.
 The separate S-20 camera/target cue remains the next item.
+
+
+### First tutorial target visibility
+
+The temporary S-20 target cue uses the galaxy name and existing tooltip surface;
+all six language lesson resources remain unchanged. Actual before/after tutorial
+input, cancellation and destination acceptance pass in all six languages, and
+each target view was inspected. Camera framing separates the named stars by 90px
+without changing their world positions. Both native suites pass 1,770 tests.
+Evidence: `/private/tmp/galactica-tutorial-target`. Both user-reported tutorial
+map-visibility issues are now addressed; broader parity audits remain open.

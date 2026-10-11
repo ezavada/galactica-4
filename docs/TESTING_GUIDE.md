@@ -1129,3 +1129,17 @@ crosshair over their old location, checks Escape restoration, then clicks S-20.
 All twelve workflows pass. Eighteen screenshot pairs are identical; twelve
 show the intended targeting changes. Both full suites pass 1,769 tests.
 Evidence: `/private/tmp/galactica-map-target-ui` and matching log prefixes.
+
+
+### First tutorial target visibility
+
+Run `node tools/test-web-tutorial-target.cjs BUILD_DIR SCREENSHOT_DIR LANGUAGE
+before|after` against c17a94f and the current build in each supported language.
+The muted fixture uses actual tutorial startup/setup, then a completed colony
+ship at lesson 16. Add orders, cursor movement, Escape, retry and actual S-20
+selection are exercised. The baseline already hides inspectors; this isolates
+target framing/cue changes. `framing.json` records 21.21px separation before and
+90px after; the after cue must clear when lesson 19 begins. All twelve runs pass.
+Six screenshot pairs are identical; 24 show the intended camera/cue changes.
+Both native suites pass 1,770 tests. Evidence:
+`/private/tmp/galactica-tutorial-target` and matching log prefixes.

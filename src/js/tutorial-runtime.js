@@ -9,7 +9,7 @@ class TutorialRuntime {
         this.captureRoles();
         controller.anchors={home:game.stars.find(s=>s.id===2),newTerra:game.stars.find(s=>s.id===9)};
         const enter=controller.onEnter;
-        controller.onEnter=(id,page,effects)=>{this.applyEffects(effects);enter(id,page,effects);};
+        controller.onEnter=(id,page,effects)=>{this.applyEffects(effects);if(id===17)this.frameFirstDestination();enter(id,page,effects);};
         this.restorers.push(()=>{controller.onEnter=enter;});
         try {
             this.bindActions();
@@ -53,6 +53,20 @@ class TutorialRuntime {
             } else if(effect.type==='setEnemyPlayback')g.showEnemyEvents=effect.enabled;
             else if(effect.type==='restoreHoverHelp')g.showControlHelp=true;
         }
+    }
+
+    getMapTarget() {
+        if(this.disposed || !this.controller.active || ![17,18].includes(this.controller.pageId))return null;
+        return this.game.stars.find(star=>star.id===9) || null;
+    }
+
+    frameFirstDestination() {
+        const target=this.getMapTarget(),home=this.game.stars.find(star=>star.id===2),display=this.game.display;
+        if(!target || !home || !display)return;
+        const distance=Math.hypot(target.x-home.x,target.y-home.y);
+        if(distance>0)display.camera.setZoom(Math.max(display.camera.zoom,90/(distance*display.camera.scale)));
+        // Presentation only: retain the original galaxy, selected ship and orders.
+        display.centerOn((home.x+target.x)/2,(home.y+target.y)/2);
     }
 
     captureRoles() {

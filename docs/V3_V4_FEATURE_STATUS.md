@@ -7340,3 +7340,38 @@ and `galactica-map-target-ui-{pdg,pdg-devel}-unit.log`.
 The separate S-20 discovery issue is confirmed: its source position is only about
 21 screen pixels from Andromeda at 100% zoom, with overlapping names. A tutorial
 camera/target cue is the next item; this commit does not claim to close it.
+
+
+### First tutorial destination visibility (completed)
+
+The original tutorial galaxy places Andromeda at (904192, 604160) and S-20
+(star ID 9) at (925696, 607232), only 21.21 screen pixels apart at 100% zoom.
+Their names overlapped in the reproduced first-order lesson. Entering lesson 17
+now zooms enough to separate their centers by at least 90 pixels, retaining any
+larger existing zoom, and frames their midpoint through the existing camera
+navigation path. Galaxy coordinates, the selected ship and orders remain unchanged.
+The first target receives gold corner brackets with a dark backing and a readable
+name pointer above scanner ranges/connectors. The tutorial panel avoids the cue.
+It remains during the retry lesson and disappears after acceptance or tutorial
+closure. This presentation assistance is an intentional user-requested addition
+to the original lesson; the S-20 order target and progression remain unchanged.
+
+Both full native suites pass **1,770 tests, zero failures**. The new regression
+checks the target's lesson lifetime, separation, retained selection, empty course,
+unchanged galaxy positions and disposal. Twelve muted actual-input browser
+workflows pass before/after in en/de/es/fr/ja/ru. Their focused completed-colony
+fixture uses the real tutorial startup/setup and lesson 16, then actual Add orders,
+crosshair movement, Escape, retry and S-20 clicking. Measured before separation is
+21.21px in every language; after separation is 90px with the S-20 cue. All six
+before/after targeting screenshots were visually inspected. Of 30 pairs, the six
+pre-order views are identical; 24 subsequent views show the intended camera/cue
+changes. Every actual destination selection succeeds and the cue clears on
+lesson 19. No new strings are needed: the existing target name and six-language
+lesson resources are retained. No PDG checkout changed.
+
+Evidence: `/private/tmp/galactica-tutorial-target`, its `framing.json`/`result.json`
+per-language artifacts and `comparison.json`, plus
+`galactica-tutorial-target-{pdg,pdg-devel}-unit.log`.
+Together with c17a94f this closes both reported tutorial map-visibility issues.
+Overall parity, the separate compact gameplay audit and Map Generation completion
+remain open.
