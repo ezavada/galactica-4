@@ -891,3 +891,13 @@
 1188	Could not save the game list. Please try again.
 1189	Enter address
 1190	Administrator
+1191	Find LAN games
+1192	LAN games
+1193	Searching for LAN games…
+1194	No LAN games found. Refresh to search again.
+1195	LAN discovery requires the desktop application. Enter a host address instead.
+1196	LAN discovery failed. Refresh to try again, or enter a host address.
+1197	Refresh
+1198	Turn {0} · {1} of {2} human slots open
+1199	Advertised on the local network
+1200	LAN advertisement unavailable; direct address joining still works

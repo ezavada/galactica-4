@@ -891,3 +891,13 @@
 1188	Die Spieleliste konnte nicht gespeichert werden. Bitte erneut versuchen.
 1189	Adresse eingeben
 1190	Administrator
+1191	LAN-Spiele suchen
+1192	LAN-Spiele
+1193	LAN-Spiele werden gesucht…
+1194	Keine LAN-Spiele gefunden. Aktualisieren, um erneut zu suchen.
+1195	Die LAN-Suche erfordert die Desktop-App. Stattdessen eine Hostadresse eingeben.
+1196	LAN-Suche fehlgeschlagen. Aktualisieren oder eine Hostadresse eingeben.
+1197	Aktualisieren
+1198	Runde {0} · {1} von {2} menschlichen Plätzen frei
+1199	Im lokalen Netzwerk sichtbar
+1200	LAN-Ankündigung nicht verfügbar; Beitritt über Adresse funktioniert

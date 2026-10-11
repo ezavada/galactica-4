@@ -172,19 +172,23 @@ class NetworkHost {
                 respond(status,{error:status===500?'host_save_failed':error.code});}
         });
     }
-    listen({port=0,address='127.0.0.1'}={}){
+    listen({port=0,address='127.0.0.1',discovery=true,discoveryOptions={}}={}){
         if(this.server) return Promise.reject(failure('host_already_listening'));
         if(!Number.isInteger(port) || port<0 || port>65535 || typeof address!=='string' || !address)return Promise.reject(failure('invalid_host_address'));
         const server=require('http').createServer((req,res)=>this.handle(req,res));this.server=server;
         return new Promise((resolve,reject)=>{
             const failed=error=>{this.server=null;reject(error);};server.once('error',failed);
-            server.listen(port,address,()=>{server.removeListener('error',failed);this.clock.start();this.clockTimer=setInterval(()=>{try{this.tick();}catch(error){this.clockError=error.code || 'host_save_failed';}},250);resolve(server.address());});
+            server.listen(port,address,async()=>{server.removeListener('error',failed);this.clock.start();this.clockTimer=setInterval(()=>{try{this.tick();}catch(error){this.clockError=error.code || 'host_save_failed';}},250);
+                this.discoveryError=null;this.discovery=null;
+                if(discovery && ['0.0.0.0','::'].includes(address))try{this.discovery=require('./network-discovery.js').advertise({...discoveryOptions,httpPort:server.address().port,info:()=>this.info(),onError:()=>{this.discoveryError='discovery_failed';}});await this.discovery.ready;}catch(error){this.discoveryError='discovery_failed';}
+                resolve(server.address());});
         });
     }
     async close(){
         const previous={remainingMs:this.clock.remainingMs,startedAt:this.clock.startedAt};
         this.clock.stop();try{this.persist();}catch(error){Object.assign(this.clock,previous);throw error;}
         if(this.clockTimer!==null){clearInterval(this.clockTimer);this.clockTimer=null;}
+        if(this.discovery){this.discovery.close();this.discovery=null;}
         this.login.disconnectAll();this.admin.disconnectAll();const server=this.server;this.server=null;
         if(server)await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));
     }

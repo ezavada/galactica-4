@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1597
-Passed: 1597 ✓
+Total: 1606
+Passed: 1606 ✓
 Failed: 0 ✗
 ```
 
@@ -752,3 +752,31 @@ reload. Preferences use an isolated browser profile or in-memory native fixture;
 all hosts and temporary files are cleaned up. Audio output is muted.
 
 Evidence for this item is recorded in V3_V4_FEATURE_STATUS.md after validation.
+
+### Native LAN discovery
+
+```bash
+./gad4 tools/test-network-discovery.js
+PDG_EXECUTABLE=/path/to/public/pdg ./gad4 tools/test-network-discovery.js
+node tools/test-web-host-setup.cjs BEFORE_BUILD_DIR BEFORE_SCREENSHOTS en before-lan
+node tools/test-web-host-setup.cjs BUILD_DIR AFTER_SCREENSHOTS en lan
+```
+
+Repeat shared-UI checks for de/es/fr/ja/ru. Native checks use actual UDP multicast
+and HTTP admission: simultaneous hosts, public metadata, live slot counts,
+failed-stop preservation, expiry after successful stop, scan cancellation,
+multiple native interfaces and a real occupied-UDP-port failure with direct HTTP
+fallback and recovery on reopening. The default fixture scopes UDP to loopback and also checks the normal
+multi-interface API. This does not prove physical-network peer discovery. Run
+`GALACTICA_LAN_INTERFACE=<physical IPv4 address> ./gad4 tools/test-network-discovery.js`
+for the explicit physical adapter check; its current environment blocker is
+recorded in V3_V4_FEATURE_STATUS.md. Fixtures use temporary files and an ephemeral
+discovery port.
+
+Nine unit regressions cover bounded queries/announcements, nonce/protocol
+validation, sender-derived endpoints, per-address expiry, multihomed deduplication,
+stable selection, paging, cancellation and translated layouts/failures. The
+normal browser explicitly reports that UDP discovery requires the desktop app.
+For the shared dialog controls, browser automation uses a test-only bridge to an
+actual native multicast browser. This does not enable UDP in the released web
+app. Native and browser output stays muted.

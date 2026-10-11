@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1597 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1606 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -43,7 +43,7 @@ The largest blockers to a complete game are:
 1. **Combat runtime rules are now at v3 parity for Section 6, but presentation is still thin.** Enemy ship/star/fleet arrivals invoke `CombatSystem`, remove destroyed ships, use v3-style ship/star combat formulas, run ground combat, let surviving colony ships capture stars, repair docked mobile ships/fleets, recalculate fog each turn, and record localized battle summaries. Missing v3 pieces are UI/presentation: remaining observer/other recipient-relative reports, sound and remaining illustrated event coverage. Participant combat, defeated-resistance and capture messages now have automatic windows and replay. A distinct last-seen ghost rendering mode was not found in the shipped v3 drawing paths.
 2. **The v3 command UI now has a first clickable runtime path, but not full parity.** v4 has a startup setup dialog, charcoal rounded windows, bottom-right permanent map buttons, a top-center turn/game header, clickable popup action buttons, directly clickable production sliders, retained event list, player comparison window, a paged sortable fleet/ship roster, fleet/rendezvous panels, and anchored selection panels. Missing v3 pieces remain: remaining attention-event coverage, map replay, help, sound, and the remaining drawing/sound/game preferences.
 3. **Navigation now supports v3 waypoint editing and looping.** Broader attention-event coverage and full arrival presentation remain incomplete; ship/fleet scrapping is implemented.
-4. **Local file persistence, direct multiplayer joining and untimed turn posting are implemented; multiplayer setup/supporting features remain incomplete.** Versioned Save/Save As, Open and confirmed Revert preserve the game graph, visibility, courses, events, selection and camera. Direct hostname/IP inspection and authenticated joining/rejoining now have localized application dialogs and retained sessions. Desktop/dedicated host setup and password-gated remote administrator controls are implemented. Saved host lists now support remembered connection identities and manual address bookmarks. Discovery, chat and network saves remain unfinished. Client End Turn now posts decision records and the host resolves an untimed turn once every assigned living human has posted.
+4. **Local file persistence, direct multiplayer joining and untimed turn posting are implemented; multiplayer setup/supporting features remain incomplete.** Versioned Save/Save As, Open and confirmed Revert preserve the game graph, visibility, courses, events, selection and camera. Direct hostname/IP inspection and authenticated joining/rejoining now have localized application dialogs and retained sessions. Desktop/dedicated host setup and password-gated remote administrator controls are implemented. Saved host lists now support remembered connection identities and manual address bookmarks. Native LAN discovery is now implemented; Internet matchmaking, chat and network saves remain unfinished. Client End Turn now posts decision records and the host resolves an untimed turn once every assigned living human has posted.
 5. **Several systems are present but incomplete or incorrectly wired.** Examples include fog-of-war presentation, remaining attention-event coverage, event depth, setup/default-settings UI, and richer list/command UI polish.
 
 ## Easy wins applied on 2026-08-25
@@ -265,7 +265,7 @@ The largest blockers to a complete game are:
 - Functional sorting for Compare Players, unless another shipped v3 path is found; the audited `SortCompareWindowByColumn()` body is empty.
 - Additional dashboard/scoring views beyond the v3 summary columns.
 
-## 9. Save/load, multiplayer, and host administration (Functionality 82%, UI 82%)
+## 9. Save/load, multiplayer, and host administration (Functionality 86%, UI 86%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -276,7 +276,7 @@ The largest blockers to a complete game are:
 | Quit application | Quit checks modified documents before exiting; Cancel prevents exit. | 🟡 Partial | 🟡 Partial | File → Quit/Q, Command/Ctrl+Q, startup Quit and configured command 10 now check every retained game, wait for writes and preserve remaining documents on Cancel. Browser unload warns for unsaved games; accepted Quit offers a localized restart screen. Both full suites pass 1,369 tests; actual all-six-language browser and real native shutdown checks pass. Native window-close/OS Quit requests still bypass save decisions in the pinned PDG runtime and require engine integration. Joined client documents log out on accepted Close/Quit. Host creation/stop defers Quit while busy; accepted Quit awaits saved shutdown of every application host. A failed host save leaves its listener active and the application open for retry. Native OS/window-close interception remains the separate engine blocker. |
 | Host new network game | Creates host data, starts server, and presents join flow. | ✅ Implemented | ✅ Implemented | Desktop startup Host/H and File → Host create an exclusive durable host file and independent listener. The localized modal offers player/map/timer options, actual port/address/status, ordinary Join, Stop, another host and retry after bind failure. Dismissing the status or closing a client keeps hosting alive. Browser hosting is explicitly unavailable. All six shared-UI flows against real native hosts and both native integration suites pass; see the audit below. |
 | Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | ✅ Implemented | ✅ Implemented | Created desktop hosts can run without joining a local player and independently of retained game documents. File → Open as host and the startup Host form reopen existing hosts with their galaxy, turn, claims/passwords and remaining/paused clock intact. A dedicated command opens the same host without a graphics window or local player. Exclusive application/dedicated file leases prevent concurrent writers; ordinary authenticated rejoin is available. Local saved turns can be converted into a separate host with first-N human roles, fresh open slots and no turn limit, preserving the inspected galaxy/turn and source. Dedicated --new/--load commands configure total/AI players, map, AI skill/advantage, timer, speed, fog, port and language; AI-only hosts advance without a local player. Localized command help/errors and real creation/posting/rejoin/shutdown are verified in all six languages on both native runtimes. |
-| LAN/Internet discovery | Browse advertised games and query the matchmaker. | ❌ Missing | ❌ Missing | No equivalent. |
+| LAN/Internet discovery | Browse advertised games and query the matchmaker. | 🟡 Partial | 🟡 Partial | Native desktop and dedicated hosts now advertise while listening; physical-interface validation is blocked on this machine as documented below. Find LAN games provides a live paged list with title/turn/open slots, stable selection, refresh, expiry and public inspection before authenticated admission. Bounded public announcements, nonce correlation, sender-derived endpoints and multiple-interface deduplication are implemented. Failed durable stop retains advertisements; successful stop removes them through expiry. Discovery errors keep HTTP joining available. Normal browsers explicitly require the desktop application for UDP. Internet matchmaking remains blocked on an available service: the v3 endpoint on port 8080 times out here, and its port-80 path returns 404; see owner-review evidence below. |
 | Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | ✅ Implemented | ✅ Implemented | Startup Join/J and File → Join open a localized modal address/name/masked-password form with public game/slot information and paged player selection. Native HTTP/browser CORS admission installs the authenticated client as a retained game document; same-player rejoin reuses that document. Automatic refresh preserves same-turn orders and updates authoritative turns. Title dragging stays in the port and remembers its position. Six-language actual-control browser tests pass. Saved games now stores manual hostname/IP bookmarks and successful game/player/admin identities in device preferences, with add/remove, paging, keyboard selection and public inspection before authenticated joining. Reload retains the list; passwords remain in the separate opt-in store. Removing an entry preserves sessions, claims and credentials. Wrong-game, failed/cancelled admission and preference-write retry are verified. Discovery remains the separate missing row; untimed order submission and authoritative turn resolution are now wired. |
 | Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | ✅ Implemented | ✅ Implemented | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit rules now restrict new slots with host-issued codes, allow/ban lists and code-free admission; password rejoining remains unaffected. The optional Remember password on this device checkbox now persists successfully authenticated credentials in device preferences, scoped to endpoint/game/player/role. Masked restoration works after application reload; unchecked successful login forgets that identity. Failed/cancelled attempts preserve prior preferences, role switches never reuse another role’s password, and public descriptors/game/host saves exclude remembered credentials. Eight focused units, actual six-language native admission on both runtimes, awaited cancellation checks and all-six-language browser before/after/reload paths are verified below. Saved host lists/discovery remain a separate row. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ✅ Implemented | ✅ Implemented | Client End Turn submits owned decision records through authenticated HTTP, shows localized Posting/Posted/Retry states and locks posted orders. The host stages and validates production targets/build choices, destinations/courses/memory, names, fleet membership, private rendezvous and player defaults; it derives simulation values and permanent IDs. Untimed turns resolve once every assigned living human posts. Durable receipts make retries idempotent after lost replies/reopening. Authoritative next-turn refresh unlocks client orders. Both full suites pass 1,459 tests; posting controls are verified in all six languages, with an English browser rerun after the host-clock addition. Timed host scheduling, visible countdowns and desktop setup are implemented separately; host administration UI remains unfinished. |
@@ -3441,3 +3441,73 @@ The Join-by-list/IP/hostname row is now implemented. Section 9 estimates use
 implemented=1, partial=0.5 and missing=0 (11.5/14, rounded to 82%). Discovery,
 chat, network document saving and the documented native Quit integration blocker
 remain open. The broader parity and Map Generation goal remains active.
+
+
+### Native LAN browsing and advertisements — 2026-10-10
+
+Audited shipped v3 `Classes/GalacticaClient.cpp` StartBrowsingForGames and
+HandleClientEnumeration (1541 onward and 2010 onward), BrowseAndJoin (1165
+onward), and `Classes/GalacticaHost.cpp` ProtocolStartAdvertising (174 onward).
+V4 desktop and dedicated wildcard HTTP hosts now advertise bounded public game
+metadata through IPv4 multicast query/reply. Find LAN provides a live, paged,
+localized list, expiry, refresh, direct-address fallback and inspection before
+ordinary authenticated joining/rejoining. Instance identity deduplicates multiple
+interface addresses without merging independently running copies of a game.
+Failed host persistence retains both listener and advertisement; advertisement
+failure preserves direct HTTP admission. Browsers explicitly explain that native
+LAN discovery requires the desktop app; the browser test bridge is test-only.
+All ten new labels/messages are translated in en/de/es/fr/ja/ru.
+
+Validation:
+
+- Nine new regressions; full suites **1,606 passed, 0 failed on both native PDG
+  runtimes**. Logs: `/private/tmp/galactica-lan-{unit,public-unit}.log`.
+- Actual native UDP query/reply on loopback, two simultaneous hosts, metadata,
+  admission, updated slots, failed-stop preservation, expiry and cleanup pass in
+  all six languages on both runtimes. Actual occupied UDP-port failure retains
+  HTTP joining, and reopening recovers advertisements. The default multi-interface
+  API also discovers and joins its local host, which does not prove physical LAN
+  reachability. Logs: `/private/tmp/galactica-lan-{native,public-native}.log`.
+- Dedicated command and awaited Join/Rejoin regressions pass on both runtimes.
+  Logs: `/private/tmp/galactica-lan-{command,public-command,async,public-async}-regression.log`.
+- Muted before/after browser controls pass in all six languages. The test-only
+  bridge queries actual native loopback advertisements; it covers paging, host
+  disappearance, retry, inspection/admission, remembered rejoin, empty lists and
+  cancellation. Browser unsupported/direct-entry paths are separately exercised.
+  The existing saved-list regression also passes against the final package.
+  Screens: `/private/tmp/galactica-parity/lan-{before,after}/<language>`; logs:
+  `/private/tmp/galactica-lan-{before,after}-<language>.log` and
+  `/private/tmp/galactica-lan-saved-host-regression.log`. Inspected direct-entry
+  before/after screens in all six languages and representative live-list,
+  advertisement-status, unsupported and retry screens; labels and controls fit.
+
+Concrete owner-review blockers (the discovery row remains Partial):
+
+1. **Physical LAN validation needs unavailable network diagnosis.** Explicit
+   multicast membership and transmission through this machine's active en0 IPv4
+   address receive no query, in both PDG and ordinary Node, including an explicitly
+   bound sender and multicast-group-bound receiver. The multicast route points
+   to en0; this does not establish why reception fails. Administrator packet
+   capture is unavailable (`sudo -n tcpdump` requires a password), so no packet
+   capture was performed. Independent evidence:
+   `/private/tmp/galactica-lan-route-probe.log`,
+   `/private/tmp/galactica-lan-node-route-probe.log`,
+   `/private/tmp/galactica-lan-node-bound-route-probe.log`, and
+   `/private/tmp/galactica-lan-node-group-route-probe.log` (all timed out).
+   Have the owner diagnose adapter/network filtering and verify discovery between
+   physical peers. The native harness supports
+   `GALACTICA_LAN_INTERFACE=<IPv4 address> ./gad4 tools/test-network-discovery.js`.
+   Loopback and same-process API success are not physical-peer validation.
+2. **Internet matchmaking needs an active service and its protocol.** V3
+   `Consts.h:51`, GalacticaClient FetchMatchMakerGames (2794–2833), host publishing
+   (257–307) and MatchMakerClient list/registration (677 onward) reference
+   `http://mm.annodominari.com:8080/GalacticaMM/GalacticaMM`. Read-only access to
+   that endpoint timed out twice from this machine; the same path on port 80
+   returned HTTP 404. Logs: `/private/tmp/galactica-matchmaker-{8080,80}.log`.
+   These observations do not prove a global outage. No server implementation was
+   found in the v3 checkout. Service-owner input is needed before live Internet
+   discovery can be implemented and validated; no external registration was sent.
+
+Section 9 estimates use implemented=1, partial=0.5, missing=0 (12/14, rounded
+86%). Chat, remaining network-document behavior, other parity items and Map
+Generation remain required. This item does not establish overall completion.

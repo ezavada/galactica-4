@@ -891,3 +891,13 @@
 1188	Impossible d’enregistrer la liste des parties. Réessayez.
 1189	Saisir une adresse
 1190	Administrateur
+1191	Chercher en LAN
+1192	Parties en LAN
+1193	Recherche de parties en LAN…
+1194	Aucune partie en LAN trouvée. Actualisez pour réessayer.
+1195	La recherche LAN nécessite l’application de bureau. Saisissez plutôt une adresse d’hôte.
+1196	La recherche LAN a échoué. Actualisez ou saisissez une adresse d’hôte.
+1197	Actualiser
+1198	Tour {0} · {1} places humaines libres sur {2}
+1199	Annoncée sur le réseau local
+1200	Annonce LAN indisponible ; la connexion par adresse reste possible

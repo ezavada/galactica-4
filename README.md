@@ -100,6 +100,14 @@ enter your name and optional password. Select a claimed player to rejoin.
 the game title and player or administrator identity after successful login.
 Select an entry to inspect and rejoin it, or add/remove addresses in the paged
 list. Removing an entry leaves the host and remembered passwords intact.
+Desktop **Find LAN games** browses automatically advertised hosts on the local
+IPv4 network. The list updates titles, turns and open slots, removes stale hosts,
+and supports paging, Refresh/R and selection followed by public inspection.
+Hosting and dedicated hosts advertise while listening; a failed save does not
+stop the listener or its advertisement. LAN announcements contain public game
+metadata, and a successful join is remembered separately in Saved games.
+Browsers show an explicit desktop-only message and retain direct address entry.
+
 Joined and local games remain available through **Open Games**. A joined game
 refreshes automatically; rejoining the same player reuses its document.
 
@@ -249,8 +257,8 @@ a saved password, uncheck the option and log in successfully. Failed or cancelle
 logins preserve the previous preference. Password fields stay masked; connection
 descriptors and game/host saves contain no remembered plaintext credentials.
 
-Multiplayer remains incomplete: discovery, chat and network-game saving are
-still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
+Multiplayer remains incomplete: Internet matchmaking needs an available service,
+and chat and network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
 
@@ -259,7 +267,7 @@ still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1597 passed, 0 failed.
+Current expected result: 1606 passed, 0 failed.
 
 AI-only parity observer:
 

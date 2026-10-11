@@ -891,3 +891,13 @@
 1188	No se pudo guardar la lista de partidas. Inténtalo de nuevo.
 1189	Introducir dirección
 1190	Administrador
+1191	Buscar en LAN
+1192	Partidas en LAN
+1193	Buscando partidas en LAN…
+1194	No se encontraron partidas en LAN. Actualiza para buscar de nuevo.
+1195	La búsqueda LAN requiere la aplicación de escritorio. Introduce la dirección del anfitrión.
+1196	Falló la búsqueda LAN. Actualiza o introduce la dirección del anfitrión.
+1197	Actualizar
+1198	Turno {0} · {1} de {2} plazas humanas libres
+1199	Anunciada en la red local
+1200	Anuncio LAN no disponible; puedes unirte mediante la dirección
