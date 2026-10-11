@@ -4,6 +4,9 @@ module.exports=()=>test.describe('Dedicated host commands and robot games',()=>{
  test.it('preserves positional reopening and named load without replacing saved setup',()=>{
   test.assertDeepEqual(Command.parse(['Saved 星.json','0','ja']),{mode:'load',file:'Saved 星.json',port:0,language:'ja'});test.assertDeepEqual(Command.parse(['--language','de','--port','65535','--load','Saved 星.json']),{mode:'load',file:'Saved 星.json',port:65535,language:'de'});rejects(['--load','saved','--players','3']);rejects(['--load','saved','--slow']);
  });
+ test.it('accepts admission-rule files on new and saved commands and rejects missing or duplicate paths',()=>{
+  test.assertEqual(Command.parse(['--new','host','--admission','rules.json']).admissionFile,'rules.json');test.assertDeepEqual(Command.parse(['--load','host','--admission','rules.json']),{mode:'load',file:'host',port:0,language:'en',admissionFile:'rules.json'});rejects(['--load','host','--admission']);rejects(['--new','host','--admission','']);rejects(['--new','host','--admission','a','--admission','b']);
+ });
  test.it('converts total/AI counts, speed/fog, timer minutes and all setup options',()=>{
   const args=['--new','Host 星.json','--title','Host 星','--players','4','--ais','2','--skill','1','--advantage','-3','--size','5','--density','10','--turn-minutes','10080','--end-early','--slow','--no-fog','--port','65535','--language','ru'],before=JSON.stringify(args),c=Command.parse(args);test.assertEqual(JSON.stringify(args),before);test.assertEqual(c.mode,'new');test.assertEqual(c.port,65535);test.assertEqual(c.language,'ru');test.assertDeepEqual(c.options,{numHumans:2,numComputers:2,fastGame:false,omniscient:true,endEarly:true,maxTimePerTurn:604800,compSkill:1,compAdvantage:-3,density:10,sectorSize:5,hosting:true,gameTitle:'Host 星'});test.assertEqual(new Config(c.options).validate().length,0);
  });

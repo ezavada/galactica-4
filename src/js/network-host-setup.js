@@ -31,7 +31,7 @@ class HostWindow {
   finally{this.busy=false;}
  }
  dismiss(){if(this.busy)return false;while(this.active)this.cancel();return true;}
- cancel(){if(!this.active || this.busy)return false;if(this.stage==='playerName'){this.stage='players';this.message='';return true;}if(this.stage==='players'){this.stage='hosting';this.message='';return true;}if(this.stage==='settings'){this.config=this.previousConfig;this.stage='hosting';this.message='';return true;}if(this.stage==='endTurn'){this.stage='hosting';this.confirmation=null;this.message='';return true;}if(this.conversion && this.backend.discardConversion)this.backend.discardConversion(this.conversion.token);this.conversion=null;this.active=false;return true;}
+ cancel(){if(!this.active || this.busy)return false;if(this.stage==='playerName'){this.stage='players';this.message='';return true;}if(this.stage==='admission'){this.stage='hosting';this.admission=null;this.admissionCode.text='';this.message='';return true;}if(this.stage==='players'){this.stage='hosting';this.message='';return true;}if(this.stage==='settings'){this.config=this.previousConfig;this.stage='hosting';this.message='';return true;}if(this.stage==='endTurn'){this.stage='hosting';this.confirmation=null;this.message='';return true;}if(this.conversion && this.backend.discardConversion)this.backend.discardConversion(this.conversion.token);this.conversion=null;this.active=false;return true;}
  options(){
   const numHumans=whole(this.humans.text,1,99),numComputers=whole(this.computers.text,0,98),port=whole(this.port.text,0,65535),time=this.timed?whole(this.time.text,1,Math.min(99999999,Math.floor(Number.MAX_SAFE_INTEGER/(1000*units[this.unit].multiplier)))):0;
   if(numHumans===null || numComputers===null || numHumans+numComputers>99 || port===null || time===null || !Name.validName(this.title.text,Setup.maximumTitleLength) || !Name.validName(this.file.text,1024))return null;
@@ -51,6 +51,27 @@ class HostWindow {
   try{await this.backend.stop(this.record);this.record=null;this.active=false;return true;}catch(error){this.message=I18n.getString(1073);return false;}finally{this.busy=false;}
  }
  async retry(){if(this.busy || !this.record)return false;this.busy=true;this.message=I18n.getString(1061);try{const port=whole(this.port.text,0,65535);if(port===null)throw {code:'invalid_host_port'};await this.backend.retry(this.record,port);this.port=Name.createEditor(String(this.backend.describe(this.record).port),5);this.message='';return true;}catch(error){this.message=errorText(error);return false;}finally{this.busy=false;}}
+ editAdmission(){
+  if(this.busy || !this.record)return false;const info=this.backend.describe(this.record);if(!info.address)return false;
+  this.admission=require('./host-admission.js').validate(info.administration.admission);this.admissionRevision=info.administration.admissionRevision;this.admissionList='allowed';this.admissionSelection=null;this.admissionCode=Name.createEditor('',64);this.focus='admissionCode';this.page=0;this.stage='admission';this.message='';return true;
+ }
+ admissionAction(action,value){
+  if(this.stage!=='admission' || this.busy)return false;
+  const policy=require('./host-admission.js'),list=this.admission[this.admissionList];
+  if(action==='allowWithoutCode')this.admission.allowWithoutCode=!this.admission.allowWithoutCode;
+  else if(action==='admissionList'){if(!['allowed','banned'].includes(value))return false;this.admissionList=value;this.page=0;this.admissionSelection=null;}
+  else if(action==='admissionSelect'){if(!Number.isInteger(value) || value<0 || value>=list.length)return false;this.admissionSelection=value;}
+  else if(action==='admissionAdd'){const code=this.admissionCode.text.trim();if(!policy.validCode(code) || list.includes(code) || list.length>=policy.maximumCodes){this.message=I18n.getString(1152);return false;}list.push(code);this.admissionSelection=list.length-1;this.page=Math.floor(this.admissionSelection/4);this.admissionCode=Name.createEditor('',64);}
+  else if(action==='admissionRemove'){if(this.admissionSelection===null)return false;list.splice(this.admissionSelection,1);this.admissionSelection=null;this.page=Math.min(this.page,Math.max(0,Math.ceil(list.length/4)-1));}
+  else if(action==='previous' || action==='next')this.page=Math.max(0,Math.min(Math.max(0,Math.ceil(list.length/4)-1),this.page+(action==='next'?1:-1)));
+  else return false;this.message='';return true;
+ }
+ async saveAdmission(){
+  if(this.stage!=='admission' || this.busy)return false;this.busy=true;this.message=I18n.getString(1138);
+  try{await this.backend.updateAdmission(this.record,this.admission,this.admissionRevision);this.stage='hosting';this.admissionCode.text='';this.admission=null;this.message='';return true;}
+  catch(error){if(error.code==='stale_host_admission'){this.stage='hosting';this.admission=null;this.admissionCode.text='';}this.message=I18n.getString(error.code==='stale_host_admission'?1151:error.code==='invalid_host_admission'?1152:1030);return false;}
+  finally{this.busy=false;}
+ }
  editPlayers(){
   if(this.busy || !this.record)return false;const info=this.backend.describe(this.record);if(!info.address || info.administration.complete && !info.administration.players.some(p=>!p.isComputer && p.online))return false;this.playersComplete=info.administration.complete;
   this.playerList=info.administration.players.map(p=>({...p}));this.playersRevision=info.administration.playersRevision;this.playersTurn=info.info.turn;this.playerSelection=null;this.page=0;this.stage='players';this.message='';return true;
@@ -97,7 +118,7 @@ class HostWindow {
   finally{this.busy=false;}
  }
  action(action,value){
-  if(action==='cancel')return this.cancel();if(this.busy)return false;if(action==='players')return this.editPlayers();if(action==='selectPlayer')return this.selectPlayer(value);if(action==='savePlayer')return this.savePlayer();if(action.startsWith('player:'))return this.playerAction(action.slice(7));if(action==='settings')return this.editSettings();if(action==='saveSettings')return this.saveSettings();
+  if(action==='cancel')return this.cancel();if(this.busy)return false;if(action==='admission')return this.editAdmission();if(action==='saveAdmission')return this.saveAdmission();if(this.stage==='admission')return this.admissionAction(action,value);if(action==='players')return this.editPlayers();if(action==='selectPlayer')return this.selectPlayer(value);if(action==='savePlayer')return this.savePlayer();if(action.startsWith('player:'))return this.playerAction(action.slice(7));if(action==='settings')return this.editSettings();if(action==='saveSettings')return this.saveSettings();
   if(this.stage==='settings' && ['size','density','another','openSaved','create'].includes(action))return false;
   if(action==='pause' || action==='resumeClock')return this.control(action==='pause'?'pause':'resume');if(action==='endNow')return this.requestEnd();if(action==='confirmEnd')return this.confirmation?this.control('end',this.confirmation.turn):false;if((action==='previous' || action==='next') && this.stage==='players'){this.page=Math.max(0,Math.min(Math.ceil(this.playerList.length/4)-1,this.page+(action==='next'?1:-1)));return true;}if((action==='previous' || action==='next') && this.confirmation){this.page=Math.max(0,Math.min(Math.ceil(this.confirmation.pending.length/4)-1,this.page+(action==='next'?1:-1)));return true;}
   if(action==='convert')return this.convert();if(action==='resume')return this.resume();if(action==='openSaved'){this.active=false;return this.openSaved(this.config);}if(action==='create')return this.create();if(action==='stop')return this.stop();if(action==='retry')return this.retry();
@@ -116,6 +137,7 @@ class HostWindow {
  }
  key(key,pdgRef=globalThis.pdg){
   if(key===pdgRef.key_Escape)return this.cancel();if(this.busy)return true;
+  if(this.stage==='admission'){if([13,10,3].includes(key))this.admissionAction('admissionAdd');else Name.edit(this.admissionCode,key,pdgRef);return true;}
   if(this.stage==='players'){if(key===pdgRef.key_UpArrow || key===pdgRef.key_DownArrow){const current=this.playerList.findIndex(p=>p.player===this.playerSelection),index=Math.max(0,Math.min(this.playerList.length-1,current+(key===pdgRef.key_UpArrow?-1:1)));this.playerSelection=this.playerList[index].player;this.page=Math.floor(index/4);}return true;}
   if(this.stage==='endTurn'){if([13,10,3].includes(key))this.action('confirmEnd');return true;}
   if(this.stage==='hosting'){if(key===pdgRef.key_Tab && !this.backend.describe(this.record).address){this.focus='port';this.port.selected=true;}else if([13,10,3].includes(key))this.action(this.backend.describe(this.record).address?'join':'retry');else if(this.focus==='port')Name.edit(this.port,key,pdgRef);return true;}
@@ -127,8 +149,13 @@ class HostWindow {
   this.message='';return true;
  }
  layout(width,height){
-  if(!this.active)return null;const baseHeight=this.stage==='players'?480:this.stage==='playerName'?300:this.stage==='endTurn'?360:this.stage==='conversion'?380:this.stage==='open'?300:568,rect={width:Math.min(600,width-24),height:Math.min(baseHeight,height-24)};rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;
+  if(!this.active)return null;const baseHeight=['players','admission'].includes(this.stage)?480:this.stage==='playerName'?300:this.stage==='endTurn'?360:this.stage==='conversion'?380:this.stage==='open'?300:568,rect={width:Math.min(600,width-24),height:Math.min(baseHeight,height-24)};rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;
   const scale=rect.height/baseHeight,at=(x,y,w,h=26)=>({x:rect.x+x,y:rect.y+y*scale,width:w,height:h*scale});
+  if(this.stage==='admission'){
+   const inner=rect.width-48,list=this.admission[this.admissionList],choices=[{action:'admissionList',value:'allowed',label:I18n.getString(1145),active:this.admissionList==='allowed',rect:at(24,96,inner/2-4)},{action:'admissionList',value:'banned',label:I18n.getString(1146),active:this.admissionList==='banned',rect:at(28+inner/2,96,inner/2-4)},...list.slice(this.page*4,this.page*4+4).map((code,i)=>({action:'admissionSelect',value:this.page*4+i,label:code,active:this.admissionSelection===this.page*4+i,rect:at(24,134+i*32,inner)}))];
+   const buttons=[...(list.length>4?[{action:'previous',id:1033,disabled:this.page===0,rect:at(24,270,inner/2-4)},{action:'next',id:1034,disabled:(this.page+1)*4>=list.length,rect:at(28+inner/2,270,inner/2-4)}]:[]),{action:'admissionAdd',id:1148,rect:at(24,344,inner/2-4)},{action:'admissionRemove',id:1149,disabled:this.admissionSelection===null,rect:at(28+inner/2,344,inner/2-4)},{action:'cancel',id:683,key:'Esc',rect:at(24,430,inner/2-4)},{action:'saveAdmission',id:682,rect:at(28+inner/2,430,inner/2-4)}];
+   return {rect,scale,title:I18n.getString(1143),messageY:406,fields:[{name:'admissionCode',label:I18n.getString(1147),rect:at(180,308,rect.width-204),labelRect:at(24,308,140)}],choices,checks:[{action:'allowWithoutCode',label:I18n.getString(1144),value:this.admission.allowWithoutCode,rect:at(24,60,inner)}],labels:[{text:I18n.getString(1153),rect:at(24,376,inner)}],buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
+  }
   if(this.stage==='playerName'){
    const inner=rect.width-48;return {rect,scale,title:I18n.getString(this.pendingPlayerAction==='rename'?1130:1127),messageY:190,fields:[{name:'playerName',label:I18n.getString(1140),rect:at(180,100,rect.width-204),labelRect:at(24,100,140)}],choices:[],checks:[],labels:[{text:I18n.formatString(1131,'',this.playerSelection,this.playerList.find(p=>p.player===this.playerSelection).name),rect:at(24,60,inner)}],buttons:[{action:'cancel',id:683,key:'Esc',rect:at(24,240,inner/2-4)},{action:'savePlayer',id:682,key:'Enter',rect:at(28+inner/2,240,inner/2-4)}].map(b=>({...b,label:I18n.getString(b.id)}))};
   }
@@ -158,7 +185,8 @@ class HostWindow {
     {action:'join',id:1063,key:'Enter',disabled:!info.address,rect:at(24,380,inner)},
     {action:info.address?'settings':'retry',id:info.address?1118:1075,disabled:info.address && info.administration.complete,rect:at(24,418,info.address?inner/2-4:inner)},
     ...(info.address?[{action:'players',id:1125,disabled:info.administration.complete && !info.administration.players.some(p=>!p.isComputer && p.online),rect:at(28+inner/2,418,inner/2-4)}]:[]),
-    {action:'another',id:1065,rect:at(24,456,inner)},
+    {action:'another',id:1065,rect:at(24,456,info.address?inner/2-4:inner)},
+    ...(info.address?[{action:'admission',id:1143,rect:at(28+inner/2,456,inner/2-4)}]:[]),
     {action:'stop',id:1064,rect:at(24,494,inner/2-4)},
     {action:'cancel',id:834,key:'Esc',rect:at(28+inner/2,494,inner/2-4)}].map(b=>({...b,label:I18n.getString(b.id)}))};
   }

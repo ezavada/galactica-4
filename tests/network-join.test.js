@@ -11,7 +11,7 @@ module.exports=()=>test.describe('Multiplayer admission window',()=>{
  });
  test.it('cycles editable fields and invalidates inspected identity after address changes',()=>{
   const w=new JoinWindow();w.open();w.info=info;w.expectedId=info.gameId;w.address=Names.createEditor('localhost');w.key(65);test.assertNull(w.info);test.assertNull(w.expectedId);test.assertEqual(w.address.text,'A');
-  w.key(pdg.key_Tab);test.assertEqual(w.focus,'name');w.key(pdg.key_Tab);test.assertEqual(w.focus,'password');w.key(pdg.key_Tab);test.assertEqual(w.focus,'address');
+  w.key(pdg.key_Tab);test.assertEqual(w.focus,'name');w.key(pdg.key_Tab);test.assertEqual(w.focus,'password');w.key(pdg.key_Tab);test.assertEqual(w.focus,'admissionCode');w.key(pdg.key_Tab);test.assertEqual(w.focus,'address');
  });
  test.it('lays out paged player lists and controls inside constrained viewport sizes',()=>{
   const w=new JoinWindow();w.open();w.info=info;

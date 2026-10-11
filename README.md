@@ -112,7 +112,7 @@ host to announce the next turn.
 Desktop **Host** (H), on startup or in File, creates a durable hosted game.
 Choose human/AI counts, map options, a host filename, port (0 selects an
 available port), and an optional minutes/hours/days/weeks turn limit. The status
-window offers Join, Pause/Resume game, End turn now, Host settings, Change player, Stop hosting, and Host
+window offers Join, Pause/Resume game, End turn now, Host settings, Change player, Admission, Stop hosting, and Host
 another game. Pausing holds both the timer and automatic turn advancement and
 survives reopening. End turn now warns about assigned living humans who have
 not posted; Keep waiting cancels, and a confirmation for an already-advanced
@@ -143,6 +143,31 @@ Eject disconnects the selected player while preserving their name, password,
 territory and posted orders. They receive a translated notice and can rejoin
 the same slot. Completed games still permit ejection; other player edits are
 disabled.
+
+**Admission** edits the host’s allowed and blocked admission-code lists.
+Codes are 1–64 characters, case-sensitive, with up to 100 entries per list.
+An allowed list makes new-slot joining private: only listed codes can join,
+and that list takes priority over blocked codes. Without an allowed list,
+blocked codes are rejected and **Join without a code** controls code-free
+joining. These codes replace v3’s registration-code checks; they do not identify
+or permanently ban a person. Existing connections and password rejoining are
+unaffected. Cancel leaves the rules unchanged; failed saves retain the draft.
+
+Dedicated hosts can load the same rules before listening:
+
+```bash
+./gad4 tools/host-game.js --new friends.gad4.json --admission admission.json
+./gad4 tools/host-game.js --load friends.gad4.json --admission admission.json
+```
+
+Example `admission.json`:
+
+```json
+{"allowWithoutCode": false, "allowed": ["friends-code"], "banned": []}
+```
+
+Omit `--admission` when reopening to retain saved rules. Lists remain private
+host data; admission codes are never saved in client connection preferences.
 
 Browsers can join games but require the desktop application to host.
 
@@ -201,7 +226,7 @@ network-game saving are still being ported. See [the parity checklist](docs/V3_V
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1537 passed, 0 failed.
+Current expected result: 1549 passed, 0 failed.
 
 AI-only parity observer:
 

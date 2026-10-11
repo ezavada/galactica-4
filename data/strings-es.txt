@@ -837,3 +837,17 @@
 
 1141	Desconectar jugador
 1142	El administrador te ha desconectado. Puedes volver a unirte a tu plaza.
+
+1143	Admisión
+1144	Unirse sin código
+1145	Códigos permitidos
+1146	Códigos bloqueados
+1147	Código de acceso
+1148	Añadir código
+1149	Quitar código
+1150	El host no admite este código. Pídele acceso al host.
+1151	Las reglas cambiaron. Reabre la lista antes de guardar.
+1152	Usa un código único de 1–64 caracteres; cada lista admite 100 códigos.
+1153	Solo para plazas nuevas. La lista permitida tiene prioridad.
+1154	No se pudieron leer reglas de acceso válidas. No se inició el host.
+1155	Admisión: --admission ARCHIVO carga reglas JSON antes de escuchar (hosts nuevos o guardados).

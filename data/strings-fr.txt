@@ -837,3 +837,17 @@
 
 1141	Déconnecter le joueur
 1142	L’administrateur vous a déconnecté. Vous pouvez rejoindre votre place.
+
+1143	Admission
+1144	Rejoindre sans code
+1145	Codes autorisés
+1146	Codes bloqués
+1147	Code d’accès
+1148	Ajouter un code
+1149	Retirer le code
+1150	L’hôte refuse ce code. Demandez-lui l’accès.
+1151	Les règles ont changé. Rouvrez la liste avant d’enregistrer.
+1152	Code unique de 1 à 64 caractères ; chaque liste contient 100 codes.
+1153	Uniquement les nouvelles places. La liste autorisée prime.
+1154	Impossible de lire des règles d’accès valides. L’hôte n’a pas démarré.
+1155	Admission : --admission FICHIER charge les règles JSON avant l’écoute (hôtes nouveaux ou enregistrés).

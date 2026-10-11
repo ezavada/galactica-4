@@ -837,3 +837,17 @@
 
 1141	Eject player
 1142	The host administrator disconnected you. You can rejoin your slot.
+
+1143	Admission
+1144	Join without a code
+1145	Allowed codes
+1146	Blocked codes
+1147	Admission code
+1148	Add code
+1149	Remove code
+1150	The host does not admit this code. Ask the host for access.
+1151	Admission rules changed. Reopen the list before saving.
+1152	Use a unique code of 1–64 characters; each list holds 100 codes.
+1153	Applies only to new slots. An allow list takes priority.
+1154	Could not read valid admission rules. The host was not started.
+1155	Admission: --admission FILE loads JSON rules before listening (new or saved hosts).

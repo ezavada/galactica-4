@@ -1,6 +1,6 @@
 // Server-side player admission. V3's rejoin key identifies the game; the
 // optional player password verifies rejoining, and the last successful login wins.
-const crypto=require('crypto'),PlayerName=require('./player-name.js');
+const crypto=require('crypto'),PlayerName=require('./player-name.js'),Admission=require('./host-admission.js');
 const {protocol}=require('./network-protocol.js');
 function failure(code){const error=new Error(code);error.code=code;return error;}
 const random=()=>crypto.randomBytes(32).toString('hex');
@@ -12,6 +12,7 @@ class HostLogin {
         const c=game.config;
         if(c.networkHost===undefined)c.networkHost={id:random(),players:Array(c.numHumans).fill(null)};
         const host=c.networkHost;
+        if(host)Admission.validateSaved(host);
         if(!host || typeof host.id!=='string' || !/^[0-9a-f]{64}$/.test(host.id) || !Array.isArray(host.players) || host.players.length!==c.numHumans)throw failure('invalid_host_players');
         if(host.playersRevision!==undefined && (!Number.isSafeInteger(host.playersRevision) || host.playersRevision<0))throw failure('invalid_host_players');
         if(host.playerStateRevision!==undefined && (!Number.isSafeInteger(host.playerStateRevision) || host.playerStateRevision<0 || host.playerStateRevision>(host.playersRevision || 0)))throw failure('invalid_host_players');
@@ -30,6 +31,7 @@ class HostLogin {
     login(request){
         if(!request || typeof request!=='object' || Array.isArray(request) || request.protocol!==protocol)throw failure('bad_protocol');
         if(!['join','rejoin'].includes(request.mode) || !PlayerName.validName(request.name) || !validPassword(request.password===undefined?'':request.password))throw failure('bad_login_request');
+        if(request.admissionCode!==undefined && (typeof request.admissionCode!=='string' || request.admissionCode!=='' && !Admission.validCode(request.admissionCode)))throw failure('bad_login_request');
         const c=this.game.config,host=c.networkHost,password=request.password===undefined?'':request.password;
         if(request.gameId!==undefined && request.gameId!==host.id)throw failure('wrong_game');
         const matching=host.players.findIndex(p=>p && p.name===request.name),free=host.players.indexOf(null);
@@ -38,6 +40,7 @@ class HostLogin {
             if((host.playersRevision || 0)===Number.MAX_SAFE_INTEGER)throw failure('invalid_host_players');
             if(free<0)throw failure('game_full');
             if(matching>=0)throw failure('duplicate_name');
+            if(!Admission.allows(this.game,request.admissionCode))throw failure('not_admitted');
             slot=free;
             const salt=random(),claim={name:request.name,salt,hash:passwordHash(password,salt)};
             const previousName=this.game.players[slots[slot]].name,previousNames=c.humanPlayerNames;

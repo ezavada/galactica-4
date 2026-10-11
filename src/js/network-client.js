@@ -19,10 +19,10 @@ function validateInfo(data){
  });
  const names=slots.filter(s=>s.status==='occupied').map(s=>s.name);if(new Set(names).size!==names.length)throw fail('network_bad_response');
  for(const [key,min,max] of [['sectorSize',1,5],['density',1,10],['skill',1,5],['advantage',-3,3],['maxTimePerTurn',0,Number.MAX_SAFE_INTEGER]])if(data[key]!==undefined && !integer(data[key],min,max))throw fail('network_bad_response');
- for(const key of ['fastGame','fogOfWar','endEarly'])if(data[key]!==undefined && typeof data[key]!=='boolean')throw fail('network_bad_response');
+ for(const key of ['fastGame','fogOfWar','endEarly','requiresAdmissionCode'])if(data[key]!==undefined && typeof data[key]!=='boolean')throw fail('network_bad_response');
  if(data.version!==undefined && (typeof data.version!=='string' || data.version.length>128))throw fail('network_bad_response');
  const info={protocol,gameId:data.gameId,title:data.title,turn:data.turn,humans:data.humans,computers:data.computers,slots};
- for(const key of ['version','sectorSize','density','fastGame','fogOfWar','skill','advantage','maxTimePerTurn','endEarly'])if(data[key]!==undefined)info[key]=data[key];
+ for(const key of ['version','sectorSize','density','fastGame','fogOfWar','skill','advantage','maxTimePerTurn','endEarly','requiresAdmissionCode'])if(data[key]!==undefined)info[key]=data[key];
  return info;
 }
 function validateLogin(data,info,name){
@@ -75,14 +75,15 @@ class NetworkClient {
   if(model.clientPlayerNum!==session.player)throw fail('wrong_player');
   return model;
  }
- async connect({name,password='',mode='join',gameId}={}){
+ async connect({name,password='',mode='join',gameId,admissionCode=''}={}){
   if(this.session)throw fail('already_connected');if(this.connecting)throw fail('network_busy');
   if(!Names.validName(name) || typeof password!=='string' || Array.from(password).length>64 || /[\u0000-\u001f\u007f-\u009f]/.test(password) || !['join','rejoin'].includes(mode) || gameId!==undefined && !hex(gameId))throw fail('bad_login_request');
+  if(typeof admissionCode!=='string' || admissionCode!=='' && !require('./host-admission.js').validCode(admissionCode))throw fail('bad_login_request');
   const generation=++this.generation;this.connecting=true;this.status='connecting';let accepted=null;
   const current=()=>{if(generation!==this.generation)throw fail('network_cancelled');};
   try{
    const info=await this.inspect();current();if(gameId!==undefined && gameId!==info.gameId)throw fail('wrong_game');
-   accepted=validateLogin(await this.send('/login',{method:'POST',body:{protocol,name,password,mode,gameId:info.gameId}}),info,name);current();this.identity={name,player:accepted.player,gameId:accepted.gameId};
+   accepted=validateLogin(await this.send('/login',{method:'POST',body:{protocol,name,password,mode,gameId:info.gameId,...(admissionCode?{admissionCode}:{})}}),info,name);current();this.identity={name,player:accepted.player,gameId:accepted.gameId};
    const fresh=this.state(await this.send('/state',{token:accepted.token}),accepted);current();
    const model=this.install(fresh);this.session=accepted;this.identity={name,player:accepted.player,gameId:accepted.gameId};this.status='connected';return model;
   }catch(error){

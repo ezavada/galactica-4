@@ -622,3 +622,29 @@ Screenshots: `/private/tmp/galactica-parity/host-eject-{before,after}/<language>
 Logs: `/private/tmp/galactica-host-eject-{unit,public-unit,native,public-native}.log`
 and `/private/tmp/galactica-host-eject-{before,after}-<language>.log` (English
 initial after run: `/private/tmp/galactica-host-eject-ui-en.log`).
+
+
+### Private host admission
+
+```bash
+./gad4 tools/test-host-admission.js
+./gad4 tools/test-host-command.js
+node tools/test-web-host-setup.cjs BUILD_DIR SCREENSHOT_DIR en admission
+node tools/test-web-host-setup.cjs BASELINE_BUILD_DIR SCREENSHOT_DIR en before-admission
+```
+
+Repeat the browser flow for de/es/fr/ja/ru; both native tools already exercise
+all six languages. Policy tests cover v3 allow-list precedence, code-free joins,
+blocked codes, malformed/corrupt data, private projections, revision guards,
+rollback, canceled/paged drafts and transient client code entry. Actual native
+flows check failed filesystem writes and retry with live sessions, preserved
+posts/clock, admitted/rejected joins and unrestricted password rejoining.
+Dedicated process checks verify policy publication before first listen,
+replacement before reopening listen, invalid-file before-IO errors, persisted
+rules and normal shutdown. Browser controls exercise the full policy editor and
+ordinary Join/Rejoin dialogs. Full suite: 1,549 passes on both PDG runtimes.
+
+Screenshots: `/private/tmp/galactica-parity/host-admission-{before,after}/<language>`.
+Logs: `/private/tmp/galactica-host-admission-{unit,public-unit,native,public-native,command,public-command}.log`
+and `/private/tmp/galactica-host-admission-{before,after}-<language>.log` (English
+after: `/private/tmp/galactica-host-admission-ui-en.log`).

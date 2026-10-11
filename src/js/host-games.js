@@ -1,7 +1,7 @@
 // Desktop listeners live independently of client/local documents.
 function createService(env=globalThis){
  const records=[],conversions=new Map();const supported=!env.document;
- function describe(record){return {id:record.host.game.config.networkHost.id,title:record.host.game.config.gameTitle,file:record.file,port:record.port,address:record.address,info:record.host.info(),administration:{players:require('./host-players.js').describe(record.host.game),playersRevision:require('./host-players.js').revision(record.host.game),settings:require('./host-settings.js').snapshot(record.host.game),settingsRevision:record.host.game.config.networkHost.settingsRevision || 0,complete:record.host.game.isGameOver,pending:record.host.game.config.networkHost.players.flatMap((claim,index)=>{const p=record.host.game.players[record.host.game.config.getHumanPlayerSlots()[index]];return claim && p.isAlive && p.lastTurnPosted<record.host.game.turn?[{player:record.host.game.config.getHumanPlayerSlots()[index],name:claim.name}]:[];})}};}
+ function describe(record){return {id:record.host.game.config.networkHost.id,title:record.host.game.config.gameTitle,file:record.file,port:record.port,address:record.address,info:record.host.info(),administration:{admission:require('./host-admission.js').snapshot(record.host.game),admissionRevision:require('./host-admission.js').revision(record.host.game),players:require('./host-players.js').describe(record.host.game),playersRevision:require('./host-players.js').revision(record.host.game),settings:require('./host-settings.js').snapshot(record.host.game),settingsRevision:record.host.game.config.networkHost.settingsRevision || 0,complete:record.host.game.isGameOver,pending:record.host.game.config.networkHost.players.flatMap((claim,index)=>{const p=record.host.game.players[record.host.game.config.getHumanPlayerSlots()[index]];return claim && p.isAlive && p.lastTurnPosted<record.host.game.turn?[{player:record.host.game.config.getHumanPlayerSlots()[index],name:claim.name}]:[];})}};}
  async function retry(record,port=record.port){
   if(!records.includes(record))throw {code:'invalid_host_record'};
   if(record.host.server)return record;
@@ -22,6 +22,7 @@ function createService(env=globalThis){
   try{
    host=require('./network-host.js').NetworkHost.open(target);
    if(records.some(r=>r.host.game.config.networkHost.id===host.game.config.networkHost.id))throw {code:'host_file_busy'};
+   if(listen.admission!==undefined)host.updateAdmission(listen.admission,require('./host-admission.js').revision(host.game));
   }catch(error){
    release();if(error.code==='local_turn_file'){
     const token=require('crypto').randomBytes(16).toString('hex'),path=require('path'),name=require('./document-files.js').suggestedName(error.local.title).replace(/\.gad4\.json$/,'.host.gad4.json');
@@ -47,9 +48,10 @@ function createService(env=globalThis){
   if(record.host.game.isGameOver)throw {code:'game_complete'};
   if(action==='pause')record.host.pauseClock();else if(action==='resume')record.host.resumeClock();else if(action==='end')record.host.forceEndTurn(expectedTurn);else throw {code:'invalid_host_action'};return record;
  }
+ async function updateAdmission(record,value,revision){if(!supported)throw {code:'desktop_host_required'};if(!records.includes(record) || !record.address)throw {code:'invalid_host_record'};record.host.updateAdmission(value,revision);return record;}
  async function changePlayer(record,value,revision,turn){if(!supported)throw {code:'desktop_host_required'};if(!records.includes(record) || !record.address)throw {code:'invalid_host_record'};record.host.changePlayer(value,revision,turn);return record;}
  async function updateSettings(record,value,revision){if(!supported)throw {code:'desktop_host_required'};if(!records.includes(record) || !record.address)throw {code:'invalid_host_record'};record.host.updateSettings(value,revision);return record;}
  async function closeAll(){for(const record of [...records])await stop(record);}
- return {supported,records,describe,create,open,convert,discardConversion,retry,stop,turnControl,changePlayer,updateSettings,closeAll,latest:()=>records.at(-1) || null};
+ return {supported,records,describe,create,open,convert,discardConversion,retry,stop,turnControl,changePlayer,updateAdmission,updateSettings,closeAll,latest:()=>records.at(-1) || null};
 }
 module.exports={createService};

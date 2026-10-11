@@ -25,6 +25,7 @@ const server=http.createServer((req,res)=>{
    result=service.describe(await service.open(path.join(directory,input.file),input.listen));
   }else if(req.url==='/turn-control' && record)result=service.describe(await service.turnControl(record,input.action,input.turn));
   else if(req.url==='/player' && record)result=service.describe(await service.changePlayer(record,input.change,input.revision,input.turn));
+  else if(req.url==='/admission' && record)result=service.describe(await service.updateAdmission(record,input.policy,input.revision));
   else if(req.url==='/settings' && record)result=service.describe(await service.updateSettings(record,input.settings,input.revision));
   else if(req.url==='/retry' && record)result=service.describe(await service.retry(record,input.port));
   else if(req.url==='/fail-stop' && record){const original=record.host.persist;let once=true;record.host.persist=function(){if(once){once=false;throw Error('test save failure');}return original.call(this);};result=true;}

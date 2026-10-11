@@ -837,3 +837,17 @@
 
 1141	Spieler trennen
 1142	Der Host-Administrator hat Sie getrennt. Sie können Ihrem Platz erneut beitreten.
+
+1143	Zulassung
+1144	Ohne Code beitreten
+1145	Erlaubte Codes
+1146	Gesperrte Codes
+1147	Zugangscode
+1148	Code hinzufügen
+1149	Code entfernen
+1150	Der Host lässt diesen Code nicht zu. Bitten Sie den Host um Zugang.
+1151	Zugangsregeln geändert. Liste vor dem Speichern erneut öffnen.
+1152	Eindeutigen Code mit 1–64 Zeichen verwenden; jede Liste fasst 100 Codes.
+1153	Nur für neue Plätze. Eine Erlaubnisliste hat Vorrang.
+1154	Gültige Zugangsregeln konnten nicht gelesen werden. Host nicht gestartet.
+1155	Zulassung: --admission DATEI lädt JSON-Regeln vor dem Start (neue oder gespeicherte Hosts).

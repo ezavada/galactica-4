@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1537 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1549 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -278,10 +278,10 @@ The largest blockers to a complete game are:
 | Open as host / dedicated host | Resume a hosted game and optionally run without a local player. | ✅ Implemented | ✅ Implemented | Created desktop hosts can run without joining a local player and independently of retained game documents. File → Open as host and the startup Host form reopen existing hosts with their galaxy, turn, claims/passwords and remaining/paused clock intact. A dedicated command opens the same host without a graphics window or local player. Exclusive application/dedicated file leases prevent concurrent writers; ordinary authenticated rejoin is available. Local saved turns can be converted into a separate host with first-N human roles, fresh open slots and no turn limit, preserving the inspected galaxy/turn and source. Dedicated --new/--load commands configure total/AI players, map, AI skill/advantage, timer, speed, fog, port and language; AI-only hosts advance without a local player. Localized command help/errors and real creation/posting/rejoin/shutdown are verified in all six languages on both native runtimes. |
 | LAN/Internet discovery | Browse advertised games and query the matchmaker. | ❌ Missing | ❌ Missing | No equivalent. |
 | Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | 🟡 Partial | 🟡 Partial | Startup Join/J and File → Join open a localized modal address/name/masked-password form with public game/slot information and paged player selection. Native HTTP/browser CORS admission installs the authenticated client as a retained game document; same-player rejoin reuses that document. Automatic refresh preserves same-turn orders and updates authoritative turns. Title dragging stays in the port and remembers its position. Six-language actual-control browser tests pass. Saved host lists/discovery remain missing; untimed order submission and authoritative turn resolution are now wired. |
-| Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🟡 Partial | 🟡 Partial | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit policy, optional saved-password preferences and host administration remain forthcoming. |
+| Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🟡 Partial | 🟡 Partial | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit rules now restrict new slots with host-issued codes, allow/ban lists and code-free admission; password rejoining remains unaffected. Optional saved-password preferences and remaining host administration still need work. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ✅ Implemented | ✅ Implemented | Client End Turn submits owned decision records through authenticated HTTP, shows localized Posting/Posted/Retry states and locks posted orders. The host stages and validates production targets/build choices, destinations/courses/memory, names, fleet membership, private rendezvous and player defaults; it derives simulation values and permanent IDs. Untimed turns resolve once every assigned living human posts. Durable receipts make retries idempotent after lost replies/reopening. Authoritative next-turn refresh unlocks client orders. Both full suites pass 1,459 tests; posting controls are verified in all six languages, with an English browser rerun after the host-clock addition. Timed host scheduling, visible countdowns and desktop setup are implemented separately; host administration UI remains unfinished. |
 | Timed turns | Host clock, time remaining, pause/resume, automatic completion. | ✅ Implemented | ✅ Implemented | Native host listener runs a monotonic countdown after untimed turn 1, resolves expired turns even with unposted/offline humans, and preserves remaining time while stopped/reopened. Local host-service pause/resume and public/authenticated countdown records are implemented. Joined games display validated countdowns in the map header, including localized paused and awaiting-next-turn states; the countdown remains visible after posting and never resolves a turn locally. Nine unit regressions and awaited real scheduler/socket checks cover expiration, endEarly, persistence, save rollback/retry and shutdown. Desktop Host now configures the time limit and endEarly option. Desktop Host status now offers durable Pause/Resume with current countdown text; pausing holds expiry, ready-post resolution and AI-only advancement. Joined clients receive paused/resumed clock state. Saved/reopened pause and failed-write rollback are verified. |
-| Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | 🟡 Partial | 🟡 Partial | Desktop host status offers durable Pause/Resume and End turn now. A paged confirmation lists assigned living humans who have not posted; cancellation preserves the turn. Captured-turn checks prevent a stale confirmation from skipping a newer turn; failed saves roll back and retain retry. Active host settings now edit AI skill/advantage, fast mode, fog and turn timing with fixed title/roster/map, save rollback/retry and stale-draft protection. Positive-to-positive timer changes preserve the current deadline through reopening and apply the budget next turn; enable/disable retains pause. Joined clients receive settings/visibility changes while preserving unposted decisions. Change player now provides rename, human/AI conversion, free human slot and elimination with stable IDs/ownership, durable save rollback, stale-action guards and affected-session revocation. Eject player disconnects an online human after a successful save, preserving credentials, territory and posted orders; the client receives a localized reason and may rejoin. State editing, private admission and remote administrator access remain unported. |
+| Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | 🟡 Partial | 🟡 Partial | Desktop host status offers durable Pause/Resume and End turn now. A paged confirmation lists assigned living humans who have not posted; cancellation preserves the turn. Captured-turn checks prevent a stale confirmation from skipping a newer turn; failed saves roll back and retain retry. Active host settings now edit AI skill/advantage, fast mode, fog and turn timing with fixed title/roster/map, save rollback/retry and stale-draft protection. Positive-to-positive timer changes preserve the current deadline through reopening and apply the budget next turn; enable/disable retains pause. Joined clients receive settings/visibility changes while preserving unposted decisions. Change player now provides rename, human/AI conversion, free human slot and elimination with stable IDs/ownership, durable save rollback, stale-action guards and affected-session revocation. Eject player disconnects an online human after a successful save, preserving credentials, territory and posted orders; the client receives a localized reason and may rejoin. Private admission now has durable allow/ban-code lists, a shared desktop editor and dedicated pre-listen configuration. State editing and remote administrator access remain unported. |
 | Multiplayer chat | Player-to-player/all/admin messages. | ❌ Missing | ❌ Missing | No chat protocol or UI. |
 
 ### Possible persistence/multiplayer enhancements beyond v3, not counted in Section 9
@@ -3120,3 +3120,62 @@ Evidence: `/private/tmp/galactica-parity/host-eject-{before,after}/<language>`;
 Host administration remains partial for state editing, private admission and
 remote administrator access. Other multiplayer rows and the Map Generation
 checklist remain outstanding.
+
+
+### Private admission and allowed/blocked codes
+
+Audited v3 `GalacticaHost.cpp:1685–1709`,
+`GalacticaGlobals.h:162–221` and `Galactica.cpp:1463–1521`.
+The host checks allowed/banned registration codes only when claiming a new human
+slot, after full/duplicate-name checks. An allow list takes precedence over bans.
+With no allow list, bans apply; code-free joins depend on `admit-unreg`.
+Password rejoin bypasses these checks. The original lists were loaded from
+`hostconfig.txt`; no corresponding interactive list editor was found.
+
+V4 deliberately uses host-issued admission codes instead of bringing back the
+retired registration/licensing system. A code is case-sensitive, 1–64 Unicode
+characters without control characters or outer whitespace. Each list accepts
+100 unique entries. Code lists constrain new admission codes, not permanent
+person identities. Adding a code to a blocked list does not disconnect an
+existing player, invalidate their password, or stop password rejoining.
+Legacy hosts retain open admission by default.
+
+Desktop Host → Admission edits allowed/blocked lists with paged selection,
+Add/Remove, code-free joining and Cancel/Save. Failed durable writes preserve
+rules, claims, sessions, posted orders and the clock; drafts remain available
+for retry. A separate policy revision rejects stale editors without coupling
+policy changes to turn or player-map revisions. Join exposes the transient code
+field only for new-slot joining and clears it on cancellation/success/rejoin.
+All controls/errors and command help are localized in en/de/es/fr/ja/ru.
+
+Dedicated `--new` and `--load` accept `--admission FILE`, containing JSON
+`{allowWithoutCode, allowed, banned}`. The file is read and validated before
+host creation/opening. New host publication includes the policy, and reopening
+persists replacements before listening. Invalid/missing/oversized rules files
+fail with translated feedback without creating the requested host. Omitting the
+option on reopening preserves saved rules. Public info reveals only whether a
+code is required; private lists never enter info or player projections.
+No public HTTP administrator route is added.
+
+Full suites pass 1,549 tests on both PDG runtimes. Awaited actual desktop
+policy/admission workflows and actual dedicated commands pass in all six
+languages on both runtimes, including permission failure/retry, code-free and
+wrong-code rejection, admitted joining, unchanged session/post/clock state,
+unrestricted password rejoin after a changed policy, stale guards and durable
+reopening. Existing client/settings/player/ejection/setup/conversion integration
+checks pass. Actual browser controls exercise Cancel, both lists, paging,
+failed-save retry, rejected/invited joining and password-only rejoining with an
+unrelated local document retained. All six before/after Join forms and translated
+policy dialogs were inspected, alongside representative rejected-join, paged,
+failed-save and stale-rule screens; no clipping or overlap was observed.
+Automated output remains muted.
+
+Evidence: `/private/tmp/galactica-parity/host-admission-{before,after}/<language>`;
+`/private/tmp/galactica-host-admission-{unit,public-unit,native,public-native,command,public-command}.log`;
+`/private/tmp/galactica-host-admission-{before,after}-<language>.log` (English
+after: `galactica-host-admission-ui-en.log`);
+`/private/tmp/galactica-host-admission-regression-<workflow>.log`.
+
+Host administration remains partial for state editing and remote administrator
+access. The remaining multiplayer inventory and Map Generation checklist still
+require implementation and verification.

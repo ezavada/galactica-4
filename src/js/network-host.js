@@ -15,17 +15,18 @@ class NetworkHost {
         if(game.tutorialRandom==null)game.tutorialRandom=require('./simulation-random.js').create(parseInt(game.config.networkHost.id.slice(0,8),16)%2147483646+1);
         this.clock=new (require('./host-clock.js'))(game);this.clockTimer=null;this.clockError=null;}
     static create(options,file,fs=require('fs')){
+        const admission=options.admission===undefined?undefined:require('./host-admission.js').validate(options.admission);
         const config=new Config({...options,hosting:true,skipMapGeneration:false,autoplay:{enabled:false}});validate(config);
         if(typeof file!=='string' || !file)throw failure('invalid_host_file');
         const game=new Game(new Factory(),new Rules(config.fastGame),config);
-        return NetworkHost.publish(game,file,fs);
+        return NetworkHost.publish(game,file,fs,admission);
     }
     static fromLocal(text,numHumans,file,fs=require('fs')){return NetworkHost.publish(require('./host-conversion.js').prepare(text,numHumans),file,fs);}
-    static publish(game,file,fs){
+    static publish(game,file,fs,admission){
         if(typeof file!=='string' || !file)throw failure('invalid_host_file');
         // Publish a complete document atomically without replacing an existing
         // path. Failed writes leave neither a partial host nor a temporary file.
-        const host=new NetworkHost(game,file,fs);game.config.networkHost.clock=host.clock.snapshot();
+        const host=new NetworkHost(game,file,fs);if(admission!==undefined)game.config.networkHost.admission=require('./host-admission.js').validate(admission);game.config.networkHost.clock=host.clock.snapshot();
         const path=require('path'),snapshot=Save.serialize(game);
         const temporary=fs.mkdtempSync(path.join(path.dirname(file),'.galactica-host-'));
         try {
@@ -46,7 +47,7 @@ class NetworkHost {
     info(){const c=this.game.config;return {protocol,version:'4.0',title:c.gameTitle,turn:this.game.turn,
         humans:c.numHumans,computers:c.numComputers,sectorSize:c.sectorSize,density:c.density,fastGame:c.fastGame,
         fogOfWar:!c.omniscient,skill:c.compSkill,advantage:c.compAdvantage,maxTimePerTurn:c.maxTimePerTurn,endEarly:c.endEarly,
-        gameId:c.networkHost.id,slots:this.login.info(),clock:this.clock.info()};}
+        requiresAdmissionCode:!!(c.networkHost.admission && (c.networkHost.admission.allowed.length || !c.networkHost.admission.allowWithoutCode)),gameId:c.networkHost.id,slots:this.login.info(),clock:this.clock.info()};}
     postOrders(player,request){
         if(!request || typeof request!=='object' || Array.isArray(request))throw failure('bad_orders');
         const digest=require('crypto').createHash('sha256').update(JSON.stringify(request)).digest('hex');
@@ -92,6 +93,11 @@ class NetworkHost {
         if(!Number.isSafeInteger(revision) || revision!==current || current===Number.MAX_SAFE_INTEGER || turn!==this.game.turn)throw failure('stale_host_player');
         if(this.game.isGameOver && value?.action!=='eject')throw failure('game_complete');
         let revoke;this.transact(game=>{revoke=Players.apply(game,value);});if(revoke)this.login.revokePlayer(value.player,value.action==='eject'?'admin_ejected':'not_logged_in');
+    }
+    updateAdmission(value,revision){
+        const Admission=require('./host-admission.js'),policy=Admission.validate(value),current=Admission.revision(this.game);
+        if(!Number.isSafeInteger(revision) || revision!==current || current===Number.MAX_SAFE_INTEGER)throw failure('stale_host_admission');
+        this.transact(game=>{game.config.networkHost.admission=policy;game.config.networkHost.admissionRevision=current+1;});
     }
     updateSettings(value,revision){
         const Settings=require('./host-settings.js'),settings=Settings.validate(value),current=this.game.config.networkHost.settingsRevision || 0;
@@ -150,6 +156,7 @@ class NetworkHost {
             try{respond(200,this.login.login(request));}
             catch(error){const status=['bad_password','not_logged_in'].includes(error.code)?401:
                 ['duplicate_name','game_full','player_not_found','wrong_game'].includes(error.code)?409:
+                error.code==='not_admitted'?403:
                 ['bad_protocol','bad_login_request'].includes(error.code)?400:500;
                 respond(status,{error:status===500?'host_save_failed':error.code});}
         });
