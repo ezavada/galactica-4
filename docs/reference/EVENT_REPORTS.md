@@ -197,7 +197,11 @@ does **not** open a dialog when PPob is zero: it plays any assigned sound.
 Thus autoShow alone does not imply a modal text window.
 
 PPob10 is the ordinary message dialog. PPob4000/4001 contain static PICT4000/
-4001 for victory/defeat. PPob4002/4003 use a `lofV` ship viewer rather than a
+4001 for victory/defeat. V4 now packages the retained final large outcome
+images for affected-player views, with provenance in `data/events/outcome-art.json`
+and the original copyright notice in `data/events/README.md`. The available
+v3 Art files lack resource forks, so exact shipped PICT-byte identity remains
+unverified. PPob4002/4003 use a `lofV` ship viewer rather than a
 static picture for the newly built/discovered class. The observer columns of
 these four events have no PPob. Every Evnt128 TEXT resource is zero; Layr is
 supplied separately by emitters and is not represented by that field.

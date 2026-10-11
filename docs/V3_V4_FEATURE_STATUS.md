@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1689 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1690 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4486,3 +4486,46 @@ manual-review and local-victory views are byte-identical; only the 12 automatic
 observer/terminal-transition views change. Updated terminal dialogs were
 visually reviewed in all six languages, together with the baseline/updated
 English observer presentation. The broad event-presentation row remains partial.
+
+
+### Restored original outcome illustrations and compact report paging (2026-10-11)
+
+PPob4000/4001 reference PICT4000/4001 for the affected player's victory/defeat.
+V4 now packages unchanged copies of the retained final large victory-v3 and
+defeat-v2 PNGs and draws them behind the complete localized narrative. Artwork
+keeps its aspect ratio, fits within the window, uses a dark readability shade,
+and is cached by the existing image loader. Observer and draw views do not
+show affected-player artwork. Existing title, summary, navigation and full-text
+paging remain. The available v3 Art files lack their resource forks; source
+provenance is the retained final assets, not an asserted byte match to missing
+shipped PICT payloads. `data/events/README.md` preserves Claudio Berni's
+copyright/permission notice, and `outcome-art.json` records source paths,
+resource roles, dimensions and SHA-256 hashes.
+
+Visual checks exposed an existing compact outcome-footer overlap: Continue
+and Next occupied the same area at 320×340. The compact footer now measures
+and wraps translated buttons, reserves room for them when paging text, and
+places the continuation hint above the controls. Normal-size controls retain
+their existing layout. Browser assertions require every Next click to leave
+the dialog open on the requested page, preventing accidental dismissal from
+being counted as successful paging.
+
+Both rebuilt public/development native runtimes pass **1,690 tests**. Asset
+hashes/dimensions, affected-player privacy, image bounds/aspect ratios, complete
+six-language compact narratives and control overlap are covered. Browser
+before/after evidence uses real piece-count outcomes and actual Events controls;
+a controlled local-defeat fixture then exercises artwork and compact paging.
+The browser compact fixture overrides the drawing area to 320×340 and captures
+that region; it does not claim an OS-level window resize. Artifacts are under
+`/private/tmp/galactica-outcome-art`, with logs
+`/private/tmp/galactica-outcome-art-{before,after}-<language>.log`. No new strings
+were needed. The broader event/Layr audit and packaging requirements remain open.
+
+All six final before/after browser runs pass. Across 42 matched screenshot
+pairs, 18 observer/Events/manual-observer views are identical and 24 affected-
+player/art/compact views change as intended. Twelve additional compact-page
+captures verify the remaining text and navigation. Normal translated outcome
+views and compact paging were visually reviewed. The earlier failed compact
+runs exposed and drove the footer fix; only final passing runs establish this
+validation. Both packaged art files were also compared byte-for-byte with the
+retained final source images before committing.

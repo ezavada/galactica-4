@@ -4031,20 +4031,40 @@ class Display {
         const body=local && overlay.kind==='win'?I18n.getString(832).replace(/\|/g,'\n\n'):local && overlay.kind==='defeat'?I18n.getString(833).replace(/\|/g,'\n\n').replace(/\{0\}/g,()=>overlay.name):'';
         const summaryLines=this.wrapEventMessage(summary,width-40,14),bodyY=rect.y+58+summaryLines.length*20+18;
         const lines=body?this.wrapEventMessage(body,width-40,13):[];
-        const capacity=Math.max(1,Math.floor((rect.y+height-100-bodyY)/18));
+        const compact=width<400;
+        const footer=compact?this.layoutButtonRow([834,690,691].map(id=>({label:I18n.getString(id)})),{x:rect.x+20,y:0,width:width-40,height:28,size:11,gap:8,minWidth:90}):{rows:1};
+        const footerY=rect.y+height-20-(footer.rows*36-8);
+        const hintY=compact?footerY-22:rect.y+height-70;
+        const capacity=Math.max(1,Math.floor(((compact?footerY-36:rect.y+height-100)-bodyY)/18));
         const pages=Math.max(1,Math.ceil(lines.length/capacity)),page=this.clamp(overlay.page || 0,0,pages-1);
-        const buttons=[{rect:{x:rect.x+width-174,y:rect.y+height-46,width:154,height:28},label:I18n.getString(834,'Continue'),action:{type:'dismissOutcome'}}];
+        let buttons=[{rect:{x:rect.x+width-174,y:rect.y+height-46,width:154,height:28},label:I18n.getString(834,'Continue'),action:{type:'dismissOutcome'}}];
         if(page>0)buttons.push({rect:{x:rect.x+20,y:rect.y+height-46,width:90,height:28},label:I18n.getString(690,'Previous'),action:{type:'outcomePage',page:page-1}});
         if(page<pages-1)buttons.push({rect:{x:rect.x+116,y:rect.y+height-46,width:90,height:28},label:I18n.getString(691,'Next'),action:{type:'outcomePage',page:page+1}});
-        return {rect,title,summaryLines,lines,bodyY,capacity,pages,page,visibleLines:lines.slice(page*capacity,(page+1)*capacity),buttons};
+        if(compact)buttons=this.layoutButtonRow(buttons,{x:rect.x+20,y:footerY,width:width-40,height:28,size:11,gap:8,minWidth:90}).regions;
+        let illustration=null;
+        if(local && ['win','defeat'].includes(overlay.kind)) {
+            const availableHeight=Math.max(0,(compact?hintY-14:rect.y+height-90)-(rect.y+44)),imageHeight=Math.min(availableHeight,(width-40)*432/500),imageWidth=imageHeight*500/432;
+            illustration={path:'events/'+(overlay.kind==='win'?'victory':'defeat')+'.png',
+                rect:{x:rect.x+(width-imageWidth)/2,y:rect.y+44,width:imageWidth,height:imageHeight}};
+        }
+        return {rect,title,summaryLines,lines,bodyY,capacity,pages,page,hintY,illustration,visibleLines:lines.slice(page*capacity,(page+1)*capacity),buttons};
     }
 
     drawOutcome(overlay) {
         const layout=this.getOutcomeLayout(overlay),r=layout.rect;
         this.drawWindowPanel(r,layout.title);
+        if(layout.illustration) {
+            const art=this.getImageCached(layout.illustration.path,layout.illustration.path);
+            if(art) {
+                const area=this.toPDGRect(layout.illustration.rect);
+                this.port.drawImage(art,area,this.styles.image);
+                if(!this.outcomeArtShade)this.outcomeArtShade=this.createAttributes({fillColor:new pdg.Color('black'),fillOpacity:.55,lineStyle:pdg.lineStyle_None});
+                this.port.drawRect(area,this.outcomeArtShade);
+            }
+        }
         layout.summaryLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,r.y+58+index*20,'lightgray',14));
         layout.visibleLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,layout.bodyY+index*18,'lightgray',13));
-        this.drawTextLine(I18n.getString(572,'Enter, Space or Esc to continue'),r.x+20,r.y+r.height-70,'labelgray',11);
+        this.drawTextLine(I18n.getString(572,'Enter, Space or Esc to continue'),r.x+20,layout.hintY,'labelgray',11);
         layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,null));
     }
 

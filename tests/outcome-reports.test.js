@@ -4,6 +4,17 @@ function fixture(options={},width=800,height=600){const game=new Game(new Factor
 function ownStar(game,owner){const star=game.factory.createStar(owner*100000,0,'Home '+owner);star.owner=owner;return star;}
 function dismissUntil(game,kind){while(game.overlay && game.overlay.kind!==kind)game.dismissEventPresentation();return game.overlay;}
 module.exports=()=>test.describe('Victory and defeat reports',()=>{
+ test.it('packages original final outcome art and confines it to affected-player views at every tested size',()=>{
+  const fs=require('fs'),path=require('path'),crypto=require('crypto'),manifest=require('../data/events/outcome-art.json');
+  for(const kind of ['victory','defeat']){const asset=fs.readFileSync(path.join(__dirname,'../data/events/'+kind+'.png'));test.assertEqual(crypto.createHash('sha256').update(asset).digest('hex'),manifest[kind].sha256);test.assertEqual(asset.readUInt32BE(16),500);test.assertEqual(asset.readUInt32BE(20),432);}
+  for(const [width,height] of [[800,600],[480,400],[320,340]]){const {game,display}=fixture({},width,height);
+   for(const kind of ['win','defeat']){const local=display.getOutcomeLayout({kind,playerNum:1,name:'Captain',turn:1}),art=local.illustration;
+    test.assertDefined(art);test.assertTrue(Array.isArray(local.buttons));for(const button of local.buttons)test.assertTrue(button.rect.y+button.rect.height<=local.rect.y+local.rect.height);test.assertContains(art.path,kind==='win'?'victory':'defeat');test.assertTrue(art.rect.x>=local.rect.x&&art.rect.x+art.rect.width<=local.rect.x+local.rect.width);test.assertTrue(art.rect.y>=local.rect.y+44&&art.rect.y+art.rect.height<=local.rect.y+local.rect.height-90);test.assertTrue(Math.abs(art.rect.width/art.rect.height-500/432)<.00001);
+    test.assertNull(display.getOutcomeLayout({kind,playerNum:2,name:'Enemy',turn:1}).illustration);
+   }
+   test.assertNull(display.getOutcomeLayout({kind:'draw',playerNum:0,turn:1}).illustration);
+  }
+ });
  test.it('automatically completes an opponent defeat notice even with enemy events off and retains manual review',()=>{
   const {game,display}=fixture({numComputers:2});ownStar(game,1);ownStar(game,3);game.showEnemyEvents=false;game.updatePlayerPieceCounts();
   const event=game.eventLog.find(e=>e.outcome && e.outcome.playerNum===2);test.assertDefined(event);test.assertFalse(game.isGameOver);test.assertTrue(game.overlay.animationOnly);
@@ -50,9 +61,10 @@ module.exports=()=>test.describe('Victory and defeat reports',()=>{
   game.replayOutcome(event);game.handleKeyPress(13);test.assertNull(game.overlay);test.assertEqual(game.turn,turn);
  });
  test.it('pages complete Unicode narratives in smaller windows without losing lines or overlapping controls',()=>{
-  const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const {game,display}=fixture({},480,400);game.players[1].name='星'.repeat(32);
+  const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const {game,display}=fixture({},320,340);game.players[1].name='星'.repeat(32);
    const event=game.recordEvent('Defeat','Notice');game.queueOutcome(event,'defeat',1);let layout=display.getOutcomeLayout(game.overlay),all=[];
    for(let page=0;page<layout.pages;page++){game.overlay.page=page;layout=display.getOutcomeLayout(game.overlay);all.push(...layout.visibleLines);test.assertTrue(layout.bodyY+layout.visibleLines.length*18<=layout.rect.y+layout.rect.height-82);for(const b of layout.buttons)test.assertTrue(b.rect.x>=layout.rect.x&&b.rect.x+b.rect.width<=layout.rect.x+layout.rect.width);}
+   for(let i=0;i<layout.buttons.length;i++)for(let j=i+1;j<layout.buttons.length;j++){const a=layout.buttons[i].rect,b=layout.buttons[j].rect;test.assertFalse(a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y);}
    test.assertEqual(all.join('\n'),layout.lines.join('\n'));game.overlay.page=0;game.handleKeyPress(pdg.key_RightArrow);test.assertEqual(game.overlay.page,Math.min(1,layout.pages-1));game.handleKeyPress(pdg.key_LeftArrow);test.assertEqual(game.overlay.page,0);
   }}finally{pdg.res.setLanguage(old);}
  });
@@ -109,7 +121,7 @@ module.exports=()=>test.describe('Victory and defeat reports',()=>{
   test.assertFalse(game.queueReport(event));test.assertEqual(game.overlay,null);test.assertTrue(game.getEventRows().includes(event));
  });
  test.it('renders acknowledgement text without displaying internal action objects',()=>{
-  const {game,display}=fixture();const labels=[];game.port.drawRect=()=>{};game.port.drawLine=()=>{};game.port.drawText=text=>labels.push(text);game.markGameWon(1);display.drawOverlay(game.overlay);
+  const {game,display}=fixture();const labels=[];game.port.drawImage=()=>{};game.port.drawRect=()=>{};game.port.drawLine=()=>{};game.port.drawText=text=>labels.push(text);game.markGameWon(1);display.drawOverlay(game.overlay);
   test.assertTrue(labels.includes(I18n.getString(834)));test.assertFalse(labels.some(text=>String(text).includes('[object Object]')));
  });
  test.it('translates the three narrative paragraphs, player substitution and acknowledgement controls in every language',()=>{
