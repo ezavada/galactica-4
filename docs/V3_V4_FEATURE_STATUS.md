@@ -4924,3 +4924,42 @@ suites pass all 1705 tests with muted output. No UI, translated text or gameplay
 behavior changes, so screenshot comparisons are not applicable to this export.
 The temporary MIDI is `/private/tmp/galactica-startup.mid`; native test logs are
 `/private/tmp/galactica-startup-midi-{public,devel}-unit.log`.
+
+
+### 2026-10-11 — Startup/About composition rendered for portable playback
+
+`tools/render-v3-startup-music.py` and its Swift helper now synthesize the recovered
+original composition through macOS AVAudioUnitSampler in
+[offline rendering mode](https://developer.apple.com/documentation/avfaudio/avaudioengine),
+without connecting an audio output device. The system DLS bank supplies the two
+requested General MIDI instruments through the documented
+[sound-bank loader](https://developer.apple.com/documentation/avfaudio/avaudiounitsampler/loadsoundbankinstrument(at:program:bankmsb:banklsb:)).
+All original note/controller boundaries are rounded to the nearest 44.1 kHz
+frame. A same-part/key overlap at tick 29200 uses a separate piano sampler layer
+to prevent the earlier release from cutting off the later note; volume/sustain
+controllers reach every layer. The render ends at the original movie loop
+boundary, producing 4263515 stereo signed 16-bit PCM frames in
+`data/sounds/startup.wav`.
+
+`startup-manifest.json` records archive, movie, MIDI, bank, PCM and WAV hashes,
+OS version, source instruments, frame count and sampler layers. The system
+bank is not bundled. The PCM is a modern General MIDI rendition of the original
+composition; its acoustic equivalence with the original QuickTime player is
+still unverified, and no asset rights clearance is claimed.
+
+Two new rendering checks actually regenerate the composition offline, confirm
+independent overlap voices, source/frame timing, non-clipped non-silent PCM and
+byte-identical WAV reproduction on the recorded OS and bank. The five MIDI and
+four resource-recovery checks also pass. Both full native suites pass 1706
+tests; real PDG loads the resulting WAV, starts it muted, and accepts loop and
+volume changes on both runtimes. Logs are under
+`/private/tmp/galactica-startup-render-pdg{-devel,}-unit.log`; the repeat-render
+check uses a temporary directory and does not play sound through a device.
+
+This completes asset preparation, not the full Sound row. Runtime startup/About
+looping, preference handling and the source five-second dismissal fade remain
+to be wired and verified. Inspection also confirms the current web PDG
+`changeVolume` applies immediately rather than animating: the integration must
+drive the fade explicitly for consistency with native playback. No UI or
+translated string changes occur in this asset preparation step, so screen
+comparisons are not applicable here.

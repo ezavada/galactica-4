@@ -76,7 +76,24 @@ movie's media clock. All six original editions export identically.
 
 The source movie loops after 58007 ticks (96.678333 seconds), while its final
 notes extend to 58721 ticks. MIDI preserves those complete note durations;
-audio rendering must use the movie's shorter loop boundary. This export is
-an intermediate conversion, not a finished playback asset. Instrument synthesis,
-looped startup/About playback and the original five-second dismissal fade
-remain to be implemented. No new asset license is granted; see ASSET_RIGHTS.md.
+audio rendering must use the movie's shorter loop boundary. The render below uses the shorter movie loop boundary. Looped startup/About
+playback and the original five-second dismissal fade still need runtime integration. No new asset license is granted; see ASSET_RIGHTS.md.
+
+
+Regenerate the playable startup composition on macOS with:
+
+```sh
+python3 tools/render-v3-startup-music.py /path/to/gad-3.0.2-cdrom.zip data/sounds
+python3 tools/test-render-v3-startup-music.py
+```
+
+The renderer uses AVAudioUnitSampler in offline mode, never an output device,
+and the system General MIDI DLS bank. It renders both original parts and every
+source note/controller boundary, rounded to the nearest 44.1 kHz frame, stopping
+at the original movie loop boundary (4263515 stereo frames). Overlapping
+notes on the same key use independent sampler layers so their releases retain
+the original durations. The resulting
+`startup.wav` is canonical signed 16-bit PCM. `startup-manifest.json` records
+source/MIDI/bank hashes, OS version, instruments, frame count and PCM/WAV hashes.
+The bank itself is not bundled. This is a modern General MIDI rendition of the
+original composition; original QuickTime acoustic equivalence remains unverified.

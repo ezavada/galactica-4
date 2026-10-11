@@ -1,6 +1,24 @@
 const test=require('./test-framework.js'),fs=require('fs'),path=require('path'),crypto=require('crypto');
 const root=path.join(__dirname,'../data/sounds'),manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.json'),'utf8'));
 module.exports=()=>test.describe('Converted v3 sound samples',()=>{
+ test.it('loads the source-timed startup composition through real PDG with loop and volume controls',()=>{
+  const m=JSON.parse(fs.readFileSync(path.join(root,'startup-manifest.json'),'utf8'));
+  const ref=JSON.parse(fs.readFileSync(path.join(__dirname,'../docs/reference/v3-music-resources.json'),'utf8'));
+  test.assertEqual(m.archiveSha256,ref.archiveSha256);test.assertEqual(m.movieSha256,ref.movieSha256);
+  test.assertEqual(m.notes,967);test.assertEqual(m.controllers,15);test.assertDeepEqual(m.gmNumbers,{'0':1,'1':45});
+  test.assertEqual(m.timeScale,600);test.assertEqual(m.durationTicks,58007);
+  const b=fs.readFileSync(path.join(root,m.file));
+  test.assertEqual(b.toString('ascii',0,4),'RIFF');test.assertEqual(b.toString('ascii',8,12),'WAVE');
+  test.assertEqual(b.readUInt16LE(20),1);test.assertEqual(b.readUInt16LE(22),2);test.assertEqual(b.readUInt16LE(34),16);
+  test.assertEqual(b.readUInt32LE(24),44100);test.assertEqual(m.frames,4263515);
+  test.assertEqual(b.length,44+m.frames*4);test.assertEqual(b.readUInt32LE(40),m.frames*4);
+  test.assertEqual(crypto.createHash('sha256').update(b).digest('hex'),m.wavSha256);
+  test.assertEqual(crypto.createHash('sha256').update(b.subarray(44)).digest('hex'),m.pcmSha256);
+  const sample=pdg.res.getSound('sounds/startup.wav');test.assertNotNull(sample);test.assertFalse(sample===false);
+  sample.setLooping(true);test.assertTrue(sample.isLooping());sample.setVolume(1);sample.start();
+  sample.setVolume(.5);test.assertEqual(sample.getVolume(),.5);sample.setVolume(0);sample.stop();sample.setLooping(false);
+ });
+
  test.it('preserves the identical shipped tutorial cue and its PCM bytes',()=>{
   const directory=path.join(__dirname,'../data/tutorial/sounds'),m=JSON.parse(fs.readFileSync(path.join(directory,'manifest.json'),'utf8'));
   const source=JSON.parse(fs.readFileSync(path.join(__dirname,'../docs/reference/v3-tutorial.json'),'utf8'));

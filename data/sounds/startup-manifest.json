@@ -1,0 +1,29 @@
+{
+  "archiveSha256": "2685c3879a75d938cf3add766c36c54d61e3e478918ebcc3cbec32bdf3329771",
+  "movieSha256": "7526beecb1e03874e049fdead6b3704bb7ce68fc1b4ab7e6457263255fa1d7b2",
+  "midiSha256": "b07aae252c825deafa6cfbdcf6a953f12b6ddac67f9f2619c2f6f7cf7d3577ac",
+  "timeScale": 600,
+  "durationTicks": 58007,
+  "notes": 967,
+  "controllers": 15,
+  "samplerLayers": {
+    "0": 2,
+    "1": 1
+  },
+  "gmNumbers": {
+    "0": 1,
+    "1": 45
+  },
+  "renderer": "AVAudioUnitSampler offline, event boundaries rounded to nearest frame",
+  "system": "26.7.1",
+  "bankFile": "gs_instruments.dls",
+  "bankSha256": "739d277474bddeb120372625b70c83c653faaee44de26c3191848cc6c64bfb74",
+  "file": "startup.wav",
+  "rate": 44100,
+  "frames": 4263515,
+  "channels": 2,
+  "sampleWidth": 2,
+  "pcmSha256": "f2ea08b864af27299cb47bbc85c95a147f7a233fd011fb2464d51186e5d2ecf6",
+  "wavSha256": "b9ee2c161c65ecd663bb5e2ab43b522356d1af4b023f35dadbc1224ad591b330",
+  "fidelity": "Original notes/controllers and loop duration; modern GM synthesis, original QuickTime acoustic equivalence not verified"
+}

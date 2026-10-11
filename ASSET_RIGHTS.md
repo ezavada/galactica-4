@@ -32,6 +32,13 @@ Source evidence lives in the peer `galactica-anno-dominari-3` repository:
 Do not interpret the general art statement as identifying the rights holders of
 third-party recordings, logos or every extra astronomy image below.
 
+The startup/About composition in `data/sounds/startup.wav` retains the shipped
+QuickTime music notes and instruments, rendered offline with the macOS system
+General MIDI bank. `startup-manifest.json` records source and bank provenance.
+The bank is not bundled, and no new license or clearance for the composition
+is claimed. This rendition does not establish acoustic equivalence with the
+original QuickTime player.
+
 The remaining asset-specific questions are:
 
 | Asset group | Files | Current evidence | Required action |
