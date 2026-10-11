@@ -3828,3 +3828,32 @@ Evidence: `/private/tmp/pdg-focus-fixture-linux.log`,
 Engine commits for this integration: public PDG `e4aa67768`, private PDG
 `47b2f5377`. Rebuilt executables include the query; publishing/updating the pinned
 release bundle remains separate work.
+
+
+### Callback cleanup failure resolved (2026-10-10)
+
+A temporary instrumented copy of the unchanged Spriter fixture located the
+previous engine CTest abort in `modifierSprite`: its callback creates/destroys an
+unrelated empty Sprite, modeling script garbage collection during evaluation.
+Devel's new global callback mutation guard in `Sprite.clearParts()` threw even
+for an empty list; the destructor could not propagate that exception safely.
+The method now returns before the guard when there are no Parts. Actual ownership
+changes remain forbidden. The regression explicitly exercises empty clear and
+destruction, then verifies that an owned Part's rejected clear leaves its count,
+name and identity intact while the modifier continues successfully.
+
+Public PDG already handles empty cleanup correctly and does not have the same
+private-only callback restriction. Its unchanged Spriter test and complete
+native suite were validated separately; no public runtime patch is required.
+Both native engine CTest runs now have zero failures: devel has 21 passed and one
+skipped; public has 20 passed and one skipped. Both skipped checks are actual
+application-focus transfers because this macOS session exposes no display.
+Both rebuilt-runtime game suites pass all 1,650 tests with sound output muted.
+This resolves the Spriter failure recorded in the preceding focus audit. No UI
+or user-facing text changes were made, so no new localization or visual layout
+is introduced. The remaining parity/map-generation work stays active.
+
+Evidence: `/private/tmp/pdg-spriter-trace.log`,
+`/private/tmp/pdg-empty-parts-full-test.log`,
+`/private/tmp/pdg-public-empty-parts-full-test-final.log`, and
+`/private/tmp/galactica-empty-parts-{devel,public}-unit.log`.
