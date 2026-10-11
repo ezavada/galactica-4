@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1734 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1736 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -237,7 +237,7 @@ The largest blockers to a complete game are:
 - Strategic uses of computer advantage beyond the v3 production-style modifiers.
 - Combat-odds estimation, retreat/avoidance, and late-game attack-pressure tuning beyond matching the v3 decision factors.
 
-## 8. Events, messages, comparison, help, and general UI (Functionality 85%, UI 79%)
+## 8. Events, messages, comparison, help, and general UI (Functionality 88%, UI 82%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -245,7 +245,7 @@ The largest blockers to a complete game are:
 | Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Remaining parity is concrete window/menu/list coverage, not an open-ended final visual redesign. |
 | Keyboard shortcuts and hover help | Buttons advertise shortcuts; balloon/flyby help describes controls. | ✅ Implemented | ✅ Implemented | Current controls advertise their working v4 shortcuts. Delayed explanatory help uses the same hit targets as clicks across inspectors, allocation sliders, command/list/course/report windows, startup options and local file dialogs. Text wraps by measured Unicode glyph width and stays within the viewport; covered controls behind modal windows, active drags, destination placement and illustrated overlays cannot show help. Clicks/keys clear it without intercepting input. Settings → Control help persists through native/browser preferences, reload and open-game switching. Eleven regressions and actual six-language browser comparisons cover timing, privacy/input isolation, allocation semantics, current action coverage, persistence, complete text and viewport bounds. New commands introduced with the remaining unported dialogs will need their own help alongside those implementations. |
 | Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | ✅ Implemented | ✅ Implemented | E/Events lists recipient-visible last-turn reports in chronological order, including retained held reports and unread offline messages. Paged rows select and center live subjects, preserve lost-subject locations and show reviewed state; narratives page independently without another turn. The complete source-reachable event inventory is implemented. View report replays full combat, colony, repair, rendezvous, message and outcome narratives. Owner commissioning/discovery now also restore their snapshot-based Stardock/Lab illustrations; observers never receive owner artwork. Actual six-language Events/button checks and before/after image comparisons pass, with both full suites at 1734 tests. Art pixel equivalence, attention sequencing and enemy movement playback remain their separate checklist rows. |
-| Attention queue | New ships, idle ships, colonies, messages, and other important events select themselves in sequence. | 🟡 Partial | 🟡 Partial | A per-turn subject queue covers human mobile ship/fleet call-ins, course completions, idle requests, completed mobile/satellite builds, complete ship/fleet repair notices, rendezvous fleet-creation notices and newly colonized/captured stars. Tab, menu and map Next item visit/center subjects; manual selection or report review handles linked requests. Colony reports focus the star while the colony ship remains available. UI End Turn confirms before discarding pending requests or presentations. Other v3 message types, enemy moves and notable event subjects remain to port. |
+| Attention queue | Manual requests select/focus subjects sequentially; automatic messages have a separate presentation/review path. | ✅ Implemented | ✅ Implemented | The source manual codes are ship/fleet call-ins, ordinary mobile construction, new rendezvous fleets, ship/fleet repair completion and colony naming/production instructions. All eight source-reachable recipient variants are implemented with owner privacy or observer detection as appropriate. Tab and map/menu Next skip automatic reports, while unread automatic entries remain protected by End Turn confirmation and explicit Review. One request is handled per visit; manual subject selection/review handles the linked request. Post-turn selection waits for presentation, visits one manual item, otherwise restores a surviving pre-turn selection. Real paid commissioning, retained unread reports, complete saves, six-language actual input and visual comparisons pass; both full suites pass 1736 tests. Enemy playback, art equality and native/audio/platform validation remain separate rows. |
 | New technology lab presentation | Illustrated new-drive event. | ✅ Implemented | ✅ Implemented | Dimming lab overlay with blueprint art; Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
 | New hull/class Stardock presentation | Illustrated first-built satellite, scout/courier, colony or higher battleship class event. | ✅ Implemented | ✅ Implemented | Owner-only Stardock overlays use matching hull/class art and translated titles. Reports retain role explanations and focus the building system even after default-order departure. First-build flags, highest built class and queued presentation identities survive saves; repeated hulls and older classes are suppressed. Source-confirmed observer broadcasts now retain faction/class/technology/origin snapshots, follow current detection and Show enemy events, and replay as ordinary reports. Illustrated Stardock art stays owner-only. Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
 | Colonization/capture/battle event text | 22 event codes define 45 player-relative templates; shipped emitters reach 31 variants across eighteen codes. | ✅ Implemented | ✅ Implemented | The complete source-text extraction and recipient/runtime matrix in `docs/reference/EVENT_NARRATIVE_COVERAGE.md` account for every STR#500 index. All source-reachable capture, resistance, destruction, system-defense, offline-message, call-in, build, commissioning, discovery, colonization, rendezvous, outcome, repair and colony-instruction narratives retain their required dynamic content and player-relative perspective. The fourteen resource-only variants are explicitly classified from their absent/private/dormant emitters. Real-transition suites cover privacy, observer visibility, literal snapshots, saves and review; event-family six-language browser/layout audits cover presentation. Owner commissioning includes the formerly missing technology. Fresh full suites pass 1731 tests on both runtimes and eight actual-source import checks pass. Attention sequencing, enemy replay, artwork equality and platform/audio verification remain separate rows. |
@@ -5896,3 +5896,66 @@ from last turn row. Section 8 estimates are recomputed across seventeen rows:
 Functionality 85%, UI 79%. Original PICT decoding/equality, broad attention
 sequencing, enemy replay and remaining native/platform work remain separate;
 this change does not claim completion of the full parity or map-port goal.
+
+
+## Source manual Next and attention queue audit
+
+Shipped `GalacticaDoc::ShowNextNeedyThingy` (lines 1746–1807) explicitly
+skips `HasAutoShow()` notices, even when unread. `AddMessageToNeedyList`
+(lines 2973–2996) retains that classification, and `ThingyAttendedTo` handles
+one matching entry and decrements its corresponding automatic/manual counter.
+V4 previously used the same pending list for unread review, Next's count,
+manual Tab navigation and the post-turn go-to. An unhandled automatic class
+or discovery notice could consequently displace a manual ship request.
+
+`Attention.manualPending()` now filters the source automatic families while
+retaining the original pending list for explicit review, confirmation and
+subject handling. Map/menu Next counts and navigation, and the single deferred
+post-turn go-to, use only manual requests. A surviving pre-turn selection is
+restored if none remain. End Turn still warns about unread automatic notices.
+Its Review action now opens the retained report when there is no manual goto
+and no active presentation; it does not fall through to an empty Next action.
+No translated strings change. Complete saves retain existing report metadata
+without a new schema field.
+
+The complete source event inventory establishes seven emitted manual codes:
+8/9 call-ins, 10 ordinary mobile builds, 15 new rendezvous fleets, 20/21 repair
+completion and 22 colony naming/production. Their eight reachable templates
+are STR#500/15,16,17,26,27,43,44,45. Source satellite/first-class commissioning
+and discovery presentations are automatic; source enum-only codes 13/16 do
+not add independent manual requirements. Existing event-family suites verify
+these actual transitions, privacy/detection, duplicate suppression, live/lost
+focus, one-at-a-time handling, course/idle requests and complete saves. The
+source `ThingyAttendedTo` review also confirms the one-matching-entry rule
+used when independent requests share a subject.
+
+Two new native regressions use real paid-hull commissioning and post-turn
+selection to verify manual-versus-automatic navigation, preserved unread
+reports, explicit End Turn review, no extra turn and save/restore. Both full
+muted suites pass 1736 tests with zero failures, recorded in
+`/private/tmp/galactica-manual-next-{public,devel}-unit.log`.
+
+`tools/test-web-manual-next.cjs` triggers actual End Turn with exactly paid
+construction and verifies Next's underlying count during the automatic
+Stardock view. It then checks normal manual ship selection. A separate retained
+unread-notice fixture exercises actual Tab, End Turn confirmation and Review;
+report creation is controlled, while input, focus, sound delegation, presentation
+and saves use the application. All twelve before/after runs pass in en/de/es/fr/ja/ru.
+The 30 screenshot pairs under
+`/private/tmp/galactica-manual-next/{before,after}/<language>` contain eighteen
+changed navigation/confirmation/review views and twelve pixel-identical views
+(the original automatic art and normal post-build selection). The overlaid
+automatic art masks its underlying Next button, so the count difference is
+proved by the actual control-label assertion rather than those identical pixels.
+English before/after comparisons and all six localized manual-selection and
+explicit-review views were visually inspected. Comparison evidence is
+`/private/tmp/galactica-manual-next-comparison.json`; browser logs use
+`/private/tmp/galactica-manual-next-{before,after}-<language>.log`. The current
+independent app is `/private/tmp/galactica-manual-next-after-app`.
+
+With the complete source manual-event inventory and prior call-in, build,
+colony, rendezvous, repair and post-turn audits, this closes the attention queue
+row. Section 8 estimates are recomputed across seventeen rows: Functionality
+88%, UI 82%. Enemy movement playback, original-art equality, native/platform
+and broader remaining checklist work are distinct requirements. The overall
+parity and Map Generation goal remains active.

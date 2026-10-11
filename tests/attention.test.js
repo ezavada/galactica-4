@@ -175,6 +175,27 @@ module.exports=function(){test.describe('V3 human call-ins and attention',()=>{
         test.assertTrue(loaded.turnAttentionPending);test.assertFalse(loaded.presentTurnAttention());loaded.handleKeyPress(13);test.assertTrue(loaded.presentTurnAttention());
         test.assertEqual(loaded.selectedObject.id,ship.id);test.assertFalse(loaded.turnAttentionPending);
     });
+    test.it('excludes unread automatic milestones from Next while retaining them for review and confirmation',()=>{
+        const {g,home}=fixture();g.uiWindow=null;home.startBuildingShip('scout');home.paidTowardShipBuilding=home.currentShip.cost;home.commissionPaidHulls();
+        const milestone=g.eventLog.find(event=>event.commissioning && event.recipient===1);
+        const built=g.eventLog.find(event=>event.builtShip);
+        test.assertDefined(milestone);test.assertDefined(built);const ship=built.subject;test.assertEqual(ship.type,'scout');g.turn=2;test.assertEqual(g.attention.pending().length,2);
+        test.assertEqual(g.attention.manualPending().length,1);test.assertTrue(g.attention.manualPending()[0].event===built);
+        g.clearEventPresentations();const turn=g.turn;test.assertTrue(g.attention.next());test.assertTrue(g.selectedObject===ship);
+        test.assertTrue(built.handled);test.assertFalse(milestone.handled);test.assertEqual(g.attention.manualPending().length,0);
+        test.assertFalse(g.attention.next());test.assertEqual(g.turn,turn);
+        test.assertFalse(g.requestEndTurn());test.assertEqual(g.uiWindow,'endTurnConfirm');
+        test.assertTrue(g.executeUIAction({type:'reviewAttention'}));test.assertTrue(g.overlay.manual);test.assertEqual(g.overlay.eventId,milestone.id);test.assertEqual(g.turn,turn);
+    });
+    test.it('restores pre-turn selection instead of revisiting an unread automatic milestone and preserves it through save',()=>{
+        const Save=require('../src/js/game-save.js'),{g,home,ship}=fixture();g.uiWindow=null;
+        g.setSelectedObject(home);const automatic=g.recordDiscoveryReports(home,1).find(e=>e.recipient===1);g.clearEventPresentations();
+        g.turnPreviousSelection=ship;g.turnAttentionPending=true;
+        test.assertEqual(g.attention.manualPending().length,0);test.assertTrue(g.presentTurnAttention());
+        test.assertTrue(g.selectedObject===ship);test.assertFalse(automatic.handled);test.assertFalse(g.turnAttentionPending);
+        const loaded=Save.restore(Save.serialize(g));test.assertEqual(loaded.attention.manualPending().length,0);
+        test.assertEqual(loaded.attention.pending().length,1);test.assertFalse(loaded.eventLog.find(e=>e.id===automatic.id).handled);
+    });
     test.it('queues newly built mobile ships without a duplicate call-in log',()=>{
         const {g,home}=fixture();home.startBuildingShip('scout');g.rules.getShipBuildCost=()=>1;home.currentShip.cost=1;
         g.rules.getStarShipBuildingAmount=()=>1;g.endTurn();

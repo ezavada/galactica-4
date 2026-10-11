@@ -507,3 +507,17 @@ regressions and all six real browser review flows pass, with both full suites
 at 1734 tests. The 72 before/after screenshot comparisons, twelve localized
 owner views and source citations are recorded in the illustrated Events replay
 audit in `docs/V3_V4_FEATURE_STATUS.md`.
+
+
+## Manual Next classification
+
+Source Next skips unread automatic messages. The seven emitted manual codes
+8/9/10/15/20/21/22 deliver eight reachable recipient templates; automatic
+commissioning, discovery, combat/colony/outcome notices use their separate
+presentation path. V4 now follows that division for Tab, map/menu Next counts
+and the deferred post-turn selection, while preserving all pending reports
+for End Turn protection and explicit Review. Review opens an unread automatic
+report if no manual goto remains. Real paid construction and retained-notice
+browser flows pass in all six languages; both full native suites pass 1736
+tests. Detailed source, privacy/order/save coverage and screenshot evidence are
+recorded in the manual Next audit in `docs/V3_V4_FEATURE_STATUS.md`.

@@ -32,11 +32,21 @@ class Attention {
             ?entry.recipient===this.game.getCurrentHumanPlayer() && !!this.game.getEventFocus(entry.event)
             :this.isHumanObject(entry.object) && entry.object.owner===this.game.getCurrentHumanPlayer()));
     }
+    manualPending() {
+        // V3 ShowNextNeedyThingy skips HasAutoShow messages, even if unread.
+        // Keep pending() separate for review/End Turn and manual subject handling.
+        return this.pending().filter(entry=>{
+            const event=entry.event;
+            if(!event || event.automatic===false)return true;
+            return !(event.automatic===true || event.commissioning || event.discovery || event.colonization ||
+                event.occupation || event.destruction || event.systemDefense || event.combat || event.outcome || event.playerMessage);
+        });
+    }
     attend(object) { const entry=this.pending().find(entry=>entry.object===object);if(entry){entry.handled=true;if(entry.event)entry.event.handled=true;} }
     next() {
         this.game.turnAttentionPending=false;
         this.game.turnPreviousSelection=null;
-        const entry=this.pending()[0];
+        const entry=this.manualPending()[0];
         if(!entry){if(this.game.sound)this.game.sound.noMore(this.game);return false;}
         entry.handled=true;if(entry.event) {
             this.game.focusEvent(entry.event,true);

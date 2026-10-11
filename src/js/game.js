@@ -585,7 +585,7 @@ class Game {
         this.turnAttentionPending=false;
         const previous=this.turnPreviousSelection;this.turnPreviousSelection=null;
         if(!this.shouldShowEventWindows() || !this.getCurrentHumanPlayer())return false;
-        if(this.attention.pending().length>0)return this.attention.next();
+        if(this.attention.manualPending().length>0)return this.attention.next();
         // ShowMessages returns to the surviving pre-turn selection when there
         // are no non-autoshow go-to requests. Never revive a destroyed object.
         if(previous && [this.stars,this.allShips,this.allFleets,this.allRendezvous].some(list=>list.includes(previous)) &&
@@ -2189,7 +2189,10 @@ class Game {
                     if(!this.overlay)this.dismissEventPresentation();
                     return true;
                 }
-                this.attention.next();return true;
+                if(this.attention.manualPending().length){this.attention.next();return true;}
+                const unread=this.attention.pending()[0]?.event;
+                if(unread && this.replayReport(unread))return true;
+                return this.openUIWindow('events');
             case 'nextAttention':
                 this.attention.next();return true;
             case 'toggleCallIn':

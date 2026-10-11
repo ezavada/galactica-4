@@ -1506,7 +1506,7 @@ class Display {
             { key: 'E', label: this.STR.events, window: 'events', action: { type: 'toggleWindow', window: 'events' } },
             { key: 'L', label: this.STR.fleets, window: 'fleets', action: { type: 'toggleWindow', window: 'fleets' } },
             { key: 'U', label: this.STR.rendezvous, action: { type: 'beginRendezvousPlacement' } },
-            { key: 'Tab', label: I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`, action: { type: 'nextAttention' } },
+            { key: 'Tab', label: I18n.getString(743,'Next item')+` (${this.game.attention.manualPending().length})`, action: { type: 'nextAttention' } },
             { key: 'Enter', label: this.game.networkCommands && this.game.networkCommands.status()?I18n.getString(this.game.networkCommands.status()):this.STR.endTurn, action: { type: 'endTurn' } },
             { key: '-',icon:'zoom-out',label:I18n.getString(788,'Zoom out'),action:{type:'zoomOut'} },
             { key: '+',icon:'zoom-in',label:I18n.getString(787,'Zoom in'),action:{type:'zoomIn'} },
@@ -1545,7 +1545,7 @@ class Display {
     drawMapButtons() {
         const buttons = this.getMapButtonRegions();
         for (const button of buttons) {
-            this.drawUIButton(button.rect, button.label, button.key, {icon:button.icon,iconOnly:!!button.icon, active: button.action.type==='nextAttention' ? this.game.attention.pending().length>0 : button.window && this.game.uiWindow === button.window });
+            this.drawUIButton(button.rect, button.label, button.key, {icon:button.icon,iconOnly:!!button.icon, active: button.action.type==='nextAttention' ? this.game.attention.manualPending().length>0 : button.window && this.game.uiWindow === button.window });
         }
     }
 
@@ -2004,7 +2004,7 @@ class Display {
             label:I18n.getString(708,'Your Star Systems'),action:{type:'showSystemComparison'}},
             comparison,
             {rect:{x:rect.x+14,y:rect.y+182,width:rect.width-28,height:28},
-            label:I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`,key:'Tab',active:this.game.attention.pending().length>0,action:{type:'nextAttention'}},
+            label:I18n.getString(743,'Next item')+` (${this.game.attention.manualPending().length})`,key:'Tab',active:this.game.attention.manualPending().length>0,action:{type:'nextAttention'}},
             settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial,...chat,...reports]);
     }
 
