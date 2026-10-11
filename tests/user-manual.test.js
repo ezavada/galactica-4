@@ -29,7 +29,7 @@ module.exports=()=>test.describe('Bundled manual opening',()=>{
  });
  test.it('wraps translated failure messages above their acknowledgment button in all six languages',()=>{
   const language=pdg.res.getLanguage(),service=Manual.createManual('/app',{}, {fs:{existsSync:()=>false}});try{for(const code of Manual.languages){pdg.res.setLanguage(code);service.open(code);test.assertTrue(pdg.res.getString(943).length>0);test.assertTrue(pdg.res.getString(946).length>0);
-   const measure=text=>Array.from(text).length*6.5,layout=service.layout(320,340,measure);for(const line of layout.lines)test.assertTrue(measure(line)<=layout.rect.width-48);test.assertTrue(layout.rect.y+60+(layout.lines.length-1)*18<layout.button.y);test.assertTrue(layout.button.y+layout.button.height<=layout.rect.y+layout.rect.height);
+   const measure=text=>Array.from(text).length*6.5,layout=service.layout(320,340,measure);test.assertEqual(layout.label,pdg.res.getString(834));test.assertEqual(layout.key,'Enter');test.assertTrue(layout.button.width>=require('../src/js/button-caption.js').width(layout.label,layout.key,measure,{size:13}));for(const line of layout.lines)test.assertTrue(measure(line)<=layout.rect.width-48);test.assertTrue(layout.rect.y+60+(layout.lines.length-1)*18<layout.button.y);test.assertTrue(layout.button.y+layout.button.height<=layout.rect.y+layout.rect.height);
   }}finally{pdg.res.setLanguage(language);}
  });
  test.it('ships complete localized offline documents with valid contents and cross-language navigation',()=>{

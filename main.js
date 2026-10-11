@@ -267,7 +267,7 @@ const windowPlacement=new (require('./src/js/window-placement.js'))(drawingPrefe
 for(const [object,method,name] of [[StartupSetup,'panelRect','startup'],[StartupSetup,'skillMenu','startupSkill'],
     [PlayerName,'layout','textEntry'],[networkTurnNotice,'layout','networkTurnNotice'],[networkChat,'layout','networkChat'],[networkHosting,'layout','networkHosting'],[networkJoin,'layout','networkJoin'],[documents,'layout','documents'],[userManual,'layout','manualError']]){
     const original=object[method];object[method]=function(width,height,...args){
-        const layout=object===PlayerName?original.call(this,width,height,args[0],(text,size)=>port.getTextWidth(text,size)):original.call(this,width,height,...args);
+        const layout=object===PlayerName?original.call(this,width,height,args[0],(text,size)=>port.getTextWidth(text,size)):object===documents?original.call(this,width,height,(text,size)=>port.getTextWidth(text,size)):original.call(this,width,height,...args);
         return name==='documents' && documents.dialog && documents.dialog.kind==='editor'?layout:windowPlacement.layout(name,layout,{width,height});
     };
 }
@@ -277,7 +277,7 @@ function foregroundApplicationWindow(){
     if(networkChat.active)return {name:'networkChat',rect:networkChat.layout(width,height,text=>port.getTextWidth(text,12)).rect};
     if(networkHosting.active)return {name:'networkHosting',rect:networkHosting.layout(width,height).rect};
     if(networkJoin.active)return {name:'networkJoin',rect:networkJoin.layout(width,height).rect};
-    if(userManual.error())return {name:'manualError',rect:userManual.layout(width,height,text=>port.getTextWidth(text,13)).rect};
+    if(userManual.error())return {name:'manualError',rect:userManual.layout(width,height,(text,size=13)=>port.getTextWidth(text,size)).rect};
     if(documents.dialog)return {name:documents.dialog.kind==='editor'?'textEntry':'documents',rect:documents.dialog.kind==='editor'?PlayerName.layout(width,height).rect:documents.layout(width,height).rect};
     if(startupSettings.active)return null;
     if(sessions.starting || !game){
@@ -939,14 +939,14 @@ function revertSavedGame(nextGame,reference) {
     game=nextGame;display=nextDisplay;autoplayController=null;if(previous)previous.dispose();
 }
 function drawManualFailure() {
-    const area=port.getDrawingArea(),layout=userManual.layout(area.width(),area.height(),text=>port.getTextWidth(text,13)),r=layout.rect;
+    const area=port.getDrawingArea(),layout=userManual.layout(area.width(),area.height(),(text,size=13)=>port.getTextWidth(text,size)),r=layout.rect;
     port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.dim);
     PanelAppearance.applySystemSurface(startupStyles.panel,r);drawStartupRoundedRect(r,14,startupStyles.panel);
     startupStyles.subtitleText.textSize(16);startupStyles.lineText.textSize(13);startupStyles.startText.textSize(13);
     port.drawText(I18n.getString(943),new pdg.Point(r.x+r.width/2,r.y+32),startupStyles.subtitleText);
     layout.lines.forEach((line,index)=>port.drawText(line,new pdg.Point(r.x+24,r.y+60+index*18),startupStyles.lineText));
     drawStartupRoundedRect(layout.button,7,startupStyles.advantageButton);
-    port.drawText(I18n.getString(834),new pdg.Point(layout.button.x+layout.button.width/2,layout.button.y+20),startupStyles.startText);
+    drawStartupButtonCaption(layout.button,layout.label,startupStyles.startText,13,layout.key);
 }
 
 function drawDocumentDialog() {

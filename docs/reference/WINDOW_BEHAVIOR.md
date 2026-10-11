@@ -124,3 +124,30 @@ baseline/current runs pass; 78 pairs include 54 intended editor changes and
 24 unchanged setup/skill scenes. English before/after and all six localized
 narrow title/player/save layouts were visually inspected. The standard
 640×480 English before/after runs also pass with the corrected driver.
+
+
+Document decisions advertise their actual Enter/Esc actions using the shared
+compact button hints. Revert and overwrite confirmations, saved/error status
+acknowledgments and unsaved Close measure captions plus hints through the drawing
+port. Decisions stack when translated captions need more horizontal room.
+Manual launch failures use the same measured Continue/Enter control. Existing
+localization resources supply every caption and message.
+
+Actual-input browser checks cover blocked manual launch, File menu, missing-save
+status, unsaved Close cancellation, real Save As download, saved status, Revert
+cancellation and accepted restoration. Titles drag within the viewport; outside
+clicks clunk without advancing the turn. All six languages pass at 640×480 and
+320×340. Across 156 before/after pairs, 96 show expected hints/decision sizing and
+60 remain pixel-identical. Narrow comparisons use a consistent windowed fixture
+to avoid Escape changing fullscreen state. A standard English windowed recheck
+also passes. English before/after and the six-language narrow manual, Revert and
+Close layouts were visually inspected.
+
+Both full native suites pass 1,751 tests. Dedicated asynchronous document,
+close/save and file-backend suites also pass against both native executables.
+The native checks cover actual overwrite/cancel/error paths beyond the browser
+fixture. This verifies these dialog workflows, not the entire foreground-window
+inventory. Network/chat/hosting/join/turn-notice surfaces and remaining busy/error
+variants still require their current chrome audit. The narrow map inspector
+layout also needs a separate minimum-viewport/source check; dialog bounds do not
+establish that every gameplay panel fits that viewport.

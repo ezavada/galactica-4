@@ -93,7 +93,7 @@ class Documents {
         if(key===13 || key===3){if(dialog.kind==='close')this.beginSave();else if(dialog.kind==='revert')this.revert();else if(dialog.kind==='overwrite')this.save(dialog.name,true);else if(dialog.kind==='status')this.cancel();}
         return true;
     }
-    layout(width,height) {
+    layout(width,height,measure=(text,size)=>Array.from(String(text)).length*size/2) {
         const dialog=this.dialog;if(!dialog)return null;
         if(dialog.kind==='editor')return Name.layout(width,height,dialog.operation==='save'?I18n.getString(839):I18n.getString(841));
         const dialogHeight=dialog.kind==='menu'?Math.min(384,height-20):300,rect={x:(width-Math.min(480,width-40))/2,y:(height-dialogHeight)/2,width:Math.min(480,width-40),height:dialogHeight};
@@ -109,7 +109,10 @@ class Documents {
             if(dialog.kind==='overwrite'){title=I18n.getString(840);message=I18n.formatString(855,'',dialog.name);buttons.push({action:'confirmOverwrite',label:I18n.getString(839)});}
             if(dialog.kind!=='busy' || !['save','hostStop'].includes(dialog.operation))buttons.push({action:dialog.kind==='status'?'ack':'cancel',label:I18n.getString(dialog.kind==='status'?834:683)});
             const gap=8,buttonWidth=(rect.width-48-gap*(buttons.length-1))/Math.max(1,buttons.length);
-            buttons=buttons.map((button,index)=>({...button,key:button.action==='saveClose'?'Enter':button.action==='cancel'?'Esc':null,rect:{x:rect.x+24+(dialog.kind==='close'?0:index*(buttonWidth+gap)),y:rect.y+(dialog.kind==='close'?164+index*40:248),width:dialog.kind==='close'?rect.width-48:buttonWidth,height:30}}));
+            const keys=buttons.map(button=>['saveClose','confirmRevert','confirmOverwrite','ack'].includes(button.action)?'Enter':button.action==='cancel'?'Esc':null);
+            const stacked=dialog.kind==='close' || buttons.some((button,index)=>require('./button-caption.js').width(button.label,keys[index],measure,{size:13})+12>buttonWidth);
+            const startY=dialog.kind==='close'?164:stacked?rect.height-18-(buttons.length*40-10):248;
+            buttons=buttons.map((button,index)=>({...button,key:keys[index],rect:{x:rect.x+24+(stacked?0:index*(buttonWidth+gap)),y:rect.y+startY+(stacked?index*40:0),width:stacked?rect.width-48:buttonWidth,height:30}}));
         }
         return {rect,title,message,buttons};
     }

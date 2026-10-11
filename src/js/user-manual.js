@@ -27,7 +27,8 @@ function createManual(baseDirectory,env=globalThis,dependencies={}) {
         const I18n=require('./i18n.js'),wrap=require('./hover-help.js').wrap;
         const panelWidth=Math.min(440,width-40),lines=wrap(I18n.getString(failure || 945),panelWidth-48,measure);
         const panelHeight=Math.min(height-40,110+lines.length*18),rect={x:(width-panelWidth)/2,y:(height-panelHeight)/2,width:panelWidth,height:panelHeight};
-        return {rect,lines,button:{x:rect.x+rect.width/2-75,y:rect.y+rect.height-44,width:150,height:28}};
+        const label=I18n.getString(834),key='Enter',buttonWidth=Math.min(panelWidth-48,Math.max(150,require('./button-caption.js').width(label,key,measure,{size:13})+12));
+        return {rect,lines,label,key,button:{x:rect.x+(rect.width-buttonWidth)/2,y:rect.y+rect.height-44,width:buttonWidth,height:28}};
     }
     return {open,layout,error:()=>failure,clearError:()=>{failure=null;sequence++;}};
 }

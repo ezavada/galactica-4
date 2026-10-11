@@ -44,6 +44,25 @@ module.exports=()=>test.describe('System window modality and title dragging',()=
    }
   }}finally{pdg.res.setLanguage(language);}
  });
+ test.it('advertises the actual document confirmation and acknowledgment shortcuts in every language',()=>{
+  const Documents=require('../src/js/documents.js'),{game}=fixture(),session={game,file:{name:'Saved'}};
+  const docs=new Documents({cancelPick:()=>{}},()=>session,()=>{},()=>{}),language=pdg.res.getLanguage();
+  try{for(const lang of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(lang);
+   for(const size of [[320,340],[640,480],[800,600]]){
+    for(const kind of ['status','close','revert','overwrite','busy']){
+     docs.pendingClose=session;docs.dialog={kind,name:'Save 星',message:pdg.res.getString(845)};
+     const layout=docs.layout(...size);
+     for(const b of layout.buttons){
+      test.assertEqual(b.key,['saveClose','confirmRevert','confirmOverwrite','ack'].includes(b.action)?'Enter':b.action==='cancel'?'Esc':null);
+      test.assertTrue(b.rect.width>=Math.min(layout.rect.width-48,require('../src/js/button-caption.js').width(b.label,b.key,(text,size)=>Array.from(String(text)).length*size/2,{size:13})+12),'Button width '+lang+' '+size.join('x')+' '+kind+' '+b.action+' '+b.label+' '+b.rect.width);
+      test.assertTrue(b.rect.x>=0 && b.rect.y>=0 && b.rect.x+b.rect.width<=size[0] && b.rect.y+b.rect.height<=size[1],'Button bounds '+lang+' '+size.join('x')+' '+kind+' '+b.action);
+     }
+    }
+    docs.status(845);test.assertTrue(docs.key(13));test.assertEqual(docs.dialog,null);test.assertEqual(game.turn,1);
+   }
+  }}finally{pdg.res.setLanguage(language);}
+ });
  test.it('clunks outside system windows without changing the map, while Events allows map input',()=>{
   const {game,display}=fixture(),cues=[];game.sound={play:id=>cues.push(id)};
   for(const name of ['settings','comparison','menu','games','view','mapDisplay','colonyDefaults','fleets','systemComparison']){
