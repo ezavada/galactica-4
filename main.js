@@ -1419,6 +1419,7 @@ const portResizeHandler = new pdg.IEventHandler(function(event) {
 });
 
 // Register event handlers
+const quitRequestHandler=require('./src/js/quit-request.js').install(pdg,requestApplicationQuit,()=>{quitDocuments.abort();documents.status(845);});
 pdg.evt.addHandler(drawHandler, pdg.eventType_PortDraw);
 pdg.evt.addHandler(mouseHandler, pdg.eventType_MouseDown);
 pdg.evt.addHandler(mouseHandler, pdg.eventType_MouseUp);

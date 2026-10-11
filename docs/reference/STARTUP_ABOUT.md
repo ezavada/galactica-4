@@ -278,16 +278,37 @@ Evidence: `/private/tmp/galactica-quit-{tests,public-tests,async,public-async,ru
 `/private/tmp/galactica-quit-{languages,startup,before-after}-review.png` images.
 Automation mutes audio without changing saved preferences.
 
-Remaining native integration: the pinned public PDG GLFW main-window close
-callback (`src/sys/glfw/platform-graphics-glfw.cpp:96–105`) calls `pdg_LibQuit`
-directly. Cocoa `applicationShouldTerminate` returns `NSTerminateNow` and
-last-window close returns YES (`src/sys/macosx/pdg-lib-macosx.mm:255–262`). The
-public JS Shutdown event is a final notification, not a vetoable Quit request.
-These paths need an engine request/deferral API and validated runtime packaging;
-application commands alone do not establish OS/window-close parity. Network logout and pending host-work decisions are implemented in the
-application command paths. Other application/window commands and Map Generation
-remain pending. This is actionable follow-up,
-not a claim that the entire parity goal is blocked or completed.
+Native request integration is implemented in current public and devel PDG.
+`eventType_QuitRequest` (29) lets a synchronous handler consume window-close/OS
+Quit while the game runs the same all-document save decisions as File → Quit.
+Busy, canceled and failed requests stay consumed; only successful completion
+calls `pdg.quit()`. Repeated requests leave the pending decision intact. Explicit
+quit still accepts shutdown without generating another request. Legacy engines
+without the new constant remain usable but cannot intercept native requests.
+
+Actual Linux X11 `WM_DELETE_WINDOW` messages pass the C++ lifecycle regression
+and the native V8 regression (two requests, live window after deferral, one final
+shutdown). Both complete engine suites pass: devel 24 tests and public 23, with
+focus and window tests skipped on this Mac because it has no connected display.
+All 1,656 game units pass against both rebuilt runtimes. Browser `native-request`
+mode exercises the shared game flow through event dispatch in all six languages;
+its 66 before/after screenshot pairs are byte-identical, and the French dialogs
+were visually inspected. This browser coverage is separate from native OS event
+delivery. Evidence is in `/private/tmp/pdg-quit-request-linux{,-bridge}.log`,
+`/private/tmp/pdg{,-public}-quit-request-full-ctest.log`,
+`/private/tmp/galactica-quit-request-{devel,public}-unit.log`, and
+`/private/tmp/galactica-quit-request/{before,after}/<language>`.
+A baseline restart intermittently failed to fetch a browser module; a Russian
+cancellation assertion also failed once. Individual reruns passed; failure logs
+are retained. The runner now waits for completed shutdown instead of assuming
+that asynchronous save/cleanup has finished after 250 ms.
+
+Remaining validation and packaging: `tools/pdg-release.env` still pins the old
+v1.2.0 archive, whose native paths bypass these decisions. Update the packaged
+runtime before claiming default-install parity. Connected macOS window/Command-Q
+and Windows GUI validation remain pending; their hooks are implemented, not
+runtime-proven here. Other application/window commands and Map Generation remain
+pending. These are follow-up items, not completion of the entire parity goal.
 
 
 ### Multiplayer startup verification (2026-10-10)

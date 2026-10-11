@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1653
-Passed: 1653 ✓
+Total: 1656
+Passed: 1656 ✓
 Failed: 0 ✗
 ```
 
@@ -902,3 +902,22 @@ The introduction variant verifies that the command waits for dismissal. The
 unit suite additionally covers native numeric preference reads, returning
 installation detection, absent/unknown commands, real dialog models and the
 once-only lifecycle.
+
+### Native quit-request integration
+
+With a rebuilt PDG runtime that exports `eventType_QuitRequest`, OS/window-close
+requests use the same save decisions as application Quit. The pinned v1.2.0
+archive does not yet contain this engine change.
+
+```bash
+node tools/test-web-quit.cjs /private/tmp/galactica-quit-request-app /private/tmp/quit-request-en en native-request
+```
+
+Repeat for de/es/fr/ja/ru. This muted browser fixture dispatches the event into
+the real game, checks repeated requests, Cancel, all retained games, failed and
+canceled saves, restart and empty setup. Actual Linux X11 window-close delivery
+is verified separately with PDG's `test/cxx/test-quit-request.cpp` window mode
+and `test/cxx/test-quit-request.js` native bridge fixture. Browser dispatch does
+not prove operating-system event delivery. Connected macOS and Windows GUI
+validation remain pending. Current evidence and release-runtime limitations are
+recorded in `docs/reference/STARTUP_ABOUT.md`.
