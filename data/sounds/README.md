@@ -23,8 +23,12 @@ and names are also present in v3 `Resources/gal-sounds.r`.
 | 1013 | Discovery |
 | 1014 | Enemy Move |
 
-The event table references outcome sounds 1004–1006, but neither shipped
-edition contains those resources. They have no confirmed sample to port.
+The event table references outcome sounds 1004–1006. They are stored in the
+separate Galactica Music resource fork, recovered from AppleDouble entries
+in all six release ZIPs. `docs/reference/v3-music-resources.json` records their
+source hashes. Cue 1005 is standard PCM; 1004/1006 have compressed sound
+headers and still need conversion before they can be added to this WAV set.
+Their absence from the application bundle is not an unavailable-asset blocker.
 
 Regenerate with:
 

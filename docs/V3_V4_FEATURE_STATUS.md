@@ -634,13 +634,46 @@ Two regressions drive the actual game Tab/canvas-button routes with a cached PDG
 
 Audited all CSoundResourcePlayer/StSoundResourcePlayer call sites outside their implementation: CChatHandler::AddChatToHistory at GalacticaClient.cpp:1019 plays Message (1003) only with a chat window; HandleTurnComplete at 2600 plays Warning (1002) for an incoming network turn when the client/app is in the background; GalacticaTutorial.cp:448–450 plays tutorial sample 7000 from its plug-in. These remain requirements of the unported chat/network/tutorial rows; they are not invented as local single-player notifications. General event sounds remain selected by the Evnt recipient table. GalacticaDoc.cp:576 containment-limit feedback remains navigation work.
 
-### User-review blocker: original startup/About music metadata
+### Original startup/About music metadata recovered; conversion pending
 
-Galactica.cpp:1687–1697 and 1793–1807 instantiate looping CMidiMovieFilePlayer only for the startup splash and About box, fading out over five seconds on dismissal. There is no confirmed in-game background music loop. cmd_Sound at 2286–2287 toggles both effects and music; USound.cp:230/277 also requires the effects switch for music.
+Galactica.cpp:1687–1697 and 1793–1807 instantiate looping CMidiMovieFilePlayer
+for the startup splash and About box, fading out over five seconds on dismissal.
+No in-game background music loop has been confirmed. The Sound command toggles
+both effects and music, and USound.cp requires the effects switch for music.
 
-All four available Galactica Music files (root, release/backup and shipped shareware/CD MacOS directories) are identical 6152-byte files, SHA-256 444c0a33479a538324e908987ad54ceca14d4099324d80ae4c08fc9ee9259f9b. Each parses as exactly one mdat atom spanning the entire file. None has an accessible resource fork; no alternate movie/MIDI/AppleDouble/archive copy was found in this checkout. Neither shipped Galactica.rsrc bundle contains moov or Midi resources. Audit output: /private/tmp/galactica-v3-music-audit.json.
+The previous missing-resource-fork blocker was incorrect. All six shipped
+release ZIPs retain `._Galactica Music` AppleDouble entries. Each has the same
+404344-byte resource fork, including moov128 (903 bytes) and outcome snd1004,
+snd1005 and snd1006. The 6152-byte data fork is identical across those archives.
+Source Galactica.cpp:1042–1047 explicitly opens this separate music resource
+fork for sound lookup; the outcome cues were never missing from the release.
 
-Apple’s [QuickTime movie atom documentation](https://developer.apple.com/documentation/quicktime-file-format/movie_atoms) describes moov as the metadata defining tracks and referencing media samples. The available data does not include that composition/track metadata. Source-faithful conversion/playback therefore needs an intact original Galactica Music file with its resource fork/movie metadata, or an authoritative rendered recording. This asset dependency is explicitly blocked for user review; existing event sounds and other parity work continue. A guessed composition or substitute track would not establish v3 music parity.
+`tools/import-v3-music-resources.py` recovers and inventories that fork and
+reconstructs a self-contained 7055-byte movie with the original data fork
+followed by its moov atom. It verifies the self-referencing data reference,
+sample-to-chunk table, six 1024-byte media chunks at their original offsets,
+and timing totals (58007 ticks at 600 ticks/second). Provenance is in
+`docs/reference/v3-music-resources.json`; the recovered container is currently
+`/private/tmp/galactica-music-recovered.mov` and can be regenerated with
+`--movie`. No runtime movie/PCM asset is installed by this recovery step.
+
+The intro track is QuickTime `musi` note-based audio, described by
+[Apple's Music media documentation](https://developer.apple.com/documentation/quicktime-file-format/music_media).
+Native afinfo rejects the reconstructed movie, so merely exposing it to PDG's
+ordinary audio-file loader does not establish playback. Conversion/synthesis
+and the source loop/five-second fade behavior remain implementation work,
+not a request for an unavailable file. Cue1005 parses as 221901 standard PCM
+frames at rounded 11127 Hz; cues1004/1006 have compressed headers unsupported
+by the current standard-PCM importer. Their conversion and actual event
+playback still need implementation and verification.
+
+Four recovery regressions pass, covering the canonical inventory/container,
+all six archive identities, damaged media ranges/atoms and cue encodings.
+Both full native suites pass 1703 tests. Logs are
+`/private/tmp/galactica-music-recovery-{tests,public-unit,devel-unit}.log`.
+Game rendering, assets, controls and localization are unchanged; no new UI
+screenshots or audible playback are claimed. Tests remain muted. This removes
+the prior asset blocker while leaving the Sound/music checklist incomplete.
 
 ### Containment keyboard navigation and limit feedback (2026-10-10)
 
