@@ -4,13 +4,14 @@ const Game=require('./game.js'),Config=require('./game-config.js'),Factory=requi
 const {HostLogin,protocol}=require('./host-login.js');
 const HostView=require('./host-view.js');
 const Orders=require('./player-orders.js');
+const Writeback=require('./order-writeback.js');
 function failure(code){const error=new Error(code);error.code=code;return error;}
 function validate(config){
     if(!(config instanceof Config) || config.validate().length || !config.hosting || config.skipMapGeneration ||
         !Number.isSafeInteger(config.maxTimePerTurn) || config.maxTimePerTurn<0 || config.maxTimePerTurn>Math.floor(Number.MAX_SAFE_INTEGER/1000) || typeof config.endEarly!=='boolean')throw failure('invalid_host_config');
 }
 class NetworkHost {
-    constructor(game,file,fs){validate(game.config);if(game.config.networkHost && game.config.networkHost.settingsRevision!==undefined && (!Number.isSafeInteger(game.config.networkHost.settingsRevision) || game.config.networkHost.settingsRevision<0))throw failure('invalid_host_settings');this.game=game;this.file=file;this.fs=fs;this.server=null;this.login=new HostLogin(game,()=>this.persist());this.admin=new (require('./host-admin.js').HostAdmin)(this);
+    constructor(game,file,fs){validate(game.config);if(game.config.networkHost && game.config.networkHost.settingsRevision!==undefined && (!Number.isSafeInteger(game.config.networkHost.settingsRevision) || game.config.networkHost.settingsRevision<0))throw failure('invalid_host_settings');this.game=game;this.file=file;this.fs=fs;this.server=null;this.login=new HostLogin(game,()=>this.persist());Writeback.validateSaved(game);this.admin=new (require('./host-admin.js').HostAdmin)(this);
         // Each host owns its portable stream, so failed staging never consumes live/global randomness.
         if(game.tutorialRandom==null)game.tutorialRandom=require('./simulation-random.js').create(parseInt(game.config.networkHost.id.slice(0,8),16)%2147483646+1);
         this.chat=new (require('./host-chat.js').HostChat)(this);this.clock=new (require('./host-clock.js'))(game);this.clockTimer=null;this.clockError=null;}
@@ -49,6 +50,7 @@ class NetworkHost {
         humans:c.numHumans,computers:c.numComputers,sectorSize:c.sectorSize,density:c.density,fastGame:c.fastGame,
         fogOfWar:!c.omniscient,skill:c.compSkill,advantage:c.compAdvantage,maxTimePerTurn:c.maxTimePerTurn,endEarly:c.endEarly,
         requiresAdmissionCode:!!(c.networkHost.admission && (c.networkHost.admission.allowed.length || !c.networkHost.admission.allowWithoutCode)),gameId:c.networkHost.id,slots:this.login.info(),clock:this.clock.info()};}
+    saveOrders(player,request){return Writeback.save(this,player,request);}
     postOrders(player,request){
         if(!request || typeof request!=='object' || Array.isArray(request))throw failure('bad_orders');
         const digest=require('crypto').createHash('sha256').update(JSON.stringify(request)).digest('hex');
@@ -122,7 +124,7 @@ class NetworkHost {
     }
     pauseClock(){this.transact(()=>this.clock.pause());}
     resumeClock(){this.transact(()=>this.clock.resume(!!this.server));}
-    playerState(viewer){return {...HostView.snapshot(this.game,viewer),gameId:this.game.config.networkHost.id,clock:this.clock.info()};}
+    playerState(viewer){return {...HostView.snapshot(this.game,viewer),gameId:this.game.config.networkHost.id,orderRevision:Writeback.revision(this.game,viewer),clock:this.clock.info()};}
     handle(req,res){
         const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',
             'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Content-Type, Authorization',
@@ -130,7 +132,7 @@ class NetworkHost {
         const respond=(status,body)=>{res.writeHead(status,headers);res.end(body===undefined?'':JSON.stringify(body));};
         if(req.url==='/chat' || req.url==='/chat/ack'){this.chat.handle(req,res);return;}
         if(req.url.startsWith('/admin/')){this.admin.handle(req,res);return;}
-        const routes=['/info','/login','/session','/logout','/state','/orders'];
+        const routes=['/info','/login','/session','/logout','/state','/orders','/changes'];
         if(!routes.includes(req.url)){respond(404,{error:'not_found'});return;}
         if(req.method==='OPTIONS'){respond(204);return;}
         if(req.url==='/info'){respond(req.method==='GET'?200:405,req.method==='GET'?this.info():{error:'method_not_allowed'});return;}
@@ -147,14 +149,14 @@ class NetworkHost {
         if(req.url==='/logout' && req.method==='POST'){
             try{respond(200,this.login.logout(token()));}catch(error){respond(401,{error:error.code || 'not_logged_in'});}return;
         }
-        if(req.url==='/orders' && req.method==='POST'){
+        if(['/orders','/changes'].includes(req.url) && req.method==='POST'){
             let session;try{session=this.login.authenticate(token());}catch(error){respond(401,{error:error.code || 'not_logged_in'});return;}
             let body='',bytes=0,answered=false;req.setEncoding('utf8');req.on('error',()=>{answered=true;});
             req.on('data',chunk=>{bytes+=Buffer.byteLength(chunk,'utf8');if(bytes>64*1024*1024){if(!answered){answered=true;respond(413,{error:'orders_too_large'});}return;}body+=chunk;});
             req.on('end',()=>{if(answered)return;let request;try{request=JSON.parse(body);}catch(error){respond(400,{error:'bad_orders'});return;}
-                try{const current=this.login.authenticate(token());if(current.player!==session.player)throw failure('not_logged_in');this.postOrders(current.player,request);
-                    respond(200,{...this.playerState(current.player),orderIds:this.game.config.networkHost.posts[current.player].ids});}
-                catch(error){const status=['not_logged_in','admin_ejected'].includes(error.code)?401:['wrong_game','wrong_turn','already_posted','game_complete'].includes(error.code)?409:error.code==='bad_orders'?400:500;
+                try{const current=this.login.authenticate(token());if(current.player!==session.player)throw failure('not_logged_in');const receipt=req.url==='/changes'?this.saveOrders(current.player,request):(this.postOrders(current.player,request),this.game.config.networkHost.posts[current.player]);
+                    respond(200,{...this.playerState(current.player),orderIds:receipt.ids});}
+                catch(error){const status=['not_logged_in','admin_ejected'].includes(error.code)?401:['wrong_game','wrong_turn','already_posted','game_complete','stale_orders'].includes(error.code)?409:error.code==='bad_orders'?400:500;
                     respond(status,{error:status===500?'host_save_failed':error.code});}
             });return;
         }

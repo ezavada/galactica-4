@@ -544,3 +544,14 @@ Of 180 common scenes, 162 are identical and eighteen menu views change. Evidence
 `/private/tmp/galactica-command-menu`, `galactica-command-menu-final`.
 This closes the compressed Command Menu gap; broader toolbar/dialog/localization
 and native GUI audits remain open.
+
+
+### Host-side writeback dependency (2026-10-11)
+
+The authenticated unposted-writeback API uses language-independent decision fields
+and machine error identifiers. It adds no user-facing strings; malformed saved-host
+and transport fallback messages already use localized IDs. Client selection/
+Close/Quit integration is still pending, so no new translated UI workflow or
+screenshot coverage is claimed. Both full suites pass 1,801 tests; real localhost
+writeback and posting lanes pass on both native runtimes. Localized stale/failure/
+retry handling in all six languages remains required for the complete feature.

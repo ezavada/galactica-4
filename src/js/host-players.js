@@ -24,7 +24,7 @@ function apply(game,value){
   // V3 neutralizes territory and lets end-of-turn defeat detection report death.
   for(const list of [game.stars,game.allShips,game.allFleets,game.allRendezvous])for(const e of list)if(e.owner===p.playerNum)e.owner=0;
  }
- if(role || value.action==='remove')if(h.posts)delete h.posts[value.player];
+ if(role || value.action==='remove'){if(h.posts)delete h.posts[value.player];if(h.changes)delete h.changes[value.player];}
  h.playersRevision=revision(game)+1;if(value.action!=='eject'){h.playerStateRevision=(h.playerStateRevision || 0)+1;game.visibilityCalculator.updateAllVisibility();}
  return value.action==='eject' || role || value.action==='remove' || value.action==='rename' && !!claim;
 }

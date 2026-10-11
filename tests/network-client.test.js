@@ -30,7 +30,7 @@ module.exports=()=>test.describe('Live network client protocol boundaries',()=>{
  });
  test.it('normalizes HTTP failures without echoing arbitrary server text or following redirects',()=>{
   test.assertEqual(HTTP.decode(200,'{"name":"航行者"}').name,'航行者');test.assertDeepEqual(HTTP.decode(204,''),{});
-  rejects(()=>HTTP.decode(401,'{"error":"bad_password"}'),'bad_password');rejects(()=>HTTP.decode(500,'{"error":"secret internal path"}'),'network_http_error');rejects(()=>HTTP.decode(302,'{}'),'network_http_error');
+  rejects(()=>HTTP.decode(401,'{"error":"bad_password"}'),'bad_password');rejects(()=>HTTP.decode(409,'{"error":"stale_orders"}'),'stale_orders');rejects(()=>HTTP.decode(500,'{"error":"secret internal path"}'),'network_http_error');rejects(()=>HTTP.decode(302,'{}'),'network_http_error');
   for(const body of ['{','null','[]','"text"'])rejects(()=>HTTP.decode(200,body),'network_bad_response');
  });
  test.it('stores only a public rejoin descriptor and bounds request timeouts',()=>{

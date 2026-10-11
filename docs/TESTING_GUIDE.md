@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Latest verified result with the current public/development native executables:
 
 ```text
-Total: 1794
-Passed: 1794 ✓
+Total: 1801
+Passed: 1801 ✓
 Failed: 0 ✗
 ```
 
@@ -35,6 +35,7 @@ is tested separately under the PDG runtime:
 ./gad4 tools/test-network-client.js
 ./gad4 tools/test-network-join.js
 ./gad4 tools/test-network-orders.js
+./gad4 tools/test-network-writeback.js
 ./gad4 tools/test-network-clock.js
 ```
 
@@ -1475,3 +1476,24 @@ checks and six final narrow Close checks pass. Evidence roots:
 Common comparisons record 180 pairs: 162 identical and eighteen menu changes.
 All six ordinary/short/narrow top and bottom views were inspected. Browser cases
 use local owners; role and error fixtures do not claim new remote-host UI paths.
+
+
+### Durable unposted writeback transport
+
+`./gad4 tools/test-network-writeback.js` creates two actual localhost clients and
+checks authenticated `POST /changes`, without posting the turn. The envelope
+contains raw state `orderRevision` as `revision`, plus `playerRevision`,
+`initialStateRevision` and an `Orders.snapshot(model, requestId)` decision payload.
+Retain the same envelope/32-hex request ID for uncertain-response retry. Rebuild
+from fresh acknowledged state and its remapped IDs before a new request. This
+is a host/API contract, not yet an application autosave or close hook.
+
+The lane verifies persisted decisions/created IDs, readiness/clock isolation,
+private metadata, stale/forged denial, dropped replies, failed-save rollback,
+reopen/rejoin, authoritative context changes and later normal posting. It mutes
+sound, disables discovery for its listener and removes its temporary files.
+Both runtimes pass this and the existing posting lane; full suites pass 1,801
+tests. Seven native regressions also cover malformed receipts, role changes
+and old-turn acknowledgments. Evidence prefix: `/private/tmp/galactica-writeback-host-`.
+No new GUI is introduced; client reconciliation and localized close/retry flows
+remain next.
