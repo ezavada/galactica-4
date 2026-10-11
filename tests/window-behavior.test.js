@@ -22,6 +22,28 @@ module.exports=()=>test.describe('System window modality and title dragging',()=
    }
   }}finally{pdg.res.setLanguage(language);}
  });
+ test.it('closes production and End Turn confirmation without altering allocations or pending attention',()=>{
+  const {game,display}=fixture(),home=game.factory.createStar(0,0,'Home');home.owner=1;home.techLevel=5;
+  const ship=game.factory.createShip(0,0,'scout',home,true);game.setSelectedObject(home);game.attention.request(ship);
+  game.port.getTextWidth=(text,size=11)=>Array.from(String(text)).length*size/2;
+  const state=()=>JSON.stringify({turn:game.turn,allocation:game.getStarAllocationEntries(home).map(e=>({key:e.key,allocation:e.allocation})),attention:game.attention.pending().map(e=>({id:e.object.id,handled:e.handled}))});
+  const before=state(),language=pdg.res.getLanguage();
+  try {for(const lang of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(lang);display.reloadUIStrings();
+   for(const size of [[800,600],[480,600],[640,480]]){
+    game.port.getDrawingArea=()=>new pdg.Rect(...size);
+    for(const name of ['production','endTurnConfirm']){
+     game.uiWindow=name;const window=display.getActiveWindowRect(),close=display.getWindowCloseActions(name,window)[0],r=close.rect;
+     const others=name==='production'?display.getProductionWindowSliderRegions().concat(display.getAllocationEqualizeRegions().filter(b=>b.inWindow)):display.getEndTurnConfirmActions().filter(b=>b.action.type!=='closeWindow');
+     test.assertEqual(close.label,pdg.res.getString(531));test.assertEqual(close.key,'Esc');
+     test.assertTrue(r.x>=10 && r.y>=10 && r.x+r.width<=size[0]-10 && r.y+r.height<=size[1]-10);
+     test.assertTrue(others.every(b=>r.x+r.width<=b.rect.x || b.rect.x+b.rect.width<=r.x || r.y+r.height<=b.rect.y || b.rect.y+b.rect.height<=r.y));
+     test.assertTrue(game.handleUIClick(r.x+r.width/2,r.y+r.height/2));test.assertEqual(game.uiWindow,null);test.assertEqual(game.selectedObject,home);test.assertEqual(state(),before);
+     test.assertFalse(game.executeUIAction(close.action));
+    }
+   }
+  }}finally{pdg.res.setLanguage(language);}
+ });
  test.it('clunks outside system windows without changing the map, while Events allows map input',()=>{
   const {game,display}=fixture(),cues=[];game.sound={play:id=>cues.push(id)};
   for(const name of ['settings','comparison','menu','games','view','mapDisplay','colonyDefaults','fleets','systemComparison']){

@@ -1803,18 +1803,17 @@ class Display {
 
     getEndTurnConfirmRect() {
         const screen=this.getScreenSize();
-        return this.fitWindowToScreen('endTurnConfirm',{x:(screen.width-440)/2,y:120,width:440,height:160});
+        return this.fitWindowToScreen('endTurnConfirm',{x:(screen.width-440)/2,y:120,width:440,height:188});
     }
     getEndTurnConfirmActions() {
         const r=this.getEndTurnConfirmRect();
         return [{rect:{x:r.x+14,y:r.y+88,width:r.width/2-20,height:30},label:I18n.getString(748,'Review'),action:{type:'reviewAttention'}},
-            {rect:{x:r.x+r.width/2+6,y:r.y+88,width:r.width/2-20,height:30},label:I18n.getString(747,'End anyway'),key:'Enter',action:{type:'confirmEndTurn'}}];
+            {rect:{x:r.x+r.width/2+6,y:r.y+88,width:r.width/2-20,height:30},label:I18n.getString(747,'End anyway'),key:'Enter',action:{type:'confirmEndTurn'}}].concat(this.getWindowCloseActions('endTurnConfirm',r));
     }
     drawEndTurnConfirm() {
         const r=this.getEndTurnConfirmRect();this.drawWindowPanel(r,this.STR.endTurn);
         this.drawTextLine(I18n.formatPluralString(746,'{0} item still needs attention.|{0} items still need attention.',this.game.getUnreviewedItemCount()),r.x+14,r.y+62,'lightgray',12);
         for(const button of this.getEndTurnConfirmActions())this.drawUIButton(button.rect,button.label,button.key,{size:11});
-        this.drawTextLine(this.STR.escClose,r.x+14,r.y+142,'gray',10);
     }
 
     getWindowCloseActions(window,rect) {
@@ -2852,7 +2851,8 @@ class Display {
         if (this.game.uiWindow === 'production') {
             const sliders = this.getProductionWindowSliderRegions();
             controls = this.getAllocationLockRegions(sliders)
-                .concat(this.getAllocationEqualizeRegions().filter(region => region.key));
+                .concat(this.getAllocationEqualizeRegions().filter(region => region.key))
+                .concat(this.getWindowCloseActions('production',window));
             const slider = sliders.find(region => this.containsPoint(region.rect, x, y));
             if (slider) return { type: 'setAllocation', star: slider.star, allocationKey: slider.key,
                 desired: this.clamp(Math.round((x - slider.trackRect.x) / slider.trackRect.width * 1000)/10, 0, 100) };
@@ -3455,10 +3455,9 @@ class Display {
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
 
+        this.getWindowCloseActions('production',rect).forEach(button=>this.drawUIButton(button.rect,button.label,button.key,{size:10}));
         if (!star || !this.game.canHumanControl(star)) {
             this.drawTextLine(this.STR.selectStarForProduction, x, y, 'lightgray', 12);
-            y += 24;
-            this.drawTextLine(this.STR.escClose, x, y, 'gray', 10);
             return;
         }
 
@@ -3467,8 +3466,6 @@ class Display {
         this.drawStarAllocationSummary(star, x, y, 185);
         const equalize = this.getAllocationEqualizeRegions().find(region => region.inWindow);
         if (equalize) this.drawUIButton(equalize.rect,'=',null,{size:18,tooltipLabel:ButtonCaption.tooltip(I18n.getString(676,'Equalize'),'=')});
-        y += 98;
-        this.drawTextLine(this.STR.escClose, x, y, 'gray', 10);
     }
 
     drawEventWindow() {

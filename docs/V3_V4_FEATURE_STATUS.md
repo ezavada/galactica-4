@@ -242,7 +242,7 @@ The largest blockers to a complete game are:
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
 | Main information/navigation panels | Context-sensitive system, ship, fleet, rendezvous, and list panels with command buttons. | ✅ Implemented | ✅ Implemented | System production/allocation/destination controls, owned ship/fleet orders and member operations, rendezvous controls, paged system/member lists and the eight-column sortable fleet roster cover the shipped contextual workflows. Actual-input browser checks pass in all six languages for production, equalizing, member exchange, fleet navigation/sorting, rendezvous and read-only foreign inspectors, including save/restore. See the completion audit below. The deliberately modern radial architecture, removed pause/position controls and separate window chrome audit remain explicit. |
-| Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Remaining parity is concrete window/menu/list coverage, not an open-ended final visual redesign. |
+| Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Gameplay title dragging, modal isolation, contextual lists and production/confirmation dismissal have six-language actual-input coverage. Remaining chrome coverage is the complete foreground startup, document, network and error dialog inventory. |
 | Keyboard shortcuts and hover help | Buttons advertise shortcuts; balloon/flyby help describes controls. | ✅ Implemented | ✅ Implemented | Current controls advertise their working v4 shortcuts. Delayed explanatory help uses the same hit targets as clicks across inspectors, allocation sliders, command/list/course/report windows, startup options and local file dialogs. Text wraps by measured Unicode glyph width and stays within the viewport; covered controls behind modal windows, active drags, destination placement and illustrated overlays cannot show help. Clicks/keys clear it without intercepting input. Settings → Control help persists through native/browser preferences, reload and open-game switching. Eleven regressions and actual six-language browser comparisons cover timing, privacy/input isolation, allocation semantics, current action coverage, persistence, complete text and viewport bounds. New commands introduced with the remaining unported dialogs will need their own help alongside those implementations. |
 | Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | ✅ Implemented | ✅ Implemented | E/Events lists recipient-visible last-turn reports in chronological order, including retained held reports and unread offline messages. Paged rows select and center live subjects, preserve lost-subject locations and show reviewed state; narratives page independently without another turn. The complete source-reachable event inventory is implemented. View report replays full combat, colony, repair, rendezvous, message and outcome narratives. Owner commissioning/discovery now also restore their snapshot-based Stardock/Lab illustrations; observers never receive owner artwork. Actual six-language Events/button checks and before/after image comparisons pass, with both full suites at 1734 tests. Art pixel equivalence, attention sequencing and enemy movement playback remain their separate checklist rows. |
 | Attention queue | Manual requests select/focus subjects sequentially; automatic messages have a separate presentation/review path. | ✅ Implemented | ✅ Implemented | Owner call-ins, ordinary mobile builds, rendezvous fleets, repairs and colony instructions use Next. Automatic notices and foreign manual observer notices are excluded from Next counts, Tab and deferred post-turn goto, matching ShowMessages (GalacticaDoc.cp:1561–1570). Previously saved foreign manual queue entries are filtered too. Unread automatic entries retain End Turn protection and explicit Review. Detected observer narratives remain available through explicit Events review. Both full suites pass 1740 tests; actual arrival, Next, explicit review and save checks pass in all six languages. Enemy playback and native/art/audio work remain separate rows. |
@@ -6353,3 +6353,45 @@ visually inspected. Evidence: `/private/tmp/galactica-window-close-{public,devel
 `galactica-window-close-comparison.json` and the matching screenshot trees.
 The complete window inventory audit remains open; no engine source or new
 localized strings changed.
+
+
+### Gameplay window inventory and remaining dismissal controls
+
+Audited the native window registration inventory in
+`GalacticaConsts.h:184–237`, modal framework in `UNewModalDialogs.cp`, and
+inherited commands in `GalacticaDoc.cp:912` / `Galactica.cpp:2335` against the
+current gameplay surfaces. `tools/test-web-window-inventory.cjs` exercises
+Compare Players, systems, fleets, open games, colony defaults, new-game
+defaults, Events, system ships, fleet exchange, Course and all four object
+inspectors through actual input. All twelve muted baseline/current runs pass;
+168 screenshot pairs are pixel-identical. Title drags move the controls and
+stay in the viewport. Modal outside clicks clunk without changing selection
+or advancing turns. New-game-defaults Cancel correctly returns to Settings.
+
+`tools/test-web-window-extras.cjs` covers actual Production, Control-click
+nearby-object picking, inline rename cancellation and End Turn confirmation.
+The audit exposed remaining bare <Esc> Close text in Production and turn
+confirmation; both now use actual measured Close buttons and the shared
+compact shortcut treatment, reusing translated resource 531 in all six
+languages. Confirmation reserves a separate footer. Closing preserves
+allocations, pending attention, selection and turn, including stale action
+rejection. Tests use an eligible completed owned ship for attention and press
+Control through the real GLFW keyboard state rather than rely on mouse-event
+modifier metadata.
+
+Both full muted native suites pass 1748 tests, zero failures. All twelve
+extras browser runs pass; of 42 before/after pairs, 24 change only the intended
+Production/confirmation surfaces and 18 picker/rename scenes stay identical.
+English pairs, all six defaults/system-ships/production/picker/confirmation
+layouts and all four dragged inspectors were visually inspected. Evidence:
+`/private/tmp/galactica-window-inventory-{public,devel}-unit.log`,
+`galactica-window-dismiss-{pdg,pdg-devel}-unit.log`,
+`galactica-window-{inventory,extras}-{before,after}-<language>.log`,
+`galactica-window-{inventory,extras}-comparison.json` and matching screenshot
+trees. The canonical behavior reference records the verified inventory.
+
+The Window/dialog chrome row stays Partial until the complete foreground
+startup, document, network and error dialog inventory has current coverage.
+This item changes game code only. Per the current release plan, any PDG bug
+fixes belong exclusively in private `pdg-devel`; public engine changes and
+release assets are deferred to v1.2.1 after parity work.

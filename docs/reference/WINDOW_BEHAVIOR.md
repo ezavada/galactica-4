@@ -65,3 +65,28 @@ intended style changes. English before/after narratives, full and compact outcom
 art, and the six-language report/compact layouts were visually inspected. The
 Russian Continue label/hint spacing was corrected after this inspection exposed
 an overlap; final browser runs and both native suites passed afterward.
+
+
+Window inventory verification covers Compare Players, your systems, fleets,
+open games, colony defaults, new-game defaults, Events, ships in a system,
+fleet exchange, courses, production, the nearby-object picker and End Turn
+confirmation, plus system/ship/fleet/rendezvous inspectors. Muted actual-input
+browser checks open these through their real menus, keys or map controls,
+drag titles and assert viewport bounds. System windows reject outside clicks
+without changing selection or turn; Events and object controls retain their
+contextual behavior. Control-click tests press and release the actual Control
+key for the GLFW input path. Inline rename has no draggable title; its actual
+Escape action restores the original name.
+
+Production and End Turn confirmation now expose measured, localized Close
+buttons with compact Esc hints. Their hit actions preserve allocations,
+pending attention, selection and turn. Confirmation reserves a separate
+footer beneath Review and End anyway. Native regressions cover all six
+languages at 800×600, 480×600 and 640×480; both full suites pass 1,748 tests.
+`tools/test-web-window-inventory.cjs` contributes 168 pixel-identical pairs;
+`tools/test-web-window-extras.cjs` contributes 42 pairs, with 24 expected
+production/confirmation changes and 18 unchanged picker/rename scenes.
+English before/after panels and localized defaults, ships, production,
+pickers and confirmation layouts were visually inspected. This verifies the
+listed gameplay surfaces; the remaining foreground startup, document,
+network and error dialogs still need their complete current inventory audit.
