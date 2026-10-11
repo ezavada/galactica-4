@@ -7,8 +7,13 @@ dimensions and v3 picture roles are recorded in `outcome-art.json`.
 V3 PPob4000/4001 reference PICT4000/4001 for the affected player's victory and
 defeat. The restored final images supply those roles in v4. The checkout Art files lack forks, but the original release ZIPs retain
 AppleDouble art resources, now inventoried in docs/reference/v3-art-resources.json.
-These outcome PNGs identify the retained final assets; a decoded comparison
-with the recovered shipped outcome PICTs is still a separate check.
+Decoded source-image comparisons now pass with zero changed pixels:
+PICT4001 decodes directly; PICT4000 contains a full-frame TIFF-compressed
+QuickTime image extracted by the bounded `outcome_tiff` helper in
+`tools/import-v3-art-resources.py`. Archive, PICT and embedded TIFF hashes are
+recorded in `outcome-art.json`; `tools/test-import-v3-art-resources.py` verifies
+them and compares decoded images with these unchanged PNGs. This proves the
+source image pixels, not a separate classic Mac/QuickTime rendering capture.
 
 The v3 repository README states: “The art assets are copyright Claudio Berni,
 and must not be used without his permission.” The existing startup/About art

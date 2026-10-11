@@ -4496,9 +4496,12 @@ defeat-v2 PNGs and draws them behind the complete localized narrative. Artwork
 keeps its aspect ratio, fits within the window, uses a dark readability shade,
 and is cached by the existing image loader. Observer and draw views do not
 show affected-player artwork. Existing title, summary, navigation and full-text
-paging remain. The available v3 Art files lack their resource forks; source
-provenance is the retained final assets, not an asserted byte match to missing
-shipped PICT payloads. `data/events/README.md` preserves Claudio Berni's
+paging remain. The original release ZIP retains the AppleDouble art resource
+fork (despite the checkout's placeholder Art files). Decoded PICT4001 and the
+full-frame embedded TIFF image in PICT4000 now compare with zero changed
+pixels against the retained PNGs, as documented in the source-image audit
+below. This is decoded source-image evidence, not an original Mac rendering
+capture. `data/events/README.md` preserves Claudio Berni's
 copyright/permission notice, and `outcome-art.json` records source paths,
 resource roles, dimensions and SHA-256 hashes.
 
@@ -4785,3 +4788,36 @@ large-game startup/inspection runs and twelve controlled naming-preview runs
 pass. Source references, baseline failure limits, screenshot inspection and
 evidence are detailed in `MAP_GENERATION_PORT_STATUS.md`. Existing saved names
 are not rewritten; changed generation applies to new maps.
+
+
+### Outcome source-image pixel verification
+
+The shipped CD-ROM AppleDouble art fork supplies PICT4000 and PICT4001.
+PICT4001 decodes directly through ImageMagick. PICT4000 uses a TIFF codec in
+its compressed QuickTime record; ImageMagick's current PICT reader assumes
+JPEG for opcode 0x8200, so direct decoding fails. The bounded `outcome_tiff`
+extractor validates the known opcode offset, record bounds, identity matrix,
+empty matte, full-frame source/mask rectangle, TIFF codec, dimensions,
+single-frame description, data length and TIFF signature before extraction.
+It rejects unsupported/transformed/matted/truncated variants rather than
+pretending to render arbitrary PICT files. The later QuickTime-unavailable
+fallback-text trailer is not interpreted; the comparison is of the embedded
+source image, not a whole-picture rendering by an original Mac/QuickTime.
+The decoder's JPEG assumption is visible in the primary
+[ImageMagick PICT reader](https://github.com/ImageMagick/ImageMagick/blob/main/coders/pict.c).
+
+`outcome-art.json` records archive/AppleDouble/PICT provenance and the victory
+TIFF hash. The source-art regression extracts from the original archive,
+verifies these hashes and the unchanged packaged PNG hashes, decodes the two
+source images and requires ImageMagick AE=0 for both. Both outcome comparisons
+pass with zero changed pixels. Corruption/unsupported-record tests also pass;
+all 11 source-art tests pass, and both full native suites pass 1703 tests.
+Logs are `/private/tmp/galactica-outcome-source-pixels.log` and
+`/private/tmp/galactica-outcome-source-{public,devel}-unit.log`.
+
+Game assets and rendering code are unchanged by this verification item, so
+there is no new rendered before/after difference or localization change.
+Existing outcome layout, privacy and six-language screenshot evidence remains
+above. This closes the previously unverified outcome source-image comparison;
+PICT2208 decoding, unusual fallback payload/native rendering comparisons and
+the broader Original art use checklist remain separate work.

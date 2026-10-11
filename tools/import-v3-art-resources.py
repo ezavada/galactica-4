@@ -14,6 +14,42 @@ def span(blob, offset, size):
     return blob[offset:offset+size]
 
 
+def outcome_tiff(blob, opcode_offset=72):
+    """Extract the full-frame TIFF record used by shipped victory PICT4000.
+
+    This validates this resource's known QuickTime record layout; it is not
+    a general PICT renderer and does not interpret the fallback text trailer.
+    Offsets are relative to the resource payload, without a 512-byte file header.
+    """
+    opcode, length = struct.unpack('>HI', span(blob, opcode_offset, 6))
+    if opcode != 0x8200:
+        raise ValueError('Expected compressed QuickTime opcode')
+    record = span(blob, opcode_offset + 6, length)
+    frame = struct.unpack('>4h', span(blob, 2, 8))
+    if (struct.unpack('>H', span(record, 0, 2))[0] != 0 or
+        struct.unpack('>9i', span(record, 2, 36)) != (65536,0,0,0,65536,0,0,0,1073741824) or
+        span(record,38,12) != b'\0'*12 or
+        struct.unpack('>H', span(record,50,2))[0] != 64 or
+        struct.unpack('>4h', span(record,52,8)) != frame or
+        struct.unpack('>I', span(record,64,4))[0] != 10 or
+        span(record,68,10) != struct.pack('>H4h',10,*frame)):
+        raise ValueError('Unsupported transformed, masked or matted QuickTime record')
+    description = span(record,78,86)
+    size = struct.unpack_from('>I',description)[0]
+    width,height = struct.unpack_from('>HH',description,32)
+    data_size = struct.unpack_from('>I',description,44)[0]
+    if (size < 86 or description[4:8] != b'tiff' or
+        (width,height) != (frame[3]-frame[1],frame[2]-frame[0]) or
+        struct.unpack_from('>H',description,48)[0] != 1 or
+        78+size+data_size != len(record)):
+        raise ValueError('Unsupported QuickTime image description')
+    span(record,78,size)
+    image = span(record,78+size,data_size)
+    if image[:4] not in (b'MM\0*',b'II*\0'):
+        raise ValueError('Invalid embedded TIFF signature')
+    return image
+
+
 def resource_fork(blob):
     if len(blob) < 26 or struct.unpack_from('>II', blob) != (0x00051607, 0x00020000):
         raise ValueError('Invalid AppleDouble header')

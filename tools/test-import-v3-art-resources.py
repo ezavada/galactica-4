@@ -91,6 +91,42 @@ class ArtReferenceTests(unittest.TestCase):
                          [3000,3001,3002,3003])
         for n in (313,314):self.assertEqual(self.reference['layers'][str(n)]['layers'][1]['picture'],3012)
 
+    def test_shipped_outcome_image_pixels_and_provenance(self):
+        archive=ROOT.parent/'galactica-anno-dominari-3/release/gad-3.0.2-cdrom.zip'
+        magick=shutil.which('magick')
+        if not archive.exists() or not magick:self.skipTest('Original archive and ImageMagick required')
+        with zipfile.ZipFile(archive) as source:
+            inventory=art.resources(art.resource_fork(source.read(self.reference['appleDoubleEntry'])))
+        provenance=json.loads((ROOT/'data/events/outcome-art.json').read_text())
+        with tempfile.TemporaryDirectory() as directory:
+            for name,number in [('victory',4000),('defeat',4001)]:
+                payload=inventory[('PICT',number)];row=provenance[name]
+                self.assertEqual(row['pictSha256'],art.digest(payload))
+                self.assertEqual(row['archiveSha256'],self.reference['archiveSha256'])
+                source=Path(directory)/(name+('.tiff' if number==4000 else '.pict'))
+                data=art.outcome_tiff(payload) if number==4000 else b'\0'*512+payload
+                if number==4000:self.assertEqual(row['embeddedTiffSha256'],art.digest(data))
+                source.write_bytes(data);png=Path(directory)/(name+'.png')
+                subprocess.run([magick,str(source),str(png)],check=True,capture_output=True)
+                packaged=ROOT/'data/events'/(name+'.png')
+                self.assertEqual(row['sha256'],art.digest(packaged.read_bytes()))
+                result=subprocess.run([magick,'compare','-metric','AE',str(png),str(packaged),'null:'],capture_output=True,text=True)
+                self.assertEqual(result.returncode,0,result.stderr)
+                self.assertEqual(result.stderr.strip(),'0 (0)')
+
+    def test_outcome_tiff_rejects_corrupt_and_unsupported_records(self):
+        archive=ROOT.parent/'galactica-anno-dominari-3/release/gad-3.0.2-cdrom.zip'
+        if not archive.exists():self.skipTest('Original archive required')
+        with zipfile.ZipFile(archive) as source:
+            payload=art.resources(art.resource_fork(source.read(self.reference['appleDoubleEntry'])))[('PICT',4000)]
+        self.assertEqual(art.outcome_tiff(payload)[:4],b'MM\0*')
+        for bad in [b'',payload[:100],payload[:648000]]:
+            with self.assertRaises(ValueError):art.outcome_tiff(bad)
+        for offset,value in [(72,b'\0\0'),(80,b'\0'*4),(116,b'\0\0\0\1'),
+                             (142,b'\0'*4),(160,b'jpeg'),(200,b'\xff'*4),(258,b'BAD!')]:
+            bad=bytearray(payload);bad[offset:offset+len(value)]=value
+            with self.assertRaises(ValueError):art.outcome_tiff(bad)
+
     def test_appledouble_entry_selection_and_corruption(self):
         # Finder metadata precedes the resource fork; do not treat it as art.
         header = struct.pack('>II16sH',0x00051607,0x00020000,b'\0'*16,2)
