@@ -4060,6 +4060,16 @@ class Display {
         } finally {this.drawingSystemReport=previous;}
     }
 
+    getReportClassArt(event) {
+        if(!event || event.observer || event.recipient!==this.game.getCurrentHumanPlayer())return null;
+        const commissioning=event.commissioning,discovery=event.discovery;
+        if(commissioning && commissioning.owner===event.recipient)
+            return {kind:'stardock',layers:StardockArt.resolve(commissioning.shipType,commissioning.classIndex).layers};
+        if(discovery && discovery.owner===event.recipient)
+            return {kind:'lab',layers:LabArt.resolve(discovery.classIndex).layers};
+        return null;
+    }
+
     getReportLayout(overlay) {
         const screen=this.getScreenSize(),width=Math.min(600,screen.width-40);
         const event=this.game.eventLog.find(e=>e.id===overlay.eventId && this.game.isEventAccessible(e));
@@ -4069,15 +4079,20 @@ class Display {
         const next={label:I18n.getString(691,'Next'),action:{type:'reportPage',page:0}};
         const footer=this.layoutButtonRow([...controls,previous,next],{x:0,y:0,width:width-40,height:28,size:11,gap:8,minWidth:90});
         const lines=this.wrapEventMessage(event?event.message:'',width-40,13);
-        const height=Math.min(400,screen.height-40,Math.max(180,58+lines.length*18+14+20+footer.rows*36-8));
+        const classArt=overlay.manual?this.getReportClassArt(event):null;
+        const availableArtHeight=Math.max(0,screen.height-40-58-14-18-14-20-(footer.rows*36-8));
+        const artHeight=classArt?Math.min(240,(width-40)*240/408,availableArtHeight):0,artWidth=artHeight*408/240;
+        const artSpace=artHeight>0?artHeight+14:0;
+        const height=Math.min(classArt?600:400,screen.height-40,Math.max(180,58+artSpace+lines.length*18+14+20+footer.rows*36-8));
         const rect=this.fitWindowToScreen('report',{x:(screen.width-width)/2,y:(screen.height-height)/2,width,height});
-        const footerY=rect.y+height-20-(footer.rows*36-8),bodyY=rect.y+58;
+        const footerY=rect.y+height-20-(footer.rows*36-8),bodyY=rect.y+58+artSpace;
         const capacity=Math.max(1,Math.floor((footerY-14-bodyY)/18)),pages=Math.max(1,Math.ceil(lines.length/capacity));
         const page=this.clamp(overlay.page || 0,0,pages-1);
         if(page>0)controls.push({...previous,action:{type:'reportPage',page:page-1}});
         if(page<pages-1)controls.push({...next,action:{type:'reportPage',page:page+1}});
         const buttons=this.layoutButtonRow(controls,{x:rect.x+20,y:footerY,width:width-40,height:28,size:11,gap:8,minWidth:90}).regions;
-        return {rect,title:event?event.title:'',event,lines,bodyY,capacity,pages,page,visibleLines:lines.slice(page*capacity,(page+1)*capacity),buttons};
+        const illustration=classArt && artHeight>0?{...classArt,rect:new pdg.Rect(rect.x+(width-artWidth)/2,rect.y+58,rect.x+(width+artWidth)/2,rect.y+58+artHeight)}:null;
+        return {rect,title:event?event.title:'',event,lines,bodyY,capacity,pages,page,visibleLines:lines.slice(page*capacity,(page+1)*capacity),buttons,illustration};
     }
 
     drawReport(overlay) {
@@ -4085,6 +4100,11 @@ class Display {
         const previous=this.drawingSystemReport;this.drawingSystemReport=true;
         try{
             this.drawWindowPanel(r,layout.title);
+            if(layout.illustration){
+                if(!this.reportArtBackground)this.reportArtBackground=this.createAttributes({fillColor:new pdg.Color('black'),lineStyle:pdg.lineStyle_None});
+                this.port.drawRect(layout.illustration.rect,this.reportArtBackground);
+                this.drawClassArt(layout.illustration.layers,layout.illustration.rect);
+            }
             layout.visibleLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,layout.bodyY+index*18,'lightgray',13));
             layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,button.key || null,{size:11}));
         }finally{this.drawingSystemReport=previous;}

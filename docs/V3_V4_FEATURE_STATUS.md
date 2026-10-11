@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1731 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1734 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -237,14 +237,14 @@ The largest blockers to a complete game are:
 - Strategic uses of computer advantage beyond the v3 production-style modifiers.
 - Combat-odds estimation, retreat/avoidance, and late-game attack-pressure tuning beyond matching the v3 decision factors.
 
-## 8. Events, messages, comparison, help, and general UI (Functionality 82%, UI 76%)
+## 8. Events, messages, comparison, help, and general UI (Functionality 85%, UI 79%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
 | Main information/navigation panels | Context-sensitive system, ship, fleet, rendezvous, and list panels with command buttons. | 🟡 Partial | 🟡 Partial | v4 draws anchored context panels for systems, ships, fleets, and rendezvous points plus simple menu/event/comparison/fleet-roster windows. Permanent map buttons and popup arc buttons are clickable. The full v3 contextual button architecture, sortable fleet tables, and richer command workflows remain incomplete. The sortable system comparison is implemented. |
 | Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Remaining parity is concrete window/menu/list coverage, not an open-ended final visual redesign. |
 | Keyboard shortcuts and hover help | Buttons advertise shortcuts; balloon/flyby help describes controls. | ✅ Implemented | ✅ Implemented | Current controls advertise their working v4 shortcuts. Delayed explanatory help uses the same hit targets as clicks across inspectors, allocation sliders, command/list/course/report windows, startup options and local file dialogs. Text wraps by measured Unicode glyph width and stays within the viewport; covered controls behind modal windows, active drags, destination placement and illustrated overlays cannot show help. Clicks/keys clear it without intercepting input. Settings → Control help persists through native/browser preferences, reload and open-game switching. Eleven regressions and actual six-language browser comparisons cover timing, privacy/input isolation, allocation semantics, current action coverage, persistence, complete text and viewport bounds. New commands introduced with the remaining unported dialogs will need their own help alongside those implementations. |
-| Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | 🟡 Partial | 🟡 Partial | `[E]`/Events shows recipient-visible reports from the last completed turn in chronological order. Paged rows select and center live subjects, preserve locations for lost subjects and show reviewed state; complete Unicode narratives have separate paging. Combat, outcome, repair-completion and rendezvous fleet-creation rows offer View report/Enter replay; ordinary rows offer Go to/Enter navigation without advancing time. Supplemental combat summaries open private modal windows; source no-dialog capture, resistance and colonization events automatically present sound/map cues, retaining manual narrative replay. Busy turns retain every report, and smaller windows reduce row count. Broader v3 event generation, narrative variants and illustrated replay remain incomplete. |
+| Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | ✅ Implemented | ✅ Implemented | E/Events lists recipient-visible last-turn reports in chronological order, including retained held reports and unread offline messages. Paged rows select and center live subjects, preserve lost-subject locations and show reviewed state; narratives page independently without another turn. The complete source-reachable event inventory is implemented. View report replays full combat, colony, repair, rendezvous, message and outcome narratives. Owner commissioning/discovery now also restore their snapshot-based Stardock/Lab illustrations; observers never receive owner artwork. Actual six-language Events/button checks and before/after image comparisons pass, with both full suites at 1734 tests. Art pixel equivalence, attention sequencing and enemy movement playback remain their separate checklist rows. |
 | Attention queue | New ships, idle ships, colonies, messages, and other important events select themselves in sequence. | 🟡 Partial | 🟡 Partial | A per-turn subject queue covers human mobile ship/fleet call-ins, course completions, idle requests, completed mobile/satellite builds, complete ship/fleet repair notices, rendezvous fleet-creation notices and newly colonized/captured stars. Tab, menu and map Next item visit/center subjects; manual selection or report review handles linked requests. Colony reports focus the star while the colony ship remains available. UI End Turn confirms before discarding pending requests or presentations. Other v3 message types, enemy moves and notable event subjects remain to port. |
 | New technology lab presentation | Illustrated new-drive event. | ✅ Implemented | ✅ Implemented | Dimming lab overlay with blueprint art; Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
 | New hull/class Stardock presentation | Illustrated first-built satellite, scout/courier, colony or higher battleship class event. | ✅ Implemented | ✅ Implemented | Owner-only Stardock overlays use matching hull/class art and translated titles. Reports retain role explanations and focus the building system even after default-order departure. First-build flags, highest built class and queued presentation identities survive saves; repeated hulls and older classes are suppressed. Source-confirmed observer broadcasts now retain faction/class/technology/origin snapshots, follow current detection and Show enemy events, and replay as ordinary reports. Illustrated Stardock art stays owner-only. Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
@@ -5852,3 +5852,47 @@ row across seventeen rows: Functionality 82%, UI 76%. This closes narrative
 content and its review surfaces, not broader event ordering, enemy movement
 replay, original-art equality, connected-system audio or packaged-runtime work.
 The overall parity and Map Generation goal remains open.
+
+
+## Illustrated owner Events replay audit
+
+Shipped `CMessage.cpp:29–35` calls the same `DoMessage()` when an event is
+double-clicked and during automatic playback. Evnt128 assigns PPob4002/4003
+to commissioning/discovery owners, with no PPob for their observers.
+`CShowMessageAttach::PrepareDialog` (lines 123–137) installs the retained
+Layr resource and message text. V4 previously replayed owner events as plain
+text even though their automatic presentations had the assigned illustration.
+
+Manual Events review now draws the matching retained Stardock or Lab layer
+composition above the full narrative. Art comes from immutable report hull/class
+metadata, so later ship technology/name changes or saves do not substitute a
+new picture. The source 408×240 aspect is retained, with smaller fitting art
+when necessary to reserve readable text and controls. The white/gold modal
+chrome, complete paged text and ordinary Go to/Continue actions remain.
+Observers retain text-only reports; even omniscient viewing does not grant
+private owner artwork. Existing translations are reused in all six languages.
+
+Three native regressions exercise actual commissioning, save/restore and
+post-creation changes; owner versus observer discovery/class reports; and
+complete translated text with nonoverlapping art/body/footer at 800×600,
+640×480 and 320×240. Both full muted native suites pass 1734 tests with zero
+failures (`/private/tmp/galactica-report-illustrations-{public,devel}-unit.log`).
+
+`tools/test-web-report-illustrations.cjs` selects actual Events rows and presses
+View report for owners and observers of both event families. All twelve
+before/after runs pass across en/de/es/fr/ja/ru. The 72 matched captures in
+`/private/tmp/galactica-report-illustrations/{before,after}/<language>` contain
+12 changed owner narrative views and 60 pixel-identical observer, event-list
+and automatic-art views. English before/after views and all twelve localized
+owner report views were visually inspected: the full text remains readable,
+art retains its proportions and the controls stay separate. Comparison data
+is `/private/tmp/galactica-report-illustrations-comparison.json`, logs use
+`/private/tmp/galactica-report-illustrations-{before,after}-<language>.log`,
+and the independent app is `/private/tmp/galactica-report-illustrations-after-app`.
+
+Together with the complete source narrative/emitter inventory and the earlier
+report paging/privacy/live/lost-focus/browser audits, this closes the Events
+from last turn row. Section 8 estimates are recomputed across seventeen rows:
+Functionality 85%, UI 79%. Original PICT decoding/equality, broad attention
+sequencing, enemy replay and remaining native/platform work remain separate;
+this change does not claim completion of the full parity or map-port goal.

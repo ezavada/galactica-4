@@ -494,3 +494,16 @@ resource digest, verified directly against the peer checkout. All eight import
 checks and both full 1731-test native suites pass. This completes the checklist's
 event-text row while preserving the separate attention, playback, sound, art
 and platform audits described above.
+
+
+## Owner illustration replay
+
+Manual Events review now restores owner commissioning/discovery art from the
+retained hull/class snapshot using the same source-backed Lab/Stardock resolvers
+as automatic presentation. This follows the shared v3 DoMessage/PPob/Layr path.
+The illustration sits above complete paged localized text and remains private
+to the report owner; observer reports stay text-only. Native save/layout/privacy
+regressions and all six real browser review flows pass, with both full suites
+at 1734 tests. The 72 before/after screenshot comparisons, twelve localized
+owner views and source citations are recorded in the illustrated Events replay
+audit in `docs/V3_V4_FEATURE_STATUS.md`.

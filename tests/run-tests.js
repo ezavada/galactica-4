@@ -223,6 +223,7 @@ runSoundAssetTests();
 runSoundTests();
 runContainmentNavigationTests();
 runCommissioningObserverTests();
+    require('./report-illustrations.test.js')();
 runDiscoveryObserverTests();
 runTutorialLessonsTests();
 runTutorialPanelTests();
