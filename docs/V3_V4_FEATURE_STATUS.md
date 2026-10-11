@@ -194,11 +194,11 @@ The largest blockers to a complete game are:
 - Automatic unique fleet names for computer-created fleets; v3 source notes this as a TODO rather than shipped behavior.
 - Higher-level task-force or staging automation beyond v3 rendezvous points.
 
-## 6. Combat, occupation, defense, and fog of war (Functionality 100%, UI 85%)
+## 6. Combat, occupation, defense, and fog of war (Functionality 100%, UI 90%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
-| Ship/fleet combat on interception | Enemy forces exchange attacks; defeated units are removed and winner continues. | ✅ Implemented | 🟡 Partial | `CombatSystem` is instantiated by `Game`, enemy ship/star/fleet arrivals invoke it, destroyed ships are removed from containers/fleets, empty fleets are cleaned up, and battles record private winner/loser/inconclusive reports with battle-time own/enemy ship losses and survivor/remembered-location navigation. V3 fleet loss results use ordinary recipient-relative event messages; a separate tabular fleet-result window was not found in the audited source. Local participant messages now open automatically in neutral modal windows and replay through Events → View report/Enter. Acknowledgment and Go to preserve the turn; complete Unicode paging, private access, pending saves and quiet autoplay are covered. Observer/other narrative variants remain Section 8 work. |
+| Ship/fleet combat on interception | Enemy forces exchange attacks; defeated units are removed and winner continues. | ✅ Implemented | ✅ Implemented | Runtime arrival combat removes defeated ships/empty fleets and preserves surviving forces. Shipped v3 presents private owner/opponent destruction notices; no separate fleet-result table was found, and the compiled FinalizeLosses counter prevents the apparent FleetDamaged broadcast from firing in ordinary combat. V4 plays the original destruction art/cadence and recipient cues automatically, then retains localized winner/loser narratives for Events replay. Supplemental participant casualty summaries preserve battle-time counts/names, automatic modal presentation, private access and manual replay. Actual six-language ship/fleet arrival checks verify both local perspectives, casualty counts, real muted cue starts, paginated Events replay, Continue/Go to and survivor selection without advancing the turn. Native specs additionally cover unresolved encounters, saves, suppression, reserve/rollover rules and removal bookkeeping. Observer reports for system battles remain the separate invasion/capture audits. |
 | Combat reserves | Couriers and colony ships stay in reserve until combat ships are gone. | ✅ Implemented | ➖ N/A | Reserve sorting is used by the runtime combat path. |
 | Multi-target and rollover damage | Higher-tech attackers hit multiple targets and excess damage rolls over. | ✅ Implemented | ➖ N/A | The resolver uses tech-based target counts and rollover damage during runtime combat. |
 | Defended-system invasion | Defeat stationed ships, then fixed planetary defenses; production/population is damaged. | ✅ Implemented | 🟡 Partial | Enemy star arrivals run space combat, ground combat against population, v3-style star attack/defense and population damage, and colony capture when a colony survives. Both involved owners receive distinct last-resistance and capture narratives, automatically presented and replayable through Events. Reports retain the battle-time system/faction names and old owner, survive saves, and stay available on terminal turns. Participant casualty/resistance reports now play an eight-frame destruction burst before the complete message. Private ship/fleet destruction notices follow v3 suppression rules and play automatically without another alert; their full narratives replay through Events. Known/all-visible captures also have an observer narrative with optional automatic playback through Settings → Show enemy events; resistance stays private. Other observer variants and sound remain separate event/presentation work. |
@@ -5346,3 +5346,49 @@ Section 6's current rough UI estimate is 85%: seven implemented UI rows and
 three Partial combat/report rows out of ten counted rows. Historical estimates
 above describe their earlier audits. The other combat presentations and the
 remaining parity and Map Generation checklists still require completion audits.
+
+### Ship/fleet interception presentation audit (2026-10-11)
+
+The interception UI row is now implemented. `CShip::Arriving` resolves enemy
+arrivals as combat; `AGalacticThingy::DestroyedInCombat` and compiled
+`UShipUtils.cpp::FinalizeLosses` produce the private ship/fleet destruction
+notices. `CDestructionMsg::DoMessage` supplies the original art and sound
+presentation verified in the preceding audit. No separate fleet-result table
+was found in `CFleet.cpp`; ordinary battle messages use the shared event path.
+The apparent FleetDamaged observer broadcast in `CShip.cpp` requires a loss
+counter greater than one, but the compiled helper initializes it to zero and
+subtracts casualties. That dormant resource definition is not a confirmed
+missing runtime notice; detailed manifest/source evidence remains in
+`docs/reference/EVENT_REPORTS.md`. PlanetDamaged is a separate system-battle
+requirement and is not closed by this interception audit.
+
+The actual-input browser regression now also verifies the supplemental V4
+participant summary for all four ship/fleet and local winner/loser combinations:
+recipient privacy, result and own/enemy casualty counts, resolved translated
+text, real muted 1007/1008 cue starts, automatic modal acknowledgment, paginated
+Events selection/replay, retained Unicode force names and actual Go to clicks.
+Go to selects the surviving local force where available, and all acknowledgment
+and replay actions preserve the turn. First draws and delayed cues are awaited
+before advancing the controlled clock. The existing destruction placeholder
+assertion was also corrected to preserve regex escapes through the evaluated
+JavaScript string.
+
+Final browser runs pass in all six languages, with 20 captures per language
+under `/private/tmp/galactica-interception-final/<language>` and corresponding
+`/private/tmp/galactica-interception-final-<language>.log` files. Winner/loser
+summary screenshots were inspected in every language; text and controls fit the
+shared modal styling. This item changes only verification and documentation;
+the packaged product source matches the prior audit, with no new product
+strings or rendering change. Both full native suites pass 1725 tests and zero
+failures (`/private/tmp/galactica-interception-audit-public-unit.log` and
+`/private/tmp/galactica-interception-audit-devel-unit.log`). Their combat specs
+include private recipient-relative fleet losses, unresolved unarmed encounters,
+saved immutable figures, actual ship interception, losing-arrival removal and
+fleet destruction attribution. The browser fixture explicitly increments the
+post-movement turn, as documented in the destruction audit; it does not claim
+to replace end-turn driver coverage.
+
+Section 6's current rough UI estimate is 90%: eight implemented UI rows and two
+Partial system-battle rows out of ten counted rows. Defended-system invasion
+and capture still require broader presentation audits, as do the remaining
+parity and Map Generation requirements elsewhere in these checklists.

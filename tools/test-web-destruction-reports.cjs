@@ -34,16 +34,24 @@ const renderClock=async expression=>{const value=await evaluate('visualClock='+e
 for(const group of [false,true])for(const winner of [1,2]){
  const scene=(group?'fleet':'ship')+'-'+(winner===1?'winner':'loser');
  await evaluate(`g.clearEventPresentations();g.uiWindow=null;g.setSelectedObject(null);g.turn=2;
- window.winner=${winner};window.loser=winner===1?2:1;window.home=g.stars.find(s=>s.owner===winner);window.other=g.stars.find(s=>s.owner===loser);home.techLevel=20;other.techLevel=1;
+ window.cueStart=cues.length;window.winner=${winner};window.loser=winner===1?2:1;window.home=g.stars.find(s=>s.owner===winner);window.other=g.stars.find(s=>s.owner===loser);home.techLevel=20;other.techLevel=1;
  window.strong=g.factory.createShip(home.x+100000,home.y+100000,'battleship',home,true);window.weak=g.factory.createShip(strong.x+1000,strong.y,'scout',other,true);
  strong.name='Hunter 星';weak.name='Victim Д';strong.star=null;weak.star=null;window.attacker=strong;window.target=weak;
  if(${group}){attacker=g.factory.createFleet(strong.x,strong.y,winner,'Hunter fleet');attacker.addShip(strong);target=g.factory.createFleet(weak.x,weak.y,loser,'Victim fleet 星');target.addShip(weak);attacker.star=null;target.star=null;}
  d.camera.centerOn(target.x,target.y);d.updateMapRenderingCalculations();attacker.setDestination(target);pdg.srand(42);attacker.move();g.turn=3;
- window.notices=g.eventLog.filter(e=>e.destruction && e.subject===target);window.local=notices.find(e=>e.recipient===1);window.cueStart=cues.length;void 0`);
+ window.notices=g.eventLog.filter(e=>e.destruction && e.subject===target);window.local=notices.find(e=>e.recipient===1);window.summaries=g.eventLog.filter(e=>e.combat && e.subject===(winner===1?attacker:target));window.summary=summaries.find(e=>e.recipient===1);window.foreignSummary=g.eventLog.find(e=>e.combat && e.subject===(winner===1?target:attacker));void 0`);
  await check('notices.length===2 && local && !g.allShips.includes(weak) && (!target.ships || !g.allFleets.includes(target))','Actual battle did not remove destroyed ship/fleet and emit private perspectives');
  await check('notices.every(e=>[winner,loser].includes(e.recipient)) && !g.isEventAccessible(notices.find(e=>e.recipient!==1)) && !g.replayReport(notices.find(e=>e.recipient!==1))','Other-player destruction narrative exposed');
  // The supplemental participant battle summary precedes the source notice.
- await advanceClock(1000);await capture(scene+'-battle-summary');await key('Escape');
+ // Allow its first real draw to start the effect before advancing time.
+ for(let i=0;i<120 && !await evaluate('g.overlay && d.destructionStarts && Number.isFinite(d.destructionStarts.get(g.overlay))');i++)await delay(25);
+ await renderClock('visualClock+1000');
+ for(let i=0;i<3 && await evaluate('visual.getSound().isPending(g.overlay)');i++)await renderClock('visualClock+1000');
+ await check(`summary && g.overlay && g.overlay.eventId===summary.id && !g.overlay.animationOnly && summary.combat.result==='${winner===1?'won':'lost'}' && summary.combat.ownShipsLost===${winner===1?0:1} && summary.combat.enemyShipsLost===${winner===1?1:0}`,'Participant-relative summary or casualty counts missing');
+ await check('foreignSummary && foreignSummary.recipient!==1 && !g.isEventAccessible(foreignSummary) && !g.replayReport(foreignSummary)','Foreign battle summary exposed');
+ await check(`(()=>{if(!cues.slice(cueStart).includes('sounds/${winner===1?1007:1008}.wav'))throw Error('Missing summary cue '+JSON.stringify({winner,clock:visualClock,start:d.destructionStarts.get(g.overlay),cues:cues.slice(cueStart),pending:visual.getSound().isPending(g.overlay)}));return true;})()`,'Summary recipient cue missing');
+ await check('!/\\{\\d+\\}/.test(summary.message)','Unresolved summary localization');
+ await capture(scene+'-battle-summary');await key('Escape');
  await check('g.overlay && g.overlay.eventId===local.id && g.overlay.animationOnly','Automatic source destruction notice missing');
  await evaluate('window.notice=g.overlay;window.started=d.destructionStarts.get(notice);window.effect=visual.getDestructionTiming();void 0');
  await check('effect.frameSize===26 && effect.durations.length===8 && effect.durations.every((ms,i)=>Math.abs(ms-[2,3,4,5,6,5,4,3][i]*1000/60)<.001)', 'Source frame size and tick cadence');
@@ -65,8 +73,18 @@ for(const group of [false,true])for(const winner of [1,2]){
  await click('d.getEventActionRegions().find(r=>r.action.type==="replayReport").rect');
  await check('g.overlay && g.overlay.manual && !g.overlay.animationOnly && g.overlay.eventId===local.id','Events replay did not open full destruction narrative');
  await advanceClock(1000);await capture(scene+'-manual-report');
- await check('d.getReportLayout(g.overlay).lines.join(" ").includes(local.destruction.name) && !/\{\d+\}/.test(local.message)','Localized narrative missing recorded name or contains placeholders');
+ await check('d.getReportLayout(g.overlay).lines.join(" ").includes(local.destruction.name) && !/\\{\\d+\\}/.test(local.message)','Localized narrative missing recorded name or contains placeholders');
  await key('Escape');await check('!g.overlay && g.turn===3','Manual acknowledgment advanced the turn');
+ // Reopen the participant summary through actual Events controls, then Go to.
+ await click('d.getMapButtonRegions().find(r=>r.action.window==="events").rect');
+ for(let page=0;page<20 && !await evaluate('d.getEventActionRegions().some(r=>r.action.type==="selectEvent" && r.action.event===summary)');page++)await click('d.getEventActionRegions().find(r=>r.action.type==="eventPage" && r.action.page<d.getEventWindowLayout().page).rect');
+ await click('d.getEventActionRegions().find(r=>r.action.type==="selectEvent" && r.action.event===summary).rect');
+ await click('d.getEventActionRegions().find(r=>r.action.type==="replayReport").rect');
+ await check('g.overlay && g.overlay.manual && g.overlay.eventId===summary.id','Manual participant summary replay missing');
+ await advanceClock(1000);await capture(scene+'-summary-replay');
+ await check('d.getReportLayout(g.overlay).lines.join(" ").includes(summary.combat.forceName)','Retained battle force name missing');
+ await click('d.getReportLayout(g.overlay).buttons.find(r=>r.action.type==="reportGoTo").rect');
+ await check('!g.overlay && summary.handled && g.turn===3 && (winner!==1 || g.selectedObject===attacker)','Go to lost/surviving force changed the turn or missed survivor selection');
 }
-console.log('PASS actual ship/fleet destruction, both local perspectives, eight frames, real muted cues, automatic completion and Events replay '+lang);
+console.log('PASS interception summaries and actual ship/fleet destruction, both local perspectives, eight frames, real muted cues, automatic completion and Events replay '+lang);
 })().catch(async e=>{console.error(e);console.error('Failed scene '+currentScene);process.exitCode=1;}).finally(()=>{chrome.kill();server.close();setTimeout(()=>{fs.rmSync(profile,{recursive:true,force:true});process.exit(process.exitCode||0);},500);});
