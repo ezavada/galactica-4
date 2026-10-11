@@ -428,3 +428,73 @@ No PDG code or public-engine checkout changed. Window chrome remains Partial
 pending remote-administration and remaining busy/error variants, plus the
 separate compact gameplay minimum-viewport audit. Overall parity and Map
 Generation work remains active.
+
+
+### Remote administration chrome and title drags across refreshes
+
+V3 `Classes/GalacticaClient.cpp:1248–1383` exposes settings, player management
+and End Turn commands to administrators while disabling ordinary player posting
+and owned-system/fleet commands. Its initial-state commands are restricted to
+turn 1. V4 reuses the host dialogs through its separate administrator transport;
+the remote adapter owns no listener and exposes no local create/retry/join or
+administrator-password editing controls.
+
+The actual-input audit found that replacing the network map model ended an
+independent application-window title drag. Routine refreshes now preserve those
+drags while clearing old-model map scrolling, sliders, gameplay-window tracking
+and cursor state. Explicit window/session changes still release application
+tracking, and new-turn notice tracking retains its release behavior. The original
+build fails a forced-refresh held-title regression; the fixed build passes.
+The fix changes no captions or resources, and all existing UI remains localized
+in English, German, Spanish, French, Japanese and Russian.
+
+Both full native suites pass 1,760 tests. The six-language native administrator
+integration passes actual authorization, separate player/admin roles, durable
+controls and revision guards, failed-save rollback/retry, revocation, logout,
+read-only full-map observation and persisted reopening. The existing new-turn
+browser check also passes timing, input isolation and held-drag expiry after
+this cleanup change.
+
+All 24 muted browser runs pass before/after at 800×600 and 640×340 using real
+native HTTP hosts and administrator login. Each checks observer ownership,
+role-only controls, pause/resume, settings/player/admission/initial-state
+modal bounds, persisted dragging and outside-click clunks; settings cancellation,
+admission drafts, actual settings/admission saves, End Turn, disabled mutation
+controls after password revocation, DOM blur-handler release and disconnect
+without stopping the host are also covered. Each title drag forces delivery
+through the application's own network poll. Baseline runs assert its original
+interruption and re-press the title for final placement comparison; fixed runs
+require the uninterrupted drag.
+
+Fixture verification is explicit: baseline re-pressing originally reused a stale
+input counter, so it now waits for the actual final mouse release. DOM/PDG traces
+also showed genuine page blur and the normal mouse-release path interrupting
+unfocused headless runs. CDP focus emulation keeps the refresh regression active;
+a separate DOM blur event verifies release routing. Headless tab activation did
+not reliably generate a blur event. This is not physical OS/window activation
+coverage; that remains in the existing platform/focus audit. Frame/input deadlines
+were not increased, and the failed diagnostic artifacts remain available.
+
+Across 216 screenshot pairs, 126 are pixel-identical and 81 differ only in
+isolated temporary host-address text. Nine ordinary Spanish scenes have a small
+disabled-text intensity variation with identical control states and geometry.
+A repeat of the unchanged fixed build passes and matches all baseline scenes
+exactly after masking temporary addresses; the original differing artifacts
+are retained rather than replaced. Their rendering cause is not established.
+All six ordinary/short remote control layouts, short admission/initial-state
+editors and revoked-authentication layouts, plus the Spanish before/after
+player/authentication/blur scenes, were visually inspected. Captions and controls
+remain readable and inside the gold-bordered neutral windows.
+
+Evidence: `/private/tmp/galactica-remote-admin-current-final-{pdg,pdg-devel}-unit.log`,
+`galactica-remote-admin-current-native.log`,
+`galactica-remote-admin-current-regression.log`,
+`galactica-remote-admin-current-turn-notice.log`,
+`galactica-remote-admin-current-verified-{340,600}-{before,after}-<language>.log`,
+`galactica-remote-admin-current-verified-comparison.json`,
+`galactica-remote-admin-current-repeat-{es.log,comparison.json}`, and the
+`/private/tmp/galactica-remote-admin-current/{verified,repeat,trace,dom}` trees
+and language/comparison montages. No PDG source or public-engine checkout changed.
+Window chrome remains Partial pending remaining busy/error variants and the
+compact gameplay minimum-viewport audit. Overall parity and Map Generation work
+remains active.

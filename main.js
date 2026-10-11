@@ -147,7 +147,7 @@ function replaceNetworkModel(session,model){
         focused:require('./src/js/network-turn-attention.js').applicationFocused()});
     if(session.game===model)return;
     attachGameServices(model);const previous=session.display,nextDisplay=new Display(model);session.game=model;session.display=nextDisplay;
-    if(sessions.active===session && !sessions.transient){if(!sessions.starting)clearSessionInput();game=model;display=nextDisplay;autoplayController=null;}
+    if(sessions.active===session && !sessions.transient){if(!sessions.starting)clearSessionInput(true);game=model;display=nextDisplay;autoplayController=null;}
     previous.dispose();
 }
 function refreshNetworkSessions(){
@@ -721,8 +721,10 @@ function handleStartupKey(key) {
     }
 }
 
-function clearSessionInput() {
-    windowPlacement.end();
+// Application windows are independent of a refreshed map model. Explicit window
+// and session changes still release their title drags; turn notices release on expiry.
+function clearSessionInput(preserveWindowDrag=false) {
+    if(!preserveWindowDrag || windowPlacement.drag?.name==='networkTurnNotice')windowPlacement.end();
     if(display && display.mapCursor)display.mapCursor.set('default');
     isDragging=false;isLeftClickDragging=false;hasDragged=false;
     if(game){game.endUIWindowDrag();game.endMapScrollDrag();game.endUISliderDrag();}

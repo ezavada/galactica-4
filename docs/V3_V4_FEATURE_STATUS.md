@@ -242,7 +242,7 @@ The largest blockers to a complete game are:
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
 | Main information/navigation panels | Context-sensitive system, ship, fleet, rendezvous, and list panels with command buttons. | ✅ Implemented | ✅ Implemented | System production/allocation/destination controls, owned ship/fleet orders and member operations, rendezvous controls, paged system/member lists and the eight-column sortable fleet roster cover the shipped contextual workflows. Actual-input browser checks pass in all six languages for production, equalizing, member exchange, fleet navigation/sorting, rendezvous and read-only foreign inspectors, including save/restore. See the completion audit below. The deliberately modern radial architecture, removed pause/position controls and separate window chrome audit remain explicit. |
-| Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Gameplay title dragging, modal isolation, contextual lists and production/confirmation dismissal have six-language actual-input coverage. Startup/text-entry and document/manual decisions now have six-language actual-input coverage, including narrow dialog bounds, real Save As and Revert. Chat composer/recipient selection also has real-host input and drag coverage at ordinary and short heights. Join address focus, title dragging and real admission also have six-language full/short browser coverage. Join labels reserve measured columns and move with their inputs; all credential modes and saved-host entry have six-language layout coverage. Host setup/status/player/admission/initial-state/password surfaces also have native-backed six-language title/control coverage. Normal Open Saved/conversion/settings/rename/population/ship/admission/End Turn confirmation dialogs now also have actual-input cancellation, drag, modal and native workflow coverage. Admission Add code displays its Enter hint; a one-off save-before-stop failure remains under investigation. Native-backed LAN list paging/refresh/drag/admission and empty/unsupported states also have six-language actual-input coverage. Complete public Join information, compact paging, live metadata refresh and malformed-response recovery also have actual-input coverage at 800×600, 640×340 and 320×340. Foreground new-turn notices now also have native-backed six-language arrival, exact timing, input isolation, constrained persisted dragging, mute and held-drag expiry coverage at all three viewport sizes; compact captions preserve complete words. Remaining chrome work includes remote-administration and busy/error variants and a separate compact gameplay minimum-viewport audit. |
+| Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Gameplay title dragging, modal isolation, contextual lists and production/confirmation dismissal have six-language actual-input coverage. Startup/text-entry and document/manual decisions now have six-language actual-input coverage, including narrow dialog bounds, real Save As and Revert. Chat composer/recipient selection also has real-host input and drag coverage at ordinary and short heights. Join address focus, title dragging and real admission also have six-language full/short browser coverage. Join labels reserve measured columns and move with their inputs; all credential modes and saved-host entry have six-language layout coverage. Host setup/status/player/admission/initial-state/password surfaces also have native-backed six-language title/control coverage. Normal Open Saved/conversion/settings/rename/population/ship/admission/End Turn confirmation dialogs now also have actual-input cancellation, drag, modal and native workflow coverage. Admission Add code displays its Enter hint; a one-off save-before-stop failure remains under investigation. Native-backed LAN list paging/refresh/drag/admission and empty/unsupported states also have six-language actual-input coverage. Complete public Join information, compact paging, live metadata refresh and malformed-response recovery also have actual-input coverage at 800×600, 640×340 and 320×340. Foreground new-turn notices now also have native-backed six-language arrival, exact timing, input isolation, constrained persisted dragging, mute and held-drag expiry coverage at all three viewport sizes; compact captions preserve complete words. Remote-administration controls and nested dialogs also have native-backed six-language ordinary/short viewport coverage, including actual saves, revocation and disconnect. Independent application-window title drags now survive a network map refresh; forced-refresh input checks preserve bounded persisted positions. Remaining chrome work includes busy/error variants and a separate compact gameplay minimum-viewport audit. |
 | Keyboard shortcuts and hover help | Buttons advertise shortcuts; balloon/flyby help describes controls. | ✅ Implemented | ✅ Implemented | Current controls advertise their working v4 shortcuts. Delayed explanatory help uses the same hit targets as clicks across inspectors, allocation sliders, command/list/course/report windows, startup options and local file dialogs. Text wraps by measured Unicode glyph width and stays within the viewport; covered controls behind modal windows, active drags, destination placement and illustrated overlays cannot show help. Clicks/keys clear it without intercepting input. Settings → Control help persists through native/browser preferences, reload and open-game switching. Eleven regressions and actual six-language browser comparisons cover timing, privacy/input isolation, allocation semantics, current action coverage, persistence, complete text and viewport bounds. New commands introduced with the remaining unported dialogs will need their own help alongside those implementations. |
 | Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | ✅ Implemented | ✅ Implemented | E/Events lists recipient-visible last-turn reports in chronological order, including retained held reports and unread offline messages. Paged rows select and center live subjects, preserve lost-subject locations and show reviewed state; narratives page independently without another turn. The complete source-reachable event inventory is implemented. View report replays full combat, colony, repair, rendezvous, message and outcome narratives. Owner commissioning/discovery now also restore their snapshot-based Stardock/Lab illustrations; observers never receive owner artwork. Actual six-language Events/button checks and before/after image comparisons pass, with both full suites at 1734 tests. Art pixel equivalence, attention sequencing and enemy movement playback remain their separate checklist rows. |
 | Attention queue | Manual requests select/focus subjects sequentially; automatic messages have a separate presentation/review path. | ✅ Implemented | ✅ Implemented | Owner call-ins, ordinary mobile builds, rendezvous fleets, repairs and colony instructions use Next. Automatic notices and foreign manual observer notices are excluded from Next counts, Tab and deferred post-turn goto, matching ShowMessages (GalacticaDoc.cp:1561–1570). Previously saved foreign manual queue entries are filtered too. Unread automatic entries retain End Turn protection and explicit Review. Detected observer narratives remain available through explicit Events review. Both full suites pass 1740 tests; actual arrival, Next, explicit review and save checks pass in all six languages. Enemy playback and native/art/audio work remain separate rows. |
@@ -6844,3 +6844,73 @@ No PDG code or public-engine checkout changed. Window chrome remains Partial
 pending remote-administration and remaining busy/error variants, plus the
 separate compact gameplay minimum-viewport audit. Overall parity and Map
 Generation work remains active.
+
+
+### Remote administration chrome and title drags across refreshes
+
+V3 `Classes/GalacticaClient.cpp:1248–1383` exposes settings, player management
+and End Turn commands to administrators while disabling ordinary player posting
+and owned-system/fleet commands. Its initial-state commands are restricted to
+turn 1. V4 reuses the host dialogs through its separate administrator transport;
+the remote adapter owns no listener and exposes no local create/retry/join or
+administrator-password editing controls.
+
+The actual-input audit found that replacing the network map model ended an
+independent application-window title drag. Routine refreshes now preserve those
+drags while clearing old-model map scrolling, sliders, gameplay-window tracking
+and cursor state. Explicit window/session changes still release application
+tracking, and new-turn notice tracking retains its release behavior. The original
+build fails a forced-refresh held-title regression; the fixed build passes.
+The fix changes no captions or resources, and all existing UI remains localized
+in English, German, Spanish, French, Japanese and Russian.
+
+Both full native suites pass 1,760 tests. The six-language native administrator
+integration passes actual authorization, separate player/admin roles, durable
+controls and revision guards, failed-save rollback/retry, revocation, logout,
+read-only full-map observation and persisted reopening. The existing new-turn
+browser check also passes timing, input isolation and held-drag expiry after
+this cleanup change.
+
+All 24 muted browser runs pass before/after at 800×600 and 640×340 using real
+native HTTP hosts and administrator login. Each checks observer ownership,
+role-only controls, pause/resume, settings/player/admission/initial-state
+modal bounds, persisted dragging and outside-click clunks; settings cancellation,
+admission drafts, actual settings/admission saves, End Turn, disabled mutation
+controls after password revocation, DOM blur-handler release and disconnect
+without stopping the host are also covered. Each title drag forces delivery
+through the application's own network poll. Baseline runs assert its original
+interruption and re-press the title for final placement comparison; fixed runs
+require the uninterrupted drag.
+
+Fixture verification is explicit: baseline re-pressing originally reused a stale
+input counter, so it now waits for the actual final mouse release. DOM/PDG traces
+also showed genuine page blur and the normal mouse-release path interrupting
+unfocused headless runs. CDP focus emulation keeps the refresh regression active;
+a separate DOM blur event verifies release routing. Headless tab activation did
+not reliably generate a blur event. This is not physical OS/window activation
+coverage; that remains in the existing platform/focus audit. Frame/input deadlines
+were not increased, and the failed diagnostic artifacts remain available.
+
+Across 216 screenshot pairs, 126 are pixel-identical and 81 differ only in
+isolated temporary host-address text. Nine ordinary Spanish scenes have a small
+disabled-text intensity variation with identical control states and geometry.
+A repeat of the unchanged fixed build passes and matches all baseline scenes
+exactly after masking temporary addresses; the original differing artifacts
+are retained rather than replaced. Their rendering cause is not established.
+All six ordinary/short remote control layouts, short admission/initial-state
+editors and revoked-authentication layouts, plus the Spanish before/after
+player/authentication/blur scenes, were visually inspected. Captions and controls
+remain readable and inside the gold-bordered neutral windows.
+
+Evidence: `/private/tmp/galactica-remote-admin-current-final-{pdg,pdg-devel}-unit.log`,
+`galactica-remote-admin-current-native.log`,
+`galactica-remote-admin-current-regression.log`,
+`galactica-remote-admin-current-turn-notice.log`,
+`galactica-remote-admin-current-verified-{340,600}-{before,after}-<language>.log`,
+`galactica-remote-admin-current-verified-comparison.json`,
+`galactica-remote-admin-current-repeat-{es.log,comparison.json}`, and the
+`/private/tmp/galactica-remote-admin-current/{verified,repeat,trace,dom}` trees
+and language/comparison montages. No PDG source or public-engine checkout changed.
+Window chrome remains Partial pending remaining busy/error variants and the
+compact gameplay minimum-viewport audit. Overall parity and Map Generation work
+remains active.
