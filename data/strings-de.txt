@@ -203,14 +203,14 @@
 634	Neue Schiffsklasse in Dienst gestellt: {0}
 635	Spieler {0} kolonisierte {1}
 636	Spieler {0} eroberte {1}
-637	{0} wurde besiegt
+637	{0}: Niederlage
 638	Bemerkenswertes Ereignis: {0} {1} {2} {3} {4} {5}
 639	Ziel
 640	Kampf
 641	neues Ziel
 642	KI-Fähigkeiten-Autoplay
 643	KI-Autoplay mit Seed {0} und Verzögerung {1} ms gestartet
-644	{0} gewinnt in Runde {1}
+644	{0}: Sieg in Runde {1}
 645	KI-Autoplay nach {0} Runden ohne Sieger gestoppt
 646	Sieger:
 647	alle Fähigkeiten

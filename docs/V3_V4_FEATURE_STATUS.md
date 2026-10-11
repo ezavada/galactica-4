@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1690 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1691 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4529,3 +4529,32 @@ views and compact paging were visually reviewed. The earlier failed compact
 runs exposed and drove the footer fix; only final passing runs establish this
 validation. Both packaged art files were also compared byte-for-byte with the
 retained final source images before committing.
+
+
+### Name-safe localized outcome summaries (2026-10-11)
+
+The outcome screenshots exposed verb agreement and grammatical-gender defects
+when the current-player name is the localized “You”: English displayed “You
+wins”/“You has been defeated”; several translations similarly combined a
+pronoun with third-person or gendered wording. Shipped STR#500/30–33 uses
+separate local “You” and named-observer sentences. V4's shorter summary labels
+now avoid a name-dependent verb: `{name}: Victory on turn {turn}` and
+`{name}: Defeat`, translated idiomatically in en/de/es/fr/ja/ru. All player
+names remain literal, including Unicode and replacement/template punctuation.
+Actual generated event messages and the outcome view use the same localized
+wording; complete v3-style narratives, recipient behavior, art and paging remain.
+
+Both rebuilt native runtimes pass **1,691 tests**. The new regression exercises
+actual victory/defeat event generation and rendered summary layouts for every
+language with both the localized current-player name and a literal Unicode
+name containing `$&` and `{7}`. Before/after browser validation reuses the
+outcome-art runner and its actual Events controls and compact paging checks.
+Artifacts/logs are under `/private/tmp/galactica-outcome-summary` and
+`/private/tmp/galactica-outcome-summary-{before,after}-<language>.log`.
+The broad event and Map Generation checklists remain active.
+
+All twelve final browser runs pass. Of 42 paired screenshots, six automatic
+map views are identical and the 36 views containing outcome summaries change
+as expected. Updated victory summaries were visually reviewed in all six
+languages, along with the English before/after and compact defeat view. Actual
+compact paging checks still pass for all translated narratives.

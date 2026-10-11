@@ -202,14 +202,14 @@
 634	New ship class commissioned: {0}
 635	Player {0} colonized {1}
 636	Player {0} captured {1}
-637	{0} has been defeated
+637	{0}: Defeat
 638	Noteworthy Event: {0} {1} {2} {3} {4} {5}
 639	target
 640	combat
 641	new destination
 642	AI Skill Autoplay
 643	AI autoplay started with seed {0} and {1} ms delay
-644	{0} wins on turn {1}
+644	{0}: Victory on turn {1}
 645	AI autoplay stopped after {0} turns with no winner
 646	Winner:
 647	all skills

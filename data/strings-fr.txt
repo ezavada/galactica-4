@@ -203,14 +203,14 @@
 634	Nouvelle classe de vaisseau mise en service : {0}
 635	Le joueur {0} a colonisé {1}
 636	Le joueur {0} a capturé {1}
-637	{0} a été vaincu
+637	{0} : Défaite
 638	Événement notable : {0} {1} {2} {3} {4} {5}
 639	cible
 640	combat
 641	nouvelle destination
 642	Autoplay des niveaux d'IA
 643	Autoplay IA démarré avec la graine {0} et un délai de {1} ms
-644	{0} gagne au tour {1}
+644	{0} : Victoire au tour {1}
 645	Autoplay IA arrêté après {0} tours sans gagnant
 646	Vainqueur :
 647	tous les niveaux

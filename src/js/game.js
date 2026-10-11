@@ -3307,7 +3307,7 @@ class Game {
         this.victoryTurn = this.turn;
 
         const playerName = player && player.name ? player.name : `${I18n.getString(18, 'Player')} ${playerNum}`;
-        const message = I18n.formatString(644, '{0} wins on turn {1}', playerName, this.victoryTurn);
+        const message = I18n.formatString(644, '{0}: Victory on turn {1}', playerName, this.victoryTurn);
         console.log(message);
         const event=this.recordEvent(I18n.getString(614, 'Victory'), message, { type: Common.EventType.GAME_WON });
         this.queueOutcome(event,'win',playerNum);
@@ -3716,7 +3716,7 @@ class Game {
                 break;
             case Common.EventType.PLAYER_DIED:
                 eventTitle = I18n.getString(613, 'Defeat');
-                eventMessage = I18n.formatString(637, '{0} has been defeated', who.name || `${I18n.getString(18, 'Player')} ${who.playerNum}`);
+                eventMessage = I18n.formatString(637, '{0}: Defeat', who.name || `${I18n.getString(18, 'Player')} ${who.playerNum}`);
                 console.log(eventMessage);
                 break;
             default:

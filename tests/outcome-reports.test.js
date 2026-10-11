@@ -4,6 +4,15 @@ function fixture(options={},width=800,height=600){const game=new Game(new Factor
 function ownStar(game,owner){const star=game.factory.createStar(owner*100000,0,'Home '+owner);star.owner=owner;return star;}
 function dismissUntil(game,kind){while(game.overlay && game.overlay.kind!==kind)game.dismissEventPresentation();return game.overlay;}
 module.exports=()=>test.describe('Victory and defeat reports',()=>{
+ test.it('uses name-safe outcome summaries in every language for local pronouns and literal player names',()=>{
+  const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);
+   for(const name of [I18n.getString(17),'星$&Д{7}']){
+    const {game,display}=fixture();game.players[1].name=name;game.turn=7;game.markGameWon(1);
+    let event=game.eventLog.find(e=>e.outcome && e.outcome.kind==='win');test.assertEqual(event.message,I18n.formatString(644,'',name,7));test.assertContains(event.message,name);test.assertContains(event.message,I18n.getString(614));test.assertEqual(display.getOutcomeLayout(game.overlay).summaryLines.join(' '),event.message);
+    game.clearEventPresentations();game.noteworthyEvent(game.players[1],Common.EventType.PLAYER_DIED);event=game.eventLog.find(e=>e.outcome && e.outcome.kind==='defeat');test.assertEqual(event.message,I18n.formatString(637,'',name));test.assertContains(event.message,name);test.assertContains(event.message,I18n.getString(613));test.assertEqual(display.getOutcomeLayout(game.overlay).summaryLines.join(' '),event.message);
+   }
+  }}finally{pdg.res.setLanguage(old);}
+ });
  test.it('packages original final outcome art and confines it to affected-player views at every tested size',()=>{
   const fs=require('fs'),path=require('path'),crypto=require('crypto'),manifest=require('../data/events/outcome-art.json');
   for(const kind of ['victory','defeat']){const asset=fs.readFileSync(path.join(__dirname,'../data/events/'+kind+'.png'));test.assertEqual(crypto.createHash('sha256').update(asset).digest('hex'),manifest[kind].sha256);test.assertEqual(asset.readUInt32BE(16),500);test.assertEqual(asset.readUInt32BE(20),432);}

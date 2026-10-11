@@ -203,14 +203,14 @@
 634	Nueva clase de nave comisionada: {0}
 635	El jugador {0} colonizó {1}
 636	El jugador {0} capturó {1}
-637	{0} ha sido derrotado
+637	{0}: Derrota
 638	Evento notable: {0} {1} {2} {3} {4} {5}
 639	objetivo
 640	combate
 641	nuevo destino
 642	Autoplay de habilidades de IA
 643	Autoplay de IA iniciado con semilla {0} y retraso de {1} ms
-644	{0} gana en el turno {1}
+644	{0}: Victoria en el turno {1}
 645	Autoplay de IA detenido tras {0} turnos sin ganador
 646	Ganador:
 647	todas las habilidades

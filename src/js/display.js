@@ -4026,8 +4026,8 @@ class Display {
         const rect=this.fitWindowToScreen('outcome',{x:(screen.width-width)/2,y:(screen.height-height)/2,width,height});
         const viewer=this.game.getCurrentHumanPlayer(),local=viewer===overlay.playerNum;
         const title=I18n.getString(overlay.kind==='win'?614:overlay.kind==='defeat'?613:615);
-        const summary=overlay.kind==='win'?I18n.formatString(644,'{0} wins on turn {1}',overlay.name,overlay.turn):
-            overlay.kind==='defeat'?I18n.formatString(637,'{0} has been defeated',overlay.name):I18n.formatString(652,'No players remain on turn {0}',overlay.turn);
+        const summary=overlay.kind==='win'?I18n.formatString(644,'{0}: Victory on turn {1}',overlay.name,overlay.turn):
+            overlay.kind==='defeat'?I18n.formatString(637,'{0}: Defeat',overlay.name):I18n.formatString(652,'No players remain on turn {0}',overlay.turn);
         const body=local && overlay.kind==='win'?I18n.getString(832).replace(/\|/g,'\n\n'):local && overlay.kind==='defeat'?I18n.getString(833).replace(/\|/g,'\n\n').replace(/\{0\}/g,()=>overlay.name):'';
         const summaryLines=this.wrapEventMessage(summary,width-40,14),bodyY=rect.y+58+summaryLines.length*20+18;
         const lines=body?this.wrapEventMessage(body,width-40,13):[];
