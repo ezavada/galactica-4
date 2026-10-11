@@ -926,3 +926,5 @@
 1223	Hold game reports
 1224	Play pending automatic game reports once, even while Hold is on.
 1225	Pause automatic game reports without marking them read. Turn this off to resume.
+1226	New turn
+1227	Turn {0} begins for {1}.

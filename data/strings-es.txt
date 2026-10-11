@@ -926,3 +926,5 @@
 1223	Retener informes de la partida
 1224	Reproducir una vez los informes automáticos pendientes, incluso con Retener activado.
 1225	Pausar los informes automáticos sin marcarlos como leídos. Desactivar para continuar.
+1226	Nuevo turno
+1227	Comienza el turno {0} para {1}.

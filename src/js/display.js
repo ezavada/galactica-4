@@ -3858,7 +3858,7 @@ class Display {
     }
 
     // Main draw function that orchestrates all drawing
-    drawGame() {
+    drawGame({deferEvents=false}={}) {
         this.visualTime=pdg.tm.getMilliseconds();
         this.camera.update(this.visualTime);
         this.hasDrawn=true;
@@ -3925,7 +3925,7 @@ class Display {
         this.drawRendezvousPlacementPrompt();
         
         // Draw event overlay last
-        if (game.overlay && game.uiWindow!=='endTurnConfirm') {
+        if (!deferEvents && game.overlay && game.uiWindow!=='endTurnConfirm') {
             this.drawOverlay(game.overlay);
         }
         this.drawControlHelp();

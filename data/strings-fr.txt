@@ -926,3 +926,5 @@
 1223	Suspendre les rapports de partie
 1224	Afficher une fois les rapports automatiques en attente, même si leur suspension est activée.
 1225	Suspendre les rapports automatiques sans les marquer comme lus. Désactiver pour reprendre.
+1226	Nouveau tour
+1227	Le tour {0} commence pour {1}.

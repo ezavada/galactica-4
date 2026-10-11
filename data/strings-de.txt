@@ -926,3 +926,5 @@
 1223	Spielberichte zurückhalten
 1224	Ausstehende automatische Spielberichte einmal abspielen, auch bei aktivem Zurückhalten.
 1225	Automatische Spielberichte anhalten, ohne sie als gelesen zu markieren. Zum Fortsetzen ausschalten.
+1226	Neue Runde
+1227	Runde {0} beginnt für {1}.

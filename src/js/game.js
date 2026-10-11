@@ -567,10 +567,10 @@ class Game {
         return player ? player.homeStarId : null;
     }
 
-    draw() {
+    draw({deferEvents=false}={}) {
         if (this.display) {
-            this.presentTurnAttention();
-            this.display.drawGame();
+            if(!deferEvents)this.presentTurnAttention();
+            this.display.drawGame({deferEvents});
         }
     }
 

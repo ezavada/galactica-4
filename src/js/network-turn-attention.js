@@ -7,7 +7,7 @@ function applicationFocused(env=globalThis){
     return typeof document.hasFocus!=='function' || document.hasFocus();
 }
 class TurnAttention {
-    constructor(sound){this.sound=sound;this.observed=new WeakMap();}
+    constructor(sound,onFrontTurn=()=>{}){this.sound=sound;this.onFrontTurn=onFrontTurn;this.observed=new WeakMap();}
     receive(session,model,{front=true,focused=true}={}){
         if(!session || !model || !Number.isSafeInteger(model.turn) || model.turn<1)return false;
         const previous=session.game;
@@ -20,7 +20,9 @@ class TurnAttention {
         this.observed.set(session,{identity,turn:Math.max(baseline,model.turn)});
         // Receiving a duplicate, an initial login or a stale response must not
         // produce a warning. Muted arrivals stay consumed after Sound is enabled.
-        if(!advanced || front && focused || !model.shouldShowEventWindows())return false;
+        if(!advanced || !model.shouldShowEventWindows())return false;
+        if(front)this.onFrontTurn(session,model);
+        if(front && focused)return false;
         return this.sound.play(1002);
     }
 }

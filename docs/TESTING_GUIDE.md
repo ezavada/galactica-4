@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1642
-Passed: 1642 ✓
+Total: 1648
+Passed: 1648 ✓
 Failed: 0 ✗
 ```
 
@@ -848,5 +848,20 @@ Run the native helper with both PDG runtimes and the browser helper in all six
 languages. Both are muted. The real host advances behind a selected local game;
 Warning playback, foreground silence, duplicate guards, mute/no replay and actual
 browser focus loss are checked. Mode `before-turn-attention` captures the previous
-build without the cue. Native OS activation detection and the foreground new-turn
-notice remain pending; these checks do not claim to cover them.
+build without the cue. Native OS activation detection remains pending. The separate foreground notice
+checks below cover its modal presentation.
+
+
+Foreground network turn notice verification:
+
+```sh
+node tools/test-web-host-setup.cjs /private/tmp/galactica-turn-notice-ui-app /private/tmp/galactica-parity/turn-notice-after/en en turn-notice
+```
+
+Repeat for de/es/fr/ja/ru. Mode `before-turn-notice` captures the previous build.
+The muted real-host runner verifies the localized caption, 1.5-second dismissal,
+keyboard/outside-click blocking, constrained persisted dragging, duplicate refresh,
+advanced rejoin, deferred offline-report playback and notices while Sound is off.
+It shuts down fixture hosts and removes their temporary files. Run `turn-attention`
+against the same build to verify background Warning and actual browser focus loss.
+Native OS activation integration remains outside these browser checks.

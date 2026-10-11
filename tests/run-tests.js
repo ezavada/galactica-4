@@ -309,6 +309,7 @@ require('./network-chat.test.js')();
 require('./network-chat-window.test.js')();
 require('./report-playback.test.js')();
 require('./network-turn-attention.test.js')();
+require('./network-turn-notice.test.js')();
 runNetworkClientTests();
     runMapDisplayModeTests();
 
