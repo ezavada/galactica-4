@@ -77,7 +77,7 @@ The largest blockers to a complete game are:
 | Stellar density | Scale of 1-10 controls star count. | ✅ Implemented | ✅ Implemented | All ten numeric choices are clickable in startup, with active highlighting, D cycling/wraparound and R reset to 1. Integer validation accepts exactly 1–10; launch forwards the selected multiplier to the verified v3 star-count formula. Maximum-density galaxies retain unique names and all player homeworlds. |
 | Sector size | Controls galaxy dimensions. | ✅ Implemented | ✅ Implemented | Startup offers all five v3 dimensions (1×1 Tiny through 5×5 Huge), with clickable choices, current-choice highlighting, S cycling and R reset to the configured default. Localized labels match the v3 scale. Integer validation accepts exactly 1–5; map generation and display/camera dimensions consume the chosen size. |
 | Fast Game | Setup checkbox; doubles ship speed and accelerates building/research. | ✅ Implemented | ✅ Implemented | Click the localized checkbox or press F; checked state and active styling reflect the accepted option. R resets to normal mode. The flag reaches actual rules, with doubled scan range, ship speed and shipbuilding effort tested; existing fast research thresholds remain in `star.js`. Strict boolean validation and modal input isolation are covered. All six browser flows and 952-test native suites passed. |
-| Fog of War option | Default on; setup checkbox can disable it. | 🟡 Partial | ✅ Implemented | The localized checkbox is checked for fog and cleared for `omniscient`, matching v3. Clicking and O agree; R restores fog. Checked state uses shared measured checkbox rendering, and input cannot act behind setup modals. Launched enemy diagnostics/map-name behavior and all six browser flows passed; 957-test suites passed on both native runtimes. The deliberate yellow-star/homeworld-alias rule is preserved. The deliberate yellow-star naming deviation and existing knowledge gates are covered. A separate last-seen ghost display was not found in v3; remaining detailed drawing audits are tracked in Section 6. |
+| Fog of War option | Default on; setup checkbox can disable it. | ✅ Implemented | ✅ Implemented | The localized checkbox is checked for fog and cleared for `omniscient`, matching v3. Clicking and O agree; R restores fog. Checked state uses shared measured checkbox rendering, and input cannot act behind setup modals. Launched enemy diagnostics/map-name behavior and all six browser flows passed; 957-test suites passed on both native runtimes. The deliberate yellow-star/homeworld-alias rule is preserved. Section 6 now records completed actual-browser fleet, ship and system drawing audits in all six languages; no separate last-seen ghost display was found in v3. |
 | Turn time limit and units | Optional minutes/hours/days/weeks limit. | ✅ Implemented | ✅ Implemented | Desktop Host offers optional minutes/hours/days/weeks and validates positive bounded integer durations. Accepted options reach the persisted host clock; turn 1 remains untimed. Weeks correctly mean 604800 seconds rather than copying the v3 switch fall-through bug. All units are covered by native integration and actual six-language UI controls. |
 | End early when all players post | Host option for asynchronous multiplayer turns. | ✅ Implemented | ✅ Implemented | Desktop Host exposes the option; selecting minutes defaults it on, longer units default it off, as in v3. Unlimited turns always resolve once all assigned living humans post. Timed turns respect the option after turn 1 and expire independently when the deadline arrives. |
 | Procedural galaxy construction | Random star count/placement, separated home systems, unique names, named homeworlds. | ✅ Implemented | ➖ N/A | `map-generator.js:36-239` ports the main v3 construction path with the corrected 1024×1024 coordinate scale. |
@@ -194,7 +194,7 @@ The largest blockers to a complete game are:
 - Automatic unique fleet names for computer-created fleets; v3 source notes this as a TODO rather than shipped behavior.
 - Higher-level task-force or staging automation beyond v3 rendezvous points.
 
-## 6. Combat, occupation, defense, and fog of war (Functionality 100%, UI 32%)
+## 6. Combat, occupation, defense, and fog of war (Functionality 100%, UI 80%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -207,8 +207,8 @@ The largest blockers to a complete game are:
 | Patrol coordination bonus | Patrolling defenders receive attack/defense advantages. | ✅ Implemented | ✅ Implemented | Satellite completion, Good/Expert AI and docked human ship/fleet commands enable Patrol. Ship combat formulas apply the v3 docked attack/damage bonuses; localized ship/fleet status and active editor/context controls indicate the mode. |
 | Damage and destruction | Health decreases, units die, fleet loss accounting and explosion feedback. | ✅ Implemented | 🟡 Partial | Runtime combat applies v3-style ship power, star strength, and population damage, removes destroyed ships robustly, and recalculates/cleans up affected fleets. Private casualty and defeated-resistance reports now center their recorded battle location and play eight expanding/contracting frames at the v3 tick cadence before showing the complete message. Events replay and restored pending messages restart the effect; quiet autoplay, private access and reduced motion are respected. Attributes are cached and disposed, and the simulation RNG is untouched. Private ship/fleet destruction narratives now retain separate winner/loser perspectives and automatically play an animation-only notice after the existing battle summary. Fleet members, nested subfleets and individual defenders at their own systems are suppressed. Events retains and replays the full narrative. Partial fleet losses do not announce fleet destruction. Sound and other event variants remain Section 8 work. Persistent debris art was not confirmed in the audited destruction renderer. |
 | Repairs | Friendly docking repairs surviving mobile ships; satellites do not repair. | ✅ Implemented | ✅ Implemented | Friendly stars repair docked, non-patrolling, non-moving mobile ships and fleet members using the v3 tech-level budget, excluding satellites. Damage and health displays update after repair. The separate CStar::EndOfTurn completion emitter now creates private human-system-owner notices when positive repair reaches zero ship or whole-fleet damage, with retained names, attention, Events navigation and manual replay. Partial repairs and completed individual fleet members do not emit notices; sound remains separate Section 8 work. |
-| Scanner-based fog of war | Stars/scouts reveal enemy presence, owner, tech, then class/details by range; scout stealth matters. | ✅ Implemented | 🟡 Partial | Spatial visibility levels, star/scout/fleet scanners, stealth calculations, current-visibility recalculation, and preserved last-seen memory are implemented. Current detection controls map/inspector knowledge. V3 stores last-seen history for scanner bookkeeping; a separate remembered-object drawing mode was not found. That optional extension is recorded in `FUTURE_IMPROVEMENTS.md`. |
-| Fog-of-war rendering | Enemy colonies/ships are hidden or partially identified according to visibility. | ✅ Implemented | 🟡 Partial | Enemy ships/fleets are hidden when visibility is none, star ownership/detail rendering reads numeric visibility levels, and scanner-based fleet visibility queries work. Stars remain plotted while undetected enemy ownership is hidden. Ownership halos and inspectors agree at first detection; allied/all-visible systems remain identified without scanners. Losing detection hides current ownership and mobile markers while preserving last-seen history. Yellow-star labels retain the requested v4 naming deviation. Detected fleet markers now expose owner color at Speed, matching the inherited v3 ship drawing path in local and multiplayer views. Names, contents, technology and orders retain their separate gates. The five-level fleet rendering audit now passes in actual muted browser runs in all six languages, including independent member-name gates, Class-visible table statistics, private enemy orders, loss of detection and all-visible mode. Standalone ship and system rendering audits remain separate; no v3 last-seen ghost drawing mode was confirmed. |
+| Scanner-based fog of war | Stars/scouts reveal enemy presence, owner, tech, then class/details by range; scout stealth matters. | ✅ Implemented | ✅ Implemented | Spatial visibility levels, star/scout/fleet scanners, stealth calculations, current-visibility recalculation, and preserved last-seen memory are implemented. Current detection controls map/inspector knowledge. V3 stores last-seen history for scanner bookkeeping; a separate remembered-object drawing mode was not found. That optional extension is recorded in `FUTURE_IMPROVEMENTS.md`. | Source-backed browser scanner checks now confirm enemy system rings begin at Tech, mobile scout rings begin at Speed, selected rings survive the range switch, and undetected mobile ranges disappear. Actual runs and inspected system/ship panels pass in all six languages; the detailed audit below distinguishes explicit presentation fixtures from real spatial scanner unit coverage.
+| Fog-of-war rendering | Enemy colonies/ships are hidden or partially identified according to visibility. | ✅ Implemented | ✅ Implemented | Enemy ships/fleets are hidden when visibility is none, star ownership/detail rendering reads numeric visibility levels, and scanner-based fleet visibility queries work. Stars remain plotted while undetected enemy ownership is hidden. Ownership halos and inspectors agree at first detection; allied/all-visible systems remain identified without scanners. Losing detection hides current ownership and mobile markers while preserving last-seen history. Yellow-star labels retain the requested v4 naming deviation. Detected fleet markers now expose owner color at Speed, matching the inherited v3 ship drawing path in local and multiplayer views. Names, contents, technology and orders retain their separate gates. The five-level fleet rendering audit now passes in actual muted browser runs in all six languages, including independent member-name gates, Class-visible table statistics, private enemy orders, loss of detection and all-visible mode. The standalone ship/system browser audit also passes all five visibility levels, rendered retained ship text, private enemy economy/destinations, lost detection, all-visible mode, ordinary yellow-star labels and discovered-home name memory in all six languages. No v3 last-seen ghost drawing mode was confirmed. |
 | Omniscient mode | Disabling Fog of War shows the whole galaxy. | ✅ Implemented | ✅ Implemented | Disabling fog through startup/config makes visibility queries and display helpers treat enemy stars, ships, and fleets as fully visible; covered by fog and command UI tests. |
 | Combat odds estimate | Not part of shipped v3/manual behavior; listed as a v4 future enhancement. | ❌ Missing / not a parity blocker | ❌ Missing / not a parity blocker | Correctly remains in `docs/FUTURE_IMPROVEMENTS.md`; it should not be counted as missing v3 parity. |
 
@@ -5260,3 +5260,45 @@ source changed, so there is no before/after rendering change to attribute to thi
 commit. Full suites pass 1725 tests on both public and development native PDG
 runtimes. This closes the fleet Class/Details audit only; the broader standalone
 ship/system fog audit and whole parity checklist remain open.
+
+### Standalone ship/system knowledge and scanner rendering audit (2026-10-11)
+
+The remaining fog presentation comparison uses `GalacticaPanels.cp`: ship
+speed at Speed, technology at Tech, power/damage at Class; system technology
+at Tech, population at Class and production controls at Details. Enemy
+production sliders receive empty settings, and enemy new-ship destinations
+remain private even at Details. `CStar.cpp` gates system scanner graphics at
+Tech. `CShip.cpp::DrawSelf` draws mobile scanner ranges when the visible actor
+has a range, without requiring Tech; selection adds three expanding rings.
+The v4 extensions to ship status/scanner inspector rows retain Details gates.
+The requested yellow-star/homeworld-alias behavior supersedes v3's chart-name
+rule; comparison faction names continue to derive from the real homeworld.
+
+`tools/test-web-object-knowledge.cjs` now tests actual map clicks in the
+packaged app at turn 2, after initial-state editing. It checks the five system
+knowledge levels, enemy allocation controls and private progress/destinations,
+home aliases before first detection, remembered home names after detection
+and ordinary yellow-star names through fog. It reads the retained native text
+fields actually populated by ship rendering at Speed/Tech/Class/Details,
+checks hidden and lost mobile markers, and confirms all-visible inspection
+without granting enemy control. Selected system scanner rings start at Tech;
+selected scout rings start at Speed, remain when the general range switch is
+off, and vanish when the scout becomes undetected.
+
+All six languages pass. Sixteen screenshots per language are under
+`/private/tmp/galactica-object-knowledge/<language>`; system and ship Details
+panels were inspected in all six languages, with English low-knowledge and
+scanner views checked separately. Visibility values in the browser fixture
+are explicit: these checks prove presentation/input gates, while native
+`visibility-calculator`, `entity-fog-of-war`, `fog-of-war-integration` and
+`chart-names` tests cover real spatial updates and discovery memory. Both
+full native lanes pass 1725 tests. There is no gameplay/UI source change or
+new product string in this audit. Existing localization is verified by the
+rendered panels.
+
+The Scanner-based fog, Fog-of-war rendering and dependent startup Fog of War
+option rows can now be marked implemented. Section 6's rough UI estimate is
+80% when implemented rows count fully and the four remaining combat/report
+Partial rows count half; non-UI rows and non-parity enhancements are excluded.
+Those combat/report rows and the rest of the parity and map-generation
+checklists still require their own completion audits.
