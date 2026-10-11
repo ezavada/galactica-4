@@ -66,7 +66,7 @@ class ArtReferenceTests(unittest.TestCase):
         spec=importlib.util.spec_from_file_location('presentation',ROOT/'tools/import-v3-presentation.py')
         presentation=importlib.util.module_from_spec(spec);spec.loader.exec_module(presentation)
         inventory[('PICT',100)]=presentation.resource(nonmodule,'PICT',100)
-        provenance=json.loads((ROOT/'data/events/layers/provenance.json').read_text())
+        provenance=json.loads((ROOT/'old-art/original-default/events/layers/provenance.json').read_text())
         self.assertEqual(provenance['archiveSha256'],self.reference['archiveSha256'])
         for number,row in provenance['pictures'].items():
             self.assertEqual(row['pictSha256'],art.digest(inventory[('PICT',int(number))]))
@@ -97,7 +97,7 @@ class ArtReferenceTests(unittest.TestCase):
         if not archive.exists() or not magick:self.skipTest('Original archive and ImageMagick required')
         with zipfile.ZipFile(archive) as source:
             inventory=art.resources(art.resource_fork(source.read(self.reference['appleDoubleEntry'])))
-        provenance=json.loads((ROOT/'data/events/outcome-art.json').read_text())
+        provenance=json.loads((ROOT/'old-art/original-default/events/outcome-art.json').read_text())
         with tempfile.TemporaryDirectory() as directory:
             for name,number in [('victory',4000),('defeat',4001)]:
                 payload=inventory[('PICT',number)];row=provenance[name]
@@ -108,7 +108,7 @@ class ArtReferenceTests(unittest.TestCase):
                 if number==4000:self.assertEqual(row['embeddedTiffSha256'],art.digest(data))
                 source.write_bytes(data);png=Path(directory)/(name+'.png')
                 subprocess.run([magick,str(source),str(png)],check=True,capture_output=True)
-                packaged=ROOT/'data/events'/(name+'.png')
+                packaged=ROOT/'old-art/original-default/events'/(name+'.png')
                 self.assertEqual(row['sha256'],art.digest(packaged.read_bytes()))
                 result=subprocess.run([magick,'compare','-metric','AE',str(png),str(packaged),'null:'],capture_output=True,text=True)
                 self.assertEqual(result.returncode,0,result.stderr)

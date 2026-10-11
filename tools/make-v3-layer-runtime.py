@@ -52,7 +52,7 @@ def generate(source):
     nonmodule=(source/'Resources/gal-non-module.r').read_bytes().decode('mac_roman')
     inventory[('PICT',100)]=presentation.resource(nonmodule,'PICT',100)
     wanted={r['picture'] for rows in json.loads(metadata.split('module.exports=')[1][:-2]).values() for r in rows}
-    destination=ROOT/'data/events/layers';destination.mkdir(parents=True,exist_ok=True)
+    destination=ROOT/'old-art/original-default/events/layers';destination.mkdir(parents=True,exist_ok=True)
     magick=shutil.which('magick')
     if not magick:raise RuntimeError('ImageMagick required to decode fallback PICTs')
     provenance={'archive':archive.name,'archiveSha256':reference['archiveSha256'],

@@ -253,7 +253,9 @@
         if (!Array.isArray(window.GALACTICA_ASSETS)) {
             return Promise.reject(new Error('Galactica asset manifest is missing; run tools/build-web.sh first.'));
         }
-        var assets = window.GALACTICA_ASSETS;
+        var assets = window.GALACTICA_ASSETS.filter(function(asset) {
+            return !asset.startsWith('data/art-styles/');
+        });
         setStatus('loadingAssets');
         return Promise.all(assets.map(function(asset) {
             var url = new URL(asset, appBaseUrl).href;

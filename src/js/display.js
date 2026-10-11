@@ -15,6 +15,7 @@ const VisualEffects = require('./visual-effects.js');
 const DestructionEffect = require('./destruction-effect.js');
 const LabArt=require('./lab-art.js');
 const StardockArt=require('./stardock-art.js');
+const ArtResources=require('./art-resources.js');
 const UIIcons = require('./ui-icons.js');
 const ScannerLayer = require('./scanner-layer.js');
 const PanelAppearance = require('./panel-appearance.js');
@@ -4073,13 +4074,14 @@ class Display {
     // Helper to load an image once
     getImageCached(key, filename, transparentColor) {
         if (!this.images[key]) {
+            let image;
             try {
-                const image = pdg.res.getImage(filename);
-                if (image && transparentColor) image.setTransparentColor(transparentColor);
-                this.images[key] = image;
+                image = pdg.res.getImage(filename);
+                if (image && transparentColor && !ArtResources.hasAlpha(filename)) image.setTransparentColor(transparentColor);
             } catch (e) {
                 console.log(`Failed to load image ${filename}:`, e);
             }
+            this.images[key] = image || null;
         }
         return this.images[key];
     }

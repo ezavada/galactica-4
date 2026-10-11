@@ -1,0 +1,260 @@
+{
+  "tool": "built-in imagegen",
+  "assets": [
+    {
+      "style": "realistic",
+      "name": "satellite",
+      "source": "old-art/original-default/events/layers/pict-3000.png",
+      "target": "realistic/events/layers/pict-3000.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 satellite hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve sphere armor, blue windows, large turbine lower left, radial antennae and purple weapon. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3000.png",
+      "sha256": "963fd773953547a4d76ac7c18568a74dde292976c3cbf219d13bacbd0c5c2c72",
+      "sourceSha256": "3b44db26626dcd512a8dd7eba3006bac79cda61c746b0c5005e690733cf4dd53",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "colony",
+      "source": "old-art/original-default/events/layers/pict-3002.png",
+      "target": "realistic/events/layers/pict-3002.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 colony hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve central skeletal spine with two large blue and white oval habitation pods above and below and a single rear vertical ring. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3002.png",
+      "sha256": "8bac224a1fb7e2c8a0a9b24550386126339572ac44e64ef86925070fcd792745",
+      "sourceSha256": "017d737ee4fffcd2bb2ce67825097bef049281f73b32283c0f7a805437d3994e",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "scout",
+      "source": "old-art/original-default/events/layers/pict-3001.png",
+      "target": "realistic/events/layers/pict-3001.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 scout hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve narrow horizontal boom, forked left nose, one large vertical oval ring at right, vertical ring braces and paired white spherical pods. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3001.png",
+      "sha256": "db8d1f16422cd47a3d00589f20f3ce5e3f89bd8ac2f5ade570e017a348deead5",
+      "sourceSha256": "eafe1f476297025e89f71f1de9db98ba1d31a2b5762f26e2a4d6103762696422",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "traveller",
+      "source": "old-art/original-default/events/layers/pict-3003.png",
+      "target": "realistic/events/layers/pict-3003.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 traveller hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve two silver spheres at left, thin long shaft, broad curved dish-like vertical sail at right, tension cables and cylindrical engine cluster at far right. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3003.png",
+      "sha256": "339fd3258016697fa80903475d91ffc8635e5ba5630852a37ecc8acafb06244e",
+      "sourceSha256": "4c960a1bb207bfd6b17d73e4298a4313c5708cd03f6f8a3da21500e838f237d9",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "rama",
+      "source": "old-art/original-default/events/layers/pict-3004.png",
+      "target": "realistic/events/layers/pict-3004.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 rama hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve brown bulbous forward hull at left, parallel shaft tubes, rear radial array of six large white circular discs and dark engine pods, tension cables. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3004.png",
+      "sha256": "cf92ce2c9873824220949806c9ae29979b0c6e3a02334456b1b7947a4e75a097",
+      "sourceSha256": "786281d1ffcd8aa01e2911d3b76d15a744f071d2394969e902c952f5e88467e0",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "falcon",
+      "source": "old-art/original-default/events/layers/pict-3005.png",
+      "target": "realistic/events/layers/pict-3005.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 falcon hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve long silver pointed nose, central shaft, large vertical ring lined with numerous smaller white discs surrounding one large central dish, cables and rear engine. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3005.png",
+      "sha256": "27632e6eb038f3b378e377dfa4344d5f4335f8134ebb81a7526994146f7f9560",
+      "sourceSha256": "d641273a4ce019eecafcbf35b8c0588dc084444e07e012623a4dd168c965558f",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "raven",
+      "source": "old-art/original-default/events/layers/pict-3007.png",
+      "target": "realistic/events/layers/pict-3007.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 raven hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve blunt silver forward fuselage, several large segmented vertical hoops of differing sizes along the rear shaft, radial struts and protruding antennas. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3007.png",
+      "sha256": "7c7bf4d90564ab9c38cb492e866d506da484713e03f23175b2d837508fc8abed",
+      "sourceSha256": "ee0e33c6569142a7f0eb48e6f9c82c25cfdbd141a14c4a093feaeb67dbf8766a",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "riviel",
+      "source": "old-art/original-default/events/layers/pict-3008.png",
+      "target": "realistic/events/layers/pict-3008.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 riviel hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve long slender silver pointed nose, enormous curved triangular dark ribbed sail canopy above and below rear fuselage, three curved metallic spars. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3008.png",
+      "sha256": "9e7fb201bfed4509cc4bb5248c8a870f8d435334d81e31d25ddd26531bfecf06",
+      "sourceSha256": "0421b05cdbaab7f983ad467d71d0a674e4cdb981ebaa5722fec43892af5f45fb",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "hawk",
+      "source": "old-art/original-default/events/layers/pict-3006.png",
+      "target": "realistic/events/layers/pict-3006.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 hawk hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve silver pointed fuselage, large vertical hoop at right containing tall straight parallel cylinder structures, triangular cable supports. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3006.png",
+      "sha256": "7c4bbf63ce9f8d2aaf712d31533a9db7c5a7636f43848aa0eaad3a77ccb50d1a",
+      "sourceSha256": "3d698ffd4fd71d2b8cb342165e73d0c34606dd912b9cd0cc1d9e59ab350d678e",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "wolven",
+      "source": "old-art/original-default/events/layers/pict-3009.png",
+      "target": "realistic/events/layers/pict-3009.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 wolven hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve silver fuselage with blue pointed tip at left, six broad dark polygonal leaf shaped radial sail panels at rear hub, tall top leaf. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3009.png",
+      "sha256": "246eaca74449aeeb17477b9d252a53dbbd7808081b28ac481a44640ff76c037f",
+      "sourceSha256": "52f1d73f80c26a7d94977768dec0c936822f3b1446fb1ad40ffc7f5e0aac87d9",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "valkyrie",
+      "source": "old-art/original-default/events/layers/pict-3010.png",
+      "target": "realistic/events/layers/pict-3010.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 valkyrie hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve silver forward hull with dorsal protrusions and forked rear support frame, six long narrow pointed dark ribbed leaf sails arranged radially around rear hub. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3010.png",
+      "sha256": "6dea44ce559dad412ecfee389e5cb45eab6b4dd6389724c2186e2549e07af793",
+      "sourceSha256": "e936dd85e1e70b8cddd67d8d040049656611a0853b26662b6983cf75f416b65b",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "avenger",
+      "source": "old-art/original-default/events/layers/pict-3011.png",
+      "target": "realistic/events/layers/pict-3011.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 avenger hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve slim silver forward hull with dorsal fin, rear open polygonal truss cage supported by radial struts, no broad sail or ring. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3011.png",
+      "sha256": "0e006a412427baecfa7223892316ee5ba2d5efb949d002ce020383bc9873e171",
+      "sourceSha256": "25e51ebf05ee6e06d71c2c07499d9023c6ad7f5921ea3728f3ce5cf456bab7b4",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "banshee",
+      "source": "old-art/original-default/events/layers/pict-3012.png",
+      "target": "realistic/events/layers/pict-3012.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 banshee hull sprite. Edit target: referenced original image. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Design invariants: preserve exceptionally long thin needle-like silver body, tiny dorsal fin, three extremely long slender tapering swept rear prongs forming a three-point star, no ring or broad panels. Match reference orientation, silhouette, every structural attachment and camera perspective; nose at left (except spherical satellite). Preserve original proportions and subject size and placement within the frame, leaving 3% safe margin when a reference is cropped. Do not substitute a generic spaceship. Landscape frame with exact aspect ratio 408:240, high resolution about 1632x960. Only the single hull; no crew or extra objects. Remove the neon green backdrop completely, provide genuine transparent alpha in background and every opening between cables, rings and sails; clean neutral-colored antialiased edges, no green pixels, no background shadows, no checkerboard, no text or watermark.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/layers/pict-3012.png",
+      "sha256": "7caab8320a14df193cbbdfaf60163d041ff5a39b417d34c729c11c4fc2a59de0",
+      "sourceSha256": "f45157edfe814ba260a26cab049f5db81c70119733a0ba28e721579d723db853",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "labback",
+      "source": "old-art/original-default/events/labback.png",
+      "target": "realistic/events/labback.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 labback game illustration. Edit target: reference original. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Laboratory background layer: spacious dark blue hangar at left with suspended machinery along upper-left ceiling and small equipment at lower left; right third a control booth with glowing red, green and blue slanted monitor consoles and two science officers. Leave central left hangar floor and airspace clear for the game's existing research blueprint overlay. Keep exact reference layout and viewpoint. High resolution 1632x960 landscape, exact aspect 408:240. Preserve frame layout and aspect ratio. Opaque complete scene, no transparency. No added lettering, watermark or UI.",
+      "transparent": false,
+      "savedPath": "old-art/art-styles/realistic-v1/events/labback.png",
+      "sha256": "8ea0539c1fd513723733fda8cc2741cbb7619c5992072f66a9db6599190cdf5f",
+      "sourceSha256": "0a2804cac32746885ab5123af3447e0da92a11fdec408aaed295f7154dfd7e49",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "labtop",
+      "source": "old-art/original-default/events/labtop.png",
+      "target": "realistic/events/labtop.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 labtop game illustration. Edit target: reference original. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Laboratory foreground overlay only: science officers and stacked monitors confined to lower-left, dark console bench spanning bottom sixth. Entire upper 60% and middle-right are empty transparent holes. Preserve each element's exact normalized location and dimensions, do not expand the people or foreground objects; this layer overlays separately rendered research blueprints and the background. High resolution 1632x960 landscape, exact aspect 408:240. Preserve frame layout and aspect ratio. Replace all neon green with real transparent alpha, including holes and gaps. No green fringe, checkerboard or shadow backdrop. No added lettering, watermark or UI.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v1/events/labtop.png",
+      "sha256": "5b1eac7b40565e7bbf99fa7e7925ff8cde6323c5c41c7f58b3a12ca9720af287",
+      "sourceSha256": "d767ff8d4a7df4270888ace946456f39d3171b018fd9933be33adc56075a37e9",
+      "dimensions": [
+        1632,
+        960
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "defeat",
+      "source": "old-art/original-default/events/defeat.png",
+      "target": "realistic/events/defeat.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 defeat game illustration. Edit target: reference original. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Defeat illustration: centered exhausted adult soldier in scorched dark gray full powered armor with thin golden trim and enclosed helmet, grim face visible through open visor; one hand across abdomen and another holding a weapon low. Behind: burning futuristic white city, smoke, fleeing armored troops, red-and-blue flag, small fighting ships and purple energy beams. Preserve narrative and composition, no graphic gore. High resolution 1500x1296, exact aspect 500:432. Preserve frame layout and aspect ratio. Opaque complete scene, no transparency. No added lettering, watermark or UI.",
+      "transparent": false,
+      "savedPath": "old-art/art-styles/realistic-v1/events/defeat.png",
+      "sha256": "ff07deb497f26e2c09e29c73c8ac7d53cc8e5c77842b3b054de8cbe257879a92",
+      "sourceSha256": "a9fb5dcdc3530298ab9ace7b903d7d0808a95d0fa7a6e1b9d70e1b885588398f",
+      "dimensions": [
+        1500,
+        1296
+      ]
+    },
+    {
+      "style": "realistic",
+      "name": "victory",
+      "source": "old-art/original-default/events/victory.png",
+      "target": "realistic/events/victory.png",
+      "prompt": "Use case: style-transfer. Asset type: Galactica-4 victory game illustration. Edit target: reference original. Redraw in photorealistic aerospace miniature photographed in space studio lighting: physically plausible brushed metal, fine panel seams, weathering, realistic materials and highlights. Victory illustration: centered adult regal dark-haired woman with a jeweled circlet, blue hair veil, silver arm bands and purple/gold attire, holding a luminous dark blue reflective crystal globe with both hands near her face. Retain modest coverage. Behind her: immense celebratory parade crowd with red-and-blue flags and white domed futuristic towers under blue sky. Preserve composition, expression, costume motifs and narrative. High resolution 1500x1296, exact aspect 500:432. Preserve frame layout and aspect ratio. Opaque complete scene, no transparency. No added lettering, watermark or UI.",
+      "transparent": false,
+      "savedPath": "old-art/art-styles/realistic-v1/events/victory.png",
+      "sha256": "4cb102894c644f4106a030202a3048c6f9de2855bf0d5b640d568d23e1ce8058",
+      "sourceSha256": "0984fd79fb783069eded5fa24be54d89d1a8b583f061c1eda8deb66b3f466725",
+      "dimensions": [
+        1500,
+        1296
+      ]
+    }
+  ]
+}

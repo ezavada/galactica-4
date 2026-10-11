@@ -1,0 +1,216 @@
+{
+  "default": "anime",
+  "tool": "built-in imagegen",
+  "archive": "old-art",
+  "assets": [
+    {
+      "name": "satellite",
+      "path": "events/layers/pict-3000.png",
+      "sha256": "6e245fe8d69d37f4bda204e8d4de0fa73c435c350dc21f47fedef5e7f6a055f8",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3000.png"
+    },
+    {
+      "name": "scout",
+      "path": "events/layers/pict-3001.png",
+      "sha256": "24a0ad70324ec0e602d816d423e43997c21e6401edede64205b1c692232138c2",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3001.png"
+    },
+    {
+      "name": "colony",
+      "path": "events/layers/pict-3002.png",
+      "sha256": "2570c74928d41b1dcdf0f6e45340fccb55b46e17981a39ef617f836b257449c2",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3002.png"
+    },
+    {
+      "name": "traveller",
+      "path": "events/layers/pict-3003.png",
+      "sha256": "635c8cb2c392c686a21739ebe99ee6db17cfa30d52c741208fa90417daa0f9b9",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3003.png"
+    },
+    {
+      "name": "falcon",
+      "path": "events/layers/pict-3005.png",
+      "sha256": "df037bb70ae59115b67e0de6f8111373f70f4ff969837156cd657a7a4d2d2fef",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3005.png"
+    },
+    {
+      "name": "raven",
+      "path": "events/layers/pict-3007.png",
+      "sha256": "bf88d014a5e1131d17bd41c9b45f0606b16fba69017bc603f442f68e42bf2cc8",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3007.png"
+    },
+    {
+      "name": "rama",
+      "path": "events/layers/pict-3004.png",
+      "sha256": "96f5f53d145dc452fa82a9b0b0956612d23ecdbdac3d54829186af80b3fdfaa3",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3004.png"
+    },
+    {
+      "name": "riviel",
+      "path": "events/layers/pict-3008.png",
+      "sha256": "878d4e1f295272a984fd683de1128ff6cd344fe459c7cfda185635b668d298b6",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3008.png"
+    },
+    {
+      "name": "hawk",
+      "path": "events/layers/pict-3006.png",
+      "sha256": "fea15a23f2058ce9a2e4c732ba85b96f2a2709f38b872a5dfcb4c5a3788c332b",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3006.png"
+    },
+    {
+      "name": "valkyrie",
+      "path": "events/layers/pict-3010.png",
+      "sha256": "678fe3339309c1278b205bbdad1cd2497e40373c24a10fbbcbaa465624c5293e",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3010.png"
+    },
+    {
+      "name": "wolven",
+      "path": "events/layers/pict-3009.png",
+      "sha256": "fcfc4d68ec906ef9897a881727fc5e3e9b833ad17941ac036f5469d6c3db67c5",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3009.png"
+    },
+    {
+      "name": "avenger",
+      "path": "events/layers/pict-3011.png",
+      "sha256": "b493aad5c90dd7f02d5d4bcba24fbe41e866cf09df9f3e34f33fd017f2127536",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3011.png"
+    },
+    {
+      "name": "banshee",
+      "path": "events/layers/pict-3012.png",
+      "sha256": "f0b5d01a7819aef8a0d49484d2f2cecd48216337255947f98eb4d354661d3c75",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-3012.png"
+    },
+    {
+      "name": "labback",
+      "path": "events/labback.png",
+      "sha256": "1abf7b3e9e2d048dac699570641f60efb1262fecc3227f61d2f04d5f2750007c",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": false,
+      "source": "old-art/art-styles/anime/events/labback.png"
+    },
+    {
+      "name": "labtop",
+      "path": "events/labtop.png",
+      "sha256": "cc5d1945b61aa711e2a1174284a9f1cf594646fcec87f04d4745c6c788840048",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/labtop.png"
+    },
+    {
+      "name": "victory",
+      "path": "events/victory.png",
+      "sha256": "417444b9ee85449a2d7ba4d153dad773709910e097e70573ac9f90992aa839c5",
+      "dimensions": [
+        1500,
+        1296
+      ],
+      "transparent": false,
+      "source": "old-art/art-styles/anime/events/victory.png"
+    },
+    {
+      "name": "stardock",
+      "path": "events/layers/pict-2000.png",
+      "sha256": "3a0050f28aaf4a367eeb3c39a58e3171bfd3e73d73db51773141bf0aa9414e81",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": false,
+      "source": "old-art/art-styles/anime/events/layers/pict-2000.png"
+    },
+    {
+      "name": "defeat",
+      "path": "events/defeat.png",
+      "sha256": "8469be6a8d1c79c50b7eabf83bbfa717aa589d4065b1367665c9a23f449f50fd",
+      "dimensions": [
+        1500,
+        1296
+      ],
+      "transparent": false,
+      "source": "old-art/art-styles/anime/events/defeat.png"
+    },
+    {
+      "name": "stardockfront",
+      "path": "events/layers/pict-2100.png",
+      "sha256": "463ab226baca56af1620f4ce2433e4117489871a4db1f5e2426adceb40912fc3",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "source": "old-art/art-styles/anime/events/layers/pict-2100.png"
+    }
+  ]
+}

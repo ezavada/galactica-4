@@ -1,0 +1,24 @@
+{
+  "victory": {
+    "source": "old-art/Art/-final/victory-large-v3.png",
+    "sha256": "0984fd79fb783069eded5fa24be54d89d1a8b583f061c1eda8deb66b3f466725",
+    "pictureResource": 4000,
+    "width": 500,
+    "height": 432,
+    "archiveSha256": "2685c3879a75d938cf3add766c36c54d61e3e478918ebcc3cbec32bdf3329771",
+    "appleDoubleEntry": "__MACOSX/Galactica.app/Contents/MacOS/._Galactica Art (Large)",
+    "pictSha256": "09044055672232fb771d22c2e063506d62b47bbe071bc7c12ccb79d0c3088388",
+    "embeddedTiffSha256": "749e619ebb6a4835b514763d8213a2785fe3f6d6e9ff8bd2d1a95f7001a5edb0",
+    "quickTimeOpcodeOffset": 72
+  },
+  "defeat": {
+    "source": "old-art/Art/-final/defeat-large-v2.png",
+    "sha256": "a9fb5dcdc3530298ab9ace7b903d7d0808a95d0fa7a6e1b9d70e1b885588398f",
+    "pictureResource": 4001,
+    "width": 500,
+    "height": 432,
+    "archiveSha256": "2685c3879a75d938cf3add766c36c54d61e3e478918ebcc3cbec32bdf3329771",
+    "appleDoubleEntry": "__MACOSX/Galactica.app/Contents/MacOS/._Galactica Art (Large)",
+    "pictSha256": "40c57c604a1f92e6f6259cda11dcc2c6b66e705d633d0d3c738f93621701d52b"
+  }
+}

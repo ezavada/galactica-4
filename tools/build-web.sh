@@ -32,7 +32,18 @@ cp "$PDG_WASM_DIR/libpdg.js" "$PDG_WASM_DIR/libpdg.wasm" "$OUTPUT_DIR/"
 cp "$PROJECT_DIR/main.js" "$OUTPUT_DIR/"
 cp "$PROJECT_DIR/LICENSE" "$PROJECT_DIR/ASSET_RIGHTS.md" "$OUTPUT_DIR/"
 cp -R "$PROJECT_DIR/src" "$OUTPUT_DIR/"
+node "$PROJECT_DIR/tools/build-art-gallery.cjs"
+# Remove superseded art copies from an earlier build before copying the active layout.
+for style in anime anime-v1 realistic realistic-v1 realistic-v2 realistic-v3 classic; do
+    rm -rf "$OUTPUT_DIR/data/art-styles/$style"
+done
+rm -f "$OUTPUT_DIR/src/js/art-styles.js" "$OUTPUT_DIR/data/events/layers/provenance.json"
+for hull in avenger banshee valkyrie wolven; do
+    rm -f "$OUTPUT_DIR/data/ships/$hull-alpha.png"
+done
 cp -R "$PROJECT_DIR/data" "$OUTPUT_DIR/"
+mkdir -p "$OUTPUT_DIR/old-art"
+cp -R "$PROJECT_DIR/old-art/art-styles" "$PROJECT_DIR/old-art/original-default" "$OUTPUT_DIR/old-art/"
 
 ASSET_MANIFEST="$OUTPUT_DIR/galactica-assets.js"
 PROJECT_PREFIX="$PROJECT_DIR/"

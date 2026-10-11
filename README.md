@@ -61,6 +61,16 @@ The web build preloads the `data/` resource directory into Emscripten's virtual
 filesystem before starting `main.js`, so localized strings and image resources
 use the same paths as the desktop launcher.
 
+## Artwork
+
+The latest anime hulls, lab, stardock and outcome scenes are the default artwork.
+Previous art sets and the former default are preserved in [old-art](old-art/).
+The launch-time art selector has been removed.
+See [art notes and generation prompts](data/art-styles/README.md).
+The [three-column comparison page](data/art-styles/index.html) uses the active
+anime assets and archived realistic/classic assets. Serve the project or `dist`
+and open `/data/art-styles/`.
+
 ## Features
 
 - **Map generation**: Procedurally generated star maps using v3-style algorithms.

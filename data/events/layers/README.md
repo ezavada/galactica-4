@@ -1,15 +1,5 @@
-# Shipped layer fallback artwork
+# Game illustration layers
 
-Decoded without content edits from the AppleDouble art resource fork in the
-original `gad-3.0.2-cdrom.zip`. PICT100 (the No Image fallback) is recovered from
-`Resources/gal-non-module.r`. Regenerate with `tools/make-v3-layer-runtime.py`.
-`provenance.json` identifies original PICT and exported PNG hashes and bounds.
+`pict-3000.png` through `pict-3012.png`, `pict-2000.png` and `pict-2100.png` use the latest anime set, with native alpha on hulls and the stardock foreground. Remaining backgrounds, propulsion fields and fallback pictures retain the decoded v3 art. Active generated artwork hashes are in `../../artwork.json`; original decoded artwork and its PICT/PNG provenance are preserved in `../../../old-art/original-default/events/layers/`.
 
-The v3 README states: “The art assets are copyright Claudio Berni, and must
-not be used without his permission.” These retained original assets carry
-no new license grant. Existing startup/About credits remain in place.
-
-The Lab continues to use its existing backdrop, foreground and blueprint PNGs;
-these extra pictures supply the original decimal lookup fallback at research
-levels outside the available Lab entries. Mode36 uses the resource's exact
-transparent background color; mode33 uses additive blending.
+Regenerating original decoded pictures with `tools/make-v3-layer-runtime.py` writes them to the archive. The v3 artwork credits and license restrictions continue to apply to retained original resources.
