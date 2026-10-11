@@ -62,7 +62,7 @@ Existing installations and later launches do not repeat automatic onboarding.
 See `docs/V3_V4_FEATURE_STATUS.md` for the test and screenshot evidence.
 
 About now identifies the actual development application build independently of
-the PDG dependency. Configured startup commands remain unfinished. Original music still needs intact composition metadata. These source
+the PDG dependency. Available configured startup commands are implemented below; inherited/window command coverage remains unfinished. Original music still needs intact composition metadata. These source
 references remain requirements for the remaining port; resource extraction alone
 is not runtime completion evidence.
 
@@ -91,13 +91,22 @@ including when the introduction is disabled or the tutorial was requested
 explicitly. Closing About cannot replay it.
 
 Available application handlers are About, New, Open, Save, Save As, Revert,
-Quit, Fullscreen, Sound, Preferences, Flyby Help, Help and Tutorial. Document commands depend on an active
+Quit, Host, Open as Host, Join, Fullscreen, Sound, Preferences, Flyby Help, Help and Tutorial. Document commands depend on an active
 document; a normal launch has none. Browser Open/Help/Fullscreen wait for the
 first trusted pointer/key gesture if startup lacks activation, consume that
 input before it reaches setup and remove both listeners before opening.
 
-This is not full arbitrary-command parity. Hosting (4020), Open as Host (4002)
-and Joining (4021) require the unported multiplayer flows. Community (8000) and Check for New Version (8001) have individually audited
+Host (4020), Open as Host (4002), and Join (4021) now open the same localized
+forms as the visible commands. These forms do not require browser activation;
+native hosting still uses the existing desktop backend, and browsers retain the
+localized hosting-unavailable feedback. Cancellation restores setup without
+replaying the startup action. A stored StartAction counts as an existing
+installation, so this change does not suppress first-install onboarding. The
+source command IDs are defined in `GalacticaConsts.h:639,657–658`;
+`Galactica.cpp:2241–2278` dispatches them, and `DoJoinGame:2079–2089`
+opens the join flow without an additional tutorial guard.
+
+This is not full arbitrary-command parity. Community (8000) and Check for New Version (8001) have individually audited
 external destination blockers below. Other inherited/window commands remain
 pending source and runtime audits. Music and the pinned
 native fullscreen runtime remain the separately documented limitations.
@@ -275,7 +284,27 @@ directly. Cocoa `applicationShouldTerminate` returns `NSTerminateNow` and
 last-window close returns YES (`src/sys/macosx/pdg-lib-macosx.mm:255–262`). The
 public JS Shutdown event is a final notification, not a vetoable Quit request.
 These paths need an engine request/deferral API and validated runtime packaging;
-application commands alone do not establish OS/window-close parity. Network
-logout, pending host-work decisions, other application/window commands,
-multiplayer and Map Generation remain pending. This is actionable follow-up,
+application commands alone do not establish OS/window-close parity. Network logout and pending host-work decisions are implemented in the
+application command paths. Other application/window commands and Map Generation
+remain pending. This is actionable follow-up,
 not a claim that the entire parity goal is blocked or completed.
+
+
+### Multiplayer startup verification (2026-10-10)
+
+Host, Join and Open as Host are now dispatched from the stored v3 numeric
+commands. The full native suite passes 1,653 tests on both rebuilt public and
+development PDG runtimes. Eighteen before and eighteen after browser runs cover
+all three commands in en/de/es/fr/ja/ru. Every form screenshot is byte-identical
+to the before-change manually opened form and to the after-change manual form;
+representative screenshots were also visually inspected. After-change runs
+exercise real native create, join, saved-host reopen with identity preservation,
+and listener shutdown, alongside Cancel and the no-replay check. Three English
+introduction runs confirm that the commands open only after dismissal.
+
+Evidence: `/private/tmp/galactica-startup-multiplayer/` contains per-command,
+per-language logs, before/after screenshots, introduction checks and both full
+unit logs. Existing six-language dialog strings are reused, including browser
+hosting feedback; no untranslated command chooser was added. This completes
+these three startup routes, not arbitrary inherited/window commands or the
+remaining preference/runtime requirements.

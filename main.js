@@ -192,6 +192,7 @@ const startupLifecycle=new StartupLifecycle.StartupLifecycle(installation,()=>be
         if(startupSettings.model){startupSettings.model.showControlHelp=enabled;startupSettings.model.display.clearControlHelp();}
     }),
     about:openAbout,newGame:()=>sessions.starting?true:beginNewGame(),open:()=>documents.beginOpen(),
+    host:()=>openNetworkHosting(),openHost:()=>openNetworkHosting(true),join:()=>openNetworkJoin(),
     close:()=>documents.beginClose(),save:()=>documents.beginSave(),saveAs:()=>documents.beginSave(true),revert:()=>sessions.active?documents.beginRevert():false,
     quit:()=>requestApplicationQuit(),fullscreen:()=>fullscreen.toggle(),help:()=>userManual.open(pdg.res.getLanguage()),tutorial:()=>beginTutorial()
 }));

@@ -2,7 +2,7 @@
 // Preferences 27 is shipped in the English CD-ROM File menu.
 // Galactica.cpp also normalizes synthetic command 1324679167.
 const commands=Object.freeze({about:1,newGame:2,open:3,close:4,save:5,saveAs:6,revert:7,quit:10,
-    fullscreen:4016,sound:4017,preferences:27,controlHelp:0x4069FFFC,help:0x4069FFFA,tutorial:0x4069FFF9});
+    openHost:4002,host:4020,join:4021,fullscreen:4016,sound:4017,preferences:27,controlHelp:0x4069FFFC,help:0x4069FFFA,tutorial:0x4069FFF9});
 function read(env=globalThis){
     try{
         const value=env.window?env.window.localStorage.getItem('galactica.StartAction'):env.pdg.cfg.getConfigLong('StartAction');

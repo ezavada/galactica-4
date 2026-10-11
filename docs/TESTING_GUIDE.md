@@ -16,14 +16,14 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1650
-Passed: 1650 ✓
+Total: 1653
+Passed: 1653 ✓
 Failed: 0 ✗
 ```
 
 The output is intentionally verbose because several game systems still log turn, combat, movement, and construction diagnostics.
 
-Use only the pinned PDG runtime (`./gad4`) for the full suite. The tests and runtime use PDG globals and APIs, including `pdg.res`, `pdg.srand()`, `pdg.rand()`, `pdg.Point`, and drawing attributes.
+Use a native PDG runtime for the full suite. `./gad4` selects the pinned release by default; set `PDG_EXECUTABLE` to the rebuilt public or development executable when validating engine changes. The tests and runtime use PDG globals and APIs, including `pdg.res`, `pdg.srand()`, `pdg.rand()`, `pdg.Point`, and drawing attributes.
 
 ## Live multiplayer transport checks
 
@@ -882,3 +882,23 @@ it retains the ordinary attention/mute/duplicate checks. PDG's native
 recovery, closure and offscreen-only states. Linux can run it with `xvfb-run -a`.
 No connected display is recorded as skipped; that is not foreground validation.
 The pinned archive still lacks the query and needs a runtime update.
+
+### Saved multiplayer startup actions
+
+`tools/test-web-host-setup.cjs` accepts `startup-host`, `startup-join`, and
+`startup-open-host` to seed the shipped numeric StartAction before application
+launch. Prefix each mode with `before-` when testing the pre-change app snapshot.
+It verifies automatic opening, the matching manual form, cancellation without
+replay, preference preservation and actual native create/join/reopen/stop work.
+Host operations use a test adapter to real native listeners; browser hosting
+remains unavailable in the product. All automation is muted.
+
+```bash
+node tools/test-web-host-setup.cjs BUILD_DIR SCREENSHOT_DIR ja startup-join
+GALACTICA_TEST_STARTUP_INTRO=1 node tools/test-web-host-setup.cjs BUILD_DIR SCREENSHOT_DIR en startup-host
+```
+
+The introduction variant verifies that the command waits for dismissal. The
+unit suite additionally covers native numeric preference reads, returning
+installation detection, absent/unknown commands, real dialog models and the
+once-only lifecycle.

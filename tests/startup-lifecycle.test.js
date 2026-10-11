@@ -45,7 +45,7 @@ module.exports=()=>test.describe('First-install startup lifecycle',()=>{
  });
  test.it('reads native numeric StartAction and preserves zero and unknown commands',()=>{
   const Actions=require('../src/js/startup-actions.js');
-  for(const value of [undefined,0,1,3,10,0x4069FFF9,4020,-1])test.assertEqual(Actions.read({pdg:{cfg:{getConfigLong:key=>{test.assertEqual(key,'StartAction');return value;}}}}),value===undefined?2:value);
+  for(const value of [undefined,0,1,3,10,0x4069FFF9,4002,4020,4021,-1])test.assertEqual(Actions.read({pdg:{cfg:{getConfigLong:key=>{test.assertEqual(key,'StartAction');return value;}}}}),value===undefined?2:value);
  });
  test.it('reads browser numeric StartAction without changing preferences and defaults invalid or unavailable storage',()=>{
   const Actions=require('../src/js/startup-actions.js');
@@ -59,7 +59,7 @@ module.exports=()=>test.describe('First-install startup lifecycle',()=>{
   for(const [name,value] of Object.entries(Actions.commands)){
    services[name]=()=>{calls.push(name);return true;};test.assertTrue(Actions.dispatch(value,services,{}));test.assertEqual(calls[calls.length-1],name);
   }
-  const count=calls.length;for(const value of [0,-1,4020,4002,4021,987654])test.assertFalse(Actions.dispatch(value,services,{}));test.assertFalse(Actions.dispatch(1,{},{}));test.assertEqual(calls.length,count);
+  const count=calls.length;for(const value of [0,-1,4003,4022,987654])test.assertFalse(Actions.dispatch(value,services,{}));test.assertFalse(Actions.dispatch(1,{},{}));test.assertEqual(calls.length,count);
  });
  test.it('defers browser Open to trusted input, consumes it, and removes both gesture listeners',()=>{
   const Actions=require('../src/js/startup-actions.js'),listeners=new Map();let opens=0,prevented=0,stopped=0;
@@ -90,6 +90,32 @@ module.exports=()=>test.describe('First-install startup lifecycle',()=>{
   const Actions=require('../src/js/startup-actions.js'),preferences=require('../src/js/drawing-preferences.js').createPreferences(browser()),presentation=new (require('../src/js/presentation.js'))(preferences),port={getDrawingArea:()=>new pdg.Rect(800,600)},settings=new (require('../src/js/startup-settings.js'))(port,{drawingPreferences:preferences,presentation,sound:{isEnabled:()=>true,play:()=>{}}}),services=Actions.preferenceServices(preferences,{},settings);
   for(const command of [27,1324679167]){test.assertTrue(Actions.dispatch(command,services,{}));test.assertEqual(settings.model.uiWindow,'settings');settings.key(pdg.key_Escape);test.assertFalse(settings.active);}
   test.assertFalse(Actions.dispatch(16,services,{}));test.assertFalse(settings.active);
+ });
+
+ test.it('opens the actual Host and Open as Host forms from saved v3 startup commands without browser activation',()=>{
+  const Actions=require('../src/js/startup-actions.js'),Host=require('../src/js/network-host-setup.js').HostWindow;
+  const backend={supported:false,latest:()=>null},window=new Host(backend),env={document:{addEventListener:()=>{throw Error('Host form must not wait for a browser gesture');}}};
+  for(const [command,stage] of [[4020,'form'],[4002,'open']]){
+   test.assertTrue(Actions.dispatch(command,{host:()=>window.open(),openHost:()=>window.openSaved()},env));
+   test.assertTrue(window.active);test.assertEqual(window.stage,stage);test.assertEqual(window.message,require('../src/js/i18n.js').getString(1066));
+   if(stage==='open'){test.assertEqual(window.focus,'file');test.assertEqual(window.file.text,'');}
+   test.assertTrue(window.cancel());test.assertFalse(window.active);
+  }
+ });
+ test.it('opens the actual Join form with the remembered player name from command 4021',()=>{
+  const Actions=require('../src/js/startup-actions.js'),join=new (require('../src/js/network-join.js').JoinWindow)({defaultName:()=> 'Voyager 星'});
+  test.assertTrue(Actions.dispatch(4021,{join:()=>join.open()},{}));test.assertTrue(join.active);test.assertEqual(join.stage,'form');test.assertEqual(join.name.text,'Voyager 星');test.assertEqual(join.address.text,'');
+  join.cancel();test.assertFalse(join.active);
+ });
+ test.it('runs each stored multiplayer command once after introduction and does not replay it after cancellation',()=>{
+  const Actions=require('../src/js/startup-actions.js');
+  for(const command of [4002,4020,4021]){
+   const calls=[],env=browser({'galactica.StartAction':String(command)}),services={host:()=>calls.push('host'),openHost:()=>calls.push('openHost'),join:()=>calls.push('join')};
+   const installation=Startup.createInstallation(env);test.assertFalse(installation.first);
+   const lifecycle=new Startup.StartupLifecycle(installation,()=>{throw Error('Returning configuration must not start onboarding');},()=>{},()=>Actions.dispatch(Actions.read(env),services,env));
+   lifecycle.start(true);test.assertEqual(calls.length,0);lifecycle.finishIntroduction();test.assertEqual(calls.length,1);
+   lifecycle.finishIntroduction();lifecycle.start(false);test.assertEqual(calls.length,1);test.assertEqual(env.values.get('galactica.StartAction'),String(command));
+  }
  });
 
 });
