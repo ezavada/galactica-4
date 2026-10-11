@@ -6290,3 +6290,35 @@ Evidence: `/private/tmp/galactica-course-close-{public,devel}-unit.log`,
 `galactica-course-close-{before,after}-<language>.log`,
 `galactica-course-close-comparison.json` and the matching screenshot trees.
 The broader Window/dialog chrome audit remains open.
+
+
+### Credits reopening during the opening music fade
+
+Fixed the reported opening-screen/credits music overlap in the application
+sound controller. Opening Credits/About while the track is already playing
+now cancels its outstanding dismissal fade and restores full volume on the
+same playback. It does not call stop/start again. Once a dismissal fade has
+completed, a later opening starts one fresh playback of the cached resource.
+Repeated active openings are also idempotent. Sound off and event-cue behavior
+remain intact; no text resources or engine source changed.
+
+The new regression fails against the previous controller (two starts instead
+of one), then passes with the fix. Both complete muted native suites pass
+1746 tests with zero failures on public/development PDG. Evidence:
+`/private/tmp/galactica-credits-music-before-unit.log` and
+`galactica-credits-music-{public,devel}-unit.log`.
+
+The actual-input `tools/test-web-startup-music.cjs` workflow now opens Credits
+halfway through the opening dismissal fade and verifies the real HTML audio
+backend and delegated PDG calls: one start, no stop, restored volume, and no
+stale fade after six more seconds. It also covers completed fade/reopen,
+looping, Sound off/on and timer completion without drawing. Fade-completion
+checks acknowledge the real timer instead of relying solely on a fixed sleep.
+All twelve before/current runs pass in the six supported languages, with
+browser audio output muted. All 42 screenshot pairs were compared: eighteen
+are unchanged; the other twenty-four differ only inside the development-build
+revision text (y=73–84). English before/after and all six localized Credits
+views were visually inspected. Evidence: `galactica-credits-music-comparison.json`,
+`galactica-credits-music-{before,after}-<language>.log` and the matching screenshot
+trees under `/private/tmp`. Native listener verification of exact historical
+instrument timbre remains the previously documented separate requirement.

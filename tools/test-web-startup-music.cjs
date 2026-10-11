@@ -42,7 +42,15 @@ await capture('startup-introduction');await key('ArrowRight');await capture('sta
 await click(`${model}.display.getPresentationActions().find(r=>r.action.type==='closePresentation').rect`);
 await evaluate('window.dismissedAt=visualClock');await advanceClock(2500);
 if(!before)await check('!musicBackend.paused && Math.abs(musicBackend.volume-.5)<.0001','Music did not reach fade midpoint');
-await capture('startup-dismissed');await evaluate('visualClock=dismissedAt+5000');await delay(100);
+await capture('startup-dismissed');
+// Reopen the real Credits/About window during the opening-screen fade.
+await click('visual.getStartupSettingsButton()');await action('openAbout');await musicReady();
+if(!before)await check('musicCalls.filter(c=>c[0]==="start").length===1 && musicCalls.filter(c=>c[0]==="stop").length===0 && musicBackend.volume===1','Credits restarted still-playing opening music');
+await capture('about-during-fade');await advanceClock(6000);
+if(!before)await check('!musicBackend.paused && musicBackend.volume===1 && musicCalls.filter(c=>c[0]==="start").length===1','Old dismissal fade stopped reopened Credits music');
+await key('Escape');await key('Escape');await evaluate('window.dismissedAt=visualClock');
+await evaluate('visualClock=dismissedAt+5000');await delay(100);
+if(!before)for(let i=0;i<100 && !await evaluate('musicBackend.paused');i++)await delay(25);
 if(!before)await check('musicBackend.paused && musicBackend.volume===0','Music did not stop after five seconds');
 await click('visual.getStartupSettingsButton()');await action('openAbout');await musicReady();
 await capture('about');
@@ -55,7 +63,8 @@ await key('Escape');await action('toggleSound');
 if(!before)await check('musicBackend.paused','Enabling Sound restarted dismissed music');
 await action('openAbout');await musicReady();await capture('about-reenabled');await key('Escape');
 await advanceClock(5000);
-if(!before)await check('musicBackend.paused && musicCalls.filter(c=>c[0]==="start").length===3','Reenabled About music did not finish fading');
+if(!before)for(let i=0;i<100 && !await evaluate('musicBackend.paused');i++)await delay(25);
+if(!before)await check('musicBackend.paused && musicCalls.filter(c=>c[0]==="start").length===3','Reenabled About music did not finish fading '+JSON.stringify(await evaluate('({paused:musicBackend.paused,volume:musicBackend.volume,calls:musicCalls,window:visual.getSettings().model.uiWindow,kind:visual.getSettings().model.presentation.kind})')));
 if(!before && lang==='en'){
  await action('openAbout');await musicReady();await key('Escape');
  await evaluate('visual.suspendDraw();window.noDrawCount=window.testDrawCount;visualClock+=2500;void 0');await delay(150);

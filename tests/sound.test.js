@@ -18,15 +18,27 @@ module.exports=()=>test.describe('Shipped sound playback and preferences',()=>{
   test.assertFalse(f.audio.endMusic());clock=5099;f.audio.update();test.assertEqual(stops(),0);
   clock=5100;f.audio.update();test.assertEqual(stops(),1);test.assertFalse(f.audio.update());
  });
+ test.it('reopening credits during the opening fade keeps one playback and cancels the old fade',()=>{
+  clock=0;const f=fixture();f.audio.startMusic();f.audio.endMusic();
+  clock=2500;f.tick();test.assertEqual(f.calls.filter(c=>c[0]==='volume').slice(-1)[0][2],.5);
+  test.assertTrue(f.audio.startMusic());
+  test.assertEqual(f.starts().length,1);test.assertEqual(f.calls.filter(c=>c[0]==='stop').length,0);
+  test.assertEqual(f.calls.filter(c=>c[0]==='volume').slice(-1)[0][2],1);
+  clock=10000;f.tick();test.assertFalse(f.audio.update());
+  test.assertTrue(f.audio.startMusic());test.assertEqual(f.starts().length,1);
+  f.audio.endMusic();clock=15000;f.tick();
+  test.assertEqual(f.calls.filter(c=>c[0]==='stop').length,1);
+  f.audio.startMusic();test.assertEqual(f.starts().length,2);
+ });
  test.it('caches music, resets a pending fade on reopening, and obeys the persistent Sound switch',()=>{
   clock=0;const f=fixture(false);test.assertFalse(f.audio.startMusic());test.assertEqual(f.starts().length,0);
   f.audio.setEnabled(true);test.assertEqual(f.starts().join(','),'sounds/startup.wav');
   f.audio.setEnabled(true);test.assertEqual(f.starts().length,1);
   f.audio.endMusic();clock=2500;f.audio.update();f.audio.startMusic();clock=7500;test.assertFalse(f.audio.update());
-  test.assertEqual(f.calls.filter(c=>c[0]==='load').length,1);test.assertEqual(f.starts().length,2);
+  test.assertEqual(f.calls.filter(c=>c[0]==='load').length,1);test.assertEqual(f.starts().length,1);
   test.assertEqual(f.calls.filter(c=>c[0]==='volume').slice(-1)[0][2],1);
   f.audio.setEnabled(false);test.assertFalse(f.audio.update());f.audio.endMusic();f.audio.setEnabled(true);
-  test.assertEqual(f.starts().length,2);
+  test.assertEqual(f.starts().length,1);
  });
  test.it('finishes music fades after a long frame gap and recovers from missing or failed backends',()=>{
   clock=0;const f=fixture();f.audio.startMusic();f.audio.endMusic();clock=20000;f.tick();

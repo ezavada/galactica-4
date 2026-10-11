@@ -40,6 +40,13 @@ function createSound(resourceManager,preferences,now=()=>pdg.tm.getMilliseconds(
     const startMusic=()=>{
         musicRequested=true;
         if(!enabled)return false;
+        // Credits can reopen while the opening track is still fading. Keep
+        // that playback rather than stopping/restarting a native audio queue.
+        if(musicPlaying && music){
+            if(fadeTimer!==null){schedule.stop(fadeTimer);fadeTimer=null;}
+            fadeStarted=null;
+            try{music.setVolume(1);return true;}catch(error){stopMusic();return false;}
+        }
         stopMusic();
         try{
             if(!music)music=resourceManager.getSound('sounds/startup.wav');
