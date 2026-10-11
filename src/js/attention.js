@@ -22,13 +22,15 @@ class Attention {
         return true;
     }
     requestEvent(event) {
+        // V3 ShowMessages removes non-autoshow messages about other players.
+        if(event.observer && event.automatic===false)return false;
         const player=this.game.players[event.recipient];
         if(!player || player.isComputer || !(event.subject || event.position) || this.queue.some(entry=>entry.event===event))return false;
         this.queue.push({object:event.subject,event,recipient:event.recipient,handled:false,eventRequest:true});return true;
     }
     handleEvent(event) { const entry=this.queue.find(entry=>entry.event===event);if(entry){entry.handled=true;if(entry.event)entry.event.handled=true;} }
     pending() {
-        return this.queue.filter(entry=>!entry.handled && !this.game.heldReports.some(report=>entry.event && report.eventId===entry.event.id) && (entry.eventRequest
+        return this.queue.filter(entry=>!entry.handled && !(entry.event && entry.event.observer && entry.event.automatic===false) && !this.game.heldReports.some(report=>entry.event && report.eventId===entry.event.id) && (entry.eventRequest
             ?entry.recipient===this.game.getCurrentHumanPlayer() && !!this.game.getEventFocus(entry.event)
             :this.isHumanObject(entry.object) && entry.object.owner===this.game.getCurrentHumanPlayer()));
     }

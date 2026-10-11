@@ -18,6 +18,12 @@ texts remain inspectable in the generated inventory. Source `%`, `#`, `*`, `@`
 and `$` substitutions correspond to subject, opposing faction, initiating faction,
 focus location and numeric technology/count respectively.
 
+Source emission does not imply a manual attention request: ShowMessages removes
+foreign non-autoshow messages (`GalacticaDoc.cp:1568–1570`). In particular,
+NewFleet observer template 27 remains in this emitter inventory but is absent
+from source Next. V4 retains its detected explicit Events review as an extra
+capability, with no automatic attention or End Turn warning request.
+
 ## Reachable variants
 
 V4 text IDs refer to the existing en/de/es/fr/ja/ru string resources. Suite names
@@ -48,7 +54,7 @@ proof of runtime delivery.
 | 24 | 14 | winner | 952 | neutral-colony-reports | Own neutral colonization: system |
 | 25 | 14 | other | 953 | neutral-colony-reports | Observer neutral colonization: faction and system |
 | 26 | 15 | winner | 950 | rendezvous-formation-reports | New fleet begins forming: location and naming instruction |
-| 27 | 15 | other | 951 | rendezvous-formation-reports | Observer new fleet: faction and location |
+| 27 | 15 | other | 951 | rendezvous-formation-reports | Observer new fleet: faction and location; emitted, then excluded from source manual Next; v4 retains explicit Events review |
 | 30 | 17 | winner | 637; full story 833 | outcome-reports | Affected player defeat and full source TEXT4001 story |
 | 31 | 17 | other | 637 | outcome-reports | Observer defeat: eliminated player identity |
 | 32 | 18 | winner | 644; full story 832 | outcome-reports | Affected player victory and full source TEXT4000 story |

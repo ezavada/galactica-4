@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1738 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1740 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -237,7 +237,7 @@ The largest blockers to a complete game are:
 - Strategic uses of computer advantage beyond the v3 production-style modifiers.
 - Combat-odds estimation, retreat/avoidance, and late-game attack-pressure tuning beyond matching the v3 decision factors.
 
-## 8. Events, messages, comparison, help, and general UI (Functionality 85%, UI 79%)
+## 8. Events, messages, comparison, help, and general UI (Functionality 88%, UI 82%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -245,7 +245,7 @@ The largest blockers to a complete game are:
 | Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Remaining parity is concrete window/menu/list coverage, not an open-ended final visual redesign. |
 | Keyboard shortcuts and hover help | Buttons advertise shortcuts; balloon/flyby help describes controls. | ✅ Implemented | ✅ Implemented | Current controls advertise their working v4 shortcuts. Delayed explanatory help uses the same hit targets as clicks across inspectors, allocation sliders, command/list/course/report windows, startup options and local file dialogs. Text wraps by measured Unicode glyph width and stays within the viewport; covered controls behind modal windows, active drags, destination placement and illustrated overlays cannot show help. Clicks/keys clear it without intercepting input. Settings → Control help persists through native/browser preferences, reload and open-game switching. Eleven regressions and actual six-language browser comparisons cover timing, privacy/input isolation, allocation semantics, current action coverage, persistence, complete text and viewport bounds. New commands introduced with the remaining unported dialogs will need their own help alongside those implementations. |
 | Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | ✅ Implemented | ✅ Implemented | E/Events lists recipient-visible last-turn reports in chronological order, including retained held reports and unread offline messages. Paged rows select and center live subjects, preserve lost-subject locations and show reviewed state; narratives page independently without another turn. The complete source-reachable event inventory is implemented. View report replays full combat, colony, repair, rendezvous, message and outcome narratives. Owner commissioning/discovery now also restore their snapshot-based Stardock/Lab illustrations; observers never receive owner artwork. Actual six-language Events/button checks and before/after image comparisons pass, with both full suites at 1734 tests. Art pixel equivalence, attention sequencing and enemy movement playback remain their separate checklist rows. |
-| Attention queue | Manual requests select/focus subjects sequentially; automatic messages have a separate presentation/review path. | 🟡 Partial | 🟡 Partial | Source owner call-ins, ordinary mobile builds, rendezvous fleets, repairs and colony instructions are implemented, with automatic notices excluded from Next counts, Tab and the deferred post-turn goto. Unread automatic entries retain End Turn protection and explicit Review. The follow-up source audit found one concrete remaining filter: ShowMessages removes foreign manual notices that are not about the local player (GalacticaDoc.cp:1561–1570); v4 still queues detected observer NewFleet notices for Next. Existing observer Events review remains usable. The current full suites pass 1738 tests. This row is reopened for that specific source discrepancy; enemy playback and native/art/audio work remain separate rows. |
+| Attention queue | Manual requests select/focus subjects sequentially; automatic messages have a separate presentation/review path. | ✅ Implemented | ✅ Implemented | Owner call-ins, ordinary mobile builds, rendezvous fleets, repairs and colony instructions use Next. Automatic notices and foreign manual observer notices are excluded from Next counts, Tab and deferred post-turn goto, matching ShowMessages (GalacticaDoc.cp:1561–1570). Previously saved foreign manual queue entries are filtered too. Unread automatic entries retain End Turn protection and explicit Review. Detected observer narratives remain available through explicit Events review. Both full suites pass 1740 tests; actual arrival, Next, explicit review and save checks pass in all six languages. Enemy playback and native/art/audio work remain separate rows. |
 | New technology lab presentation | Illustrated new-drive event. | ✅ Implemented | ✅ Implemented | Dimming lab overlay with blueprint art; Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
 | New hull/class Stardock presentation | Illustrated first-built satellite, scout/courier, colony or higher battleship class event. | ✅ Implemented | ✅ Implemented | Owner-only Stardock overlays use matching hull/class art and translated titles. Reports retain role explanations and focus the building system even after default-order departure. First-build flags, highest built class and queued presentation identities survive saves; repeated hulls and older classes are suppressed. Source-confirmed observer broadcasts now retain faction/class/technology/origin snapshots, follow current detection and Show enemy events, and replay as ordinary reports. Illustrated Stardock art stays owner-only. Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
 | Colonization/capture/battle event text | 22 event codes define 45 player-relative templates; shipped emitters reach 31 variants across eighteen codes. | ✅ Implemented | ✅ Implemented | The complete source-text extraction and recipient/runtime matrix in `docs/reference/EVENT_NARRATIVE_COVERAGE.md` account for every STR#500 index. All source-reachable capture, resistance, destruction, system-defense, offline-message, call-in, build, commissioning, discovery, colonization, rendezvous, outcome, repair and colony-instruction narratives retain their required dynamic content and player-relative perspective. The fourteen resource-only variants are explicitly classified from their absent/private/dormant emitters. Real-transition suites cover privacy, observer visibility, literal snapshots, saves and review; event-family six-language browser/layout audits cover presentation. Owner commissioning includes the formerly missing technology. Fresh full suites pass 1731 tests on both runtimes and eight actual-source import checks pass. Attention sequencing, enemy replay, artwork equality and platform/audio verification remain separate rows. |
@@ -6007,3 +6007,34 @@ that precise issue; the prior complete manual-event inventory concerns emitted
 recipient templates and does not override this presentation filter. Section 8
 estimates return to Functionality 85%, UI 79% pending that fix. The general
 End Turn and wider parity/map-port completion audits remain open.
+
+## Foreign manual notices: source attention filter completed
+
+`GalacticaDoc.cp:1561–1570` counts manual notices only when
+`CMessage::MessageIsAboutMe()` is true, removing other manual notices from
+its needy list. `CMessage.cpp:677–678,692–705` defines that as winner/loser,
+not observer. NewFleet STR#500/27 is emitted but excluded from source Next;
+the seven owner manual templates are 15,16,17,26,43,44,45. The inventory of
+31 emitted recipient templates remains correct and describes emission rather
+than the later client attention filter.
+
+`Attention.requestEvent` now rejects foreign manual requests, and `pending`
+filters older saved queue entries without deleting the event snapshot. Actual
+foreign rendezvous arrival remains visible in Events when detection permits;
+Tab leaves the local selection and turn alone. Explicit Events selection and
+View still show the existing localized observer narrative without owner rename
+instructions or private illustration. Saving/restoring retains that review
+capability and does not reintroduce a Next or End Turn warning request.
+
+Both muted full native suites pass 1740 tests, zero failures, in
+`/private/tmp/galactica-foreign-manual-{public,devel}-unit.log`. The new
+`tools/test-web-foreign-manual.cjs` passes actual arrival, Tab, Events/View,
+dismissal and save flows before/after in en/de/es/fr/ja/ru. All 30 screenshot
+pairs were compared: 12 changed (Next counter and selection), 18 were identical
+(explicit Events, report and after-review scenes). English before/after and all
+six localized report views were visually inspected. Evidence is in
+`/private/tmp/galactica-foreign-manual-comparison.json` and matching browser logs;
+the independent app is `/private/tmp/galactica-foreign-manual-after-app`.
+No user-facing strings changed. The attention row is closed and Section 8
+returns to Functionality 88%, UI 82%. End Turn's wider audit and the other
+parity/map-generation rows remain open.

@@ -22,7 +22,24 @@ module.exports=()=>test.describe('V3 rendezvous fleet formation notices',()=>{
  });
  test.it('gates observer notices on fleet detection, keeps naming guidance private and never automatically presents',()=>{
   const f=fixture(2),fleet=arrive(f),event=reports(f.game).find(e=>e.recipient===1);f.game.turn=2;test.assertTrue(event.observer);test.assertContains(event.message,'Faction Д $&');test.assertFalse(event.message.includes('Please name it'));test.assertFalse(f.game.isEventAccessible(event));test.assertEqual(f.game.attention.pending().length,0);
-  fleet.setVisibilityTo(1,Common.VisibilityLevel.SPEED);test.assertTrue(f.game.getEventRows().includes(event));test.assertTrue(f.game.attention.pending().some(e=>e.event===event));test.assertFalse(f.game.queueObserverReports());test.assertNull(f.game.overlay);test.assertTrue(f.game.replayReport(event));test.assertNull(f.game.getReportDestructionPosition(event));f.game.handleKeyPress(pdg.key_Escape);test.assertEqual(f.game.turn,2);fleet.setVisibilityTo(1,Common.VisibilityLevel.NONE);test.assertFalse(f.game.isEventAccessible(event));
+  fleet.setVisibilityTo(1,Common.VisibilityLevel.SPEED);test.assertTrue(f.game.getEventRows().includes(event));test.assertFalse(f.game.attention.pending().some(e=>e.event===event));test.assertFalse(f.game.queueObserverReports());test.assertNull(f.game.overlay);test.assertTrue(f.game.replayReport(event));test.assertNull(f.game.getReportDestructionPosition(event));f.game.handleKeyPress(pdg.key_Escape);test.assertEqual(f.game.turn,2);fleet.setVisibilityTo(1,Common.VisibilityLevel.NONE);test.assertFalse(f.game.isEventAccessible(event));
+ });
+ test.it('keeps detected observer formation reports out of manual attention and End Turn protection',()=>{
+  const f=fixture(2),fleet=arrive(f);f.game.config.omniscient=true;f.game.turn=2;
+  const event=reports(f.game).find(e=>e.recipient===1);test.assertTrue(f.game.getEventRows().includes(event));
+  test.assertEqual(f.game.attention.pending().length,0);test.assertEqual(f.game.attention.manualPending().length,0);
+  test.assertFalse(f.game.attention.next());test.assertFalse(f.game.selectedObject===fleet);test.assertFalse(event.handled);
+  test.assertEqual(f.game.getUnreviewedItemCount(),0);test.assertTrue(f.game.replayReport(event));test.assertTrue(f.game.overlay.manual);
+  test.assertEqual(f.game.getUnreviewedItemCount(),1);test.assertEqual(f.game.turn,2);
+ });
+ test.it('filters older saved foreign manual attention entries without deleting the explicit observer narrative',()=>{
+  const f=fixture(2),fleet=arrive(f);f.game.config.omniscient=true;f.game.turn=2;
+  const event=reports(f.game).find(e=>e.recipient===1);
+  f.game.attention.queue.push({object:fleet,event,recipient:1,handled:false,eventRequest:true});
+  const loaded=Save.restore(Save.serialize(f.game)),saved=reports(loaded).find(e=>e.recipient===1);
+  test.assertEqual(loaded.attention.queue.length,1);test.assertEqual(loaded.attention.pending().length,0);
+  test.assertEqual(loaded.attention.manualPending().length,0);test.assertEqual(loaded.getUnreviewedItemCount(),0);
+  test.assertFalse(saved.handled);test.assertTrue(loaded.getEventRows().includes(saved));test.assertTrue(loaded.replayReport(saved));
  });
  test.it('retains recipients, literal identity, creation coordinates and manual-only flags through saves',()=>{
   const f=fixture(2),fleet=arrive(f);f.game.config.omniscient=true;f.game.turn=2;const event=reports(f.game).find(e=>e.recipient===1),message=event.message;f.game.players[2].name='Changed';fleet.x+=100000;
