@@ -101,7 +101,7 @@ The largest blockers to a complete game are:
 | Go to home planet | Goto menu/Home-key command centers/selects home. | ✅ Implemented | ✅ Implemented | House icon, View menu and Home key select and center the current human homeworld without changing zoom. H is reserved for eligible selected mobile Hunt, matching v3. |
 | Go to selected/current item | Centers map on selected entity. | ✅ Implemented | ✅ Implemented | View → Center selected item and Shift+C center the current selection; lowercase c remains colony building. |
 | Go to next item needing attention | Menu/Tab cycles the attention queue. | ✅ Implemented | ✅ Implemented | Tab, the Next item map button and command-menu entry select and center the next unhandled valid subject. Counts/active controls reflect pending requests. Selecting a subject manually also handles its request; removed/captured/member objects are skipped. Empty queues never advance the turn. Remaining event-subject coverage is tracked under Attention queue in Section 8. |
-| Replay/go to enemy moves | Shows noteworthy enemy movement. | 🟡 Partial | 🟡 Partial | Settings → Show enemy events controls automatic playback of accessible observer reports, defaults on as in v3, persists as a new-game default and in complete-game saves, and leaves manual Events replay available when off. Observer captures focus/center the known system; movement-time notices defer until visibility is recalculated. Disabled or newly hidden queued observer copies are skipped, and quiet autoplay/private recipients remain respected. Settings pages in short viewports with mouse/arrow input and localized hover help. Surviving-system defense losses and neutral-colonization notices also broadcast detected observer reports with the same playback preference. Other noteworthy enemy movement/broadcast event types remain to port. |
+| Replay/go to enemy moves | Shows noteworthy enemy movement. | 🟡 Partial | 🟡 Partial | Settings → Show enemy events controls automatic playback of accessible observer reports, defaults on as in v3, persists as a new-game default and in complete-game saves, and leaves manual Events replay available when off. Observer captures focus/center the known system; movement-time notices defer until visibility is recalculated. Disabled or newly hidden queued observer copies are skipped, and quiet autoplay/private recipients remain respected. Settings pages in short viewports with mouse/arrow input and localized hover help. Surviving-system defense losses and neutral-colonization notices also broadcast detected observer reports with the same playback preference. Automatic notices without dialogs now retain their map focus for four seconds (eight during tutorials), including the final notice, without repeating their cues. Manual Events review stays immediate. The remaining emitted-event inventory and playback interruption/selection-restoration behavior still need separate audit. |
 | Select objects on map | Stars/ships/fleets can be clicked; overlapping items can be chosen explicitly. | ✅ Implemented | ✅ Implemented | Shared marker centers/extents align drawing and hits at every zoom, including scaled docking offsets and fleet size. Omitted small mobiles, satellites, dead ships, empty fleets, members and fog/preference-hidden markers cannot intercept input. A paged neutral chooser resolves stacked clicks, Control-click nearby items and ambiguous order targets; numbered keys/clicks choose, Escape preserves pending commands, and Enter/Tab cannot advance the game. Labels conceal unknown mobile names; cached type icons and allied-only plotted/scrap hints distinguish entries. Fleet inspector/marker information visibility remains the separate Section 5 gap. |
 | Navigate containing objects | Left Arrow selects the immediate container and remembers the child; Right Arrow inspects the selected contents row. | ✅ Implemented | ✅ Implemented | Docked ships, nested groups and top-level fleets navigate one real container at a time through the existing fleet-exchange UI. The previous child is highlighted and revealed on its sorted page. Parent and Inspect buttons share the same behavior and display arrow hints; the system-parent button has a translated Containing system label. Right Arrow selects a fleet’s first row on entry and can return through a nested hierarchy. Hidden/stale containers, map targeting, drags and modal/editor input retain their existing restrictions. At the top level the shipped No more sample plays without changing selection or turn. Source and verification are recorded below. |
 | Selection marker | Pulsing marker around selected object. | ✅ Implemented | ✅ Implemented | Rendered for stars, ships, and fleets in `display.js`. |
@@ -5017,3 +5017,54 @@ This closes the missing runtime startup/About loop and fade requirement. The
 broad Sound row remains partial for the previously recorded packaged/connected
 focus checks and original QuickTime acoustic comparison; this change does not
 prove those separate requirements or complete the overall feature audit.
+
+
+### 2026-10-11 — Automatic no-dialog notice pacing restored
+
+Verified `GalacticaDoc.cp:1525,1639–1662,1691–1705`: the first automatic message
+starts without delay; subsequent messages wait until 240 ticks after the prior
+message began, tutorials add another 240 ticks, modal dialogs clear the delay,
+and the final no-dialog notice receives the remaining dwell before selection
+changes. V4 previously dismissed an animation-only report as soon as its cue
+was issued, allowing successive enemy discoveries and other notices to flash
+past in a frame.
+
+Automatic no-dialog presentations now retain their focus for four seconds, or
+eight in a tutorial, starting on first drawing and including explosion/cue
+time. The final notice also holds before completion. Manual narrative replay
+and owner art dialogs retain their existing input-driven behavior. The display
+keeps its notice clocks in a WeakMap, outside simulation/saves; pending restored
+notices start on the new display clock instead of inheriting another process's
+timestamp. Existing explicit dismissal can end a notice early. Cues still use
+their existing once-per-presentation state and pending cues are allowed to
+finish. No language strings, simulation randomness or turn behavior changes.
+
+Three new regressions cover sequential and final four-second notices, tutorial
+pacing, explosion time within the dwell, manual dialogs, restored clocks and
+early dismissal. Existing outcome, occupation, colonization, discovery,
+commissioning and destruction assertions now check the dwell before automatic
+completion. Both full native suites pass 1713 tests with muted output.
+
+`tools/test-web-notice-pacing.cjs` generates two observer discovery reports,
+verifies the first remains at 3999 ms, the second begins at 4000 ms and the
+last finishes at 8000 ms, with one actual backend cue each and no turn advance.
+It then uses actual Events controls for immediate complete narrative replay.
+All six language lanes pass on both baseline and changed builds; Chrome remains
+muted. Existing observer-class, outcome-sound and occupation-cue browser
+regressions also pass in English after their helpers explicitly advance the
+source notice clock before attempting manual review. The other related helper
+variants share this update.
+
+All 30 before/after screenshot pairs were compared: 18 are byte-identical;
+12 initial/midpoint frames show the intended first-system focus instead of
+skipping straight to the second. English before/after midpoint and final manual
+review were visually inspected, as were complete localized final narratives
+in German, Spanish, French, Japanese and Russian. Second-notice, finished and
+manual-review frames match the baseline in every language. Captures/comparison
+metadata are under `/private/tmp/galactica-notice-pacing`, with matching-prefix
+native and browser logs.
+
+This closes the source automatic-notice dwell difference. The broader replay
+row remains partial pending the separate emitted-event inventory, v3's
+user-abort/queued-message behavior and selection-restoration audit; no general
+replay or overall project completion claim is made.

@@ -7,6 +7,32 @@ function fixture(width=800,height=600){
 }
 function capture(f){return f.game.recordOccupationReports(f.target,2,3,'capture').find(e=>e.observer);}
 module.exports=()=>test.describe('Enemy event playback preference',()=>{
+ test.it('keeps each automatic no-dialog notice readable for four seconds, including the final notice',()=>{
+  const f=fixture();let now=1000;f.game.getCurrentMilliseconds=()=>now;
+  f.display.drawDestructionEffect=()=>false;
+  const first=capture(f),second=capture(f);test.assertEqual(f.game.overlay.eventId,first.id);
+  f.display.drawOverlay(f.game.overlay);now=4999;f.display.drawOverlay(f.game.overlay);
+  test.assertEqual(f.game.overlay.eventId,first.id);test.assertFalse(first.handled);
+  now=5000;f.display.drawOverlay(f.game.overlay);test.assertTrue(first.handled);test.assertEqual(f.game.overlay.eventId,second.id);
+  f.display.drawOverlay(f.game.overlay);now=8999;f.display.drawOverlay(f.game.overlay);test.assertFalse(second.handled);
+  now=9000;f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);test.assertTrue(second.handled);test.assertEqual(f.game.turn,1);
+ });
+ test.it('doubles tutorial notice pacing, preserves manual dialogs and counts explosion time within the dwell',()=>{
+  const f=fixture();let now=0;f.game.getCurrentMilliseconds=()=>now;f.game.tutorialSimulation={};
+  const event=capture(f);f.display.drawDestructionEffect=()=>now<600;
+  f.display.drawOverlay(f.game.overlay);now=7999;f.display.drawOverlay(f.game.overlay);test.assertFalse(event.handled);
+  now=8000;f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);
+  test.assertTrue(f.game.replayReport(event));let narratives=0;f.game.port.drawRect=()=>{};f.display.drawReport=()=>narratives++;
+  f.display.drawOverlay(f.game.overlay);test.assertEqual(narratives,1);test.assertTrue(f.game.overlay.manual);
+ });
+ test.it('restarts a restored pending notice on the new display clock and permits explicit early dismissal',()=>{
+  const f=fixture();f.game.getCurrentMilliseconds=()=>2000000;const event=capture(f);
+  const loaded=Save.restore(Save.serialize(f.game));loaded.port=f.game.port;const display=new Display(loaded);
+  let now=10;loaded.getCurrentMilliseconds=()=>now;display.drawDestructionEffect=()=>false;
+  display.drawOverlay(loaded.overlay);now=4009;display.drawOverlay(loaded.overlay);test.assertEqual(loaded.overlay.eventId,event.id);
+  loaded.dismissEventPresentation();test.assertNull(loaded.overlay);test.assertTrue(loaded.eventLog.find(e=>e.id===event.id).handled);
+ });
+
  test.it('defaults playback on and automatically focuses a visible foreign capture without advancing time',()=>{
   const f=fixture(),event=capture(f);test.assertTrue(f.game.showEnemyEvents);test.assertEqual(f.game.overlay.eventId,event.id);test.assertTrue(f.game.overlay.automaticObserver);
   test.assertTrue(f.game.selectedObject===f.target);test.assertFalse(event.handled);f.game.handleKeyPress(pdg.key_Escape);test.assertTrue(event.handled);test.assertNull(f.game.overlay);test.assertEqual(f.game.turn,1);

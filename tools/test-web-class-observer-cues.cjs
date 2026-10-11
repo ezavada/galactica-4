@@ -22,6 +22,8 @@ const click=async expr=>{const before=await evaluate('window.testInputCount || 0
 const key=async(text)=>{const before=await evaluate('window.testInputCount || 0');const special={Enter:[13,'\r'],Tab:[9,''],Escape:[27,'']}[text],code=special?special[0]:text==='+'||text==='='?187:text.toUpperCase().charCodeAt(0),value=special?special[1]:text;await call('Input.dispatchKeyEvent',{type:'keyDown',key:text,text:value,unmodifiedText:value,windowsVirtualKeyCode:code});await call('Input.dispatchKeyEvent',{type:'keyUp',key:text,windowsVirtualKeyCode:code});await waitForInput(before,1);};
 const point=async expr=>{const before=await evaluate('window.testInputCount || 0');const p=await evaluate(`(()=>{const p=${expr},c=Module.canvas.getBoundingClientRect();return {x:c.x+p.x,y:c.y+p.y}})()`);await call('Input.dispatchMouseEvent',{type:'mousePressed',...p,button:'left',clickCount:1});await call('Input.dispatchMouseEvent',{type:'mouseReleased',...p,button:'left',clickCount:1});await waitForInput(before,2);};
 const advanceClock=async ms=>{await evaluate('visualClock+='+ms);await delay(100);};
+// Let source-paced no-dialog notices complete before manual review.
+const finishAutomaticNotices=async()=>{for(let i=0;i<100;i++){if(!await evaluate('g.overlay && g.overlay.animationOnly'))return;await advanceClock(8500);}throw Error('Automatic notice queue did not finish');};
 await evaluate('window.visualClock=125;pdg.tm.getMilliseconds=()=>visualClock;void 0');
 
 
@@ -35,6 +37,7 @@ await evaluate(`window.g=visual.getGame();window.target=g.stars.find(s=>s.owner=
 for(const kind of ['commissioning','discovery']){
  await evaluate(`g.uiWindow=null;g.clearEventPresentations();g.eventLog=[];g.turn=1;window.actor=g.factory.createShip(target.x,target.y,'scout',target,true);window.report=("${kind}"==='commissioning'?g.recordCommissioningReports(actor,1):g.recordDiscoveryReports(target,1)).find(e=>e.recipient===1);g.turn=2;void 0`);
  await capture('automatic-observer-'+kind);
+if(!before)await finishAutomaticNotices();
  await check(before?'g.overlay && g.overlay.eventId===report.id && !g.overlay.animationOnly':'!g.overlay && report.handled','Observer '+kind+' automatic presentation wrong');
  if(before)await key('Escape');
  await click('visual.getDisplay().getMapButtonRegions().find(r=>r.action.window==="events").rect');

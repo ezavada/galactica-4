@@ -31,6 +31,7 @@ const debugSelectedObject = true;
 class Display {
     constructor(game) {
         this.port = game.port;
+        this.automaticNoticeStarts = new WeakMap();
         this.game = game;
         this.factory = game.getFactory();
         this.selectedObject = null;
@@ -4166,12 +4167,24 @@ class Display {
         }
     }
 
+    automaticNoticeWaiting(overlay) {
+        if(!overlay.animationOnly || overlay.manual)return false;
+        const now=this.game.getCurrentMilliseconds();
+        if(!this.automaticNoticeStarts.has(overlay))this.automaticNoticeStarts.set(overlay,now);
+        // V3 starts a four-second dwell before PlayMessage, including the
+        // explosion/cue time; tutorials double it. Restored notices get a fresh
+        // display clock rather than inheriting another process's timestamp.
+        const duration=this.game.tutorialSimulation?8000:4000;
+        return now-this.automaticNoticeStarts.get(overlay)<duration;
+    }
+
     drawOverlay(overlay) {
+        const waiting=this.automaticNoticeWaiting(overlay);
         const exploding=this.drawDestructionEffect(overlay);
         if(this.game.sound)this.game.sound.present(this.game,overlay,exploding);
         if(exploding)return;
         if(overlay.animationOnly){
-            if(this.game.sound && this.game.sound.isPending(overlay))return;
+            if(waiting || this.game.sound && this.game.sound.isPending(overlay))return;
             this.game.dismissEventPresentation();return;
         }
         const drawingArea = this.port.getDrawingArea();

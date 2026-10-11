@@ -19,7 +19,7 @@ module.exports=()=>test.describe('V3 system resistance and capture reports',()=>
   const capture=events.find(e=>e.occupation.kind==='capture');
   while(f.game.overlay && f.game.overlay.eventId!==capture.id)f.game.dismissEventPresentation();
   let narrative=0,dim=0;f.display.drawDestructionEffect=()=>false;f.display.drawReport=()=>narrative++;f.display.port.drawRect=()=>dim++;
-  f.display.drawOverlay(f.game.overlay);test.assertFalse(f.game.overlay && f.game.overlay.eventId===capture.id);test.assertEqual(narrative,0);test.assertEqual(dim,0);test.assertTrue(capture.handled);
+  let now=0;f.game.getCurrentMilliseconds=()=>now;f.display.drawOverlay(f.game.overlay);test.assertNotNull(f.game.overlay);now=4000;f.display.drawOverlay(f.game.overlay);test.assertFalse(f.game.overlay && f.game.overlay.eventId===capture.id);test.assertEqual(narrative,0);test.assertEqual(dim,0);test.assertTrue(capture.handled);
   f.game.clearEventPresentations();f.game.turn=2;test.assertTrue(f.game.replayReport(capture));test.assertFalse(f.game.overlay.animationOnly);test.assertTrue(f.game.overlay.manual);
   f.display.drawOverlay(f.game.overlay);test.assertEqual(narrative,1);test.assertEqual(dim,1);test.assertEqual(f.game.turn,2);
  });

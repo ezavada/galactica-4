@@ -60,11 +60,11 @@ module.exports=()=>test.describe('V3 individual destruction reports',()=>{
  test.it('automatically plays animation without another alert, then allows full narrative replay from Events',()=>{
   const f=fixture(1,2,true),events=battle(f),local=events.find(e=>e.recipient===1);
   test.assertTrue(f.game.eventLog.find(e=>e.id===f.game.overlay.eventId).combat!==undefined);f.game.dismissEventPresentation();
-  const overlay=f.game.overlay;test.assertEqual(overlay.eventId,local.id);test.assertTrue(overlay.animationOnly);let reports=0;f.display.drawReport=()=>reports++;
+  const overlay=f.game.overlay;f.game.getCurrentMilliseconds=()=>f.display.visualTime;test.assertEqual(overlay.eventId,local.id);test.assertTrue(overlay.animationOnly);let reports=0;f.display.drawReport=()=>reports++;
   test.assertEqual(f.display.getUIActionAt(1,1).type,'consume');f.display.drawOverlay(overlay);test.assertEqual(f.display.getDestructionEffect(overlay).frame,0);
-  f.display.visualTime+=Effect.duration;f.display.drawOverlay(overlay);test.assertNull(f.game.overlay);test.assertEqual(reports,0);test.assertTrue(local.handled);test.assertEqual(f.game.turn,1);
+  f.display.visualTime+=Effect.duration;f.display.drawOverlay(overlay);test.assertNotNull(f.game.overlay);f.display.visualTime+=4000;f.display.drawOverlay(overlay);test.assertNull(f.game.overlay);test.assertEqual(reports,0);test.assertTrue(local.handled);test.assertEqual(f.game.turn,1);
   f.game.uiWindow='events';f.game.selectEvent(local);test.assertTrue(f.game.replayReport(local));test.assertFalse(f.game.overlay.animationOnly);
-  f.display.drawOverlay(f.game.overlay);f.display.visualTime+=Effect.duration;f.display.drawOverlay(f.game.overlay);test.assertEqual(reports,1);test.assertEqual(f.game.turn,1);
+  f.display.drawOverlay(f.game.overlay);f.display.visualTime+=Effect.duration+1;f.display.drawOverlay(f.game.overlay);test.assertEqual(reports,1);test.assertEqual(f.game.turn,1);
  });
  test.it('preserves literal names, private perspectives and pending animation-only presentations through saves',()=>{
   const f=fixture(2,1,true);battle(f);const local=f.game.eventLog.find(e=>e.destruction&&e.recipient===1),text=local.message;
@@ -77,7 +77,7 @@ module.exports=()=>test.describe('V3 individual destruction reports',()=>{
   const f=fixture(),neutral=f.game.factory.createStar(1000,1000,'Neutral'),colony=f.game.factory.createShip(0,0,'colony',f.homes[0],true);
   f.game.colonizeStar(neutral,colony);test.assertFalse(f.game.eventLog.some(e=>e.destruction));test.assertNull(f.game.getReportDestructionPosition(f.game.eventLog.find(e=>e.colonization)));f.game.handleKeyPress(pdg.key_Escape);
   f.game.removeDestroyedShip(f.weak,1);const count=f.game.eventLog.length;f.game.removeDestroyedShip(f.weak,1);test.assertEqual(f.game.eventLog.length,count);
-  f.display.visualEffects.reducedMotion=true;f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);test.assertEqual(f.game.turn,1);
+  f.display.visualEffects.reducedMotion=true;let now=0;f.game.getCurrentMilliseconds=()=>now;f.display.drawOverlay(f.game.overlay);test.assertNotNull(f.game.overlay);now=4000;f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);test.assertEqual(f.game.turn,1);
  });
  test.it('provides complete translated ship and fleet winner/loser narratives and measured replay layouts',()=>{
   const language=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);

@@ -28,12 +28,12 @@ module.exports=()=>test.describe('Victory and defeat reports',()=>{
   const {game,display}=fixture({numComputers:2});ownStar(game,1);ownStar(game,3);game.showEnemyEvents=false;game.updatePlayerPieceCounts();
   const event=game.eventLog.find(e=>e.outcome && e.outcome.playerNum===2);test.assertDefined(event);test.assertFalse(game.isGameOver);test.assertTrue(game.overlay.animationOnly);
   let dim=0,narrative=0;display.port.drawRect=()=>dim++;display.drawOutcome=()=>narrative++;display.drawDestructionEffect=()=>false;
-  display.drawOverlay(game.overlay);test.assertNull(game.overlay);test.assertEqual(dim,0);test.assertEqual(narrative,0);test.assertTrue(event.handled);
+  let now=0;game.getCurrentMilliseconds=()=>now;display.drawOverlay(game.overlay);test.assertNotNull(game.overlay);now=4000;display.drawOverlay(game.overlay);test.assertNull(game.overlay);test.assertEqual(dim,0);test.assertEqual(narrative,0);test.assertTrue(event.handled);
   test.assertTrue(game.replayOutcome(event));test.assertTrue(game.overlay.manual);test.assertFalse(!!game.overlay.animationOnly);display.drawOverlay(game.overlay);test.assertEqual(dim,1);test.assertEqual(narrative,1);test.assertEqual(game.turn,1);
  });
  test.it('automatically advances opponent defeat to the local victory dialog without dismissing or advancing time',()=>{
   const {game,display}=fixture();ownStar(game,1);game.updatePlayerPieceCounts();test.assertEqual(game.overlay.kind,'defeat');test.assertTrue(game.overlay.animationOnly);
-  display.drawDestructionEffect=()=>false;display.drawOverlay(game.overlay);test.assertEqual(game.overlay.kind,'win');test.assertEqual(game.overlay.playerNum,1);test.assertFalse(game.overlay.animationOnly);test.assertEqual(game.turn,1);
+  display.drawDestructionEffect=()=>false;let now=0;game.getCurrentMilliseconds=()=>now;display.drawOverlay(game.overlay);test.assertEqual(game.overlay.kind,'defeat');now=4000;display.drawOverlay(game.overlay);test.assertEqual(game.overlay.kind,'win');test.assertEqual(game.overlay.playerNum,1);test.assertFalse(game.overlay.animationOnly);test.assertEqual(game.turn,1);
   test.assertTrue(display.getOutcomeLayout(game.overlay).lines.join(' ').includes('Victory is yours!'));
  });
  test.it('queues a defeated-opponent notice then the full local victory narrative after the last opponent falls',()=>{

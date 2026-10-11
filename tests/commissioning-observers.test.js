@@ -12,7 +12,7 @@ module.exports=()=>test.describe('V3 first-class commissioning broadcasts',()=>{
   test.assertTrue(f.game.overlay.animationOnly);test.assertTrue(f.game.overlay.automaticObserver);
   const played=[];f.game.sound=Sound.createSound({getSound:name=>({setLooping:()=>{},stop:()=>{},start:()=>played.push(name)})},{readSound:()=>true,writeSound:()=>{}});
   let narratives=0,dims=0;f.display.drawDestructionEffect=()=>false;f.display.drawReport=()=>narratives++;f.display.port.drawRect=()=>dims++;
-  f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);test.assertEqual(narratives,0);test.assertEqual(dims,0);test.assertEqual(played.join(','),'sounds/1014.wav');test.assertTrue(event.handled);test.assertTrue(f.game.selectedObject===f.star);
+  let now=0;f.game.getCurrentMilliseconds=()=>now;f.display.drawOverlay(f.game.overlay);test.assertNotNull(f.game.overlay);now=4000;f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);test.assertEqual(narratives,0);test.assertEqual(dims,0);test.assertEqual(played.join(','),'sounds/1014.wav');test.assertTrue(event.handled);test.assertTrue(f.game.selectedObject===f.star);
   f.game.turn=2;test.assertTrue(f.game.replayReport(event));test.assertTrue(f.game.overlay.manual);test.assertFalse(f.game.overlay.animationOnly);test.assertFalse(f.game.overlay.automaticObserver);
   f.display.drawOverlay(f.game.overlay);test.assertEqual(narratives,1);test.assertEqual(dims,1);test.assertEqual(f.game.turn,2);
  });

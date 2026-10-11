@@ -12,7 +12,7 @@ module.exports=()=>test.describe('V3 neutral-colony owner and observer reports',
  test.it('automatically handles colonization without a dialog and preserves owner naming and manual replay',()=>{
   const f=fixture(),event=arrive(f).find(e=>e.recipient===1);
   test.assertTrue(f.game.overlay.animationOnly);let narrative=0;f.display.drawDestructionEffect=()=>false;f.display.drawReport=()=>narrative++;
-  f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);test.assertEqual(narrative,0);test.assertTrue(event.handled);
+  let now=0;f.game.getCurrentMilliseconds=()=>now;f.display.drawOverlay(f.game.overlay);test.assertNotNull(f.game.overlay);now=4000;f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);test.assertEqual(narrative,0);test.assertTrue(event.handled);
   test.assertTrue(f.game.attention.pending().some(e=>e.event.type===Common.EventType.RENAME_COLONY));
   f.game.turn=2;test.assertTrue(f.game.replayReport(event));test.assertFalse(f.game.overlay.animationOnly);test.assertTrue(f.game.overlay.manual);
  });
