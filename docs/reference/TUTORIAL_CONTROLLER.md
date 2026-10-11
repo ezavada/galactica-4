@@ -10,6 +10,14 @@ complete English run from the visible launch button. V3 saves the practice game
 without persisting instruction progress. Active-tutorial Open and Revert retain bindings and preserve independent
 documents. See the source audit and lifecycle verification below.
 
+Current status: the shipped tutorial functionality and UI checklist is
+implemented. The consolidated 2026-10-11 verification in
+`../V3_V4_FEATURE_STATUS.md` records a current six-language full walkthrough,
+source/fixture checks, recovery evidence and 1,682 passing native tests.
+The implementation records below are chronological; their earlier statements
+about unfinished work are superseded by later source audits and validation.
+Other application/runtime packaging and Map Generation requirements remain separate.
+
 The constructor accepts decoded page metadata and callbacks. Use `tutorial-lessons.js::load(dataDirectory, language)` for runtime pages;
 `v3-tutorial.json` is a source reference,
 not an English-only UI dependency. The model needs every logical lesson and
