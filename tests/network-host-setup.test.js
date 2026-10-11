@@ -97,6 +97,22 @@ module.exports=()=>test.describe('Multiplayer Host setup controls',()=>{
   const w=form();let discarded=null;w.backend.discardConversion=token=>{discarded=token;};w.stage='conversion';w.conversion={token:'snapshot'};w.busy=true;test.assertFalse(w.cancel());test.assertEqual(discarded,null);w.busy=false;test.assertTrue(w.cancel());test.assertEqual(discarded,'snapshot');test.assertEqual(w.conversion,null);test.assertFalse(w.active);
  });
 
+ test.it('keeps compact Initial State names, selection and edit controls readable in all six languages',()=>{
+  const language=pdg.res.getLanguage(),measure=(text,size=12)=>Array.from(text).length*size*.65;
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const w=form();w.stage='initialState';w.initialRows=Array.from({length:7},(_,i)=>({id:i+1,name:'System 星 '+('Ω'.repeat(20))+' <Enter>',population:4294967295,technology:65535,owner:0}));w.initialSelection=1;w.initialPlayers=3;w.page=0;
+   const l=w.layout(320,340,measure);test.assertTrue(l.compact);test.assertEqual(l.buttons.filter(b=>!b.body).map(b=>b.action).join(','),'cancel');for(const c of l.choices){test.assertEqual(c.labelLines.join(''),c.label);for(const line of c.labelLines)test.assertTrue(measure(line,12)<=c.rect.width-16+.001);}
+   w.initialAction('next');const page=w.layout(320,340,measure);test.assertEqual(page.choices[0].value,5);test.assertTrue(page.choices[0].rect.y>=page.bodyClip.y);test.assertTrue(page.labels.map(x=>x.text).join('').includes(w.initialRows[0].name));
+   w.key(pdg.key_DownArrow);const keyboard=w.layout(320,340,measure),r=keyboard.choices.find(c=>c.value===2).rect;test.assertTrue(r.y>=keyboard.bodyClip.y && r.y+r.height<=keyboard.bodyClip.y+keyboard.bodyClip.height);
+  }}finally{pdg.res.setLanguage(language);}
+ });
+ test.it('keeps compact initial-value bounds, full feedback and fixed commands readable for every edit kind',()=>{
+  const language=pdg.res.getLanguage(),measure=(text,size=12)=>Array.from(text).length*size*.65;
+  try{for(const lang of ['en','de','es','fr','ja','ru'])for(const kind of ['population','technology','owner','ship']){pdg.res.setLanguage(lang);const w=form();w.stage='initialState';w.initialSelection=1;w.initialRows=[{id:1,name:'System 星 '+('Ω'.repeat(20))+' <Enter>',population:4294967295,technology:65535,owner:1,shipType:'scout'}];w.initialPlayers=99;w.initialAction('initial:'+kind);w.message=pdg.res.getString(1174);const l=w.layout(320,340,measure);
+   test.assertTrue(l.compact);test.assertEqual(l.rect.height,300);test.assertEqual(l.statusLines.map(x=>x.text).join(''),w.message);test.assertEqual(l.buttons.filter(b=>!b.body).map(b=>b.action).join(','),'cancel,saveInitialState');test.assertTrue(l.labels.map(x=>x.text).join('').includes(w.initialRows[0].name));
+   if(kind==='ship')test.assertEqual(l.choices.map(x=>x.value).join(','),'defense,scout,colony,battleship');else{w.key(pdg.key_Tab);const focused=w.layout(320,340,measure),r=focused.fields[0].rect;test.assertTrue(w.initialValue.selected);test.assertTrue(r.y>=focused.bodyClip.y && r.y+r.height<=focused.bodyClip.y+focused.bodyClip.height);}w.cancel();test.assertEqual(w.stage,'initialState');test.assertEqual(w.initialRows[0].population,4294967295);
+  }}finally{pdg.res.setLanguage(language);}
+ });
+
  test.it('keeps compact admission codes literal, complete, scrollable and separate from fixed Save/Cancel in six languages',()=>{
   const language=pdg.res.getLanguage(),measure=(text,size=12)=>Array.from(text).length*size*.65,Name=require('../src/js/player-name.js');
   try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const w=form();w.stage='admission';w.focus='admissionCode';w.page=0;w.admissionList='allowed';w.admissionSelection=null;w.admissionCode=Name.createEditor('',64);w.admission={allowWithoutCode:false,allowed:Array.from({length:7},(_,i)=>'CODE-'+i+'-'+('Ω'.repeat(40))+' <Enter>'),banned:['BAN 星 <Esc>']};w.message=pdg.res.getString(1152);

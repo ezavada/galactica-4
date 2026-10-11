@@ -7702,3 +7702,49 @@ Window/dialog chrome remains Partial for Initial State/Value, End Turn, remainin
 busy/error variants and the separate gameplay minimum-viewport audit. Overall
 parity, broad localization and Map Generation completion remain open; localhost
 checks do not establish physical LAN or packaged native GUI behavior.
+
+
+### Compact Initial State and value editors (completed)
+
+Audited shipped v3 `Classes/GalacticaHostDoc.cp:423–435` turn-one availability
+and `530–582` population/technology/owner/new-ship operations, plus the local
+`GalacticaSingleDoc.cp:150–185` numeric editing path. Existing mutation, ownership,
+scanner, construction and persistence semantics are unchanged. Below 400px wide,
+the shared Initial State list now wraps full names, scrolls paging/edit commands,
+keeps Continue fixed and identifies an off-page selected system before its values.
+Page changes reveal the list; arrow selection reveals the selected row. Numeric
+and ship dialogs retain their 300px base height, wrap names/range explanations
+and keep complete feedback and measured Save/Create/Cancel commands fixed. Tab
+selects/reveals numeric input. System names are drawn literally at every size,
+including `<Enter>` endings. No new strings or engine edits.
+
+Both full native suites pass **1,786 tests, zero failures**. Two new six-language
+regressions cover complete Unicode names, paging/off-page context, arrow reveal,
+every value/hull edit kind, bounds/help, full feedback, fixed commands, focus
+and cancellation. All 36 actual-input native-backed local-owner before/after
+browser workflows pass in en/de/es/fr/ja/ru at 800×600, 640×340 and 320×340.
+A test-only native fixture seeds a literal Unicode system name; actual canvas/key
+input exercises paging/selection, modal dragging/outside clunk, numeric cancel,
+invalid input, durable-save failure/retry, population/technology/owner saves and
+all four completed ship types. A read-only fixture counts actual newly completed
+ships rather than the intentionally retained production hull. Concurrent revision
+and turn-two guards reject drafts; durable stop succeeds. Twelve authenticated
+remote narrow before/after workflows also pass, including Initial State list
+drag/cancel plus inherited Settings/admission, authorization-loss and disconnect
+checks. They do not claim remote coverage of every initial-state mutation.
+
+Local comparison: 468 pairs, 180 exact ordinary editor pairs, 60 ordinary hosting
+pairs with differences confined to connection/file/clock regions (zero outside),
+72 ordinary list pairs intentionally changing literal-name rendering, and 156
+narrow layout/scroll/host-metadata changes. Remote comparison: 108 pairs, 54 exact;
+all six administrator and disconnected map pairs remain identical. Reviewed
+all six selected, next-page, invalid/save-failure, technology, owner, battleship
+choice and remote-dragged comparisons, plus ordinary/narrow English literal names.
+Evidence: `/private/tmp/galactica-initial/`,
+`/private/tmp/galactica-remote-initial/`, their layout/comparison files and
+`galactica-initial-{pdg,pdg-devel}-unit.log`. Initial fixture ship-check failures
+are retained separately; corrected workflows all pass. Concurrent artwork edits
+are excluded. Window chrome remains Partial for compact End Turn, remaining
+busy/error variants and the separate gameplay minimum-viewport audit. Overall
+parity, broad localization, physical LAN/packaged GUI and Map Generation completion
+remain unproven.

@@ -426,3 +426,16 @@ before/after workflows; reviewed selected/paged/blocked-code/duplicate/failure
 and remote-dragged/draft comparisons. Both full native suites pass 1,784 tests.
 Evidence: `/private/tmp/galactica-admission/` and `galactica-remote-admission/`.
 Other compact admin dialogs and broad localization completion remain open.
+
+
+### Compact Initial State/value editors (2026-10-11)
+
+Existing system names, state summaries, numeric limits, hull choices and error/
+command captions now stay readable below 400px wide. Complete feedback and
+Save/Create/Cancel stay fixed. Literal `<Enter>` endings display as name content;
+off-page context uses the existing system name. No IDs or untranslated UI strings
+added. All six languages pass 36 actual-input local-owner and twelve authenticated
+remote before/after workflows; reviewed selected/paged/errors, technology/owner,
+hull-choice and remote-dragged comparisons. Both native suites pass 1,786 tests.
+Evidence: `/private/tmp/galactica-initial/` and `galactica-remote-initial/`.
+Compact End Turn and the broad localization completion audit remain open.

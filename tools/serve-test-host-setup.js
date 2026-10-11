@@ -28,6 +28,8 @@ const server=http.createServer((req,res)=>{
    result=service.describe(await service.open(path.join(directory,input.file),input.listen));
   }else if(req.url==='/postgame-victory' && record){
    const host=record.host;host.pauseClock();host.game.turn=7;for(const star of host.game.stars){if(star.owner===2)star.owner=0;star.currentShip=null;}host.forceEndTurn(7);if(!host.game.isGameOver || host.game.winningPlayerNum!==1)throw Error('Fixture victory failed');result=service.describe(record);
+  }else if(req.url==='/initial-name' && record){if(!require('../src/js/player-name.js').validName(input.name))throw Error('Invalid fixture name');record.host.game.stars[0].name=input.name;record.host.persist();result=service.describe(record);
+  }else if(req.url==='/initial-ships' && record){result=record.host.game.allShips.map(ship=>({id:ship.id,type:ship.type,owner:ship.owner,progress:ship.progress}));
   }else if(req.url==='/turn-control' && record)result=service.describe(await service.turnControl(record,input.action,input.turn));
   else if(req.url==='/initial-state' && record)result=service.describe(await service.editInitialState(record,input.change,input.revision,input.turn));
   else if(req.url==='/player' && record)result=service.describe(await service.changePlayer(record,input.change,input.revision,input.turn));

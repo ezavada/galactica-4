@@ -1316,3 +1316,26 @@ zero outside changes; 60 ordinary literal-code changes; 78 narrow changes) and
 108 remote pairs (48 exact). Reviewed all six selected/paged/blocked-code/error
 and remote-dragged/draft pairs. Other compact admin/gameplay viewport checks and
 physical LAN/packaged GUI validation remain separate work.
+
+
+### Compact Initial State browser checks
+
+Append `initial` to the Host status helper:
+`node tools/test-web-host-status-compact.cjs BUILD OUTPUT LANG before|after WIDTH HEIGHT initial`.
+The native fixture seeds a Unicode/literal system name. Actual canvas/key input
+checks list paging/selection, modal drag/isolation, numeric cancellation/validation,
+failed-save rollback/retry, population/technology/owner edits, all four hulls,
+stale revisions, turn-one cutoff and host stop. Test-only `initial-ships` reads
+completed native ships; production-hull metadata is deliberately unchanged.
+Chrome and the native fixture remain muted.
+
+Both full native suites pass 1,786 tests. All 36 six-language local-owner runs at
+ordinary/short/narrow sizes and twelve authenticated remote narrow runs pass.
+Remote coverage includes Initial State list drag/cancel and inherited administration
+workflows. Evidence: `/private/tmp/galactica-initial/` and
+`galactica-remote-initial/`. Comparison JSON records 468 local pairs: 180 exact,
+60 ordinary hosting metadata-only (zero outside), 72 ordinary literal-name changes
+and 156 narrow changes. Remote comparison records 108 pairs, 54 exact, including
+unchanged administrator/disconnected maps in all languages. Reviewed selected/
+paged/error, technology/owner, hull-choice and remote-dragged views in all six
+languages. Compact End Turn and broader gameplay/native GUI audits remain open.
