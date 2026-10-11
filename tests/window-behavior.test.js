@@ -100,12 +100,23 @@ module.exports=()=>test.describe('System window modality and title dragging',()=
   test.assertTrue(game.beginUIWindowDrag(rect.x+20,rect.y+14));game.endUIWindowDrag(rect.x+40,rect.y+44);
   test.assertEqual(display.getSelectedObjectPanelRect(star).y,Math.min(590-rect.height,rect.y+30));test.assertEqual(data.size,0);
  });
+ test.it('keeps the scaled startup title drag area clear of the game-title control',()=>{
+  const Setup=require('../src/js/startup-setup.js'),{prefs}=preferences();
+  for(const size of [[800,600],[640,480],[480,600],[400,340]]){
+   const screen={width:size[0],height:size[1]},rect=Setup.panelRect(...size),button=Setup.titleRegion(rect),placement=new Placement(prefs);
+   test.assertFalse(placement.begin('startup',rect,button.x+5,button.y+1,screen));
+   test.assertEqual(placement.drag,null);
+   test.assertTrue(placement.begin('startup',rect,rect.x+20,rect.y+20*rect.height/540,screen));
+   placement.end(rect.x+40,rect.y+30*rect.height/540);
+   const moved=placement.layout('startup',rect,screen);test.assertTrue(moved.x>=10 && moved.y>=10 && moved.x+moved.width<=screen.width-10 && moved.y+moved.height<=screen.height-10);
+  }
+ });
  test.it('persists native positions, rejects malformed config, and keeps controls aligned in application dialogs',()=>{
   const values=new Map(),prefs=Preferences.createPreferences({pdg:{cfg:{useConfig:()=>{},getConfigString:k=>values.get(k),setConfigString:(k,v)=>values.set(k,v)}}});
   prefs.writeWindowPosition('startup',{x:25,y:45});test.assertEqual(prefs.readWindowPosition('startup').y,45);
   values.set('windowPosition.settings','{"x":"bad","y":40}');test.assertEqual(prefs.readWindowPosition('settings'),null);
   const placement=new Placement(prefs),layout={rect:{x:10,y:10,width:200,height:100},buttons:[{rect:{x:20,y:60,width:50,height:20}}]},screen={width:800,height:600};
-  test.assertTrue(placement.begin('startup',layout.rect,30,20,screen));placement.end(1000,1000);
+  test.assertTrue(placement.begin('startup',layout.rect,30,15,screen));placement.end(1000,1000);
   const moved=placement.layout('startup',layout,screen);test.assertEqual(moved.rect.x+moved.rect.width,790);test.assertEqual(moved.rect.y+moved.rect.height,590);
   test.assertEqual(moved.buttons[0].rect.x-moved.rect.x,10);test.assertEqual(prefs.readWindowPosition('startup').x,moved.rect.x);
  });

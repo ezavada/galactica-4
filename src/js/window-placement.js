@@ -15,7 +15,8 @@ class WindowPlacement {
         return shift(layout);
     }
     begin(name,rect,x,y,screen){
-        if(x<rect.x || x>rect.x+rect.width || y<rect.y || y>rect.y+52)return false;
+        const titleHeight=name==='startup'?52*rect.height/540:52;
+        if(x<rect.x || x>rect.x+rect.width || y<rect.y || y>rect.y+titleHeight)return false;
         this.drag={name,rect:{...rect},x,y,screen};return true;
     }
     move(x,y){if(!this.drag)return false;const d=this.drag;

@@ -6395,3 +6395,34 @@ startup, document, network and error dialog inventory has current coverage.
 This item changes game code only. Per the current release plan, any PDG bug
 fixes belong exclusively in private `pdg-devel`; public engine changes and
 release assets are deferred to v1.2.1 after parity work.
+
+
+### Compact startup title capture and foreground setup audit
+
+V3 `CGameSetupAttach.cpp:73–75,343–346` exposes the game title as an editable
+setup field and reads the accepted value. The current v4 scaled setup panel
+placed the upper edge of its title edit control inside an unscaled 52px drag
+area at smaller heights. A native regression reproduced the interception
+(Expected false, got true), and actual muted browser input reproduced it at
+640×480 in all six languages. The startup drag height now uses the same scale
+as the setup layout, ending before the title control. Other application
+window title areas retain their existing geometry.
+
+`tools/test-web-startup-windows.cjs` opens setup title/count/skill/player-name
+controls through actual input, drags their titles, checks viewport bounds,
+verifies outside clicks clunk without changing configuration, checks startup
+position persistence and cancels editors. All twelve baseline/current runs
+pass. Of 66 screenshot pairs, the six title-edge scenes now correctly show
+the editor; 60 remaining scenes are pixel-identical. English before/after
+and all six game-title, player-name and AI-skill layouts were visually
+inspected. Both full muted native suites pass 1749 tests, zero failures.
+The unit regression covers 800×600, 640×480, 480×600 and 400×340.
+Evidence: `/private/tmp/galactica-startup-drag-before-unit.log`,
+`galactica-startup-drag-{pdg,pdg-devel}-unit.log`,
+`galactica-startup-windows-{before,after}-<language>.log`,
+`galactica-startup-windows-comparison.json` and matching screenshot trees.
+
+The foreground chrome audit remains open: the screenshots reveal missing
+explicit compact Esc/Enter hints on shared text-entry Cancel/Save controls.
+Foreground document, network and error dialogs also still need current
+inventory coverage. No PDG source or new localization resources changed.

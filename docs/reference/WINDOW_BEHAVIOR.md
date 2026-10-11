@@ -90,3 +90,16 @@ English before/after panels and localized defaults, ships, production,
 pickers and confirmation layouts were visually inspected. This verifies the
 listed gameplay surfaces; the remaining foreground startup, document,
 network and error dialogs still need their complete current inventory audit.
+
+
+The startup setup drag area scales with the panel's height, ending before
+its game-title edit control. This keeps the entire title control clickable
+in compact ports. Startup setup, game-title, computer-count, AI-skill and
+player-name title drags and modal outside clicks have actual-input coverage
+at 640×480 in all six languages. Dragged startup coordinates are checked in
+application configuration. The regression fails against the previous fixed
+52px hit area. Both full native suites pass 1,749 tests; 66 screenshot pairs
+include six expected title-edge interaction changes and 60 identical scenes.
+The current screenshot audit also identifies missing explicit Esc/Enter
+hints in shared text-entry Cancel/Save buttons; that is the next chrome item,
+followed by foreground document, network and error dialogs.
