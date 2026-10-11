@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1683 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1685 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -244,7 +244,7 @@ The largest blockers to a complete game are:
 | Main information/navigation panels | Context-sensitive system, ship, fleet, rendezvous, and list panels with command buttons. | 🟡 Partial | 🟡 Partial | v4 draws anchored context panels for systems, ships, fleets, and rendezvous points plus simple menu/event/comparison/fleet-roster windows. Permanent map buttons and popup arc buttons are clickable. The full v3 contextual button architecture, sortable fleet tables, and richer command workflows remain incomplete. The sortable system comparison is implemented. |
 | Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | v4 uses neutral gray rounded panels with subtle gradients/outlines, slightly owner-tinted inspector borders, brighter buttons and hover states, known-owner system tint, familiar map icons with localized hints, brief whole-panel transitions, a top-center game/turn header and pointer triangles. Remaining parity is concrete window/menu/list coverage, not an open-ended final visual redesign. |
 | Keyboard shortcuts and hover help | Buttons advertise shortcuts; balloon/flyby help describes controls. | ✅ Implemented | ✅ Implemented | Current controls advertise their working v4 shortcuts. Delayed explanatory help uses the same hit targets as clicks across inspectors, allocation sliders, command/list/course/report windows, startup options and local file dialogs. Text wraps by measured Unicode glyph width and stays within the viewport; covered controls behind modal windows, active drags, destination placement and illustrated overlays cannot show help. Clicks/keys clear it without intercepting input. Settings → Control help persists through native/browser preferences, reload and open-game switching. Eleven regressions and actual six-language browser comparisons cover timing, privacy/input isolation, allocation semantics, current action coverage, persistence, complete text and viewport bounds. New commands introduced with the remaining unported dialogs will need their own help alongside those implementations. |
-| Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | 🟡 Partial | 🟡 Partial | `[E]`/Events shows recipient-visible reports from the last completed turn in chronological order. Paged rows select and center live subjects, preserve locations for lost subjects and show reviewed state; complete Unicode narratives have separate paging. Combat, outcome, repair-completion and rendezvous fleet-creation rows offer View report/Enter replay; ordinary rows offer Go to/Enter navigation without advancing time. Local combat reports automatically open private modal windows. Busy turns retain every report, and smaller windows reduce row count. Broader v3 event generation, narrative variants and illustrated replay remain incomplete. |
+| Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | 🟡 Partial | 🟡 Partial | `[E]`/Events shows recipient-visible reports from the last completed turn in chronological order. Paged rows select and center live subjects, preserve locations for lost subjects and show reviewed state; complete Unicode narratives have separate paging. Combat, outcome, repair-completion and rendezvous fleet-creation rows offer View report/Enter replay; ordinary rows offer Go to/Enter navigation without advancing time. Supplemental combat summaries open private modal windows; source no-dialog capture, resistance and colonization events automatically present sound/map cues, retaining manual narrative replay. Busy turns retain every report, and smaller windows reduce row count. Broader v3 event generation, narrative variants and illustrated replay remain incomplete. |
 | Attention queue | New ships, idle ships, colonies, messages, and other important events select themselves in sequence. | 🟡 Partial | 🟡 Partial | A per-turn subject queue covers human mobile ship/fleet call-ins, course completions, idle requests, completed mobile/satellite builds, complete ship/fleet repair notices, rendezvous fleet-creation notices and newly colonized/captured stars. Tab, menu and map Next item visit/center subjects; manual selection or report review handles linked requests. Colony reports focus the star while the colony ship remains available. UI End Turn confirms before discarding pending requests or presentations. Other v3 message types, enemy moves and notable event subjects remain to port. |
 | New technology lab presentation | Illustrated new-drive event. | ✅ Implemented | ✅ Implemented | Dimming lab overlay with blueprint art; Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
 | New hull/class Stardock presentation | Illustrated first-built satellite, scout/courier, colony or higher battleship class event. | ✅ Implemented | ✅ Implemented | Owner-only Stardock overlays use matching hull/class art and translated titles. Reports retain role explanations and focus the building system even after default-order departure. First-build flags, highest built class and queued presentation identities survive saves; repeated hulls and older classes are suppressed. Source-confirmed observer broadcasts now retain faction/class/technology/origin snapshots, follow current detection and Show enemy events, and replay as ordinary reports. Illustrated Stardock art stays owner-only. Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
@@ -4402,3 +4402,29 @@ Evidence: `/private/tmp/galactica-table-cues/{before,after}/<language>`,
 `/private/tmp/galactica-table-cues-{public,devel}-unit.log`. This closes the confirmed
 private-state name cues in contents tables; the remaining broader panel/window
 and parity audits stay active.
+
+
+### Source no-dialog capture and colonization presentation (2026-10-11)
+
+Evnt128 codes 1, 2 and 14 have autoShow enabled but zero PPob IDs for all
+recipient columns. `CMessage::DoMessage` uses sound-only presentation when
+PPob is zero. V4 now automatically completes these presentations without a
+text dialog or dimmed-map pause; defeated resistance retains its existing
+map destruction animation. Recipient-specific capture/colonization cues,
+visibility gates, report snapshots, attention handling and owner colony-naming
+requests remain intact. Explicit Events → View report still opens the complete
+localized narrative and never advances the turn.
+
+Both rebuilt public and development PDG runtimes pass **1,685 tests**. Added
+regressions exercise actual fleet arrival/colonization, automatic draw handling,
+absence of a dimmed narrative, preserved naming attention and explicit replay.
+The browser fixture injects deterministic reports, then uses actual Events row
+and View report controls. Before/after checks pass in en/de/es/fr/ja/ru; existing
+translated narratives are reused. Screenshots and logs are under
+`/private/tmp/galactica-occupation-cues` and
+`/private/tmp/galactica-occupation-cues-{before,after}-<language>.log`.
+All 30 before/after screenshot pairs were compared: 18 Events-list/manual
+narrative images are byte-identical; the 12 automatic images show the intended
+return to the map. Updated automatic views and translated narratives were
+visually reviewed. The broader event presentation row remains partial pending the other resource
+roles, recipient perspectives, Layr and packaged runtime checks.

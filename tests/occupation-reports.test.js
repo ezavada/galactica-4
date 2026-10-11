@@ -13,6 +13,16 @@ function fixture(attackingOwner=1,defendingOwner=2,colony=true) {
 }
 function invade(f){pdg.srand(42);f.fleet.move();return f.game.eventLog.filter(e=>e.occupation);}
 module.exports=()=>test.describe('V3 system resistance and capture reports',()=>{
+ test.it('automatically presents source no-dialog occupation cues while retaining explicit narrative replay',()=>{
+  const f=fixture(),events=invade(f).filter(e=>e.recipient===1);
+  test.assertTrue(f.game.overlay.animationOnly);test.assertTrue(f.game.overlayQueue.filter(o=>events.some(e=>e.id===o.eventId)).every(o=>o.animationOnly));
+  const capture=events.find(e=>e.occupation.kind==='capture');
+  while(f.game.overlay && f.game.overlay.eventId!==capture.id)f.game.dismissEventPresentation();
+  let narrative=0,dim=0;f.display.drawDestructionEffect=()=>false;f.display.drawReport=()=>narrative++;f.display.port.drawRect=()=>dim++;
+  f.display.drawOverlay(f.game.overlay);test.assertFalse(f.game.overlay && f.game.overlay.eventId===capture.id);test.assertEqual(narrative,0);test.assertEqual(dim,0);test.assertTrue(capture.handled);
+  f.game.clearEventPresentations();f.game.turn=2;test.assertTrue(f.game.replayReport(capture));test.assertFalse(f.game.overlay.animationOnly);test.assertTrue(f.game.overlay.manual);
+  f.display.drawOverlay(f.game.overlay);test.assertEqual(narrative,1);test.assertEqual(dim,1);test.assertEqual(f.game.turn,2);
+ });
  test.it('reports the last defenders to both participants even when no colony can occupy the system',()=>{
   const f=fixture(1,2,false),events=invade(f);test.assertEqual(f.target.owner,0);test.assertEqual(events.length,2);
   test.assertTrue(events.every(e=>e.type===Common.EventType.DEFENDERS_LOST));

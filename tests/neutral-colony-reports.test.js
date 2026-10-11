@@ -9,8 +9,15 @@ function fixture(owner=1) {
 }
 function arrive(f){f.colony.destination=f.target;f.colony.move();return f.game.eventLog.filter(e=>e.colonization);}
 module.exports=()=>test.describe('V3 neutral-colony owner and observer reports',()=>{
- test.it('broadcasts recipient-specific snapshots after actual colonization and automatically presents the owner report',()=>{
-  const f=fixture(),events=arrive(f),owner=events.find(e=>e.recipient===1);test.assertEqual(events.length,3);test.assertEqual(f.target.owner,1);test.assertTrue(f.game.allShips.includes(f.colony));test.assertEqual(owner.type,Common.EventType.STAR_COLONIZED);test.assertTrue(owner.subject===f.target);test.assertContains(owner.message,'You have colonized');test.assertContains(owner.message,'New 星 $&');test.assertEqual(f.game.overlay.eventId,owner.id);test.assertFalse(f.game.overlay.animationOnly);test.assertNull(f.game.getReportDestructionPosition(owner));test.assertEqual(f.game.attention.pending().length,2);
+ test.it('automatically handles colonization without a dialog and preserves owner naming and manual replay',()=>{
+  const f=fixture(),event=arrive(f).find(e=>e.recipient===1);
+  test.assertTrue(f.game.overlay.animationOnly);let narrative=0;f.display.drawDestructionEffect=()=>false;f.display.drawReport=()=>narrative++;
+  f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);test.assertEqual(narrative,0);test.assertTrue(event.handled);
+  test.assertTrue(f.game.attention.pending().some(e=>e.event.type===Common.EventType.RENAME_COLONY));
+  f.game.turn=2;test.assertTrue(f.game.replayReport(event));test.assertFalse(f.game.overlay.animationOnly);test.assertTrue(f.game.overlay.manual);
+ });
+ test.it('broadcasts recipient-specific snapshots after actual colonization and automatically presents the owner cue',()=>{
+  const f=fixture(),events=arrive(f),owner=events.find(e=>e.recipient===1);test.assertEqual(events.length,3);test.assertEqual(f.target.owner,1);test.assertTrue(f.game.allShips.includes(f.colony));test.assertEqual(owner.type,Common.EventType.STAR_COLONIZED);test.assertTrue(owner.subject===f.target);test.assertContains(owner.message,'You have colonized');test.assertContains(owner.message,'New 星 $&');test.assertEqual(f.game.overlay.eventId,owner.id);test.assertTrue(f.game.overlay.animationOnly);test.assertNull(f.game.getReportDestructionPosition(owner));test.assertEqual(f.game.attention.pending().length,2);
   f.game.handleKeyPress(pdg.key_Escape);test.assertEqual(f.game.turn,1);test.assertEqual(f.game.attention.pending().length,1);test.assertEqual(f.game.attention.pending()[0].event.type,Common.EventType.RENAME_COLONY);test.assertFalse(f.game.attention.pending()[0].event.handled);test.assertTrue(owner.handled);test.assertTrue(f.game.attention.next());test.assertEqual(f.game.attention.pending().length,0);test.assertTrue(f.game.selectedObject===f.target);test.assertEqual(f.game.eventLog.find(e=>e.id===f.game.eventSelection).type,Common.EventType.RENAME_COLONY);
  });
  test.it('hides an undetected observer copy and the separate private naming instruction',()=>{

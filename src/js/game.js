@@ -1085,7 +1085,9 @@ class Game {
         return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair || event.rendezvousFormation || event.colonization || event.commissioning || event.discovery || event.playerMessage));
     }
 
-    queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense)), manual = false) {
+    // Evnt128 assigns no dialog to destruction, defense losses, occupation or colonization.
+    // Explicit replay passes animationOnly=false to retain the full narrative.
+    queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense || event.occupation || event.colonization)), manual = false) {
         if (!this.hasReplayableReport(event) || !this.isEventAccessible(event)) return false;
         return this.queueEventOverlay({type:'report',eventId:event.id,page:0,animationOnly,manual,automaticObserver:!!event.observer && !manual});
     }

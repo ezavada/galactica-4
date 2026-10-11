@@ -201,7 +201,12 @@ V4 repair-completion notices, call-ins, ordinary commissioning, rendezvous
 fleet formation and colony naming already use manual attention rather than
 queued automatic report dialogs. The existing sound suite checks recipient
 cues and quiet reports. V4 also provides explicit manual narrative replay;
-that does not change the source automatic/manual classification. This audit
+that does not change the source automatic/manual classification. Automatic
+capture, defeated resistance and neutral-colonization presentations now honor
+their zero PPob entries: sound/map attention completes without a modal text
+window, while manual View report preserves the full narrative. Resistance
+keeps its map destruction animation. Both rebuilt runtimes pass 1,685 tests;
+before/after browser checks cover actual manual review in all six languages. This audit
 closes the missing Evnt/PPob inventory, but it does not claim exact automatic
 presentation equivalence, complete translated narrative coverage, or Layr
 animation equivalence. In particular, Evnt references to sounds 1004–1006
