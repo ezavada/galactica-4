@@ -288,3 +288,48 @@ Evidence: `/private/tmp/galactica-host-extras-regression.log`,
 other discovery/turn-notice/remote-administration and busy/error variants, plus
 the separate compact gameplay minimum-viewport audit. PDG fixes remain private
 until the post-parity v1.2.1 integration.
+
+
+### Native discovery dialog inventory
+
+V3 `Classes/GalacticaClient.cpp:181–224,326–450,462–509,1165–1218`
+attaches a game list, updates it after discovery changes, clears stale captions
+on selection, inspects a selected host and uses a movable join dialog before
+login. The v4 discovery list now has a reproducible actual-input browser audit
+through a test adapter to native UDP scans and real temporary HTTP hosts. This
+adapter is confined to the test harness; browsers still cannot discover UDP
+hosts themselves.
+
+All six languages pass at 800×600 and 640×340 with five native hosts: four-row
+paging, selection, R refresh, bounded persisted title dragging, modal outside
+clunks, direct-address fallback, public inspection of the selected host,
+authenticated admission, empty scans, cancellation and the ordinary unsupported
+browser message. Each fixture uses an isolated ephemeral discovery port.
+The native discovery integration also passes six-language multicast updates,
+expiry, failed-stop preservation, scan cleanup and actual UDP-bind-failure HTTP
+fallback. Physical peer discovery and live Internet matchmaking remain separate
+unverified/blocked requirements.
+
+Both full native suites pass 1,756 tests. Repeated before/after captures use the
+same unchanged product build: 36 of 96 pairs are identical, and all 60 other
+pairs differ only in temporary host address/port text. Masking the identified
+address rows/field leaves identical images. All six short discovered-list,
+empty-state and unsupported-state layouts were visually inspected. No product
+behavior, strings or PDG code changed in this item.
+
+The source audit found a real remaining Join presentation gap. V3's inspected
+host includes sector dimensions/density, AI skill/advantage, fast game, fog,
+turn limit/remaining time and open/full state. V4's current lobby displays only
+title/turn, human/computer counts and player slots, despite receiving most of
+those other public settings. Join-by-list/IP/hostname UI is therefore Partial
+pending the full localized information presentation. This is required work,
+not an unavailable-help blocker. Section 9 UI estimates are corrected to 89%
+(12.5/14), while functionality remains 93% (13/14). The overall parity and Map
+Generation goals remain active.
+
+Evidence: `/private/tmp/galactica-discovery-windows-{pdg,pdg-devel}-unit.log`,
+`galactica-discovery-windows-native.log`,
+`galactica-discovery-windows-{340,600}-{before,after}-<language>.log`,
+`galactica-discovery-windows-comparison.json`,
+`galactica-discovery-windows-fixture-differences.json`, screenshot/geometry trees
+and the all-language short-view montages.

@@ -1,7 +1,8 @@
 // Test-only localhost adapter for exercising the shared UI with real desktop hosts.
 const pdg=require('pdg');globalThis.pdg=pdg;if(pdg.snd)pdg.snd.setMute(true);
 const fs=require('fs'),path=require('path'),http=require('http');pdg.res.openResourceFile(path.join(__dirname,'../data'));pdg.res.setLanguage(process.env.GALACTICA_TEST_LANGUAGE || 'en');pdg.srand(424242);
-const service=require('../src/js/host-games.js').createService({discoveryOptions:{interfaceAddress:'127.0.0.1'}}),directory=path.dirname(process.env.GALACTICA_TEST_HOST_INFO);
+const discoveryOptions={interfaceAddress:'127.0.0.1',...(process.env.GALACTICA_TEST_DISCOVERY_PORT?{port:Number(process.env.GALACTICA_TEST_DISCOVERY_PORT)}:{})};
+const service=require('../src/js/host-games.js').createService({discoveryOptions}),directory=path.dirname(process.env.GALACTICA_TEST_HOST_INFO);
 const server=http.createServer((req,res)=>{
  const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'};
  if(req.method==='OPTIONS'){res.writeHead(204,headers);res.end();return;}
@@ -9,7 +10,7 @@ const server=http.createServer((req,res)=>{
  let body='';req.setEncoding('utf8');req.on('data',chunk=>body+=chunk);req.on('end',async()=>{try{
   const input=JSON.parse(body),record=service.records.find(r=>service.describe(r).id===input.id);let result;
   if(req.url==='/discover'){
-   const LAN=require('../src/js/network-discovery.js');let rows=[];const scan=LAN.browse({interfaceAddress:'127.0.0.1',interval:250,expiry:800,onChange:value=>rows=value});try{await scan.ready;await new Promise(resolve=>setTimeout(resolve,550));result=rows;}finally{scan.close();}
+   const LAN=require('../src/js/network-discovery.js');let rows=[];const scan=LAN.browse({...discoveryOptions,interval:250,expiry:800,onChange:value=>rows=value});try{await scan.ready;await new Promise(resolve=>setTimeout(resolve,550));result=rows;}finally{scan.close();}
   }else if(req.url==='/prepare-local'){
    const Game=require('../src/js/game.js'),Factory=require('../src/js/factory.js'),Rules=require('../src/js/rules.js'),Config=require('../src/js/game-config.js'),Save=require('../src/js/game-save.js');
    if(path.basename(input.file)!==input.file)throw Error('Fixture filename must be a basename');
