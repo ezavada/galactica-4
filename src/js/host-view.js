@@ -65,9 +65,9 @@ function project(game,viewer,administrator=false){
   }else if(kind==='rendezvous'){
    Object.assign(row,pick(e,['owner','name']));row.anchor=ref(e.anchor);row.fleet=ref(e.fleet);
   }else{
-   // Ship triangles already use faction colors at Speed; fleet markers only
-   // identify their owner at Tech. Keep those distinct map rules intact.
-   if(kind==='ship' || visibility>=V.TECH)row.owner=e.owner;
+   // V3 CShip::DrawSelf colors both ships and fleets by owner as soon as
+   // they are detected. Names, technology and contents retain separate gates.
+   row.owner=e.owner;
    if(visibility>=V.SPEED)row.speed=kind==='fleet'?e.totalSpeed:e.speed;
    if(visibility>=V.TECH)row.techLevel=e.techLevel;
    if(visibility>=V.CLASS){Object.assign(row,pick(e,['type','classIndex','progress']));if(level(e)>=V.CLASS)row.name=e.name;

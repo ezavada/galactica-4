@@ -13,6 +13,15 @@ function fixture(fn){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-v
 }finally{fs.rmSync(dir,{recursive:true,force:true});}}
 const entity=(view,kind,object)=>view.entities.find(e=>e.kind===kind && e.id===object.id);
 module.exports=()=>test.describe('Authenticated player-state transport',()=>{
+ test.it('projects detected fleet allegiance at every visibility tier without exposing higher-tier details or private orders',()=>fixture(({game,fleet,host})=>{
+  const State=require('../src/js/client-state.js');for(const level of [0,1,2,3,4]){
+   fleet.setVisibilityTo(1,level);const view=host.playerState(1),row=entity(view,'fleet',fleet);
+   if(!level){test.assertFalse(!!row);continue;}
+   test.assertEqual(row.owner,2);test.assertEqual('techLevel' in row,level>=2);test.assertEqual('name' in row,level>=3);test.assertEqual('ships' in row,level>=3);test.assertEqual('scannerRange' in row,level>=4);test.assertFalse('course' in row);
+   const model=State.restore(view),copy=model.allFleets.find(e=>e.id===fleet.id);test.assertEqual(copy.owner,2);test.assertEqual(copy.getVisibilityTo(1),level);test.assertFalse(model.canHumanControl(copy));
+  }
+ }));
+
  test.it('keeps hidden homeworld aliases distinct from comparison names and leaves the host graph and RNG untouched',()=>fixture(({game,enemy,host})=>{
   const before=Save.serialize(game),prior=Names.snapshot(game);pdg.srand(87);const expected=pdg.rand();pdg.srand(87);
   const a=View.snapshot(game,1),b=View.snapshot(game,1),star=entity(a,'star',enemy);
@@ -34,7 +43,7 @@ module.exports=()=>test.describe('Authenticated player-state transport',()=>{
  test.it('omits hidden mobile units and enemy rendezvous while revealing class-level nested fleet membership',()=>fixture(({game,fleet,ship,marker,enemy})=>{
   const child=game.factory.createFleet(enemy.x,enemy.y,2,'Child fleet');child.addShip(ship);fleet.addShip(child);child.setVisibilityTo(1,0);
   let view=View.snapshot(game,1);test.assertFalse(!!entity(view,'fleet',fleet));test.assertFalse(!!entity(view,'ship',ship));test.assertFalse(!!entity(view,'rendezvous',marker));
-  fleet.setVisibilityTo(1,1);view=View.snapshot(game,1);const speed=entity(view,'fleet',fleet);test.assertFalse('ships' in speed);test.assertFalse('name' in speed);test.assertFalse('owner' in speed);test.assertFalse(!!entity(view,'fleet',child));
+  fleet.setVisibilityTo(1,1);view=View.snapshot(game,1);const speed=entity(view,'fleet',fleet);test.assertFalse('ships' in speed);test.assertFalse('name' in speed);test.assertEqual(speed.owner,2);test.assertFalse(!!entity(view,'fleet',child));
   fleet.setVisibilityTo(1,3);view=View.snapshot(game,1);test.assertEqual(entity(view,'fleet',fleet).ships[0].id,child.id);test.assertEqual(entity(view,'fleet',child).ships[0].id,ship.id);test.assertFalse('name' in entity(view,'ship',ship));test.assertEqual(entity(view,'ship',ship).visibility,0);test.assertEqual(entity(view,'ship',ship).type,'battleship');test.assertFalse('course' in entity(view,'ship',ship));
  }));
  test.it('keeps the existing ship faction marker at Speed while gating inspector fields and enemy courses',()=>fixture(({game,ship,fleet})=>{

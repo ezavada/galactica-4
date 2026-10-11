@@ -995,7 +995,7 @@ class Display {
         
         // Fleet appearance
         const fleetAttrs = this.createAttributes({
-            fillColor: knowledge.tech ? this.ownerColors[fleet.owner] : this.getUIColor('gray'),
+            fillColor: this.ownerColors[fleet.owner],
             fillOpacity: fleetOpacity * 0.7,
             lineStyle: pdg.lineStyle_Solid,
             lineColor: new pdg.Color(1, 1, 1, fleetOpacity)

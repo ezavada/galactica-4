@@ -53,6 +53,12 @@ await evaluate('visual.getDisplay().centerOn(enemyFleet.x,enemyFleet.y);visual.g
 await point('({x:visual.getDisplay().toScreenX(enemyFleet.x),y:visual.getDisplay().toScreenY(enemyFleet.y)})');
 await check('model.selectedObject && model.factory.isFleet(model.selectedObject)','Actual Speed fleet selection failed');
 await check('visual.getDisplay().getFleetDiagnostics(model.selectedObject).count==="?"','Unknown fleet disclosed members');
+if(['fleet-owner','before-fleet-owner'].includes(process.argv[5])){
+ const expected=process.argv[5]==='fleet-owner'?1:0;
+ await check('model.selectedObject.owner==='+expected,'Wrong detected fleet ownership');
+ await check('visual.getDisplay().getFleetDiagnostics(model.selectedObject).tech==="?"','Speed fleet disclosed technology');
+ await check('!state.entities.find(e=>e.kind==="fleet" && e.id===enemyFleet.id).ships','Speed projection disclosed fleet contents');
+}
 await capture('speed-fleet');
 await evaluate('installView(3);void 0');await advanceClock(1000);await evaluate('visual.getDisplay().centerOn(enemyFleet.x,enemyFleet.y);visual.getDisplay().updateMapRenderingCalculations();void 0');await advanceClock(1000);
 await point('({x:visual.getDisplay().toScreenX(enemyFleet.x),y:visual.getDisplay().toScreenY(enemyFleet.y)})');
@@ -62,5 +68,5 @@ await click('visual.getDisplay().getMapButtonRegions().find(r=>r.action.window==
 await click('visual.getDisplay().getCommandActionRegions().find(r=>r.action.window==="comparison").rect');
 await check('model.uiWindow==="comparison"','Actual Compare Players menu failed');await check('model.getMapShipCount()===hostGame.allShips.length','Partial client map changed the public ship total');
 await capture('player-comparison');
-console.log('PASS actual client view '+lang+' '+(before?'before':'after')+' second-human control, production, Speed/Class fleet, Compare Players');
+console.log('PASS actual client view '+lang+' '+(process.argv[5] || (before?'before':'after'))+' second-human control, production, Speed/Class fleet, Compare Players');
 })().catch(async e=>{console.error(e);console.error('Failed scene '+currentScene);process.exitCode=1;}).finally(()=>{chrome.kill();server.close();setTimeout(()=>{fs.rmSync(profile,{recursive:true,force:true});process.exit(process.exitCode||0);},500);});

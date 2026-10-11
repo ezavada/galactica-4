@@ -208,7 +208,7 @@ The largest blockers to a complete game are:
 | Damage and destruction | Health decreases, units die, fleet loss accounting and explosion feedback. | ✅ Implemented | 🟡 Partial | Runtime combat applies v3-style ship power, star strength, and population damage, removes destroyed ships robustly, and recalculates/cleans up affected fleets. Private casualty and defeated-resistance reports now center their recorded battle location and play eight expanding/contracting frames at the v3 tick cadence before showing the complete message. Events replay and restored pending messages restart the effect; quiet autoplay, private access and reduced motion are respected. Attributes are cached and disposed, and the simulation RNG is untouched. Private ship/fleet destruction narratives now retain separate winner/loser perspectives and automatically play an animation-only notice after the existing battle summary. Fleet members, nested subfleets and individual defenders at their own systems are suppressed. Events retains and replays the full narrative. Partial fleet losses do not announce fleet destruction. Sound and other event variants remain Section 8 work. Persistent debris art was not confirmed in the audited destruction renderer. |
 | Repairs | Friendly docking repairs surviving mobile ships; satellites do not repair. | ✅ Implemented | ✅ Implemented | Friendly stars repair docked, non-patrolling, non-moving mobile ships and fleet members using the v3 tech-level budget, excluding satellites. Damage and health displays update after repair. The separate CStar::EndOfTurn completion emitter now creates private human-system-owner notices when positive repair reaches zero ship or whole-fleet damage, with retained names, attention, Events navigation and manual replay. Partial repairs and completed individual fleet members do not emit notices; sound remains separate Section 8 work. |
 | Scanner-based fog of war | Stars/scouts reveal enemy presence, owner, tech, then class/details by range; scout stealth matters. | ✅ Implemented | 🟡 Partial | Spatial visibility levels, star/scout/fleet scanners, stealth calculations, current-visibility recalculation, and preserved last-seen memory are implemented. Current detection controls map/inspector knowledge. V3 stores last-seen history for scanner bookkeeping; a separate remembered-object drawing mode was not found. That optional extension is recorded in `FUTURE_IMPROVEMENTS.md`. |
-| Fog-of-war rendering | Enemy colonies/ships are hidden or partially identified according to visibility. | ✅ Implemented | 🟡 Partial | Enemy ships/fleets are hidden when visibility is none, star ownership/detail rendering reads numeric visibility levels, and scanner-based fleet visibility queries work. Stars remain plotted while undetected enemy ownership is hidden. Ownership halos and inspectors agree at first detection; allied/all-visible systems remain identified without scanners. Losing detection hides current ownership and mobile markers while preserving last-seen history. Yellow-star labels retain the requested v4 naming deviation. Remaining class/detail rendering audits stay separate; no v3 last-seen ghost drawing mode was confirmed. |
+| Fog-of-war rendering | Enemy colonies/ships are hidden or partially identified according to visibility. | ✅ Implemented | 🟡 Partial | Enemy ships/fleets are hidden when visibility is none, star ownership/detail rendering reads numeric visibility levels, and scanner-based fleet visibility queries work. Stars remain plotted while undetected enemy ownership is hidden. Ownership halos and inspectors agree at first detection; allied/all-visible systems remain identified without scanners. Losing detection hides current ownership and mobile markers while preserving last-seen history. Yellow-star labels retain the requested v4 naming deviation. Detected fleet markers now expose owner color at Speed, matching the inherited v3 ship drawing path in local and multiplayer views. Names, contents, technology and orders retain their separate gates. Remaining class/detail rendering audits stay separate; no v3 last-seen ghost drawing mode was confirmed. |
 | Omniscient mode | Disabling Fog of War shows the whole galaxy. | ✅ Implemented | ✅ Implemented | Disabling fog through startup/config makes visibility queries and display helpers treat enemy stars, ships, and fleets as fully visible; covered by fog and command UI tests. |
 | Combat odds estimate | Not part of shipped v3/manual behavior; listed as a v4 future enhancement. | ❌ Missing / not a parity blocker | ❌ Missing / not a parity blocker | Correctly remains in `docs/FUTURE_IMPROVEMENTS.md`; it should not be counted as missing v3 parity. |
 
@@ -3968,3 +3968,37 @@ both the integration helper and the final six-language UI runs.
 This closes the identified multiplayer post-game continuation gap. It does not
 prove every remaining End Turn/contextual UI parity detail; that broader row stays
 Partial until its remaining source and presentation checks are completed.
+
+### Detected fleet owner color (2026-10-11)
+
+`Classes/CFleet.h:22` inherits from `CShip`. `CShip.cpp:1228` suppresses
+undetected enemy markers, and its shared `DrawSelf` path chooses the owner color
+at line 1306 without a Tech/Class condition. Class visibility gates the later
+name and selected health display at line 1477. V4 had instead kept fleet markers
+gray until Tech and omitted fleet ownership from Speed-level multiplayer views.
+That earlier fleet-privacy interpretation is corrected here.
+
+Detected fleets now use owner color at the first Speed level in both local and
+host-projected client maps. Undetected fleets remain absent. Technology starts
+at Tech; name, count and contents remain Class-gated; scanner details remain
+Details-gated. Enemy orders and controls remain private. Inspector tint still
+uses its existing knowledge rule; this item changes map allegiance only.
+
+The transport regression walks None/Speed/Tech/Class/Details, verifies field
+thresholds and reconstructs each public view without granting enemy control.
+The existing drawing regression checks actual Speed-level fill color and keeps
+unknown fleet size/count independent of true contents. All **1,670 tests pass
+against both public and development native PDG**, with audio muted.
+
+`tools/test-web-client-state.cjs` modes `before-fleet-owner` and `fleet-owner`
+pass in en/de/es/fr/ja/ru. Actual second-human system selection/production,
+Speed/Class fleet selection and Compare Players are exercised. All six Speed
+before/after images were inspected: only the marker gains its faction color;
+unknown values and neutral inspector appearance remain. The other **24 screenshot
+pairs are byte-identical**, including Class fleet and comparison screens. No new
+strings are needed; translated labels and numeric formatting are retained.
+
+Evidence: `/private/tmp/galactica-fleet-owner/{before,after}/<language>`,
+`/private/tmp/galactica-fleet-owner-{before,after}-<language>.log` and
+`/private/tmp/galactica-fleet-owner-{public,devel}-unit.log`. This closes the
+identified map-allegiance discrepancy, not the entire fog/drawing parity audit.

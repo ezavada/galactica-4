@@ -49,7 +49,7 @@ module.exports=()=>test.describe('V3 fleet information visibility',()=>{
         const text=[],attributes=[];display.port.drawPolygon=()=>{};display.port.drawText=t=>text.push(t);
         display.createAttributes=value=>{attributes.push(value);return value;};display.drawMobileMapName=()=>{};display.drawCourseLines=()=>{};
         display.drawFleet(fleet);test.assertEqual(text.length,0);
-        test.assertTrue(attributes[0].fillColor!==display.ownerColors[2]);
+        test.assertTrue(attributes[0].fillColor===display.ownerColors[2]);
         fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);test.assertTrue(display.getMapMarker(fleet).radius>initial);
         display.drawFleet(fleet);test.assertTrue(text.includes('17'));test.assertTrue(attributes[1].fillColor===display.ownerColors[2]);
     });
