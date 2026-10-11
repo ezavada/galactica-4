@@ -70,7 +70,11 @@ module.exports=()=>test.describe('Enemy event playback preference',()=>{
  });
  test.it('toggles playback through the actual settings hit target and retains manual replay when off',()=>{
   const f=fixture(),data=new Map();f.game.drawingPreferences=Preferences.createPreferences({window:{localStorage:{getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)}}});
-  f.game.uiWindow='settings';const row=f.display.getSettingsActionRegions().find(r=>r.action.type==='toggleEnemyEvents');test.assertTrue(row.active);
+  f.game.uiWindow='settings';let row=f.display.getSettingsActionRegions().find(r=>r.action.type==='toggleEnemyEvents');
+  for(let i=0;!row && i<10;i++){
+   const next=f.display.getSettingsActionRegions().find(r=>r.action.type==='settingsPage' && r.action.delta===1);test.assertNotNull(next);
+   f.game.handleUIClick(next.rect.x+2,next.rect.y+2);row=f.display.getSettingsActionRegions().find(r=>r.action.type==='toggleEnemyEvents');
+  }test.assertTrue(row.active);
   f.game.handleUIClick(row.rect.x+2,row.rect.y+2);test.assertFalse(f.game.showEnemyEvents);test.assertEqual(data.get('galactica.showEnemyEvents'),'false');
   const event=capture(f);test.assertNull(f.game.overlay);test.assertTrue(f.game.getEventRows().includes(event));test.assertTrue(f.game.replayReport(event));test.assertFalse(f.game.overlay.automaticObserver);
   f.game.dismissEventPresentation();test.assertEqual(f.game.turn,1);
@@ -112,7 +116,7 @@ module.exports=()=>test.describe('Enemy event playback preference',()=>{
     }
     const next=rows.find(row=>row.action.type==='settingsPage'&&row.action.delta===1);if(!next)break;test.assertTrue(f.game.handleUIClick(next.rect.x+2,next.rect.y+2));
     }test.assertTrue(seen.has('toggleEnemyEvents'));test.assertTrue(seen.has('toggleControlHelp'));for(const code of ['en','de','es','fr','ja','ru'])test.assertTrue(seen.has(code));
-    f.game.handleKeyPress(pdg.key_LeftArrow);test.assertEqual(f.game.settingsPage,Math.max(0,size[1]===340?1:0));
+    const previousPage=Math.max(0,f.game.settingsPage-1);f.game.handleKeyPress(pdg.key_LeftArrow);test.assertEqual(f.game.settingsPage,previousPage);
    }
   }}finally{pdg.res.setLanguage(language);}
  });

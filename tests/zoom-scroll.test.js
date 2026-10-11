@@ -51,7 +51,7 @@ function runZoomScrollTests() {
             const {game,display}=fixture(),previous=pdg.res.getLanguage();game.uiWindow='view';
             try {for(const lang of ['en','de','es','fr','ja','ru']) {
                 pdg.res.setLanguage(lang);const rows=display.getViewActionRegions();
-                test.assertEqual(rows.length,6);test.assertEqual(rows[0].label,pdg.res.getString(787));
+                test.assertEqual(rows.length,7);test.assertEqual(rows[0].label,pdg.res.getString(787));
                 test.assertEqual(rows[1].label,pdg.res.getString(788));test.assertEqual(rows[4].label,pdg.res.getString(790));
                 test.assertEqual(rows[5].label,pdg.res.getString(789));
                 for(let i=1;i<rows.length;i++)test.assertTrue(rows[i-1].rect.y+rows[i-1].rect.height<rows[i].rect.y);

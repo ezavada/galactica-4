@@ -2196,6 +2196,9 @@ class Game {
                 return this.openUIWindow('events');
             case 'nextAttention':
                 this.attention.next();return true;
+            case 'closeWindow':
+                if(!['menu','settings','view','mapDisplay'].includes(action.window) || this.uiWindow!==action.window)return false;
+                this.endUIWindowDrag();this.uiWindow=null;return true;
             case 'closeCourse':
                 if(this.uiWindow!=='course')return false;
                 this.endUIWindowDrag();this.uiWindow=null;return true;

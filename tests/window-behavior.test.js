@@ -2,6 +2,26 @@ const test=require('./test-framework.js'),Factory=require('../src/js/factory.js'
 function fixture(preferences){const game=new Game(new Factory(),new Rules(false),new Config({numHumans:1,numComputers:1,skipMapGeneration:true}));game.port={getDrawingArea:()=>new pdg.Rect(800,600)};game.drawingPreferences=preferences;return {game,display:new Display(game)};}
 function preferences(){const data=new Map();return {data,prefs:Preferences.createPreferences({window:{localStorage:{getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)}}})};}
 module.exports=()=>test.describe('System window modality and title dragging',()=>{
+ test.it('keeps localized Close controls separate from commands and Settings paging, and closes without advancing',()=>{
+  const {game,display}=fixture();game.port.getTextWidth=(text,size=11)=>Array.from(String(text)).length*size/2;
+  const language=pdg.res.getLanguage();
+  const methods={menu:'getCommandActionRegions',settings:'getSettingsActionRegions',view:'getViewActionRegions',mapDisplay:'getMapDisplayActionRegions'};
+  try {for(const lang of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(lang);display.reloadUIStrings();
+   for(const size of [[800,600],[480,600],[640,480]]){
+    game.port.getDrawingArea=()=>new pdg.Rect(...size);
+    for(const [name,method] of Object.entries(methods)){
+     for(const page of name==='settings'?[0,1,2,3,4]:[0]){
+      game.uiWindow=name;game.settingsPage=page;const before=game.turn,rows=display[method](),close=rows.find(r=>r.action.type==='closeWindow'),r=close.rect;
+      test.assertEqual(close.label,pdg.res.getString(531));test.assertEqual(close.key,'Esc');
+      test.assertTrue(r.x>=10 && r.y>=10 && r.x+r.width<=size[0]-10 && r.y+r.height<=size[1]-10);
+      test.assertTrue(rows.filter(b=>b!==close).every(b=>r.x+r.width<=b.rect.x || b.rect.x+b.rect.width<=r.x || r.y+r.height<=b.rect.y || b.rect.y+b.rect.height<=r.y));
+      test.assertTrue(game.handleUIClick(r.x+r.width/2,r.y+r.height/2));test.assertEqual(game.uiWindow,null);test.assertEqual(game.turn,before);
+     }
+    }
+   }
+  }}finally{pdg.res.setLanguage(language);}
+ });
  test.it('clunks outside system windows without changing the map, while Events allows map input',()=>{
   const {game,display}=fixture(),cues=[];game.sound={play:id=>cues.push(id)};
   for(const name of ['settings','comparison','menu','games','view','mapDisplay','colonyDefaults','fleets','systemComparison']){

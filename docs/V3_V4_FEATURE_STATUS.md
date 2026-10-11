@@ -6322,3 +6322,34 @@ views were visually inspected. Evidence: `galactica-credits-music-comparison.jso
 `galactica-credits-music-{before,after}-<language>.log` and the matching screenshot
 trees under `/private/tmp`. Native listener verification of exact historical
 instrument timbre remains the previously documented separate requirement.
+
+
+### Global preference/view/menu Close controls
+
+Settings (including startup Settings), View, Map Display and the command menu
+now offer a clickable Close button with the shared right-aligned Esc hint,
+replacing their bare angle-bracket text. The label and explanatory help reuse
+existing resources in all six languages. The actual hit action validates its
+own foreground window and preserves turn, preferences and selection.
+Settings reserves a separate footer row, adjusts page capacity and keeps
+fullscreen failures above paging. Map Display reserves room below its
+brightness explanation; the compact command menu keeps its commands above the
+footer. This continues the Course dismissal work and the movable native
+window/dialog behavior in v3 (`UNewModalDialogs.cp`; inherited window commands
+in `GalacticaDoc.cp:912` / `Galactica.cpp:2335`). It retains the requested v4
+white/gold modal surfaces and independent non-modal Events behavior.
+
+Both complete muted native suites pass 1747 tests, zero failures. Coverage
+includes all six languages at 800×600, 480×600 and 640×480, plus existing
+320×340 Settings paging/fullscreen error checks. Previous tests now navigate
+the actual pages rather than assume a preference stays on page zero.
+`tools/test-web-window-close.cjs` passes all twelve baseline/current runs,
+opening each window and every available Settings page through actual input,
+then closing without advancing a turn. All 36 before/after screenshot pairs
+show the expected button/footer/paging changes. English Menu, Settings, Map
+Display and View pairs and all six localized first/last Settings pages were
+visually inspected. Evidence: `/private/tmp/galactica-window-close-{public,devel}-unit.log`,
+`galactica-window-close-{before,after}-<language>.log`,
+`galactica-window-close-comparison.json` and the matching screenshot trees.
+The complete window inventory audit remains open; no engine source or new
+localized strings changed.

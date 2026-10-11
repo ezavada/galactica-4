@@ -1817,8 +1817,15 @@ class Display {
         this.drawTextLine(this.STR.escClose,r.x+14,r.y+142,'gray',10);
     }
 
+    getWindowCloseActions(window,rect) {
+        const label=I18n.getString(531,'<Esc> Close'),key='Esc';
+        const width=this.getButtonWidth(label,key,{size:10,minWidth:64});
+        return [{rect:{x:rect.x+rect.width-14-width,y:rect.y+rect.height-41,width,height:24},
+            label,key,action:{type:'closeWindow',window}}];
+    }
+
     getCommandWindowHeight() {
-        return 68+(this.game.getCurrentHumanPlayer()?34:0)+(this.game.chatCommands?34:0)+(this.game.canStartTutorial()?34:0)+(this.game.manualCommands?34:0)+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error?438:396):362);
+        return 96+(this.game.getCurrentHumanPlayer()?34:0)+(this.game.chatCommands?34:0)+(this.game.canStartTutorial()?34:0)+(this.game.manualCommands?34:0)+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error?438:396):362);
     }
 
     getCommandWindowRect() {
@@ -1974,7 +1981,7 @@ class Display {
         if (this.game.uiWindow!=='menu') return [];
         const rect = this.getCommandWindowRect();
         const scale=Math.min(1,(rect.height-104)/(this.getCommandWindowHeight()-104));
-        const fit=buttons=>buttons.map(button=>({...button,rect:{...button.rect,y:rect.y+66+(button.rect.y-rect.y-66)*scale,height:button.rect.height*scale}}));
+        const fit=buttons=>buttons.map(button=>({...button,rect:{...button.rect,y:rect.y+66+(button.rect.y-rect.y-66)*scale,height:button.rect.height*scale}})).concat(this.getWindowCloseActions('menu',rect));
         const settings={rect:{x:rect.x+14,y:rect.y+216,width:rect.width-28,height:28},
             icon:'gear',label:I18n.getString(759,'Settings'),action:{type:'toggleWindow',window:'settings'}};
         const comparison={rect:{x:rect.x+14,y:rect.y+148,width:rect.width-28,height:28},
@@ -2073,19 +2080,18 @@ class Display {
             {label:this.STR.home,key:'Home',action:{type:'selectHomeStar'}},
             {label:I18n.getString(790,'Center selected item'),key:'Shift+C',action:{type:'centerSelected'}},
             {label:I18n.getString(789,'Reset view'),action:{type:'resetView'}}
-        ].map((row,index)=>({...row,rect:{x:rect.x+14,y:rect.y+64+index*32,width:rect.width-28,height:28}}));
+        ].map((row,index)=>({...row,rect:{x:rect.x+14,y:rect.y+64+index*32,width:rect.width-28,height:28}})).concat(this.getWindowCloseActions('view',rect));
     }
 
     drawViewWindow() {
         const rect=this.getViewWindowRect();
         this.drawWindowPanel(rect,I18n.getString(786,'View'));
         this.getViewActionRegions().forEach(row=>this.drawUIButton(row.rect,row.label,row.key));
-        this.drawTextLine(this.STR.escClose,rect.x+14,rect.y+rect.height-16,'gray',10);
     }
 
     getMapDisplayWindowRect() {
         const screen=this.getScreenSize(),width=Math.min(340,screen.width-40);
-        return this.fitWindowToScreen('mapDisplay',{x:(screen.width-width)/2,y:84,width,height:352});
+        return this.fitWindowToScreen('mapDisplay',{x:(screen.width-width)/2,y:84,width,height:380});
     }
 
     getMapDisplayActionRegions() {
@@ -2095,16 +2101,15 @@ class Display {
             rect:{x:rect.x+14,y:rect.y+64+index*32,width:rect.width-28,height:28},
             label:I18n.getString(mode.id,mode.label),active:this.game.mapDisplayMode===mode.key,
             action:{type:'setMapDisplayMode',mode:mode.key}
-        }));
+        })).concat(this.getWindowCloseActions('mapDisplay',rect));
     }
 
     drawMapDisplayWindow() {
         const rect=this.getMapDisplayWindowRect();
         this.drawWindowPanel(rect,I18n.getString(773,'Map display'));
-        this.getMapDisplayActionRegions().forEach(row=>this.drawUIButton(row.rect,row.label,null,{active:row.active}));
+        this.getMapDisplayActionRegions().forEach(row=>this.drawUIButton(row.rect,row.label,row.key || null,{active:row.active}));
         this.wrapEventMessage(I18n.getString(781,'Higher levels appear brighter.'),rect.width-28,11).slice(0,2)
             .forEach((line,index)=>this.drawTextLine(line,rect.x+14,rect.y+309+index*14,'gray',11));
-        this.drawTextLine(this.STR.escClose,rect.x+14,rect.y+rect.height-12,'gray',10);
     }
 
     getMapDisplayBrightness(object,star=false) {
@@ -2218,18 +2223,18 @@ class Display {
             ...(this.game.initialStateCommands && this.game.initialStateCommands.available()?[{label:I18n.getString(1169),action:{type:'editInitialState'}}]:[]),
             ...(this.game.canStartTutorial()?[{label:I18n.getString(960,'Tutorial'),key:'T',action:{type:'startTutorial'}}]:[])]);
         const failureHeight=this.getSettingsFullscreenFailureLines().length*15;
-        const capacity=Math.max(1,Math.floor((rect.height-112-failureHeight)/28)),pages=Math.ceil(rows.length/capacity);
+        const capacity=Math.max(1,Math.floor((rect.height-152-failureHeight)/28)),pages=Math.ceil(rows.length/capacity);
         const page=this.clamp(this.game.settingsPage||0,0,pages-1);this.game.settingsPage=page;
         const visible=rows.slice(page*capacity,(page+1)*capacity).map((row,index)=>({...row,
             rect:{x:rect.x+14,y:rect.y+76+index*28,width:rect.width-28,height:24}}));
         if(pages>1) {
             const width=(rect.width-36)/2;
-            if(page>0)visible.push({rect:{x:rect.x+14,y:rect.y+rect.height-46,width,height:24},
+            if(page>0)visible.push({rect:{x:rect.x+14,y:rect.y+rect.height-74,width,height:24},
                 label:I18n.getString(690,'Previous'),action:{type:'settingsPage',delta:-1}});
-            if(page<pages-1)visible.push({rect:{x:rect.x+22+width,y:rect.y+rect.height-46,width,height:24},
+            if(page<pages-1)visible.push({rect:{x:rect.x+22+width,y:rect.y+rect.height-74,width,height:24},
                 label:I18n.getString(691,'Next'),action:{type:'settingsPage',delta:1}});
         }
-        return visible;
+        return visible.concat(this.getWindowCloseActions('settings',rect));
     }
 
     getSettingsFullscreenFailureLines(){
@@ -2244,8 +2249,7 @@ class Display {
             this.drawTextLine(I18n.getString(760,'Language'),rect.x+14,rect.y+57,'lightgray',12);
         for(const region of regions)this.drawUIButton(region.rect,region.label,region.key || null,{active:region.active});
         const failures=this.getSettingsFullscreenFailureLines();
-        failures.forEach((line,index)=>this.drawTextLine(line,rect.x+14,rect.y+rect.height-54-(failures.length-index-1)*15,'gray',11));
-        this.drawTextLine(this.STR.escClose,rect.x+14,rect.y+rect.height-16,'gray',10);
+        failures.forEach((line,index)=>this.drawTextLine(line,rect.x+14,rect.y+rect.height-90-(failures.length-index-1)*15,'gray',11));
     }
 
     getNewGameDefaultsWindowRect(){
@@ -3441,7 +3445,6 @@ class Display {
         this.drawTextLine(this.STR.keyboardShortcutsActive, x, y, 'gray', 11);
         this.getCommandActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,region.key,{icon:region.icon,active:!!region.active,disabled:!!region.disabled,size:region.rect.height<24?10:11}));
         if(this.game.fullscreen && this.game.fullscreen.error)this.wrapEventMessage(I18n.getString(772,'Could not change full screen. Please try again.'),rect.width-28,11).slice(0,3).forEach((line,index)=>this.drawTextLine(line,x,rect.y+rect.height-71+index*15,'lightgray',11));
-        this.drawTextLine(this.STR.escClose,x,rect.y+rect.height-16,'gray',10);
     }
 
     drawProductionWindow() {

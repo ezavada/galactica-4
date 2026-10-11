@@ -23,8 +23,8 @@ module.exports=function(){
             const old=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);for(const [width,height] of [[800,600],[320,340]]){
                 const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true}));game.port={getDrawingArea:()=>new pdg.Rect(width,height),getTextWidth:(text,size)=>Array.from(text).length*size*.6};new Display(game);game.uiWindow='settings';game.fullscreen={supported:true,error:true,active:()=>false,toggle:()=>false};
                 const rect=game.display.getSettingsWindowRect(),lines=game.display.getSettingsFullscreenFailureLines();test.assertTrue(lines.length>0);for(const line of lines)test.assertTrue(game.port.getTextWidth(line,11)<=rect.width-28);
-                const failureTop=rect.y+rect.height-54-(lines.length-1)*15;let found=false;
-                for(let i=0;i<20;i++){const rows=game.display.getSettingsActionRegions();for(const row of rows){test.assertTrue(row.rect.y>=rect.y && row.rect.y+row.rect.height<=rect.y+rect.height);if(row.action.type!=='settingsPage')test.assertTrue(row.rect.y+row.rect.height<failureTop);if(row.action.type==='toggleFullscreen'){found=true;test.assertTrue(!!Help.describe(row.action));}}if(!rows.some(r=>r.action.type==='settingsPage' && r.action.delta===1))break;game.executeUIAction({type:'settingsPage',delta:1});}
+                const failureTop=rect.y+rect.height-90-(lines.length-1)*15;let found=false;
+                for(let i=0;i<20;i++){const rows=game.display.getSettingsActionRegions();for(const row of rows){test.assertTrue(row.rect.y>=rect.y && row.rect.y+row.rect.height<=rect.y+rect.height);if(!['settingsPage','closeWindow'].includes(row.action.type))test.assertTrue(row.rect.y+row.rect.height<failureTop);if(row.action.type==='toggleFullscreen'){found=true;test.assertTrue(!!Help.describe(row.action));}}if(!rows.some(r=>r.action.type==='settingsPage' && r.action.delta===1))break;game.executeUIAction({type:'settingsPage',delta:1});}
                 test.assertTrue(found);
             }}}finally{pdg.res.setLanguage(old);}
         });
