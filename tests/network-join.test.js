@@ -1,6 +1,18 @@
 const test=require('./test-framework.js'),{JoinWindow,errorText}=require('../src/js/network-join.js'),Names=require('../src/js/player-name.js'),I18n=require('../src/js/i18n.js'),Startup=require('../src/js/startup-setup.js');
 const info={gameId:'a'.repeat(64),title:'Galaxy',turn:1,slots:Array.from({length:99},(_,i)=>({player:i+1,status:i===0?'open':'occupied',name:'Player '+(i+1),online:false}))};
 module.exports=()=>test.describe('Multiplayer admission window',()=>{
+ test.it('keeps complete admission feedback inside the window and clear of fields, slots, checks and buttons in all six languages',()=>{
+  const language=pdg.res.getLanguage(),window=new JoinWindow({passwordPreferences:{}}),measure=(text,size)=>Array.from(text).length*size/2;
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);for(const [width,height] of [[800,600],[640,340],[320,340]]){for(const mode of ['join','rejoin','administrator']){
+   window.open();window.mode=mode;window.info={...info,slots:info.slots.slice(0,8)};
+   const ids=mode==='administrator'?[1012,1013,1020,1022,1026,1027,1028,1029,1030,1031,1032,1157,1166]:[1012,1013,1020,1021,1022,1023,1024,1025,1026,1027,1028,1029,1030,1031,1032,1150];
+   for(const id of ids){window.message=I18n.getString(id);const layout=window.layout(width,height,measure);test.assertEqual(layout.statusLines.map(line=>line.text).join(''),window.message);
+    for(const line of layout.statusLines){test.assertTrue(measure(line.text,line.size)<=layout.rect.width-48,'Caption width '+lang+' '+mode+' '+id);const top=line.point.y-line.size*.8,bottom=line.point.y+line.size*.2;test.assertTrue(top>=layout.rect.y && bottom<=layout.rect.y+layout.rect.height);
+     for(const item of ['fields','slots','checks','choices','buttons','labels'].flatMap(key=>layout[key] || []))test.assertTrue(bottom<=item.rect.y || top>=item.rect.y+item.rect.height,'Caption overlap '+lang+' '+mode+' '+id+' '+width+'x'+height);
+    }
+   }window.cancel();
+  }}}}finally{pdg.res.setLanguage(language);}
+ });
  test.it('keeps administrator admission separate from player names and slots and clears mode-switch secrets',()=>{
   const w=new JoinWindow({defaultName:()=> 'Voyager'});w.open({address:'localhost:7777',role:'administrator',gameId:info.gameId});test.assertEqual(w.mode,'administrator');test.assertEqual(w.focus,'password');test.assertEqual(w.name.text,'Voyager');w.info=info;test.assertDeepEqual(w.layout(800,600).fields.map(f=>f.name),['address','password']);test.assertEqual(w.layout(800,600).slots.length,0);test.assertFalse(w.layout(800,600).buttons.some(b=>b.action==='next'));w.key(pdg.key_Tab);test.assertEqual(w.focus,'address');w.key(pdg.key_Tab);test.assertEqual(w.focus,'password');w.password.text='secret';w.action('join');test.assertEqual(w.password.text,'');test.assertNull(w.info);test.assertEqual(w.mode,'join');w.action('administrator');test.assertEqual(w.focus,'password');test.assertEqual(errorText({code:'admin_disabled',message:'private server text'}),I18n.getString(1166));
  });

@@ -241,3 +241,17 @@ visually reviewed. Both full native suites pass 1,763 tests. Evidence:
 intensity variation in short-window screenshots was separately repeated; it
 also occurs on the unchanged preceding build. See the feature-status audit
 for the retained comparison evidence and remaining runtime investigation.
+
+
+Join admission feedback retains its existing en/de/es/fr/ja/ru resources,
+including code rejection and duplicate-name guidance. Oversized captions wrap
+without losing literal characters, while background lobby refresh no longer
+erases an unresolved failed-login message. Temporary metadata errors recover
+to the underlying feedback; editing still clears it. Both native suites pass
+1,764 tests, plus actual six-language native wrong-password/metadata recovery
+and asynchronous cancellation checks. Thirty-six actual-input before/after
+runs pass across three viewport sizes; six extra browser runs check 810
+message/mode/size layouts with actual font metrics. All six narrow and short
+feedback layouts were visually reviewed. Evidence:
+`/private/tmp/galactica-join-status/{verified,measured}`. Pre-existing narrow
+footer/summary crowding remains a separate compact Join layout item.

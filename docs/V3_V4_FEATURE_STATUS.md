@@ -242,7 +242,7 @@ The largest blockers to a complete game are:
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
 | Main information/navigation panels | Context-sensitive system, ship, fleet, rendezvous, and list panels with command buttons. | ✅ Implemented | ✅ Implemented | System production/allocation/destination controls, owned ship/fleet orders and member operations, rendezvous controls, paged system/member lists and the eight-column sortable fleet roster cover the shipped contextual workflows. Actual-input browser checks pass in all six languages for production, equalizing, member exchange, fleet navigation/sorting, rendezvous and read-only foreign inspectors, including save/restore. See the completion audit below. The deliberately modern radial architecture, removed pause/position controls and separate window chrome audit remain explicit. |
-| Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Gameplay title dragging, modal isolation, contextual lists and production/confirmation dismissal have six-language actual-input coverage. Startup/text-entry and document/manual decisions now have six-language actual-input coverage, including narrow dialog bounds, real Save As and Revert. Chat composer/recipient selection also has real-host input and drag coverage at ordinary and short heights. Join address focus, title dragging and real admission also have six-language full/short browser coverage. Join labels reserve measured columns and move with their inputs; all credential modes and saved-host entry have six-language layout coverage. Host setup/status/player/admission/initial-state/password surfaces also have native-backed six-language title/control coverage. Normal Open Saved/conversion/settings/rename/population/ship/admission/End Turn confirmation dialogs now also have actual-input cancellation, drag, modal and native workflow coverage. Admission Add code displays its Enter hint; a one-off save-before-stop failure remains under investigation. Native-backed LAN list paging/refresh/drag/admission and empty/unsupported states also have six-language actual-input coverage. Complete public Join information, compact paging, live metadata refresh and malformed-response recovery also have actual-input coverage at 800×600, 640×340 and 320×340. Foreground new-turn notices now also have native-backed six-language arrival, exact timing, input isolation, constrained persisted dragging, mute and held-drag expiry coverage at all three viewport sizes; compact captions preserve complete words. Remote-administration controls and nested dialogs also have native-backed six-language ordinary/short viewport coverage, including actual saves, revocation and disconnect. Independent application-window title drags now survive a network map refresh; forced-refresh input checks preserve bounded persisted positions. The remote host panel now also shows its own session connection failure while modal, instead of hiding it behind the map status bar; actual authorization revocation and complete translated captions have ordinary/short six-language coverage. Desktop document busy/error/status dialogs now also have native-backed six-language actual-input coverage at all three viewport sizes. Long literal file paths remain fully accessible through measured message pages; canceling asynchronous reads does not install a late result. Remaining chrome work includes hosting/join/network busy/error variants and a separate compact gameplay minimum-viewport audit. |
+| Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Gameplay title dragging, modal isolation, contextual lists and production/confirmation dismissal have six-language actual-input coverage. Startup/text-entry and document/manual decisions now have six-language actual-input coverage, including narrow dialog bounds, real Save As and Revert. Chat composer/recipient selection also has real-host input and drag coverage at ordinary and short heights. Join address focus, title dragging and real admission also have six-language full/short browser coverage. Join labels reserve measured columns and move with their inputs; all credential modes and saved-host entry have six-language layout coverage. Host setup/status/player/admission/initial-state/password surfaces also have native-backed six-language title/control coverage. Normal Open Saved/conversion/settings/rename/population/ship/admission/End Turn confirmation dialogs now also have actual-input cancellation, drag, modal and native workflow coverage. Admission Add code displays its Enter hint; a one-off save-before-stop failure remains under investigation. Native-backed LAN list paging/refresh/drag/admission and empty/unsupported states also have six-language actual-input coverage. Complete public Join information, compact paging, live metadata refresh and malformed-response recovery also have actual-input coverage at 800×600, 640×340 and 320×340. Foreground new-turn notices now also have native-backed six-language arrival, exact timing, input isolation, constrained persisted dragging, mute and held-drag expiry coverage at all three viewport sizes; compact captions preserve complete words. Remote-administration controls and nested dialogs also have native-backed six-language ordinary/short viewport coverage, including actual saves, revocation and disconnect. Independent application-window title drags now survive a network map refresh; forced-refresh input checks preserve bounded persisted positions. The remote host panel now also shows its own session connection failure while modal, instead of hiding it behind the map status bar; actual authorization revocation and complete translated captions have ordinary/short six-language coverage. Desktop document busy/error/status dialogs now also have native-backed six-language actual-input coverage at all three viewport sizes. Long literal file paths remain fully accessible through measured message pages; canceling asynchronous reads does not install a late result. Join feedback now also has complete measured wrapping and persists through background metadata refresh; actual duplicate-name/code-denial, retry and title dragging have six-language ordinary/short/narrow coverage. Compact Join footer buttons and summary still crowd at 320×340 and need a separate layout pass. Remaining chrome work includes other hosting/join/network busy/error variants and a separate compact gameplay minimum-viewport audit. |
 | Keyboard shortcuts and hover help | Buttons advertise shortcuts; balloon/flyby help describes controls. | ✅ Implemented | ✅ Implemented | Current controls advertise their working v4 shortcuts. Delayed explanatory help uses the same hit targets as clicks across inspectors, allocation sliders, command/list/course/report windows, startup options and local file dialogs. Text wraps by measured Unicode glyph width and stays within the viewport; covered controls behind modal windows, active drags, destination placement and illustrated overlays cannot show help. Clicks/keys clear it without intercepting input. Settings → Control help persists through native/browser preferences, reload and open-game switching. Eleven regressions and actual six-language browser comparisons cover timing, privacy/input isolation, allocation semantics, current action coverage, persistence, complete text and viewport bounds. New commands introduced with the remaining unported dialogs will need their own help alongside those implementations. |
 | Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | ✅ Implemented | ✅ Implemented | E/Events lists recipient-visible last-turn reports in chronological order, including retained held reports and unread offline messages. Paged rows select and center live subjects, preserve lost-subject locations and show reviewed state; narratives page independently without another turn. The complete source-reachable event inventory is implemented. View report replays full combat, colony, repair, rendezvous, message and outcome narratives. Owner commissioning/discovery now also restore their snapshot-based Stardock/Lab illustrations; observers never receive owner artwork. Actual six-language Events/button checks and before/after image comparisons pass, with both full suites at 1734 tests. Art pixel equivalence, attention sequencing and enemy movement playback remain their separate checklist rows. |
 | Attention queue | Manual requests select/focus subjects sequentially; automatic messages have a separate presentation/review path. | ✅ Implemented | ✅ Implemented | Owner call-ins, ordinary mobile builds, rendezvous fleets, repairs and colony instructions use Next. Automatic notices and foreign manual observer notices are excluded from Next counts, Tab and deferred post-turn goto, matching ShowMessages (GalacticaDoc.cp:1561–1570). Previously saved foreign manual queue entries are filtered too. Unread automatic entries retain End Turn protection and explicit Review. Detected observer narratives remain available through explicit Events review. Both full suites pass 1740 tests; actual arrival, Next, explicit review and save checks pass in all six languages. Enemy playback and native/art/audio work remain separate rows. |
@@ -7032,3 +7032,76 @@ and `/private/tmp/galactica-remote-admin-status/{verified,repeat,repeat-baseline
 Window chrome remains Partial for other hosting/join/network busy/error
 variants and compact gameplay minimum layouts. No PDG source or public-engine
 checkout changed; any engine fix remains private-only until v1.2.1.
+
+
+### Complete and persistent Join admission feedback
+
+The actual font audit reproduced a narrow-form defect: the German access-code
+denial measures 276px at the renderer's 9px minimum, against 248px of content
+space. It ran beyond the panel padding/border. Other languages also have
+source-reachable messages wider than the minimum-size line, including the
+Japanese duplicate-name/access-code captions. Join layout now wraps complete
+literal feedback when shrinking alone cannot fit it, uses an available
+control-free vertical gap and moves its text with the window. Short messages
+retain their old baseline/font behavior. No strings change.
+
+The same audit found that the automatic public metadata refresh cleared a
+failed-login message even when access remained denied. Successful background
+inspection now preserves that feedback. A temporary inspection error may
+replace it, but recovery restores the underlying failed-login message.
+Editing, explicit inspection, mode/address changes and a new admission attempt
+retain their existing intentional feedback clearing. Sequence guards still
+prevent canceled/obsolete responses reaching a reopened form.
+
+Source context: `GalacticaHost.cpp:1686–1701` denies a new player against the
+allow/ban policy, and `GalacticaClient.cpp:2268–2275` shows a localized
+StopAlert for failed login. V4 retains its existing inline, retryable panel
+and host-issued access codes in place of the discontinued registration
+system. This item makes its feedback complete and persistent; it does not
+claim to reproduce the original Mac alert appearance.
+
+Both full native suites pass **1,764/1,764** tests. The new layout regression
+checks complete literal captions, width, panel bounds and separation from
+fields/slots/checks/buttons in en/de/es/fr/ja/ru, all three admission modes
+and 800×600/640×340/320×340. Actual native public-lobby integration also
+passes in all six languages: real wrong-password rejoin feedback survives
+refresh and malformed-clock rejection/recovery, and editing clears it. The
+initial fixture attempt hit the already-full form's local capacity check;
+the corrected test uses an existing player's wrong-password rejoin to
+exercise the real HTTP rejection. Running that new regression against the
+original Join class fails with an empty message instead of Incorrect password
+after refresh. Existing async admission/canceled-inspection lifecycle checks
+also pass. All automation remains muted.
+
+The native browser-host fixture enables its access policy only for this
+helper. Actual UI input provokes duplicate-name and rejected-code responses,
+verifies rejection leaves the second slot open, drags the error window,
+refreshes the actual lobby, then enters the allowed code and joins as player
+two. The baseline must lose its feedback after refresh; the fixed build must
+preserve it. All **36** before/after input runs pass in all six languages and
+three viewport sizes. Six supplementary runs also perform **810** component
+layout checks against the actual browser font metrics, covering each form
+message/mode at every size; these are explicit geometry probes, not claims
+that every error variant was individually emitted by the host.
+
+Of **90** screenshot pairs, **18** recovered-map captures are identical,
+**49** differ only in the temporary address field, and **23** contain intended
+feedback changes: all 18 post-refresh captions plus five narrow overflowing
+caption scenes in German/Japanese. The address masks use the retained
+actual-font field geometry and title-drag displacement. German before/after,
+all six narrow denial/post-refresh captions, and all six short post-refresh
+layouts were visually inspected.
+
+The review also exposes pre-existing narrow Join crowding: footer captions
+and their hints overlap, and the summary count line can run under the
+Details button. These are the next compact Join layout item; this feedback
+fix does not mark the whole form or window chrome complete. Other hosting/
+join/network busy/error variants and compact gameplay layouts remain open.
+No PDG checkout changed; any engine fix stays private-only for v1.2.1.
+
+Evidence: `/private/tmp/galactica-join-status-{pdg,pdg-devel}-unit.log`,
+`galactica-join-status-{native,lifecycle,original-native-regression}.log`,
+`galactica-join-status-verified-{600,340,narrow}-{before,after}-<language>.log`,
+`galactica-join-status-measured-<language>.log`,
+`galactica-join-status-comparison.json`, and
+`/private/tmp/galactica-join-status/{verified,measured,denial-before}`.

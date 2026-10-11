@@ -12,7 +12,7 @@ class JoinWindow {
  }
  open(descriptor=null){
   if(this.active)return false;
-  this.stage='form';this.active=true;this.busy=false;this.refreshing=null;this.client=null;this.owned=false;this.info=null;this.message='';this.page=0;
+  this.resetInspectionError();this.stage='form';this.active=true;this.busy=false;this.refreshing=null;this.client=null;this.owned=false;this.info=null;this.message='';this.page=0;
   this.address=Names.createEditor(descriptor?descriptor.address:'',256);
   this.name=Names.createEditor(descriptor && descriptor.role!=='administrator'?descriptor.name:this.defaultName());this.password=Names.createEditor('',64);this.admissionCode=Names.createEditor('',64);
   this.rememberPassword=false;this.savedPasswordLoaded=false;this.mode=descriptor && descriptor.role==='administrator'?'administrator':descriptor?'rejoin':'join';this.expectedId=descriptor?descriptor.gameId:null;this.focus=descriptor?'password':'address';if(descriptor)this.loadSavedPassword();return true;
@@ -53,14 +53,15 @@ class JoinWindow {
   if(!this.active)return false;const wasBusy=this.busy;this.stopDiscovery();++this.sequence;this.active=false;this.busy=false;
   this.clearPasswordIdentity();this.admissionCode.text='';if((this.owned || wasBusy) && this.client)this.client.disconnect({keepView:true});this.client=null;return true;
  }
- clearInfo(){this.info=null;this.expectedId=null;this.page=0;}
+ resetInspectionError(){this.inspectionError=null;this.inspectionPreviousMessage='';}
+ clearInfo(){this.resetInspectionError();this.info=null;this.expectedId=null;this.page=0;}
  selectSlot(slot){
   if(this.busy)return false;this.mode=slot.status==='occupied'?'rejoin':'join';
   this.name=Names.createEditor(slot.status==='occupied'?slot.name:this.defaultName());this.clearPasswordIdentity();this.admissionCode.text='';if(this.mode==='rejoin')this.loadSavedPassword();
   this.focus=slot.status==='occupied'?'password':'name';this.message='';return true;
  }
  async inspect(){
-  if(!this.active || this.busy)return false;const sequence=++this.sequence;this.busy=true;this.message=I18n.getString(1012);
+  if(!this.active || this.busy)return false;this.resetInspectionError();const sequence=++this.sequence;this.busy=true;this.message=I18n.getString(1012);
   try{
    if(this.owned && this.client)this.client.disconnect({keepView:true});
    this.client=(this.mode==='administrator'?this.createAdmin:this.create)(this.address.text);this.owned=true;
@@ -78,15 +79,15 @@ class JoinWindow {
   if(!this.active || this.busy || this.refreshing || !this.info || !this.client)return false;
   const sequence=this.sequence,client=this.client,id=this.info.gameId,ticket={client};this.refreshing=ticket;this.nextInspection=Information.now()+3000;
   const valid=()=>this.active && this.sequence===sequence && this.client===client && this.info?.gameId===id && ['form','information'].includes(this.stage);
-  try{const info=await client.inspect();if(!valid())return false;if(info.gameId!==id)throw {code:'wrong_game'};this.info=info;this.inspectedAt=Information.now();this.message='';return true;}
-  catch(error){if(valid())this.message=errorText(error);return false;}
+  try{const info=await client.inspect();if(!valid())return false;if(info.gameId!==id)throw {code:'wrong_game'};this.info=info;this.inspectedAt=Information.now();if(this.message===this.inspectionError)this.message=this.inspectionPreviousMessage;this.resetInspectionError();return true;}
+  catch(error){if(valid()){if(this.message!==this.inspectionError)this.inspectionPreviousMessage=this.message;this.message=this.inspectionError=errorText(error);}return false;}
   finally{if(this.refreshing===ticket)this.refreshing=null;}
  }
  async connect(){
   if(!this.active || this.busy)return false;
   if(!this.info && !await this.inspect())return false;
   const name=this.name.text.trim();if(this.mode!=='administrator' && !Names.validName(name)){this.message=I18n.getString(1021);this.focus='name';return false;}
-  const sequence=++this.sequence;this.busy=true;this.message=I18n.getString(1013);
+  this.resetInspectionError();const sequence=++this.sequence;this.busy=true;this.message=I18n.getString(1013);
   try{
    const existing=this.find(this.client.address,this.info.gameId,name,this.mode==='administrator'?'administrator':'player');
    if(existing){if(this.owned)this.client.disconnect();this.client=existing;this.owned=false;}
@@ -121,6 +122,23 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
   if(this[this.focus].text!==before){this.message='';if(this.focus==='address'){this.clearInfo();this.clearPasswordIdentity();}else if(this.focus==='name'){this.clearPasswordIdentity();this.loadSavedPassword();}else if(this.focus==='password')this.savedPasswordLoaded=false;}return true;
  }
  layout(width,height,measure=(text,size)=>Array.from(String(text)).length*size/2){
+  const layout=this.baseLayout(width,height,measure);if(!layout)return null;
+  const {rect,scale}=layout,inner=rect.width-48,baseline=rect.y+(layout.messageY || 477)*scale;layout.statusLines=[];
+  if(!this.message)return layout;
+  let size=12;while(size>9 && measure(this.message,size)>inner)size--;
+  if(measure(this.message,size)<=inner){layout.statusLines=[{text:this.message,size,point:{x:rect.x+24,y:baseline}}];return layout;}
+  const lines=require('./text-wrapping.js')(this.message,inner,text=>measure(text,size)),pitch=size+1,heightNeeded=size+(lines.length-1)*pitch;
+  const occupied=['fields','slots','checks','choices','buttons','labels'].flatMap(key=>(layout[key] || []).map(item=>item.rect));
+  if(this.info && layout.kind!=='information')for(const y of [layout.infoTitleY || 260,layout.infoCountsY || 282])occupied.push({y:rect.y+y*scale-13,height:16});
+  let top=rect.y+44*scale;const bottom=rect.y+rect.height-12,gaps=[];
+  for(const area of occupied.sort((a,b)=>a.y-b.y)){if(area.y>top)gaps.push({top,bottom:Math.min(area.y,bottom)});top=Math.max(top,area.y+area.height);}
+  if(top<bottom)gaps.push({top,bottom});
+  const distance=gap=>Math.abs(Math.max(gap.top,Math.min(gap.bottom,baseline))-baseline);
+  const gap=gaps.filter(gap=>gap.bottom-gap.top>=heightNeeded).sort((a,b)=>distance(a)-distance(b))[0] || gaps.sort((a,b)=>(b.bottom-b.top)-(a.bottom-a.top))[0];
+  const first=gap?Math.max(gap.top+size*.8,Math.min(baseline-(lines.length-1)*pitch/2,gap.bottom-size*.2-(lines.length-1)*pitch)):baseline;
+  layout.statusLines=lines.map((text,index)=>({text,size,point:{x:rect.x+24,y:first+index*pitch}}));return layout;
+ }
+ baseLayout(width,height,measure){
   if(!this.active)return null;const rect={width:Math.min(560,width-24),height:Math.min(548,height-24)};
   rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;const scale=rect.height/548,at=(x,y,w,h)=>({x:rect.x+x,y:rect.y+y*scale,width:w,height:h*scale});
   const fieldsFor=(names,start,step)=>{

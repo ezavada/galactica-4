@@ -991,3 +991,33 @@ and corresponding comparison reports. Both full native suites pass 1,763
 tests; `tools/test-host-admin.js` also passes its actual six-language native
 authorization checks. Physical focus, other busy/error variants and compact
 gameplay layouts remain separate audits.
+
+
+### Complete and persistent Join feedback
+
+```bash
+node tools/test-web-join-status.cjs BUILD_DIR SCREENSHOT_DIR en after 320 340
+```
+
+Repeat for de/es/fr/ja/ru and 800×600/640×340. Use `before` with the preceding
+build to check its overflowing caption and feedback clearing on a successful
+lobby refresh. The muted helper starts an actual native host with a test-only
+access policy, provokes real duplicate-name/code rejection, verifies denial
+does not claim a slot, drags the window, refreshes the actual lobby and joins
+with an allowed code. It captures the recovered map too. Fixed-build runs
+add explicit exact-font component probes for each message/mode at all three
+sizes, storing geometry in `measured-layouts.json`; they do not substitute
+mocked responses for the actual admission flows.
+
+Current verification: 36 before/after runs and six extra measurement runs
+pass; the latter cover 810 layouts. Of 90 paired scenes, 18 recovered maps
+match exactly, 49 differences are temporary address text only and 23 are
+intended feedback changes. Artifacts are in
+`/private/tmp/galactica-join-status/{verified,measured}` and
+`galactica-join-status-comparison.json`. Both native suites pass 1,764 tests.
+`tools/test-network-lobby-information.js` also exercises real wrong-password
+feedback surviving metadata refresh/error/recovery in all six languages;
+`tools/test-network-join.js` checks pending/canceled admission and inspection.
+The unchanged original Join class fails the new native refresh regression.
+Compact footer/summary crowding and other busy/error variants remain separate
+UI audits. Public PDG remains unchanged.
