@@ -45,6 +45,25 @@ class EventReferenceTests(unittest.TestCase):
         self.assertEqual([e['code'] for e in events if not e['autoShow']], [8,9,10,13,15,16,20,21,22])
         self.assertTrue(all(e['stringResource']==500 and e['textResource']==0 for e in events))
 
+    def test_pascal_strings_preserve_empty_macroman_and_source_placeholders(self):
+        blob = b'\x00\x03\x00\x04Caf\x8e\x05%#@$*'
+        self.assertEqual(module.decode_strings(blob), [
+            {'index': 1, 'text': ''}, {'index': 2, 'text': 'Café'},
+            {'index': 3, 'text': '%#@$*'}])
+
+    def test_corrupt_string_counts_lengths_and_trailing_data_rejected(self):
+        for bad in (b'', b'\x00', b'\x00\x01', b'\x00\x01\x02a',
+                    b'\x00\x00x', b'\x00\x02\x01a', b'\x00\x01\x01ax'):
+            with self.assertRaises(ValueError): module.decode_strings(bad)
+
+    def test_every_referenced_template_has_source_text(self):
+        entries = self.reference['texts']['entries']
+        self.assertEqual([entry['index'] for entry in entries], list(range(1, 46)))
+        self.assertTrue(all(entry['text'] for entry in entries))
+        self.assertEqual(entries[17]['text'],
+                         'You have completed construction of a new % class starship, tech level $, at @.')
+        self.assertEqual(entries[44]['text'], 'Please name your new colony and set its production levels.')
+
     def test_modal_window_recipient_and_artwork_roles(self):
         events=self.reference['events']
         windows=[(e['code'],name,r['window']) for e in events for name,r in e['recipients'].items() if r['window']]

@@ -31,6 +31,26 @@ def decode_events(blob):
     return events
 
 
+def decode_strings(blob):
+    """Decode a complete MacRoman STR# payload; reject truncated/trailing data."""
+    if len(blob) < 2:
+        raise ValueError('Missing string count')
+    count = struct.unpack_from('>H', blob)[0]
+    entries, offset = [], 2
+    for index in range(1, count + 1):
+        if offset >= len(blob):
+            raise ValueError('Missing Pascal string length')
+        size = blob[offset]
+        offset += 1
+        if offset + size > len(blob):
+            raise ValueError('Truncated Pascal string')
+        entries.append({'index': index, 'text': blob[offset:offset+size].decode('mac_roman')})
+        offset += size
+    if offset != len(blob):
+        raise ValueError('Trailing string resource data')
+    return entries
+
+
 def import_reference(root):
     relative = 'Resources/gal-mainrsrc.r'
     source = (root / relative).read_bytes().decode('mac_roman')
@@ -46,9 +66,13 @@ def import_reference(root):
         window['source'] = path
         window['objectClasses'] = [obj[:4].decode('ascii') for obj in presentation.objects(payload)]
         windows[str(number)] = window
+    text_source = 'Resources/gal-en-shareware.r'
+    text_blob = presentation.resource((root / text_source).read_bytes().decode('mac_roman'), 'STR#', 500)
+    texts = {'source': text_source, 'resource': 500, 'sha256': presentation.digest(text_blob),
+             'entries': decode_strings(text_blob)}
     return {'format': 1, 'purpose': 'Source presentation evidence, not proof of runtime parity',
             'source': relative, 'resource': 128, 'sha256': presentation.digest(blob),
-            'events': events, 'windows': windows}
+            'events': events, 'windows': windows, 'texts': texts}
 
 
 if __name__ == '__main__':

@@ -596,5 +596,192 @@
         "butn"
       ]
     }
+  },
+  "texts": {
+    "source": "Resources/gal-en-shareware.r",
+    "resource": 500,
+    "sha256": "ec923cd00fc1938e10feb035b9baa73f83ed484ead97734abef65c46ac82e182",
+    "entries": [
+      {
+        "index": 1,
+        "text": "You took the star system % from #!"
+      },
+      {
+        "index": 2,
+        "text": "You lost the star system % when * attacked it."
+      },
+      {
+        "index": 3,
+        "text": "* took the star system % from #."
+      },
+      {
+        "index": 4,
+        "text": "You have crushed the last resistance on the system % in a battle against #!"
+      },
+      {
+        "index": 5,
+        "text": "Your last defenders of the system % died bravely in a battle against *."
+      },
+      {
+        "index": 6,
+        "text": "* crushed the last resistance on the system % in a battle against #."
+      },
+      {
+        "index": 7,
+        "text": "You destroyed an enemy starship % belonging to # in a battle at @."
+      },
+      {
+        "index": 8,
+        "text": "You lost a starship % in battle with * at @."
+      },
+      {
+        "index": 9,
+        "text": "* destroyed a starship % that belonged to # in a battle at @."
+      },
+      {
+        "index": 10,
+        "text": "You have defeated # in a battle at @, destroying the fleet %!"
+      },
+      {
+        "index": 11,
+        "text": "You lost your fleet %, wiped out in a battle with * at @."
+      },
+      {
+        "index": 12,
+        "text": "* defeated # in a battle at @, destroying the fleet %."
+      },
+      {
+        "index": 13,
+        "text": "You have received a message from #."
+      },
+      {
+        "index": 14,
+        "text": "* received a message from #."
+      },
+      {
+        "index": 15,
+        "text": "Your starship % at @ is awaiting your orders."
+      },
+      {
+        "index": 16,
+        "text": "Your fleet % at @ is awaiting your orders."
+      },
+      {
+        "index": 17,
+        "text": "Your newly built starship % is in the system @, ready for launch."
+      },
+      {
+        "index": 18,
+        "text": "You have completed construction of a new % class starship, tech level $, at @."
+      },
+      {
+        "index": 19,
+        "text": "* just built a new % class starship, tech level $, at @."
+      },
+      {
+        "index": 20,
+        "text": "Your scientists on % have discovered a new tech level $ starship drive."
+      },
+      {
+        "index": 21,
+        "text": "Scientists on %, working for *, have discovered a new tech level $ starship drive."
+      },
+      {
+        "index": 22,
+        "text": "Your system % has achieved tech level $."
+      },
+      {
+        "index": 23,
+        "text": "* has achieved tech level $ on %."
+      },
+      {
+        "index": 24,
+        "text": "You have colonized the uninhabited star system % !"
+      },
+      {
+        "index": 25,
+        "text": "* colonized the uninhabited star system %."
+      },
+      {
+        "index": 26,
+        "text": "Your new fleet has begun to form at @. Please name it."
+      },
+      {
+        "index": 27,
+        "text": "* has begun forming a new fleet at @."
+      },
+      {
+        "index": 28,
+        "text": "Your fleet % at @ is now completely formed."
+      },
+      {
+        "index": 29,
+        "text": "* has completed formation of the fleet % at @."
+      },
+      {
+        "index": 30,
+        "text": "You have been defeated."
+      },
+      {
+        "index": 31,
+        "text": "* has been defeated."
+      },
+      {
+        "index": 32,
+        "text": "You have conquered the Galaxy!!"
+      },
+      {
+        "index": 33,
+        "text": "* has conquered the Galaxy!"
+      },
+      {
+        "index": 34,
+        "text": "While you won the battle at @, your fleet % lost $ ships."
+      },
+      {
+        "index": 35,
+        "text": "While you lost the battle at @, you destroyed $ enemy ships."
+      },
+      {
+        "index": 36,
+        "text": "* lost $ ships from their fleet % in the battle against # at @."
+      },
+      {
+        "index": 37,
+        "text": "While you won the battle at %, you lost $ ships in that system."
+      },
+      {
+        "index": 38,
+        "text": "You destroyed $ enemy ships in your attack on the star system %."
+      },
+      {
+        "index": 39,
+        "text": "* lost $ ships defending the star system % from an attack by #."
+      },
+      {
+        "index": 40,
+        "text": "The star system % surrendered."
+      },
+      {
+        "index": 41,
+        "text": "Your star system % surrendered to *."
+      },
+      {
+        "index": 42,
+        "text": "The star system %, formerly held by #, surrendered to *."
+      },
+      {
+        "index": 43,
+        "text": "Your ship % has been completely repaired."
+      },
+      {
+        "index": 44,
+        "text": "All ships in your fleet % have been completely repaired."
+      },
+      {
+        "index": 45,
+        "text": "Please name your new colony and set its production levels."
+      }
+    ]
   }
 }

@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1705 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1731 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -237,7 +237,7 @@ The largest blockers to a complete game are:
 - Strategic uses of computer advantage beyond the v3 production-style modifiers.
 - Combat-odds estimation, retreat/avoidance, and late-game attack-pressure tuning beyond matching the v3 decision factors.
 
-## 8. Events, messages, comparison, help, and general UI (Functionality 79%, UI 74%)
+## 8. Events, messages, comparison, help, and general UI (Functionality 82%, UI 76%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -248,7 +248,7 @@ The largest blockers to a complete game are:
 | Attention queue | New ships, idle ships, colonies, messages, and other important events select themselves in sequence. | 🟡 Partial | 🟡 Partial | A per-turn subject queue covers human mobile ship/fleet call-ins, course completions, idle requests, completed mobile/satellite builds, complete ship/fleet repair notices, rendezvous fleet-creation notices and newly colonized/captured stars. Tab, menu and map Next item visit/center subjects; manual selection or report review handles linked requests. Colony reports focus the star while the colony ship remains available. UI End Turn confirms before discarding pending requests or presentations. Other v3 message types, enemy moves and notable event subjects remain to port. |
 | New technology lab presentation | Illustrated new-drive event. | ✅ Implemented | ✅ Implemented | Dimming lab overlay with blueprint art; Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
 | New hull/class Stardock presentation | Illustrated first-built satellite, scout/courier, colony or higher battleship class event. | ✅ Implemented | ✅ Implemented | Owner-only Stardock overlays use matching hull/class art and translated titles. Reports retain role explanations and focus the building system even after default-order departure. First-build flags, highest built class and queued presentation identities survive saves; repeated hulls and older classes are suppressed. Source-confirmed observer broadcasts now retain faction/class/technology/origin snapshots, follow current detection and Show enemy events, and replay as ordinary reports. Illustrated Stardock art stays owner-only. Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
-| Colonization/capture/battle event text | 22 event codes select 45 player-relative text templates. | 🟡 Partial | 🟡 Partial | Participant battle outcomes, system capture, defeated resistance and individual ship/fleet destruction now have private winner/loser narratives, retained battle-time names, remembered-location navigation and replay. Commissioning, discovery and neutral colony naming/production reports are also present. Neutral colonization now has separate owner and observer narratives, automatic eligible playback, Events replay and retained colony-time names. Capture observer narratives are also available through Events with fog gating; resistance and destruction remain direct-participant notices. First-class construction now broadcasts owner/observer copies: detected observers receive automatic/plain reports and manual replay, while owner Stardock art remains private. Discovery now also broadcasts separate owner/observer copies with private Lab art, current detection checks and replay. The complete source-emitter inventory in `docs/reference/EVENT_REPORTS.md` maps all eighteen source-backed codes to current implementations and named regression suites. Resource-level presentation, attention, sound/art and runtime/platform audits remain separate requirements; generic unspecified additional event types are not counted as confirmed gaps. FleetDamaged (5) has resource text and two source calls, but the built v3 loss helper returns nonpositive counts that cannot pass their >1 gates in ordinary combat; it is not counted as a confirmed missing broadcast. Multiplayer messages are implemented below. |
+| Colonization/capture/battle event text | 22 event codes define 45 player-relative templates; shipped emitters reach 31 variants across eighteen codes. | ✅ Implemented | ✅ Implemented | The complete source-text extraction and recipient/runtime matrix in `docs/reference/EVENT_NARRATIVE_COVERAGE.md` account for every STR#500 index. All source-reachable capture, resistance, destruction, system-defense, offline-message, call-in, build, commissioning, discovery, colonization, rendezvous, outcome, repair and colony-instruction narratives retain their required dynamic content and player-relative perspective. The fourteen resource-only variants are explicitly classified from their absent/private/dormant emitters. Real-transition suites cover privacy, observer visibility, literal snapshots, saves and review; event-family six-language browser/layout audits cover presentation. Owner commissioning includes the formerly missing technology. Fresh full suites pass 1731 tests on both runtimes and eight actual-source import checks pass. Attention sequencing, enemy replay, artwork equality and platform/audio verification remain separate rows. |
 | Compare players | Player summary table with best values blue and worst red; the audited v3 sort handler is empty. | ✅ Implemented | ✅ Implemented | Menu/V opens all eleven v3 numeric fields: systems, population in thousands, production, system min/max/average technology, completed ships, raw ship power and ship min/max/average technology. Unowned systems have an italic neutral row and no ship fields; unassigned names are italic Unknown; defeated rows show a localized suffix and dashes. Living category-specific extrema exclude neutral/dead rows; blue takes precedence for tied best values. Production comparisons retain hundredths before formatting. Names retain true enemy homeworld/faction identity under fog, with full hover text when needed. Viewport paging reaches every player; Close/V/Escape and modal map input are verified in all six languages. Full suites: 919 passed on release/current native PDG. Functional sorting and aggregate score columns were not confirmed in v3 C++. |
 | Send player messages; show/hold game reports | Connected multiplayer chat to one/all/admin; separate Show/Hold commands govern automatic game-report playback. | ✅ Implemented | ✅ Implemented | Authenticated chat and durable offline messages are implemented. Menu → Hold game reports pauses automatic report, Lab, Stardock and outcome playback without marking reports read. Show game reports plays the pending batch while retaining Hold; turning Hold off resumes automatically. Manual Events replay remains available. Each complete save retains Hold and pending report identities, and client refresh remaps retained subjects to the new model. Localized controls/help and all six manuals are updated; native and browser evidence is recorded below. Existing report-window chrome remains separately tracked. |
 | Rename ship/fleet/colony/rendezvous | Edit menu rename workflow. | ✅ Implemented | ✅ Implemented | Owned ships, systems, fleets and rendezvous points have localized Unicode Rename/Save/Cancel controls. New human neutral colonies create the private v3 naming/production instruction and attention navigation, rather than a forced naming modal. Requests disappear for recaptured/removed colonies and do not target computer or captured enemy systems. |
@@ -5823,3 +5823,32 @@ Comparison evidence is in
 `/private/tmp/galactica-manual-attention-{before,after}-<language>.log`.
 This closes the concrete extra-dialog discrepancy; the broader event/attention
 and Map Generation requirements remain subject to their full audits.
+
+
+## Complete source-reachable narrative coverage audit
+
+The event-text row is now implemented. The reproducible Evnt128 inventory
+includes all 45 original English STR#500 texts with the resource digest; its
+importer rejects truncated or trailing Pascal-string data and preserves
+MacRoman text and source placeholders. Eight checks pass, including regeneration
+from the peer shipped-v3 checkout.
+
+`docs/reference/EVENT_NARRATIVE_COVERAGE.md` maps each of the 31 source-reachable
+recipient templates to current localized text, required dynamic content and
+real-transition suites. It also accounts explicitly for the fourteen unused
+observer/enum/dormant templates. All source emitters were reviewed; resource
+presence is not used to invent triggers or disclosures. Source English wording
+remains inspectable, while the actual v4 narratives use six supported languages
+and immutable creation-time snapshots. The recent owner technology and manual
+attention fixes resolve the concrete discrepancies found during this audit.
+
+Fresh complete muted native suites pass 1731 tests on both public/development
+runtimes (`/private/tmp/galactica-event-narrative-{public,devel}-unit.log`);
+source verification is `/private/tmp/galactica-event-narrative-source.log`.
+No runtime rendering or translation changes in this inventory item; the
+coverage document points to the already inspected event-family browser evidence
+in all six languages. Section 8 estimates are recomputed with one more complete
+row across seventeen rows: Functionality 82%, UI 76%. This closes narrative
+content and its review surfaces, not broader event ordering, enemy movement
+replay, original-art equality, connected-system audio or packaged-runtime work.
+The overall parity and Map Generation goal remains open.

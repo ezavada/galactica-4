@@ -482,3 +482,15 @@ Events review. Real End Turn/Tab/rename/browser review checks pass before
 and after in all six languages; both complete native suites pass 1731 tests.
 The repair and rendezvous attention audit in `docs/V3_V4_FEATURE_STATUS.md`
 records the source, screenshot comparisons, save behavior and test evidence.
+
+
+## Complete narrative coverage
+
+[EVENT_NARRATIVE_COVERAGE.md](EVENT_NARRATIVE_COVERAGE.md) accounts for all
+45 STR#500 entries, including the 31 recipient variants delivered by actual
+source emitters and the fourteen private/enum/dormant resource-only variants.
+The generated `v3-events.json` now contains every original text and its source
+resource digest, verified directly against the peer checkout. All eight import
+checks and both full 1731-test native suites pass. This completes the checklist's
+event-text row while preserving the separate attention, playback, sound, art
+and platform audits described above.
