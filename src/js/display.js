@@ -2472,7 +2472,7 @@ class Display {
                     this.drawRoundedRect({x:list.x,y,width:list.width,height:36},5,selected?this.styles.buttonFillActive:this.styles.buttonFillHover);
                 if(list.side==='main' && row.object===state.active)this.drawRoundedRect({x:list.x,y,width:3,height:36},1,this.styles.buttonFillActive);
                 const data=row.data;
-                this.drawTextLine(this.fitShipDiagnosticText(data.title,list.width-12,11),list.x+6,y+14,'lightgray',11);
+                this.drawTextLine(this.fitShipDiagnosticText(data.title,list.width-12,11,data.nameStyle),list.x+6,y+14,data.nameColor,11,data.nameStyle);
                 const metrics=`${data.tech} / ${data.speed} / ${data.power}   ${I18n.getString(698,'Health:')} ${data.health}`;
                 this.drawTextLine(this.fitShipDiagnosticText(metrics,list.width-12,9),list.x+6,y+29,'gray',9);
             });
@@ -3213,6 +3213,17 @@ class Display {
         return `${name} ${kind}`;
     }
 
+    getFleetMemberNameStyle(member) {
+        // V3 table priority: call-in yellow, otherwise scrap bold/underlined red.
+        // Private flags and courses remain confined to allied/all-visible views.
+        if(!this.game.canViewCourse(member))return {nameColor:'lightgray',nameStyle:pdg.textStyle_Plain};
+        const callIn=member.userCallIn || this.game.attention.pending().some(entry=>entry.object===member);
+        const scrap=member.isToBeScrapped() && !callIn;
+        return {nameColor:callIn?'yellow':scrap?'red':'lightgray',
+            nameStyle:scrap?(pdg.textStyle_Bold|pdg.textStyle_Underline):
+                member.course && member.course.waypoints.length?pdg.textStyle_Bold:pdg.textStyle_Plain};
+    }
+
     getFleetMemberDiagnostics(container,member) {
         const data=this.getShipDiagnostics(member);
         if(this.factory.isFleet(member))data.title=this.getFleetTableTitle(member);
@@ -3220,16 +3231,16 @@ class Display {
         // member's own visibility still controls its name and standalone panel.
         if(!container || !this.game.canViewFleetExchange(container))return data;
         const health=Math.max(0,Math.min(100,100-member.getDamagePercent()));
-        return {...data,title:member.isOnPatrol()?`${data.title} · ${I18n.getString(703,'Patrolling')}`:data.title,
+        return {...data,...this.getFleetMemberNameStyle(member),title:member.isOnPatrol()?`${data.title} · ${I18n.getString(703,'Patrolling')}`:data.title,
             tech:String(Math.trunc(member.techLevel)),
             speed:member.speed?I18n.formatDecimal(member.speed/16380):'-',
             power:String(Math.trunc(member.power)),health:health+'%',healthRatio:health/100};
     }
 
-    fitShipDiagnosticText(text, width, size = 11) {
+    fitShipDiagnosticText(text, width, size = 11, style = pdg.textStyle_Plain) {
         const chars = Array.from(String(text));
-        if (this.port.getTextWidth(chars.join(''), size) <= width) return chars.join('');
-        while (chars.length && this.port.getTextWidth(chars.join('') + '…', size) > width) chars.pop();
+        if (this.port.getTextWidth(chars.join(''), size, style) <= width) return chars.join('');
+        while (chars.length && this.port.getTextWidth(chars.join('') + '…', size, style) > width) chars.pop();
         return chars.join('') + '…';
     }
 
@@ -3338,7 +3349,7 @@ class Display {
                 const groupRegion=memberRegions.find(region=>region.action.type==='createFleetGroup' && region.action.member===ship);
                 const nameRight=Math.min(rect.x+rect.width-12,removeRegion?removeRegion.rect.x-6:Infinity,transferRegion?transferRegion.rect.x-6:Infinity,groupRegion?groupRegion.rect.x-6:Infinity);
                 if(groupRegion)this.drawUIButton(groupRegion.rect,I18n.getString(796,'Group'),null,{size:9,radius:7});
-                this.drawTextLine(this.fitShipDiagnosticText(member.title,nameRight-x,10),x,y,'lightgray',10);
+                this.drawTextLine(this.fitShipDiagnosticText(member.title,nameRight-x,10,member.nameStyle),x,y,member.nameColor,10,member.nameStyle);
                 this.drawTextLine(`${member.tech} / ${member.speed} / ${member.power}`,x,y+13,'gray',9);
                 const healthText=I18n.getString(698,'Health:')+' '+member.health;
                 const healthX=x+140;
@@ -3670,9 +3681,12 @@ class Display {
             layout.columns.forEach(column => {
                 let text = column.key==='name' ? (row.member?'  ↳ ':'')+row.name :
                     (column.key==='damage' ? `${row.damage}` : I18n.formatDecimal(row[column.key]));
-                while (Array.from(text).length>1 && (this.port.getTextWidth ? this.port.getTextWidth(text,11) : text.length*7)>column.width-8)
+                const cue=column.key==='name'?this.getFleetMemberNameStyle(row.object):{nameColor:'lightgray',nameStyle:pdg.textStyle_Plain};
+                while (Array.from(text).length>1 && (this.port.getTextWidth ? this.port.getTextWidth(text,11,cue.nameStyle) : text.length*7)>column.width-8)
                     text=Array.from(text).slice(0,-2).join('')+'…';
-                this.drawTextLine(text,rect.x+column.offset,y,(row.member || row.object.isToBeScrapped() && this.game.isOwnerAlliedWith(this.game.getCurrentHumanPlayer(),row.object.owner))?'gray':'lightgray',11);
+                const color=cue.nameColor!=='lightgray'?cue.nameColor:
+                    (row.member || row.object.isToBeScrapped() && this.game.isOwnerAlliedWith(this.game.getCurrentHumanPlayer(),row.object.owner))?'gray':'lightgray';
+                this.drawTextLine(text,rect.x+column.offset,y,color,11,cue.nameStyle);
             });
             this.drawDivider(rect.x+14,y+7,rect.width-28);
         });

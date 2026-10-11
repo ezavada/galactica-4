@@ -68,6 +68,20 @@ module.exports=()=>test.describe('Shared-container fleet exchange',()=>{
   fleet.fleet=child;child.ships.push(fleet);child.fleet=fleet;fleet.ships.push(child);
   test.assertFalse(game.canViewFleetExchange(child));test.assertFalse(game.canViewFleetExchange(fleet));
  });
+ test.it('renders scrap and call-in table cues with v3 priority while protecting enemy flags',()=>{
+  const {game,display,fleet,ships}=fixture(),ship=ships[0];game.showFleetExchange(fleet);game.selectFleetExchangeMember('main',ship);
+  test.assertTrue(game.executeUIAction({type:'fleetExchangeScrap'}));let data=display.getFleetExchangeLayout().lists[0].rows.find(r=>r.object===ship).data;
+  test.assertEqual(data.nameColor,'red');test.assertEqual(data.nameStyle,pdg.textStyle_Bold|pdg.textStyle_Underline);
+  const texts=[];display.drawWindowPanel=()=>{};display.drawTextLine=(...args)=>texts.push(args);display.drawRoundedRect=()=>{};display.drawUIButton=()=>{};display.drawFleetExchangeWindow();
+  test.assertTrue(texts.some(args=>args[0]===data.title && args[3]==='red' && args[5]===(pdg.textStyle_Bold|pdg.textStyle_Underline)));
+  game.systemShipWindowStar=game.stars[0];game.uiWindow='systemShips';display.drawDivider=()=>{};texts.length=0;display.drawSystemShipWindow();
+  test.assertTrue(texts.some(args=>String(args[0]).includes(ship.name) && args[3]==='red' && args[5]===(pdg.textStyle_Bold|pdg.textStyle_Underline)));game.uiWindow='fleetExchange';
+  ship.userCallIn=true;test.assertEqual(display.getFleetMemberDiagnostics(fleet,ship).nameColor,'yellow');ship.userCallIn=false;
+  test.assertTrue(game.executeUIAction({type:'fleetExchangeScrap'}));test.assertEqual(display.getFleetMemberDiagnostics(fleet,ship).nameStyle,pdg.textStyle_Plain);
+  ship.course.replace({x:ship.x+1000,y:ship.y});test.assertEqual(display.getFleetMemberDiagnostics(fleet,ship).nameStyle,pdg.textStyle_Bold);
+  fleet.owner=2;ship.owner=2;fleet.setVisibilityTo(1,3);ship.setScrap(true);ship.userCallIn=true;
+  data=display.getFleetMemberDiagnostics(fleet,ship);test.assertEqual(data.nameColor,'lightgray');test.assertEqual(data.nameStyle,pdg.textStyle_Plain);
+ });
  test.it('marks patrolling table members in every language without altering standalone names or commands',()=>{
   const {game,display,fleet,ships}=fixture(),language=pdg.res.getLanguage();fleet.setPatrol(true);
   try{for(const [lang,label] of [['en','Patrolling'],['de','Auf Patrouille'],['es','Patrullando'],['fr','En patrouille'],['ja','哨戒中'],['ru','Патрулирование']]){

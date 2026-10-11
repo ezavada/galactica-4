@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1682 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1683 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4359,3 +4359,38 @@ Current evidence: `/private/tmp/galactica-tutorial-current/<language>`,
 `/private/tmp/galactica-tutorial-recovery-<language>.log`,
 `/private/tmp/galactica-modal-{game,startup}-<language>.log` and
 `/private/tmp/galactica-tutorial-host-after-<language>.log`.
+
+
+### Contents-row scrap, call-in and course cues
+
+Verified v3 `GalacticaTables.cp` (222–236): plotted courses use bold names;
+call-in names are yellow; otherwise scrapped units use bold, underlined red.
+`CShip.h::WillCallIn` includes both automatic attention and explicit user call-in.
+V4's Scrap/Cancel scrap controls changed the model, but its contents rows retained
+their ordinary appearance.
+
+The shared member-name style now supplies these cues to exchange rows, the fleet
+inspector and the dedicated system ship list. Call-in takes priority over scrap,
+and clearing scrap restores the ordinary name. Allied/all-visible knowledge gates
+protect private flags and course styling; independently detected enemy members
+keep the ordinary style. Bold/underline text is measured with its actual PDG font
+style before clipping. Existing labels, metrics, commands, sorting and visibility
+are retained; no new strings require translation.
+
+The new regression clicks Scrap/Cancel scrap through the action path, checks
+actual exchange and system-list name painting, call-in priority, clearing flags,
+course emphasis and enemy privacy. Both full muted native suites pass
+**1,683 tests**. Browser modes `before-table-cues` and `table-cues` pass in all six
+languages: actual Exchange, member selection, Scrap and Undo Scrap clicks retain
+correct state and controls. An explicit call-in fixture exercises its yellow cue.
+Before/after marked-row screens were reviewed in en/de/es/fr/ja/ru; English
+cleared/call-in captures confirm immediate reset and priority. Of 54 screenshot
+pairs, 42 are byte-identical; only the six marked and six call-in captures change.
+Normal owned inspectors, Undo state, production, Speed/Class knowledge and Compare
+Players remain unchanged. Browser audio remains muted.
+
+Evidence: `/private/tmp/galactica-table-cues/{before,after}/<language>`,
+`/private/tmp/galactica-table-cues-{before,after}-<language>.log` and
+`/private/tmp/galactica-table-cues-{public,devel}-unit.log`. This closes the confirmed
+private-state name cues in contents tables; the remaining broader panel/window
+and parity audits stay active.
