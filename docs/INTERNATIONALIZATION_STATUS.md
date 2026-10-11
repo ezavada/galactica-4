@@ -384,3 +384,15 @@ dragged Settings comparisons were inspected. Both native suites pass 1,780 tests
 Evidence: `/private/tmp/galactica-host-settings/` and
 `/private/tmp/galactica-remote-settings/`. Other compact administration dialogs
 and the broader localization completion audit remain open.
+
+
+### Compact administrator access (2026-10-11)
+
+The existing password label/help and Save/Cancel captions now reflow below 400px
+wide, with a full-width masked field and complete fixed failure feedback. No
+new IDs or untranslated user strings were added. All six languages pass 36
+ordinary/short/narrow native-backed before/after credential workflows; native
+layout/focus checks also cover 320×600. Reviewed all narrow original/dragged,
+masked draft and failure pairs. Both native suites pass 1,781 tests. Evidence:
+`/private/tmp/galactica-admin-password/`. Other compact administration dialogs
+and the broader localization completion audit remain open.

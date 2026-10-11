@@ -7,6 +7,17 @@ module.exports=()=>test.describe('Remote host administrator authorization',()=>{
  test.it('keeps local password drafts masked, captures the access revision and clears cancelled secrets',()=>fixture(host=>{
   const record={},backend={supported:true,latest:()=>record,setAdminPassword:()=>{},describe:()=>({address:'http://127.0.0.1:1',port:1,title:'Host',administration:{adminRevision:7,adminEnabled:true}})},window=new (require('../src/js/network-host-setup.js').HostWindow)(backend,()=>{});window.open();test.assertTrue(window.editAdminPassword());test.assertEqual(window.adminRevision,7);test.assertTrue(window.layout(800,600).fields[0].masked);test.assertEqual(window.adminPassword.text,'');window.adminPassword.text='Private draft';window.busy=true;test.assertFalse(window.cancel());test.assertEqual(window.adminPassword.text,'Private draft');window.busy=false;test.assertTrue(window.cancel());test.assertEqual(window.stage,'hosting');test.assertEqual(window.adminPassword.text,'');test.assertFalse(host.admin.enabled);
  }));
+ test.it('keeps translated compact password drafts masked with full labels, feedback and focus reveal',()=>{
+  const language=pdg.res.getLanguage(),Caption=require('../src/js/button-caption.js'),measure=(text,size=12)=>Array.from(text).length*size*.65;
+  try{for(const lang of ['en','de','es','fr','ja','ru'])for(const height of [340,600]){pdg.res.setLanguage(lang);
+   const record={},backend={supported:true,latest:()=>record,setAdminPassword:()=>{},describe:()=>({address:'http://localhost',port:1,administration:{adminRevision:7,adminEnabled:false}})},w=new (require('../src/js/network-host-setup.js').HostWindow)(backend,()=>{});w.open();w.editAdminPassword();w.adminPassword.text='Draft 秘密';w.message=pdg.res.getString(1030);
+   const l=w.layout(320,height,measure);test.assertTrue(l.compact);test.assertEqual(l.rect.height,300);test.assertEqual(l.fields.length,1);test.assertTrue(l.fields[0].masked);test.assertEqual(l.fields[0].name,'adminPassword');
+   const labels=l.labels.map(x=>x.text).join('');test.assertTrue(labels.includes(pdg.res.getString(1159)));test.assertTrue(labels.includes(pdg.res.getString(1160)));test.assertFalse(JSON.stringify(l).includes('Draft 秘密'));test.assertEqual(l.statusLines.map(x=>x.text).join(''),w.message);
+   test.assertTrue(l.buttons.every(b=>!b.body));for(const b of l.buttons)test.assertTrue(Caption.width(b.label,b.key,measure,{size:b.size})+16<=b.rect.width+.001);
+   w.scroll(99999);w.key(pdg.key_Tab);const focused=w.layout(320,height,measure);test.assertTrue(w.adminPassword.selected);test.assertTrue(focused.fields[0].rect.y>=focused.bodyClip.y);test.assertTrue(focused.fields[0].rect.y+26<=focused.bodyClip.y+focused.bodyClip.height);
+   w.cancel();test.assertEqual(w.adminPassword.text,'');test.assertEqual(w.stage,'hosting');
+  }}finally{pdg.res.setLanguage(language);}
+ });
  test.it('does not offer credential editing to disconnected records or a remote administration adapter',()=>{
   for(const backend of [{setAdminPassword:()=>{},address:null},{address:'http://127.0.0.1:1'}]){const window=new (require('../src/js/network-host-setup.js').HostWindow)({...backend,supported:true,latest:()=>({}),describe:()=>({address:backend.address,port:1})},()=>{});window.open();test.assertFalse(window.editAdminPassword());test.assertEqual(window.stage,'hosting');}
  });

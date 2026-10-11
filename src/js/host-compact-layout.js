@@ -9,7 +9,7 @@ function pack(items,left,width,measure){
  }return rows;
 }
 function layout(host,width,height,source,measure,message=host.message){
- const rect={x:12,y:12,width:width-24,height:Math.min(568,height-24)},left=rect.x+14,inner=rect.width-28,bodyWidth=inner-10;
+ const rect={x:12,y:12,width:width-24,height:Math.min(host.stage==='adminPassword'?source.rect.height:568,height-24)},left=rect.x+14,inner=rect.width-28,bodyWidth=inner-10;
  const footer=source.info?source.buttons.filter(button=>['cancel','stop'].includes(button.action)):source.buttons;
  const buttons=pack(footer,left,inner,measure),footerTop=rect.y+rect.height-12-buttons.length*30;
  const status=wrap(message || '',inner,t=>measure(t,12)),statusTop=footerTop-8-status.length*16;

@@ -1249,3 +1249,22 @@ and remote original/dragged Settings comparisons were visually reviewed. Native
 fixtures and Chrome remain muted. These localhost checks do not establish
 physical LAN or packaged native GUI behavior; other compact admin dialogs remain
 separate parity work.
+
+
+### Administrator-access layout and credential browser checks
+
+Append `admin-password` to the Host status helper's ordinary arguments:
+`node tools/test-web-host-status-compact.cjs BUILD OUTPUT LANG before|after WIDTH HEIGHT admin-password`.
+This native-backed lane checks actual masked editing, canceled draft clearing,
+durable-save failure/retry, credential login, stale-draft rejection, revocation,
+empty-password disabling, constrained modal drag/outside isolation and host stop.
+All 36 six-language before/after runs pass at 800×600, 640×340 and 320×340; native
+geometry/focus checks also cover 320×600. Chrome/native fixture output is muted.
+
+Both full native suites pass 1,781 tests. Evidence uses the
+`/private/tmp/galactica-admin-password` prefix, including layout JSON and
+`comparison.json`: 180 pairs, 60 exact ordinary password-dialog matches and 60
+ordinary hosting pairs with zero differences outside connection/file/clock
+regions. All six narrow original/dragged, masked-cancel and save-error pairs were
+visually reviewed. These localhost checks do not establish physical LAN or
+packaged native GUI behavior. Other compact administration dialogs remain open.
