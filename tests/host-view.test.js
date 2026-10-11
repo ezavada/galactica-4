@@ -76,6 +76,16 @@ module.exports=()=>test.describe('Authenticated player-state transport',()=>{
   ally.complete();view=View.snapshot(game,1);test.assertTrue(entity(view,'star',enemy).ships.some(r=>r.id===fleet.id));test.assertTrue(!!entity(view,'ship',ship));
   ally.star=null;ally.x+=500;view=View.snapshot(game,1);test.assertFalse(!!entity(view,'fleet',fleet));
  }));
+ test.it('projects patrol table status at Class without sending private course waypoints',()=>fixture(({game,fleet,ship})=>{
+  fleet.setPatrol(true);fleet.course.replace({x:1234,y:5678});
+  fleet.setVisibilityTo(1,2);let view=View.snapshot(game,1);test.assertFalse('onPatrol' in entity(view,'fleet',fleet));test.assertFalse(!!entity(view,'ship',ship));
+  fleet.setVisibilityTo(1,3);view=View.snapshot(game,1);
+  for(const [kind,object] of [['fleet',fleet],['ship',ship]]){const row=entity(view,kind,object);test.assertTrue(row.onPatrol);test.assertFalse('course' in row);}
+  const model=require('../src/js/client-state.js').restore({...view,gameId:'a'.repeat(64)}),copy=model.allFleets.find(f=>f.id===fleet.id);
+  model.port={getDrawingArea:()=>new pdg.Rect(800,600),getTextWidth:(s,size=11)=>String(s).length*size/2};model.display=new (require('../src/js/display.js'))(model);
+  test.assertTrue(model.display.getFleetMemberDiagnostics(copy,copy.ships[0]).title.endsWith(' · Patrolling'));test.assertEqual(copy.ships[0].getVisibilityTo(1),0);test.assertFalse(model.canHumanControl(copy));
+  fleet.setPatrol(false);view=View.snapshot(game,1);test.assertFalse(entity(view,'fleet',fleet).onPatrol);test.assertFalse(entity(view,'ship',ship).onPatrol);
+ }));
  test.it('uses host system membership when detected departing ships and fleets still share its coordinates',()=>fixture(({game,enemy,fleet,ship,own})=>{
   enemy.setVisibilityTo(1,4);fleet.star=enemy;fleet.x=enemy.x;fleet.y=enemy.y;fleet.syncShipPositions();
   const departing=game.factory.createShip(enemy.x,enemy.y,'battleship',enemy,true);departing.star=null;departing.setVisibilityTo(1,3);departing.course.replace({x:enemy.x+1000,y:enemy.y});

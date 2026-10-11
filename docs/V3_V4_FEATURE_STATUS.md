@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1680 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1682 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4272,4 +4272,41 @@ Evidence: `/private/tmp/galactica-system-membership/{before,after}/<language>`,
 `/private/tmp/galactica-system-membership-{before,after}-<language>.log` and
 `/private/tmp/galactica-system-membership-{public,devel}-unit.log`. This closes the
 projected membership defect; the overall parity and map-generation audit remains
+active.
+
+
+### Patrol status in contents tables
+
+Verified `GalacticaTables.cp` (255–259): after the ship/fleet descriptor and
+Fleet/Group noun, the shipped v3 table appends its localized patrol status.
+`CShip.h` (71–72) reads the course patrol flag; `CShip::WriteStream` (70–77)
+transmits the course. V4 already showed patrol state in allied standalone panels,
+but omitted it from inspectable member rows and Class-level client projections.
+
+Contents rows now append the existing localized Patrolling label with a middle-dot
+separator. Fleet/group nouns and independently hidden names keep their existing
+knowledge gates. Host projections expose only the patrol boolean alongside Class
+table statistics, including members inherited through an inspectable container;
+course waypoints remain private. Below Class the flag is absent. Changing patrol
+state refreshes the next projected view without granting command access.
+
+Two regressions cover the six existing status translations, unchanged standalone
+names, patrol transfer restrictions, clearing patrol, Class/below-Class projection,
+inherited member status, hidden courses, unchanged visibility and foreign command
+rejection. Both full muted native suites pass **1,682 tests**. No resource IDs or
+new strings are needed.
+
+Actual browser modes `before-table-patrol` and `table-patrol` pass in all six
+languages. Class fleet selection and Exchange show the translated member status;
+its 75% health remains correct, independent knowledge stays hidden and private
+courses are absent. Before/after exchange screens were inspected in every language,
+including native scripts. Owned controls, production, Speed view and Compare
+Players still pass. Of 36 screenshot pairs, 18 are byte-identical; the changed
+captures show the new label in the fleet inspector/exchange table and behind the
+translucent comparison window. Browser output remains muted.
+
+Evidence: `/private/tmp/galactica-table-patrol/{before,after}/<language>`,
+`/private/tmp/galactica-table-patrol-{before,after}-<language>.log` and
+`/private/tmp/galactica-table-patrol-{public,devel}-unit.log`. This closes the
+contents-row patrol indicator gap; broader parity and map-generation work remains
 active.

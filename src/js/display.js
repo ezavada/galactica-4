@@ -3220,7 +3220,8 @@ class Display {
         // member's own visibility still controls its name and standalone panel.
         if(!container || !this.game.canViewFleetExchange(container))return data;
         const health=Math.max(0,Math.min(100,100-member.getDamagePercent()));
-        return {...data,tech:String(Math.trunc(member.techLevel)),
+        return {...data,title:member.isOnPatrol()?`${data.title} · ${I18n.getString(703,'Patrolling')}`:data.title,
+            tech:String(Math.trunc(member.techLevel)),
             speed:member.speed?I18n.formatDecimal(member.speed/16380):'-',
             power:String(Math.trunc(member.power)),health:health+'%',healthRatio:health/100};
     }

@@ -68,6 +68,16 @@ module.exports=()=>test.describe('Shared-container fleet exchange',()=>{
   fleet.fleet=child;child.ships.push(fleet);child.fleet=fleet;fleet.ships.push(child);
   test.assertFalse(game.canViewFleetExchange(child));test.assertFalse(game.canViewFleetExchange(fleet));
  });
+ test.it('marks patrolling table members in every language without altering standalone names or commands',()=>{
+  const {game,display,fleet,ships}=fixture(),language=pdg.res.getLanguage();fleet.setPatrol(true);
+  try{for(const [lang,label] of [['en','Patrolling'],['de','Auf Patrouille'],['es','Patrullando'],['fr','En patrouille'],['ja','哨戒中'],['ru','Патрулирование']]){
+   pdg.res.setLanguage(lang);display.reloadUIStrings();const title=display.getShipDiagnostics(ships[0]).title;
+   test.assertEqual(display.getFleetMemberDiagnostics(fleet,ships[0]).title,title+' · '+label);
+   test.assertEqual(display.getShipDiagnostics(ships[0]).title,title);
+   test.assertFalse(game.canExchangeFleetMember());
+  }}finally{pdg.res.setLanguage(language);display.reloadUIStrings();}
+  ships[0].setPatrol(false);test.assertEqual(display.getFleetMemberDiagnostics(fleet,ships[0]).title,display.getShipDiagnostics(ships[0]).title);
+ });
  test.it('uses knowledge-safe fleet and group titles in rows and exchange headers',()=>{
   const {game,display,fleet,ships}=fixture(),child=game.factory.createFleet(fleet.x,fleet.y,2,'Private subgroup');
   child.addShip(ships[0]);fleet.addShip(child);fleet.owner=2;fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);child.setVisibilityTo(1,0);

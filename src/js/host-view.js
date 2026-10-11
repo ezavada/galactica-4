@@ -83,7 +83,9 @@ function project(game,viewer,administrator=false){
    if(visibility>=V.SPEED)row.speed=kind==='fleet'?e.totalSpeed:e.speed;
    if(visibility>=V.TECH)row.techLevel=e.techLevel;
    if(visibility>=V.CLASS){Object.assign(row,pick(e,['type','classIndex','progress']));if(level(e)>=V.CLASS)row.name=e.name;
-    row.power=kind==='fleet'?e.totalPower:e.power;row.damage=kind==='fleet'?e.totalDamage:e.damage;
+    // V3 contents rows show patrol status even for independently hidden members.
+    // Expose the flag with table statistics, keeping course waypoints private.
+    row.onPatrol=!!e.isOnPatrol();row.power=kind==='fleet'?e.totalPower:e.power;row.damage=kind==='fleet'?e.totalDamage:e.damage;
     if(kind==='fleet')row.ships=e.ships.map(ref).filter(Boolean);
    }
    if(visibility>=V.DETAILS){Object.assign(row,pick(e,['scannerRange','onPatrol']));row.star=ref(e.star);row.fleet=ref(e.fleet);}
