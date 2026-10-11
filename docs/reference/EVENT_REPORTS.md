@@ -199,9 +199,10 @@ Thus autoShow alone does not imply a modal text window.
 PPob10 is the ordinary message dialog. PPob4000/4001 contain static PICT4000/
 4001 for victory/defeat. V4 now packages the retained final large outcome
 images for affected-player views, with provenance in `data/events/outcome-art.json`
-and the original copyright notice in `data/events/README.md`. The available
-v3 Art files lack resource forks, so exact shipped PICT-byte identity remains
-unverified. PPob4002/4003 use a `lofV` ship viewer rather than a
+and the original copyright notice in `data/events/README.md`. The checkout Art files lack resource forks, but the original release ZIPs
+retain AppleDouble forks. The recovered PICT hashes and layer records are now
+recorded in `v3-art-resources.json`; equality of the current PNG renderings with
+those shipped PICTs still requires decoding and image comparison. PPob4002/4003 use a `lofV` ship viewer rather than a
 static picture for the newly built/discovered class. The observer columns of
 these four events have no PPob. Every Evnt128 TEXT resource is zero; Layr is
 supplied separately by emitters and is not represented by that field.
@@ -218,7 +219,7 @@ keeps its map destruction animation. Both rebuilt runtimes pass 1,685 tests;
 before/after browser checks cover actual manual review in all six languages. This audit
 closes the missing Evnt/PPob inventory, but it does not claim exact automatic
 presentation equivalence, complete translated narrative coverage, or Layr
-animation equivalence. In particular, Evnt references to sounds 1004–1006
+rendering equivalence. In particular, Evnt references to sounds 1004–1006
 must be distinguished from whether samples are present in the shipped bundle.
 
 First-class commissioning and discovery now also honor the observer columns'
@@ -303,3 +304,35 @@ position behavior are recorded in `data/events/explosion-art.json` and the
 main parity checklist. The procedural effect remains a missing-image/backend
 fallback. Other Layr/window roles still require their own runtime audit; this
 restoration does not establish blanket event equivalence.
+
+
+### Recovered shipped art resources
+
+`tools/import-v3-art-resources.py` reads the AppleDouble resource entry inside
+`release/gad-3.0.2-cdrom.zip`, then decodes the resource map and each 32-byte
+mac68k Layr record. `docs/reference/v3-art-resources.json` records the archive,
+entry and fork hashes, all 146 Layr definitions, and the hashes and bounds of
+referenced pictures. This supersedes the earlier missing-resource-fork
+assumption for shipped artwork; the one-byte checkout files alone were
+insufficient evidence of absence. No source archive or v3 file is modified.
+
+The class presentations are static three-layer composites.
+`CLayeredOffscreenView::DrawSelf` copies each layer to the view frame using
+its saved transfer mode and colors; it has no animation scheduler. Stardock
+Layr300–314 uses background PICT2000, hull PICT3000–3012 (313/314 reuse
+3012), then foreground PICT2100. Hull and foreground use transparent mode
+36. Lab Layr400–410 uses PICT2001, blueprint PICT2202–2212, then PICT2101;
+the blueprint uses additive mode33, while the foreground uses mode36.
+All these pictures have 408×240 bounds. CStar supplies LabBase + tech/5
+and StardockBase + class index, independently of the PPob window choice.
+Missing Layr IDs fall back through decimal boundaries in SetLayrResID.
+
+V4 currently stretches the Lab/Stardock composites to different viewport
+proportions and uses a transparent PNG blueprint rather than proving the
+source additive composition. Those rendering and blueprint mapping checks
+are actionable follow-up work, not missing-resource blockers. The newly
+recovered victory and defeat PICTs are 500×432; their raw hashes now allow a
+future decoded comparison against the retained PNGs. PICT1000 is absent from
+this art fork and must be checked in the application resource fork separately.
+These records prove resource availability and composition rules, not runtime
+visual equivalence or completion of the Original art checklist row.

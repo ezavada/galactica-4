@@ -4592,3 +4592,18 @@ views show the intended artwork change. Peak frames were visually inspected
 in all six languages, with English baseline/updated and first/last frames also
 reviewed. The packaged strip is byte-identical to the retained source PNG.
 Broader source presentation and other checklist entries remain open.
+
+
+### Shipped class-art resource recovery
+
+The original release ZIP retains the AppleDouble resource fork missing from
+one-byte checkout Art files. `docs/reference/v3-art-resources.json` now inventories
+all 146 shipped Layr definitions with source hashes and picture bounds;
+`docs/reference/EVENT_REPORTS.md` records the original static Lab/Stardock
+composition rules and the remaining aspect-ratio, additive-blending and image
+mapping checks. This supersedes the missing-art-resource assumption, without
+claiming decoded PICT/PNG equality or full art parity. Five importer regressions pass; both rebuilt native PDG runtimes pass all
+1,692 game unit tests. The importer checks archive regeneration, entry selection, damaged ranges and layer records,
+recipient-independent picture bounds and class fallback. No game behavior or
+localized text changed, so UI screenshots are not required for this evidence
+commit. The full parity and map-generation checklists remain active.
