@@ -33,12 +33,17 @@ function edit(editor,key,pdgRef=globalThis.pdg) {
     if(characters.length<(editor.maximumLength || maximumLength)){characters.splice(editor.caret++,0,character);editor.text=characters.join('');}
     editor.selected=false;editor.error=false;return 'edit';
 }
-function layout(width,height,submitLabel=I18n.getString(528,'<Enter> Start')) {
+function layout(width,height,submitLabel=I18n.getString(528,'<Enter> Start'),measure=(text,size)=>Array.from(String(text)).length*size/2) {
     const rect={x:(width-Math.min(480,width-40))/2,y:(height-280)/2,width:Math.min(480,width-40),height:280};
     const field={x:rect.x+24,y:rect.y+106,width:rect.width-48,height:36};
-    return {rect,field,buttons:[
-        {action:'cancel',label:I18n.getString(683,'Cancel'),rect:{x:rect.x+24,y:rect.y+224,width:150,height:30}},
-        {action:'submit',label:submitLabel,rect:{x:rect.x+rect.width-174,y:rect.y+224,width:150,height:30}}]};
+    const Caption=require('./button-caption.js'),available=rect.width-48;
+    const buttons=[{action:'cancel',label:I18n.getString(683,'Cancel'),key:'Esc'},
+        {action:'submit',label:submitLabel,key:'Enter'}];
+    const widths=buttons.map(button=>Math.max(150,Caption.width(button.label,button.key,measure,{size:13})+12));
+    const stacked=widths[0]+widths[1]+8>available;
+    return {rect,field,buttons:buttons.map((button,index)=>({...button,rect:{
+        x:rect.x+24+(stacked || index===0?0:available-widths[index]),
+        y:rect.y+(stacked?190+index*40:224),width:stacked?available:widths[index],height:30}}))};
 }
 function visibleText(editor,width,measure) {
     const characters=Array.from(editor.text);let start=0,end=characters.length;

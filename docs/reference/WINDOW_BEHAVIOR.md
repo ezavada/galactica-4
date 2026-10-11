@@ -100,6 +100,20 @@ at 640×480 in all six languages. Dragged startup coordinates are checked in
 application configuration. The regression fails against the previous fixed
 52px hit area. Both full native suites pass 1,749 tests; 66 screenshot pairs
 include six expected title-edge interaction changes and 60 identical scenes.
-The current screenshot audit also identifies missing explicit Esc/Enter
-hints in shared text-entry Cancel/Save buttons; that is the next chrome item,
-followed by foreground document, network and error dialogs.
+Shared text-entry Cancel/Save buttons now expose explicit Esc/Enter hints.
+Foreground document, network and error dialogs remain in the chrome audit.
+
+
+Shared text-entry buttons measure their translated captions and compact
+Esc/Enter hints using the drawing port's font metrics. They grow horizontally
+when there is room and stack vertically in narrow ports. This applies to
+startup title/count/player-name and file-name editors. Native geometry and
+keyboard checks cover all six languages, including 320×340, without overlap.
+Muted actual-input browser checks at 640×480 cover dragging, modality, Enter
+acceptance of the game title and Escape cancellation of Save As. Both full
+native suites pass 1,750 tests. Of 78 before/after screenshot pairs, 54 show
+intended editor hints/sizing and 24 setup/skill scenes remain identical.
+English pairs and all six title/player/save editor layouts were inspected.
+A supplemental 320×340 browser probe exposed a mismatch between apparent
+rendered and model coordinates; its input validation did not pass and needs
+separate investigation before any claim of complete narrow-browser coverage.

@@ -267,7 +267,7 @@ const windowPlacement=new (require('./src/js/window-placement.js'))(drawingPrefe
 for(const [object,method,name] of [[StartupSetup,'panelRect','startup'],[StartupSetup,'skillMenu','startupSkill'],
     [PlayerName,'layout','textEntry'],[networkTurnNotice,'layout','networkTurnNotice'],[networkChat,'layout','networkChat'],[networkHosting,'layout','networkHosting'],[networkJoin,'layout','networkJoin'],[documents,'layout','documents'],[userManual,'layout','manualError']]){
     const original=object[method];object[method]=function(width,height,...args){
-        const layout=original.call(this,width,height,...args);
+        const layout=object===PlayerName?original.call(this,width,height,args[0],(text,size)=>port.getTextWidth(text,size)):original.call(this,width,height,...args);
         return name==='documents' && documents.dialog && documents.dialog.kind==='editor'?layout:windowPlacement.layout(name,layout,{width,height});
     };
 }

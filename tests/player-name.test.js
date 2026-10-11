@@ -44,10 +44,22 @@ module.exports=()=>test.describe('New game player name',()=>{
  test.it('exposes a pointer start button inside the startup panel at supported viewport sizes',()=>{
   const Setup=require('../src/js/startup-setup.js');for(const [w,h] of [[480,400],[640,480],[800,600]]) {const panel=Setup.panelRect(w,h),button=Setup.startRegion(panel);test.assertTrue(button.x>=panel.x&&button.x+button.width<=panel.x+panel.width);test.assertTrue(button.y>=panel.y&&button.y+button.height<=panel.y+panel.height);}
  });
+ test.it('expands translated Save controls for their measured hint and stacks them in narrow windows',()=>{
+  const Caption=require('../src/js/button-caption.js'),old=pdg.res.getLanguage(),measure=(text,size)=>Array.from(String(text)).length*size/2;
+  try{for(const lang of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(lang);
+   for(const width of [320,480,640]){
+    const layout=Name.layout(width,340,I18n.getString(839),measure),[cancel,submit]=layout.buttons;
+    for(const b of layout.buttons)test.assertTrue(b.rect.width>=Caption.width(b.label,b.key,measure,{size:13})+12);
+    test.assertTrue(cancel.rect.x+cancel.rect.width<=submit.rect.x || cancel.rect.y+cancel.rect.height<=submit.rect.y);
+   }
+  }}finally{pdg.res.setLanguage(old);}
+ });
  test.it('loads translated labels and keeps input/buttons on screen in every language',()=>{
   const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);
    for(let id=822;id<=824;id++)test.assertTrue(I18n.getString(id).length>0);
-   for(const [width,height] of [[480,400],[640,480],[800,600]]) {const layout=Name.layout(width,height);test.assertTrue(layout.rect.y>=0);test.assertTrue(layout.rect.y+layout.rect.height<=height);
+   for(const [width,height] of [[320,340],[480,400],[640,480],[800,600]]) {const layout=Name.layout(width,height);test.assertEqual(layout.buttons[0].key,'Esc');test.assertEqual(layout.buttons[1].key,'Enter');test.assertEqual(Name.edit(Name.createEditor('Captain'),pdg.key_Escape),'cancel');test.assertEqual(Name.edit(Name.createEditor('Captain'),13),'submit');test.assertTrue(layout.rect.y>=0);test.assertTrue(layout.rect.y+layout.rect.height<=height);
+    const [cancel,submit]=layout.buttons.map(b=>b.rect);test.assertTrue(cancel.x+cancel.width<=submit.x || cancel.y+cancel.height<=submit.y);
     for(const r of [layout.field,...layout.buttons.map(button=>button.rect)])test.assertTrue(r.x>=0&&r.x+r.width<=width&&r.y+r.height<=height);
    }
   }}finally{pdg.res.setLanguage(old);}

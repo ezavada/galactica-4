@@ -6426,3 +6426,38 @@ The foreground chrome audit remains open: the screenshots reveal missing
 explicit compact Esc/Enter hints on shared text-entry Cancel/Save controls.
 Foreground document, network and error dialogs also still need current
 inventory coverage. No PDG source or new localization resources changed.
+
+
+### Shared text-entry hints and measured controls
+
+Shared startup and file-name editor buttons now carry explicit Esc/Enter
+metadata, rendered through the existing compact right-aligned hint treatment.
+This closes the missing Cancel/Save hints identified in the startup screenshot
+inventory and preserves the user's requested presentation. The shared layout
+measures translated labels and hints using real port metrics, expands buttons
+to fit, and stacks the two controls in narrow ports. The initial French Save
+screenshot exposed caption shrinking; measured width expansion corrected it.
+No translation resources changed. V3's editable setup title and accepted-value
+path remain the functional reference (`CGameSetupAttach.cpp:73–75,343–346`).
+
+Both full muted native suites pass 1750 tests, zero failures. Native tests
+check all six languages, translated Save measurements, hint metadata,
+keyboard submit/cancel, bounds and nonoverlap down to 320×340.
+`tools/test-web-startup-hints.cjs` passes all twelve baseline/current runs at
+640×480 with real startup and Save As controls, modal outside clicks, title
+drags, Enter title acceptance and Escape Save As cancellation. Of 78 paired
+screenshots, 54 show the intended editor hints/widths and 24 setup/skill scenes
+remain identical. English before/after and all six title/player/save editor
+layouts were visually inspected. Evidence:
+`/private/tmp/galactica-text-hints-{pdg,pdg-devel}-unit.log`,
+`galactica-text-hints-{before,after}-<language>.log`,
+`galactica-text-hints-comparison.json` and matching screenshot trees.
+
+A supplemental 320×340 browser probe did not pass actual-input validation:
+the rendered panel appears at different coordinates from its model rectangle,
+despite matching 320×340 canvas/backing/CSS dimensions. The probe needs a
+separate rendering/input investigation; native narrow-layout success is not
+evidence that this browser path works. Current complete browser evidence for
+this item is 640×480. Foreground document, network and error inventory remains
+open. No PDG source changed; any resulting engine fixes must stay in private
+`pdg-devel` under the deferred v1.2.1 release plan.
