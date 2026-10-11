@@ -134,12 +134,91 @@ manual-only. Victory/defeat have viewer-relative modal narratives in addition
 to their shorter event-list summaries; STR#500/30–33 distinguishes the affected
 player from observers. Those perspectives are exercised by `outcome-reports`.
 
+## Reproducible presentation-resource audit (2026-10-11)
+
+[The decoded resource inventory](v3-events.json) is generated directly from
+Evnt128 and its five referenced PPob resources. `Evnt_EventSetup` is 128 in
+`GalacticaConsts.h:294`; `CMessage::CreateEvent` loads that resource, rather than
+the alternate Evnt130. Regenerate and verify with:
+
+```sh
+python3 tools/import-v3-events.py /path/to/galactica-anno-dominari-3
+python3 tools/test-import-v3-events.py
+```
+
+The verifier checks all 22 codes, coverage of every STR#500 index 1–45,
+recipient column order, automatic flags, referenced window/art roles and
+rejection of corrupt record lengths, counts, flags and padding. With the peer
+v3 checkout present it also regenerates and compares the complete inventory.
+Resource hashes make changes to the audited payloads reviewable.
+
+Each triple below is **winner / loser / other**, the source recipient columns.
+“Winner” is a column name, not a guarantee of winning the game: PlayerDied
+uses that column for the eliminated player. Zero means no assigned resource
+or text entry. These definitions do not establish who receives an emitted
+message; the emitter inventory above remains authoritative for that.
+
+| Code | Event | Auto show | Sound IDs | STR#500 indices | PPob IDs |
+|---|---|---|---|---|---|
+| 1 | ColonyCaptured | Yes | 1009 / 1010 / 1014 | 1 / 2 / 3 | 0 / 0 / 0 |
+| 2 | DefendersLost | Yes | 1007 / 1008 / 1014 | 4 / 5 / 6 | 0 / 0 / 0 |
+| 3 | ShipLost | Yes | 1007 / 1008 / 0 | 7 / 8 / 9 | 0 / 0 / 0 |
+| 4 | FleetLost | Yes | 1007 / 1008 / 0 | 10 / 11 / 12 | 0 / 0 / 0 |
+| 5 | FleetDamaged | Yes | 0 / 0 / 0 | 34 / 35 / 36 | 0 / 0 / 0 |
+| 6 | PlanetDamaged | Yes | 0 / 0 / 0 | 37 / 38 / 39 | 0 / 0 / 0 |
+| 7 | Message | Yes | 1003 / 0 / 1003 | 13 / 0 / 14 | 10 / 0 / 10 |
+| 8 | ShipCallin | No | 1001 / 0 / 0 | 15 / 0 / 0 | 0 / 0 / 0 |
+| 9 | FleetCallin | No | 1001 / 0 / 0 | 16 / 0 / 0 | 0 / 0 / 0 |
+| 10 | BuiltShip | No | 1001 / 0 / 1014 | 17 / 0 / 0 | 0 / 0 / 0 |
+| 11 | BuiltNewClass | Yes | 1011 / 0 / 1014 | 18 / 0 / 19 | 4002 / 0 / 0 |
+| 12 | InventNewClass | Yes | 1013 / 0 / 1014 | 20 / 0 / 21 | 4003 / 0 / 0 |
+| 13 | NewTechLevel | No | 0 / 0 / 0 | 22 / 0 / 23 | 0 / 0 / 0 |
+| 14 | NewColony | Yes | 1011 / 0 / 1014 | 24 / 0 / 25 | 0 / 0 / 0 |
+| 15 | NewFleet | No | 0 / 0 / 0 | 26 / 0 / 27 | 0 / 0 / 0 |
+| 16 | FleetFormed | No | 0 / 0 / 0 | 28 / 0 / 29 | 0 / 0 / 0 |
+| 17 | PlayerDied | Yes | 1004 / 0 / 1006 | 30 / 0 / 31 | 4001 / 0 / 0 |
+| 18 | PlayerWins | Yes | 1005 / 0 / 0 | 32 / 0 / 33 | 4000 / 0 / 0 |
+| 19 | PlayerSurrenders | Yes | 0 / 0 / 0 | 40 / 41 / 42 | 0 / 0 / 0 |
+| 20 | ShipDamageFixed | No | 1001 / 0 / 0 | 43 / 0 / 0 | 0 / 0 / 0 |
+| 21 | FleetDamageFixed | No | 1001 / 0 / 0 | 44 / 0 / 0 | 0 / 0 / 0 |
+| 22 | RenameColony | No | 1001 / 0 / 0 | 45 / 0 / 0 | 0 / 0 / 0 |
+
+`GalacticaDoc::AddMessageToNeedyList` transfers autoShow to the attention-list
+flag. `ShowMessages` distinguishes automatic presentations from owner-only
+manual Go to items, and respects the game-message preference and visibility.
+`CMessage::BuildClientEvent` selects the recipient resources and marks a
+nonzero text entry as wanting attention. Crucially, `CMessage::DoMessage`
+does **not** open a dialog when PPob is zero: it plays any assigned sound.
+Thus autoShow alone does not imply a modal text window.
+
+PPob10 is the ordinary message dialog. PPob4000/4001 contain static PICT4000/
+4001 for victory/defeat. PPob4002/4003 use a `lofV` ship viewer rather than a
+static picture for the newly built/discovered class. The observer columns of
+these four events have no PPob. Every Evnt128 TEXT resource is zero; Layr is
+supplied separately by emitters and is not represented by that field.
+
+V4 repair-completion notices, call-ins, ordinary commissioning, rendezvous
+fleet formation and colony naming already use manual attention rather than
+queued automatic report dialogs. The existing sound suite checks recipient
+cues and quiet reports. V4 also provides explicit manual narrative replay;
+that does not change the source automatic/manual classification. This audit
+closes the missing Evnt/PPob inventory, but it does not claim exact automatic
+presentation equivalence, complete translated narrative coverage, or Layr
+animation equivalence. In particular, Evnt references to sounds 1004–1006
+must be distinguished from whether samples are present in the shipped bundle.
+
+Validation: five resource-import checks pass, including actual-source equality;
+both rebuilt public and development native runtimes pass all 1,683 game tests
+with audio muted. No runtime UI changed, so this item requires no new visual
+comparison. Existing event-specific browser evidence remains documented above.
+
 ## Remaining presentation and application scope
 
 Every source-backed code now has a mapped implementation and regression lane.
 Unspecified additional event types are not a concrete missing-feature list.
-The separate presentation, attention, artwork and sound requirements still
-need checking against Evnt/PPob, Layr and sound resources, alongside runtime
+Evnt128 and its referenced PPob roles now have reproducible source evidence.
+Runtime presentation, attention, artwork and sound equivalence still need
+checking against that inventory, Layr and the shipped sound bundle, alongside
 packaging and platform validation. Passing the covered tests does not establish
 blanket equivalence of all 45 text templates. Introduction music remains an
 independently recorded missing-asset issue. Window/preference requirements and

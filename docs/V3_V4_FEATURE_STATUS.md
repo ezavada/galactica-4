@@ -2155,6 +2155,14 @@ remain active work. No global completion or unavailable-help blocker is claimed.
 
 ### Owner ship and fleet call-in narratives
 
+The Evnt128 presentation rules and five referenced PPob window roles now have a
+reproducible inventory in `docs/reference/v3-events.json`, with actual-source
+and malformed-input checks in `tools/test-import-v3-events.py`. See
+`docs/reference/EVENT_REPORTS.md` for the complete recipient/automatic table
+and the distinction between automatic sound/map attention and modal windows.
+Runtime and Layr equivalence remain unverified; this evidence does not close
+the partial event-presentation checklist rows.
+
 The event inventory is 22 nonzero event codes, with 45 recipient-relative text
 entries in STR#500. These are different counts: the checklist previously called
 all 45 entries event types. `Classes/GalacticaConsts.h:818–843` supplies the
