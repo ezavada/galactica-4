@@ -54,5 +54,9 @@ await key('Enter');await click('g.display.getEndTurnConfirmActions().find(r=>r.a
 await check('g.getUnreviewedItemCount()===0 && g.turn===2','Report did not clear unread state');
 if(!before)await check('!g.display.getMapButtonRegions().find(r=>r.action.type==="endTurn").active','Reviewed End Turn remains marked');await capture('reviewed-map');
 await evaluate('window.restored=visual.restore(visual.serialize(g));void 0');await check('restored.getUnreviewedItemCount()===0 && restored.turn===2','Save retained stale unread state');
+await evaluate('g.recordDiscoveryReports(home,4);void 0');await key('Enter');await check('g.uiWindow==="endTurnConfirm" && g.turn===2','Second held report did not protect End Turn');await capture('end-anyway-confirm');
+await click('g.display.getEndTurnConfirmActions().find(r=>r.action.type==="confirmEndTurn").rect');
+await check('g.turn===3 && g.uiWindow!=="endTurnConfirm" && g.uiWindow!=="menu"','End anyway failed to advance exactly once or retained modal');await capture('end-anyway-advanced');
+await evaluate('window.continued=visual.restore(visual.serialize(g));void 0');await check('continued.turn===3 && continued.holdGameReports','Save lost explicit advancement or Hold');
 console.log('PASS End Turn menu, unread status, actual input and save '+lang+' '+(before?'before':'after'));
 })().catch(async e=>{console.error(e);console.error('Failed scene '+currentScene);process.exitCode=1;}).finally(()=>{chrome.kill();server.close();setTimeout(()=>{fs.rmSync(profile,{recursive:true,force:true});process.exit(process.exitCode||0);},500);});

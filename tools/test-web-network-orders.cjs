@@ -63,19 +63,42 @@ await capture('before-turn-posting');
 // Set the target through the actual slider, then post through the actual map button.
 await click('visual.getDisplay().getStarAllocationSliderRegions(home).find(s=>s.key==="growth").rect');
 await evaluate('window.desired=home.growth.desired;window.beforeTurn=visual.getGame().turn;void 0');await capture('orders-before-post');
-await click('visual.getDisplay().getMapButtonRegions().find(b=>b.action.type==="endTurn").rect');
+const beforeEndMenu=process.env.GALACTICA_EXPECT_NO_END_MENU==='1';
+if(beforeEndMenu)await click('visual.getDisplay().getMapButtonRegions().find(b=>b.action.type==="endTurn").rect');
+else {
+ await check('visual.getGame().canRequestEndTurn()','Authenticated client End Turn unavailable');
+ await click('visual.getDisplay().getMapButtonRegions().find(b=>b.action.window==="menu").rect');
+ await check('!visual.getDisplay().getCommandActionRegions().find(b=>b.action.type==="endTurn").disabled','Client menu End Turn incorrectly disabled');
+ await capture('client-end-turn-menu');await click('visual.getDisplay().getCommandActionRegions().find(b=>b.action.type==="endTurn").rect');
+}
 if(await evaluate('visual.getGame().uiWindow==="endTurnConfirm"'))await click('visual.getDisplay().getEndTurnConfirmActions().find(b=>b.action.type==="confirmEndTurn").rect');
 await wait('visual.getGame().clientTurnPosted || visual.getSessions().active.networkError','Posting did not finish');
 await check('visual.getGame().clientTurnPosted && visual.getGame().turn===beforeTurn && !visual.getNetwork().pendingPost','Posted state was not installed');
 await check('visual.getDisplay().getMapButtonRegions().find(b=>b.action.type==="endTurn").label===visual.I18n.getString(1038)','Posted button was not localized');
+if(!beforeEndMenu)await check('!visual.getGame().canRequestEndTurn() && visual.getDisplay().getMapButtonRegions().find(b=>b.action.type==="endTurn").disabled','Posted End Turn remains enabled');
 await check('!visual.getGame().canHumanControl(visual.getGame().stars.find(s=>s.id===home.id))','Posted orders remained editable');await capture('posted-waiting');
 await click('visual.getDisplay().getMapButtonRegions().find(b=>b.action.type==="endTurn").rect');await check('visual.getGame().turn===beforeTurn && !visual.getNetwork().postPromise','Repeated Posted click submitted another turn');
 // First human uses the same real browser transport; the second player used the shipped UI above.
 await evaluate('(async()=>{window.first=visual.makeNetworkClient('+JSON.stringify(url)+');await first.connect({name:"First",mode:"rejoin"});await first.post();return null;})()');
 await wait('visual.getGame().turn>beforeTurn','Both posts did not advance the authoritative turn');await advanceClock(1000);
 await check('!visual.getGame().clientTurnPosted && visual.getGame().canHumanControl(visual.getGame().stars.find(s=>s.id===home.id))','New turn did not unlock orders');
+if(!beforeEndMenu)await check('visual.getGame().canRequestEndTurn() && !visual.getDisplay().getMapButtonRegions().find(b=>b.action.type==="endTurn").disabled','Authoritative refresh did not re-enable End Turn');
 await check('visual.getGame().stars.find(s=>s.id===home.id).growth.desired===desired','Host lost the production target');await capture('authoritative-posted-next-turn');
+if(!beforeEndMenu){
+ // Finish the source-paced new-turn notice before sending another command.
+ await advanceClock(2000);
+ // Delay only background refresh so this fixture exercises explicit receipt retry.
+ await key('Escape');await evaluate('visual.getGame().clearEventPresentations();visual.getGame().attention.queue=[];visual.getGame().uiWindow=null;visual.getSessions().active.nextRefresh=Date.now()+30000;void 0');
+ await evaluate('(async()=>{const r=await fetch('+JSON.stringify(url+'/test/drop-orders-response')+',{method:"POST"});if(!r.ok)throw Error("Fault fixture failed");return null;})()');
+ await evaluate('window.retryTurn=visual.getGame().turn;void 0');await click('visual.getDisplay().getMapButtonRegions().find(b=>b.action.type==="endTurn").rect');
+ await wait('!visual.getNetwork().postPromise && !!visual.getNetwork().pendingPost && !!visual.getSessions().active.networkError','Dropped-response state did not appear '+JSON.stringify(await evaluate('({pending:!!visual.getNetwork().pendingPost,posting:!!visual.getNetwork().postPromise,posted:visual.getGame().clientTurnPosted,status:visual.getNetwork().status,error:visual.getSessions().active.networkError,window:visual.getGame().uiWindow,available:visual.getGame().canRequestEndTurn(),nextRefresh:visual.getSessions().active.nextRefresh,now:Date.now()})')));
+ await check('visual.getGame().canRequestEndTurn() && !visual.getDisplay().getMapButtonRegions().find(b=>b.action.type==="endTurn").disabled && visual.getDisplay().getMapButtonRegions().find(b=>b.action.type==="endTurn").label===visual.I18n.getString(1039)','Live Retry command unavailable');
+ await evaluate('window.receipt=visual.getNetwork().pendingPost.postId;window.posts=[];const send=visual.getNetwork().send.bind(visual.getNetwork());visual.getNetwork().send=(endpoint,options)=>{if(endpoint==="/orders")posts.push(options.body.postId);return send(endpoint,options);};void 0');
+ await capture('retry-ready');await click('visual.getDisplay().getMapButtonRegions().find(b=>b.action.type==="endTurn").rect');
+ await wait('!visual.getNetwork().postPromise && !visual.getNetwork().pendingPost','Retry did not finish');
+ await check('visual.getGame().clientTurnPosted && visual.getGame().turn===retryTurn && posts.length===1 && posts[0]===receipt','Retry changed receipt or advanced host prematurely');await capture('retry-posted');
+}
 await evaluate('(async()=>{await first.disconnect();return null;})()');
 await check('visual.serialize(localSession.game)===localSnapshot','Posting modified the retained local game');
-console.log('PASS player-facing End Turn '+lang+' actual slider orders, actual End Turn, localized Posted state, edit locks, duplicate-click refusal, two authenticated humans and authoritative next-turn refresh');
+console.log('PASS player-facing End Turn '+lang+' actual slider orders, actual End Turn, localized Posted state, edit locks, duplicate-click refusal, two authenticated humans and authoritative next-turn refresh and live UI receipt retry');
 })().catch(async e=>{console.error(e);console.error('Failed scene '+currentScene);process.exitCode=1;}).finally(()=>{chrome.kill();native.kill('SIGTERM');server.close();setTimeout(()=>{fs.rmSync(profile,{recursive:true,force:true});process.exit(process.exitCode||0);},500);});

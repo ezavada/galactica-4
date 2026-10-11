@@ -6,7 +6,9 @@ const {NetworkHost}=require('../src/js/network-host.js');let host;
  host=NetworkHost.create({numHumans:2,numComputers:0,sectorSize:1,density:1,...(process.env.GALACTICA_TEST_TIMED?{maxTimePerTurn:172800,endEarly:false}:{})},process.env.GALACTICA_TEST_HOST_FILE);
  host.login.login({protocol:1,mode:'join',name:'First'});const home=host.game.stars.find(s=>s.owner===2),ship=host.game.factory.createShip(home.x,home.y,'scout',home,true);ship.name='Voyager';home.ships.push(ship);
  host.game.eventLog=[];host.game.overlay=null;host.game.overlayQueue=[];host.game.attention.queue=[];if(process.env.GALACTICA_TEST_TIMED){host.game.turn=2;host.clock.reset(host.game,false);host.clock.remainingMs=315000;host.clock.pause();}host.persist();
- const normal=host.handle.bind(host);host.handle=(req,res)=>{
+ let dropOrdersResponse=false;const normal=host.handle.bind(host);host.handle=(req,res)=>{
+  if(req.url==='/test/drop-orders-response' && req.method==='POST'){dropOrdersResponse=true;res.writeHead(200,{'Access-Control-Allow-Origin':'*'});res.end('{}');return;}
+  if(req.url==='/orders' && req.method==='POST' && dropOrdersResponse){dropOrdersResponse=false;const head=res.writeHead.bind(res),end=res.end.bind(res);res.writeHead=(status,...args)=>head(502,...args);res.end=()=>end(JSON.stringify({error:'network_http_error'}));}
   if(req.url==='/test/clock' && process.env.GALACTICA_TEST_TIMED){
    const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'};
    if(req.method==='OPTIONS'){res.writeHead(204,headers);res.end();return;}
