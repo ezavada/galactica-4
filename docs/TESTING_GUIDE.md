@@ -1363,3 +1363,18 @@ checks do not claim every pending-player remote mutation path. Evidence prefixes
 and 66 maximum-name narrow pairs. Reviewed all six standard dragged/paged/fresh/
 error and maximum-name original/paged/error comparisons. Remaining busy/error
 variants and gameplay/native GUI viewport audits remain separate work.
+
+
+### Narrow Compare Players footer verification
+
+`node tools/test-web-comparison-footer.cjs BUILD OUTPUT LANG before|after WIDTH HEIGHT`
+uses the application drawing-port size override as well as browser viewport
+metrics. Actual input pages through all 31 summary rows, tests modal isolation,
+Previous, Close and disabled final Next, retaining turn/selection. Chrome remains
+muted. Both full native suites pass 1,788 tests. All 36 six-language ordinary,
+short and narrow before/after workflows pass; baseline narrow Close failure is
+recorded as the reproduced defect rather than an expected success. After Close
+works in every language. Evidence: `/private/tmp/galactica-compare-footer/` and
+its comparison/result/geometry files. All 48 ordinary/short screenshot pairs are
+pixel-identical; 24 narrow pairs change. First/middle/last views were inspected
+in all six languages. Compact table text readability remains a separate item.

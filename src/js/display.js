@@ -1897,10 +1897,16 @@ class Display {
 
     getPlayerComparisonLayout() {
         const screen=this.getScreenSize(),width=Math.min(1000,screen.width-32),rows=this.game.getPlayerComparisonRows();
-        const pageSize=Math.max(1,Math.floor((screen.height-210)/26)),pages=Math.max(1,Math.ceil(rows.length/pageSize));
+        const compact=screen.width<400,footerButtons=[
+            {label:I18n.getString(690,'Previous'),action:{type:'playerComparisonPage',delta:-1}},
+            {label:I18n.getString(691,'Next'),action:{type:'playerComparisonPage',delta:1}},
+            {label:this.STR.escClose,action:{type:'closePlayerComparison'}}];
+        const footerRows=compact?this.layoutButtonRow(footerButtons,{x:0,y:0,width:width-28,height:24,size:10}).rows:1;
+        const footerExtra=(footerRows-1)*32;
+        const pageSize=Math.max(1,Math.floor((screen.height-210-footerExtra)/26)),pages=Math.max(1,Math.ceil(rows.length/pageSize));
         const page=this.clamp(this.game.playerComparisonPage,0,pages-1);this.game.playerComparisonPage=page;
         const visibleRows=rows.slice(page*pageSize,(page+1)*pageSize);
-        const rect=this.fitWindowToScreen('comparison',{x:(screen.width-width)/2,y:82,width,height:156+Math.max(1,visibleRows.length)*26});
+        const rect=this.fitWindowToScreen('comparison',{x:(screen.width-width)/2,y:82,width,height:156+Math.max(1,visibleRows.length)*26+footerExtra});
         let offset=14;
         const fields=[['name',537,'Player',160],['stars',null,this.STR.stars.replace(/:$/,''),45],
             ['population',711,'Population|×1000',100],['production',712,'Production',75],
@@ -1909,7 +1915,8 @@ class Display {
             ['minimumShipTech',815,'Ship|Min',40],['maximumShipTech',816,'Ship|Max',40],['averageShipTech',817,'Ship|Avg',40]];
         const total=fields.reduce((sum,field)=>sum+field[3],0);
         const columns=fields.map(([key,id,fallback,weight])=>{const column={key,label:id?I18n.getString(id,fallback).replace(/:$/,''):fallback,offset,width:(width-28)*weight/total};offset+=column.width;return column;});
-        return {rect,page,pages,pageSize,rows,visibleRows,columns,extrema:this.game.getPlayerComparisonExtrema(rows)};
+        const footer=compact?this.layoutButtonRow(footerButtons,{x:rect.x+14,y:rect.y+rect.height-36-footerExtra,width:width-28,height:24,size:10}).regions.map(button=>({...button,disabled:button.action.delta===-1?page===0:button.action.delta===1?page===pages-1:false,action:button.action.type==='playerComparisonPage'?{type:button.action.type,page:page+button.action.delta}:button.action})):null;
+        return {rect,page,pages,pageSize,rows,visibleRows,columns,footer,footerExtra,extrema:this.game.getPlayerComparisonExtrema(rows)};
     }
 
     getComparisonWindowRect() {return this.getPlayerComparisonLayout().rect;}
@@ -1917,6 +1924,7 @@ class Display {
     getPlayerComparisonActionRegions() {
         if(this.game.uiWindow!=='comparison')return [];
         const layout=this.getPlayerComparisonLayout(),rect=layout.rect,regions=[];
+        if(layout.footer)return layout.footer;
         if(layout.page>0)regions.push({rect:{x:rect.x+14,y:rect.y+rect.height-36,width:150,height:24},label:I18n.getString(690,'Previous'),action:{type:'playerComparisonPage',page:layout.page-1}});
         if(layout.page<layout.pages-1)regions.push({rect:{x:rect.x+rect.width-164,y:rect.y+rect.height-36,width:150,height:24},label:I18n.getString(691,'Next'),action:{type:'playerComparisonPage',page:layout.page+1}});
         regions.push({rect:{x:rect.x+rect.width/2-75,y:rect.y+rect.height-36,width:150,height:24},label:this.STR.escClose,action:{type:'closePlayerComparison'}});
@@ -3549,8 +3557,8 @@ class Display {
             if(this.isHovered(rowRect))this.iconHint={rect:rowRect,inWindow:true,label:row.name};
         });
         this.drawTextLine(this.fitShipDiagnosticText(I18n.getString(818,'Blue: best · Red: worst')+`   ${layout.page+1} / ${layout.pages}`,rect.width-28,10),
-            rect.x+rect.width/2,rect.y+rect.height-48,'gray',10,pdg.textStyle_Centered);
-        this.getPlayerComparisonActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,null,{size:10}));
+            rect.x+rect.width/2,rect.y+rect.height-48-layout.footerExtra,'gray',10,pdg.textStyle_Centered);
+        this.getPlayerComparisonActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,null,{size:10,disabled:!!region.disabled}));
     }
 
     drawFleetWindow() {

@@ -454,3 +454,15 @@ maximum-name original/paged/error comparisons. Both native suites pass 1,787
 tests following the separate artwork test-mock correction. Evidence prefixes:
 `/private/tmp/galactica-end-turn`, `galactica-end-turn-wide`,
 `galactica-remote-end-turn`. Broad localization completion remains open.
+
+
+### Narrow Compare Players footer (2026-10-11)
+
+Existing Previous, Next and Close resources and Esc hint now determine measured
+command widths below 400px; wrapped footer rows reserve space above them and
+retain the complete translated legend. No new IDs or untranslated strings.
+Both native suites pass 1,788 tests; all 36 six-language ordinary/short/narrow
+before/after workflows pass. Reviewed first/middle/last views in all languages.
+Evidence: `/private/tmp/galactica-compare-footer/`; ordinary/short views remain
+pixel-identical. The narrow table's truncated headings/names/values remain open
+for the next viewport item; this does not close broad localization completeness.

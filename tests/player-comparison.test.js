@@ -59,6 +59,20 @@ module.exports=()=>test.describe('Compare Players v3 summary',()=>{
   for(let page=0;page<layout.pages;page++){game.executeUIAction({type:'playerComparisonPage',page});seen.push(...display.getPlayerComparisonLayout().visibleRows.map(r=>r.playerNum));}
   test.assertEqual(seen.length,31);test.assertEqual(new Set(seen).size,31);game.config.totalPlayers=3;test.assertEqual(display.getPlayerComparisonLayout().page,0);
  });
+ test.it('keeps narrow comparison paging and Close separate and reaches all players in every language',()=>{
+  const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(lang);const {game,display}=fixture();display.reloadUIStrings();game.port.getDrawingArea=()=>new pdg.Rect(320,340);game.config.totalPlayers=30;game.uiWindow='comparison';const seen=[];
+   for(let page=0;page<display.getPlayerComparisonLayout().pages;page++){
+    game.playerComparisonPage=page;const layout=display.getPlayerComparisonLayout(),buttons=display.getPlayerComparisonActionRegions();seen.push(...layout.visibleRows.map(row=>row.playerNum));
+    test.assertTrue(layout.rect.y+layout.rect.height<=330);test.assertEqual(buttons.length,3);
+    for(let i=0;i<buttons.length;i++){const a=buttons[i].rect;test.assertTrue(a.x>=layout.rect.x && a.x+a.width<=layout.rect.x+layout.rect.width);test.assertTrue(a.y>=layout.rect.y+70+layout.visibleRows.length*26 && a.y+a.height<=layout.rect.y+layout.rect.height);
+     for(const b of buttons.slice(i+1).map(button=>button.rect))test.assertFalse(a.x<b.x+b.width && b.x<a.x+a.width && a.y<b.y+b.height && b.y<a.y+a.height,'Overlapping footer '+lang);
+    }
+    const next=buttons.find(b=>b.action.type==='playerComparisonPage' && b.action.page===page+1);test.assertEqual(next.disabled,page===layout.pages-1);
+   }
+   test.assertEqual(new Set(seen).size,31);const close=display.getPlayerComparisonActionRegions().find(b=>b.action.type==='closePlayerComparison').rect;game.handleUIClick(close.x+close.width/2,close.y+close.height/2);test.assertNull(game.uiWindow);
+  }}finally{pdg.res.setLanguage(old);}
+ });
  test.it('routes close/paging and consumes map clicks, function keys, Tab and Enter behind the comparison',()=>{
   const {game,display}=fixture();game.uiWindow='comparison';let advance=0;game.attention.next=()=>advance++;const shown=game.showShips,turn=game.turn;
   game.handleKeyPress(pdg.key_F1);game.handleKeyPress(pdg.key_Tab);game.handleKeyPress(13);test.assertEqual(game.showShips,shown);test.assertEqual(advance,0);test.assertEqual(game.turn,turn);
