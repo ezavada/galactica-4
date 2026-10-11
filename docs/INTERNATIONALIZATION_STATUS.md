@@ -342,3 +342,17 @@ pairs and compact final pages were visually reviewed. Both native suites pass
 1,775 tests. Evidence: `/private/tmp/galactica-music-preference/`, including
 `comparison.json` and `compact-review.png`. The broader localization completion
 audit remains open.
+
+
+### Compact Host forms (2026-10-11)
+
+Host creation, Open Saved and saved-game conversion below 400px wide now wrap
+existing translated labels, checkbox text, choices, complete feedback and
+shortcut-bearing footer captions. No IDs or hard-coded user strings were added.
+All six languages pass 36 ordinary/short/narrow before/after Host runs plus
+twelve narrow native-backed conversion runs; actual input and original-save
+preservation are verified. All six narrow form and conversion comparisons were
+visually inspected. Both native suites pass 1,777 tests. Evidence uses the
+`/private/tmp/galactica-host-compact` and
+`/private/tmp/galactica-host-conversion-compact` prefixes. Other compact hosting
+surfaces and the localization completion audit remain open.

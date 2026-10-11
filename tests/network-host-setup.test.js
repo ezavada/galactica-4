@@ -1,6 +1,24 @@
 const test=require('./test-framework.js'),{HostWindow,units}=require('../src/js/network-host-setup.js'),Config=require('../src/js/game-config.js'),Setup=require('../src/js/startup-setup.js'),Documents=require('../src/js/documents.js');
 function form(options={}){const backend={supported:true,latest:()=>null},window=new HostWindow(backend,()=>true);window.open(options);return window;}
 module.exports=()=>test.describe('Multiplayer Host setup controls',()=>{
+ test.it('keeps compact Host drafts scrollable and all measured choices and footer captions separate in six languages',()=>{
+  const Caption=require('../src/js/button-caption.js'),original=pdg.res.getLanguage(),measure=(text,size=12)=>Array.from(text).length*size*.65;
+  try{for(const language of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(language);const w=form();w.message=pdg.res.getString(1067);const l=w.layout(320,340,measure);
+   test.assertTrue(l.compact);test.assertEqual(l.titleHeight,40);test.assertTrue(w.scrollLimit>0);
+   for(const item of [...l.fields,...l.checks,...l.choices]){test.assertTrue(item.rect.width>0);test.assertTrue(item.rect.x>=l.bodyClip.x);test.assertTrue(item.rect.x+item.rect.width<=l.bodyClip.x+l.bodyClip.width+.001);}
+   const humans=l.fields.find(f=>f.name==='humans'),computers=l.fields.find(f=>f.name==='computers');test.assertTrue(humans.rect.y+humans.rect.height<computers.rect.y);
+   for(const action of ['skill','advantage','size','density','unit']){const choices=l.choices.filter(c=>c.action===action);for(let i=0;i<choices.length;i++){const a=choices[i];test.assertTrue(measure(a.label,a.size)+12<=a.rect.width+.001);for(const b of choices.slice(i+1))test.assertTrue(a.rect.y!==b.rect.y || a.rect.x+a.rect.width<=b.rect.x);}}
+   for(const b of l.buttons){test.assertTrue(Caption.width(b.label,b.key,measure,{size:b.size})+16<=b.rect.width+.001);test.assertTrue(b.rect.y>=l.bodyClip.y+l.bodyClip.height);test.assertTrue(b.rect.y+b.rect.height<=l.rect.y+l.rect.height-10);}
+   for(const line of l.statusLines){test.assertTrue(measure(line.text,12)<=l.rect.width-28+.001);test.assertTrue(line.point.y>l.bodyClip.y+l.bodyClip.height);test.assertTrue(line.point.y<l.buttons[0].rect.y);}
+   w.scroll(100000);let end=w.layout(320,340,measure);test.assertTrue(w.bodyScroll>0);test.assertTrue(end.fields.find(f=>f.name==='port').rect.y+26<=end.bodyClip.y+end.bodyClip.height);
+   w.focus='title';w.revealFocus=true;const top=w.layout(320,340,measure);test.assertEqual(w.bodyScroll,0);test.assertTrue(top.fields[0].rect.y>=top.bodyClip.y);
+   w.key(pdg.key_Tab);const next=w.layout(320,340,measure),field=next.fields.find(f=>f.name===w.focus);test.assertTrue(field.rect.y>=next.bodyClip.y);test.assertTrue(field.rect.y+field.rect.height<=next.bodyClip.y+next.bodyClip.height);
+  }}finally{pdg.res.setLanguage(original);}
+ });
+ test.it('retains compact Open Saved fields and rejects hidden body hit targets through clipping metadata',()=>{
+  const w=form();w.cancel();w.openSaved();const l=w.layout(320,340);test.assertTrue(l.compact);test.assertEqual(l.fields.map(f=>f.name).join(','),'file,port');
+  test.assertTrue(l.fields.every(f=>f.body));test.assertTrue(l.buttons.every(b=>!b.body));w.key(pdg.key_Escape);test.assertFalse(w.active);test.assertNull(w.layout(320,340));
+ });
  test.it('opens an independent multiplayer draft without changing local setup defaults',()=>{
   const source=new Config({numHumans:1,numComputers:98,gameTitle:'Local 星'}),before=JSON.stringify(source),w=form(source);test.assertEqual(w.humans.text,'2');test.assertEqual(w.computers.text,'97');test.assertEqual(JSON.stringify(source),before);test.assertEqual(w.options().config.totalPlayers,99);test.assertEqual(w.title.text,'Local 星');test.assertTrue(w.file.text.endsWith('.gad4.json'));test.assertEqual(w.options().listen.port,0);
  });

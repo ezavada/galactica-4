@@ -1187,3 +1187,22 @@ comparison and compact reviews are `review-1.png`, `review-2.png` and
 Music preference gap, not the remaining Preferences, runtime/hardware,
 localization completion or Map Generation audits. Unrelated in-progress
 optional artwork changes remain outside this commit; no PDG checkout changed.
+
+
+### Compact Host form and conversion browser checks
+
+`tools/test-web-host-compact.cjs BUILD OUTPUT LANG before|after WIDTH HEIGHT`
+checks actual roster/map/timer controls, validation, wheel/keyboard scrolling,
+real native host creation and Open Saved. All six languages pass before/after
+at 800×600, 640×340 and 320×340 (36 runs).
+`tools/test-web-host-conversion-compact.cjs` accepts the same arguments and
+checks a real native saved-game offer/conversion, constrained modal drag and
+unchanged source bytes; all twelve narrow language/baseline runs pass. Both
+helpers mute their native/Chrome output. They use localhost HTTP adapters,
+not production browser hosting or physical-LAN validation.
+
+Both complete native suites pass 1,777 tests. Logs and screenshots use
+`/private/tmp/galactica-host-compact` and
+`/private/tmp/galactica-host-conversion-compact` prefixes; each screenshot tree
+includes JSON layout geometry and `comparison.json`. The parity status entry
+records the precise comparisons and remaining scope.

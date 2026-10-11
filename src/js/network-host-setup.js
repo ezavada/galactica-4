@@ -6,7 +6,7 @@ function errorText(error){return I18n.getString(error && error.code==='invalid_h
 class HostWindow {
  constructor(backend,join){this.backend=backend;this.join=join;this.active=false;this.busy=false;}
  open(options={},record=this.backend.latest()){
-  if(this.active || this.busy)return false;this.conversion=null;this.confirmation=null;this.active=true;this.message='';this.record=record;this.stage=record?'hosting':'form';
+  if(this.active || this.busy)return false;this.conversion=null;this.confirmation=null;this.active=true;this.bodyScroll=0;this.compactStage=null;this.scrollLimit=0;this.revealFocus=true;this.message='';this.record=record;this.stage=record?'hosting':'form';
   const numHumans=Math.max(2,Math.min(99,options.numHumans || 2));
   this.config=new Config({...options,humanPlayerSlots:undefined,numHumans,numComputers:Math.min(99-numHumans,options.numComputers || 0),hosting:true});
   this.title=Name.createEditor(this.config.gameTitle,Setup.maximumTitleLength);this.humans=Name.createEditor(String(this.config.numHumans),2);this.computers=Name.createEditor(String(this.config.numComputers),2);
@@ -174,19 +174,22 @@ class HostWindow {
  }
  key(key,pdgRef=globalThis.pdg){
   if(key===pdgRef.key_Escape)return this.cancel();if(this.busy)return true;
+  if(this.scrollLimit && ['form','open','conversion'].includes(this.stage) && [pdgRef.key_PageUp,pdgRef.key_PageDown].includes(key))return this.scroll(key===pdgRef.key_PageUp?-120:120);
   if(this.stage==='initialState')return true;if(this.stage==='initialValue'){if([13,10,3].includes(key))this.saveInitialState();else if(this.initialKind!=='ship')Name.edit(this.initialValue,key,pdgRef);return true;}if(this.stage==='adminPassword'){if([13,10,3].includes(key))this.saveAdminPassword();else Name.edit(this.adminPassword,key,pdgRef);return true;}
   if(this.stage==='admission'){if([13,10,3].includes(key))this.admissionAction('admissionAdd');else Name.edit(this.admissionCode,key,pdgRef);return true;}
   if(this.stage==='players'){if(key===pdgRef.key_UpArrow || key===pdgRef.key_DownArrow){const current=this.playerList.findIndex(p=>p.player===this.playerSelection),index=Math.max(0,Math.min(this.playerList.length-1,current+(key===pdgRef.key_UpArrow?-1:1)));this.playerSelection=this.playerList[index].player;this.page=Math.floor(index/4);}return true;}
   if(this.stage==='endTurn'){if([13,10,3].includes(key))this.action('confirmEnd');return true;}
   if(this.stage==='hosting'){if(key===pdgRef.key_Tab && !this.backend.describe(this.record).address){this.focus='port';this.port.selected=true;}else if([13,10,3].includes(key))this.action(this.record.remoteAdministrator?'cancel':this.backend.describe(this.record).address?'join':'retry');else if(this.focus==='port')Name.edit(this.port,key,pdgRef);return true;}
   const fields=this.stage==='playerName'?['playerName']:this.stage==='settings'?(this.timed?['time']:[]):this.stage==='conversion'?['file','humans','port']:this.stage==='open'?['file','port']:['title','humans','computers',...(this.timed?['time']:[]),'file','port'];
-  if(key===pdgRef.key_Tab){this.focus=fields[(fields.indexOf(this.focus)+1)%fields.length];if(this[this.focus])this[this.focus].selected=true;return true;}
+  if(key===pdgRef.key_Tab){this.revealFocus=true;this.focus=fields[(fields.indexOf(this.focus)+1)%fields.length];if(this[this.focus])this[this.focus].selected=true;return true;}
   if([13,10,3].includes(key)){this.stage==='playerName'?this.savePlayer():this.stage==='settings'?this.saveSettings():this.stage==='conversion'?this.convert():this.stage==='open'?this.resume():this.create();return true;}if(this.stage==='settings' && (!this.timed || this.focus!=='time'))return true;const before=this[this.focus].text;Name.edit(this[this.focus],key,pdgRef);
   if(this.focus==='file' && this.file.text!==before)this.customFile=true;
   if(this.focus==='title' && this.title.text!==before && !this.customFile)this.file=Name.createEditor(Files.suggestedName(this.title.text),1024);
   this.message='';return true;
  }
- layout(width,height){
+ scroll(delta){if(!['form','open','conversion'].includes(this.stage) || !this.scrollLimit)return false;this.revealFocus=false;this.bodyScroll=Math.max(0,Math.min(this.scrollLimit,(this.bodyScroll || 0)+delta));return true;}
+ layout(width,height,measure=(text,size=12)=>Array.from(text).length*size/2){
+  if(this.active && width<400 && ['form','open','conversion'].includes(this.stage))return require('./host-compact-layout.js').layout(this,width,height,HostWindow.prototype.layout.call(this,800,600,measure),measure);
   if(!this.active)return null;const baseHeight=this.stage==='hosting' && this.record.remoteAdministrator?440:['players','admission','initialState'].includes(this.stage)?480:['playerName','adminPassword','initialValue'].includes(this.stage)?300:this.stage==='endTurn'?360:this.stage==='conversion'?380:this.stage==='open'?300:568,rect={width:Math.min(600,width-24),height:Math.min(baseHeight,height-24)};rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;
   const scale=rect.height/baseHeight,at=(x,y,w,h=26)=>({x:rect.x+x,y:rect.y+y*scale,width:w,height:h*scale});
   if(this.stage==='initialState'){

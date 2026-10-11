@@ -270,7 +270,7 @@ const windowPlacement=new (require('./src/js/window-placement.js'))(drawingPrefe
 for(const [object,method,name] of [[StartupSetup,'panelRect','startup'],[StartupSetup,'skillMenu','startupSkill'],
     [PlayerName,'layout','textEntry'],[networkTurnNotice,'layout','networkTurnNotice'],[networkChat,'layout','networkChat'],[networkHosting,'layout','networkHosting'],[networkJoin,'layout','networkJoin'],[documents,'layout','documents'],[userManual,'layout','manualError']]){
     const original=object[method];object[method]=function(width,height,...args){
-        const layout=object===PlayerName?original.call(this,width,height,args[0],(text,size)=>port.getTextWidth(text,size)):(object===documents || object===networkJoin)?original.call(this,width,height,(text,size)=>port.getTextWidth(text,size)):original.call(this,width,height,...args);
+        const layout=object===PlayerName?original.call(this,width,height,args[0],(text,size)=>port.getTextWidth(text,size)):(object===documents || object===networkJoin || object===networkHosting)?original.call(this,width,height,(text,size)=>port.getTextWidth(text,size)):original.call(this,width,height,...args);
         return name==='documents' && documents.dialog && documents.dialog.kind==='editor'?layout:windowPlacement.layout(name,layout,{width,height});
     };
 }
@@ -448,7 +448,8 @@ function drawNetworkHosting(){
     const buttonStyle=startupStyles.hostButton || (startupStyles.hostButton=createStartupAttributes({fillColor:new pdg.Color(.97,.97,.97,1),lineColor:new pdg.Color(0,0,0,.5)}).lineThickness(.7).lineStyle(pdg.lineStyle_Solid));
     const activeStyle=startupStyles.hostButtonActive || (startupStyles.hostButtonActive=createStartupAttributes({fillColor:new pdg.Color(.83,.87,.9,1),lineColor:new pdg.Color(0,0,0,.5)}).lineThickness(.7).lineStyle(pdg.lineStyle_Solid));
     const fit=(text,width,size=12)=>{while(size>9 && port.getTextWidth(text,size)>width)size--;return size;};
-    startupStyles.subtitleText.textSize(fit(layout.title,r.width-48,16));port.drawText(layout.title,new pdg.Point(r.x+r.width/2,r.y+34*scale),startupStyles.subtitleText);
+    startupStyles.subtitleText.textSize(fit(layout.title,r.width-48,16));port.drawText(layout.title,new pdg.Point(r.x+r.width/2,r.y+(layout.compact?26:34*scale)),startupStyles.subtitleText);
+    const drawBody=()=>{
     for(const field of layout.fields){const editor=networkHosting[field.name],f=field.rect;
         if(field.labelRect.width>0){startupStyles.lineText.textSize(fit(field.label,field.labelRect.width));port.drawText(field.label,new pdg.Point(field.labelRect.x,field.labelRect.y+18*scale),startupStyles.lineText);}
         drawStartupRoundedRect(f,5,buttonStyle);const masked=field.masked?{...editor,text:'•'.repeat(Array.from(editor.text).length)}:editor;const visible=PlayerName.visibleText(masked,f.width-20,text=>port.getTextWidth(text,12));startupStyles.lineText.textSize(12);
@@ -457,15 +458,22 @@ function drawNetworkHosting(){
         if(networkHosting.focus===field.name && !editor.selected)port.drawLine(new pdg.Point(f.x+10+visible.caret,f.y+4),new pdg.Point(f.x+10+visible.caret,f.y+f.height-4),startupStyles.checkboxMark);
     }
     for(const label of layout.labels){startupStyles.lineText.textSize(fit(label.text,label.rect.width));port.drawText(label.text,new pdg.Point(label.rect.x,label.rect.y+18*scale),startupStyles.lineText);}
-    for(const check of layout.checks)drawStartupCheckbox(check.rect,check.label,check.value,scale,buttonStyle,activeStyle);
+    for(const check of layout.checks){drawStartupCheckbox(check.rect,layout.compact?'':check.label,check.value,scale,buttonStyle,activeStyle);
+        if(layout.compact){startupStyles.lineText.textSize(12);check.labelLines.forEach((line,i)=>port.drawText(line,new pdg.Point(check.rect.x+32,check.rect.y+18+i*16),startupStyles.lineText));}}
+
     for(const choice of layout.choices){drawStartupRoundedRect(choice.rect,5,choice.active?activeStyle:buttonStyle);drawStartupButtonCaption(choice.rect,choice.label,startupStyles.advantageText,fit(choice.label,choice.rect.width-12),null);}
+    };
+    if(layout.bodyClip){const old=port.getClipRect();port.setClipRect(new pdg.Rect(layout.bodyClip.x,layout.bodyClip.y,layout.bodyClip.x+layout.bodyClip.width,layout.bodyClip.y+layout.bodyClip.height));try{drawBody();}finally{port.setClipRect(old);}}
+    else drawBody();
+    if(layout.scrollThumb){drawStartupRoundedRect(layout.scrollTrack,2,buttonStyle);drawStartupRoundedRect(layout.scrollThumb,2,activeStyle);}
     if(layout.info){const info=layout.info,lines=[info.address || I18n.getString(1081),I18n.formatString(1071,'',info.info.humans,info.info.computers,info.info.turn),...(info.remoteAdministrator?[]:[I18n.formatString(1072,'',info.port),info.file])].filter(Boolean);
         for(let i=0;i<lines.length;i++){const size=fit(lines[i],r.width-48);startupStyles.hintText.textSize(size);const text=PlayerName.visibleText({...PlayerName.createEditor(lines[i],1024),caret:i===3?Array.from(lines[i]).length:0},r.width-48,t=>port.getTextWidth(t,size)).text;port.drawText(text,new pdg.Point(r.x+24,r.y+(90+i*38)*scale),startupStyles.hintText);}
     }
-    const message=require('./src/js/network-host-status.js').message(networkHosting,sessions.sessions);if(message){let size=fit(message,r.width-48,11);startupStyles.hintText.textSize(size);const display=game && game.display;
+    const message=require('./src/js/network-host-status.js').message(networkHosting,sessions.sessions);if(layout.compact){startupStyles.hintText.textSize(12);for(const line of layout.statusLines)port.drawText(line.text,new pdg.Point(line.point.x,line.point.y),startupStyles.hintText);}
+    else if(message){let size=fit(message,r.width-48,11);startupStyles.hintText.textSize(size);const display=game && game.display;
         const text=display?display.fitShipDiagnosticText(message,r.width-48,size):PlayerName.visibleText({...PlayerName.createEditor(message,1024),caret:0},r.width-48,t=>port.getTextWidth(t,size)).text;
         port.drawText(text,new pdg.Point(r.x+24,r.y+(layout.messageY || 520)*scale),startupStyles.hintText);}
-    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,buttonStyle);const disabled=button.disabled || networkHosting.busy,attrs=disabled?(startupStyles.hostDisabledText || (startupStyles.hostDisabledText=createStartupAttributes({fillColor:new pdg.Color(.35,.35,.35,.65)}))):startupStyles.advantageText;drawStartupButtonCaption(button.rect,button.label,attrs,fit(button.label,button.rect.width-24),disabled?null:button.key);}
+    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,buttonStyle);const disabled=button.disabled || networkHosting.busy,attrs=disabled?(startupStyles.hostDisabledText || (startupStyles.hostDisabledText=createStartupAttributes({fillColor:new pdg.Color(.35,.35,.35,.65)}))):startupStyles.advantageText;drawStartupButtonCaption(button.rect,button.label,attrs,fit(button.label,button.rect.width-(layout.compact?16:24),button.size || 12),disabled?null:button.key);}
 }
 
 function drawNetworkJoin(){
@@ -1144,8 +1152,8 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     }
     if(networkHosting.active){
         if(event && event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const area=port.getDrawingArea(),layout=networkHosting.layout(area.width(),area.height()),p=event.mousePos;
-            const contains=r=>p.x>=r.x&&p.x<=r.x+r.width&&p.y>=r.y&&p.y<=r.y+r.height,button=layout.buttons.find(b=>contains(b.rect)),field=layout.fields.find(f=>contains(f.rect)),choice=layout.choices.find(c=>contains(c.rect)),check=layout.checks.find(c=>contains(c.rect));
-            if(button && !button.disabled)networkHosting.action(button.action);else if(!networkHosting.busy && field){networkHosting.focus=field.name;networkHosting[field.name].selected=true;}else if(choice)networkHosting.action(choice.action,choice.value);else if(check)networkHosting.action(check.action);
+            const contains=r=>p.x>=r.x&&p.x<=r.x+r.width&&p.y>=r.y&&p.y<=r.y+r.height,hit=item=>contains(item.rect) && (!item.body || contains(layout.bodyClip)),button=layout.buttons.find(hit),field=layout.fields.find(hit),choice=layout.choices.find(hit),check=layout.checks.find(hit);
+            if(button && !button.disabled)networkHosting.action(button.action);else if(!networkHosting.busy && field){networkHosting.revealFocus=true;networkHosting.focus=field.name;networkHosting[field.name].selected=true;}else if(choice)networkHosting.action(choice.action,choice.value);else if(check)networkHosting.action(check.action);
         }return true;
     }
     if(networkJoin.active){
@@ -1310,6 +1318,7 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
     if(tutorialPanel && !networkChat.active && !networkJoin.active && (!networkHosting.active || tutorialSession?.controller.pageId===103) && !userManual.error() && !documents.dialog && event && event.eventType===pdg.eventType_ScrollWheel){
         const p=pdg.gfx.getMouse(),c=tutorialPanelContext();if(tutorialPanel.wheel(p.x,p.y,event.vertDelta || 0,c.screen,c.measure,c.targets))return true;
     }
+    if(networkHosting.active){if(event && event.eventType===pdg.eventType_ScrollWheel)networkHosting.scroll(event.vertDelta || 0);return true;}
     if(networkJoin.active){if(event && event.eventType===pdg.eventType_ScrollWheel)networkJoin.scroll(event.vertDelta || 0);return true;}
     if(networkChat.active || networkHosting.active || startupSettings.active || userManual.error() || documents.dialog)return true;
     if (sessions.starting || !game) {
