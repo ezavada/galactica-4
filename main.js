@@ -83,8 +83,10 @@ const quitDocuments=new QuitDocuments.QuitDocuments(sessions,documents,{
     activate:activateQuitDocument,capture:captureQuitState,restore:restoreQuitState,exit:finishQuit
 });
 documents.quit=()=>requestApplicationQuit();
+const networkDisconnects=new Set();
+function disconnectNetworkClient(client){const pending=client.disconnect();networkDisconnects.add(pending);Promise.resolve(pending).finally(()=>networkDisconnects.delete(pending));return pending;}
 const networkJoin=new (require('./src/js/network-join.js')).JoinWindow({
-    install:installNetworkGame,find:(address,gameId,name)=>{const s=sessions.sessions.find(s=>s.network && s.network.address===address && s.network.identity && s.network.identity.gameId===gameId && s.network.identity.name===name);return s?s.network:null;},defaultName:()=>playerNamePreferences.read() || I18n.getString(17,'You')
+    install:installNetworkGame,find:(address,gameId,name,role)=>{const s=sessions.sessions.find(s=>s.network && s.network.address===address && s.network.identity && s.network.identity.gameId===gameId && (role==='administrator'?s.network.identity.role==='administrator':s.network.identity.role!=='administrator' && s.network.identity.name===name));return s?s.network:null;},defaultName:()=>playerNamePreferences.read() || I18n.getString(17,'You')
 });
 documents.join=openNetworkJoin;
 const hostedGames=require('./src/js/host-games.js').createService();
@@ -97,6 +99,12 @@ function openNetworkHosting(saved=false){
     if(tutorialSession || quitDocuments.state!=='idle' || networkJoin.active)return false;
     clearSessionInput();startupHelp.clear();if(game)game.uiWindow=null;
     const identity=sessions.active && sessions.active.network && sessions.active.network.identity;
+    const activeClient=sessions.active && sessions.active.network;
+    if(!saved && activeClient && identity && identity.role==='administrator'){
+        networkHosting.backend=require('./src/js/remote-host-controls.js').createService(activeClient,model=>{const session=sessions.sessions.find(s=>s.network===activeClient);if(session && model)replaceNetworkModel(session,model);});
+        if(!networkHosting.open(pendingConfig))return false;documents.dialog=null;return true;
+    }
+    networkHosting.backend=hostedGames;
     const record=identity?hostedGames.records.find(r=>hostedGames.describe(r).id===identity.gameId) || hostedGames.latest():hostedGames.latest();
     if(!(saved?networkHosting.openSaved(pendingConfig):networkHosting.open(pendingConfig,record)))return false;documents.dialog=null;return true;
 }
@@ -112,7 +120,7 @@ function installNetworkGame(model,client){
     let session=sessions.sessions.find(s=>s.network===client);
     if(session){replaceNetworkModel(session,model);sessions.starting=false;sessions.select(session.id);resumeSession(session);}
     else{installSavedGame(model,null);session=sessions.active;session.network=client;}
-    session.deferredNetworkModel=null;session.nextRefresh=Date.now()+3000;session.networkError=null;playerNamePreferences.write(client.identity.name);
+    session.deferredNetworkModel=null;session.nextRefresh=Date.now()+3000;session.networkError=null;if(client.identity.role!=='administrator')playerNamePreferences.write(client.identity.name);
 }
 function replaceNetworkModel(session,model){
     if(session.game===model)return;
@@ -388,7 +396,7 @@ function drawNetworkHosting(){
     startupStyles.subtitleText.textSize(fit(layout.title,r.width-48,16));port.drawText(layout.title,new pdg.Point(r.x+r.width/2,r.y+34*scale),startupStyles.subtitleText);
     for(const field of layout.fields){const editor=networkHosting[field.name],f=field.rect;
         if(field.labelRect.width>0){startupStyles.lineText.textSize(fit(field.label,field.labelRect.width));port.drawText(field.label,new pdg.Point(field.labelRect.x,field.labelRect.y+18*scale),startupStyles.lineText);}
-        drawStartupRoundedRect(f,5,buttonStyle);const visible=PlayerName.visibleText(editor,f.width-20,text=>port.getTextWidth(text,12));startupStyles.lineText.textSize(12);
+        drawStartupRoundedRect(f,5,buttonStyle);const masked=field.masked?{...editor,text:'•'.repeat(Array.from(editor.text).length)}:editor;const visible=PlayerName.visibleText(masked,f.width-20,text=>port.getTextWidth(text,12));startupStyles.lineText.textSize(12);
         if(networkHosting.focus===field.name && editor.selected)drawStartupRoundedRect({x:f.x+8,y:f.y+4,width:Math.min(f.width-16,port.getTextWidth(visible.text,12)+4),height:f.height-8},3,startupStyles.advantageButtonActive);
         port.drawText(visible.text,new pdg.Point(f.x+10,f.y+18*scale),startupStyles.lineText);
         if(networkHosting.focus===field.name && !editor.selected)port.drawLine(new pdg.Point(f.x+10+visible.caret,f.y+4),new pdg.Point(f.x+10+visible.caret,f.y+f.height-4),startupStyles.checkboxMark);
@@ -396,7 +404,7 @@ function drawNetworkHosting(){
     for(const label of layout.labels){startupStyles.lineText.textSize(fit(label.text,label.rect.width));port.drawText(label.text,new pdg.Point(label.rect.x,label.rect.y+18*scale),startupStyles.lineText);}
     for(const check of layout.checks)drawStartupCheckbox(check.rect,check.label,check.value,scale,buttonStyle,activeStyle);
     for(const choice of layout.choices){drawStartupRoundedRect(choice.rect,5,choice.active?activeStyle:buttonStyle);drawStartupButtonCaption(choice.rect,choice.label,startupStyles.advantageText,fit(choice.label,choice.rect.width-12),null);}
-    if(layout.info){const info=layout.info,lines=[info.address || I18n.getString(1081),I18n.formatString(1071,'',info.info.humans,info.info.computers,info.info.turn),I18n.formatString(1072,'',info.port),info.file];
+    if(layout.info){const info=layout.info,lines=[info.address || I18n.getString(1081),I18n.formatString(1071,'',info.info.humans,info.info.computers,info.info.turn),...(info.remoteAdministrator?[]:[I18n.formatString(1072,'',info.port),info.file])].filter(Boolean);
         for(let i=0;i<lines.length;i++){const size=fit(lines[i],r.width-48);startupStyles.hintText.textSize(size);const text=PlayerName.visibleText({...PlayerName.createEditor(lines[i],1024),caret:i===3?Array.from(lines[i]).length:0},r.width-48,t=>port.getTextWidth(t,size)).text;port.drawText(text,new pdg.Point(r.x+24,r.y+(90+i*38)*scale),startupStyles.hintText);}
     }
     const message=networkHosting.message;if(message){let size=fit(message,r.width-48,11);startupStyles.hintText.textSize(size);const display=game && game.display;
@@ -427,7 +435,7 @@ function drawNetworkJoin(){
     }
     for(const row of layout.slots){drawStartupRoundedRect(row.rect,4,startupStyles.advantageButton);startupStyles.lineText.textSize(fit(row.label,row.rect.width-20,12));port.drawText(row.label,new pdg.Point(row.rect.x+10,row.rect.y+18*scale),startupStyles.lineText);}
     startupStyles.hintText.textSize(fit(networkJoin.message,r.width-48,12));port.drawText(networkJoin.message,new pdg.Point(r.x+24,r.y+477*scale),startupStyles.hintText);
-    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,button.action===networkJoin.mode?startupStyles.advantageButtonActive:startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,12,button.key);}
+    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,button.action===networkJoin.mode?startupStyles.advantageButtonActive:startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,fit(button.label,button.rect.width-16,12),button.key);}
 }
 
 function drawStartupCheckbox(rect,label,checked,scale,buttonStyle=startupStyles.advantageButton,activeStyle=startupStyles.advantageButtonActive) {
@@ -769,7 +777,8 @@ async function finishQuit() {
     const browser=typeof window!=='undefined' && window.document;
     const labels=browser?[I18n.getString(998),I18n.getString(999),I18n.getString(1000)]:null;
     const language=browser?LanguageSettings.current():null;
-    networkJoin.cancel();for(const session of sessions.sessions)if(session.network)session.network.disconnect();
+    networkJoin.cancel();for(const session of sessions.sessions)if(session.network)disconnectNetworkClient(session.network);
+    await Promise.allSettled([...networkDisconnects]);
     sound.stop();clearSessionInput();stopAutoplayTimer();
     if(tutorialSession)tutorialSession.stop('quit');
     startupSettings.active=false;documents.dialog=null;
@@ -800,7 +809,7 @@ function closeActiveGame(session) {
     }
     if(sessions.starting && documents.quitPending)sessions.cancel();
     if(!sessions.close(session))return false;
-    if(session.network)session.network.disconnect();
+    if(session.network)disconnectNetworkClient(session.network);
     session.display.dispose();
     if(sessions.active)resumeSession(sessions.active);
     else{

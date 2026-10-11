@@ -851,3 +851,20 @@
 1153	Solo para plazas nuevas. La lista permitida tiene prioridad.
 1154	No se pudieron leer reglas de acceso válidas. No se inició el host.
 1155	Admisión: --admission ARCHIVO carga reglas JSON antes de escuchar (hosts nuevos o guardados).
+
+1156	Acceso de administrador: --admin-password-file ARCHIVO lee una contraseña JSON antes de escuchar. Una cadena vacía desactiva el acceso; omitir la opción conserva las credenciales guardadas.
+1157	No se puede leer la contraseña de administrador. Use una cadena JSON de hasta 64 caracteres sin caracteres de control.
+
+1158	Acceso de administrador
+1159	Contraseña
+1160	Una contraseña vacía desactiva la administración remota.
+1161	El acceso de administrador ha cambiado. Abra este diálogo de nuevo.
+1162	Pulse estrellas y naves para inspeccionarlas
+
+1163	Administrar
+1164	Administrando: {0}
+1165	Desconectar administrador
+1166	La administración remota está desactivada en este anfitrión.
+
+1167	Las vistas del administrador son de solo lectura. Vuelva a unirse para reconectar con el anfitrión.
+1168	Administración del anfitrión

@@ -31,7 +31,7 @@ class HostWindow {
   finally{this.busy=false;}
  }
  dismiss(){if(this.busy)return false;while(this.active)this.cancel();return true;}
- cancel(){if(!this.active || this.busy)return false;if(this.stage==='playerName'){this.stage='players';this.message='';return true;}if(this.stage==='admission'){this.stage='hosting';this.admission=null;this.admissionCode.text='';this.message='';return true;}if(this.stage==='players'){this.stage='hosting';this.message='';return true;}if(this.stage==='settings'){this.config=this.previousConfig;this.stage='hosting';this.message='';return true;}if(this.stage==='endTurn'){this.stage='hosting';this.confirmation=null;this.message='';return true;}if(this.conversion && this.backend.discardConversion)this.backend.discardConversion(this.conversion.token);this.conversion=null;this.active=false;return true;}
+ cancel(){if(!this.active || this.busy)return false;if(this.stage==='adminPassword'){this.adminPassword.text='';this.stage='hosting';this.message='';return true;}if(this.stage==='playerName'){this.stage='players';this.message='';return true;}if(this.stage==='admission'){this.stage='hosting';this.admission=null;this.admissionCode.text='';this.message='';return true;}if(this.stage==='players'){this.stage='hosting';this.message='';return true;}if(this.stage==='settings'){this.config=this.previousConfig;this.stage='hosting';this.message='';return true;}if(this.stage==='endTurn'){this.stage='hosting';this.confirmation=null;this.message='';return true;}if(this.conversion && this.backend.discardConversion)this.backend.discardConversion(this.conversion.token);this.conversion=null;this.active=false;return true;}
  options(){
   const numHumans=whole(this.humans.text,1,99),numComputers=whole(this.computers.text,0,98),port=whole(this.port.text,0,65535),time=this.timed?whole(this.time.text,1,Math.min(99999999,Math.floor(Number.MAX_SAFE_INTEGER/(1000*units[this.unit].multiplier)))):0;
   if(numHumans===null || numComputers===null || numHumans+numComputers>99 || port===null || time===null || !Name.validName(this.title.text,Setup.maximumTitleLength) || !Name.validName(this.file.text,1024))return null;
@@ -51,6 +51,18 @@ class HostWindow {
   try{await this.backend.stop(this.record);this.record=null;this.active=false;return true;}catch(error){this.message=I18n.getString(1073);return false;}finally{this.busy=false;}
  }
  async retry(){if(this.busy || !this.record)return false;this.busy=true;this.message=I18n.getString(1061);try{const port=whole(this.port.text,0,65535);if(port===null)throw {code:'invalid_host_port'};await this.backend.retry(this.record,port);this.port=Name.createEditor(String(this.backend.describe(this.record).port),5);this.message='';return true;}catch(error){this.message=errorText(error);return false;}finally{this.busy=false;}}
+ editAdminPassword(){
+  if(this.busy || !this.record || !this.backend.setAdminPassword)return false;const info=this.backend.describe(this.record);if(!info.address)return false;
+  this.adminRevision=info.administration.adminRevision;this.adminEnabled=info.administration.adminEnabled;this.adminPassword=Name.createEditor('',64);this.focus='adminPassword';this.stage='adminPassword';this.message='';return true;
+ }
+ async saveAdminPassword(){
+  if(this.stage!=='adminPassword' || this.busy)return false;
+  if(!require('./admin-password.js').validPassword(this.adminPassword.text)){this.message=I18n.getString(1157);return false;}
+  this.busy=true;this.message=I18n.getString(1138);
+  try{await this.backend.setAdminPassword(this.record,this.adminPassword.text,this.adminRevision);this.adminPassword.text='';this.stage='hosting';this.message='';return true;}
+  catch(error){if(error.code==='stale_host_admin'){this.adminPassword.text='';this.stage='hosting';}this.message=I18n.getString(error.code==='stale_host_admin'?1161:error.code==='invalid_admin_password'?1157:1030);return false;}
+  finally{this.busy=false;}
+ }
  editAdmission(){
   if(this.busy || !this.record)return false;const info=this.backend.describe(this.record);if(!info.address)return false;
   this.admission=require('./host-admission.js').validate(info.administration.admission);this.admissionRevision=info.administration.admissionRevision;this.admissionList='allowed';this.admissionSelection=null;this.admissionCode=Name.createEditor('',64);this.focus='admissionCode';this.page=0;this.stage='admission';this.message='';return true;
@@ -69,7 +81,7 @@ class HostWindow {
  async saveAdmission(){
   if(this.stage!=='admission' || this.busy)return false;this.busy=true;this.message=I18n.getString(1138);
   try{await this.backend.updateAdmission(this.record,this.admission,this.admissionRevision);this.stage='hosting';this.admissionCode.text='';this.admission=null;this.message='';return true;}
-  catch(error){if(error.code==='stale_host_admission'){this.stage='hosting';this.admission=null;this.admissionCode.text='';}this.message=I18n.getString(error.code==='stale_host_admission'?1151:error.code==='invalid_host_admission'?1152:1030);return false;}
+  catch(error){if(error.code==='stale_host_admission'){this.stage='hosting';this.admission=null;this.admissionCode.text='';}this.message=I18n.getString(error.code==='not_logged_in'?1031:error.code==='stale_host_admission'?1151:error.code==='invalid_host_admission'?1152:1030);return false;}
   finally{this.busy=false;}
  }
  editPlayers(){
@@ -86,7 +98,7 @@ class HostWindow {
   if(this.busy || !['players','playerName'].includes(this.stage))return false;if(['rename','computer'].includes(action) && !Name.validName(name)){this.message=I18n.getString(1067);return false;}
   this.busy=true;this.message=I18n.getString(1138);const value={action,player:this.playerSelection,...(['rename','computer'].includes(action)?{name:name.trim()}: {})};
   try{await this.backend.changePlayer(this.record,value,this.playersRevision,this.playersTurn);this.stage='hosting';this.message='';return true;}
-  catch(error){if(error.code==='stale_host_player' || error.code==='game_complete')this.stage='hosting';this.message=I18n.getString(error.code==='stale_host_player'?1137:error.code==='invalid_host_player'?1139:error.code==='game_complete'?1043:1030);return false;}
+  catch(error){if(error.code==='stale_host_player' || error.code==='game_complete')this.stage='hosting';this.message=I18n.getString(error.code==='not_logged_in'?1031:error.code==='stale_host_player'?1137:error.code==='invalid_host_player'?1139:error.code==='game_complete'?1043:1030);return false;}
   finally{this.busy=false;}
  }
  editSettings(){
@@ -103,7 +115,7 @@ class HostWindow {
   if(this.busy || this.stage!=='settings')return false;const value=this.settingsOptions();if(!value){this.message=I18n.getString(1067);return false;}
   this.busy=true;this.message=I18n.getString(1120);
   try{await this.backend.updateSettings(this.record,value,this.settingsRevision);this.config=this.previousConfig;this.stage='hosting';this.message='';return true;}
-  catch(error){if(error.code==='stale_host_settings' || error.code==='game_complete'){this.config=this.previousConfig;this.stage='hosting';}this.message=I18n.getString(error.code==='stale_host_settings'?1121:error.code==='game_complete'?1043:1030);return false;}
+  catch(error){if(error.code==='stale_host_settings' || error.code==='game_complete'){this.config=this.previousConfig;this.stage='hosting';}this.message=I18n.getString(error.code==='not_logged_in'?1031:error.code==='stale_host_settings'?1121:error.code==='game_complete'?1043:1030);return false;}
   finally{this.busy=false;}
  }
  requestEnd(){
@@ -114,11 +126,11 @@ class HostWindow {
  async control(action,turn){
   if(this.busy || !this.record)return false;this.busy=true;this.message=I18n.getString(1111);
   try{await this.backend.turnControl(this.record,action,turn);this.stage='hosting';this.confirmation=null;this.message='';return true;}
-  catch(error){if(error.code==='stale_host_turn' || error.code==='game_complete'){this.stage='hosting';this.confirmation=null;}this.message=I18n.getString(error.code==='stale_host_turn'?1114:error.code==='game_complete'?1043:1030);return false;}
+  catch(error){if(error.code==='stale_host_turn' || error.code==='game_complete'){this.stage='hosting';this.confirmation=null;}this.message=I18n.getString(error.code==='not_logged_in'?1031:error.code==='stale_host_turn'?1114:error.code==='game_complete'?1043:1030);return false;}
   finally{this.busy=false;}
  }
  action(action,value){
-  if(action==='cancel')return this.cancel();if(this.busy)return false;if(action==='admission')return this.editAdmission();if(action==='saveAdmission')return this.saveAdmission();if(this.stage==='admission')return this.admissionAction(action,value);if(action==='players')return this.editPlayers();if(action==='selectPlayer')return this.selectPlayer(value);if(action==='savePlayer')return this.savePlayer();if(action.startsWith('player:'))return this.playerAction(action.slice(7));if(action==='settings')return this.editSettings();if(action==='saveSettings')return this.saveSettings();
+  if(action==='cancel')return this.cancel();if(this.busy)return false;if(this.record && this.record.remoteAdministrator && ['create','another','openSaved','convert','resume','retry','join','adminPassword'].includes(action))return false;if(action==='adminPassword')return this.editAdminPassword();if(action==='saveAdminPassword')return this.saveAdminPassword();if(action==='admission')return this.editAdmission();if(action==='saveAdmission')return this.saveAdmission();if(this.stage==='admission')return this.admissionAction(action,value);if(action==='players')return this.editPlayers();if(action==='selectPlayer')return this.selectPlayer(value);if(action==='savePlayer')return this.savePlayer();if(action.startsWith('player:'))return this.playerAction(action.slice(7));if(action==='settings')return this.editSettings();if(action==='saveSettings')return this.saveSettings();
   if(this.stage==='settings' && ['size','density','another','openSaved','create'].includes(action))return false;
   if(action==='pause' || action==='resumeClock')return this.control(action==='pause'?'pause':'resume');if(action==='endNow')return this.requestEnd();if(action==='confirmEnd')return this.confirmation?this.control('end',this.confirmation.turn):false;if((action==='previous' || action==='next') && this.stage==='players'){this.page=Math.max(0,Math.min(Math.ceil(this.playerList.length/4)-1,this.page+(action==='next'?1:-1)));return true;}if((action==='previous' || action==='next') && this.confirmation){this.page=Math.max(0,Math.min(Math.ceil(this.confirmation.pending.length/4)-1,this.page+(action==='next'?1:-1)));return true;}
   if(action==='convert')return this.convert();if(action==='resume')return this.resume();if(action==='openSaved'){this.active=false;return this.openSaved(this.config);}if(action==='create')return this.create();if(action==='stop')return this.stop();if(action==='retry')return this.retry();
@@ -137,10 +149,11 @@ class HostWindow {
  }
  key(key,pdgRef=globalThis.pdg){
   if(key===pdgRef.key_Escape)return this.cancel();if(this.busy)return true;
+  if(this.stage==='adminPassword'){if([13,10,3].includes(key))this.saveAdminPassword();else Name.edit(this.adminPassword,key,pdgRef);return true;}
   if(this.stage==='admission'){if([13,10,3].includes(key))this.admissionAction('admissionAdd');else Name.edit(this.admissionCode,key,pdgRef);return true;}
   if(this.stage==='players'){if(key===pdgRef.key_UpArrow || key===pdgRef.key_DownArrow){const current=this.playerList.findIndex(p=>p.player===this.playerSelection),index=Math.max(0,Math.min(this.playerList.length-1,current+(key===pdgRef.key_UpArrow?-1:1)));this.playerSelection=this.playerList[index].player;this.page=Math.floor(index/4);}return true;}
   if(this.stage==='endTurn'){if([13,10,3].includes(key))this.action('confirmEnd');return true;}
-  if(this.stage==='hosting'){if(key===pdgRef.key_Tab && !this.backend.describe(this.record).address){this.focus='port';this.port.selected=true;}else if([13,10,3].includes(key))this.action(this.backend.describe(this.record).address?'join':'retry');else if(this.focus==='port')Name.edit(this.port,key,pdgRef);return true;}
+  if(this.stage==='hosting'){if(key===pdgRef.key_Tab && !this.backend.describe(this.record).address){this.focus='port';this.port.selected=true;}else if([13,10,3].includes(key))this.action(this.record.remoteAdministrator?'cancel':this.backend.describe(this.record).address?'join':'retry');else if(this.focus==='port')Name.edit(this.port,key,pdgRef);return true;}
   const fields=this.stage==='playerName'?['playerName']:this.stage==='settings'?(this.timed?['time']:[]):this.stage==='conversion'?['file','humans','port']:this.stage==='open'?['file','port']:['title','humans','computers',...(this.timed?['time']:[]),'file','port'];
   if(key===pdgRef.key_Tab){this.focus=fields[(fields.indexOf(this.focus)+1)%fields.length];if(this[this.focus])this[this.focus].selected=true;return true;}
   if([13,10,3].includes(key)){this.stage==='playerName'?this.savePlayer():this.stage==='settings'?this.saveSettings():this.stage==='conversion'?this.convert():this.stage==='open'?this.resume():this.create();return true;}if(this.stage==='settings' && (!this.timed || this.focus!=='time'))return true;const before=this[this.focus].text;Name.edit(this[this.focus],key,pdgRef);
@@ -149,8 +162,11 @@ class HostWindow {
   this.message='';return true;
  }
  layout(width,height){
-  if(!this.active)return null;const baseHeight=['players','admission'].includes(this.stage)?480:this.stage==='playerName'?300:this.stage==='endTurn'?360:this.stage==='conversion'?380:this.stage==='open'?300:568,rect={width:Math.min(600,width-24),height:Math.min(baseHeight,height-24)};rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;
+  if(!this.active)return null;const baseHeight=this.stage==='hosting' && this.record.remoteAdministrator?440:['players','admission'].includes(this.stage)?480:['playerName','adminPassword'].includes(this.stage)?300:this.stage==='endTurn'?360:this.stage==='conversion'?380:this.stage==='open'?300:568,rect={width:Math.min(600,width-24),height:Math.min(baseHeight,height-24)};rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;
   const scale=rect.height/baseHeight,at=(x,y,w,h=26)=>({x:rect.x+x,y:rect.y+y*scale,width:w,height:h*scale});
+  if(this.stage==='adminPassword'){
+   const inner=rect.width-48;return {rect,scale,title:I18n.getString(1158),messageY:192,fields:[{name:'adminPassword',masked:true,label:I18n.getString(1159),rect:at(180,100,rect.width-204),labelRect:at(24,100,140)}],choices:[],checks:[],labels:[{text:I18n.getString(1160),rect:at(24,144,inner)}],buttons:[{action:'cancel',id:683,key:'Esc',rect:at(24,240,inner/2-4)},{action:'saveAdminPassword',id:682,key:'Enter',rect:at(28+inner/2,240,inner/2-4)}].map(b=>({...b,label:I18n.getString(b.id)}))};
+  }
   if(this.stage==='admission'){
    const inner=rect.width-48,list=this.admission[this.admissionList],choices=[{action:'admissionList',value:'allowed',label:I18n.getString(1145),active:this.admissionList==='allowed',rect:at(24,96,inner/2-4)},{action:'admissionList',value:'banned',label:I18n.getString(1146),active:this.admissionList==='banned',rect:at(28+inner/2,96,inner/2-4)},...list.slice(this.page*4,this.page*4+4).map((code,i)=>({action:'admissionSelect',value:this.page*4+i,label:code,active:this.admissionSelection===this.page*4+i,rect:at(24,134+i*32,inner)}))];
    const buttons=[...(list.length>4?[{action:'previous',id:1033,disabled:this.page===0,rect:at(24,270,inner/2-4)},{action:'next',id:1034,disabled:(this.page+1)*4>=list.length,rect:at(28+inner/2,270,inner/2-4)}]:[]),{action:'admissionAdd',id:1148,rect:at(24,344,inner/2-4)},{action:'admissionRemove',id:1149,disabled:this.admissionSelection===null,rect:at(28+inner/2,344,inner/2-4)},{action:'cancel',id:683,key:'Esc',rect:at(24,430,inner/2-4)},{action:'saveAdmission',id:682,rect:at(28+inner/2,430,inner/2-4)}];
@@ -180,15 +196,16 @@ class HostWindow {
   }
   if(this.stage==='hosting'){
    const info=this.backend.describe(this.record),inner=rect.width-48;
-   return {rect,scale,title:I18n.formatString(1062,'',info.title),messageY:350,info,fields:info.address?[]:[{name:'port',label:I18n.getString(1053),rect:at(180,300,rect.width-204),labelRect:at(24,300,140)}],choices:[],checks:[],labels:info.address?[{text:info.administration.complete?I18n.getString(1043):info.info.clock.paused?info.info.clock.secondsRemaining===null?I18n.getString(1049):I18n.formatString(1046,'',require('./client-clock.js').duration(info.info.clock.secondsRemaining)):info.info.clock.secondsRemaining===null?I18n.getString(1113):I18n.formatString(1045,'',require('./client-clock.js').duration(info.info.clock.secondsRemaining)),rect:at(24,230,inner)}]:[],buttons:[
+   return {rect,scale,title:I18n.formatString(info.remoteAdministrator?1164:1062,'',info.title),messageY:info.remoteAdministrator?334:350,info,fields:info.address?[]:[{name:'port',label:I18n.getString(1053),rect:at(180,300,rect.width-204),labelRect:at(24,300,140)}],choices:[],checks:[],labels:info.address?[{text:info.administration.complete?I18n.getString(1043):info.info.clock.paused?info.info.clock.secondsRemaining===null?I18n.getString(1049):I18n.formatString(1046,'',require('./client-clock.js').duration(info.info.clock.secondsRemaining)):info.info.clock.secondsRemaining===null?I18n.getString(1113):I18n.formatString(1045,'',require('./client-clock.js').duration(info.info.clock.secondsRemaining)),rect:at(24,info.remoteAdministrator?164:230,inner)}]:[],buttons:[
     ...(info.address?[{action:info.info.clock.paused?'resumeClock':'pause',id:info.info.clock.paused?1117:1116,disabled:info.administration.complete,rect:at(24,266,inner/2-4)},{action:'endNow',id:1107,disabled:info.administration.complete,rect:at(28+inner/2,266,inner/2-4)}]:[]),
-    {action:'join',id:1063,key:'Enter',disabled:!info.address,rect:at(24,380,inner)},
+    {action:'join',id:1063,key:'Enter',disabled:!info.address,rect:at(24,380,info.address && this.backend.setAdminPassword?inner/2-4:inner)},
+    ...(info.address && this.backend.setAdminPassword?[{action:'adminPassword',id:1158,rect:at(28+inner/2,380,inner/2-4)}]:[]),
     {action:info.address?'settings':'retry',id:info.address?1118:1075,disabled:info.address && info.administration.complete,rect:at(24,418,info.address?inner/2-4:inner)},
     ...(info.address?[{action:'players',id:1125,disabled:info.administration.complete && !info.administration.players.some(p=>!p.isComputer && p.online),rect:at(28+inner/2,418,inner/2-4)}]:[]),
     {action:'another',id:1065,rect:at(24,456,info.address?inner/2-4:inner)},
     ...(info.address?[{action:'admission',id:1143,rect:at(28+inner/2,456,inner/2-4)}]:[]),
     {action:'stop',id:1064,rect:at(24,494,inner/2-4)},
-    {action:'cancel',id:834,key:'Esc',rect:at(28+inner/2,494,inner/2-4)}].map(b=>({...b,label:I18n.getString(b.id)}))};
+    {action:'cancel',id:834,key:'Esc',rect:at(28+inner/2,494,inner/2-4)}].filter(b=>!info.remoteAdministrator || !['join','another','retry'].includes(b.action)).map(b=>({...b,rect:info.remoteAdministrator?at(b.action==='admission'?24:b.rect.x-rect.x,['pause','resumeClock','endNow'].includes(b.action)?200:['settings','players'].includes(b.action)?244:b.action==='admission'?288:376,b.action==='admission'?inner:b.rect.width):b.rect,id:info.remoteAdministrator && b.action==='stop'?1165:b.id,disabled:b.disabled || info.remoteAdministrator && !info.administration.connected && !['cancel','stop'].includes(b.action),label:I18n.getString(info.remoteAdministrator && b.action==='stop'?1165:b.id)}))};
   }
   const inner=rect.width-48,labelWidth=140,fieldX=180,fieldWidth=rect.width-fieldX-24;
   const field=(name,id,x,y,w,labelX=24)=>({name,label:I18n.getString(id),rect:at(x,y,w),labelRect:at(labelX,y,Math.max(0,x-labelX-8))});

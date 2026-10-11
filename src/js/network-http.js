@@ -1,7 +1,7 @@
 // Bounded, cancellable JSON requests for native Node and browser clients.
 const maximumBytes=64*1024*1024;
 function failure(code){const error=new Error(code);error.code=code;return error;}
-const remoteErrors=new Set(['not_found','method_not_allowed','not_logged_in','admin_ejected','not_admitted','bad_protocol','bad_login_request','bad_password','duplicate_name','game_full','player_not_found','wrong_game','host_save_failed','host_state_failed','login_too_large','bad_orders','wrong_turn','already_posted','game_complete','orders_too_large']);
+const remoteErrors=new Set(['not_found','method_not_allowed','not_logged_in','admin_ejected','not_admitted','admin_disabled','admin_request_too_large','invalid_admin_action','invalid_host_player','invalid_host_settings','invalid_host_admission','stale_host_player','stale_host_settings','stale_host_admission','stale_host_turn','bad_protocol','bad_login_request','bad_password','duplicate_name','game_full','player_not_found','wrong_game','host_save_failed','host_state_failed','login_too_large','bad_orders','wrong_turn','already_posted','game_complete','orders_too_large']);
 function decode(status,text){
  let data;try{data=text?JSON.parse(text):{};}catch(error){throw failure('network_bad_response');}
  if(!data || typeof data!=='object' || Array.isArray(data))throw failure('network_bad_response');

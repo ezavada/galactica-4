@@ -851,3 +851,20 @@
 1153	Nur für neue Plätze. Eine Erlaubnisliste hat Vorrang.
 1154	Gültige Zugangsregeln konnten nicht gelesen werden. Host nicht gestartet.
 1155	Zulassung: --admission DATEI lädt JSON-Regeln vor dem Start (neue oder gespeicherte Hosts).
+
+1156	Administratorzugriff: --admin-password-file DATEI liest vor dem Start ein JSON-Passwort. Eine leere Zeichenfolge deaktiviert den Zugriff; ohne Option bleiben gespeicherte Zugangsdaten erhalten.
+1157	Administratorpasswort kann nicht gelesen werden. Verwenden Sie eine JSON-Zeichenfolge mit höchstens 64 Zeichen ohne Steuerzeichen.
+
+1158	Administratorzugriff
+1159	Passwort
+1160	Ein leeres Passwort deaktiviert die Fernverwaltung.
+1161	Der Administratorzugriff wurde geändert. Öffnen Sie diesen Dialog erneut.
+1162	Sterne und Schiffe anklicken, um sie anzusehen
+
+1163	Verwalten
+1164	Verwaltung: {0}
+1165	Administrator trennen
+1166	Die Fernverwaltung ist auf diesem Host deaktiviert.
+
+1167	Administratoransichten sind schreibgeschützt. Treten Sie erneut bei, um die Verbindung wiederherzustellen.
+1168	Host-Verwaltung

@@ -25,6 +25,8 @@ const server=http.createServer((req,res)=>{
    result=service.describe(await service.open(path.join(directory,input.file),input.listen));
   }else if(req.url==='/turn-control' && record)result=service.describe(await service.turnControl(record,input.action,input.turn));
   else if(req.url==='/player' && record)result=service.describe(await service.changePlayer(record,input.change,input.revision,input.turn));
+  else if(req.url==='/admin-sessions' && record)result={count:record.host.admin.sessions.size};
+  else if(req.url==='/admin-password' && record){await service.setAdminPassword(record,input.password,input.revision===undefined?record.host.admin.revision():input.revision);result=service.describe(record);}
   else if(req.url==='/admission' && record)result=service.describe(await service.updateAdmission(record,input.policy,input.revision));
   else if(req.url==='/settings' && record)result=service.describe(await service.updateSettings(record,input.settings,input.revision));
   else if(req.url==='/retry' && record)result=service.describe(await service.retry(record,input.port));

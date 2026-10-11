@@ -377,6 +377,7 @@ class Game {
     // Check if a human player can control this entity
     // Returns true if the entity is owned by a configured human player
     canHumanControl(entity) {
+        if(this.clientAdministrator)return false;
         if (!entity || entity.owner === undefined) {
             return false; // Unowned or invalid entity
         }
@@ -388,6 +389,7 @@ class Game {
     // Get the player number for the current human (for single player, this is 1)
     // In multiplayer, this would need to be tracked differently
     getCurrentHumanPlayer() {
+        if(this.clientAdministrator)return 0;
         if(this.clientPlayerNum)return this.clientPlayerNum;
         if (!this.players) {
             return null;
@@ -725,6 +727,7 @@ class Game {
     }
 
     createRendezvousAt(x, y, owner = this.getCurrentHumanPlayer(), name = null, anchor = null) {
+        if(this.clientAdministrator)return null;
         if(this.clientPlayerNum && (this.clientTurnPosted || this.clientPosting))return null;
         if (!owner) {
             return null;
@@ -2586,6 +2589,7 @@ class Game {
     }
 
     requestEndTurn() {
+        if(this.clientAdministrator)return false;
         if(this.clientPlayerNum && this.clientTurnPosted)return false;
         if(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag || this.uiWindowDrag || this.mapSelectionPicker)return false;
         if(this.attention.pending().length || this.hasEventPresentation()) {this.uiWindow='endTurnConfirm';return false;}
@@ -3076,6 +3080,7 @@ class Game {
     }
 
     endTurn() {
+        if(this.clientAdministrator)return false;
         // Client turns are resolved by the host after order submission.
         if(this.clientPlayerNum)return this.networkCommands?this.networkCommands.post():false;
         if (this.isGameOver) {

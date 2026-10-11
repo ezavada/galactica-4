@@ -21,7 +21,7 @@ function duration(value){
  return hours || value>=300?hours+':'+pad(minutes):Math.floor(value/60)+':'+pad(value%60);
 }
 function label(game,time=now()){
- const clock=game.clientClock;if(!game.clientPlayerNum || !clock || game.isGameOver)return null;
+ const clock=game.clientClock;if((!game.clientPlayerNum && !game.clientAdministrator) || !clock || game.isGameOver)return null;
  const left=seconds(clock,time);if(left===null)return clock.paused?I18n.getString(1049,'Paused'):null;
  if(clock.paused)return I18n.formatString(1046,'Paused: {0}',duration(left));
  return left===0?I18n.getString(1047,'Awaiting next turn…'):I18n.formatString(1045,'Time remaining: {0}',duration(left));

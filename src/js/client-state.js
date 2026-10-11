@@ -13,20 +13,21 @@ function integer(value,min=0,max=Number.MAX_SAFE_INTEGER){number(value);if(!Numb
 function text(value,max=65536){if(typeof value!=='string' || value.length>max)invalid();return value;}
 function list(value){if(!Array.isArray(value) || value.length>300000)invalid();return value;}
 function scalar(source,keys){const result={};for(const key of keys)if(source[key]!==undefined){const value=source[key];if(!['string','number','boolean'].includes(typeof value))invalid();if(typeof value==='number')number(value);result[key]=value;}return result;}
-function restore(input){
+function restore(input,administrator=false){
  let state;try{const encoded=typeof input==='string'?input:JSON.stringify(input);if(encoded.length>64*1024*1024)invalid();state=object(JSON.parse(encoded));}catch(error){invalid();}
- if(state.format!=='Galactica-4-player-state' || state.version!==1 || typeof state.isGameOver!=='boolean')invalid();
+ if(state.format!==(administrator?'Galactica-4-admin-state':'Galactica-4-player-state') || state.version!==1 || typeof state.isGameOver!=='boolean')invalid();
  text(state.gameId,64);if(!/^[a-f0-9]{64}$/.test(state.gameId))invalid();
  const config=new Config({...object(state.config),hosting:false,skipMapGeneration:true,autoplay:{enabled:false}});
  if(config.validate().length || state.config.totalPlayers!==config.totalPlayers)invalid();
- const viewer=integer(state.viewer,1,config.totalPlayers),turn=integer(state.turn,1);
- if(!config.isHumanPlayer(viewer))invalid();
+ if(administrator && (state.role!=='administrator' || state.viewer!==0 || state.config.omniscient!==true))invalid();
+ const viewer=integer(state.viewer,administrator?0:1,config.totalPlayers),turn=integer(state.turn,1);
+ if(!administrator && !config.isHumanPlayer(viewer))invalid();
  const map=object(state.map);number(map.width);number(map.height);if(map.width!==1024*1024*config.sectorSize || map.height!==1024*1024*config.sectorSize)invalid();
  const privatePlayer=object(state.privatePlayer);if(privatePlayer.playerNum!==viewer)invalid();
  for(const key of ['homeStarId','hiStarTech','hiShipTech','lastTurnPosted','defaultBuildType','defaultGrowth','defaultTech','defaultShips'])if(privatePlayer[key]!==undefined)number(privatePlayer[key]);
  for(const key of ['builtColony','builtScout','builtSatellite'])if(typeof privatePlayer[key]!=='boolean')invalid();
  const records=list(state.entities),byId=new Map();
- for(const row of records){object(row);if(!Object.prototype.hasOwnProperty.call(types,row.kind))invalid();integer(row.id,1);number(row.x);number(row.y);integer(row.visibility,0,4);
+ for(const row of records){object(row);if(!Object.prototype.hasOwnProperty.call(types,row.kind))invalid();integer(row.id,1);number(row.x);number(row.y);integer(row.visibility,0,4);if(administrator && row.visibility!==4)invalid();
   const key=row.kind+':'+row.id;if(byId.has(key))invalid();
   for(const key of numeric)if(row[key]!==undefined)number(row[key]);
   if(row.owner!==undefined)integer(row.owner,0,config.totalPlayers);
@@ -36,7 +37,7 @@ function restore(input){
  }
  const game=new Game(new Factory(),new Rules(config.fastGame),config);
  game.clientClock=require('./client-clock.js').receive(state.clock,{config,turn,isGameOver:state.isGameOver});
- game.clientPlayerRevision=state.playerRevision===undefined?0:integer(state.playerRevision);game.clientPlayerNum=viewer;game.clientGameId=state.gameId;game.turn=turn;game.gameWidth=map.width;game.gameHeight=map.height;game.isGameOver=state.isGameOver;
+ game.clientPlayerRevision=state.playerRevision===undefined?0:integer(state.playerRevision);game.clientPlayerNum=viewer;game.clientAdministrator=administrator;game.clientGameId=state.gameId;game.turn=turn;game.gameWidth=map.width;game.gameHeight=map.height;game.isGameOver=state.isGameOver;
  game.eventLog=[];game.overlay=null;game.overlayQueue=[];game.attention.queue=[];game.remoteComparisons=[];
  const comparisonFields=['stars','ships','shipsBuilding','population','production','productionRaw','power','minimumTech','maxTech','averageTech','minimumShipTech','maximumShipTech','averageShipTech','pieces'];
  const comparisons=list(state.comparisons);if(comparisons.length!==config.totalPlayers+1)invalid();
@@ -45,9 +46,9 @@ function restore(input){
   const copy={...scalar(row,comparisonFields),playerNum:index,name:row.name,isAlive:row.isAlive,assigned:row.assigned,isComputer:row.isComputer};game.remoteComparisons.push(copy);
   const player=game.players[index];if(player){player.name=copy.name;player.isAlive=copy.isAlive;player.numPiecesRemaining=copy.pieces;}
  });
- Object.assign(game.players[viewer],scalar(privatePlayer,['homeStarId','hiStarTech','hiShipTech','builtColony','builtScout','builtSatellite','lastTurnPosted','defaultBuildType','defaultGrowth','defaultTech','defaultShips']));
- game.players[viewer].builtFighterClasses=new Set(list(privatePlayer.builtFighterClasses).map(n=>integer(n,1)));
- game.clientTurnPosted=game.players[viewer].lastTurnPosted===turn;
+ if(!administrator)Object.assign(game.players[viewer],scalar(privatePlayer,['homeStarId','hiStarTech','hiShipTech','builtColony','builtScout','builtSatellite','lastTurnPosted','defaultBuildType','defaultGrowth','defaultTech','defaultShips']));
+ if(!administrator)game.players[viewer].builtFighterClasses=new Set(list(privatePlayer.builtFighterClasses).map(n=>integer(n,1)));
+ game.clientTurnPosted=administrator || game.players[viewer].lastTurnPosted===turn;
  for(const {row} of byId.values()){
   const e=Object.create(types[row.kind].prototype),defaults={id:row.id,x:row.x,y:row.y,game,owner:0,name:'',type:row.kind==='ship'?'unknown':row.kind,
    techLevel:0,population:0,damage:0,power:0,speed:0,progress:100,classIndex:0,scannerRange:0,stealth:1,apparentSize:0,
@@ -112,7 +113,7 @@ function restore(input){
  for(const {row,entity:e} of byId.values()){lists[row.kind].push(e);game.spatialPartition.addEntity(e,Common.SpatialConstants[row.kind==='ship' && e.type==='defense'?'ENTITY_TYPE_DEFENSE':spatial[row.kind]]);}
  for(const event of game.eventLog)if(!event.handled)game.attention.requestEvent(event);
  for(const row of records)types[row.kind].nextId=Math.max(types[row.kind].nextId,row.id+1);
- game.clientOrderBase=require('./player-orders.js').baseline(game);
+ game.clientOrderBase=administrator?null:require('./player-orders.js').baseline(game);
  return game;
 }
-module.exports={restore};
+module.exports={restore:input=>restore(input),restoreAdmin:input=>restore(input,true)};

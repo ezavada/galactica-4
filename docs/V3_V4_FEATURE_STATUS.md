@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1549 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1568 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -43,7 +43,7 @@ The largest blockers to a complete game are:
 1. **Combat runtime rules are now at v3 parity for Section 6, but presentation is still thin.** Enemy ship/star/fleet arrivals invoke `CombatSystem`, remove destroyed ships, use v3-style ship/star combat formulas, run ground combat, let surviving colony ships capture stars, repair docked mobile ships/fleets, recalculate fog each turn, and record localized battle summaries. Missing v3 pieces are UI/presentation: remaining observer/other recipient-relative reports, sound and remaining illustrated event coverage. Participant combat, defeated-resistance and capture messages now have automatic windows and replay. A distinct last-seen ghost rendering mode was not found in the shipped v3 drawing paths.
 2. **The v3 command UI now has a first clickable runtime path, but not full parity.** v4 has a startup setup dialog, charcoal rounded windows, bottom-right permanent map buttons, a top-center turn/game header, clickable popup action buttons, directly clickable production sliders, retained event list, player comparison window, a paged sortable fleet/ship roster, fleet/rendezvous panels, and anchored selection panels. Missing v3 pieces remain: remaining attention-event coverage, map replay, help, sound, and the remaining drawing/sound/game preferences.
 3. **Navigation now supports v3 waypoint editing and looping.** Broader attention-event coverage and full arrival presentation remain incomplete; ship/fleet scrapping is implemented.
-4. **Local file persistence, direct multiplayer joining and untimed turn posting are implemented; multiplayer setup/supporting features remain incomplete.** Versioned Save/Save As, Open and confirmed Revert preserve the game graph, visibility, courses, events, selection and camera. Direct hostname/IP inspection and authenticated joining/rejoining now have localized application dialogs and retained sessions. Host setup, saved host lists/discovery, optional password persistence, host setup/admin UI, chat, network saves and host administration remain unfinished. Client End Turn now posts decision records and the host resolves an untimed turn once every assigned living human has posted.
+4. **Local file persistence, direct multiplayer joining and untimed turn posting are implemented; multiplayer setup/supporting features remain incomplete.** Versioned Save/Save As, Open and confirmed Revert preserve the game graph, visibility, courses, events, selection and camera. Direct hostname/IP inspection and authenticated joining/rejoining now have localized application dialogs and retained sessions. Desktop/dedicated host setup and password-gated remote administrator controls are implemented. Saved host lists/discovery, optional password persistence, chat, network saves and administrator state editing remain unfinished. Client End Turn now posts decision records and the host resolves an untimed turn once every assigned living human has posted.
 5. **Several systems are present but incomplete or incorrectly wired.** Examples include fog-of-war presentation, remaining attention-event coverage, event depth, setup/default-settings UI, and richer list/command UI polish.
 
 ## Easy wins applied on 2026-08-25
@@ -281,7 +281,7 @@ The largest blockers to a complete game are:
 | Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | 🟡 Partial | 🟡 Partial | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit rules now restrict new slots with host-issued codes, allow/ban lists and code-free admission; password rejoining remains unaffected. Optional saved-password preferences and remaining host administration still need work. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ✅ Implemented | ✅ Implemented | Client End Turn submits owned decision records through authenticated HTTP, shows localized Posting/Posted/Retry states and locks posted orders. The host stages and validates production targets/build choices, destinations/courses/memory, names, fleet membership, private rendezvous and player defaults; it derives simulation values and permanent IDs. Untimed turns resolve once every assigned living human posts. Durable receipts make retries idempotent after lost replies/reopening. Authoritative next-turn refresh unlocks client orders. Both full suites pass 1,459 tests; posting controls are verified in all six languages, with an English browser rerun after the host-clock addition. Timed host scheduling, visible countdowns and desktop setup are implemented separately; host administration UI remains unfinished. |
 | Timed turns | Host clock, time remaining, pause/resume, automatic completion. | ✅ Implemented | ✅ Implemented | Native host listener runs a monotonic countdown after untimed turn 1, resolves expired turns even with unposted/offline humans, and preserves remaining time while stopped/reopened. Local host-service pause/resume and public/authenticated countdown records are implemented. Joined games display validated countdowns in the map header, including localized paused and awaiting-next-turn states; the countdown remains visible after posting and never resolves a turn locally. Nine unit regressions and awaited real scheduler/socket checks cover expiration, endEarly, persistence, save rollback/retry and shutdown. Desktop Host now configures the time limit and endEarly option. Desktop Host status now offers durable Pause/Resume with current countdown text; pausing holds expiry, ready-post resolution and AI-only advancement. Joined clients receive paused/resumed clock state. Saved/reopened pause and failed-write rollback are verified. |
-| Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | 🟡 Partial | 🟡 Partial | Desktop host status offers durable Pause/Resume and End turn now. A paged confirmation lists assigned living humans who have not posted; cancellation preserves the turn. Captured-turn checks prevent a stale confirmation from skipping a newer turn; failed saves roll back and retain retry. Active host settings now edit AI skill/advantage, fast mode, fog and turn timing with fixed title/roster/map, save rollback/retry and stale-draft protection. Positive-to-positive timer changes preserve the current deadline through reopening and apply the budget next turn; enable/disable retains pause. Joined clients receive settings/visibility changes while preserving unposted decisions. Change player now provides rename, human/AI conversion, free human slot and elimination with stable IDs/ownership, durable save rollback, stale-action guards and affected-session revocation. Eject player disconnects an online human after a successful save, preserving credentials, territory and posted orders; the client receives a localized reason and may rejoin. Private admission now has durable allow/ban-code lists, a shared desktop editor and dedicated pre-listen configuration. State editing and remote administrator access remain unported. |
+| Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | 🟡 Partial | 🟡 Partial | Desktop host status offers durable Pause/Resume and End turn now. A paged confirmation lists assigned living humans who have not posted; cancellation preserves the turn. Captured-turn checks prevent a stale confirmation from skipping a newer turn; failed saves roll back and retain retry. Active host settings now edit AI skill/advantage, fast mode, fog and turn timing with fixed title/roster/map, save rollback/retry and stale-draft protection. Positive-to-positive timer changes preserve the current deadline through reopening and apply the budget next turn; enable/disable retains pause. Joined clients receive settings/visibility changes while preserving unposted decisions. Change player now provides rename, human/AI conversion, free human slot and elimination with stable IDs/ownership, durable save rollback, stale-action guards and affected-session revocation. Eject player disconnects an online human after a successful save, preserving credentials, territory and posted orders; the client receives a localized reason and may rejoin. Private admission now has durable allow/ban-code lists, a shared desktop editor and dedicated pre-listen configuration. Separate password-gated administrator login, full-map observation and remote shared controls are implemented, with local credential configuration, authenticated revisions, disconnect/rejoin and read-only document handling. State editing remains unported. |
 | Multiplayer chat | Player-to-player/all/admin messages. | ❌ Missing | ❌ Missing | No chat protocol or UI. |
 
 ### Possible persistence/multiplayer enhancements beyond v3, not counted in Section 9
@@ -3179,3 +3179,81 @@ after: `galactica-host-admission-ui-en.log`);
 Host administration remains partial for state editing and remote administrator
 access. The remaining multiplayer inventory and Map Generation checklist still
 require implementation and verification.
+
+### Remote administrator access — implemented and verified
+
+V3 `GalacticaHost.cpp:1369–1395,1597–1633` authenticates a separate
+administrator endpoint using the local `admin-pwd` setting, without taking a
+human slot. `Galactica.cpp:1493–1505` loads the password.
+`GalacticaClient.cpp:1247–1374` exposes Change settings/player and End turn now
+while disabling ordinary posting/system/fleet commands.
+`GalacticaHost.cpp:2504–2537` sends the entity list and
+`AGalacticThingy.cpp:993–996` treats the administrator as an ally for observation.
+
+The separate administrator protocol now authenticates salted credentials and
+keeps its token namespace separate from player sessions. Only the latest admin
+login remains valid. Password changes/disable revoke it only after a successful
+save; a failed write retains the old credentials and live session. In-flight
+admin actions authenticate again after reading their request body. Public host
+info, player views, administrator status and client descriptors omit passwords,
+hashes and session tokens. Reopened hosts retain credentials but not sessions.
+Malformed/oversized requests and unknown actions cannot change host state.
+
+The local host status window has a masked Administrator access editor. Empty
+password disables access. Cancel/success/stale rejection clear the draft; failed
+saves retain it for retry. `--admin-password-file FILE` configures new/load
+commands before listening: a bounded JSON string of up to 64 Unicode characters
+without controls. Invalid files are rejected before creating or locking a host;
+new hosts atomically publish credentials in their first document. On load,
+omission preserves saved access and an explicit empty string disables it.
+
+Join now has an Administer mode with only address/password fields and no player
+slot selection. It preserves the existing local game and remembered player name.
+Authenticated administrators observe the full galaxy, including actual enemy
+homeworld names, ship/fleet courses and private rendezvous, through a distinct
+read-only transport. Ordinary ownership, order posting, local resolution and
+local game serialization are disabled. Refresh preserves selection and camera,
+and administrator operations serialize with polling. The header identifies
+administration and shows the authoritative countdown. Inspection help and map
+buttons omit ordinary player commands.
+
+File → Host administration opens the shared settings, player, admission and
+turn-control dialogs through authenticated remote actions. Pending-player force
+confirmation, captured turn/revision guards and failed-save rollback/retry match
+local hosting. Remote dialogs omit listener/credential owner controls. Disconnect
+logs out the administrator while preserving the observer for password rejoin;
+it does not stop the host. Close logs out without a local-save prompt and returns
+to the retained local document. Quit waits for pending client logout requests.
+Administrator views are excluded from local unsaved-document warnings.
+
+Verification:
+
+- Full units: **1,568 passed, 0 failed on both PDG runtimes**.
+- Real native admin checks on both runtimes, in all six languages: disabled/
+  wrong-password/identity rejection; isolated roles; credential/token privacy;
+  actual persistence failure/retry; stale actions; password revocation during
+  request upload; sole-admin replacement/logout; full-map observation;
+  same-turn refresh; selection/camera retention; shared remote dialogs and
+  actual JoinWindow installation.
+- Actual dedicated commands on both runtimes, all six languages: new/load,
+  retained/replaced/disabled credentials, invalid-file rejection before IO.
+- Rendered owner password editor, all six languages: masking/cancel, failed-save
+  retry, stale drafts, revocation and disable; before/after screenshots inspected.
+- Rendered administrator login/control flows, all six languages: disabled/bad/
+  correct login; no slot/local-document/player-name changes; read-only saves;
+  remote pause/resume, failed-save retry, pending-player force confirmation,
+  stale force rejection, settings, rename/eject, admission, refreshed observer,
+  disconnect/rejoin, actual logout on Close. All six Join before/after pairs and
+  compact remote controls were inspected, plus English observer/confirmation/
+  save failure, Russian disabled-login/player list and Japanese settings.
+- Ordinary player client/Join cancellation and document Save/Open/Revert,
+  Close and Quit regressions pass. Automated native/browser audio remains muted.
+
+Screenshots are under `/private/tmp/galactica-parity/admin-password-{before,after}`
+and `/private/tmp/galactica-parity/admin-login-{before,after}` by language.
+Native/unit/browser logs use `/private/tmp/galactica-admin-{config,password,login}-*`.
+
+Host administration remains partial for the separately listed state editing.
+Saved network documents, optional saved-password preferences, discovery, chat,
+other remaining multiplayer requirements and the Map Generation checklist remain
+open; this item does not establish completion of the overall goal.

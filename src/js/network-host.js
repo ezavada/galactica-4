@@ -10,23 +10,24 @@ function validate(config){
         !Number.isSafeInteger(config.maxTimePerTurn) || config.maxTimePerTurn<0 || config.maxTimePerTurn>Math.floor(Number.MAX_SAFE_INTEGER/1000) || typeof config.endEarly!=='boolean')throw failure('invalid_host_config');
 }
 class NetworkHost {
-    constructor(game,file,fs){validate(game.config);if(game.config.networkHost && game.config.networkHost.settingsRevision!==undefined && (!Number.isSafeInteger(game.config.networkHost.settingsRevision) || game.config.networkHost.settingsRevision<0))throw failure('invalid_host_settings');this.game=game;this.file=file;this.fs=fs;this.server=null;this.login=new HostLogin(game,()=>this.persist());
+    constructor(game,file,fs){validate(game.config);if(game.config.networkHost && game.config.networkHost.settingsRevision!==undefined && (!Number.isSafeInteger(game.config.networkHost.settingsRevision) || game.config.networkHost.settingsRevision<0))throw failure('invalid_host_settings');this.game=game;this.file=file;this.fs=fs;this.server=null;this.login=new HostLogin(game,()=>this.persist());this.admin=new (require('./host-admin.js').HostAdmin)(this);
         // Each host owns its portable stream, so failed staging never consumes live/global randomness.
         if(game.tutorialRandom==null)game.tutorialRandom=require('./simulation-random.js').create(parseInt(game.config.networkHost.id.slice(0,8),16)%2147483646+1);
         this.clock=new (require('./host-clock.js'))(game);this.clockTimer=null;this.clockError=null;}
     static create(options,file,fs=require('fs')){
         const admission=options.admission===undefined?undefined:require('./host-admission.js').validate(options.admission);
+        const admin=options.adminPassword===undefined?undefined:require('./host-admin.js').credentials(options.adminPassword);
         const config=new Config({...options,hosting:true,skipMapGeneration:false,autoplay:{enabled:false}});validate(config);
         if(typeof file!=='string' || !file)throw failure('invalid_host_file');
         const game=new Game(new Factory(),new Rules(config.fastGame),config);
-        return NetworkHost.publish(game,file,fs,admission);
+        return NetworkHost.publish(game,file,fs,admission,admin);
     }
     static fromLocal(text,numHumans,file,fs=require('fs')){return NetworkHost.publish(require('./host-conversion.js').prepare(text,numHumans),file,fs);}
-    static publish(game,file,fs,admission){
+    static publish(game,file,fs,admission,admin){
         if(typeof file!=='string' || !file)throw failure('invalid_host_file');
         // Publish a complete document atomically without replacing an existing
         // path. Failed writes leave neither a partial host nor a temporary file.
-        const host=new NetworkHost(game,file,fs);if(admission!==undefined)game.config.networkHost.admission=require('./host-admission.js').validate(admission);game.config.networkHost.clock=host.clock.snapshot();
+        const host=new NetworkHost(game,file,fs);if(admission!==undefined)game.config.networkHost.admission=require('./host-admission.js').validate(admission);if(admin)game.config.networkHost.admin=admin;game.config.networkHost.clock=host.clock.snapshot();
         const path=require('path'),snapshot=Save.serialize(game);
         const temporary=fs.mkdtempSync(path.join(path.dirname(file),'.galactica-host-'));
         try {
@@ -94,6 +95,11 @@ class NetworkHost {
         if(this.game.isGameOver && value?.action!=='eject')throw failure('game_complete');
         let revoke;this.transact(game=>{revoke=Players.apply(game,value);});if(revoke)this.login.revokePlayer(value.player,value.action==='eject'?'admin_ejected':'not_logged_in');
     }
+    setAdminPassword(password,revision){
+        const Admin=require('./host-admin.js'),current=this.admin.revision();
+        if(!Number.isSafeInteger(revision) || revision!==current || current===Number.MAX_SAFE_INTEGER)throw failure('stale_host_admin');
+        const value=Admin.credentials(password);this.transact(game=>{const saved=game.config.networkHost;if(value===null)delete saved.admin;else saved.admin=value;saved.adminRevision=current+1;});this.admin.disconnectAll();
+    }
     updateAdmission(value,revision){
         const Admission=require('./host-admission.js'),policy=Admission.validate(value),current=Admission.revision(this.game);
         if(!Number.isSafeInteger(revision) || revision!==current || current===Number.MAX_SAFE_INTEGER)throw failure('stale_host_admission');
@@ -118,6 +124,7 @@ class NetworkHost {
             'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Content-Type, Authorization',
             'Access-Control-Allow-Methods':'GET, POST, OPTIONS'};
         const respond=(status,body)=>{res.writeHead(status,headers);res.end(body===undefined?'':JSON.stringify(body));};
+        if(req.url.startsWith('/admin/')){this.admin.handle(req,res);return;}
         const routes=['/info','/login','/session','/logout','/state','/orders'];
         if(!routes.includes(req.url)){respond(404,{error:'not_found'});return;}
         if(req.method==='OPTIONS'){respond(204);return;}
@@ -174,7 +181,7 @@ class NetworkHost {
         const previous={remainingMs:this.clock.remainingMs,startedAt:this.clock.startedAt};
         this.clock.stop();try{this.persist();}catch(error){Object.assign(this.clock,previous);throw error;}
         if(this.clockTimer!==null){clearInterval(this.clockTimer);this.clockTimer=null;}
-        this.login.disconnectAll();const server=this.server;this.server=null;
+        this.login.disconnectAll();this.admin.disconnectAll();const server=this.server;this.server=null;
         if(server)await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));
     }
 }

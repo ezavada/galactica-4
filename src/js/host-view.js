@@ -24,13 +24,13 @@ function snapshot(game,viewer){
  Names.restore(game,prior?{names:new Map(prior.names),pool:[...prior.pool],numerals:[...prior.numerals]}:null);
  try{return project(game,viewer);}finally{Names.restore(game,prior);}
 }
-function project(game,viewer){
- const full=e=>game.config.omniscient || game.isOwnerAlliedWith(viewer,e.owner);
+function project(game,viewer,administrator=false){
+ const full=e=>administrator || game.config.omniscient || game.isOwnerAlliedWith(viewer,e.owner);
  const level=e=>full(e)?V.DETAILS:e.getVisibilityTo(viewer);
  const known=new Map(),kinds=new Map();
  for(const [kind,list] of [['star',game.stars],['ship',game.allShips],['fleet',game.allFleets],['rendezvous',game.allRendezvous]])for(const entity of list){
   kinds.set(entity,kind);
-  const visibility=kind==='rendezvous'?(entity.owner===viewer?V.DETAILS:V.NONE):level(entity);
+  const visibility=administrator?V.DETAILS:kind==='rendezvous'?(entity.owner===viewer?V.DETAILS:V.NONE):level(entity);
   if(kind==='star' || visibility>V.NONE)known.set(entity,visibility);
  }
  // Class-level fleet inspection exposes its members even when they have no
@@ -49,7 +49,7 @@ function project(game,viewer){
  for(const [e,visibility] of known){
   const kind=kinds.get(e),all=full(e),row={kind,id:e.id,x:e.x,y:e.y,visibility:kind==='rendezvous'?visibility:level(e)};
   if(kind==='star'){
-   row.name=Names.displayName(game,e,viewer);row.namedStar=!!e.namedStar;
+   row.name=administrator?e.name:Names.displayName(game,e,viewer);row.namedStar=!!e.namedStar;
    if(all || visibility>V.NONE)row.owner=e.owner;
    if(visibility>=V.TECH)row.techLevel=e.techLevel;
    if(visibility>=V.CLASS)row.population=e.population;
@@ -78,7 +78,7 @@ function project(game,viewer){
   }
   entities.push(row);
  }
- const player=game.players[viewer],privatePlayer={...pick(player,['playerNum','homeStarId','hiStarTech','hiShipTech','builtColony','builtScout','builtSatellite','lastTurnPosted','defaultBuildType','defaultGrowth','defaultTech','defaultShips']),builtFighterClasses:[...player.builtFighterClasses]};
+ const player=game.players[viewer],privatePlayer=administrator?{playerNum:0,builtColony:false,builtScout:false,builtSatellite:false,builtFighterClasses:[]}:{...pick(player,['playerNum','homeStarId','hiStarTech','hiShipTech','builtColony','builtScout','builtSatellite','lastTurnPosted','defaultBuildType','defaultGrowth','defaultTech','defaultShips']),builtFighterClasses:[...player.builtFighterClasses]};
  const comparisons=game.getPlayerComparisonRows().map(source=>{
   const row=pick(source,['playerNum','isAlive','stars','ships','shipsBuilding','population','production','productionRaw','power','minimumTech','maxTech','averageTech','minimumShipTech','maximumShipTech','averageShipTech','pieces']);
   const p=game.players[row.playerNum],claim=p && !p.isComputer?game.config.networkHost.players[game.config.getHumanPlayerSlots().indexOf(row.playerNum)]:null;
@@ -91,10 +91,11 @@ function project(game,viewer){
   for(const [key,keys] of Object.entries(reports))if(event[key])row[key]=pick(event[key],keys);
   return row;
  });
- return {format:'Galactica-4-player-state',version:1,viewer,turn:game.turn,
+ return {format:administrator?'Galactica-4-admin-state':'Galactica-4-player-state',version:1,viewer,turn:game.turn,
   map:{width:1024*1024*game.config.sectorSize,height:1024*1024*game.config.sectorSize},
   playerRevision:game.config.networkHost.playerStateRevision || 0,
   config:{...(game.config.humanPlayerSlots===undefined?{}:{humanPlayerSlots:[...game.config.humanPlayerSlots]}),...pick(game.config,['humanPlayerSlots','gameTitle','numHumans','numComputers','totalPlayers','sectorSize','density','fastGame','omniscient','compSkill','compAdvantage','maxTimePerTurn','endEarly'])},
-  isGameOver:game.isGameOver,privatePlayer,comparisons,entities,events};
+  ...(administrator?{role:'administrator'}:{}),isGameOver:game.isGameOver,privatePlayer,comparisons,entities,events};
 }
-module.exports={snapshot,reports};
+function adminSnapshot(game){const state=project(game,0,true);state.config.omniscient=true;return state;}
+module.exports={snapshot,adminSnapshot,reports};

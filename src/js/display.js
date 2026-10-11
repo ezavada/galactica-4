@@ -1494,7 +1494,7 @@ class Display {
             { key: '+',icon:'zoom-in',label:I18n.getString(787,'Zoom in'),action:{type:'zoomIn'} },
             { key: 'Home', icon:'home', label: this.STR.home, action: { type: 'selectHomeStar' } },
             { key: '0', icon:'fit', label: this.STR.fit, action: { type: 'zoomToFit' } }
-        ];
+        ].filter(button=>!this.game.clientAdministrator || button.window!=='fleets' && !['endTurn','beginRendezvousPlacement','nextAttention','selectHomeStar'].includes(button.action.type));
     }
 
     getMapButtonRegions() {
@@ -3054,7 +3054,8 @@ class Display {
     drawMainUI(turn, starCount, shipCount) {
         const screen = this.getScreenSize();
         const player = this.game.players ? this.game.players[this.game.getCurrentHumanPlayer()] : null;
-        const gameName = (this.game.config && this.game.config.gameTitle) ? this.game.config.gameTitle : (player && player.name) || I18n.getString(568, 'Galactica-4');
+        const title = (this.game.config && this.game.config.gameTitle) ? this.game.config.gameTitle : (player && player.name) || I18n.getString(568, 'Galactica-4');
+        const gameName=this.game.clientAdministrator?I18n.formatString(1164,'',title):title;
         const countdown=ClientClock.label(this.game,this.getVisualTime());
         const headerWidth = Math.min(420, screen.width - 40);
         const rect = {
@@ -3746,8 +3747,8 @@ class Display {
     // Draw instructions
     drawInstructions() {
         const drawingArea = this.port.getDrawingArea();
-        this.drawTextLine(`${this.STR.clickStars}   ${this.STR.clickShips}`, 10, drawingArea.height() - 60, 'gray', 12);
-        this.drawTextLine(`${this.STR.tabEndTurn}   ${this.STR.zoomResetCenterHelp}`, 10, drawingArea.height() - 38, 'lightgray', 11);
+        this.drawTextLine(this.game.clientAdministrator?I18n.getString(1162):`${this.STR.clickStars}   ${this.STR.clickShips}`, 10, drawingArea.height() - 60, 'gray', 12);
+        this.drawTextLine(`${this.game.clientAdministrator?'':this.STR.tabEndTurn+'   '}${this.STR.zoomResetCenterHelp}`, 10, drawingArea.height() - 38, 'lightgray', 11);
         this.drawTextLine(this.STR.dragZoomHelp, 10, drawingArea.height() - 18, 'gray', 11);
     }
     

@@ -291,6 +291,7 @@ runHostControlsTests();
 runHostPlayersTests();
 require('./host-eject.test.js')();
 require('./host-admission.test.js')();
+require('./host-admin.test.js')();
 runHostSettingsTests();
 runHostClockTests();
 runClientClockTests();

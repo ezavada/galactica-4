@@ -6,6 +6,9 @@ function fixture(fn){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-c
  const data=()=>host.playerState(2),model=State.restore(data());fn({host,data,model});
  }finally{fs.rmSync(dir,{recursive:true,force:true});}}
 module.exports=()=>test.describe('Authoritative client countdown presentation',()=>{
+ test.it('shows the host countdown for the separate administrator role without permitting local resolution',()=>fixture(({host})=>{
+  host.setAdminPassword('administrator',0);const token=host.admin.login({protocol:1,gameId:host.info().gameId,password:'administrator'}).token,model=State.restoreAdmin(host.admin.state(token));test.assertEqual(model.clientPlayerNum,0);test.assertTrue(model.clientAdministrator);test.assertTrue(Clock.label(model,model.clientClock.receivedAt).includes(Clock.duration(315)));model.clientClock.paused=false;model.clientClock.running=true;test.assertEqual(Clock.label(model,model.clientClock.receivedAt+400000),I18n.getString(1047));const turn=model.turn;test.assertFalse(model.endTurn());test.assertEqual(model.turn,turn);
+ }));
  test.it('restores only public countdown metadata and does not share mutable transport objects',()=>fixture(({data,model})=>{
   test.assertEqual(model.clientClock.secondsRemaining,315);test.assertTrue(model.clientClock.paused);test.assertFalse(model.clientClock.running);const source=data(),fresh=State.restore(source);source.clock.secondsRemaining=1;test.assertEqual(fresh.clientClock.secondsRemaining,315);test.assertFalse('networkHost' in model.config);
  }));

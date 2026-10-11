@@ -7,6 +7,16 @@ module.exports=()=>test.describe('Dedicated host commands and robot games',()=>{
  test.it('accepts admission-rule files on new and saved commands and rejects missing or duplicate paths',()=>{
   test.assertEqual(Command.parse(['--new','host','--admission','rules.json']).admissionFile,'rules.json');test.assertDeepEqual(Command.parse(['--load','host','--admission','rules.json']),{mode:'load',file:'host',port:0,language:'en',admissionFile:'rules.json'});rejects(['--load','host','--admission']);rejects(['--new','host','--admission','']);rejects(['--new','host','--admission','a','--admission','b']);
  });
+ test.it('accepts administrator password files and rejects malformed paths and duplicate options',()=>{
+  test.assertEqual(Command.parse(['--new','host','--admin-password-file','password.json']).adminPasswordFile,'password.json');test.assertEqual(Command.parse(['--load','host','--admin-password-file','password.json']).adminPasswordFile,'password.json');for(const args of [['--load','host','--admin-password-file'],['--new','host','--admin-password-file',''],['--new','host','--admin-password-file','a','--admin-password-file','b']])rejects(args);
+ });
+ test.it('reads bounded Unicode JSON passwords and publishes only hashed credentials before listening',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-admin-command-'));try{
+   const file=path.join(dir,'password.json');for(const password of ['秘密 admin','', '😀'.repeat(64)]){fs.writeFileSync(file,JSON.stringify(password));test.assertEqual(Command.readAdminPassword(file),password);}
+   for(const text of ['{}','null','123','"bad\\npassword"',JSON.stringify('x'.repeat(65)), ' '.repeat(1025)]){fs.writeFileSync(file,text);let rejected=false;try{Command.readAdminPassword(file);}catch(error){rejected=true;}test.assertTrue(rejected);}
+   const host=Host.create({numHumans:2,numComputers:0,adminPassword:'秘密 admin'},path.join(dir,'host.json'));test.assertTrue(host.admin.enabled);test.assertEqual(host.server,null);const saved=fs.readFileSync(host.file,'utf8');test.assertFalse(saved.includes('秘密 admin'));test.assertEqual(Host.open(host.file).admin.login({protocol:1,gameId:host.info().gameId,password:'秘密 admin'}).role,'administrator');
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+ });
  test.it('converts total/AI counts, speed/fog, timer minutes and all setup options',()=>{
   const args=['--new','Host 星.json','--title','Host 星','--players','4','--ais','2','--skill','1','--advantage','-3','--size','5','--density','10','--turn-minutes','10080','--end-early','--slow','--no-fog','--port','65535','--language','ru'],before=JSON.stringify(args),c=Command.parse(args);test.assertEqual(JSON.stringify(args),before);test.assertEqual(c.mode,'new');test.assertEqual(c.port,65535);test.assertEqual(c.language,'ru');test.assertDeepEqual(c.options,{numHumans:2,numComputers:2,fastGame:false,omniscient:true,endEarly:true,maxTimePerTurn:604800,compSkill:1,compAdvantage:-3,density:10,sectorSize:5,hosting:true,gameTitle:'Host 星'});test.assertEqual(new Config(c.options).validate().length,0);
  });

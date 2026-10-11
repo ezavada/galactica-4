@@ -648,3 +648,37 @@ Screenshots: `/private/tmp/galactica-parity/host-admission-{before,after}/<langu
 Logs: `/private/tmp/galactica-host-admission-{unit,public-unit,native,public-native,command,public-command}.log`
 and `/private/tmp/galactica-host-admission-{before,after}-<language>.log` (English
 after: `/private/tmp/galactica-host-admission-ui-en.log`).
+
+### Administrator access and remote controls
+
+The dedicated host accepts `--admin-password-file FILE` on `--new` and `--load`.
+Store a JSON string in the file, for example `"my administrator password"`.
+It is read before listening; an empty JSON string disables access. Omission
+preserves saved credentials when reopening a host. The desktop host status
+window also provides Administrator access with a masked field.
+
+Run `./gad4 tools/test-host-command.js` for actual new/load credential checks
+and `./gad4 tools/test-host-admin.js` for owner-service and administrator
+protocol checks. Both mute automated audio and cover all six languages.
+For the rendered local password editor, use:
+
+```sh
+node tools/test-web-host-setup.cjs BUILD_DIR SCREENSHOT_DIR en admin-password
+```
+
+Repeat for de/es/fr/ja/ru. The `before-admin-password` mode captures baseline
+host status against the pre-administrator frontend. The editor check exercises
+masked input, cancel, failed-save retry, login using the saved password, stale
+drafts, credential revocation and disable. For the real administrator Join/control flow, use:
+
+```sh
+node tools/test-web-host-setup.cjs BUILD_DIR SCREENSHOT_DIR en remote-admin
+```
+
+Repeat for all six languages. `before-remote-admin` captures the previous Join
+window. The current mode covers disabled/wrong/correct administrator login,
+slot and local-document isolation, read-only saves, pause/resume with failed-save
+retry, pending-player and stale force confirmations, settings, rename/ejection,
+admission, observer refresh, disconnect/rejoin and actual logout on Close.
+Before/after Join screenshots and all localized remote control layouts should
+be inspected. Full current unit count: 1,568 passed on both PDG runtimes.

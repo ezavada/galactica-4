@@ -216,8 +216,20 @@ sidecar directory across atomic saves; a lease from a terminated process is
 retired on the next open. An incomplete or unreadable lease is retained for
 manual inspection rather than risking an active host file.
 
-Multiplayer remains incomplete: administration UI, discovery, chat and
-network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
+Remote administration is disabled until a host administrator password is set.
+Use **Administrator access** in the desktop host status window, or pass
+`--admin-password-file FILE` to the dedicated host. The file contains a JSON
+password string; `""` disables access. Reopening without this option retains the
+saved credentials. The password is stored as salted credentials.
+
+Choose **Administer** in the Join window to connect without taking a player slot.
+The read-only full-map view has **File → Host administration** controls for
+pause/resume, confirmed force turn, settings, player changes/ejection and admission.
+Disconnect preserves the view for password rejoin; Close logs out and returns
+to the previous document. Administrator views cannot be saved as local games.
+
+Multiplayer remains incomplete: administrator state editing, discovery, chat,
+optional saved passwords and network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
 
@@ -226,7 +238,7 @@ network-game saving are still being ported. See [the parity checklist](docs/V3_V
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1549 passed, 0 failed.
+Current expected result: 1568 passed, 0 failed.
 
 AI-only parity observer:
 

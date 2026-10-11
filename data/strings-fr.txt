@@ -851,3 +851,20 @@
 1153	Uniquement les nouvelles places. La liste autorisée prime.
 1154	Impossible de lire des règles d’accès valides. L’hôte n’a pas démarré.
 1155	Admission : --admission FICHIER charge les règles JSON avant l’écoute (hôtes nouveaux ou enregistrés).
+
+1156	Accès administrateur : --admin-password-file FICHIER lit un mot de passe JSON avant de démarrer. Une chaîne vide désactive l’accès ; sans cette option, les identifiants enregistrés sont conservés.
+1157	Impossible de lire le mot de passe administrateur. Utilisez une chaîne JSON de 64 caractères au maximum, sans caractères de contrôle.
+
+1158	Accès administrateur
+1159	Mot de passe
+1160	Un mot de passe vide désactive l’administration à distance.
+1161	L’accès administrateur a changé. Rouvrez cette boîte de dialogue.
+1162	Cliquez sur les étoiles et les vaisseaux pour les examiner
+
+1163	Administrer
+1164	Administration : {0}
+1165	Déconnecter l’administrateur
+1166	L’administration à distance est désactivée sur cet hôte.
+
+1167	Les vues administrateur sont en lecture seule. Rejoignez la partie pour vous reconnecter à l’hôte.
+1168	Administration de l’hôte

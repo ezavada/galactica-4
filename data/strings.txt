@@ -851,3 +851,20 @@
 1153	Applies only to new slots. An allow list takes priority.
 1154	Could not read valid admission rules. The host was not started.
 1155	Admission: --admission FILE loads JSON rules before listening (new or saved hosts).
+
+1156	Administrator access: --admin-password-file FILE reads a JSON password string before listening. Use an empty string to disable access; omission preserves saved credentials.
+1157	Cannot read administrator password. Use a JSON string of up to 64 characters without control characters.
+
+1158	Administrator access
+1159	Password
+1160	An empty password disables remote administration.
+1161	Administrator access changed. Open this dialog again.
+1162	Click stars and ships to inspect them
+
+1163	Administer
+1164	Administering: {0}
+1165	Disconnect administrator
+1166	Remote administration is disabled on this host.
+
+1167	Administrator views are read-only. Rejoin to reconnect to the host.
+1168	Host administration

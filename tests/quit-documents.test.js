@@ -7,6 +7,10 @@ function fixture(count=2,env={}) {
  return {sessions,docs,flow,exits:()=>exits,restores:()=>restores};
 }
 module.exports=()=>test.describe('Application Quit document decisions',()=>{
+ test.it('closes administrator observations without local save prompts while protecting unsaved local games',()=>{
+  const f=fixture(2),observer=f.sessions.active;observer.game.clientAdministrator=true;test.assertTrue(f.flow.hasUnsaved());test.assertTrue(f.docs.beginSave());test.assertEqual(f.docs.dialog.message,I18n.getString(1167));f.docs.cancel();test.assertTrue(f.docs.beginRevert());test.assertEqual(f.docs.dialog.message,I18n.getString(1167));f.docs.cancel();test.assertTrue(f.flow.request());test.assertEqual(f.sessions.sessions.length,1);test.assertEqual(f.docs.dialog.kind,'close');test.assertTrue(f.docs.pendingClose!==observer);test.assertEqual(f.exits(),0);f.docs.action('discardClose');test.assertEqual(f.exits(),1);
+  const only=fixture(1);only.sessions.active.game.clientAdministrator=true;test.assertFalse(only.flow.hasUnsaved());test.assertTrue(only.docs.beginClose());test.assertNull(only.docs.dialog);test.assertEqual(only.sessions.sessions.length,0);
+ });
  test.it('checks the active game first and terminates only after every document is handled',()=>{
   const f=fixture(),last=f.sessions.active;test.assertTrue(f.flow.request());test.assertTrue(f.docs.pendingClose===last);test.assertEqual(f.exits(),0);f.docs.action('discardClose');test.assertEqual(f.sessions.sessions.length,1);test.assertEqual(f.exits(),0);test.assertEqual(f.docs.dialog.kind,'close');f.docs.action('discardClose');test.assertEqual(f.exits(),1);test.assertEqual(f.sessions.sessions.length,0);test.assertNull(f.sessions.active);test.assertFalse(f.flow.request());test.assertEqual(f.exits(),1);
  });
