@@ -194,14 +194,14 @@ The largest blockers to a complete game are:
 - Automatic unique fleet names for computer-created fleets; v3 source notes this as a TODO rather than shipped behavior.
 - Higher-level task-force or staging automation beyond v3 rendezvous points.
 
-## 6. Combat, occupation, defense, and fog of war (Functionality 100%, UI 90%)
+## 6. Combat, occupation, defense, and fog of war (Functionality 100%, UI 95%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
 | Ship/fleet combat on interception | Enemy forces exchange attacks; defeated units are removed and winner continues. | ✅ Implemented | ✅ Implemented | Runtime arrival combat removes defeated ships/empty fleets and preserves surviving forces. Shipped v3 presents private owner/opponent destruction notices; no separate fleet-result table was found, and the compiled FinalizeLosses counter prevents the apparent FleetDamaged broadcast from firing in ordinary combat. V4 plays the original destruction art/cadence and recipient cues automatically, then retains localized winner/loser narratives for Events replay. Supplemental participant casualty summaries preserve battle-time counts/names, automatic modal presentation, private access and manual replay. Actual six-language ship/fleet arrival checks verify both local perspectives, casualty counts, real muted cue starts, paginated Events replay, Continue/Go to and survivor selection without advancing the turn. Native specs additionally cover unresolved encounters, saves, suppression, reserve/rollover rules and removal bookkeeping. Observer reports for system battles remain the separate invasion/capture audits. |
 | Combat reserves | Couriers and colony ships stay in reserve until combat ships are gone. | ✅ Implemented | ➖ N/A | Reserve sorting is used by the runtime combat path. |
 | Multi-target and rollover damage | Higher-tech attackers hit multiple targets and excess damage rolls over. | ✅ Implemented | ➖ N/A | The resolver uses tech-based target counts and rollover damage during runtime combat. |
-| Defended-system invasion | Defeat stationed ships, then fixed planetary defenses; production/population is damaged. | ✅ Implemented | 🟡 Partial | Enemy star arrivals run space combat, ground combat against population, v3-style star attack/defense and population damage, and colony capture when a colony survives. Both involved owners receive distinct last-resistance and capture narratives, automatically presented and replayable through Events. Reports retain the battle-time system/faction names and old owner, survive saves, and stay available on terminal turns. Participant casualty/resistance reports now play an eight-frame destruction burst before the complete message. Private ship/fleet destruction notices follow v3 suppression rules and play automatically without another alert; their full narratives replay through Events. Known/all-visible captures also have an observer narrative with optional automatic playback through Settings → Show enemy events; resistance stays private. Other observer variants and sound remain separate event/presentation work. |
+| Defended-system invasion | Defeat stationed ships, then fixed planetary defenses; production/population is damaged. | ✅ Implemented | ✅ Implemented | Enemy star arrivals run space/ground combat, v3 star strength and population damage, preserve systems whose defenders hold, and emit source-relative defense-loss notices after failed attacks with positive stationed-ship losses. Real arrival-combat browser checks now cover both loss during space combat and loss against planetary defenses, all participant/observer perspectives, source tallies, hidden observers, quiet detected observers, enabled observer autoshow, original explosion art/sound without a recipient cue or extra dialog, and actual Events replay in all six languages. Native coverage additionally verifies zero-loss/surviving-attacker suppression, mixed-owner attribution, the source ground-reserve tally quirk, saves, literal-name snapshots and success/capture mechanics. Successful occupation and defeated-resistance narratives remain the separate Capture and defeated resistance presentation audit. |
 | Capture and defeated resistance | Successful invasion reports the loss of resistance and transfers ownership when a colony survives. | ✅ Implemented | 🟡 Partial | A surviving colony ship can transfer ownership after ground combat, defeated systems clear stale default destinations, new colony defaults apply where v3 does, non-colony survivors are kept outside hostile stars that hold, and defeat/victory updates run after combat. V3 `CShip::Arriving` distinguishes defeated resistance from subsequent occupation; both have private winner/loser reports, queued modal presentation, attention and Events replay. A separate surrender event has enum/resource definitions but no runtime emitter in the shipped source; it is not treated as an additional confirmed gameplay trigger. Defeated resistance plays a source-timed procedural explosion before its report. Private ship/fleet destruction notices are implemented separately. Captures broadcast an observer narrative visible for detected/allied subjects or in all-visible mode, retained for manual replay and automatically presented when Show enemy events is enabled; resistance remains private. Sound and other event variants remain presentation work. |
 | Defense satellites | Stationary, strong, always on patrol, cannot repair. | ✅ Implemented | ✅ Implemented | The hull is stationary, completed defense builds attach to the star, satellites patrol automatically, satellites do not repair, and attached satellites defend systems. Localized hull/build/progress controls, ship inspection and separate damaged-satellite defense totals are present in the system panel and comparison table. |
 | Patrol coordination bonus | Patrolling defenders receive attack/defense advantages. | ✅ Implemented | ✅ Implemented | Satellite completion, Good/Expert AI and docked human ship/fleet commands enable Patrol. Ship combat formulas apply the v3 docked attack/damage bonuses; localized ship/fleet status and active editor/context controls indicate the mode. |
@@ -5392,3 +5392,54 @@ Section 6's current rough UI estimate is 90%: eight implemented UI rows and two
 Partial system-battle rows out of ten counted rows. Defended-system invasion
 and capture still require broader presentation audits, as do the remaining
 parity and Map Generation requirements elsewhere in these checklists.
+
+### Defended-system invasion presentation audit (2026-10-11)
+
+The defended-system invasion UI row is now implemented. Shipped
+`CShip.cpp:382–395` emits PlanetDamaged only when attackers are eliminated and
+positive stationed-ship losses remain. Its winner/loser columns are the
+surviving defender and failed attacker; the notice broadcasts an observer text.
+Ground combat adds the planet to the defender reserve list (`CShip.cpp:341–350`),
+so the final count includes that surviving reserve. This explains the source
+quirk where two destroyed stationed ships may yield a reported count of one,
+and a single destroyed ship may yield no notice. V4 retains that behavior,
+covered by the native defense-report specs.
+
+`CMessage.cpp:100,814` selects `CDestructionMsg` for the range ending at
+PlanetDamaged. Evnt128 assigns automatic display, STR#500 entries 37/38/39,
+no PPob dialog and no recipient sound. Thus this notice uses the shared original
+explosion art and sound, without an additional victory/defeat cue or alert.
+Detected observer access and the user-controlled enemy-event autoplay gate
+remain distinct; a hidden observer cannot replay the report.
+
+New `tools/test-web-system-defense.cjs` exercises actual ship arrival, seeded
+combat and the real renderer/sound backend. It uses configured ship powers and
+tech levels, without replacing attack/damage methods. Four perspectives/settings
+(attacker, defender, hidden-then-detected quiet observer, and detected enabled
+observer) run for both space defeat and ground defeat. The fixture supplies a
+third faction and a suitable system where needed; it increments the turn after
+movement explicitly rather than claiming full end-turn driver coverage.
+Checks verify attacker removal, destroyed/surviving stationed ships, retained
+system ownership, the source tally and recipient text, participant privacy,
+observer access, automatic no-dialog completion, exactly the explosion sound
+for each automatic defense notice, and actual paginated Events manual replay
+without advancing the turn. Peak screenshots freeze the clock at the source
+animation frame.
+
+All six final browser runs pass, with 22 captures per language under
+`/private/tmp/galactica-system-defense-final/<language>` and corresponding
+`/private/tmp/galactica-system-defense-final-<language>.log` files. Attacker,
+defender and observer report screenshots were inspected in each language,
+including Unicode/literal substitution characters and automatic explosion
+rendering. Both full muted native suites pass 1725 tests, zero failures
+(`/private/tmp/galactica-system-defense-public-unit.log` and
+`/private/tmp/galactica-system-defense-devel-unit.log`). Their existing specs
+cover source tally/suppression, mixed-owner attribution, saved immutable names,
+private focus, detection gates and complete six-language report layout.
+This item changes verification and documentation only, with no new product
+strings or product/engine source change.
+
+Section 6's current rough UI estimate is 95%: nine implemented rows plus the
+remaining Partial capture/resistance row out of ten counted UI rows. Successful
+capture and defeated resistance still need their dedicated presentation audit;
+remaining parity and Map Generation requirements elsewhere are also open.
