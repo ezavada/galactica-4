@@ -2461,10 +2461,10 @@ class Display {
         const layout=this.getFleetExchangeLayout(),{state,rect,lists}=layout;
         this.drawWindowPanel(rect,I18n.getString(801,'Exchange ships'));
         if(!state)return;
-        this.drawTextLine(this.fitShipDiagnosticText(this.game.getObjectDisplayName(state.container),rect.width-28,11),rect.x+14,rect.y+49,'lightgray',11);
+        this.drawTextLine(this.fitShipDiagnosticText(this.factory.isFleet(state.container)?this.getFleetTableTitle(state.container):this.game.getObjectDisplayName(state.container),rect.width-28,11),rect.x+14,rect.y+49,'lightgray',11);
         lists.forEach(list=>{
             const title=list.side==='main'?I18n.getString(802,'Ships and fleets'):
-                state.active?I18n.getString(803,'Fleet contents')+': '+this.game.getObjectDisplayName(state.active):I18n.getString(804,'New fleet');
+                state.active?I18n.getString(803,'Fleet contents')+': '+this.getFleetTableTitle(state.active):I18n.getString(804,'New fleet');
             this.drawTextLine(this.fitShipDiagnosticText(title,list.width,11),list.x,rect.y+101,'lightgray',11);
             list.rows.forEach((row,index)=>{
                 const y=rect.y+114+index*38,selected=state.selection===row.object;
@@ -3203,8 +3203,15 @@ class Display {
         };
     }
 
+    getFleetTableTitle(fleet) {
+        const name=this.getFleetKnowledge(fleet).contents ? this.game.getObjectDisplayName(fleet).replace(/\t/g,' · ') : '?';
+        const kind=fleet.fleet ? I18n.getString(1228,'Group') : I18n.getString(591,'Fleet');
+        return `${name} ${kind}`;
+    }
+
     getFleetMemberDiagnostics(container,member) {
         const data=this.getShipDiagnostics(member);
+        if(this.factory.isFleet(member))data.title=this.getFleetTableTitle(member);
         // V3's Class-visible fleet table exposes member statistics while the
         // member's own visibility still controls its name and standalone panel.
         if(!container || !this.factory.isFleet(container) || !this.game.canViewFleetExchange(container))return data;

@@ -928,3 +928,4 @@
 1225	Pause automatic game reports without marking them read. Turn this off to resume.
 1226	New turn
 1227	Turn {0} begins for {1}.
+1228	Group

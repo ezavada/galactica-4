@@ -68,6 +68,25 @@ module.exports=()=>test.describe('Shared-container fleet exchange',()=>{
   fleet.fleet=child;child.ships.push(fleet);child.fleet=fleet;fleet.ships.push(child);
   test.assertFalse(game.canViewFleetExchange(child));test.assertFalse(game.canViewFleetExchange(fleet));
  });
+ test.it('uses knowledge-safe fleet and group titles in rows and exchange headers',()=>{
+  const {game,display,fleet,ships}=fixture(),child=game.factory.createFleet(fleet.x,fleet.y,2,'Private subgroup');
+  child.addShip(ships[0]);fleet.addShip(child);fleet.owner=2;fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);child.setVisibilityTo(1,0);
+  test.assertEqual(display.getFleetTableTitle(fleet),'Fleet Fleet');test.assertEqual(display.getFleetTableTitle(child),'? Group');
+  test.assertEqual(display.getFleetMemberDiagnostics(fleet,child).title,'? Group');
+  game.showFleetExchange(fleet);game.selectFleetExchangeMember('main',child);
+  const texts=[];display.drawWindowPanel=()=>{};display.drawTextLine=t=>texts.push(String(t));display.drawRoundedRect=()=>{};display.drawUIButton=()=>{};
+  display.drawFleetExchangeWindow();test.assertTrue(texts.includes('Fleet contents: ? Group'));test.assertFalse(texts.some(t=>t.includes('Private subgroup')));
+  game.executeUIAction({type:'fleetExchangeOpen'});texts.length=0;display.drawFleetExchangeWindow();test.assertTrue(texts.includes('? Group'));test.assertFalse(texts.some(t=>t.includes('Private subgroup')));
+  child.setVisibilityTo(1,Common.VisibilityLevel.CLASS);test.assertEqual(display.getFleetTableTitle(child),'Private subgroup Group');
+  child.owner=1;child.setVisibilityTo(1,0);test.assertEqual(display.getFleetTableTitle(child),'Private subgroup Group');
+ });
+ test.it('uses a localized group noun rather than the Group action verb in every language',()=>{
+  const {game,display,fleet,ships}=fixture(),child=game.factory.createFleet(fleet.x,fleet.y,2,'Private subgroup'),language=pdg.res.getLanguage();
+  child.addShip(ships[0]);fleet.addShip(child);child.setVisibilityTo(1,0);
+  try{for(const [lang,label] of [['en','Group'],['de','Gruppe'],['es','Grupo'],['fr','Groupe'],['ja','グループ'],['ru','Группа']]){
+   pdg.res.setLanguage(lang);display.reloadUIStrings();test.assertEqual(display.getFleetTableTitle(child),'? '+label);
+  }}finally{pdg.res.setLanguage(language);display.reloadUIStrings();}
+ });
  test.it('refuses stale destinations without silently creating a replacement fleet',()=>{
   const {game,star,fleet,ships,select}=fixture();game.showFleetExchange(star);select('main',fleet);select('main',ships[2]);
   game.entityRemoved(fleet);const count=game.allFleets.length;

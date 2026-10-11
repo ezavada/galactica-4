@@ -928,3 +928,4 @@
 1225	Automatische Spielberichte anhalten, ohne sie als gelesen zu markieren. Zum Fortsetzen ausschalten.
 1226	Neue Runde
 1227	Runde {0} beginnt für {1}.
+1228	Gruppe

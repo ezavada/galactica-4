@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1674 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1676 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4115,3 +4115,39 @@ Evidence: `/private/tmp/galactica-nested-table/{before,after}/<language>`,
 `/private/tmp/galactica-nested-table-{public,devel}-unit.log`. This closes the
 identified nested table access gap; the broader contextual and drawing audit
 remains active.
+
+
+### Fleet-table type labels and private subgroup names (2026-10-11)
+
+`Classes/GalacticaTables.cp:244–255` draws the descriptor then appends the
+localized Fleet/Group noun according to containment. `ANamedThingy.cpp:129–138`
+returns `?` for a descriptor below Class knowledge. Ordinary fleets inherit that
+name rule (`CFleet.cpp:295–300`). V4 reused ship diagnostics for every row, so
+hidden subgroup rows read Ship, and exchange headers directly read raw group
+names. Projected clients omitted private names, but the local model could reveal
+them after inherited subgroup inspection.
+
+A shared fleet-table title now uses a knowledge-gated name and the Fleet or Group
+noun in member rows, exchange container headers and active subgroup headings.
+Unknown names remain `?`; named Class-visible/allied objects retain their names.
+The Group action's existing translations include verbs, so a separate noun
+resource 1228 is provided in en/de/es/fr/ja/ru. No scanner visibility or command
+permissions change. Standalone map and inspector naming remain independent.
+
+Two new full-suite regressions cover the local-model leak in actual rendered
+header text, hidden group rows, Class/allied name access and all six noun
+translations. Both native suites pass **1,676 tests** with sound muted.
+`tools/test-web-client-state.cjs` modes `before-fleet-label` and `fleet-label`
+pass in all six languages through actual projected-client selection, subgroup
+activation, Inspect, Parent, Escape and Compare Players. Before/after anchored
+Class inspectors and selected/inspected exchange tables were reviewed in every
+language: the Group noun fits, table statistics remain readable and the actual
+private name is absent. The local-model regression covers the raw-name leak that
+a projected client cannot carry. Of 48 screenshot pairs, 18 remain byte-identical
+(owned system, production and Speed fleet); group labels and related translucent
+captures change intentionally. Browser audio remains muted.
+
+Evidence: `/private/tmp/galactica-fleet-label/{before,after}/<language>`,
+`/private/tmp/galactica-fleet-label-{before,after}-<language>.log` and
+`/private/tmp/galactica-fleet-label-{public,devel}-unit.log`. The wider source,
+contextual-window, event presentation and drawing audits remain active.
