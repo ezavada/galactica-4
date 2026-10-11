@@ -104,20 +104,25 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
   const before=this[this.focus].text;Names.edit(this[this.focus],key,pdgRef);
   if(this[this.focus].text!==before){this.message='';if(this.focus==='address'){this.clearInfo();this.clearPasswordIdentity();}else if(this.focus==='name'){this.clearPasswordIdentity();this.loadSavedPassword();}else if(this.focus==='password')this.savedPasswordLoaded=false;}return true;
  }
- layout(width,height){
+ layout(width,height,measure=(text,size)=>Array.from(String(text)).length*size/2){
   if(!this.active)return null;const rect={width:Math.min(560,width-24),height:Math.min(548,height-24)};
   rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;const scale=rect.height/548,at=(x,y,w,h)=>({x:rect.x+x,y:rect.y+y*scale,width:w,height:h*scale});
+  const fieldsFor=(names,start,step)=>{
+   const labels=names.map(name=>I18n.getString(name==='admissionCode'?1147:name==='password'?1008:name==='name'?1007:1006));
+   const inner=rect.width-48,column=Math.min(inner-80,Math.max(116,...labels.map(label=>Math.ceil(measure(label,13))+12)));
+   return names.map((name,index)=>({name,label:labels[index],labelWidth:column-12,rect:at(24+column,start+index*step,inner-column,32),labelPoint:{x:rect.x+24,y:rect.y+(start+21+index*step)*scale}}));
+  };
   if(this.stage==='lan'){
    const inner=rect.width-48,keyFor=require('./network-discovery.js').identity,third=(inner-16)/3,buttons=[{action:'refreshLan',id:1197,key:'R',rect:at(24,62,this.hostPreferences?inner/2-4:inner,28)},...(this.hostPreferences?[{action:'savedHosts',id:1183,rect:at(28+inner/2,62,inner/2-4,28)}]:[]),...(this.lanRows.length>4?[{action:'previous',id:1033,disabled:this.page===0,rect:at(24,428,inner/2-4,24)},{action:'next',id:1034,disabled:(this.page+1)*4>=this.lanRows.length,rect:at(28+inner/2,428,inner/2-4,24)}]:[]),{action:'cancel',id:683,key:'Esc',rect:at(24,496,third,30)},{action:'directAddress',id:1189,rect:at(32+third,496,third,30)},{action:'chooseLan',id:1186,key:'Enter',disabled:!this.lanSelection,rect:at(40+2*third,496,third,30)}];
    return {rect,scale,title:I18n.getString(1192),messageY:480,fields:[],slots:[],checks:[],labels:!this.lanRows.length && !this.message?[{text:I18n.getString(1194),rect:at(24,180,inner,40)}]:[],choices:this.lanRows.slice(this.page*4,this.page*4+4).map((row,i)=>({action:'selectLan',value:keyFor(row),active:keyFor(row)===this.lanSelection,label:row.title || row.address,details:[row.address,I18n.formatString(1198,'',row.turn,row.open,row.humans)],rect:at(24,96+i*80,inner,72)})),buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
   }
   if(this.stage==='hosts'){
    const inner=rect.width-48,keyFor=require('./network-host-preferences.js').identity,buttons=[{action:'addSavedHost',id:1184,rect:at(24,104,inner/2-4,28)},{action:'directAddress',id:1189,rect:at(28+inner/2,104,inner/2-4,28)},...(this.savedHosts.length>4?[{action:'previous',id:1033,disabled:this.page===0,rect:at(24,398,inner/2-4,24)},{action:'next',id:1034,disabled:(this.page+1)*4>=this.savedHosts.length,rect:at(28+inner/2,398,inner/2-4,24)}]:[]),{action:'removeSavedHost',id:1185,disabled:!this.savedSelection,rect:at(24,436,inner,28)},{action:'cancel',id:683,key:'Esc',rect:at(24,496,inner/2-4,30)},{action:'chooseSavedHost',id:1186,key:'Enter',disabled:!this.savedSelection,rect:at(28+inner/2,496,inner/2-4,30)}];
-   return {rect,scale,title:I18n.getString(1183),messageY:480,fields:[{name:'address',label:I18n.getString(1006),rect:at(140,62,inner-116,32),labelPoint:{x:rect.x+24,y:rect.y+83*scale}}],slots:[],checks:[],labels:!this.savedHosts.length?[{text:I18n.getString(1187),rect:at(24,180,inner,40)}]:[],choices:this.savedHosts.slice(this.page*4,this.page*4+4).map((row,i)=>({action:'selectSavedHost',value:keyFor(row),active:keyFor(row)===this.savedSelection,label:row.title || row.address,detail:[row.title?row.address:'',row.role==='administrator'?I18n.getString(1190):row.name].filter(Boolean).join(' · '),rect:at(24,158+i*56,inner,50)})),buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
+   return {rect,scale,title:I18n.getString(1183),messageY:480,fields:fieldsFor(['address'],62,0),slots:[],checks:[],labels:!this.savedHosts.length?[{text:I18n.getString(1187),rect:at(24,180,inner,40)}]:[],choices:this.savedHosts.slice(this.page*4,this.page*4+4).map((row,i)=>({action:'selectSavedHost',value:keyFor(row),active:keyFor(row)===this.savedSelection,label:row.title || row.address,detail:[row.title?row.address:'',row.role==='administrator'?I18n.getString(1190):row.name].filter(Boolean).join(' · '),rect:at(24,158+i*56,inner,50)})),buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
   }
-  const inner=rect.width-48,fieldWidth=inner-116;
+  const inner=rect.width-48;
   const names=this.mode==='administrator'?['address','password']:['address','name','password',...(this.mode==='join'?['admissionCode']:[])],start=this.mode==='join'?46:62,step=this.mode==='join'?34:42;
-  const fields=names.map((name,index)=>({name,label:I18n.getString(name==='admissionCode'?1147:name==='password'?1008:name==='name'?1007:1006),rect:at(140,start+index*step,fieldWidth,32),labelPoint:{x:rect.x+24,y:rect.y+(start+21+index*step)*scale}}));
+  const fields=fieldsFor(names,start,step);
   const buttons=[{action:'inspect',id:1009,key:null,rect:at(24,190,inner/4-6,30)},
    {action:'join',id:1010,rect:at(24+inner/4,190,inner/4-6,30)},
    {action:'rejoin',id:1011,rect:at(24+inner*2/4,190,inner/4-6,30)},

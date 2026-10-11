@@ -9,7 +9,7 @@ class WindowPlacement {
         const shift=value=>{
             if(Array.isArray(value))return value.map(shift);
             if(!value || typeof value!=='object')return value;
-            if(Number.isFinite(value.x)&&Number.isFinite(value.y)&&Number.isFinite(value.width)&&Number.isFinite(value.height))return {...value,x:value.x+dx,y:value.y+dy};
+            if(Number.isFinite(value.x)&&Number.isFinite(value.y))return {...value,x:value.x+dx,y:value.y+dy};
             const result={};for(const key of Object.keys(value))result[key]=shift(value[key]);return result;
         };
         return shift(layout);

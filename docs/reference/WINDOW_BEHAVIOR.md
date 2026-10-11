@@ -191,3 +191,29 @@ English before/after and all six full/short Join layouts were visually inspected
 This review also found pre-existing field-label clipping in Spanish, French and
 Japanese; the fixed label column needs its own measured-width layout correction.
 This is not a completed audit of all Join modes, errors or discovery surfaces.
+
+
+Join field labels now reserve a shared column measured at their normal 13px
+font size. Credential inputs keep an aligned edge and at least 80px width; the
+same layout serves Join, Rejoin, administrator login and saved-host entry.
+The renderer uses the actual drawing port metrics. More importantly, shared
+window placement now translates point geometry as well as rectangles: dragging
+previously moved the inputs but left their `labelPoint` coordinates behind.
+That caused the translated-label clipping observed in the previous audit.
+
+Regressions fail against both the original fixed-column layout and the missing
+point translation. Native geometry checks cover all six languages, four port
+sizes from 320×340 to 800×600, every credential mode and saved-host entry,
+including relative label/input positions after placement. Both full native
+suites pass 1,754 tests. Async admission lifecycle checks also pass.
+
+Actual browser checks at 640×340 and 800×600 use the real mode buttons,
+saved-host entry, field focus, native-host inspection, credential entry,
+persisted modal dragging/outside-click rejection and Enter admission in all six
+languages. The final browser check tests label/input separation after dragging.
+Of 108 before/after screenshot pairs, 76 are identical and 22 show intended
+column/drag alignment corrections. Ten remaining differences are confined to
+the localhost address field's temporary port. Before/after Spanish/French/
+Japanese dragged panels and all six full/short credential layouts plus short
+saved-host layouts were visually inspected. Other hosting/discovery/turn-notice
+and busy/error variants remain in the chrome audit.

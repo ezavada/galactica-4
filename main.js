@@ -267,7 +267,7 @@ const windowPlacement=new (require('./src/js/window-placement.js'))(drawingPrefe
 for(const [object,method,name] of [[StartupSetup,'panelRect','startup'],[StartupSetup,'skillMenu','startupSkill'],
     [PlayerName,'layout','textEntry'],[networkTurnNotice,'layout','networkTurnNotice'],[networkChat,'layout','networkChat'],[networkHosting,'layout','networkHosting'],[networkJoin,'layout','networkJoin'],[documents,'layout','documents'],[userManual,'layout','manualError']]){
     const original=object[method];object[method]=function(width,height,...args){
-        const layout=object===PlayerName?original.call(this,width,height,args[0],(text,size)=>port.getTextWidth(text,size)):object===documents?original.call(this,width,height,(text,size)=>port.getTextWidth(text,size)):original.call(this,width,height,...args);
+        const layout=object===PlayerName?original.call(this,width,height,args[0],(text,size)=>port.getTextWidth(text,size)):(object===documents || object===networkJoin)?original.call(this,width,height,(text,size)=>port.getTextWidth(text,size)):original.call(this,width,height,...args);
         return name==='documents' && documents.dialog && documents.dialog.kind==='editor'?layout:windowPlacement.layout(name,layout,{width,height});
     };
 }
@@ -473,7 +473,7 @@ function drawNetworkJoin(){
     port.drawText(layout.title || I18n.getString(1005),new pdg.Point(r.x+r.width/2,r.y+34*scale),startupStyles.subtitleText);
     const fit=(text,width,size=13)=>{while(size>9 && port.getTextWidth(text,size)>width)size--;return size;};
     for(const field of layout.fields){const editor=networkJoin[field.name],f=field.rect;
-        startupStyles.lineText.textSize(fit(field.label,108));port.drawText(field.label,new pdg.Point(field.labelPoint.x,field.labelPoint.y),startupStyles.lineText);
+        startupStyles.lineText.textSize(fit(field.label,field.labelWidth || 108));port.drawText(field.label,new pdg.Point(field.labelPoint.x,field.labelPoint.y),startupStyles.lineText);
         drawStartupRoundedRect(f,5,startupStyles.advantageButton);
         const masked=field.name==='password'?{...editor,text:'•'.repeat(Array.from(editor.text).length)}:editor;
         const visible=PlayerName.visibleText(masked,f.width-20,text=>port.getTextWidth(text,13));

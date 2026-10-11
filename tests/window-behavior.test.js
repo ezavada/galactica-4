@@ -159,6 +159,33 @@ module.exports=()=>test.describe('System window modality and title dragging',()=
    }
   }
  });
+ test.it('reserves measured localized Join labels without covering credential fields',()=>{
+  const {JoinWindow}=require('../src/js/network-join.js'),join=new JoinWindow(),old=pdg.res.getLanguage();join.open();
+  const measure=(text,size)=>Array.from(String(text)).reduce((sum,c)=>sum+size*(c.codePointAt(0)>0x2fff?1:0.6),0);
+  try{for(const lang of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(lang);
+   for(const size of [[320,340],[400,340],[640,480],[800,600]]){
+    for(const mode of ['join','rejoin','administrator','hosts']){
+     join.stage=mode==='hosts'?'hosts':'form';join.mode=mode;join.savedHosts=[];
+     const layout=join.layout(...size,measure);
+     for(const f of layout.fields){
+      test.assertTrue(f.labelWidth>=measure(f.label,9),lang+' '+mode+' label does not fit');
+      test.assertTrue(f.labelPoint.x+f.labelWidth+8<=f.rect.x,lang+' '+mode+' label overlaps input');
+      test.assertTrue(f.rect.width>=80 && f.rect.x+f.rect.width<=layout.rect.x+layout.rect.width-24);
+     }
+     test.assertTrue(layout.fields.every(f=>f.rect.x===layout.fields[0].rect.x));
+     const {prefs}=preferences(),placement=new Placement(prefs),screen={width:size[0],height:size[1]};
+     placement.positions.networkJoin={x:10,y:10};const moved=placement.layout('networkJoin',layout,screen);
+     for(let i=0;i<layout.fields.length;i++){
+      const before=layout.fields[i],after=moved.fields[i];
+      test.assertEqual(after.labelPoint.x-before.labelPoint.x,after.rect.x-before.rect.x);
+      test.assertEqual(after.labelPoint.y-before.labelPoint.y,after.rect.y-before.rect.y);
+      test.assertTrue(after.labelPoint.x+after.labelWidth+8<=after.rect.x);
+     }
+    }
+   }
+  }}finally{pdg.res.setLanguage(old);}
+ });
  test.it('persists native positions, rejects malformed config, and keeps controls aligned in application dialogs',()=>{
   const values=new Map(),prefs=Preferences.createPreferences({pdg:{cfg:{useConfig:()=>{},getConfigString:k=>values.get(k),setConfigString:(k,v)=>values.set(k,v)}}});
   prefs.writeWindowPosition('startup',{x:25,y:45});test.assertEqual(prefs.readWindowPosition('startup').y,45);
