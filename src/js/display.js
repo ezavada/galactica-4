@@ -2338,14 +2338,17 @@ class Display {
 
     getCourseWindowLayout() {
         const screen=this.getScreenSize(),width=Math.min(620,screen.width-40);
+        const closeLabel=I18n.getString(531,'<Esc> Close');
+        const closeWidth=this.getButtonWidth(closeLabel,'Esc',{size:10,minWidth:64});
+        const modeWidth=width-36-closeWidth;
         const commandRows=this.layoutButtonRow(this.getCourseCommandButtons(),{x:0,y:0,width:width-28,size:10}).rows;
-        const modeRows=this.layoutButtonRow(this.getCourseModeButtons(),{x:0,y:0,width:width-150,size:10}).rows;
+        const modeRows=this.layoutButtonRow(this.getCourseModeButtons(),{x:0,y:0,width:modeWidth,size:10}).rows;
         const extraHeight=(Math.max(1,commandRows)-1+Math.max(1,modeRows)-1)*34;
         const rows=this.game.getCourseRows(),pageSize=Math.max(1,Math.min(9,Math.floor((screen.height-270-extraHeight)/26)));
         const pages=Math.max(1,Math.ceil(rows.length/pageSize)),page=Math.min(this.game.coursePage,pages-1);
         const visibleRows=rows.slice(page*pageSize,(page+1)*pageSize);
         const rect=this.fitWindowToScreen('course',{x:(screen.width-width)/2,y:84,width,height:194+Math.max(1,visibleRows.length)*26+extraHeight});
-        return {rect,rows,page,pages,visibleRows,pageSize,commandRows,modeRows};
+        return {rect,rows,page,pages,visibleRows,pageSize,commandRows,modeRows,modeWidth,closeLabel,closeWidth};
     }
 
     getCourseActionRegions() {
@@ -2357,7 +2360,9 @@ class Display {
         regions.push(...this.layoutButtonRow(this.getCourseCommandButtons(),{x:r.x+14,
             y:r.y+r.height-96-modeExtra-(Math.max(1,layout.commandRows)-1)*34,width:r.width-28,height:26,size:10}).regions);
         regions.push(...this.layoutButtonRow(this.getCourseModeButtons(),{x:r.x+14,
-            y:r.y+r.height-64-modeExtra,width:r.width-150,height:24,size:10}).regions);
+            y:r.y+r.height-64-modeExtra,width:layout.modeWidth,height:24,size:10}).regions);
+        regions.push({rect:{x:r.x+r.width-14-layout.closeWidth,y:r.y+r.height-64,width:layout.closeWidth,height:24},
+            label:layout.closeLabel,key:'Esc',action:{type:'closeCourse'}});
         if(layout.page>0)regions.push({rect:{x:r.x+14,y:r.y+r.height-32,width:130,height:22},
             label:I18n.getString(690,'Previous'),action:{type:'coursePage',page:layout.page-1}});
         if(layout.page<layout.pages-1)regions.push({rect:{x:r.x+r.width-144,y:r.y+r.height-32,width:130,height:22},
@@ -3626,7 +3631,6 @@ class Display {
         });
         this.getCourseActionRegions().filter(region=>region.label).forEach(region=>this.drawUIButton(region.rect,region.label,region.key,
             {size:10,active:region.active}));
-        this.drawTextLine(this.STR.escClose,r.x+r.width-16,r.y+r.height-47,'gray',10,pdg.textStyle_RightJustified);
         this.drawTextLine(`${layout.page+1} / ${layout.pages}`,r.x+r.width/2,r.y+r.height-16,'gray',11,pdg.textStyle_Centered);
     }
 

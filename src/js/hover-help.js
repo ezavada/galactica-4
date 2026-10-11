@@ -94,6 +94,7 @@ const helpIds=Object.freeze({
   "newGame": 885,
   "cancelColonyDefaults": 886,
   "cancelRename": 886,
+  "closeCourse": 886,
   "closeFleetRoster": 886,
   "closePlayerComparison": 886,
   "closeSystemComparison": 886,

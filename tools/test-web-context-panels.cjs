@@ -52,7 +52,10 @@ await click('g.display.getFleetListActionRegions().find(r=>r.action.type==="sort
 await capture('sorted-roster');await key('Escape');await evaluate('g.setSelectedObject(fleet);void 0');
 await context('showCourse');await check('g.uiWindow==="course"','Fleet navigation failed');
 await click('g.display.getCourseActionRegions().find(r=>r.action.type==="toggleCallIn").rect');await check('fleet.userCallIn','Call-in failed');
-await click('g.display.getCourseActionRegions().find(r=>r.action.type==="toggleCourseLoop").rect');await check('fleet.course.loop','Loop control failed');await capture('fleet-navigation');await key('Escape');
+await click('g.display.getCourseActionRegions().find(r=>r.action.type==="toggleCourseLoop").rect');await check('fleet.course.loop','Loop control failed');await capture('fleet-navigation');
+const closeCourse=await evaluate('g.display.getCourseActionRegions().some(r=>r.action.type==="closeCourse")');
+if(closeCourse)await click('g.display.getCourseActionRegions().find(r=>r.action.type==="closeCourse").rect');else await key('Escape');
+await check('g.uiWindow===null && fleet.userCallIn && fleet.course.loop','Closing navigation changed orders');
 await evaluate('window.point=g.createRendezvousAt(home.x+10000,home.y+10000,1,"Meeting 星");g.setSelectedObject(point);g.display.centerOn(point.x,point.y);void 0');
 await check('g.display.getContextActions(point).some(r=>r.action.type==="beginRendezvousPlacement") && g.display.getContextActions(point).some(r=>r.action.type==="deleteRendezvous")','Rendezvous controls incomplete');await capture('rendezvous-inspector');
 await evaluate('g.setSelectedObject(enemy);g.display.centerOn(enemy.x,enemy.y);void 0');

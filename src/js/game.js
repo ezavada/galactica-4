@@ -2196,6 +2196,9 @@ class Game {
                 return this.openUIWindow('events');
             case 'nextAttention':
                 this.attention.next();return true;
+            case 'closeCourse':
+                if(this.uiWindow!=='course')return false;
+                this.endUIWindowDrag();this.uiWindow=null;return true;
             case 'toggleCallIn':
                 return this.toggleCallIn(action.object || this.selectedObject);
             case 'confirmEndTurn':

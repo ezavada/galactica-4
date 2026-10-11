@@ -16,6 +16,24 @@ function fixture(type='battleship') {
 const point=(x,y=0)=>({x,y});
 module.exports=function(){
  test.describe('V3 waypoint courses',()=>{
+    test.it('closes a course through its actual button without changing orders, across languages and port sizes',()=>{
+        const {game,ship,display}=fixture(),language=pdg.res.getLanguage();
+        game.issuePlayerWaypoint(ship,point(100));game.issuePlayerWaypoint(ship,point(300));
+        const courseState=()=>JSON.stringify({current:ship.course.current,waypoints:ship.course.waypoints.map(w=>({id:w.target.id,x:w.target.x,y:w.target.y}))});
+        const snapshot=courseState(),turn=game.turn;
+        try { for(const lang of ['en','de','es','fr','ja','ru']) {
+            pdg.res.setLanguage(lang);
+            for(const size of [[800,600],[480,600],[640,480]]) {
+                game.port.getDrawingArea=()=>new pdg.Rect(...size);game.showCourse(ship);
+                const regions=display.getCourseActionRegions(),close=regions.find(r=>r.action.type==='closeCourse'),r=close.rect;
+                test.assertEqual(close.label,pdg.res.getString(531));
+                test.assertTrue(r.x>=10 && r.y>=10 && r.x+r.width<=size[0]-10 && r.y+r.height<=size[1]-10);
+                test.assertTrue(regions.filter(b=>b!==close).every(b=>!display.containsPoint(b.rect,r.x+r.width/2,r.y+r.height/2)));
+                test.assertTrue(game.handleUIClick(r.x+r.width/2,r.y+r.height/2));test.assertEqual(game.uiWindow,null);
+                test.assertEqual(courseState(),snapshot);test.assertEqual(game.turn,turn);
+            }
+        }} finally {pdg.res.setLanguage(language);}
+    });
     test.it('retains the origin and appends player destinations without replacing earlier legs',()=>{
         const {game,home,ship}=fixture();game.issuePlayerWaypoint(ship,point(100));game.issuePlayerWaypoint(ship,point(200));
         test.assertEqual(ship.course.waypoints.length,3);test.assertTrue(ship.course.waypoints[0].target===home);

@@ -6269,3 +6269,24 @@ preferences, native sound, original-art equality and the broader localization
 completion audit remain separately open. In particular, contextual course/list
 surfaces still need their concrete window-style review; completing their
 commands does not close that separate requirement.
+
+
+### Course-window Close control
+
+The window chrome audit found that Course only displayed an Esc text hint,
+without a clickable dismissal control. It now has a measured Close button
+using the shared right-aligned Esc hint and existing six-language label/help
+resources. Mode rows reserve the measured button width. Closing preserves the
+selected object, waypoint graph, current leg, call-in/loop flags and turn.
+The shipped v3 navigation panel's command groups are retained; the button
+provides the window dismissal afforded by its native window chrome.
+
+Both full muted native suites pass 1745 tests, zero failures, including actual
+Close hit testing in all six languages at 800×600, 480×600 and 640×480.
+All twelve actual browser workflow runs pass; 48 before/after pairs contain
+six expected Course-button changes and 42 unchanged surrounding views.
+The six localized Course views were visually inspected against their baseline.
+Evidence: `/private/tmp/galactica-course-close-{public,devel}-unit.log`,
+`galactica-course-close-{before,after}-<language>.log`,
+`galactica-course-close-comparison.json` and the matching screenshot trees.
+The broader Window/dialog chrome audit remains open.
