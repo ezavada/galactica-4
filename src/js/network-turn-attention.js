@@ -2,7 +2,10 @@
 // the downloaded turn belongs to a background document or application.
 function applicationFocused(env=globalThis){
     const document=env.document;
-    if(!document)return true; // Native application activation is not exposed by PDG 1.2.
+    if(!document){
+        const graphics=env.pdg?.gfx;
+        return typeof graphics?.isApplicationFocused==='function'?graphics.isApplicationFocused():true;
+    } // Older PDG runtimes cannot report native application activation.
     if(document.hidden || document.visibilityState==='hidden')return false;
     return typeof document.hasFocus!=='function' || document.hasFocus();
 }

@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1648
-Passed: 1648 ✓
+Total: 1650
+Passed: 1650 ✓
 Failed: 0 ✗
 ```
 
@@ -865,3 +865,20 @@ advanced rejoin, deferred offline-report playback and notices while Sound is off
 It shuts down fixture hosts and removes their temporary files. Run `turn-attention`
 against the same build to verify background Warning and actual browser focus loss.
 Native OS activation integration remains outside these browser checks.
+
+
+Native application focus verification (requires a rebuilt PDG with the query):
+
+```sh
+PDG_EXECUTABLE=/path/to/rebuilt/pdg ./gad4 tools/test-network-turn-attention.js --native-focus
+node tools/test-web-host-setup.cjs /private/tmp/galactica-focus-api-ui-app /private/tmp/galactica-parity/focus-api-after/en en turn-attention-focus-api
+```
+
+The native helper verifies actual unfocused/no-window state and cached Warning
+through real HTTP arrivals, while muting the output bus. The browser mode requires
+newly compiled WebAssembly and checks the query against real focus loss/recovery;
+it retains the ordinary attention/mute/duplicate checks. PDG's native
+`pdg-application-focus` CTest fixture exercises multiple windows, foreign focus,
+recovery, closure and offscreen-only states. Linux can run it with `xvfb-run -a`.
+No connected display is recorded as skipped; that is not foreground validation.
+The pinned archive still lacks the query and needs a runtime update.

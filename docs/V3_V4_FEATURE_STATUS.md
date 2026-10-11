@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1648 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1650 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -252,7 +252,7 @@ The largest blockers to a complete game are:
 | Compare players | Player summary table with best values blue and worst red; the audited v3 sort handler is empty. | ✅ Implemented | ✅ Implemented | Menu/V opens all eleven v3 numeric fields: systems, population in thousands, production, system min/max/average technology, completed ships, raw ship power and ship min/max/average technology. Unowned systems have an italic neutral row and no ship fields; unassigned names are italic Unknown; defeated rows show a localized suffix and dashes. Living category-specific extrema exclude neutral/dead rows; blue takes precedence for tied best values. Production comparisons retain hundredths before formatting. Names retain true enemy homeworld/faction identity under fog, with full hover text when needed. Viewport paging reaches every player; Close/V/Escape and modal map input are verified in all six languages. Full suites: 919 passed on release/current native PDG. Functional sorting and aggregate score columns were not confirmed in v3 C++. |
 | Send player messages; show/hold game reports | Connected multiplayer chat to one/all/admin; separate Show/Hold commands govern automatic game-report playback. | ✅ Implemented | ✅ Implemented | Authenticated chat and durable offline messages are implemented. Menu → Hold game reports pauses automatic report, Lab, Stardock and outcome playback without marking reports read. Show game reports plays the pending batch while retaining Hold; turning Hold off resumes automatically. Manual Events replay remains available. Each complete save retains Hold and pending report identities, and client refresh remaps retained subjects to the new model. Localized controls/help and all six manuals are updated; native and browser evidence is recorded below. Existing report-window chrome remains separately tracked. |
 | Rename ship/fleet/colony/rendezvous | Edit menu rename workflow. | ✅ Implemented | ✅ Implemented | Owned ships, systems, fleets and rendezvous points have localized Unicode Rename/Save/Cancel controls. New human neutral colonies create the private v3 naming/production instruction and attention navigation, rather than a forced naming modal. Requests disappear for recaptured/removed colonies and do not target computer or captured enemy systems. |
-| Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | 🟡 Partial | 🟡 Partial | The localized persistent Sound setting now controls cached PDG audio across open/restored games. Presented colony, battle, destruction, repair, lab and stardock reports and attention navigation select recipient cues from the shipped samples; explosions precede the later cue by the source animation cadence plus 20 ticks. Hidden reports and quiet autoplay are silent, and mute stops owned playback. Native suites and actual browser controls/playback are verified below. Empty Tab/Next item now plays the shipped No more cue without changing selection or the turn. Chat and offline-message reports now play the cached Message cue; background network turns now play the cached Warning sample once behind another open game or on browser focus loss; the foreground new-turn notice is implemented below, while native OS activation detection remains separate integration work. Tutorial entry cues are implemented; Left Arrow at a top-level object also plays No more. Startup/About music is blocked by missing source movie metadata, documented below. |
+| Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | 🟡 Partial | 🟡 Partial | The localized persistent Sound setting now controls cached PDG audio across open/restored games. Presented colony, battle, destruction, repair, lab and stardock reports and attention navigation select recipient cues from the shipped samples; explosions precede the later cue by the source animation cadence plus 20 ticks. Hidden reports and quiet autoplay are silent, and mute stops owned playback. Native suites and actual browser controls/playback are verified below. Empty Tab/Next item now plays the shipped No more cue without changing selection or the turn. Chat and offline-message reports now play the cached Message cue; background network turns now play the cached Warning sample once behind another open game or on browser focus loss; the foreground new-turn notice is implemented below, native application focus now uses the new PDG query on rebuilt runtimes, with packaged-runtime and connected-macOS validation still pending. Tutorial entry cues are implemented; Left Arrow at a top-level object also plays No more. Startup/About music is blocked by missing source movie metadata, documented below. |
 | Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen choices now persist across launch: native restoration is immediate, while browsers defer until the first user gesture and remember external exits. Startup Settings and Menu → Settings → New game defaults now select numeric values directly and saves map size, density, AI skill/advantage, fast game and fog of war separately from ordinary setup and current games. Startup and New Game apply these defaults; tutorial setup is isolated. Colony hull and coupled production defaults now persist independently and are available from startup/in-game Settings and the game menu. Save applies them to the local human and future games; opening saves reapplies application colony defaults as in v3, while existing systems and computer defaults stay unchanged. Fixed tutorial practice is isolated. Startup now offers a persistent introduction and independent About presentation with original artwork, localized narrative/credits, paging, modal dragging and tutorial entry. First-install automatic tutorial is implemented. Stored numeric startup actions now dispatch available About/New/Open/Save/Revert/Quit/Fullscreen/Sound/Preferences/Flyby Help/Help/Tutorial handlers once after introduction/onboarding. Browser commands requiring activation wait for trusted input. Arbitrary inherited/window commands and multiplayer startup actions remain unfinished, alongside other preference coverage and the pinned native runtime update. |
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
 | Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | 🟡 Partial | 🟡 Partial | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; Open and Revert retain active instruction bindings and production safeguards, with independent documents preserved. The optional wrong-course retry is verified through actual controls in all six languages. Existing-game recovery (100) is verified through actual Hide/Close controls, full completion and Open Games restoration in all six languages. Modal recovery (101) is verified through actual startup/in-game Settings entry, retry, Cancel and original restoration in all six languages; hosting recovery (103) is verified through actual Host, Cancel/Escape, local practice continuation, instruction cancellation and native-backed host creation in all six languages. The floating recovery panel stays visible and interactive above the Host modal; original documents and setup are preserved. See docs/reference/TUTORIAL_CONTROLLER.md. |
@@ -3774,3 +3774,57 @@ Evidence: `/private/tmp/galactica-turn-notice-final-{unit,public-unit}.log`,
 The previous entry's pending foreground notice is resolved by this entry.
 Native OS activation signaling remains unfinished engine/runtime integration;
 this change does not waive that requirement or complete the overall checklist.
+
+
+### Native application focus for network turn attention (2026-10-10)
+
+The v3 `GalacticaClient::HandleTurnComplete` background condition uses the actual
+application commander's active state, independently of the front game document.
+Added `GraphicsManager.isApplicationFocused()` to both public/private PDG and
+connected Galactica's native attention adapter to it. The query checks every
+registered window/fullscreen port, excludes offscreen surfaces, and returns false
+with no open window. GLFW reads the actual focused-window attribute; Cocoa uses
+active application/key window, iOS active application state, and WebAssembly
+visible document focus. It requires ordinary application-thread event polling.
+Browser Galactica still uses document visibility/focus directly. Older PDG without
+the query retains the previous fallback; it cannot detect native OS focus loss.
+
+The native C++ fixture passed actual Linux/Xvfb focus transfers between two PDG
+windows and an unrelated window, recovery, port closure and offscreen-only/no-port
+states. Both macOS runtimes compile and pass the real HTTP/cached Warning helper
+with `--native-focus`, using the actual no-window query instead of injected focus.
+Both complete game suites pass 1,650 tests. New units verify query receiver/state,
+older-runtime compatibility and browser precedence. Both public/private WebAssembly builds compile;
+their real browser queries pass actual focus loss/recovery together with the existing
+background Warning, duplicate and mute checks. No user-facing strings changed;
+existing six-language captions and labels remain resource-driven.
+
+C++ and JavaScript method sources, generated bindings/metadata and declarations
+are updated. Focused Doxygen XML verifies the new method and return contract.
+API-contract, metadata and browser-generation tooling checks pass in both repos.
+Inspected before/after foreground notices and the recovered-focus map; the
+rendered layout, text and controls retain their appearance.
+The private declaration refresh also catches up with already-committed API inputs.
+
+Limitations remain explicit: this macOS execution session exposes no connected
+display, so its foreground-transfer fixture reports skipped rather than success.
+The original pinned v1.2.0 archive does not contain the new query; runtime packaging
+and connected-macOS validation remain work. Cocoa/iOS runtime validation is not
+claimed by the GLFW test. A broader engine CTest run passed 20 existing checks
+(after retrying sandbox-blocked graphics/TCP checks), but Spriter playback aborts
+with `Part ownership cannot change inside drawing/pose callbacks`; its source
+and callback guard were not modified by this focus item. This unrelated engine
+failure needs investigation and is not reported as a green full-engine suite.
+
+Evidence: `/private/tmp/pdg-focus-fixture-linux.log`,
+`/private/tmp/pdg-focus-fixture-macos-final.log`,
+`/private/tmp/pdg-public-focus-fixture-macos-final.log`,
+`/private/tmp/galactica-{native,public-native}-focus-network.log`,
+`/private/tmp/galactica-focus-{unit,devel-final-unit,public-final-unit}.log`,
+`/private/tmp/galactica-focus-api-browser.log`,
+`/private/tmp/galactica-private-focus-api-browser.log`, and
+`/private/tmp/pdg-focus-ctest{,-retry}.log`.
+
+Engine commits for this integration: public PDG `e4aa67768`, private PDG
+`47b2f5377`. Rebuilt executables include the query; publishing/updating the pinned
+release bundle remains separate work.
