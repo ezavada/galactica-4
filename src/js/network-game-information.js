@@ -23,10 +23,6 @@ function rows(info,receivedAt,time=now()){
  if(info.requiresAdmissionCode!==undefined)add('admission',1241,yes(info.requiresAdmissionCode));
  return result;
 }
-function wrap(text,width,measure){
- const lines=[];let line='';for(const char of Array.from(text)){
-  if(line && measure(line+char,12)>width){const space=line.lastIndexOf(' ');if(space>0 && char!==' '){lines.push(line.slice(0,space+1));line=line.slice(space+1)+char;}else{lines.push(line);line=char;}}
-  else line+=char;
- }if(line)lines.push(line);return lines;
-}
+function wrap(text,width,measure){return require('./text-wrapping.js')(text,width,t=>measure(t,12));}
+
 module.exports={rows,duration,wrap,now};

@@ -386,3 +386,45 @@ Evidence: `/private/tmp/galactica-lobby-information-{pdg,pdg-devel}-unit.log`,
 `galactica-lobby-information-comparison.json`, screenshot/geometry trees and
 all-language ordinary/compact information and error montages. No PDG code or
 public-engine checkout changed.
+
+
+### Foreground new-turn notice chrome and word wrapping
+
+V3 `Classes/GalacticaClient.cpp:2589–2610`, `Classes/GalacticaUtilsUI.cpp:141–174,185–230`
+and `Resources/gal-non-module.r:11570–11580` confirm a caption-only foreground
+notice that stops mouse tracking, suppresses command keys and closes after three
+half-seconds. V4 retains that 1.5-second behavior and the requested shared neutral
+white/gray, black-text, gold-border modal presentation. A compact-caption defect
+split ordinary words in literal player names. The notice now shares the public
+Join information word wrapper: prefer spaces, preserve the complete literal text,
+and split long unspaced text at Unicode code points. No strings or translations
+changed; the existing six localized captions remain in use.
+
+The new regression fails against the original notice and passes with the fix.
+Both full native suites pass 1,760 tests. The dedicated native HTTP/attention
+check passes foreground silence, cached background Warning playback, duplicate
+guards, mute and no replay. All 36 muted native-backed browser runs pass before
+and after in English, German, Spanish, French, Japanese and Russian at 800×600,
+640×340 and 320×340. They use real host turns and the client's own refresh polling:
+no initial-login notice, complete player identity, exact 1,499/1,500 ms boundary,
+left/right/middle outside-click clunks, keyboard/wheel isolation, bounded persisted
+title dragging, no duplicate notice, Sound-off arrival and release of a held drag
+on expiry. A late mouse release does not pan or select the underlying map.
+
+Of 162 before/after screenshot pairs, 132 are pixel-identical. The 30 changed
+pairs are six notice scenes in each compact German, Spanish, French, Japanese and
+Russian run; only caption wrapping changes. All pre-arrival and post-dismissal
+map scenes are identical. English and French before/after notice/drag/expiry
+scenes and all six ordinary, short and narrow notice layouts were visually
+inspected. The captions stay complete and readable inside their windows.
+
+Evidence: `/private/tmp/galactica-turn-notice-current-{pdg,pdg-devel}-unit.log`,
+`galactica-turn-notice-current-regression.log`,
+`galactica-turn-notice-current-native-attention.log`,
+`galactica-turn-notice-current-{340,600,compact}-{before,after}-<language>.log`,
+`galactica-turn-notice-current-comparison.json`, the screenshot/geometry tree
+`/private/tmp/galactica-turn-notice-current` and its language/comparison montages.
+No PDG code or public-engine checkout changed. Window chrome remains Partial
+pending remote-administration and remaining busy/error variants, plus the
+separate compact gameplay minimum-viewport audit. Overall parity and Map
+Generation work remains active.
