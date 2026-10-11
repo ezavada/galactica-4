@@ -69,5 +69,19 @@ if(process.env.GALACTICA_COURSE_BASELINE!=='1' && viewWidth<400){
  await key('Escape');await check('g.uiWindow==="course" && g.courseWindowObject===fleet','Cancel Add failed to restore course');
  await click('d.getCourseActionRegions().find(r=>r.action.type==="closeCourse").rect');await check('g.uiWindow===null && g.turn===2','Compact Close failed');
 }
+if(process.env.GALACTICA_TARGET_PROMPTS==='1'){
+ const baseline=process.env.GALACTICA_TARGET_PROMPTS_BASELINE==='1';
+ await key('g');await key('a');await capture('target-course');
+ if(!baseline){await check('d.getCourseTargetPromptLayout().lines.join("")===pdg.res.getString(734)','Course prompt lost translated text');
+  await click('(()=>{const r=d.getCourseTargetPromptLayout().rect;return {x:r.x+20,y:r.y+r.height-5,width:1,height:1}})()');await check('g.isAwaitingMapTarget()','Prompt click placed a course behind the hint');}
+ await key('Escape');await key('Escape');
+ await evaluate('window.promptMarker=g.createRendezvousAt(home.x,home.y,1);void 0');
+ for(const move of [false,true]){
+  await evaluate('g.beginRendezvousPlacement('+ (move?'promptMarker':'null') +');void 0');await capture(move?'target-rendezvous-move':'target-rendezvous-place');
+  if(!baseline){await check('(()=>{const l=d.getRendezvousPlacementPromptLayout();return l.rect.x>=10 && l.rect.x+l.rect.width<='+ (viewWidth-10)+' && l.rect.y+l.rect.height<='+ (viewHeight-10)+' && l.helpLines.join("")===(g.pendingRendezvousPlacement.mode==="move"?d.STR.moveRendezvousHelp:d.STR.placeRendezvousHelp)})()','Rendezvous prompt bounds/text failed');
+   const count=await evaluate('g.allRendezvous.length');await click('(()=>{const r=d.getRendezvousPlacementPromptRect();return {x:r.x+20,y:r.y+r.height-5,width:1,height:1}})()');await check('!!g.pendingRendezvousPlacement && g.allRendezvous.length==='+count,'Prompt click changed rendezvous');}
+  await key('Escape');await check('!g.pendingRendezvousPlacement && promptMarker.x===home.x && promptMarker.y===home.y && g.turn===2','Rendezvous cancel changed position/turn');
+ }
+}
 console.log('PASS actual friendly interception, inherited course editor, memory controls and save '+lang);
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>{chrome.kill();server.close();setTimeout(()=>{fs.rmSync(profile,{recursive:true,force:true});process.exit(process.exitCode||0);},500);});

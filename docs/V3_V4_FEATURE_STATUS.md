@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1791 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1792 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -7899,3 +7899,39 @@ screenshots. The latter expose a separate remaining compact map-target hint
 truncation in some languages; other compact map controls/tables/inspectors,
 busy/error variants and broader parity/localization/Map Generation audits remain
 open. No engine or unrelated artwork changes are included.
+
+
+### Complete map-target instruction prompts (completed)
+
+Course Add/Edit instructions previously truncated their cancellation text in
+French, Japanese and Russian at 320px. Rendezvous placement/movement prompts
+also retained a 340px rectangle beyond the narrow port and drew long German/
+Japanese help without wrapping even at ordinary widths. Both prompts now measure
+and wrap complete localized instructions, expand their height, and share that
+geometry with pointer hit testing. The full course prompt is also registered
+as a UI panel. Clicking the newly occupied lower text area consumes input rather
+than placing an order or rendezvous behind the instruction. Escape retains the
+existing cancellation behavior. Source `GalacticaPanels.cp` 375–420 establishes
+the pending waypoint plotter lifecycle; this responsive presentation preserves
+the existing v4 course and rendezvous operations. Existing IDs are reused.
+
+Both full native suites pass **1,792 tests, zero failures**. The new regression
+checks complete course/place/move strings, bounds and lower-area consumption
+at 800×600, 640×340 and 320×340 in all six languages. The pre-existing rendezvous
+graphics fixture now supplies the text-width API needed for measured prompt
+geometry; initial fixture failures are retained separately.
+
+All 36 before/after browser workflows pass in all six languages/three sizes,
+followed by six final-source narrow workflows. They exercise actual Course Add/
+Escape, instruction-area clicks, rendezvous prompt-area clicks and cancellation
+without changed marker position, turn or accidental creation. Rendezvous modes
+are installed through fixture setup; this check does not claim their menu-entry
+paths anew. Inherited course/memory/save and compact control workflows also pass.
+Audio remains muted. Evidence: `/private/tmp/galactica-target-prompt/` and matching
+logs. Common comparison records 126 pairs: 103 identical, fifteen narrow prompt
+changes and eight ordinary/short German/Japanese rendezvous changes. All six
+narrow before/after course/place/move prompts and changed ordinary rendezvous
+views were visually inspected. This closes the prompt truncation noted in the
+compact Course item; remaining compact map controls/help, gameplay tables/lists/
+inspectors and broader parity/localization/Map Generation audits remain open.
+No PDG or unrelated artwork changes are included.

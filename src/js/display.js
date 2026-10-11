@@ -2580,15 +2580,24 @@ class Display {
         return {rect,start,end,text:characters.slice(start,end).join(''),caret:measure(characters.slice(start,caret).join(''))};
     }
 
-    getRendezvousPlacementPromptRect() {
-        const screen = this.getScreenSize();
-        return this.fitPanelToScreen({
-            x: (screen.width - 340) / 2,
-            y: 76,
-            width: 340,
-            height: 88
-        });
+    getCourseTargetPromptLayout() {
+        const screen=this.getScreenSize(),width=screen.width-40;
+        const lines=require('./text-wrapping.js')(I18n.getString(734,'Click a destination; Esc cancels'),width-32,text=>this.port.getTextWidth(text,14));
+        const rect=this.fitPanelToScreen({x:20,y:78,width,height:40+Math.max(0,lines.length-1)*18});
+        return {rect,lines};
     }
+
+    getRendezvousPlacementPromptLayout() {
+        const screen=this.getScreenSize(),width=Math.min(340,screen.width-20),placement=this.game.pendingRendezvousPlacement;
+        const moving=placement && placement.mode==='move',wrap=require('./text-wrapping.js');
+        const titleLines=wrap(moving?this.STR.moveRendezvous:this.STR.placeRendezvous,width-32,text=>this.port.getTextWidth(text,14));
+        const helpLines=wrap(moving?this.STR.moveRendezvousHelp:this.STR.placeRendezvousHelp,width-28,text=>this.port.getTextWidth(text,12));
+        const extraTitle=Math.max(0,titleLines.length-1)*18,extraHelp=Math.max(0,helpLines.length-1)*16;
+        const rect=this.fitPanelToScreen({x:(screen.width-width)/2,y:76,width,height:88+extraTitle+extraHelp});
+        return {rect,titleLines,helpLines,helpY:rect.y+47+extraTitle,closeY:rect.y+69+extraTitle+extraHelp};
+    }
+
+    getRendezvousPlacementPromptRect() {return this.getRendezvousPlacementPromptLayout().rect;}
 
     getActiveWindowRect() {
         switch (this.game.uiWindow) {
@@ -2820,6 +2829,7 @@ class Display {
             regions.push(activeWindowRect);
         }
 
+        if(this.game.pendingCourseEdit && !this.game.mapSelectionPicker)regions.push(this.getCourseTargetPromptLayout().rect);
         if (this.game.pendingRendezvousPlacement) {
             regions.push(this.getRendezvousPlacementPromptRect());
         }
@@ -2881,7 +2891,7 @@ class Display {
         if(this.game.isAwaitingMapTarget()) {
             const windowAction=this.getActiveWindowActionAt(x,y);
             if(windowAction)return windowAction;
-            const screen=this.getScreenSize(),hint={x:20,y:78,width:screen.width-40,height:40};
+            const hint=this.game.pendingCourseEdit?this.getCourseTargetPromptLayout().rect:null;
             if(this.game.pendingCourseEdit && this.containsPoint(hint,x,y) ||
                 this.game.pendingRendezvousPlacement && this.containsPoint(this.getRendezvousPlacementPromptRect(),x,y) ||
                 this.getMapButtonRegions().some(button=>this.containsPoint(button.rect,x,y)))return {type:'consume'};
@@ -3785,17 +3795,17 @@ class Display {
         if (!this.game.pendingRendezvousPlacement || this.game.mapSelectionPicker) {
             return;
         }
-        const placement = this.game.pendingRendezvousPlacement;
-        const rect = this.getRendezvousPlacementPromptRect();
-        const title = placement.mode === 'move' ? this.STR.moveRendezvous : this.STR.placeRendezvous;
-        const help = placement.mode === 'move' ? this.STR.moveRendezvousHelp : this.STR.placeRendezvousHelp;
-        this.drawWindowPanel(rect, title);
+        const layout=this.getRendezvousPlacementPromptLayout(),rect=layout.rect;
+        this.drawWrappedTargetPrompt(rect,layout.titleLines);
+        layout.helpLines.forEach((line,index)=>this.drawTextLine(line,rect.x+14,layout.helpY+index*16,'lightgray',12));
+        this.drawTextLine(this.STR.escClose,rect.x+14,layout.closeY,'gray',10);
+    }
 
-        const x = rect.x + 14;
-        let y = this.getPanelContentStartY(rect);
-        this.drawTextLine(help, x, y, 'lightgray', 12);
-        y += 22;
-        this.drawTextLine(this.STR.escClose, x, y, 'gray', 10);
+    drawWrappedTargetPrompt(rect,lines) {
+        if(lines.length===1){this.drawWindowPanel(rect,lines[0]);return;}
+        this.drawWindowPanel(rect,'');
+        lines.forEach((line,index)=>this.drawTextLine(line,rect.x+16,rect.y+22+index*18,'lightgray',14));
+        this.drawDivider(rect.x+14,rect.y+28+(lines.length-1)*18,rect.width-28);
     }
 
     drawActiveWindow() {
@@ -4000,8 +4010,8 @@ class Display {
 
         // Draw command UI windows above the map/help layer
         if(this.game.pendingCourseEdit && !this.game.mapSelectionPicker) {
-            const screen=this.getScreenSize(),r={x:20,y:78,width:screen.width-40,height:40};
-            this.drawWindowPanel(r,this.fitShipDiagnosticText(I18n.getString(734,'Click a destination; Esc cancels'),r.width-32,14));
+            const layout=this.getCourseTargetPromptLayout();
+            this.drawWrappedTargetPrompt(layout.rect,layout.lines);
         }
         this.drawTransitionLayer('window',game.uiWindow,()=>{
             this.drawingActiveWindow=true;

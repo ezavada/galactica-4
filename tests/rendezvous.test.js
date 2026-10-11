@@ -22,6 +22,7 @@ function createGameForTests() {
 function createFakePort(width = 800, height = 600) {
     return {
         getDrawingArea: () => ({ width: () => width, height: () => height }),
+        getTextWidth: (text,size=12) => Array.from(String(text)).length*size/2,
         drawRect: () => {},
         drawRoundedRect: () => {},
         drawImage: () => {},

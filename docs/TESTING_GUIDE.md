@@ -1416,3 +1416,22 @@ Evidence: `/private/tmp/galactica-course-compact`. Of 72 common screenshot pairs
 Reviewed all six narrow original/scrolled/paged/targeting views. Native overflow
 coverage uses conservative text metrics and owned maximum-length names. Compact
 map-target hint truncation seen during Add is tracked separately, not claimed fixed.
+
+
+### Complete target-prompt input/layout checks
+
+Add `GALACTICA_TARGET_PROMPTS=1` to the arrival-course helper for course,
+rendezvous placement and rendezvous movement prompt captures. Use
+`GALACTICA_TARGET_PROMPTS_BASELINE=1` only for baseline captures that lack the new
+layout API. Viewport environment options are unchanged. Course targeting starts
+through real G/A input; rendezvous modes use fixture setup. Real lower-prompt
+clicks must leave targeting active, avoid creating/moving markers, and Escape
+must cancel without changing the turn. Chrome remains muted.
+
+Both full suites pass 1,792 tests. Thirty-six six-language before/after workflows
+at three port sizes and six final-source narrow workflows pass. Evidence lives
+under `/private/tmp/galactica-target-prompt`. Comparison records 126 common pairs,
+103 exact; fifteen narrow prompts and eight ordinary/short German/Japanese
+rendezvous views change. Reviewed all six narrow course/place/move comparisons
+and the changed ordinary prompts. The older rendezvous UI mock now provides
+text-width measurements for geometry, as real graphics ports do.

@@ -179,6 +179,30 @@ module.exports=function(){
             game.executeUIAction({type:'closeCourse'});test.assertEqual(JSON.stringify(ship.course.waypoints.map(w=>({id:w.target.id,x:w.target.x,y:w.target.y}))),JSON.stringify(snapshot));test.assertEqual(game.turn,turn);
         }}finally{pdg.res.setLanguage(language);}
     });
+    test.it('keeps complete course and rendezvous target prompts within every localized viewport',()=>{
+        const {game,ship,display}=fixture(),language=pdg.res.getLanguage();
+        try{for(const lang of ['en','de','es','fr','ja','ru']){
+            pdg.res.setLanguage(lang);display.reloadUIStrings();
+            for(const size of [[800,600],[640,340],[320,340]]){
+                game.port.getDrawingArea=()=>new pdg.Rect(...size);game.showCourse(ship);game.beginCourseEdit();
+                const course=display.getCourseTargetPromptLayout(),r=course.rect;
+                test.assertEqual(course.lines.join(''),pdg.res.getString(734));test.assertTrue(course.lines.every(line=>game.port.getTextWidth(line,14)<=r.width-32));
+                test.assertTrue(r.x>=10 && r.y>=10 && r.x+r.width<=size[0]-10 && r.y+r.height<=size[1]-10);
+                test.assertEqual(display.getUIActionAt(r.x+20,r.y+r.height-5).type,'consume');
+                test.assertTrue(display.getUIPanelRegions().some(panel=>panel.y===r.y && panel.height===r.height));
+                game.handleKeyPress(pdg.key_Escape);
+                for(const move of [false,true]){
+                    const marker=move?game.createRendezvousAt(0,0,1):null;game.beginRendezvousPlacement(marker);
+                    const l=display.getRendezvousPlacementPromptLayout(),rect=l.rect;
+                    test.assertEqual(l.titleLines.join(''),move?display.STR.moveRendezvous:display.STR.placeRendezvous);
+                    test.assertEqual(l.helpLines.join(''),move?display.STR.moveRendezvousHelp:display.STR.placeRendezvousHelp);
+                    test.assertTrue(rect.x>=10 && rect.x+rect.width<=size[0]-10 && rect.y+rect.height<=size[1]-10);
+                    test.assertTrue(l.closeY<rect.y+rect.height);
+                    test.assertEqual(display.getUIActionAt(rect.x+20,rect.y+rect.height-5).type,'consume');game.handleKeyPress(pdg.key_Escape);
+                }
+            }
+        }}finally{pdg.res.setLanguage(language);}
+    });
     test.it('hides ordinary courses independently of selected-course and privacy rules',()=>{
         const {game,ship,display}=fixture();ship.setDestination(point(100));game.setSelectedObject(null);
         let lines=0;display.port.drawLine=()=>lines++;display.drawCourseLines(ship,0,0,{});test.assertTrue(lines>0);

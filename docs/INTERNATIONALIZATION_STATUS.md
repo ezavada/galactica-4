@@ -495,3 +495,17 @@ final narrow action checks pass. Original/scrolled/paged and Add-targeting views
 were inspected across all six languages under `/private/tmp/galactica-course-compact`.
 The Add view exposes separate compact map-target hint truncation in some languages;
 that and the broader localization audit remain open.
+
+
+### Complete map-target instructions (2026-10-11)
+
+Course cancellation instructions and rendezvous placement/movement titles/help
+now wrap by measured width in en/de/es/fr/ja/ru. Shared rendering/hit geometry
+keeps the complete text inside the port and prevents clicks in additional lines
+from reaching the map. Existing resources are reused; no new IDs are required.
+The compact Course entry's target-hint truncation is now resolved. Both native
+suites pass 1,792 tests. All 36 before/after six-language/three-size browser flows
+and six final-source narrow flows pass. Reviewed all six narrow prompt comparisons
+and ordinary German/Japanese rendezvous help changes. Evidence:
+`/private/tmp/galactica-target-prompt`. Broader localization and compact map help/
+control audits remain open.
