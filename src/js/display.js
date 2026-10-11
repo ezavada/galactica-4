@@ -2345,6 +2345,7 @@ class Display {
 
     getCourseWindowLayout() {
         const screen=this.getScreenSize(),width=Math.min(620,screen.width-40);
+        if(screen.width<400)return require('./course-compact.js').layout(this,screen);
         const closeLabel=I18n.getString(531,'<Esc> Close');
         const closeWidth=this.getButtonWidth(closeLabel,'Esc',{size:10,minWidth:64});
         const modeWidth=width-36-closeWidth;
@@ -2361,6 +2362,7 @@ class Display {
     getCourseActionRegions() {
         if(this.game.uiWindow!=='course')return [];
         const layout=this.getCourseWindowLayout(),r=layout.rect,object=this.game.courseWindowObject;
+        if(layout.compact)return require('./course-compact.js').regions(layout);
         const regions=layout.visibleRows.map((row,index)=>({rect:{x:r.x+14,y:r.y+66+index*26,width:r.width-28,height:24},
             action:{type:'selectWaypoint',index:row.index}}));
         const modeExtra=(Math.max(1,layout.modeRows)-1)*34;
@@ -3619,6 +3621,7 @@ class Display {
 
     drawCourseWindow() {
         const layout=this.getCourseWindowLayout(),r=layout.rect,object=this.game.courseWindowObject;
+        if(layout.compact)return require('./course-compact.js').draw(this,layout);
         const title=I18n.formatString(727,'Course: {0}',object?this.game.getObjectDisplayName(object):this.STR.none);
         this.drawWindowPanel(r,this.fitShipDiagnosticText(title,r.width-32,14));
         const nameWidth=r.width-210;

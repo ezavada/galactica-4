@@ -1529,7 +1529,8 @@ class Game {
         }
 
         if (this.uiWindow==='course') {
-            if (lower==='a') this.beginCourseEdit(false);
+            if([pdg.key_PageUp,pdg.key_PageDown].includes(key))this.scrollCourse(key===pdg.key_PageUp?-80:80);
+            else if (lower==='a') this.beginCourseEdit(false);
             else if (lower==='e') this.beginCourseEdit(true);
             else if (key===127 || key===8 || lower==='d') this.executeUIAction({type:'deleteWaypoint'});
             else if (lower==='x') this.clearOrders(this.courseWindowObject);
@@ -2647,6 +2648,12 @@ class Game {
 
     getMapShipCount() {
         return this.remoteComparisons?this.remoteComparisons.reduce((total,row)=>total+row.ships+row.shipsBuilding,0):this.allShips.length;
+    }
+
+    scrollCourse(delta) {
+        if(this.uiWindow!=='course' || !this.display || !Number.isFinite(delta))return false;
+        const layout=this.display.getCourseWindowLayout();if(!layout.compact || !layout.scrollLimit)return false;
+        this.courseBodyScroll=Math.max(0,Math.min(layout.scrollLimit,layout.bodyScroll+delta));return true;
     }
 
     scrollPlayerComparison(delta) {

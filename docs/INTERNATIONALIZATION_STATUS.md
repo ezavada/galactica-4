@@ -482,3 +482,16 @@ widths consistently on screen/offscreen ports; actual OS-font audits remain open
 Evidence: `/private/tmp/galactica-compare-columns`,
 `galactica-compare-columns-defeated`, `galactica-compare-columns-wide-font`.
 This completes compact comparison readability, not the broader localization audit.
+
+
+### Compact Course editor (2026-10-11)
+
+Complete object and waypoint names, leg/remaining turn descriptions and Course
+commands reuse existing en/de/es/fr/ja/ru resources. Measured command rows scroll
+inside a clipped body; Previous/Next/Close stay fixed. No new IDs are introduced.
+Both full suites pass 1,791 tests, including conservative maximum-name overflow
+in all six languages. Thirty-six actual before/after browser workflows plus six
+final narrow action checks pass. Original/scrolled/paged and Add-targeting views
+were inspected across all six languages under `/private/tmp/galactica-course-compact`.
+The Add view exposes separate compact map-target hint truncation in some languages;
+that and the broader localization audit remain open.

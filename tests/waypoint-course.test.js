@@ -156,6 +156,29 @@ module.exports=function(){
         const row=display.getCourseActionRegions()[0];test.assertEqual(display.getUIActionAt(row.rect.x+5,row.rect.y+5).type,'selectWaypoint');
         game.coursePage=99;test.assertEqual(display.getCourseWindowLayout().page,layout.pages-1);
     });
+    test.it('keeps compact course text and controls reachable without changing orders in every language',()=>{
+        const {game,ship,display}=fixture('scout'),language=pdg.res.getLanguage();
+        game.port.getTextWidth=(text,size=11)=>Array.from(String(text)).length*size*.9;
+        ship.name='Captain 星 '+('W'.repeat(22));const target=game.factory.createStar(100,0,'Target 星 '+('W'.repeat(23)));target.owner=1;game.issuePlayerWaypoint(ship,target);
+        for(let i=0;i<12;i++)game.issuePlayerWaypoint(ship,point(100+i));
+        try {for(const lang of ['en','de','es','fr','ja','ru']){
+            pdg.res.setLanguage(lang);game.port.getDrawingArea=()=>new pdg.Rect(320,340);
+            game.showCourse(ship);game.courseSelection=1;
+            const snapshot=ship.course.waypoints.map(w=>({id:w.target.id,x:w.target.x,y:w.target.y})),turn=game.turn,l=display.getCourseWindowLayout();
+            test.assertTrue(l.compact && l.rect.height<=320 && l.pages>1,lang+" compact bounds");
+            const close=display.getCourseActionRegions().find(r=>r.action.type==='closeCourse');
+            test.assertTrue(l.titleLines.join('').includes(ship.name),lang+' full ship title');
+            test.assertTrue(l.records.some(record=>record.nameLines.join('').includes(target.name)),lang+' full waypoint name');
+            test.assertTrue(l.scrollLimit>0,lang+" long-name overflow");
+            game.scrollCourse(9999);const bottom=display.getCourseWindowLayout();test.assertEqual(bottom.bodyScroll,bottom.scrollLimit);
+            test.assertEqual(display.getCourseActionRegions().find(r=>r.action.type==='closeCourse').rect.y,close.rect.y);
+            const regions=display.getCourseActionRegions();test.assertTrue(regions.every(r=>r.rect.x>=10 && r.rect.y>=10 && r.rect.x+r.rect.width<=310 && r.rect.y+r.rect.height<=330));
+            test.assertTrue(regions.some(r=>r.action.type==='toggleCallIn'),lang+' final mode');
+            game.executeUIAction({type:'coursePage',page:1});test.assertEqual(display.getCourseWindowLayout().bodyScroll,0);
+            game.handleKeyPress(pdg.key_PageDown);test.assertTrue(game.courseBodyScroll>0 || display.getCourseWindowLayout().scrollLimit===0,lang+" scroll or fits");
+            game.executeUIAction({type:'closeCourse'});test.assertEqual(JSON.stringify(ship.course.waypoints.map(w=>({id:w.target.id,x:w.target.x,y:w.target.y}))),JSON.stringify(snapshot));test.assertEqual(game.turn,turn);
+        }}finally{pdg.res.setLanguage(language);}
+    });
     test.it('hides ordinary courses independently of selected-course and privacy rules',()=>{
         const {game,ship,display}=fixture();ship.setDestination(point(100));game.setSelectedObject(null);
         let lines=0;display.port.drawLine=()=>lines++;display.drawCourseLines(ship,0,0,{});test.assertTrue(lines>0);

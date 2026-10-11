@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1790 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1791 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -7865,3 +7865,37 @@ are pixel-identical; 24 narrow pairs change. Full-name/value/technology views,
 maximum-name scrolling and translated help were visually reviewed in all six
 languages. No PDG or unrelated artwork changes are included. Other compact
 windows, broader localization/native GUI audits and Map Generation remain open.
+
+
+### Compact Course editor controls and complete text (completed)
+
+Source `GalacticaPanels.cp` 375–485 and 526–662 confirms the navigation panel's
+Add/Edit/Delete/Clear, memory, looping, hunt, call-in and patrol operations.
+Below 400px, the Course editor now uses complete wrapped object/waypoint names
+and translated leg/remaining turn labels, a clipped scrolling body for rows and
+measured commands, and fixed Previous/Next/Close controls. Two waypoint rows per
+page keep all orders accessible. Page changes reset body scrolling; wheel and
+Page Up/Down reveal lower commands. Hit regions are clipped to the visible body.
+Existing shortcuts, flags, order mutations, privacy and cancellation behavior
+remain; wider layouts are unchanged. All text uses existing six-language IDs.
+
+Both full native suites pass **1,791 tests, zero failures**. The new six-language
+regression uses owned maximum-length ship/waypoint names and conservative text
+metrics to prove complete text, overflow, fixed controls, paging reset and
+unchanged orders/turn on Close. Initial test-fixture circular serialization,
+visibility and overflow assumptions were corrected; failed runs remain separate.
+
+Thirty-six before/after browser workflows pass at 800×600, 640×340 and 320×340
+in all six languages, with actual friendly interception, inherited course/memory
+and save/restore checks. Final narrow workflows additionally click Call in twice,
+Next/Previous, Add, Escape and Close; they verify that targeting hides radial
+controls and the inspector. Wheel-input amount and a helper API-name mistake were
+corrected before the final six-language action pass. All automated audio is muted.
+Evidence: `/private/tmp/galactica-course-compact/` and matching log prefix.
+The common-scene comparison has 72 pairs: 48 ordinary/short pairs identical,
+six narrow map pairs identical, eighteen narrow Course views changed. Inspected
+all six before/after Course views, scrolled commands, next-page and Add-targeting
+screenshots. The latter expose a separate remaining compact map-target hint
+truncation in some languages; other compact map controls/tables/inspectors,
+busy/error variants and broader parity/localization/Map Generation audits remain
+open. No engine or unrelated artwork changes are included.

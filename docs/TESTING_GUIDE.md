@@ -1398,3 +1398,21 @@ and `galactica-compare-columns-wide-font`. Final common scenes have 72 pairs,
 48 ordinary/short pairs identical and 24 narrow changes. Reviewed complete names,
 values, group headings, overflow and help in all six languages. Chrome and native
 fixtures remain muted. Broader compact/native GUI audits remain open.
+
+
+### Compact Course editor browser verification
+
+`tools/test-web-arrival-course.cjs` accepts `GALACTICA_COURSE_WIDTH` and
+`GALACTICA_COURSE_HEIGHT` (default 800×600). It sets the actual drawing-port size
+and browser metrics, disables stored fullscreen, keeps focus and mutes Chrome.
+`GALACTICA_COURSE_BASELINE=1` records prior geometry without requiring the new
+compact layout. At 320×340, final checks use real wheel input and click Call in,
+paging, Add, Escape and Close after inherited course/memory/save validation.
+
+Both full native suites pass 1,791 tests. Thirty-six six-language before/after
+ordinary/short/narrow workflows pass, followed by six final narrow action checks.
+Evidence: `/private/tmp/galactica-course-compact`. Of 72 common screenshot pairs,
+48 ordinary/short and six narrow maps are identical; eighteen Course views change.
+Reviewed all six narrow original/scrolled/paged/targeting views. Native overflow
+coverage uses conservative text metrics and owned maximum-length names. Compact
+map-target hint truncation seen during Add is tracked separately, not claimed fixed.
