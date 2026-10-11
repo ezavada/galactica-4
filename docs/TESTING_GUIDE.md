@@ -1339,3 +1339,27 @@ and 156 narrow changes. Remote comparison records 108 pairs, 54 exact, including
 unchanged administrator/disconnected maps in all languages. Reviewed selected/
 paged/error, technology/owner, hull-choice and remote-dragged views in all six
 languages. Compact End Turn and broader gameplay/native GUI audits remain open.
+
+
+### Compact pending-player End Turn browser checks
+
+Append `end-turn` to the Host status helper:
+`node tools/test-web-host-status-compact.cjs BUILD OUTPUT LANG before|after WIDTH HEIGHT end-turn`.
+Seven actual native clients claim human slots. Actual canvas/key input checks
+paging, modal dragging/isolation, cancellation, failed-save rollback/retry,
+client refresh, stale captured-turn rejection, fresh confirmation and durable
+Stop. Set `GALACTICA_TEST_END_TURN_NAME` to a 31-character wide-letter prefix
+for maximum-length name coverage. Chrome and native fixtures remain muted.
+
+Both full native suites pass 1,787 tests after separately committed artwork mock
+correction `df3fd5d`. All 36 six-language local ordinary/short/narrow workflows,
+12 maximum-name narrow workflows and 12 authenticated remote regression workflows
+pass. Remote fixtures have no pending human posts; their immediate End Now
+checks do not claim every pending-player remote mutation path. Evidence prefixes:
+`/private/tmp/galactica-end-turn`, `galactica-end-turn-wide`,
+`galactica-remote-end-turn`. Comparisons record 198 standard local pairs (72 exact,
+60 ordinary hosting metadata-only with zero outside changes, 66 narrow changes),
+108 remote pairs (66 exact, all administrator/disconnected maps identical),
+and 66 maximum-name narrow pairs. Reviewed all six standard dragged/paged/fresh/
+error and maximum-name original/paged/error comparisons. Remaining busy/error
+variants and gameplay/native GUI viewport audits remain separate work.

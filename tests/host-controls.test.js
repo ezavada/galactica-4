@@ -3,6 +3,14 @@ const test=require('./test-framework.js'),fs=require('fs'),path=require('path'),
 function fixture(fn){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-host-controls-'));try{const host=Host.create({numHumans:2,numComputers:1,sectorSize:1,density:1,maxTimePerTurn:300,endEarly:false},path.join(dir,'host.json'));fn(host);}finally{fs.rmSync(dir,{recursive:true,force:true});}}
 function form(pending=Array.from({length:7},(_,i)=>({player:i+1,name:'Captain '+i+' 星'}))){const record={},state={address:'http://127.0.0.1:1',title:'Host',info:{turn:2,clock:{paused:false,secondsRemaining:300}},administration:{complete:false,pending,players:[]}},backend={latest:()=>record,supported:true,describe:()=>state};const window=new HostWindow(backend,()=>true);window.open();return {window,state,backend};}
 module.exports=()=>test.describe('Desktop host turn administration',()=>{
+ test.it('keeps compact End Turn names, paging, feedback and fixed confirmation commands complete in all six languages',()=>{
+  const language=pdg.res.getLanguage(),measure=(text,size=12)=>Array.from(text).length*size*.65,Caption=require('../src/js/button-caption.js');
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const pending=Array.from({length:7},(_,i)=>({player:i+1,name:'Captain 星 '+('Ω'.repeat(20))})),{window:w}=form(pending);w.requestEnd();w.message=pdg.res.getString(1030);let l=w.layout(320,340,measure);
+   test.assertTrue(l.compact);test.assertTrue(w.scrollLimit>0);test.assertEqual(l.buttons.filter(b=>!b.body).map(b=>b.action).join(','),'cancel,confirmEnd');test.assertEqual(l.statusLines.map(x=>x.text).join(''),w.message);test.assertTrue(l.labels.map(x=>x.text).join('').includes(pending[0].name));
+   for(const b of l.buttons)test.assertTrue(Caption.width(b.label,b.key,measure,{size:b.size})+16<=b.rect.width+.001);
+   w.key(pdg.key_PageDown);test.assertTrue(w.bodyScroll>0);w.action('next');l=w.layout(320,340,measure);test.assertEqual(w.bodyScroll,0);test.assertTrue(l.labels.map(x=>x.text).join('').includes(pending[4].name));test.assertTrue(l.buttons.find(b=>b.action==='next').disabled);test.assertFalse(l.buttons.find(b=>b.action==='previous').disabled);w.cancel();test.assertEqual(w.confirmation,null);test.assertEqual(w.stage,'hosting');
+  }}finally{pdg.res.setLanguage(language);}
+ });
  test.it('shows the selected remote host connection failure above a stale operation caption in every language',()=>{
   const status=require('../src/js/network-host-status.js'),language=pdg.res.getLanguage(),client={},other={};
   try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const expired=I18n.getString(1031),window={record:{remoteAdministrator:true,client},message:I18n.getString(1030)},sessions=[{network:other,networkError:I18n.getString(1032)},{network:client,networkError:expired}];

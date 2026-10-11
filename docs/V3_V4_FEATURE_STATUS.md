@@ -7748,3 +7748,46 @@ are excluded. Window chrome remains Partial for compact End Turn, remaining
 busy/error variants and the separate gameplay minimum-viewport audit. Overall
 parity, broad localization, physical LAN/packaged GUI and Map Generation completion
 remain unproven.
+
+
+### Compact pending-player End Turn confirmation (completed)
+
+Audited shipped v3 `Classes/GalacticaHostDoc.cp:496–527` pending assigned, alive
+human-player filtering and confirmation, and `Classes/GalacticaHost.cpp:2450–2455`
+advancement. Existing filters, captured-turn guards and durable-save semantics
+are unchanged. Below 400px wide, the dialog preserves its base height, wraps
+complete player names and counts, scrolls paging commands in the body, resets
+scroll on page changes and keeps complete feedback and Cancel/Confirm fixed.
+Wheel and Page Up/Down reach overflowing content. No new strings or engine edits.
+
+Both full native suites pass **1,787 tests, zero failures**. A six-language
+regression covers long Unicode names, complete feedback, fixed commands, paging,
+scroll reset and cancellation. All 36 actual-input local-owner before/after
+workflows pass at 800×600, 640×340 and 320×340 in en/de/es/fr/ja/ru. Seven real
+native clients claim human slots; canvas/key input exercises paging, constrained
+dragging/outside clunk, cancellation, failed-save rollback/retry, all clients
+refreshing the saved turn, stale captured-turn rejection and durable Stop.
+Twelve additional narrow workflows pass with maximum-length wide-letter names.
+Twelve authenticated remote narrow workflows also pass inherited Settings,
+admission, role restrictions, dragging/cancellation, authorization loss and
+disconnect checks. Their fixture has no pending human posts: remote End Now is
+immediate, so this does not establish every remote pending-player mutation path.
+
+Standard local comparison: 198 pairs, 72 exact ordinary confirmations, 60
+ordinary hosting metadata-only pairs with zero changes outside connection/file/
+clock regions, and 66 narrow layout/scroll or metadata differences. Remote:
+108 pairs, 66 exact; all administrator/disconnected maps remain identical.
+Maximum-name comparison: 66 narrow pairs. Reviewed all six standard dragged,
+next-page, fresh-confirmation and save-error comparisons, and all six maximum-name
+original, next-page and save-error comparisons. Wrapped names remain inside the
+body; scrolling reaches lower rows/pagers while final commands remain visible.
+Evidence: `/private/tmp/galactica-end-turn/`, `galactica-remote-end-turn/`,
+`galactica-end-turn-wide/`, their comparison files and
+`galactica-end-turn-{pdg,pdg-devel}-final-unit.log`. An unrelated artwork change
+exposed five string-image mock failures; separate test-only commit `df3fd5d` gives
+those mocks actual PNG dimensions, after which both full suites pass. Concurrent
+artwork implementation changes are excluded from this item.
+
+Compact nested Host stages are covered; window chrome remains Partial for
+remaining busy/error variants and the separate gameplay minimum-viewport audit.
+Overall parity, broad localization and Map Generation completion remain open.

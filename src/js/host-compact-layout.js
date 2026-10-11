@@ -9,8 +9,8 @@ function pack(items,left,width,measure){
  }return rows;
 }
 function layout(host,width,height,source,measure,message=host.message){
- const rect={x:12,y:12,width:width-24,height:Math.min(['adminPassword','playerName','players','admission','initialState','initialValue'].includes(host.stage)?source.rect.height:568,height-24)},left=rect.x+14,inner=rect.width-28,bodyWidth=inner-10;
- const footer=host.stage==='admission'?source.buttons.filter(button=>['cancel','saveAdmission'].includes(button.action)):(source.info || ['players','initialState'].includes(host.stage))?source.buttons.filter(button=>['cancel','stop'].includes(button.action)):source.buttons;
+ const rect={x:12,y:12,width:width-24,height:Math.min(['adminPassword','playerName','players','admission','initialState','initialValue','endTurn'].includes(host.stage)?source.rect.height:568,height-24)},left=rect.x+14,inner=rect.width-28,bodyWidth=inner-10;
+ const footer=host.stage==='endTurn'?source.buttons.filter(button=>['cancel','confirmEnd'].includes(button.action)):host.stage==='admission'?source.buttons.filter(button=>['cancel','saveAdmission'].includes(button.action)):(source.info || ['players','initialState'].includes(host.stage))?source.buttons.filter(button=>['cancel','stop'].includes(button.action)):source.buttons;
  const buttons=pack(footer,left,inner,measure),footerTop=rect.y+rect.height-12-buttons.length*30;
  const status=wrap(message || '',inner,t=>measure(t,12)),statusTop=footerTop-8-status.length*16;
  const bodyClip={x:left,y:rect.y+44,width:bodyWidth,height:Math.max(32,statusTop-rect.y-52)};
@@ -43,7 +43,7 @@ function layout(host,width,height,source,measure,message=host.message){
   if(field){const focus=field.focusRect;if(focus.y<bodyClip.y+scroll)scroll=clamp(focus.y-bodyClip.y,limit);else if(focus.y+focus.height>bodyClip.y+scroll+bodyClip.height)scroll=clamp(focus.y+focus.height-bodyClip.y-bodyClip.height,limit);}
   host.revealFocus=false;host.compactFocus=host.focus;host.compactBodyHeight=bodyClip.height;
  }
- if(['players','admission','initialState'].includes(host.stage) && host.compactPage!==(host.stage==='admission'?host.admissionList+':'+host.page:host.page)){scroll=0;host.compactPlayer=null;host.compactAdmission=null;host.compactInitial=null;host.compactPage=host.stage==='admission'?host.admissionList+':'+host.page:host.page;}
+ if(['players','admission','initialState','endTurn'].includes(host.stage) && host.compactPage!==(host.stage==='admission'?host.admissionList+':'+host.page:host.page)){scroll=0;host.compactPlayer=null;host.compactAdmission=null;host.compactInitial=null;host.compactPage=host.stage==='admission'?host.admissionList+':'+host.page:host.page;}
  if(host.stage==='players' && host.compactPlayer!==host.playerSelection){const selected=choices.find(choice=>choice.value===host.playerSelection);
   if(selected){const r=selected.rect;if(r.y<bodyClip.y+scroll)scroll=clamp(r.y-bodyClip.y,limit);else if(r.y+r.height>bodyClip.y+scroll+bodyClip.height)scroll=clamp(r.y+r.height-bodyClip.y-bodyClip.height,limit);}host.compactPlayer=host.playerSelection;
  }

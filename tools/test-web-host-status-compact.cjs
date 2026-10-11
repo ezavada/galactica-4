@@ -1,6 +1,6 @@
 // Actual Host title capture and actual native-host controls against a native HTTP host.
 // Fullscreen is disabled in this fixture to keep screenshot comparisons stable.
-// Usage: node tools/test-web-host-status-compact.cjs BUILD_DIR SCREENSHOT_DIR [LANGUAGE] [before|after] [WIDTH HEIGHT] [admin-password|players|admission|initial]
+// Usage: node tools/test-web-host-status-compact.cjs BUILD_DIR SCREENSHOT_DIR [LANGUAGE] [before|after] [WIDTH HEIGHT] [admin-password|players|admission|initial|end-turn]
 // Chrome output is muted without disabling application sound logic.
 // GALACTICA_CHROME overrides Chrome. The host and browser profiles are temporary.
 const fs=require('fs'),http=require('http'),path=require('path'),os=require('os'),{spawn}=require('child_process');
@@ -91,13 +91,26 @@ const inspect=async(name)=>{
  await evaluate('window.beforeCues=cues.length;window.oldStage=hostAudit.host.stage;void 0');await point('({x:1,y:1})');
  await check('hostAudit.host.active && hostAudit.host.stage===oldStage && !visual.getGame() && cues.length===beforeCues+1 && cues[cues.length-1]===1012','Outside click leaked '+name);await capture(name+'-dragged');
 };
-await click('hostAudit.start()');await field('title');await type('Live '+lang+' 星・'+('Galactica '.repeat(3)));if(process.argv[8]==='players'){await field('computers');await type('5');}await field('file');await type('live-'+lang+'.json');await action('create');await wait('!hostAudit.host.busy','Host creation unfinished');
+await click('hostAudit.start()');await field('title');await type('Live '+lang+' 星・'+('Galactica '.repeat(3)));if(process.argv[8]==='players'){await field('computers');await type('5');}if(process.argv[8]==='end-turn'){await field('humans');await type('7');}await field('file');await type('live-'+lang+'.json');await action('create');await wait('!hostAudit.host.busy','Host creation unfinished');
 await check('hostAudit.host.stage==="hosting" && !!hostAudit.host.record.address','No live native host');
 await evaluate('window.firstPort=hostAudit.host.record.port;window.firstId=hostAudit.host.record.id;window.liveTitle=hostAudit.host.record.title;void 0');
 await capture('hosting-top');await inspect('hosting');
 if(mode!=='before' && viewWidth<400){
  await check(`(()=>{const l=${layout};return (l.title+l.labels.map(label=>label.text).join('')).includes(liveTitle)})()`,'Long live title missing');
  await check(`${layout}.buttons.filter(b=>!b.body).map(b=>b.action).join(',')==='stop,cancel'`,'Stop/Close not fixed');
+}
+if(process.argv[8]==='end-turn'){
+ const fixture=async(endpoint,data)=>{const r=await fetch(broker+endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await r.json();if(!r.ok)throw Error('Fixture '+endpoint+' '+JSON.stringify(result));return result;};
+ const names=Array.from({length:7},(_,i)=>process.env.GALACTICA_TEST_END_TURN_NAME?process.env.GALACTICA_TEST_END_TURN_NAME+i:'Captain 星 '+('Ω'.repeat(10))+' '+i+' <Enter>');
+ await evaluate('(async()=>{window.turnClients=[];const names='+JSON.stringify(names)+';for(let i=0;i<7;i++){const c=hostAudit.makeClient(hostAudit.host.record.address);await c.connect({name:names[i],password:"same"});turnClients.push(c);}return null;})()');
+ await wait('hostAudit.host.record.administration.pending.length===7','Seven pending human players not reflected');await action('endNow');await check('hostAudit.host.stage==="endTurn" && hostAudit.host.confirmation.turn===1','Confirmation not captured');await inspect('end-turn');
+ await action('next');await check('hostAudit.host.page===1','End Turn paging failed');await capture('end-turn-next-page');if(mode!=='before' && viewWidth<400)await check('hostAudit.host.bodyScroll===0','New pending-player page retained scroll');await action('previous');await capture('end-turn-first-page');
+ await key('Escape');await check('hostAudit.host.stage==="hosting" && hostAudit.host.record.info.turn===1 && !hostAudit.host.confirmation','Cancel advanced turn');
+ await action('endNow');await fixture('/fail-stop',{id:await evaluate('hostAudit.host.record.id')});await action('confirmEnd');await wait('!hostAudit.host.busy','End Turn failed save unfinished');await check('hostAudit.host.stage==="endTurn" && !!hostAudit.host.message && hostAudit.host.record.info.turn===1','End Turn save failure lost draft or advanced turn');await capture('end-turn-save-error');await key('Enter');await wait('!hostAudit.host.busy','End Turn retry unfinished');await check('hostAudit.host.stage==="hosting" && hostAudit.host.record.info.turn===2 && !hostAudit.host.message','End Turn retry failed');await capture('end-turn-saved');
+ await evaluate('(async()=>{for(const c of turnClients)await c.refresh();return null;})()');await check('turnClients.every(c=>c.model.turn===2)','Native players did not receive next turn');
+ await action('endNow');await fixture('/turn-control',{id:await evaluate('hostAudit.host.record.id'),action:'end',turn:2});await action('confirmEnd');await wait('!hostAudit.host.busy','Stale End Turn unfinished');await wait('hostAudit.host.record.info.turn===3','Concurrent native turn not refreshed');await check('hostAudit.host.stage==="hosting" && !!hostAudit.host.message','Stale confirmation retained');await capture('end-turn-stale');
+ await action('endNow');await capture('end-turn-new-confirmation');await key('Escape');await check('hostAudit.host.record.info.turn===3','New confirmation cancel advanced turn');await action('stop');await wait('!hostAudit.host.busy && !hostAudit.host.active','End Turn host did not stop');await check('hostAudit.backend.records.length===0','End Turn host remained registered');
+ console.log('PASS End Turn actual seven-player names/paging, modal drag/isolation, cancellation, failed-save rollback/retry, player refresh, stale confirmation, new-turn cancel and stop '+lang+' '+viewWidth+'x'+viewHeight+' '+mode);return;
 }
 if(process.argv[8]==='initial'){
  const fixture=async(endpoint,data)=>{const r=await fetch(broker+endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await r.json();if(!r.ok)throw Error('Fixture '+endpoint+' '+JSON.stringify(result));return result;};

@@ -439,3 +439,18 @@ remote before/after workflows; reviewed selected/paged/errors, technology/owner,
 hull-choice and remote-dragged comparisons. Both native suites pass 1,786 tests.
 Evidence: `/private/tmp/galactica-initial/` and `galactica-remote-initial/`.
 Compact End Turn and the broad localization completion audit remain open.
+
+
+### Compact pending-player End Turn confirmation (2026-10-11)
+
+Existing title, turn/count, full player names, paging captions, complete feedback
+and Cancel/Confirm now reflow below 400px wide. Final commands stay fixed while
+long names and paging controls scroll. No IDs or untranslated UI strings added.
+All six languages pass 36 local-owner and 12 maximum-name before/after workflows,
+plus 12 authenticated remote safety regressions. Remote fixtures do not have
+pending human posts; immediate End Now coverage is distinct from local pending
+confirmation coverage. Reviewed all six standard dragged/paged/fresh/error and
+maximum-name original/paged/error comparisons. Both native suites pass 1,787
+tests following the separate artwork test-mock correction. Evidence prefixes:
+`/private/tmp/galactica-end-turn`, `galactica-end-turn-wide`,
+`galactica-remote-end-turn`. Broad localization completion remains open.
