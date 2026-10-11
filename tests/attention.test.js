@@ -252,6 +252,31 @@ module.exports=function(){test.describe('V3 human call-ins and attention',()=>{
         g.handleKeyPress(13);test.assertEqual(g.uiWindow,'endTurnConfirm');test.assertEqual(g.turn,turn);
         g.executeUIAction({type:'reviewAttention'});test.assertNotNull(g.overlay);test.assertEqual(g.turn,turn);test.assertEqual(g.uiWindow,null);
     });
+    test.it('shares End Turn menu/map availability for map targets, posting and disconnected clients',()=>{
+        const {g}=fixture();g.uiWindow='menu';
+        const menu=()=>g.display.getCommandActionRegions().find(row=>row.action.type==='endTurn');
+        const map=()=>g.display.getMapButtonRegions().find(row=>row.action.type==='endTurn');
+        test.assertDefined(menu());test.assertFalse(menu().disabled);test.assertFalse(map().disabled);
+        for(const key of ['pendingMapOrderObject','pendingRendezvousPlacement','uiSliderDrag','uiMapScrollDrag','uiWindowDrag','mapSelectionPicker']){
+            g[key]={};test.assertTrue(menu().disabled);test.assertTrue(map().disabled);test.assertFalse(g.requestEndTurn());g[key]=null;
+        }
+        g.clientPlayerNum=1;test.assertTrue(menu().disabled);g.networkCommands={post:()=>true,status:()=>null};test.assertFalse(menu().disabled);
+        g.clientPosting=true;test.assertTrue(menu().disabled);g.networkCommands.available=()=>true;test.assertFalse(menu().disabled);
+        g.clientTurnPosted=true;test.assertTrue(menu().disabled);g.clientTurnPosted=false;g.networkCommands.available=()=>false;test.assertTrue(menu().disabled);
+        g.clientAdministrator=true;test.assertFalse(g.display.getCommandActionRegions().some(row=>row.action.type==='endTurn'));test.assertFalse(g.canRequestEndTurn());
+    });
+    test.it('localizes and marks End Turn controls for unread held notices, with complete short-screen menu layout',()=>{
+        const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){
+            pdg.res.setLanguage(lang);const {g,home}=fixture();g.uiWindow='menu';g.toggleHoldGameReports();g.recordDiscoveryReports(home,1);
+            g.sessionCommands={};g.fileCommands={};g.manualCommands={};g.chatCommands={};g.fullscreen={supported:true,error:'failure',active:()=>false};
+            for(const height of [600,480]){g.port.getDrawingArea=()=>new pdg.Rect(800,height);const rows=g.display.getCommandActionRegions(),end=rows.find(row=>row.action.type==='endTurn');
+                test.assertEqual(end.label,pdg.res.getString(563));test.assertEqual(end.key,'Enter');test.assertTrue(end.active);test.assertFalse(end.disabled);
+                test.assertTrue(g.display.getMapButtonRegions().find(row=>row.action.type==='endTurn').active);
+                test.assertTrue(end.rect.y+end.rect.height<=height);for(let i=1;i<rows.length;i++)test.assertTrue(rows[i].rect.y>=rows[i-1].rect.y+rows[i-1].rect.height);
+            }
+            g.executeUIAction({type:'endTurn'});test.assertEqual(g.uiWindow,'endTurnConfirm');test.assertEqual(g.turn,1);
+        }}finally{pdg.res.setLanguage(old);}
+    });
     test.it('uses translated controls, prompts and call-in events in every language',()=>{
         const {g,ship}=fixture();const previous=pdg.res.getLanguage();
         try{for(const lang of ['en','de','es','fr','ja','ru']){

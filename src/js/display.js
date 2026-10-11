@@ -1507,7 +1507,7 @@ class Display {
             { key: 'L', label: this.STR.fleets, window: 'fleets', action: { type: 'toggleWindow', window: 'fleets' } },
             { key: 'U', label: this.STR.rendezvous, action: { type: 'beginRendezvousPlacement' } },
             { key: 'Tab', label: I18n.getString(743,'Next item')+` (${this.game.attention.manualPending().length})`, action: { type: 'nextAttention' } },
-            { key: 'Enter', label: this.game.networkCommands && this.game.networkCommands.status()?I18n.getString(this.game.networkCommands.status()):this.STR.endTurn, action: { type: 'endTurn' } },
+            { key: 'Enter', label: this.game.networkCommands && this.game.networkCommands.status()?I18n.getString(this.game.networkCommands.status()):this.STR.endTurn, action: { type: 'endTurn' }, active:this.game.getUnreviewedItemCount()>0, disabled:!this.game.canRequestEndTurn() },
             { key: '-',icon:'zoom-out',label:I18n.getString(788,'Zoom out'),action:{type:'zoomOut'} },
             { key: '+',icon:'zoom-in',label:I18n.getString(787,'Zoom in'),action:{type:'zoomIn'} },
             { key: 'Home', icon:'home', label: this.STR.home, action: { type: 'selectHomeStar' } },
@@ -1545,7 +1545,7 @@ class Display {
     drawMapButtons() {
         const buttons = this.getMapButtonRegions();
         for (const button of buttons) {
-            this.drawUIButton(button.rect, button.label, button.key, {icon:button.icon,iconOnly:!!button.icon, active: button.action.type==='nextAttention' ? this.game.attention.manualPending().length>0 : button.window && this.game.uiWindow === button.window });
+            this.drawUIButton(button.rect, button.label, button.key, {icon:button.icon,iconOnly:!!button.icon, disabled:!!button.disabled, active: button.active || (button.action.type==='nextAttention' ? this.game.attention.manualPending().length>0 : button.window && this.game.uiWindow === button.window) });
         }
     }
 
@@ -1818,7 +1818,7 @@ class Display {
     }
 
     getCommandWindowHeight() {
-        return 68+(this.game.chatCommands?34:0)+(this.game.canStartTutorial()?34:0)+(this.game.manualCommands?34:0)+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error?438:396):362);
+        return 68+(this.game.getCurrentHumanPlayer()?34:0)+(this.game.chatCommands?34:0)+(this.game.canStartTutorial()?34:0)+(this.game.manualCommands?34:0)+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error?438:396):362);
     }
 
     getCommandWindowRect() {
@@ -2005,7 +2005,8 @@ class Display {
             comparison,
             {rect:{x:rect.x+14,y:rect.y+182,width:rect.width-28,height:28},
             label:I18n.getString(743,'Next item')+` (${this.game.attention.manualPending().length})`,key:'Tab',active:this.game.attention.manualPending().length>0,action:{type:'nextAttention'}},
-            settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial,...chat,...reports]);
+            settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial,...chat,...reports,
+            {rect:{x:rect.x+14,y:reportsY+68,width:rect.width-28,height:28},label:this.game.networkCommands && this.game.networkCommands.status()?I18n.getString(this.game.networkCommands.status()):this.STR.endTurn,key:'Enter',active:this.game.getUnreviewedItemCount()>0,disabled:!this.game.canRequestEndTurn(),action:{type:'endTurn'}}]);
     }
 
     getMapSelectionRect() {
@@ -2904,7 +2905,7 @@ class Display {
 
         const mapButton = this.getMapButtonRegions().find(button => this.containsPoint(button.rect, x, y));
         if (mapButton) {
-            return mapButton.action;
+            return mapButton.disabled?{type:'consume',blocked:true}:mapButton.action;
         }
 
         const panel = this.getUIPanelRegions().find(rect => this.containsPoint(rect, x, y));

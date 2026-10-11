@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1742 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1744 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -83,7 +83,7 @@ The largest blockers to a complete game are:
 | Procedural galaxy construction | Random star count/placement, separated home systems, unique names, named homeworlds. | ✅ Implemented | ➖ N/A | `map-generator.js:36-239` ports the main v3 construction path with the corrected 1024×1024 coordinate scale. |
 | Initial homeworld state | One named home system, tech 1, population, scanner, and colony construction at 99%. | ✅ Implemented | ➖ N/A | `map-generator.js:249-299`. |
 | Computer faction naming | Home-star name plus faction word, such as “Vega Alliance.” | ✅ Implemented | ➖ N/A | Resource-driven templates and group names are used in `map-generator.js:302-333`. |
-| End turn | Button/menu/shortcut; multiplayer waits for posts as needed. | 🟡 Partial | 🟡 Partial | Enter and the End Turn map button advance the local simulation. Unreviewed attention requests and visible, queued or held accessible reports require confirmation, with Review/End anyway/Esc paths; Review explicitly plays held reports without changing Hold; actual advancement closes event overlays/list/confirmation first. Awaiting map clicks and captured sliders cannot advance via the UI. Normal host-authoritative posting, timed turns and multiplayer coordination are implemented and covered by the current full suite. Local victory starts the next turn, and later End Turn requests enter post-game play with production and the original recorded result preserved. Multiplayer hosts also continue post-game orders, timed turns and host administration while retaining the original result; see the network post-game audit below. |
+| End turn | Button/menu/shortcut; multiplayer waits for posts as needed. | 🟡 Partial | 🟡 Partial | Enter, the command-menu End Turn entry and the End Turn map button advance the local simulation. Menu/map controls share availability, show unread attention state, and disable while targeting/dragging or a client post is in progress; accepted menu advancement dismisses the command window. Unreviewed attention requests and visible, queued or held accessible reports require confirmation, with Review/End anyway/Esc paths; Review explicitly plays held reports without changing Hold; actual advancement closes event overlays/list/confirmation first. Awaiting map clicks and captured sliders cannot advance via the UI. Normal host-authoritative posting, timed turns and multiplayer coordination are implemented and covered by the current full suite. Local victory starts the next turn, and later End Turn requests enter post-game play with production and the original recorded result preserved. Multiplayer hosts also continue post-game orders, timed turns and host administration while retaining the original result; see the network post-game audit below. |
 | Victory and defeat | Defeat notifications and victory/defeat conclusion screens. | ✅ Implemented | ✅ Implemented | Piece counts and combat/capture trigger queued defeat notices and terminal victory/stalemate reports. Local victory/defeat show the complete v3 TEXT 4000/4001 narratives with the actual full player name; other players/observers receive broadcast summaries. Neutral modal panels wrap/page Unicode text, isolate map input and acknowledge without advancing turns. Retained outcomes replay through View report/Enter, without advancing the clock during replay. Local End Turn now starts the next turn even when victory is first recorded, and subsequent requests continue post-game production without repeating the result. The phase persists in complete saves; all six actual UI comparisons passed and both suites pass 1,660 tests. Multiplayer hosts now retain the result while accepting post-game orders and continuing countdowns and host administration; the network post-game audit below records verification. All six languages and actual turn-7 browser transitions are verified. Sound/art enhancements remain their separate checklist items. |
 
 ### Possible lifecycle enhancements beyond v3, not counted in Section 1
@@ -6077,3 +6077,44 @@ browser logs/screenshots and `/private/tmp/galactica-held-warning-after-app`.
 The broad End Turn row remains partial pending its complete workflow audit;
 this closes the concrete held-report discrepancy without claiming overall
 parity or map-generation completion.
+
+## End Turn command and availability parity
+
+`GalacticaDoc.cp:973–982` enables End Turn when no map click is awaited and
+marks it when unread manual or automatic notices remain. The source client
+also disables it without a host endpoint or for an administrator
+(`GalacticaClient.cpp:1328–1350`); posting disables the button immediately
+(1507–1534). V4 had the map button/Enter path but no End Turn command-menu
+entry and no unread visual state.
+
+The existing localized End Turn label and Enter hint now appear in the command
+menu. Both menu and map buttons highlight unread requests, including held
+reports, and share `Game.canRequestEndTurn()` with the keyboard/action path.
+Map-target requests, selection pickers and captured slider/map/title drags
+block advancement. Administrators have no normal End Turn controls. Joined
+clients require a posting service; posted or actively posting clients cannot
+post again. The application adapter checks the live authenticated session and
+post promise, allowing retry after a failed pending post while preventing a
+second active request. Accepted command-menu advancement now closes the modal
+menu; confirmation continues to replace it when unread notices remain.
+
+The expanded menu measures/scales its complete layout in 600px and 480px
+viewports, including File, multiple documents, manual, tutorial, chat and
+fullscreen-error controls. Native tests check all six localized End Turn labels,
+non-overlapping rows, viewport bounds, held unread highlights and confirmation,
+plus target/drag/client-post/administrator availability. Both complete muted
+native suites pass 1744 tests, zero failures, recorded in
+`/private/tmp/galactica-end-turn-menu-{public,devel}-unit.log`.
+
+`tools/test-web-end-turn-menu.cjs` passes before/after actual local advancement,
+command-menu Hold, unread End Turn click, Cancel, Review, dismissal and save
+checks in en/de/es/fr/ja/ru. All 42 matched screenshots were compared: 30 changed
+(the two menu layouts and unread map highlight, including behind confirmation
+and Cancel), 12 identical (ready/reviewed map states). English before/after
+and all six localized unread command menus were visually inspected. The live
+browser check caught the accepted-menu dismissal bug, which was fixed before
+final validation. Evidence is `/private/tmp/galactica-end-turn-menu-comparison.json`,
+matching browser logs and `/private/tmp/galactica-end-turn-menu-after-app`.
+No new strings or translations were needed. The broad End Turn workflow row
+remains open for its final local/host/client completion audit; this entry closes
+the concrete command/status discrepancy.

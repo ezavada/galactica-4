@@ -2711,12 +2711,17 @@ class Game {
         return items.size;
     }
 
-    requestEndTurn() {
+    canRequestEndTurn() {
         if(this.clientAdministrator)return false;
-        if(this.clientPlayerNum && this.clientTurnPosted)return false;
-        if(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag || this.uiWindowDrag || this.mapSelectionPicker)return false;
+        if(this.clientPlayerNum && (this.clientTurnPosted || !this.networkCommands ||
+            (this.networkCommands.available ? !this.networkCommands.available() : this.clientPosting)))return false;
+        return !(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag || this.uiWindowDrag || this.mapSelectionPicker);
+    }
+
+    requestEndTurn() {
+        if(!this.canRequestEndTurn())return false;
         if(this.getUnreviewedItemCount()>0) {this.uiWindow='endTurnConfirm';return false;}
-        this.endTurn();return true;
+        this.uiWindow=null;this.endTurn();return true;
     }
 
     canToggleCallIn(object=this.selectedObject) {

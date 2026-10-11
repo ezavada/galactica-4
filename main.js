@@ -906,7 +906,10 @@ function attachGameServices(nextGame) {
     if(nextGame.clientPlayerNum || nextGame.clientAdministrator)nextGame.chatCommands={open:openNetworkChat};
     nextGame.manualCommands=userManual;
     nextGame.tutorialCommands={available:()=>!tutorialSession,start:()=>{if(nextGame.uiWindow==='menu')nextGame.uiWindow=null;return beginTutorial();}};
-    if(nextGame.clientPlayerNum)nextGame.networkCommands={post:()=>{
+    if(nextGame.clientPlayerNum)nextGame.networkCommands={available:()=>{
+        const session=sessions.sessions.find(s=>s.game===nextGame),client=session && session.network;
+        return !!(client && client.session && !client.postPromise && !nextGame.clientTurnPosted);
+    },post:()=>{
         const session=sessions.sessions.find(s=>s.game===nextGame);if(!session || !session.network || session.network.postPromise || nextGame.clientTurnPosted)return false;
         session.network.post().then(model=>{if(sessions.sessions.includes(session)){replaceNetworkModel(session,model);session.networkError=null;}},error=>{if(sessions.sessions.includes(session))session.networkError=require('./src/js/network-join.js').errorText(error);});return true;
     },status:()=>{const session=sessions.sessions.find(s=>s.game===nextGame),client=session && session.network;return nextGame.clientTurnPosted?1038:client && client.postPromise?1037:client && client.pendingPost?1039:null;}};
