@@ -143,7 +143,7 @@ The largest blockers to a complete game are:
 | Rename colony/system | Edit menu rename dialog; new colony requests naming/production through attention. | ✅ Implemented | ✅ Implemented | Neutral human colonization creates the v3-style private instruction report and one attention request. Tab/manual selection or report Go to centers/selects the colony and displays the instruction above existing Rename/N and production controls. Unicode Save/Cancel remain available; allocations preserve defaults until edited. Recaptured/removed colonies cannot expose the private request. The v3 report has no modal naming window: `Evnt`128/event22 has zero PPob/autoShow and STR#500/45 requests naming and production. |
 | System comparison window | Sortable “Your Star Systems” table. | ✅ Implemented | ✅ Implemented | Command-menu window lists the current human player’s systems with all nine v3 columns: name, tech, population in thousands, production, build class, completion, total defense, satellites and mobile ships. Every column sorts both ways with stable ties; paging keeps the window within the viewport. Single-click highlights; double-click or Enter selects and centers the system. Data refreshes live and stale ownership cannot be opened. Title-bar movement and corner height resizing retain pointer capture, resize-aware paging and in-session page retention. Position/height and sort restore from native/browser preferences after a fresh app reload. Viewport clamping preserves saved bounds; Escape ends a gesture first, and map input cannot pass through the modal. All six language layouts and real browser flows are verified; full suites: 909 passed on release/current native PDG. |
 
-## 4. Ships and navigation (Functionality 100%, UI 97%)
+## 4. Ships and navigation (Functionality 100%, UI 100%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -167,7 +167,7 @@ The largest blockers to a complete game are:
 | Courier technology pickup/transfer | Courier updates its library from higher-tech systems and upgrades lower-tech colonies. | ✅ Implemented | ✅ Implemented | Departure/arrival and docked standalone refresh match v3 pickup/delivery, including the restriction on scouts inside fleets. Allied arrival reselects the existing hull price at current star technology while preserving paid effort, paused production and other hull credits. Technology, completion, scanner and ETA displays refresh through ordinary inspectors. Audited v3 `CShip.cpp:204–213,466–489` logs transfers only to debug output and emits no dedicated transfer report, so a separate popup is not a parity requirement. |
 | Battleship technology delivery | Battleships can upgrade colonies but cannot update their own library. | ✅ Implemented | ➖ N/A | `applyTechnologyTransferToStar()` lets battleships/fleets raise lower allied star tech while only scouts can pick up higher star tech. |
 | Docking and repair | Damaged mobile ships repair at friendly systems using a tech-level repair budget. | ✅ Implemented | ✅ Implemented | `Star.update()` repairs docked, non-patrolling, non-moving mobile ships and member ships inside docked fleets using `35 * techLevel`, excluding satellites. The ship panel shows docking/fleet state, current damage percentage and a live health bar that updates after repairs. v3 `CShip::RepairDamage` refreshes the object without a separate player-facing repair summary. |
-| Ship arrival/interception outcomes | Friendly arrival docks/forms fleet; enemy arrival fights. | ✅ Implemented | 🟡 Partial | Shared ship/fleet arrival resolves combat, neutral colonization and technology at the highest container, then places survivors in a living neutral/allied container or at coordinates. Nested navigation and rendezvous arrivals retain fleet groups and register the docked outer group once. Destroyed navigation targets fall back to the surviving container. Courses advance only for surviving independent actors; colony ships and their containing fleets remain docked and available for further orders. Highest-container regressions and actual browser End Turn comparisons cover these paths. A source-confirmed friendly ship interception fix now copies the destination ship’s active course and memory to the newly formed fleet, retaining progress and flags; actual six-language Course/Memory input and saved fleet movement verify it. The wider friendly docking/rendezvous presentation audit and broader Section 8 report inventory remain open. |
+| Ship arrival/interception outcomes | Friendly arrival docks/forms fleet; enemy arrival fights. | ✅ Implemented | ✅ Implemented | Shared ship/fleet arrival resolves the highest container and retains surviving actors and nested groups, registering a docked outer group once. Source-verified six-language browser audits cover friendly satellite/system docking and ship-list inspection, nested fleet arrival and member selection, rendezvous creation/rename/reuse and observer notices, neutral colonization, enemy interception, resistance/capture and defended-system invasion. Newly formed friendly fleets inherit the intercepted ship’s active course and memory. Native containment/navigation specs and saved snapshots cover destroyed-target fallback, hostile coordinate placement and course advancement. See the arrival audits below; the wider Section 8 event inventory remains separate. |
 
 ### Possible ship/navigation enhancements beyond v3, not counted in Section 4
 
@@ -5655,3 +5655,48 @@ The independent updated web app is `/private/tmp/galactica-arrival-course-after-
 No new user-facing strings are required. This closes the concrete inheritance
 bug; the broader arrival UI row remains partial until the remaining friendly
 docking/rendezvous presentation is audited.
+
+
+### Friendly docking and rendezvous: arrival UI audit
+
+V3 `Classes/CShip.cpp:495–606` reuses an existing destination fleet or
+rendezvous assembly, creates a fleet only when needed, emits NewFleet only
+for a new rendezvous assembly, and places surviving arrivals in a living
+neutral/allied container or at coordinates. A target that cannot contain
+ships falls back to its highest container. Nested fleets remain groups;
+only the outer docked group belongs to system contents. Ordinary friendly
+docking does not require a modal arrival dialog. The preceding interception
+audit restored destination-ship course and memory inheritance.
+
+`tools/test-web-friendly-arrival.cjs` exercises actual movement and real
+browser mouse/keyboard input. A courier targeted at a friendly satellite
+docks in its system and can be selected from the Ships in system list.
+An incoming colony-containing fleet aimed at a nested friendly member joins
+that member's immediate group without flattening containment or duplicating
+system contents; clicking its group row opens the retained incoming group's
+contents. Save/restore retains all parent and system references.
+
+Owner and observer rendezvous scenarios verify manual-only creation notices,
+private owner naming attention, undetected observer denial and detected
+observer access even with enemy events enabled. Real Events row selection
+and View report open the localized narrative without an explosion; Escape
+closes it without advancing the turn. The owner uses real N/Enter rename
+input. Later ships join the same assembly without another creation notice;
+an existing fleet moved to another rendezvous remains that assembly without
+another creation notice. Saved membership, rendezvous references and immutable
+report text survive restore. Reports are inspected in the normal post-movement
+turn; the helper's visibility setup is explicit and does not claim to test
+scanner-distance discovery, which has its own native coverage.
+
+All six supported language runs pass. Ten expected captures per language are
+under `/private/tmp/galactica-friendly-arrival/<language>`, with logs at
+`/private/tmp/galactica-friendly-arrival-<language>.log`. All six system-list
+and nested-group screens, plus all six owner and observer narratives, were
+visually inspected. Text and controls fit the localized layouts. Both full
+muted native suites pass 1727 tests, zero failures, recorded at
+`/private/tmp/galactica-friendly-arrival-{public,devel}-unit.log`.
+No product source or user-facing strings changed in this audit. Together
+with the neutral-colonization, inherited-course and combat audits, this
+closes Section 4's arrival-outcome UI row. Section 4 now has every counted
+functionality and UI row complete; this is a local checklist estimate, not
+a claim that the broader parity or Map Generation goal is finished.
