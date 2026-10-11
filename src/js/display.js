@@ -13,6 +13,7 @@ const SelectionPulse = require('./selection-pulse.js');
 const I18n = require('./i18n.js');
 const VisualEffects = require('./visual-effects.js');
 const DestructionEffect = require('./destruction-effect.js');
+const LabArt=require('./lab-art.js');
 const UIIcons = require('./ui-icons.js');
 const ScannerLayer = require('./scanner-layer.js');
 const PanelAppearance = require('./panel-appearance.js');
@@ -4175,16 +4176,15 @@ class Display {
             }
         }
         if (overlay.type === 'lab') {
-            const back = this.getImageCached('labback', 'events/labback.png');
-            const top = this.getImageCached('labtop', 'events/labtop.png');
-            // Layr400 starts at PICT2202; milestone one selects PICT2203.
-            const blueprintIdx = Math.max(1, Math.min(12, overlay.classIndex + 2));
-            const blueprintName = `tech/blue-${String(blueprintIdx).padStart(2, '0')}.png`;
-            const blueprint = this.getImageCached(blueprintName, blueprintName, new pdg.Color('black'));
             const centerRect = this.getClassArtRect(drawingArea);
-            if (back) this.port.drawImage(back, centerRect, this.styles.image);
-            if (blueprint) this.port.drawRect(centerRect, this.styles.labBlueprint.texture(blueprint));
-            if (top) this.port.drawImage(top, centerRect, this.styles.image);
+            for (const layer of LabArt.resolve(overlay.classIndex).layers) {
+                const key = layer.mode === 36 ? new pdg.Color(...layer.background.map(c=>c/65535)) :
+                    layer.mode === 33 ? new pdg.Color('black') : undefined;
+                const image = this.getImageCached(layer.path, layer.path, key);
+                if (!image) continue;
+                if (layer.mode === 33) this.port.drawRect(centerRect, this.styles.labBlueprint.texture(image));
+                else this.port.drawImage(image, centerRect, this.styles.image);
+            }
             this.port.drawText(this.STR.newDriveTechnology, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.1), this.getTextAttributes('yellow', 16, pdg.textStyle_Centered));
         } else if (overlay.type === 'stardock') {
             const back = this.getImageCached('stardock', 'events/newstardock.png');

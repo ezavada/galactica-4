@@ -5,10 +5,10 @@ images already retained in `old-art/Art/-final`. Source paths, SHA-256 hashes,
 dimensions and v3 picture roles are recorded in `outcome-art.json`.
 
 V3 PPob4000/4001 reference PICT4000/4001 for the affected player's victory and
-defeat. The restored final images supply those roles in v4. The original Art
-resource-fork files in the available v3 checkout are empty placeholders, so
-this provenance identifies the retained final assets rather than claiming a
-byte-for-byte match to the missing shipped resource forks.
+defeat. The restored final images supply those roles in v4. The checkout Art files lack forks, but the original release ZIPs retain
+AppleDouble art resources, now inventoried in docs/reference/v3-art-resources.json.
+These outcome PNGs identify the retained final assets; a decoded comparison
+with the recovered shipped outcome PICTs is still a separate check.
 
 The v3 repository README states: “The art assets are copyright Claudio Berni,
 and must not be used without his permission.” The existing startup/About art

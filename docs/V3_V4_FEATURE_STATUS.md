@@ -257,7 +257,7 @@ The largest blockers to a complete game are:
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
 | Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | ✅ Implemented | ✅ Implemented | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; Open and Revert retain active instruction bindings and production safeguards, with independent documents preserved. The optional wrong-course retry is verified through actual controls in all six languages. Existing-game recovery (100) is verified through actual Hide/Close controls, full completion and Open Games restoration in all six languages. Modal recovery (101) is verified through actual startup/in-game Settings entry, retry, Cancel and original restoration in all six languages; hosting recovery (103) is verified through actual Host, Cancel/Escape, local practice continuation, instruction cancellation and native-backed host creation in all six languages. The floating recovery panel stays visible and interactive above the Host modal; original documents and setup are preserved. See docs/reference/TUTORIAL_CONTROLLER.md. |
 | Internationalization | v3 language plug-ins; menu can switch languages. | ✅ Implemented | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian resources and accepts runtime language with `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven/tested; Menu → Settings → Language switches cached UI labels and numeric formatting immediately, remembers the selection and always lists native-script language names. Unported v3 dialogs/help still need future resources. |
-| Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | 🟡 Partial | v4 uses background, lab/stardock/ship assets, original outcome illustrations and fixed-size explosion frames, while most UI buttons, panels, animations, and states are styled primitives/text. Remaining parity should be tied to specific shipped v3 event/help/window imagery. |
+| Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | 🟡 Partial | v4 uses background, lab/stardock/ship assets, original outcome illustrations and fixed-size explosion frames, while most UI buttons, panels, animations, and states are styled primitives/text. The Lab now preserves source proportions, additive blueprint blending and the full shipped layer lookup/fallback, with source-generated metadata and supplemental pictures. Remaining parity should be tied to specific shipped v3 event/help/window imagery. |
 
 ### Possible UI enhancements beyond v3, not counted in Section 8
 
@@ -4676,3 +4676,34 @@ before/after and final translated Lab captures were visually inspected under
 `/private/tmp/galactica-lab-mapping-{before,after}-<language>.log` and
 `/private/tmp/galactica-lab-mapping-{public,devel}-unit.log`.
 The broader parity and map-generation goal remains active.
+
+
+### Source Lab missing-layer fallback and supplemental artwork
+
+Implemented the complete shipped layer lookup for Lab presentations, including
+signed resource IDs, exact IDs, decimal fallbacks and the application's Layr0.
+High research classes no longer remain clamped to the final blueprint. The
+runtime table contains all 146 recovered art layers plus application fallback0;
+`tools/make-v3-layer-runtime.py` regenerates it and 30 supplemental PNGs from
+the release archive/application resources with original and exported hashes.
+This supersedes the earlier outstanding Lab fallback requirement. Existing
+Lab assets, translation strings, research values and recipient privacy remain.
+
+Two regressions cover lookup boundaries/signed wrap and the full packaged
+asset/provenance inventory. Both rebuilt native PDG runtimes pass all 1,696
+unit tests. Eight source-art checks pass, including runtime regeneration and
+export PICT provenance. The browser helper uses actual report controls and
+keyboard dismissal for normal, missing and generic IDs in all six languages;
+all twelve before/after runs pass. Of 96 paired scenes, 60 ordinary, observer
+and still-valid views are byte-identical; the 36 changed images are the six
+true fallback cases in each language. English before/after, normal and generic
+views plus translated fallback captures were visually inspected under
+`/private/tmp/galactica-lab-fallback/{before,after}/<language>`. Logs use
+`/private/tmp/galactica-lab-fallback-{before,after}-<language>.log` and
+`/private/tmp/galactica-lab-fallback-{public,devel}-unit.log`.
+
+The decoder limitation for blueprint PICT2208 and the unusual decoded bitmap
+size of PICT2999 are explicitly recorded in `docs/reference/EVENT_REPORTS.md`;
+this does not claim original-platform pixel equivalence for those payloads or
+completion of other window/art roles. The broader parity/map-generation goal
+remains active.

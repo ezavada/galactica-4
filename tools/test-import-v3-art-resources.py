@@ -46,6 +46,31 @@ class ArtReferenceTests(unittest.TestCase):
                 self.assertEqual(result.returncode,0,f'PICT{number}: {result.stderr}')
                 self.assertEqual(result.stderr.strip(),'0 (0)')
 
+    def test_runtime_lookup_regeneration_includes_application_fallback(self):
+        source = ROOT.parent/'galactica-anno-dominari-3'
+        if not source.exists():
+            self.skipTest('Original source unavailable')
+        spec=importlib.util.spec_from_file_location('runtime',ROOT/'tools/make-v3-layer-runtime.py')
+        runtime=importlib.util.module_from_spec(spec);spec.loader.exec_module(runtime)
+        main=(source/'Resources/gal-mainrsrc.r').read_bytes().decode('mac_roman')
+        expected=runtime.runtime(self.reference,main)
+        self.assertEqual((ROOT/'src/js/shipped-art-layers.js').read_text(),expected)
+        self.assertIn('"0":[{"picture":100',expected)
+
+    def test_fallback_provenance_matches_recovered_picture_payloads(self):
+        archive=ROOT.parent/'galactica-anno-dominari-3/release/gad-3.0.2-cdrom.zip'
+        if not archive.exists():self.skipTest('Original release archive unavailable')
+        with zipfile.ZipFile(archive) as source:
+            inventory=art.resources(art.resource_fork(source.read(self.reference['appleDoubleEntry'])))
+        nonmodule=(archive.parents[1]/'Resources/gal-non-module.r').read_bytes().decode('mac_roman')
+        spec=importlib.util.spec_from_file_location('presentation',ROOT/'tools/import-v3-presentation.py')
+        presentation=importlib.util.module_from_spec(spec);spec.loader.exec_module(presentation)
+        inventory[('PICT',100)]=presentation.resource(nonmodule,'PICT',100)
+        provenance=json.loads((ROOT/'data/events/layers/provenance.json').read_text())
+        self.assertEqual(provenance['archiveSha256'],self.reference['archiveSha256'])
+        for number,row in provenance['pictures'].items():
+            self.assertEqual(row['pictSha256'],art.digest(inventory[('PICT',int(number))]))
+
     def test_appledouble_entry_selection_and_corruption(self):
         # Finder metadata precedes the resource fork; do not treat it as art.
         header = struct.pack('>II16sH',0x00051607,0x00020000,b'\0'*16,2)

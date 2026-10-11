@@ -66,4 +66,25 @@ module.exports=()=>test.describe('Shipped high-class presentation artwork',()=>{
    }
   }
  });
+ test.it('uses source decimal fallback and signed resource IDs instead of clamping higher Lab classes',()=>{
+  const art=require('../src/js/lab-art.js');
+  for(const [index,resource] of [[0,400],[10,410],[11,410],[19,410],[20,400],[99,400],[100,0],[599,0],[600,1000],[1600,2000],[2600,3000],[3600,4000],[32768,0]]){
+   const result=art.resolve(index);test.assertEqual(result.resource,resource,'Wrong source fallback for '+index);
+   const r=renderer({});r.display.drawOverlay({type:'lab',classIndex:index});
+   for(const row of result.layers)test.assertTrue(r.images.includes(row.path));
+   test.assertEqual(r.images.length,result.layers.length);
+  }
+  for(const value of [undefined,NaN,Infinity,-1])test.assertEqual(art.resolve(value).resource,400);
+ });
+ test.it('packages every recovered fallback picture with decoded dimensions and provenance hashes',()=>{
+  const crypto=require('crypto'),metadata=require('../src/js/shipped-art-layers.js');
+  const provenance=JSON.parse(fs.readFileSync(path.join(__dirname,'../data/events/layers/provenance.json'),'utf8'));
+  test.assertEqual(Object.keys(metadata).length,147);
+  for(const rows of Object.values(metadata))for(const row of rows)test.assertTrue(fs.existsSync(path.join(__dirname,'../data',row.path)),row.path);
+  for(const [number,row] of Object.entries(provenance.pictures)){
+   const bytes=fs.readFileSync(path.join(__dirname,'../data/events/layers/pict-'+number+'.png'));
+   test.assertEqual(crypto.createHash('sha256').update(bytes).digest('hex'),row.pngSha256);
+   test.assertEqual(bytes.readUInt32BE(16),row.pngWidth);test.assertEqual(bytes.readUInt32BE(20),row.pngHeight);
+  }
+ });
 });

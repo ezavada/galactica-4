@@ -332,8 +332,8 @@ between the heading and dismissal hint, preserving the shipped proportions
 on wide, short and tall layouts. The blueprint now uses an additive textured rectangle, matching the source
 mode33 color operation; neutral black pixels remain transparent. The dedicated
 style has no outline and is reused. The available Lab milestone entries now select PICT2202 + classIndex,
-matching Layr400–410. Missing-layer fallback above those entries remains an
-actionable follow-up, not a missing-resource blocker. The newly
+matching Layr400–410. Missing-layer lookup now uses the shipped decimal fallback and generic
+picture roles, with generated source metadata and recovered fallback PNGs. The newly
 recovered victory and defeat PICTs are 500×432; their raw hashes now allow a
 future decoded comparison against the retained PNGs. PICT1000 is absent from
 this art fork and must be checked in the application resource fork separately.
@@ -367,8 +367,8 @@ captures: substantial positive blueprint brightness change, unchanged right-hand
 room pixels, and seven unrelated scenes identical per language. This catches
 both an ignored blend setting and black-background overwrite. It complements
 the native tests for cache reuse, real style modes, no outline and layer roles.
-The source LabBase + tech/5 picture mapping is a separate remaining requirement;
-this blend change does not claim to close it or full Original art parity.
+The later milestone and missing-layer work below completes the source lookup
+rules; this blend change alone did not claim to close them or full art parity.
 
 
 ### Available Lab milestone picture mapping
@@ -379,6 +379,42 @@ numbers minus 2200. Thus the first new drive class at tech5 (Layr401) uses
 `blue-03.png`, not `blue-02.png`. V4 now follows this offset for every available
 Lab entry; game class indices and research technology values are unchanged.
 Source-driven tests cover all eleven available entries and a real tech5 owner
-discovery in each supported language. Source decimal fallback for absent
-Layr411–499 and generic fallback outside the Lab range remain to implement
-separately; clamping to the last blueprint is not claimed as source parity.
+discovery in each supported language. The later fallback work below supersedes the high-level clamping behavior
+and implements the original decimal lookup.
+
+
+### Complete Lab missing-layer lookup
+
+`src/js/lab-art.js` now resolves the original signed ResIDT and the decimal
+fallback of `CLayeredOffscreenView::SetLayrResID`, against all 146 recovered
+Art layers plus the application Layr0. No high-level blueprint clamp remains.
+Examples: class11 requests411 and finds410; class20 requests420 and finds400;
+class100 requests500 and falls through to0/PICT100 (the shipped No Image
+picture); class600 requests1000 and finds the generic PICT128 view. Very large
+IDs retain the native signed16-bit wrap. Invalid JS inputs safely use class0.
+
+`tools/make-v3-layer-runtime.py` generates `shipped-art-layers.js` directly
+from the archive and application resource. It decodes 30 supplemental PNGs
+under `data/events/layers`, recording original PICT and exported PNG hashes
+and bounds in provenance.json. Original Lab pictures keep their existing paths.
+PICT2999 contains a 1280×1024 decoded bitmap within a 408×240 picture frame:
+both dimensions are recorded independently. The renderer fits each recovered
+layer to the original composite aspect, as CNewGWorld uses picFrame and
+DrawPicture's destination. This does not assert an original-platform pixel
+comparison for that unusual payload. The retained blueprint08 decoder issue
+remains documented above. Ordinary Lab and class11 browser views remain
+byte-identical to the prior version; the changed captures cover true fallbacks.
+
+Mode0 keeps opaque image drawing; mode36 keys the exact resource background
+color; mode33 uses the additive texture style. The shared 408:240 composite
+frame and translated heading/hint remain. Supplemental imagery retains the
+original copyright/provenance; the generic No Image picture retains original
+static resource-file labels rather than changing the source bitmap.
+
+The new browser helper `tools/test-web-lab-fallback.cjs` presents normal,
+missing and generic layer IDs, checks the original resolution, and dismisses
+each through real keyboard input without advancing the game. Native tests
+cover explicit lookup boundaries, signed IDs, all runtime assets and decoded
+PNG integrity. Resource tests regenerate runtime metadata and check each
+export's original PICT hash. Broader art/window requirements and exact
+PICT2208 decoding remain independent of this implemented lookup requirement.
