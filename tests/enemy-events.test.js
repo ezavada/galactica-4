@@ -7,6 +7,37 @@ function fixture(width=800,height=600){
 }
 function capture(f){return f.game.recordOccupationReports(f.target,2,3,'capture').find(e=>e.observer);}
 module.exports=()=>test.describe('Enemy event playback preference',()=>{
+ test.it('consumes an interrupting map click, stops automatic playback and retains unread reports for explicit review',()=>{
+  const f=fixture(),first=capture(f),second=capture(f),selection=f.game.selectedObject;
+  f.game.turnAttentionPending=true;test.assertEqual(f.display.getUIActionAt(10,10).type,'consume');test.assertTrue(f.display.getUIActionAt(10,10).abortAutomaticNotices);
+  test.assertTrue(f.game.handleUIClick(10,10));test.assertNull(f.game.overlay);test.assertEqual(f.game.overlayQueue.length,0);
+  test.assertTrue(first.handled);test.assertFalse(second.handled);test.assertTrue(f.game.selectedObject===selection);
+  test.assertTrue(f.game.turnAttentionPending);test.assertFalse(f.game.holdGameReports);test.assertTrue(f.game.showEnemyEvents);
+  test.assertEqual(f.game.pendingGameReports().length,1);test.assertEqual(f.game.pendingGameReports()[0].eventId,second.id);
+  test.assertEqual(f.game.turn,1);test.assertFalse(f.game.abortAutomaticNotices());
+  f.game.turn=2;test.assertTrue(f.game.replayReport(second));test.assertTrue(f.game.overlay.manual);test.assertFalse(f.game.overlay.animationOnly);
+ });
+ test.it('lets Escape, Return and Space interrupt automatic notices while leaving manual and owner dialogs intact',()=>{
+  for(const key of [pdg.key_Escape,13,32]){
+   const f=fixture(),first=capture(f),second=capture(f);f.game.handleKeyPress(key);
+   test.assertNull(f.game.overlay);test.assertTrue(first.handled);test.assertFalse(second.handled);test.assertEqual(f.game.pendingGameReports().length,1);
+  }
+  const f=fixture(),event=capture(f);f.game.dismissEventPresentation();f.game.turn=2;f.game.replayReport(event);
+  test.assertFalse(f.game.abortAutomaticNotices());test.assertTrue(f.game.overlay.manual);f.game.handleKeyPress(pdg.key_Escape);test.assertNull(f.game.overlay);
+  f.game.queueEventOverlay({type:'lab',classIndex:1});test.assertFalse(f.game.abortAutomaticNotices());test.assertEqual(f.game.overlay.type,'lab');
+ });
+ test.it('preserves interrupted owner-art reports through saves and does not discard explicitly queued manual review',()=>{
+  const f=fixture(),first=capture(f),second=capture(f);
+  const own=f.game.recordEvent('Research','New drive',{recipient:1});own.discovery={owner:1,classIndex:2};
+  f.game.queueEventOverlay({type:'lab',classIndex:2,eventId:own.id});
+  f.game.overlayQueue.push({type:'report',eventId:first.id,manual:true,animationOnly:false});
+  test.assertTrue(f.game.abortAutomaticNotices());test.assertTrue(f.game.overlay.manual);test.assertEqual(f.game.overlay.eventId,first.id);
+  const loaded=Save.restore(Save.serialize(f.game));test.assertEqual(loaded.pendingGameReports().length,2);
+  const art=loaded.pendingGameReports().find(o=>o.type==='lab');test.assertEqual(art.classIndex,2);test.assertEqual(art.eventId,own.id);
+  loaded.dismissEventPresentation();loaded.showPendingGameReports();test.assertTrue(loaded.overlay.manual);
+  loaded.dismissEventPresentation();test.assertEqual(loaded.overlay.type,'lab');test.assertEqual(loaded.overlay.classIndex,2);
+ });
+
  test.it('keeps each automatic no-dialog notice readable for four seconds, including the final notice',()=>{
   const f=fixture();let now=1000;f.game.getCurrentMilliseconds=()=>now;
   f.display.drawDestructionEffect=()=>false;

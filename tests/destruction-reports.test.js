@@ -61,7 +61,7 @@ module.exports=()=>test.describe('V3 individual destruction reports',()=>{
   const f=fixture(1,2,true),events=battle(f),local=events.find(e=>e.recipient===1);
   test.assertTrue(f.game.eventLog.find(e=>e.id===f.game.overlay.eventId).combat!==undefined);f.game.dismissEventPresentation();
   const overlay=f.game.overlay;f.game.getCurrentMilliseconds=()=>f.display.visualTime;test.assertEqual(overlay.eventId,local.id);test.assertTrue(overlay.animationOnly);let reports=0;f.display.drawReport=()=>reports++;
-  test.assertEqual(f.display.getUIActionAt(1,1).type,'consume');f.display.drawOverlay(overlay);test.assertEqual(f.display.getDestructionEffect(overlay).frame,0);
+  test.assertEqual(f.display.getUIActionAt(1,1).type,'consume');test.assertTrue(f.display.getUIActionAt(1,1).abortAutomaticNotices);f.display.drawOverlay(overlay);test.assertEqual(f.display.getDestructionEffect(overlay).frame,0);
   f.display.visualTime+=Effect.duration;f.display.drawOverlay(overlay);test.assertNotNull(f.game.overlay);f.display.visualTime+=4000;f.display.drawOverlay(overlay);test.assertNull(f.game.overlay);test.assertEqual(reports,0);test.assertTrue(local.handled);test.assertEqual(f.game.turn,1);
   f.game.uiWindow='events';f.game.selectEvent(local);test.assertTrue(f.game.replayReport(local));test.assertFalse(f.game.overlay.animationOnly);
   f.display.drawOverlay(f.game.overlay);f.display.visualTime+=Effect.duration+1;f.display.drawOverlay(f.game.overlay);test.assertEqual(reports,1);test.assertEqual(f.game.turn,1);

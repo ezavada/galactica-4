@@ -101,7 +101,7 @@ The largest blockers to a complete game are:
 | Go to home planet | Goto menu/Home-key command centers/selects home. | ✅ Implemented | ✅ Implemented | House icon, View menu and Home key select and center the current human homeworld without changing zoom. H is reserved for eligible selected mobile Hunt, matching v3. |
 | Go to selected/current item | Centers map on selected entity. | ✅ Implemented | ✅ Implemented | View → Center selected item and Shift+C center the current selection; lowercase c remains colony building. |
 | Go to next item needing attention | Menu/Tab cycles the attention queue. | ✅ Implemented | ✅ Implemented | Tab, the Next item map button and command-menu entry select and center the next unhandled valid subject. Counts/active controls reflect pending requests. Selecting a subject manually also handles its request; removed/captured/member objects are skipped. Empty queues never advance the turn. Remaining event-subject coverage is tracked under Attention queue in Section 8. |
-| Replay/go to enemy moves | Shows noteworthy enemy movement. | 🟡 Partial | 🟡 Partial | Settings → Show enemy events controls automatic playback of accessible observer reports, defaults on as in v3, persists as a new-game default and in complete-game saves, and leaves manual Events replay available when off. Observer captures focus/center the known system; movement-time notices defer until visibility is recalculated. Disabled or newly hidden queued observer copies are skipped, and quiet autoplay/private recipients remain respected. Settings pages in short viewports with mouse/arrow input and localized hover help. Surviving-system defense losses and neutral-colonization notices also broadcast detected observer reports with the same playback preference. Automatic notices without dialogs now retain their map focus for four seconds (eight during tutorials), including the final notice, without repeating their cues. Manual Events review stays immediate. The remaining emitted-event inventory and playback interruption/selection-restoration behavior still need separate audit. |
+| Replay/go to enemy moves | Shows noteworthy enemy movement. | 🟡 Partial | 🟡 Partial | Settings → Show enemy events controls automatic playback of accessible observer reports, defaults on as in v3, persists as a new-game default and in complete-game saves, and leaves manual Events replay available when off. Observer captures focus/center the known system; movement-time notices defer until visibility is recalculated. Disabled or newly hidden queued observer copies are skipped, and quiet autoplay/private recipients remain respected. Settings pages in short viewports with mouse/arrow input and localized hover help. Surviving-system defense losses and neutral-colonization notices also broadcast detected observer reports with the same playback preference. Automatic notices without dialogs now retain their map focus for four seconds (eight during tutorials), including the final notice, without repeating their cues. Manual Events review stays immediate. Clicking during an automatic no-dialog notice now stops the remaining autoshow batch and consumes the click; Escape/Return/Space also stop the batch. Unread reports and owner-art metadata remain available for explicit review and survive saves. Hold/Show enemy events preferences and subsequent attention navigation are preserved. The remaining emitted-event inventory and selection-restoration behavior still need separate audit. |
 | Select objects on map | Stars/ships/fleets can be clicked; overlapping items can be chosen explicitly. | ✅ Implemented | ✅ Implemented | Shared marker centers/extents align drawing and hits at every zoom, including scaled docking offsets and fleet size. Omitted small mobiles, satellites, dead ships, empty fleets, members and fog/preference-hidden markers cannot intercept input. A paged neutral chooser resolves stacked clicks, Control-click nearby items and ambiguous order targets; numbered keys/clicks choose, Escape preserves pending commands, and Enter/Tab cannot advance the game. Labels conceal unknown mobile names; cached type icons and allied-only plotted/scrap hints distinguish entries. Fleet inspector/marker information visibility remains the separate Section 5 gap. |
 | Navigate containing objects | Left Arrow selects the immediate container and remembers the child; Right Arrow inspects the selected contents row. | ✅ Implemented | ✅ Implemented | Docked ships, nested groups and top-level fleets navigate one real container at a time through the existing fleet-exchange UI. The previous child is highlighted and revealed on its sorted page. Parent and Inspect buttons share the same behavior and display arrow hints; the system-parent button has a translated Containing system label. Right Arrow selects a fleet’s first row on entry and can return through a nested hierarchy. Hidden/stale containers, map targeting, drags and modal/editor input retain their existing restrictions. At the top level the shipped No more sample plays without changing selection or turn. Source and verification are recorded below. |
 | Selection marker | Pulsing marker around selected object. | ✅ Implemented | ✅ Implemented | Rendered for stars, ships, and fleets in `display.js`. |
@@ -5068,3 +5068,53 @@ This closes the source automatic-notice dwell difference. The broader replay
 row remains partial pending the separate emitted-event inventory, v3's
 user-abort/queued-message behavior and selection-restoration audit; no general
 replay or overall project completion claim is made.
+
+
+### Automatic notice interruption audit
+
+The shipped `Classes/GalacticaDoc.cp` calls `UDelay::UserAbortableDelayUntil`
+before playing the next automatic message (lines 1639–1645), clears the pending
+autoshow count on interruption, and flushes mouse-down/up events (1686–1693).
+It still processes pending go-to attention afterward. The external UDelay
+implementation is absent from this checkout, so its exact keyboard behavior is
+not claimed. V4 uses its existing Escape, Return and Space dismissal keys as the
+keyboard equivalent.
+
+`Game.abortAutomaticNotices()` stops the current no-dialog batch. Remaining
+automatic overlays move into the existing held-report collection, retaining
+recipient and Lab/Stardock class metadata. Explicitly queued manual dialogs
+remain queued. The currently displayed notice is acknowledged; unread notices
+stay unread. Events → View report and Show reports retain explicit review paths,
+including after saving and reopening. Neither Hold nor Show enemy events is
+changed. The subsequent attention step is preserved, as in v3. Mouse-down is
+consumed before selection, order placement or dragging for left/right/middle
+buttons; the matching release cannot issue a map action. Full owner-art and
+manual narrative dialogs retain their ordinary acknowledgment behavior.
+
+Verification: 1,716 full unit tests pass against each local public and development
+PDG executable. Three new cases cover interrupted batches, existing dismissal
+keys, manual-dialog exceptions, saved unread reports and owner-art retention.
+Muted real Chromium checks pass before and after in English, German, Spanish,
+French, Japanese and Russian. They exercise left/right/middle clicks, Escape,
+actual Events review and Show reports, and check unchanged turn, zoom, selection,
+orders and preferences. Of 30 paired screenshots, 18 are pixel-identical;
+12 show the intended stopped map focus rather than the next automatic notice.
+English before/after click scenes and the six localized owner-art scenes were
+visually reviewed. For baseline screenshot comparison only, the browser fixture
+clears its still-playing queue before manual review and supplies the owner-art
+report; only the after lane proves interruption retained that report.
+
+Selection restoration after a complete batch and the full emitted-event inventory
+remain separate parity requirements; this change does not mark the broader
+map replay row complete.
+
+The full existing-game tutorial browser driver was changed to wait for automatic
+notices naturally rather than press Escape (which intentionally aborts the batch
+now), stop draining when the lesson changes, and allow long playback batches
+within its overall 180-iteration bound. This stronger check exposed an existing
+failure: both unchanged `447df5a` and current code stall at page 47 after natural
+playback, with no attention item left for the expected second Tab. English
+baseline/current and German current reproduce the same state. These full tutorial
+runs are **not passing**; this is a concrete next repair, not an unavailable-help
+blocker. The six-language focused interruption checks and both full native unit
+suites above pass. No complete tutorial-regression claim is made here.

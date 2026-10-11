@@ -2853,6 +2853,7 @@ class Display {
 
     getUIActionAt(x, y) {
         if(this.game.overlay && ['outcome','report'].includes(this.game.overlay.type)) {
+            if(this.game.overlay.animationOnly && !this.game.overlay.manual)return {type:'consume',abortAutomaticNotices:true};
             if(this.game.overlay.animationOnly || this.getDestructionEffect(this.game.overlay))return {type:'consume'};
             const layout=this.game.overlay.type==='report'?this.getReportLayout(this.game.overlay):this.getOutcomeLayout(this.game.overlay);
             const control=layout.buttons.find(button=>this.containsPoint(button.rect,x,y));

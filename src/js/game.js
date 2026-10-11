@@ -1119,6 +1119,19 @@ class Game {
         return this.queueReport(event, false, true);
     }
 
+    abortAutomaticNotices() {
+        if(!this.overlay || !this.overlay.animationOnly || !this.isAutomaticReport(this.overlay))return false;
+        // Stop this autoshow batch without losing its unread reports or changing
+        // the user's Hold/Show enemy events preferences. Explicit Show reports
+        // can later replay the original owner art and recipient presentations.
+        this.overlayQueue=this.overlayQueue.filter(overlay=>{
+            if(!this.isAutomaticReport(overlay))return true;
+            if(!this.heldReports.some(row=>row.eventId===overlay.eventId))this.heldReports.push({...overlay});
+            return false;
+        });
+        return this.dismissEventPresentation();
+    }
+
     dismissEventPresentation() {
         if (!this.hasEventPresentation()) {
             return false;
@@ -2015,6 +2028,7 @@ class Game {
                 this.overlay.page=action.page;return true;
             case 'replayOutcome':return this.replayOutcome(action.event);
             case 'consume':
+                if(action.abortAutomaticNotices)return this.abortAutomaticNotices();
                 if(action.blocked && this.sound)this.sound.play(1012);
                 return true;
             case 'setMapDisplayMode':
@@ -2880,7 +2894,9 @@ class Game {
                 const layout=this.display && (this.overlay.type==='report'?this.display.getReportLayout(this.overlay):this.display.getOutcomeLayout(this.overlay));
                 if(layout)this.overlay.page=Math.max(0,Math.min(layout.pages-1,layout.page+(key===pdg.key_LeftArrow?-1:1)));
             } else if(key===13 || key===10 || key===32 || key===pdg.key_Escape ||
-                    ['stardock','lab'].includes(this.overlay.type) && key!==pdg.key_Tab)this.dismissEventPresentation();
+                    ['stardock','lab'].includes(this.overlay.type) && key!==pdg.key_Tab){
+                if(!this.abortAutomaticNotices())this.dismissEventPresentation();
+            }
             return true;
         }
 

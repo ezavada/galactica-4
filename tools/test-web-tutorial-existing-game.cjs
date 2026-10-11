@@ -37,7 +37,7 @@ const advanceClock=async ms=>{
  for(let i=0;i<100;i++){await delay(25);if(await evaluate('(window.testDrawCount || 0)>'+frame))return;}
  throw Error('PDG did not draw after advancing the tutorial clock');
 };
-const drain=async()=>{for(let i=0;i<50;i++){if(!await evaluate('!!visual.getGame().overlay'))return;await key('Escape');await advanceClock(400);}throw Error('Reports did not drain');};
+const drain=async()=>{const page=await evaluate('owner.controller.pageId');for(let i=0;i<50;i++){if(await evaluate('owner.controller.pageId')!==page || !await evaluate('!!visual.getGame().overlay'))return;if(await evaluate('visual.getGame().overlay.animationOnly && !visual.getGame().overlay.manual'))await advanceClock(8500);else {await key('Escape');await advanceClock(400);}}throw Error('Reports did not drain');};
 const object=async id=>{await advanceClock(400);await point('visual.getDisplay().getMapMarker(visual.getGame().stars.find(s=>s.id==='+id+'))');if(await evaluate('visual.getGame().uiWindow==="mapPick"')){for(let i=0;i<20;i++){if(await evaluate('visual.getDisplay().getMapSelectionActions().some(r=>r.action.object && r.action.object.id==='+id+' && visual.getGame().factory.isStar(r.action.object))')){await click('visual.getDisplay().getMapSelectionActions().find(r=>r.action.object && r.action.object.id==='+id+' && visual.getGame().factory.isStar(r.action.object)).rect');break;}await click('visual.getDisplay().getMapSelectionActions().find(r=>r.action.type==="mapSelectionPage" && r.action.page>visual.getGame().mapSelectionPicker.page).rect');}}};
 const order=async id=>{await click('visual.getDisplay().getContextButtonRegions().find(r=>r.action.type==="beginOrders").rect');await object(id);};
 await evaluate('window.visualClock=125;pdg.tm.getMilliseconds=()=>visualClock;void 0');
@@ -63,6 +63,7 @@ await click('visual.getDisplay().getGameSessionLayout().buttons.find(b=>b.action
 await check('visual.getGame()===original && visual.getDisplay()===originalDisplay && originalSession.file===originalFile && visual.serialize(original)===saved && savedText===originalDisk','Games selection failed to recover unchanged original');await capture('restored-original-after-finish');
 completed=true;console.log('PASS full existing-game recovery '+lang+' '+visited.join(','));break;}
  if(st.page===last){if(++repeats>5)throw Error('Stuck at page '+st.page);}else{last=st.page;repeats=0;visited.push(st.page);await capture('page-'+String(st.page).padStart(2,'0'));}
+ if(st.overlay && await evaluate('visual.getGame().overlay.animationOnly && !visual.getGame().overlay.manual')){await advanceClock(8500);repeats=0;continue;}
  const mapActions=new Set([7,10,16,17,19,20,25,26,28,30,31,34,36,37,38,39,40,41,42,48,50,51,57]);
  if((mapActions.has(st.page) || [14,27,29,35,44,46,47,49,53].includes(st.page)) && st.overlay){await drain();continue;}
  switch(st.page){

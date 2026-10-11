@@ -1220,6 +1220,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     // Message dialogs are modal above map and table drag handlers.
     if(game.overlay && ['outcome','report'].includes(game.overlay.type) && event && event.eventType===pdg.eventType_MouseDown) {
         isDragging=false;isLeftClickDragging=false;hasDragged=false;
+        if(game.abortAutomaticNotices())return true;
         if(event.buttonNumber===0 && !game.beginUIWindowDrag(event.mousePos.x,event.mousePos.y))game.handleUIClick(event.mousePos.x,event.mousePos.y);
         return true;
     }
