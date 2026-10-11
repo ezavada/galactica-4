@@ -929,3 +929,21 @@
 1226	Nuevo turno
 1227	Comienza el turno {0} para {1}.
 1228	Grupo
+
+# Public network game information
+1229	Información de la partida
+1230	Detalles
+1231	Mapa: {0}×{0} · Densidad: {1}
+1232	IA: {0} · Ventaja: {1}
+1233	Partida rápida: {0}
+1234	Niebla de guerra: {0}
+1235	Terminar cuando todos envíen su turno: {0}
+1236	Límite de tiempo por turno: {0}
+1237	Límite del turno actual: {0}
+1238	Estado de la partida: {0}
+1239	Abierta
+1240	Llena
+1241	Se requiere código de acceso: {0}
+1242	Sin límite de tiempo
+1243	Volver
+1244	{0} día|{0} días

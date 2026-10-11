@@ -23,6 +23,14 @@ function validateInfo(data){
  if(data.version!==undefined && (typeof data.version!=='string' || data.version.length>128))throw fail('network_bad_response');
  const info={protocol,gameId:data.gameId,title:data.title,turn:data.turn,humans:data.humans,computers:data.computers,slots};
  for(const key of ['version','sectorSize','density','fastGame','fogOfWar','skill','advantage','maxTimePerTurn','endEarly','requiresAdmissionCode'])if(data[key]!==undefined)info[key]=data[key];
+ if(data.clock!==undefined){
+  const clock=data.clock,limit=clock && clock.limitSeconds!==undefined?clock.limitSeconds:data.maxTimePerTurn;
+  if(!clock || typeof clock!=='object' || Array.isArray(clock) || typeof clock.paused!=='boolean' || typeof clock.running!=='boolean' || clock.paused && clock.running ||
+   !integer(data.maxTimePerTurn,0,Number.MAX_SAFE_INTEGER) || !integer(limit,0,Number.MAX_SAFE_INTEGER) ||
+   clock.limitSeconds!==undefined && (!data.maxTimePerTurn || data.turn===1 || !integer(clock.limitSeconds,1,Math.floor(Number.MAX_SAFE_INTEGER/1000))) ||
+   clock.secondsRemaining!==null && (!integer(clock.secondsRemaining,0,limit) || data.turn===1 || !limit) || clock.running && clock.secondsRemaining===null)throw fail('network_bad_response');
+  info.clock={secondsRemaining:clock.secondsRemaining,paused:clock.paused,running:clock.running,...(clock.limitSeconds!==undefined?{limitSeconds:clock.limitSeconds}:{})};
+ }
  return info;
 }
 function validateLogin(data,info,name){

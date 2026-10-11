@@ -4,6 +4,25 @@ module.exports=()=>test.describe('Multiplayer admission window',()=>{
  test.it('keeps administrator admission separate from player names and slots and clears mode-switch secrets',()=>{
   const w=new JoinWindow({defaultName:()=> 'Voyager'});w.open({address:'localhost:7777',role:'administrator',gameId:info.gameId});test.assertEqual(w.mode,'administrator');test.assertEqual(w.focus,'password');test.assertEqual(w.name.text,'Voyager');w.info=info;test.assertDeepEqual(w.layout(800,600).fields.map(f=>f.name),['address','password']);test.assertEqual(w.layout(800,600).slots.length,0);test.assertFalse(w.layout(800,600).buttons.some(b=>b.action==='next'));w.key(pdg.key_Tab);test.assertEqual(w.focus,'address');w.key(pdg.key_Tab);test.assertEqual(w.focus,'password');w.password.text='secret';w.action('join');test.assertEqual(w.password.text,'');test.assertNull(w.info);test.assertEqual(w.mode,'join');w.action('administrator');test.assertEqual(w.focus,'password');test.assertEqual(errorText({code:'admin_disabled',message:'private server text'}),I18n.getString(1166));
  });
+ test.it('presents the complete inspected public settings and elapsed countdown without inventing missing legacy fields',()=>{
+  const Information=require('../src/js/network-game-information.js'),data={...info,humans:99,computers:0,turn:2,sectorSize:5,density:10,skill:1,advantage:3,fastGame:true,fogOfWar:false,endEarly:true,maxTimePerTurn:3600,requiresAdmissionCode:true,clock:{secondsRemaining:315,paused:false,running:true,limitSeconds:172800}};
+  const rows=Information.rows(data,100,6100),byKey=key=>rows.find(r=>r.key===key).text;
+  test.assertEqual(byKey('map'),I18n.formatString(1231,'',5,10));test.assertEqual(byKey('ai'),I18n.formatString(1232,'',I18n.getString(301),'+3'));
+  test.assertEqual(byKey('limit'),I18n.formatString(1236,'','01:00:00'));test.assertEqual(byKey('activeLimit'),I18n.formatString(1237,'',Information.duration(172800)));test.assertEqual(byKey('clock'),I18n.formatString(1045,'','00:05:09'));
+  test.assertEqual(byKey('status'),I18n.formatString(1238,'',I18n.getString(1239)));test.assertEqual(byKey('admission'),I18n.formatString(1241,'',I18n.getString(807)));
+  const legacy=Information.rows({...info,humans:99,computers:0},0,0);test.assertDeepEqual(legacy.map(r=>r.key),['title','players','status']);
+  test.assertEqual(Information.rows({...data,maxTimePerTurn:0,clock:{secondsRemaining:null,paused:false,running:false}},0,0).find(r=>r.key==='limit').text,I18n.formatString(1236,'',I18n.getString(1242)));
+ });
+ test.it('wraps and pages all localized public information inside compact windows and returns to the same credentials',()=>{
+  const old=pdg.res.getLanguage(),Information=require('../src/js/network-game-information.js');
+  try{for(const lang of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(lang);const w=new JoinWindow({defaultName:()=> 'Voyager'});w.open();w.info={...info,title:'星'.repeat(256),humans:99,computers:0,turn:2,sectorSize:5,density:10,skill:1,advantage:-3,fastGame:false,fogOfWar:true,endEarly:false,maxTimePerTurn:172800,requiresAdmissionCode:false,clock:{secondsRemaining:315,paused:true,running:false}};w.password.text='secret';w.page=3;test.assertTrue(w.layout(800,600).buttons.some(b=>b.action==='gameInformation'));test.assertTrue(w.action('gameInformation'));
+   const found={},captionPages={};let pages=0;for(;;){const layout=w.layout(320,340,(text,size)=>Array.from(text).length*size/2);test.assertEqual(layout.title,I18n.getString(1229));for(const item of [...layout.labels,...layout.buttons]){const r=item.rect;test.assertTrue(r.x>=layout.rect.x && r.y>=layout.rect.y && r.x+r.width<=layout.rect.x+layout.rect.width+.01 && r.y+r.height<=layout.rect.y+layout.rect.height+.01);if(item.text){test.assertTrue(Array.from(item.text).length*6<=r.width);found[item.key]=(found[item.key] || '')+item.text;(captionPages[item.key] ||= new Set()).add(pages);}}
+    const next=layout.buttons.find(b=>b.action==='next');pages++;if(!next || next.disabled)break;test.assertTrue(pages<100);w.action('next');}
+   for(const row of Information.rows(w.info,w.inspectedAt)){test.assertEqual(found[row.key],row.text);if(row.key!=='title')test.assertEqual(captionPages[row.key].size,1);test.assertFalse(/undefined|\{\d+\}/.test(row.text));}
+   test.assertTrue(pages>1);w.key(pdg.key_Escape);test.assertEqual(w.stage,'form');test.assertTrue(w.active);test.assertEqual(w.password.text,'secret');test.assertEqual(w.name.text,'Voyager');test.assertEqual(w.page,3);w.cancel();
+  }}finally{pdg.res.setLanguage(old);}
+ });
  test.it('opens selected address/name fields and keeps passwords out of the public descriptor',()=>{
   const w=new JoinWindow({defaultName:()=> '航行者'});test.assertTrue(w.open());test.assertEqual(w.name.text,'航行者');test.assertEqual(w.focus,'address');test.assertFalse(w.open());w.cancel();
   w.open({address:'localhost:7777',name:'Jäger',gameId:info.gameId});test.assertEqual(w.mode,'rejoin');test.assertEqual(w.focus,'password');test.assertEqual(w.expectedId,info.gameId);test.assertEqual(w.password.text,'');

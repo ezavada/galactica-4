@@ -333,3 +333,56 @@ Evidence: `/private/tmp/galactica-discovery-windows-{pdg,pdg-devel}-unit.log`,
 `galactica-discovery-windows-comparison.json`,
 `galactica-discovery-windows-fixture-differences.json`, screenshot/geometry trees
 and the all-language short-view montages.
+
+
+### Complete public Join game information
+
+Source `Classes/GalacticaClient.cpp:181–224,326–450,462–509` shows inspected
+map dimensions/density, AI skill/advantage, fast game, fog, turn limit/remaining
+time and open/full state, and updates the selected game's information when it
+changes. V4 now exposes those settings through Details in the inspected lobby.
+The Game information panel also shows End Early and the admission-code requirement,
+using only validated public metadata. The lobby retains its credential fields and
+player selection. Back/Esc returns to the same draft; Refresh/R performs a
+read-only inspection. Both the lobby and the panel refresh every three seconds
+without changing field focus, names, passwords or selected admission mode.
+Canceled/obsolete queries cannot update a reopened dialog or clear a newer
+request's guard. Invalid data retains the last valid inspection and shows a
+localized error; a later successful query clears it.
+
+Public clock validation now retains bounded countdown data while excluding
+arbitrary host fields. The panel shows hours/minutes/seconds and localized day
+counts, distinguishes the configured next-turn limit from the current active
+limit after a settings change, and extrapolates only a running countdown.
+Older hosts that omit optional settings remain usable without fabricated values.
+Long titles and captions wrap and page completely. Wrapped settings keep their
+label and value on the same page; compact errors have a reserved line clear of
+the paging buttons. Sixteen new resources (1229–1244) are translated in
+English, German, Spanish, French, Japanese and Russian.
+
+Both full native suites pass 1,759 tests. Dedicated native checks pass actual
+six-language HTTP inspection, filled slots, edited AI/speed/fog/timer settings,
+current-versus-configured limits, exact paused timing, malformed-clock rejection
+and recovery. Async lifecycle checks cover preserved focus/credentials and
+canceled refresh delivery. Muted actual-input browser tests pass all six
+languages before/after at 800×600, 640×340 and 320×340: full captions across pages,
+real host turn/settings/countdown changes through automatic polling, Refresh,
+malformed-response recovery, bounded persisted title drags, outside-click clunks,
+Back and actual admission. The new panel and lobby use the existing white/gray,
+black-text, gold-border modal style. This item restores the public-information
+Join UI requirement; Section 9 returns to 93% functionality/UI (13/14 each).
+Broader window, native/platform, parity and Map Generation work remains open.
+
+Across 180 before/after screenshot pairs, all 18 authenticated-game scenes are
+pixel-identical. The other 162 show the intended lobby entry, public information,
+updates/error/recovery views and returned lobby; temporary address text also
+varies between fixtures. English before/after scenes and all six ordinary,
+short and narrow information layouts, final pages and compact errors were
+visually inspected. No settings caption splits its label/value across pages.
+
+Evidence: `/private/tmp/galactica-lobby-information-{pdg,pdg-devel}-unit.log`,
+`galactica-lobby-information-native-{join,live}.log`,
+`galactica-lobby-information-{340,600,compact}-{before,after}-<language>.log`,
+`galactica-lobby-information-comparison.json`, screenshot/geometry trees and
+all-language ordinary/compact information and error montages. No PDG code or
+public-engine checkout changed.

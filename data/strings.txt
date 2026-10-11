@@ -929,3 +929,21 @@
 1226	New turn
 1227	Turn {0} begins for {1}.
 1228	Group
+
+# Public network game information
+1229	Game information
+1230	Details
+1231	Map: {0}×{0} · Density: {1}
+1232	AI: {0} · Advantage: {1}
+1233	Fast game: {0}
+1234	Fog of war: {0}
+1235	End early when everyone posts: {0}
+1236	Turn limit: {0}
+1237	Current turn limit: {0}
+1238	Game status: {0}
+1239	Open
+1240	Full
+1241	Admission code required: {0}
+1242	No time limit
+1243	Back
+1244	{0} day|{0} days

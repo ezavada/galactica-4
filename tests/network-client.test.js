@@ -12,6 +12,14 @@ module.exports=()=>test.describe('Live network client protocol boundaries',()=>{
   for(const mutate of [d=>d.gameId='wrong',d=>d.version={},d=>d.endEarly='yes',d=>d.density=11,d=>d.humans=0,d=>d.slots.pop(),d=>d.slots[1].player=1,d=>d.slots[1].online='yes',d=>d.slots[1].name='Bad\nName']){const data=info();mutate(data);rejects(()=>Client.validateInfo(data),'network_bad_response');}
   rejects(()=>Client.validateInfo({...info(),protocol:2}),'bad_protocol');
  });
+ test.it('preserves bounded public countdowns without copying arbitrary host clock fields',()=>{
+  const data={...info(),turn:2,maxTimePerTurn:3600,clock:{secondsRemaining:315,paused:true,running:false,limitSeconds:172800,password:'secret'}};
+  const result=Client.validateInfo(data);test.assertDeepEqual(result.clock,{secondsRemaining:315,paused:true,running:false,limitSeconds:172800});
+  for(const clock of [null,[],{secondsRemaining:-1,paused:false,running:true},{secondsRemaining:3601,paused:false,running:true},{secondsRemaining:null,paused:false,running:true},{secondsRemaining:10,paused:true,running:true},{secondsRemaining:10,paused:'yes',running:false},{secondsRemaining:10,paused:false,running:false,limitSeconds:0}])rejects(()=>Client.validateInfo({...data,clock}),'network_bad_response');
+  rejects(()=>Client.validateInfo({...data,turn:1}),'network_bad_response');
+  test.assertDeepEqual(Client.validateInfo({...data,turn:1,clock:{secondsRemaining:null,paused:false,running:false}}).clock,{secondsRemaining:null,paused:false,running:false});
+  test.assertFalse('clock' in Client.validateInfo(info()));
+ });
  test.it('accepts AI-only public lobbies without inventing human admission slots',()=>{
   const robots={...info(),humans:0,computers:99,slots:[]};test.assertEqual(Client.validateInfo(robots).computers,99);test.assertEqual(Client.validateInfo(robots).slots.length,0);rejects(()=>Client.validateInfo({...robots,computers:0}),'network_bad_response');rejects(()=>Client.validateInfo({...robots,computers:100}),'network_bad_response');rejects(()=>Client.validateLogin({protocol:1,gameId:id,token,name:'Voyager',player:1,turn:1},robots,'Voyager'),'network_bad_response');
  });

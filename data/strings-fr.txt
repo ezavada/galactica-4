@@ -929,3 +929,21 @@
 1226	Nouveau tour
 1227	Le tour {0} commence pour {1}.
 1228	Groupe
+
+# Public network game information
+1229	Informations de la partie
+1230	Détails
+1231	Carte : {0}×{0} · Densité : {1}
+1232	IA : {0} · Avantage : {1}
+1233	Partie rapide : {0}
+1234	Brouillard de guerre : {0}
+1235	Terminer dès que tous ont envoyé leur tour : {0}
+1236	Durée limite par tour : {0}
+1237	Durée limite du tour actuel : {0}
+1238	État de la partie : {0}
+1239	Ouverte
+1240	Complète
+1241	Code d’accès requis : {0}
+1242	Sans limite de temps
+1243	Retour
+1244	{0} jour|{0} jours

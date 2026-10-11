@@ -929,3 +929,21 @@
 1226	Neue Runde
 1227	Runde {0} beginnt für {1}.
 1228	Gruppe
+
+# Public network game information
+1229	Spielinformationen
+1230	Details
+1231	Karte: {0}×{0} · Dichte: {1}
+1232	KI: {0} · Vorteil: {1}
+1233	Schnelles Spiel: {0}
+1234	Kriegsnebel: {0}
+1235	Runde beenden, sobald alle abgegeben haben: {0}
+1236	Zeitlimit pro Runde: {0}
+1237	Zeitlimit der aktuellen Runde: {0}
+1238	Spielstatus: {0}
+1239	Offen
+1240	Voll
+1241	Zugangscode erforderlich: {0}
+1242	Kein Zeitlimit
+1243	Zurück
+1244	{0} Tag|{0} Tage

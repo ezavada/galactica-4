@@ -202,3 +202,16 @@ Owner and observer discovery narratives use IDs 958–959 in English, German, Sp
 
 
 Colony reuse correction: resource 923 and the colony hull description in all six manuals now state that colony ships survive colonization and capture and can establish further colonies. No new resource IDs were introduced (494 per language). Actual two-colony browser flows pass and translated system screens were inspected in en/de/es/fr/ja/ru.
+
+
+## Public Join game information
+
+Resources 1229–1244 add the public information panel, map/AI/game options,
+configured/current turn limits, admission status, Back and localized day plurals
+in en/de/es/fr/ja/ru. Existing Yes/No, skill, countdown/error and paging strings
+are reused. Native regression coverage verifies complete wrapped/paged captions,
+and actual browser input checks all six languages at 800×600, 640×340 and
+320×340 against real host settings/turn/countdown updates and malformed-response
+recovery. Long user-supplied titles remain literal; optional legacy host fields
+are omitted rather than assigned invented defaults. Both full native suites
+pass 1,759 tests. Evidence shares `/private/tmp/galactica-lobby-information`.

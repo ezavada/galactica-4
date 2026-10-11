@@ -1,4 +1,5 @@
 // Admission keeps tokens transient; remembered passwords require explicit device opt-in.
+const Information=require('./network-game-information.js');
 const Names=require('./player-name.js'),I18n=require('./i18n.js'),Network=require('./network-client.js');
 const errorIds={admin_disabled:1166,invalid_admin_password:1157,invalid_admin_state:1029,invalid_admin_action:1032,invalid_host_address:1020,bad_login_request:1021,bad_password:1022,duplicate_name:1023,
  game_full:1024,player_not_found:1025,wrong_game:1026,bad_protocol:1027,network_timeout:1028,
@@ -11,7 +12,7 @@ class JoinWindow {
  }
  open(descriptor=null){
   if(this.active)return false;
-  this.stage='form';this.active=true;this.busy=false;this.client=null;this.owned=false;this.info=null;this.message='';this.page=0;
+  this.stage='form';this.active=true;this.busy=false;this.refreshing=null;this.client=null;this.owned=false;this.info=null;this.message='';this.page=0;
   this.address=Names.createEditor(descriptor?descriptor.address:'',256);
   this.name=Names.createEditor(descriptor && descriptor.role!=='administrator'?descriptor.name:this.defaultName());this.password=Names.createEditor('',64);this.admissionCode=Names.createEditor('',64);
   this.rememberPassword=false;this.savedPasswordLoaded=false;this.mode=descriptor && descriptor.role==='administrator'?'administrator':descriptor?'rejoin':'join';this.expectedId=descriptor?descriptor.gameId:null;this.focus=descriptor?'password':'address';if(descriptor)this.loadSavedPassword();return true;
@@ -65,9 +66,21 @@ class JoinWindow {
    this.client=(this.mode==='administrator'?this.createAdmin:this.create)(this.address.text);this.owned=true;
    const info=await this.client.inspect();if(sequence!==this.sequence || !this.active)return false;
    if(this.expectedId && info.gameId!==this.expectedId)throw {code:'wrong_game'};
-   this.info=info;this.expectedId=info.gameId;this.page=0;this.loadSavedPassword();this.message='';this.focus=this.mode==='join'?'name':'password';return true;
+   this.info=info;this.inspectedAt=Information.now();this.nextInspection=this.inspectedAt+3000;this.informationPage=0;this.expectedId=info.gameId;this.page=0;this.loadSavedPassword();this.message='';this.focus=this.mode==='join'?'name':'password';return true;
   }catch(error){if(sequence===this.sequence && this.active){this.info=null;this.message=errorText(error);}return false;}
   finally{if(sequence===this.sequence)this.busy=false;}
+ }
+ poll(){
+  if(!this.active || this.busy || this.refreshing || !this.info || !this.client || !['form','information'].includes(this.stage) || Information.now()<(this.nextInspection || 0))return false;
+  return this.refreshInfo();
+ }
+ async refreshInfo(){
+  if(!this.active || this.busy || this.refreshing || !this.info || !this.client)return false;
+  const sequence=this.sequence,client=this.client,id=this.info.gameId,ticket={client};this.refreshing=ticket;this.nextInspection=Information.now()+3000;
+  const valid=()=>this.active && this.sequence===sequence && this.client===client && this.info?.gameId===id && ['form','information'].includes(this.stage);
+  try{const info=await client.inspect();if(!valid())return false;if(info.gameId!==id)throw {code:'wrong_game'};this.info=info;this.inspectedAt=Information.now();this.message='';return true;}
+  catch(error){if(valid())this.message=errorText(error);return false;}
+  finally{if(this.refreshing===ticket)this.refreshing=null;}
  }
  async connect(){
   if(!this.active || this.busy)return false;
@@ -86,6 +99,8 @@ class JoinWindow {
  }
  action(action,value){
   if(action==='cancel')return this.cancel();if(this.busy)return false;
+  if(action==='gameInformation'){if(!this.info)return false;this.stage='information';this.informationPage=0;return true;}
+  if(this.stage==='information'){if(action==='backInformation'){this.stage='form';return true;}if(action==='inspect'){this.informationPage=0;return this.refreshInfo();}if(action==='previous' || action==='next'){this.informationPage=Math.max(0,(this.informationPage || 0)+(action==='next'?1:-1));return true;}return false;}
   if(action==='lan' || action==='refreshLan')return this.openLan();if(action==='savedHosts')return this.openSavedHosts();
   if(this.stage==='lan'){if(action==='chooseLan')return this.chooseLan();if(action==='directAddress'){this.stopDiscovery();this.stage='form';this.clearInfo();this.focus='address';this.message='';return true;}const keyFor=require('./network-discovery.js').identity;if(action==='selectLan'){if(!this.lanRows.some(r=>keyFor(r)===value))return false;this.lanSelection=value;return true;}if(action==='previous' || action==='next'){this.page=Math.max(0,Math.min(Math.ceil(this.lanRows.length/4)-1,this.page+(action==='next'?1:-1)));this.lanSelection=this.lanRows[this.page*4]?keyFor(this.lanRows[this.page*4]):null;return true;}return false;}
 if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();if(action==='removeSavedHost')return this.removeSavedHost();if(action==='chooseSavedHost')return this.chooseSavedHost();if(action==='directAddress'){this.stage='form';this.clearInfo();this.focus='address';this.message='';return true;}if(action==='selectSavedHost'){if(!this.savedHosts.some(r=>require('./network-host-preferences.js').identity(r)===value))return false;this.savedSelection=value;this.focus='savedHosts';return true;}if(action==='previous' || action==='next'){this.page=Math.max(0,Math.min(Math.ceil(this.savedHosts.length/4)-1,this.page+(action==='next'?1:-1)));this.savedSelection=this.savedHosts[this.page*4]?require('./network-host-preferences.js').identity(this.savedHosts[this.page*4]):null;return true;}return false;}
@@ -95,7 +110,8 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
   return false;
  }
  key(key,pdgRef=globalThis.pdg){
-  if(key===pdgRef.key_Escape)return this.cancel();if(this.busy)return true;
+  if(key===pdgRef.key_Escape)return this.stage==='information' && !this.busy?this.action('backInformation'):this.cancel();if(this.busy)return true;
+  if(this.stage==='information'){if(key===82 || key===114)this.action('inspect');return true;}
   if(this.stage==='lan'){if([13,10,3].includes(key)){this.chooseLan();return true;}if(key===82 || key===114){this.openLan();return true;}if(key===pdgRef.key_UpArrow || key===pdgRef.key_DownArrow){const keyFor=require('./network-discovery.js').identity,index=Math.max(0,Math.min(this.lanRows.length-1,this.lanRows.findIndex(r=>keyFor(r)===this.lanSelection)+(key===pdgRef.key_UpArrow?-1:1)));this.lanSelection=this.lanRows[index]?keyFor(this.lanRows[index]):null;this.page=Math.floor(index/4);}return true;}
   if(this.stage==='hosts'){if(key===pdgRef.key_Tab){this.focus=this.focus==='address'?'savedHosts':'address';return true;}if(key===pdgRef.key_UpArrow || key===pdgRef.key_DownArrow){const keyFor=require('./network-host-preferences.js').identity,index=Math.max(0,Math.min(this.savedHosts.length-1,this.savedHosts.findIndex(r=>keyFor(r)===this.savedSelection)+(key===pdgRef.key_UpArrow?-1:1)));this.savedSelection=this.savedHosts[index]?keyFor(this.savedHosts[index]):null;this.page=Math.floor(index/4);this.focus='savedHosts';return true;}if([13,10,3].includes(key)){this.focus==='address'?this.addSavedHost():this.chooseSavedHost();return true;}if(this.focus==='address')Names.edit(this.address,key,pdgRef);return true;}
   if(key===pdgRef.key_Tab){const fields=[...this.layout(800,600).fields.map(f=>f.name),...(this.passwordPreferences?['rememberPassword']:[])];this.focus=fields[(fields.indexOf(this.focus)+1)%fields.length];if(this.focus!=='rememberPassword')this[this.focus].selected=true;return true;}
@@ -112,6 +128,20 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
    const inner=rect.width-48,column=Math.min(inner-80,Math.max(116,...labels.map(label=>Math.ceil(measure(label,13))+12)));
    return names.map((name,index)=>({name,label:labels[index],labelWidth:column-12,rect:at(24+column,start+index*step,inner-column,32),labelPoint:{x:rect.x+24,y:rect.y+(start+21+index*step)*scale}}));
   };
+  if(this.stage==='information'){
+   const inner=rect.width-48,top=62*scale,lineHeight=18,pageSize=Math.max(1,Math.floor((452*scale-top-28)/lineHeight));
+   const pages=[];let page=[];
+   for(const row of Information.rows(this.info,this.inspectedAt)){
+    const lines=Information.wrap(row.text,inner,measure).map(text=>({...row,text}));
+    // Keep a wrapped setting's label and value on the same page. A long
+    // player-supplied title can still span pages without losing characters.
+    if(lines.length<=pageSize && page.length+lines.length>pageSize){pages.push(page);page=[];}
+    for(const line of lines){if(page.length===pageSize){pages.push(page);page=[];}page.push(line);}
+   }
+   if(page.length || !pages.length)pages.push(page);this.informationPage=Math.max(0,Math.min(this.informationPage || 0,pages.length-1));
+   const buttons=[...(pages.length>1?[{action:'previous',id:1033,disabled:this.informationPage===0,rect:at(24,452,inner/2-4,28)},{action:'next',id:1034,disabled:this.informationPage===pages.length-1,rect:at(28+inner/2,452,inner/2-4,28)}]:[]),{action:'backInformation',id:1243,key:'Esc',rect:at(24,496,inner/2-4,30)},{action:'inspect',id:1197,key:'R',rect:at(28+inner/2,496,inner/2-4,30)}];
+   return {rect,scale,kind:'information',title:I18n.getString(1229),messageY:452-8/scale,fields:[],slots:[],checks:[],labels:pages[this.informationPage].map((row,i)=>({...row,size:12,baseline:14,rect:{x:rect.x+24,y:rect.y+top+i*lineHeight,width:inner,height:lineHeight}})),buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
+  }
   if(this.stage==='lan'){
    const inner=rect.width-48,keyFor=require('./network-discovery.js').identity,third=(inner-16)/3,buttons=[{action:'refreshLan',id:1197,key:'R',rect:at(24,62,this.hostPreferences?inner/2-4:inner,28)},...(this.hostPreferences?[{action:'savedHosts',id:1183,rect:at(28+inner/2,62,inner/2-4,28)}]:[]),...(this.lanRows.length>4?[{action:'previous',id:1033,disabled:this.page===0,rect:at(24,428,inner/2-4,24)},{action:'next',id:1034,disabled:(this.page+1)*4>=this.lanRows.length,rect:at(28+inner/2,428,inner/2-4,24)}]:[]),{action:'cancel',id:683,key:'Esc',rect:at(24,496,third,30)},{action:'directAddress',id:1189,rect:at(32+third,496,third,30)},{action:'chooseLan',id:1186,key:'Enter',disabled:!this.lanSelection,rect:at(40+2*third,496,third,30)}];
    return {rect,scale,title:I18n.getString(1192),messageY:480,fields:[],slots:[],checks:[],labels:!this.lanRows.length && !this.message?[{text:I18n.getString(1194),rect:at(24,180,inner,40)}]:[],choices:this.lanRows.slice(this.page*4,this.page*4+4).map((row,i)=>({action:'selectLan',value:keyFor(row),active:keyFor(row)===this.lanSelection,label:row.title || row.address,details:[row.address,I18n.formatString(1198,'',row.turn,row.open,row.humans)],rect:at(24,96+i*80,inner,72)})),buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
@@ -132,8 +162,10 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
   if(this.discovery){const count=this.hostPreferences?4:3,w=(inner-8*(count-1))/count;buttons.find(b=>b.action==='cancel').rect=at(24,496,w,30);let index=1;if(this.hostPreferences)buttons.push({action:'savedHosts',id:1183,rect:at(24+index++*(w+8),496,w,30)});buttons.push({action:'lan',id:1191,rect:at(24+index++*(w+8),496,w,30)});buttons.find(b=>b.action==='connect').rect=at(24+index*(w+8),496,w,30);}
   else if(this.hostPreferences){const third=(inner-16)/3;buttons.find(b=>b.action==='cancel').rect=at(24,496,third,30);buttons.find(b=>b.action==='connect').rect=at(40+2*third,496,third,30);buttons.push({action:'savedHosts',id:1183,rect:at(32+third,496,third,30)});}
   if(this.mode!=='administrator' && this.info && this.info.slots.length>4)buttons.push({action:'previous',id:1033,rect:at(24,404,inner/2-4,24)},{action:'next',id:1034,rect:at(28+inner/2,404,inner/2-4,24)});
+  const informationWidth=Math.min(inner/2,Math.max(84,Math.ceil(measure(I18n.getString(1230),12))+24));
+  if(this.info)buttons.push({action:'gameInformation',id:1230,rect:at(24+inner-informationWidth,228,informationWidth,30)});
   const slots=this.mode!=='administrator' && this.info?this.info.slots.slice(this.page*4,this.page*4+4).map((slot,index)=>({slot,rect:at(24,282+index*28,inner,26),label:slot.status==='open'?I18n.formatString(1016,'',slot.player):I18n.formatString(1017,'',slot.player,slot.name,I18n.getString(slot.online?1018:1019))})):[];
-  return {rect,scale,infoTitleY:244,infoCountsY:266,messageY:480,fields,slots,checks:this.passwordPreferences?[{action:'rememberPassword',label:I18n.getString(1182),value:this.rememberPassword,rect:at(24,436,inner,24)}]:[],buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
+  return {rect,scale,infoTitleY:244,infoTitleWidth:inner-informationWidth-12,infoCountsY:266,messageY:480,fields,slots,checks:this.passwordPreferences?[{action:'rememberPassword',label:I18n.getString(1182),value:this.rememberPassword,rect:at(24,436,inner,24)}]:[],buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
  }
 }
 module.exports={JoinWindow,errorText,errorIds};
