@@ -14,3 +14,11 @@ The v3 repository README states: “The art assets are copyright Claudio Berni,
 and must not be used without his permission.” The existing startup/About art
 credits remain. These files retain the original artwork; they carry no new
 license grant.
+
+`explosions.png` is an unchanged copy of `old-art/PICT_1000_explosions.png`.
+`explosion-art.json` records its provenance/hash. CDestructionMsg loads
+PICT_Explosions (1000), splits it into eight subimages and displays each at
+its original fixed size. The retained strip is 208×26, or eight 26×26 frames;
+white is the source transparent color. V4 uses the source tick cadence and
+keeps the procedural burst only as an unavailable-image/backend fallback.
+The original art copyright notice above also applies to this strip.

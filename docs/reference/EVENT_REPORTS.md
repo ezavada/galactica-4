@@ -292,3 +292,14 @@ V4 retains its recipient-private battle summaries with casualty counts,
 remembered-location navigation and replay, alongside the reachable v3-backed
 system-defense loss notices. No gameplay, UI or user-visible strings changed
 for this audit; no new screenshot or translation artifact is needed.
+
+
+## Original explosion-frame presentation
+
+V4 now uses the retained PICT1000 explosion strip for the eight fixed-size
+frames selected by `CDestructionMsg::DoMessage`, instead of the previous
+procedural burst. The source dimensions, cadence, transparency and saved
+position behavior are recorded in `data/events/explosion-art.json` and the
+main parity checklist. The procedural effect remains a missing-image/backend
+fallback. Other Layr/window roles still require their own runtime audit; this
+restoration does not establish blanket event equivalence.

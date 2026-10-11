@@ -14,6 +14,14 @@ function report(game,home,losses=1,recipient=1) {
  event.combat={ownShipsLost:0,enemyShipsLost:losses};game.queueReport(event);return event;
 }
 module.exports=()=>test.describe('V3 destruction visual feedback',()=>{
+ test.it('renders all eight retained source artwork frames at their fixed size with cached image attributes',()=>{
+  const fs=require('fs'),path=require('path'),crypto=require('crypto'),metadata=require('../data/events/explosion-art.json');const bytes=fs.readFileSync(path.join(__dirname,'../data/events/explosions.png'));
+  test.assertEqual(crypto.createHash('sha256').update(bytes).digest('hex'),metadata.sha256);test.assertEqual(bytes.readUInt32BE(16),208);test.assertEqual(bytes.readUInt32BE(20),26);
+  const {game,display,home}=fixture();report(game,home);const image={},frames=[];display.getImageCached=(key,file,color)=>{test.assertEqual(file,'events/explosions.png');test.assertTrue(!!color);return image;};
+  display.port.drawImage=(source,rect,attrs)=>{test.assertTrue(source===image);const section=attrs.getSubsection();frames.push([section.left,section.right,rect.width(),rect.height(),attrs]);};
+  display.drawDestructionEffect(game.overlay);frames.length=0;let elapsed=0;for(let frame=0;frame<8;frame++){display.visualTime=1000+elapsed+Effect.durations[frame]/2;test.assertTrue(display.drawDestructionEffect(game.overlay));elapsed+=Effect.durations[frame];}
+  test.assertEqual(frames.length,8);frames.forEach((entry,i)=>{test.assertEqual(entry[0],i*26);test.assertEqual(entry[1],(i+1)*26);test.assertEqual(entry[2],26);test.assertEqual(entry[3],26);test.assertTrue(entry[4]===frames[0][4]);});
+ });
  test.it('plays eight expanding and contracting frames at the source tick cadence without simulation randomness',()=>{
   let time=0;pdg.srand(427);const next=pdg.rand();pdg.srand(427);
   for(let frame=0;frame<8;frame++) {

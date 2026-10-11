@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1691 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1692 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -257,7 +257,7 @@ The largest blockers to a complete game are:
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
 | Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | ✅ Implemented | ✅ Implemented | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; Open and Revert retain active instruction bindings and production safeguards, with independent documents preserved. The optional wrong-course retry is verified through actual controls in all six languages. Existing-game recovery (100) is verified through actual Hide/Close controls, full completion and Open Games restoration in all six languages. Modal recovery (101) is verified through actual startup/in-game Settings entry, retry, Cancel and original restoration in all six languages; hosting recovery (103) is verified through actual Host, Cancel/Escape, local practice continuation, instruction cancellation and native-backed host creation in all six languages. The floating recovery panel stays visible and interactive above the Host modal; original documents and setup are preserved. See docs/reference/TUTORIAL_CONTROLLER.md. |
 | Internationalization | v3 language plug-ins; menu can switch languages. | ✅ Implemented | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian resources and accepts runtime language with `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven/tested; Menu → Settings → Language switches cached UI labels and numeric formatting immediately, remembers the selection and always lists native-script language names. Unported v3 dialogs/help still need future resources. |
-| Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | 🟡 Partial | v4 uses background and lab/stardock/ship assets, while most UI buttons, panels, animations, and states are styled primitives/text. Remaining parity should be tied to specific shipped v3 event/help/window imagery. |
+| Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | 🟡 Partial | v4 uses background, lab/stardock/ship assets, original outcome illustrations and fixed-size explosion frames, while most UI buttons, panels, animations, and states are styled primitives/text. Remaining parity should be tied to specific shipped v3 event/help/window imagery. |
 
 ### Possible UI enhancements beyond v3, not counted in Section 8
 
@@ -4558,3 +4558,37 @@ map views are identical and the 36 views containing outcome summaries change
 as expected. Updated victory summaries were visually reviewed in all six
 languages, along with the English before/after and compact defeat view. Actual
 compact paging checks still pass for all translated narratives.
+
+
+### Original fixed-size explosion artwork (2026-10-11)
+
+`CDestructionMsg::DoMessage` loads PICT_Explosions (1000), divides it into eight
+subimages and draws each at its original screen-pixel size. Its delays are
+2/3/4/5/6/5/4/3 ticks, followed by 20 ticks before a recipient sound. V4 already
+used that timing but substituted radial gradients/rays. It now packages the
+retained original 208×26 strip and uses cached PDG image/Attributes subsection
+rendering for eight fixed 26×26 frames. White transparency follows the source
+QuickDraw background color. The procedural burst remains an unavailable-image/
+backend fallback. Remembered battle positions, private recipients, zoom/pan
+coordinates, manual replay, reduced-motion suppression and sound sequencing
+remain covered. No simulation RNG or model state is changed by rendering.
+
+`data/events/explosion-art.json` records the retained source path, SHA-256,
+PICT role and dimensions; the art is copied unchanged, with the original
+Claudio Berni notice retained in `data/events/README.md`. Both rebuilt native
+PDG runtimes pass **1,692 tests**. New coverage verifies every subsection,
+fixed destination size and cached attributes; existing coverage exercises real
+casualties, timing, navigation, reduced motion and complete-game save/replay.
+The native frame test samples midpoints to avoid floating-point tick-boundary
+ambiguity. Browser verification freezes each sampled frame and uses actual
+Events/row/View report input, followed by narrative and reduced-motion review.
+Artifacts and logs are under `/private/tmp/galactica-explosion-art` and
+`/private/tmp/galactica-explosion-art-{before,after}-<language>.log`.
+Existing six-language event narratives and controls are reused.
+
+All twelve final browser runs pass. Of 66 before/after screenshot pairs, the
+18 Events/narrative/reduced-motion views are identical; all 48 explosion-frame
+views show the intended artwork change. Peak frames were visually inspected
+in all six languages, with English baseline/updated and first/last frames also
+reviewed. The packaged strip is byte-identical to the retained source PNG.
+Broader source presentation and other checklist entries remain open.

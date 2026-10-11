@@ -13,4 +13,4 @@ function sample(elapsed) {
     }
     return null;
 }
-module.exports={sample,duration,durations};
+module.exports={sample,duration,durations,frameSize:26};

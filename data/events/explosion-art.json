@@ -1,0 +1,9 @@
+{
+  "source": "old-art/PICT_1000_explosions.png",
+  "sha256": "eebc7eb5b70533bd123b5ded4e337af4101213ef510aefc0eddbd06b388360ac",
+  "pictureResource": 1000,
+  "width": 208,
+  "height": 26,
+  "frames": 8,
+  "frameSize": 26
+}

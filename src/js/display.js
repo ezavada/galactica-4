@@ -4116,6 +4116,14 @@ class Display {
     drawDestructionEffect(overlay) {
         const effect=this.getDestructionEffect(overlay,true);
         if(!effect)return false;
+        const art=this.getImageCached('explosionFrames','events/explosions.png',new pdg.Color('white'));
+        if(art && typeof this.port.drawImage==='function') {
+            if(!this.destructionArt)this.destructionArt=this.createAttributes();
+            const size=DestructionEffect.frameSize;
+            this.destructionArt.subsection(new pdg.Rect(effect.frame*size,0,(effect.frame+1)*size,size));
+            this.port.drawImage(art,new pdg.Rect(effect.x-size/2,effect.y-size/2,effect.x+size/2,effect.y+size/2),this.destructionArt);
+            return true;
+        }
         if(!this.destructionGlow)this.destructionGlow=this.createAttributes({lineStyle:pdg.lineStyle_None});
         if(!this.destructionStreak)this.destructionStreak=this.createAttributes({fillOpacity:0,lineThickness:2,lineColor:new pdg.Color(1,.65,.2)});
         const {x,y,radius,opacity}=effect,center=new pdg.Point(x,y);
