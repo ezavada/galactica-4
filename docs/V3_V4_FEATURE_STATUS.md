@@ -217,17 +217,17 @@ The largest blockers to a complete game are:
 - Combat-odds previews, retreat/withdrawal rules, and explicit player-visible probability breakdowns.
 - Balance changes aimed at a more aggressive or less stagnant late game beyond matching the v3 formulas and AI decision factors.
 
-## 7. Computer players (Functionality 100%, UI 67%)
+## 7. Computer players (Functionality 100%, UI 100%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
-| AI turn participation | Computer systems choose production and ships/fleets choose strategic destinations. | ✅ Implemented | 🟡 Partial | AI players are created and processed before movement. Star build/economy, ship destinations, and fleet destinations execute. `./gad4 -- --ai-autoplay` advances a deterministic no-human observer game until win condition or the 250-turn guard. Event windows are hidden by default and restored with `--show-event-windows`. |
+| AI turn participation | Computer systems choose production and ships/fleets choose strategic destinations. | ✅ Implemented | ✅ Implemented | AI players are created from accepted setup and processed before movement. Actual six-language setup/End turn checks now verify three computer players receive the selected skill and each delegates to real star, ship and fleet decision phases, with no AI processing error. Accepted count/skill/advantage survive complete game saves. Native source-backed AI specs cover the underlying decisions. The optional deterministic no-human autoplay observer remains available through --ai-autoplay with a win/250-turn guard; it is a V4 diagnostic rather than an additional v3 UI requirement. |
 | AI ship decision matrices | `CShipCompMove.cpp` scores owned stars, enemy stars, unowned stars, enemy ships, and fleet formation using v3 factor tables. | ✅ Implemented | ➖ N/A | The port uses the v3 factor tables, v3 skill search distances/repetition counts, v3 per-destination pass merging, v3 tie-break rules, skilled scout behavior, lower-skill randomness, Novice fleet avoidance, invalid-target guards, ineligible-actor skips, the docked-fleet-with-fewer-than-three-ships guard, docked fleet formation, and fleet AI actors. Full waypoint/course UI remains Section 4/5 work, not a Section 7 computer-player blocker. |
 | AI economy management | `CStar::DoComputerMove()` changes desired allocations: Expert can designate tech stars; non-experts reset to the default split. | ✅ Implemented | ➖ N/A | AI writes desired star allocations. Expert AI can select a v3-style tech star using highest-tech/no-nearby-enemy/nearby-ally checks and splits other systems into growth/shipbuilding; non-experts use the default split. Threat/development allocation helpers are scaffold/future behavior, not v3 parity. |
 | AI colonization defaults | Computer colonies immediately set a defensive build on newly colonized neutral stars. | ✅ Implemented | ➖ N/A | `Game.applyNewColonyDefaults()` starts a defense satellite for computer-owned neutral colonies, matching `CShip::Arriving()`. |
 | AI use of tech transfer | Computer scouts/battleships/fleets benefit from the same arrival/departure technology rules as human units. | ✅ Implemented | ➖ N/A | Technology transfer is in the shared movement/rule path, so AI orders use it automatically. Tests cover standalone scout refresh, battleship/fleet delivery, and the v3 limitation that scouts inside fleets do not refresh. |
 | AI defenses | v3 computer defense is satellites plus Good/Expert auto-patrol for docked, healthy non-scout ships/fleets; computer ships do not use call-in. | ✅ Implemented | ➖ N/A | Satellites, patrol state, patrol combat bonuses, and the C++-confirmed Good/Expert patrol toggle for healthy/damaged docked ships and fleets are implemented and tested. No v3 computer reinforcement/call-in subsystem was found. |
-| Skill differences | v3 has five skill values. They change search distance, target passes, skilled scout behavior, lower-skill randomness, Novice fleet avoidance, and Good/Expert patrol toggling. | ✅ Implemented | 🟡 Partial | Ship AI reads the preserved five-level v3 skill for C++-backed movement behavior. Older three-bucket helpers remain only as general scaffolding/stat display and no longer affect v3-backed ship movement or build selection. UI/localized skill names exist, but setup display remains basic. |
+| Skill differences | v3 has five skill values. They change search distance, target passes, skilled scout behavior, lower-skill randomness, Novice fleet avoidance, and Good/Expert patrol toggling. | ✅ Implemented | ✅ Implemented | Source-backed movement/build selection preserves Expert=1, Good=2, Average=3, Passable=4 and Novice=5. Older three-bucket scaffolding/stat helpers do not replace the v3 rule values. The localized setup popup accepts all five values by actual click, shows the selected row, cancels without changing it and supports numeric shortcuts. Its skill buttons and Cancel now use the shared right-side shortcut hints instead of angle-bracket captions. All six languages pass before/after UI checks; native specs forward every shared skill to computer players while preserving explicit per-player overrides. |
 | Advantage modifier | Computer advantage is a setup value from +3 through -3 and applies a 20% modifier to production-style calculations. | ✅ Implemented | ✅ Implemented | Computer advantage applies to AI research, shipbuilding and production reports at 20% per level, matching `CStar.cpp`. Setup exposes all seven values through clickable choices/A cycling and displays the resulting 40%–160% rate. Config validation and game launch preserve the selected integer value. |
 
 ### Possible AI enhancements beyond v3, not counted in Section 7
@@ -5491,3 +5491,48 @@ All ten counted Section 6 UI rows are now implemented; its local UI estimate is
 100%. This does not establish completion of the overall project goal. Other
 sections still have open rows, and the Map Generation checklist and remaining
 localization/art/platform requirements need their own completion audits.
+
+### Computer-player setup and turn UI audit (2026-10-11)
+
+The two remaining Section 7 UI rows are now implemented. Shipped
+`GalacticaConsts.h:749–753` defines Expert/Good/Average/Passable/Novice as 1–5.
+`CGameSetupAttach.cpp:118–126,370–383` reads the configured skill/advantage and
+passes the selected popup value into game metadata, mapping the seven advantage
+items to +3 through -3. `CShipCompMove.cpp:86–99` consumes that skill in search
+distance and repeated target passes; the native V4 specs separately cover the
+ported skill-dependent movement, matrices, scout behavior, randomness, Novice
+fleet avoidance and Good/Expert patrol behavior.
+
+The UI audit found a remaining deviation from the requested modern button
+style: `drawStartupSkillMenu` still rendered labels with `<1>` through `<5>`.
+Those buttons now use the existing `drawStartupButtonCaption` helper, with a
+small hint on the right. Cancel uses the same renderer with its actual Esc
+shortcut. Existing localized skill and Cancel resources are reused; no new
+user-facing strings or gameplay values are introduced.
+
+New `tools/test-web-ai-setup.cjs` performs actual computer-count text editing,
+clicks every skill and advantage, checks active selection and Escape/numeric
+shortcuts, then starts the configured game. It verifies one human and three
+Expert computers with advantage -3, invokes the actual End turn/confirmation
+controls, delegates to each computer's real star/ship/fleet decision methods,
+checks all nine phase calls without processing errors, and restores a complete
+save to verify the accepted settings. Actual Port text calls confirm legacy
+angle-bracket captions before the change and separate numeric/Esc hints after.
+Full native startup specs additionally validate every skill's handoff, explicit
+per-player overrides, all advantage production rates and invalid/range inputs.
+
+All six languages pass both before and after browser runs. The 60 matched
+screenshots under `/private/tmp/galactica-ai-setup/{before,after}/<language>`
+contain 30 changed skill-popup images and 30 pixel-identical setup, advantage,
+created-game and computer-turn images. All six popup comparisons were visually
+inspected; translated labels and hints fit the controls. The comparison record
+is `/private/tmp/galactica-ai-setup-comparison.json`; corresponding browser logs
+use `/private/tmp/galactica-ai-setup-{before,after}-<language>.log`.
+The changed source was independently packaged at
+`/private/tmp/galactica-ai-setup-after-app`. Both full muted native suites pass
+1725 tests, zero failures (`/private/tmp/galactica-ai-setup-public-unit.log` and
+`/private/tmp/galactica-ai-setup-devel-unit.log`).
+
+All three counted Section 7 UI rows are now implemented, so its local UI
+estimate is 100%. This does not close other project sections, Map Generation,
+or the remaining localization/art/platform completion requirements.

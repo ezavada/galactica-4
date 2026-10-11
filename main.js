@@ -516,10 +516,10 @@ function drawStartupSkillMenu() {
     port.drawText(I18n.formatString(522,'AI skill: {0} ({1})',pendingConfig.getDifficultyName(),pendingConfig.compSkill),new pdg.Point(rect.x+rect.width/2,rect.y+36),startupStyles.subtitleText);
     for(const choice of layout.choices) {
         drawStartupRoundedRect(choice.rect,7,choice.active?startupStyles.advantageButtonActive:startupStyles.advantageButton);
-        port.drawText(choice.label+' <'+choice.value+'>',new pdg.Point(choice.rect.x+choice.rect.width/2,choice.rect.y+20),startupStyles.advantageText);
+        drawStartupButtonCaption(choice.rect,choice.label,startupStyles.advantageText,14,String(choice.value));
     }
     drawStartupRoundedRect(layout.cancel,7,startupStyles.advantageButton);
-    port.drawText(I18n.getString(683,'Cancel'),new pdg.Point(layout.cancel.x+layout.cancel.width/2,layout.cancel.y+20),startupStyles.advantageText);
+    drawStartupButtonCaption(layout.cancel,I18n.getString(683,'Cancel'),startupStyles.advantageText,13,'Esc');
 }
 
 function drawStartupDialog() {
