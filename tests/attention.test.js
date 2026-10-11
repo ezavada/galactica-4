@@ -113,6 +113,38 @@ module.exports=function(){test.describe('V3 human call-ins and attention',()=>{
         g.executeUIAction({type:'reviewAttention'});test.assertNotNull(g.overlay);test.assertEqual(g.uiWindow,null);
         g.requestEndTurn();g.handleKeyPress(13);test.assertEqual(g.overlay,null);test.assertEqual(g.uiWindow,null);
     });
+    test.it('restores a surviving pre-turn selection after playback, with held autoshow notices available only for explicit review',()=>{
+        const {g,home,ship}=fixture();g.uiWindow=null;g.turnPreviousSelection=ship;g.turnAttentionPending=true;
+        g.setSelectedObject(home);g.overlay={type:'report'};test.assertFalse(g.presentTurnAttention());
+        g.overlay=null;const event=g.recordEvent('Report','Unread',{subject:home,recipient:1});g.attention.requestEvent(event);
+        g.heldReports.push({type:'report',eventId:event.id,animationOnly:true});
+        test.assertEqual(g.attention.pending().length,0);test.assertTrue(g.presentTurnAttention());
+        test.assertTrue(g.selectedObject===ship);test.assertNull(g.turnPreviousSelection);test.assertFalse(g.turnAttentionPending);
+        test.assertFalse(event.handled);test.assertEqual(g.pendingGameReports().length,1);
+    });
+    test.it('gives a real go-to request precedence and clears restoration after manual attention navigation',()=>{
+        const {g,home,ship}=fixture();g.uiWindow=null;g.turnPreviousSelection=home;g.turnAttentionPending=true;g.attention.request(ship);
+        test.assertTrue(g.presentTurnAttention());test.assertTrue(g.selectedObject===ship);test.assertNull(g.turnPreviousSelection);
+        g.turnPreviousSelection=home;g.turnAttentionPending=true;g.attention.request(ship);g.attention.next();
+        test.assertNull(g.turnPreviousSelection);test.assertFalse(g.presentTurnAttention());
+    });
+    test.it('retains previous selection through playback saves without dirtying content and rejects stale references',()=>{
+        const Save=require('../src/js/game-save.js'),{g,home,ship}=fixture();g.uiWindow=null;
+        const content=Save.contentSignature(g);g.turnPreviousSelection=ship;g.turnAttentionPending=true;g.setSelectedObject(home);
+        test.assertEqual(Save.contentSignature(g),content);const loaded=Save.restore(Save.serialize(g));loaded.display={centerOn:()=>{},setSelectedObject:()=>{}};
+        test.assertTrue(loaded.presentTurnAttention());test.assertEqual(loaded.selectedObject.id,ship.id);
+        g.allShips.splice(g.allShips.indexOf(ship),1);test.assertFalse(g.presentTurnAttention());test.assertTrue(g.selectedObject===home);
+        test.assertNull(Save.restore(Save.serialize(g)).turnPreviousSelection);
+    });
+    test.it('accepts older playback saves without a previous selection and rejects malformed restoration targets',()=>{
+        const Save=require('../src/js/game-save.js'),{g}=fixture(),doc=JSON.parse(Save.serialize(g));
+        const root=doc.graph.nodes[doc.graph.root.ref];root.properties=root.properties.filter(([key])=>key!=='turnPreviousSelection');
+        test.assertNull(Save.restore(JSON.stringify(doc)).turnPreviousSelection);
+        root.properties.push(['turnPreviousSelection',123]);test.assertThrows(()=>Save.restore(JSON.stringify(doc)));
+    });
+    test.it('captures the actual local pre-turn selection and waits for presentation to finish',()=>{
+        const {g,ship}=fixture();g.uiWindow=null;g.endTurn();test.assertTrue(g.turnPreviousSelection===ship);test.assertTrue(g.turnAttentionPending);
+    });
     test.it('presents the first completed-turn request after report playback and only once',()=>{
         const {g,home,ship}=fixture();g.uiWindow=null;g.attention.request(ship);g.turnAttentionPending=true;g.overlay={type:'lab'};
         test.assertFalse(g.presentTurnAttention());test.assertTrue(g.turnAttentionPending);

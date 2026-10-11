@@ -28,13 +28,14 @@ class Attention {
     }
     handleEvent(event) { const entry=this.queue.find(entry=>entry.event===event);if(entry){entry.handled=true;if(entry.event)entry.event.handled=true;} }
     pending() {
-        return this.queue.filter(entry=>!entry.handled && (entry.eventRequest
+        return this.queue.filter(entry=>!entry.handled && !this.game.heldReports.some(report=>entry.event && report.eventId===entry.event.id) && (entry.eventRequest
             ?entry.recipient===this.game.getCurrentHumanPlayer() && !!this.game.getEventFocus(entry.event)
             :this.isHumanObject(entry.object) && entry.object.owner===this.game.getCurrentHumanPlayer()));
     }
     attend(object) { const entry=this.pending().find(entry=>entry.object===object);if(entry){entry.handled=true;if(entry.event)entry.event.handled=true;} }
     next() {
         this.game.turnAttentionPending=false;
+        this.game.turnPreviousSelection=null;
         const entry=this.pending()[0];
         if(!entry){if(this.game.sound)this.game.sound.noMore(this.game);return false;}
         entry.handled=true;if(entry.event) {

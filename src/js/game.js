@@ -82,6 +82,7 @@ class Game {
         this.systemComparisonGeometry = null;
         this.pendingRendezvousPlacement = null;
         this.turnAttentionPending=false;
+        this.turnPreviousSelection=null;
         this.renameTarget = null;
         this.renameText = '';
         this.isGameOver = false;
@@ -582,8 +583,17 @@ class Game {
         // V3 finishes ShowMessages, then presents exactly one non-modal goto.
         // Defer to the draw boundary so turn/report callbacks finish first.
         this.turnAttentionPending=false;
+        const previous=this.turnPreviousSelection;this.turnPreviousSelection=null;
         if(!this.shouldShowEventWindows() || !this.getCurrentHumanPlayer())return false;
-        return this.attention.pending().length>0 && this.attention.next();
+        if(this.attention.pending().length>0)return this.attention.next();
+        // ShowMessages returns to the surviving pre-turn selection when there
+        // are no non-autoshow go-to requests. Never revive a destroyed object.
+        if(previous && [this.stars,this.allShips,this.allFleets,this.allRendezvous].some(list=>list.includes(previous)) &&
+                !(previous.isDead && previous.isDead()) && !(previous.isEmpty && previous.isEmpty())) {
+            this.setSelectedObject(previous,{attend:false});
+            this.display.centerOn(previous.x,previous.y);return true;
+        }
+        return false;
     }
 
     getKeyChar(key) {
@@ -3197,6 +3207,7 @@ class Game {
         if (this.isGameOver) this.postGame=true;
 
         this.turnAttentionPending=false;
+        this.turnPreviousSelection=this.selectedObject;
         if (this.tutorialSimulation) this.tutorialSimulation.beforeEndTurn(this);
         this.closeEventWindowsForTurnAdvance();
 

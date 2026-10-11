@@ -101,7 +101,7 @@ The largest blockers to a complete game are:
 | Go to home planet | Goto menu/Home-key command centers/selects home. | ✅ Implemented | ✅ Implemented | House icon, View menu and Home key select and center the current human homeworld without changing zoom. H is reserved for eligible selected mobile Hunt, matching v3. |
 | Go to selected/current item | Centers map on selected entity. | ✅ Implemented | ✅ Implemented | View → Center selected item and Shift+C center the current selection; lowercase c remains colony building. |
 | Go to next item needing attention | Menu/Tab cycles the attention queue. | ✅ Implemented | ✅ Implemented | Tab, the Next item map button and command-menu entry select and center the next unhandled valid subject. Counts/active controls reflect pending requests. Selecting a subject manually also handles its request; removed/captured/member objects are skipped. Empty queues never advance the turn. Remaining event-subject coverage is tracked under Attention queue in Section 8. |
-| Replay/go to enemy moves | Shows noteworthy enemy movement. | 🟡 Partial | 🟡 Partial | Settings → Show enemy events controls automatic playback of accessible observer reports, defaults on as in v3, persists as a new-game default and in complete-game saves, and leaves manual Events replay available when off. Observer captures focus/center the known system; movement-time notices defer until visibility is recalculated. Disabled or newly hidden queued observer copies are skipped, and quiet autoplay/private recipients remain respected. Settings pages in short viewports with mouse/arrow input and localized hover help. Surviving-system defense losses and neutral-colonization notices also broadcast detected observer reports with the same playback preference. Automatic notices without dialogs now retain their map focus for four seconds (eight during tutorials), including the final notice, without repeating their cues. Manual Events review stays immediate. Clicking during an automatic no-dialog notice now stops the remaining autoshow batch and consumes the click; Escape/Return/Space also stop the batch. Unread reports and owner-art metadata remain available for explicit review and survive saves. Hold/Show enemy events preferences and subsequent attention navigation are preserved. The remaining emitted-event inventory and selection-restoration behavior still need separate audit. |
+| Replay/go to enemy moves | Shows noteworthy enemy movement. | 🟡 Partial | 🟡 Partial | Settings → Show enemy events controls automatic playback of accessible observer reports, defaults on as in v3, persists as a new-game default and in complete-game saves, and leaves manual Events replay available when off. Observer captures focus/center the known system; movement-time notices defer until visibility is recalculated. Disabled or newly hidden queued observer copies are skipped, and quiet autoplay/private recipients remain respected. Settings pages in short viewports with mouse/arrow input and localized hover help. Surviving-system defense losses and neutral-colonization notices also broadcast detected observer reports with the same playback preference. Automatic notices without dialogs now retain their map focus for four seconds (eight during tutorials), including the final notice, without repeating their cues. Manual Events review stays immediate. Clicking during an automatic no-dialog notice now stops the remaining autoshow batch and consumes the click; Escape/Return/Space also stop the batch. Unread reports and owner-art metadata remain available for explicit review and survive saves. Hold/Show enemy events preferences and subsequent attention navigation are preserved. Local playback now restores a surviving pre-turn selection when no real go-to request remains, including interrupted playback; held autoshow reports stay reserved for explicit review. Restoration survives playback saves, ignores removed objects, and yields to manual attention navigation. The remaining emitted-event inventory still needs separate audit. |
 | Select objects on map | Stars/ships/fleets can be clicked; overlapping items can be chosen explicitly. | ✅ Implemented | ✅ Implemented | Shared marker centers/extents align drawing and hits at every zoom, including scaled docking offsets and fleet size. Omitted small mobiles, satellites, dead ships, empty fleets, members and fog/preference-hidden markers cannot intercept input. A paged neutral chooser resolves stacked clicks, Control-click nearby items and ambiguous order targets; numbered keys/clicks choose, Escape preserves pending commands, and Enter/Tab cannot advance the game. Labels conceal unknown mobile names; cached type icons and allied-only plotted/scrap hints distinguish entries. Fleet inspector/marker information visibility remains the separate Section 5 gap. |
 | Navigate containing objects | Left Arrow selects the immediate container and remembers the child; Right Arrow inspects the selected contents row. | ✅ Implemented | ✅ Implemented | Docked ships, nested groups and top-level fleets navigate one real container at a time through the existing fleet-exchange UI. The previous child is highlighted and revealed on its sorted page. Parent and Inspect buttons share the same behavior and display arrow hints; the system-parent button has a translated Containing system label. Right Arrow selects a fleet’s first row on entry and can return through a nested hierarchy. Hidden/stale containers, map targeting, drags and modal/editor input retain their existing restrictions. At the top level the shipped No more sample plays without changing selection or turn. Source and verification are recorded below. |
 | Selection marker | Pulsing marker around selected object. | ✅ Implemented | ✅ Implemented | Rendered for stars, ships, and fleets in `display.js`. |
@@ -5160,3 +5160,49 @@ assertions; German and French completed before those assertions were added,
 and their recorded states/screens show the same turn-seven S-7 colony/ship.
 The prior page-47 failure is repaired; the remaining map replay selection and
 emitted-event inventory audits remain open.
+
+
+### Returning to the pre-turn selection after playback
+
+Source: `GalacticaSingleDoc.cp:879–885` captures the selection before resolving
+the local turn. `GalacticaDoc.cp:1695–1724` gives pending non-autoshow go-to
+messages precedence; otherwise it reselects the still-valid former object after
+the final notice's delay and clears the saved pointer. `ShowNextNeedyThingy`,
+lines 1770–1780, skips autoshow messages even when they remain unread. The source
+selection path scrolls to the object (`SetSelectedThingy`, around line 2943).
+
+V4 captures `turnPreviousSelection` before local turn resolution and finishes
+it at the existing deferred post-playback boundary. A real attention request
+wins; otherwise a surviving tracked star, ship, fleet or rendezvous is selected
+and reached through the existing whip-pan camera without changing zoom or turn.
+Removed/dead/empty objects are not revived. The pointer clears after finishing
+or explicit attention navigation, so later manual report review does not jump
+back. Held automatic overlays remain unread and available through Show reports
+and Events, but are excluded from attention navigation, matching the source
+skip rather than turning an interrupted autoshow into a new Tab request.
+
+The previous selection is saved as a graph reference during playback. Old saves
+without that optional field still load; malformed targets are rejected, and
+removed targets are dropped on serialization. Navigation state is excluded
+from the document content signature, preserving the existing modified-document
+behavior. No user-facing strings were added or changed.
+
+Verification: both full native suites pass 1,723 tests, including five new cases
+for actual pre-turn capture, delayed restoration, real/manual attention
+precedence, held unread reports, save/restore and content signatures, removed
+objects, legacy saves and malformed references. Muted actual Chromium before
+and after checks pass in all six languages. The fixture calls the real end-turn
+path and public report emitters, with deterministic AI/report generation and
+zero ship/research payments to isolate this UI sequence; it does not claim a
+separate AI simulation audit. It checks natural completion, keyboard interruption,
+explicit Events replay, unchanged zoom/turn and an owned ship's real call-in.
+
+Thirty screenshot pairs include 12 pixel-identical initial/manual-review scenes,
+12 intended restored/interrupted-selection changes, and six attention scenes
+with only 664–677 changed pixels (less than 0.15% of each image). Amplified image
+difference inspection confirms these last changes are star brightness, including
+stars behind the translucent ship panel; the attention subject and controls are
+unchanged. English before/after restoration and attention scenes and the six
+localized restored-system scenes were inspected visually. The full English
+existing-game tutorial and unchanged original document recovery also pass after
+this change. The broader emitted-event inventory audit remains open.

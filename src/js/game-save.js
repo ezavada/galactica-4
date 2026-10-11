@@ -11,7 +11,7 @@ const entityTypes=[Star,Ship,Fleet,Rendezvous];
 const forbidden=new Set(['__proto__','constructor','prototype']);
 const fields=['config','rules','players','stars','allShips','allFleets','allRendezvous','turn','gameWidth','gameHeight',
     'selectedObject','isGameOver','postGame','winningPlayerNum','victoryTurn','eventLog','nextEventId','eventSelection','eventPage',
-    'eventDetailPage','turnAttentionPending','holdGameReports','heldReports','uiWindow','overlay','overlayQueue','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames','showEnemyEvents','mapDisplayMode'];
+    'eventDetailPage','turnAttentionPending','turnPreviousSelection','holdGameReports','heldReports','uiWindow','overlay','overlayQueue','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames','showEnemyEvents','mapDisplayMode'];
 const maximumNodes=300000,maximumLength=64*1024*1024;
 function invalid() {throw new Error('Invalid Galactica-4 saved game');}
 function encodeGraph(root) {
@@ -85,12 +85,13 @@ function snapshot(game,contentOnly=false) {
     const state={};for(const key of fields)state[key]=game[key];
     // v3 retains the Events window; command menus and order editors are transient.
     state.uiWindow=game.uiWindow==='events'?'events':null;
+    if(![game.stars,game.allShips,game.allFleets,game.allRendezvous].some(list=>list.includes(state.turnPreviousSelection)))state.turnPreviousSelection=null;
     state.tutorialRandom=game.tutorialRandom==null?null:game.tutorialRandom;
     state.attention=game.attention.queue;
     state.chart=ChartNames.snapshot(game);
     state.aiSkills=[...game.aiManager.aiPlayers].map(([id,player])=>[id,player.skillManager.getSkillLevel()]);
     state.camera=game.display?{zoom:game.display.camera.zoom,panX:game.display.camera.panX,panY:game.display.camera.panY}:game.savedCamera || null;
-    if(contentOnly)for(const key of ['selectedObject','eventLog','nextEventId','eventSelection','eventPage','eventDetailPage','turnAttentionPending','holdGameReports','heldReports','uiWindow','overlay','overlayQueue','attention','chart','camera','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames','showEnemyEvents','mapDisplayMode'])delete state[key];
+    if(contentOnly)for(const key of ['selectedObject','eventLog','nextEventId','eventSelection','eventPage','eventDetailPage','turnAttentionPending','turnPreviousSelection','holdGameReports','heldReports','uiWindow','overlay','overlayQueue','attention','chart','camera','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames','showEnemyEvents','mapDisplayMode'])delete state[key];
     return {format:'Galactica-4',version:1,graph:encodeGraph(state)};
 }
 // Navigation and report review do not mark the document modified in v3.
@@ -99,7 +100,7 @@ function serialize(game) {return JSON.stringify(snapshot(game));}
 function validate(state,nodes) {
     if(!state || !Number.isInteger(state.turn) || state.turn<1 || !Number.isFinite(state.gameWidth) || state.gameWidth<=0 || !Number.isFinite(state.gameHeight) || state.gameHeight<=0)invalid();
     if(!(state.config instanceof Config) || state.config.validate().length || !(state.rules instanceof Rules) || state.rules.isFast!==state.config.fastGame)invalid();
-    if(fields.some(key=>key!=='showEnemyEvents' && key!=='turnAttentionPending' && key!=='holdGameReports' && key!=='heldReports' && !Object.prototype.hasOwnProperty.call(state,key)))invalid();
+    if(fields.some(key=>key!=='showEnemyEvents' && key!=='turnAttentionPending' && key!=='turnPreviousSelection' && key!=='holdGameReports' && key!=='heldReports' && !Object.prototype.hasOwnProperty.call(state,key)))invalid();
     if(state.turnAttentionPending!==undefined && typeof state.turnAttentionPending!=='boolean')invalid();
     if(state.holdGameReports!==undefined && typeof state.holdGameReports!=='boolean')invalid();
     if(state.heldReports!==undefined && (!Array.isArray(state.heldReports) || state.heldReports.some(row=>!row || !['report','outcome','lab','stardock'].includes(row.type) || !Number.isSafeInteger(row.eventId) || !Array.isArray(state.eventLog) || !state.eventLog.some(event=>event.id===row.eventId))))invalid();
@@ -117,6 +118,7 @@ function validate(state,nodes) {
         for(const entity of list){if(!(entity instanceof entityTypes[index]) || ids.has(entity.id))invalid();ids.add(entity.id);}
     });
     if(state.selectedObject!==null && !lists.some(list=>list.includes(state.selectedObject)))invalid();
+    if(state.turnPreviousSelection!=null && !lists.some(list=>list.includes(state.turnPreviousSelection)))invalid();
     const entities=nodes.filter(object=>entityTypes.some(type=>object instanceof type));
     for(const entity of entities) {
         if(!Number.isSafeInteger(entity.id) || entity.id<1 || !Number.isFinite(entity.x) || !Number.isFinite(entity.y) || !Number.isInteger(entity.owner) || entity.owner<0 || entity.owner>total)invalid();
@@ -156,6 +158,7 @@ function restore(input) {
     game.holdGameReports=state.holdGameReports===true;
     game.heldReports=state.heldReports || [];
     game.turnAttentionPending=state.turnAttentionPending===true;
+    game.turnPreviousSelection=state.turnPreviousSelection || null;
     game.showEnemyEvents=state.showEnemyEvents===undefined?true:state.showEnemyEvents;
     if(state.tutorialRandom)game.tutorialRandom=state.tutorialRandom;
     game.attention.queue=state.attention;
