@@ -76,6 +76,24 @@ module.exports=()=>test.describe('Authenticated player-state transport',()=>{
   ally.complete();view=View.snapshot(game,1);test.assertTrue(entity(view,'star',enemy).ships.some(r=>r.id===fleet.id));test.assertTrue(!!entity(view,'ship',ship));
   ally.star=null;ally.x+=500;view=View.snapshot(game,1);test.assertFalse(!!entity(view,'fleet',fleet));
  }));
+ test.it('uses host system membership when detected departing ships and fleets still share its coordinates',()=>fixture(({game,enemy,fleet,ship,own})=>{
+  enemy.setVisibilityTo(1,4);fleet.star=enemy;fleet.x=enemy.x;fleet.y=enemy.y;fleet.syncShipPositions();
+  const departing=game.factory.createShip(enemy.x,enemy.y,'battleship',enemy,true);departing.star=null;departing.setVisibilityTo(1,3);departing.course.replace({x:enemy.x+1000,y:enemy.y});
+  const leaving=game.factory.createFleet(enemy.x,enemy.y,2,'Departing fleet'),member=game.factory.createShip(enemy.x,enemy.y,'scout',enemy,true);leaving.addShip(member);leaving.star=null;leaving.course.replace({x:enemy.x+2000,y:enemy.y});leaving.setVisibilityTo(1,3);
+  const view=View.snapshot(game,1);test.assertFalse(entity(view,'star',enemy).ships.some(r=>r.id===departing.id && r.kind==='ship' || r.id===leaving.id && r.kind==='fleet'));
+  test.assertTrue(!!entity(view,'ship',departing));test.assertTrue(!!entity(view,'fleet',leaving));test.assertFalse('course' in entity(view,'ship',departing));test.assertFalse('course' in entity(view,'fleet',leaving));
+  const model=require('../src/js/client-state.js').restore({...view,gameId:'a'.repeat(64)});model.port={getDrawingArea:()=>new pdg.Rect(800,600),getTextWidth:(s,size=11)=>String(s).length*size/2};model.display=new (require('../src/js/display.js'))(model);
+  const system=model.stars.find(e=>e.id===enemy.id),rows=model.getSystemShipRows(system);
+  test.assertTrue(rows.some(r=>r.object.id===fleet.id && model.factory.isFleet(r.object)));
+  test.assertFalse(rows.some(r=>r.object.id===departing.id && model.factory.isShip(r.object)));
+  test.assertFalse(rows.some(r=>r.object.id===leaving.id && model.factory.isFleet(r.object)));
+  test.assertTrue(model.showFleetExchange(system));test.assertFalse(model.getFleetExchangeState().main.some(e=>e.id===leaving.id && model.factory.isFleet(e)));
+  const parked=game.factory.createFleet(own.x,own.y,1,'Coordinate-only fleet'),ownShip=game.factory.createShip(own.x,own.y,'scout',own,true);parked.addShip(ownShip);parked.star=null;
+  const ownView=View.snapshot(game,1);test.assertTrue(entity(ownView,'star',own).ships.some(r=>r.id===parked.id && r.kind==='fleet'));
+  const ownModel=require('../src/js/client-state.js').restore({...ownView,gameId:'a'.repeat(64)}),ownSystem=ownModel.stars.find(s=>s.id===own.id);
+  test.assertTrue(ownModel.getDockedSystemMembers(ownSystem).some(e=>ownModel.factory.isFleet(e) && e.id===parked.id));
+  test.assertFalse(game.getDockedSystemMembers(enemy).includes(departing));test.assertFalse(game.getDockedSystemMembers(enemy).includes(leaving));
+ }));
  test.it('keeps the existing ship faction marker at Speed while gating inspector fields and enemy courses',()=>fixture(({game,ship,fleet})=>{
   fleet.removeShip(ship);ship.course.replace({x:1234,y:5678,name:'Secret order'});
   for(let level=1;level<=4;level++){ship.setVisibilityTo(1,level);const row=entity(View.snapshot(game,1),'ship',ship);

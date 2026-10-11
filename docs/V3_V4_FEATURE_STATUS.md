@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1679 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1680 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4236,3 +4236,40 @@ Evidence: `/private/tmp/galactica-allocation-label/{before,after}/<language>`,
 `/private/tmp/galactica-allocation-label-{before,after}-<language>.log` and
 `/private/tmp/galactica-allocation-label-{public,devel}-unit.log`. This closes the
 observed production label clipping; the broader parity audit remains active.
+
+
+### Authoritative projected system membership
+
+Verified v3 `CStar::GetContentsListForType` (391–398), which exposes the star's
+membership list, and `CShip::Departing` (201–207), which removes departing units
+from their container. A detected unit at the same coordinates is not sufficient
+proof of membership after departure.
+
+V4's host correctly omitted departing enemy ships/fleets from a Details-visible
+system's public contents. The client still inferred docking from coordinates:
+private enemy courses are omitted, so restored units appeared to have no
+orders. Projected clients now use explicit host membership. Local authoritative
+models retain their stationary coordinate fallback. Full owned-system projections
+also use the shared host contents query, preserving coordinate-only parked fleets
+when restoring the client. Enemy courses stay private.
+
+The regression first failed against the old implementation, then passed with the
+fix. It covers detected individual ships and fleets at the system's coordinates,
+hidden orders, system rows/exchange contents, docked fleet retention and restoration
+of a coordinate-only owned fleet. Both full native suites pass **1,680 tests**,
+with audio muted. No new user-facing strings are introduced.
+
+Browser modes `before-system-membership` and `system-membership` pass in all six
+languages. Actual map selection resolves the collocated-object picker, opens the
+system exchange table and selects its docked fleet. Before/after contents screens
+were inspected in en/de/es/fr/ja/ru: only the incorrect departing fleet row disappears;
+the docked member's 60% health and independent visibility remain unchanged. Of 42
+screenshot pairs, 36 are byte-identical; the six changed captures are the system
+contents table. Owned controls, construction, Speed/Class fleet inspection and
+Compare Players still pass. Chrome output is muted.
+
+Evidence: `/private/tmp/galactica-system-membership/{before,after}/<language>`,
+`/private/tmp/galactica-system-membership-{before,after}-<language>.log` and
+`/private/tmp/galactica-system-membership-{public,devel}-unit.log`. This closes the
+projected membership defect; the overall parity and map-generation audit remains
+active.

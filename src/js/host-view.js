@@ -70,10 +70,10 @@ function project(game,viewer,administrator=false){
     row.currentShip=e.currentShip?pick(e.currentShip,all?['type','techLevel','cost','progress']:['type']):null;
     for(const key of ['growth','shipBuilding','research'])row[key]=pick(e[key],all?['value','desired','rate','benefit','locked']:['value']);
    }
-   if(!all && systemMembers.has(e))row.ships=systemMembers.get(e).map(ref).filter(Boolean);
+   if(systemMembers.has(e))row.ships=systemMembers.get(e).map(ref).filter(Boolean);
    if(all){Object.assign(row,pick(e,['paidTowardShipBuilding','unassignedShipCredit','paidTowardResearch','damage','scannerRange']));
     row.buildCredits=pick(e.buildCredits,Object.keys(e.buildCredits));row.defaultDestination=point(e.defaultDestination);
-    row.ships=e.ships.map(ref).filter(Boolean);row.defenseSatellites=e.defenseSatellites.map(ref).filter(Boolean);}
+    row.defenseSatellites=e.defenseSatellites.map(ref).filter(Boolean);}
   }else if(kind==='rendezvous'){
    Object.assign(row,pick(e,['owner','name']));row.anchor=ref(e.anchor);row.fleet=ref(e.fleet);
   }else{

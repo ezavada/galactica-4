@@ -1730,7 +1730,9 @@ class Game {
     }
 
     getDockedSystemMembers(star) {
-        const isDocked=object=>object.star===star || (!object.destination &&
+        // Projected clients do not receive enemy courses. Their explicit host
+        // membership is authoritative; coordinate inference is local-only.
+        const isDocked=object=>object.star===star || (this.clientPlayerNum===undefined && !object.destination &&
             Math.round(object.x)===Math.round(star.x) && Math.round(object.y)===Math.round(star.y));
         return this.allShips.filter(ship=>!ship.fleet && !ship.isDead() && !ship.underConstruction() && isDocked(ship))
             .concat(this.allFleets.filter(fleet=>!fleet.fleet && !fleet.isDead() && !fleet.isEmpty() && isDocked(fleet)));
