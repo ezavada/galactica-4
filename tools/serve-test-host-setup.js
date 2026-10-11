@@ -39,7 +39,7 @@ const server=http.createServer((req,res)=>{
   else if(req.url==='/stop' && record){await service.stop(record);result=true;}
   else throw Error('Unknown fixture request');
   res.writeHead(200,headers);res.end(JSON.stringify(result));
- }catch(error){res.writeHead(400,headers);res.end(JSON.stringify({code:error.code || 'host_save_failed',...(error.record?{record:service.describe(error.record)}:{}),...(error.conversion?{conversion:{...error.conversion,suggestedFile:path.basename(error.conversion.suggestedFile)}}:{})}));}});
+ }catch(error){if(req.url==='/stop')console.error('Host fixture stop failure:',error.stack || error);res.writeHead(400,headers);res.end(JSON.stringify({code:error.code || 'host_save_failed',...(error.record?{record:service.describe(error.record)}:{}),...(error.conversion?{conversion:{...error.conversion,suggestedFile:path.basename(error.conversion.suggestedFile)}}:{})}));}});
 });
 server.listen(0,'127.0.0.1',()=>fs.writeFileSync(process.env.GALACTICA_TEST_HOST_INFO,JSON.stringify({url:'http://127.0.0.1:'+server.address().port})));
 process.on('SIGTERM',async()=>{try{await service.closeAll();}finally{server.close();process.exit(0);}});

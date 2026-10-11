@@ -24,6 +24,16 @@ module.exports=()=>test.describe('Multiplayer Host setup controls',()=>{
  test.it('blocks cancellation and edits during host creation/stop and keeps keyboard focus constrained to fields',()=>{
   const w=form();w.busy=true;test.assertFalse(w.cancel());test.assertFalse(w.action('unit',2));test.assertFalse(w.open());const before=w.title.text;w.key(65);test.assertEqual(w.title.text,before);w.busy=false;w.key(pdg.key_Tab);test.assertEqual(w.focus,'humans');w.key(51);test.assertEqual(w.humans.text,'3');w.key(pdg.key_Escape);test.assertFalse(w.active);
  });
+ test.it('advertises Enter for adding an admission code while keeping it separate from saving policy',()=>{
+  const language=pdg.res.getLanguage(),Name=require('../src/js/player-name.js');
+  try{for(const lang of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(lang);const w=form();w.stage='admission';w.admission={allowWithoutCode:true,allowed:[],banned:[]};w.admissionList='allowed';w.admissionSelection=null;w.page=0;w.admissionCode=Name.createEditor('TEST-CODE');
+   const rows=w.layout(640,340).buttons;
+   test.assertEqual(rows.find(b=>b.action==='admissionAdd').key,'Enter');
+   test.assertTrue(!rows.find(b=>b.action==='saveAdmission').key);
+   w.key(13);test.assertDeepEqual(w.admission.allowed,['TEST-CODE']);test.assertEqual(w.admissionCode.text,'');test.assertEqual(w.stage,'admission');test.assertFalse(w.busy);
+  }}finally{pdg.res.setLanguage(language);}
+ });
  test.it('provides disjoint startup actions and translated bounded Host controls in all six languages',()=>{
   const language=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(code);const w=form(),layout=w.layout(800,600),r=layout.rect;test.assertEqual(layout.title,pdg.res.getString(1050));for(const item of [...layout.fields,...layout.choices,...layout.checks,...layout.buttons]){test.assertTrue(item.rect.x>=r.x && item.rect.y>=r.y && item.rect.x+item.rect.width<=r.x+r.width && item.rect.y+item.rect.height<=r.y+r.height);test.assertTrue((item.label || '').length>0);}
    const rect=Setup.panelRect(800,600),actions=[Setup.tutorialRegion(rect),Setup.settingsRegion(rect),Setup.cancelRegion(rect),Setup.joinRegion(rect),Setup.hostRegion(rect),Setup.quitRegion(rect)];for(let i=1;i<actions.length;i++)test.assertTrue(actions[i].x>=actions[i-1].x+actions[i-1].width);

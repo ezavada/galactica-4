@@ -243,3 +243,48 @@ before/after controls/status and all six short setup/player/admission/initial/
 password layouts were visually inspected. Remaining current foreground coverage
 includes settings/open/conversion/confirmation/value editors, discovery,
 turn-notice and busy/error variants.
+
+
+### Host nested editors and admission shortcut
+
+The remaining normal Host dialogs now have actual-input checks for Open Saved,
+local-game conversion, settings, player rename, initial population/ship editors,
+admission policy and pending-player End Turn confirmation. The source comparison
+uses v3 `Classes/GalacticaHostDoc.cp:481–524` and
+`Classes/CChangePlayerAttach.cpp:19–50,81–100`: player changes, cancellation and
+confirmation before skipping unposted human turns.
+
+Admission's Add code button now shows the existing Enter shortcut. Enter adds
+the input to the draft and clears the field; it does not save the admission
+policy. Save therefore has no Enter hint. The six-language native regression
+fails without the hint, and both full suites pass 1,756 tests. No new translated
+strings or PDG changes are required.
+
+Muted browser checks drive the shared Host UI through a test adapter to real
+native temporary hosts, files and listeners. All six languages pass before/after
+at 800×600 and 640×340, including bounded persisted title drags, outside-click
+clunks, canceled conversion/settings/rename/initial-population/admission drafts,
+a real pending human player, canceled and accepted End Turn, and actual shutdown.
+Dedicated native admission and asynchronous Host lifecycle checks also pass.
+Of 216 screenshot pairs, 180 are identical; the other 36 show only the Add code
+Enter hint. English before/after and all six short nested-dialog layouts were
+visually inspected.
+
+One Japanese baseline run failed save-before-stop after an accepted turn.
+The host remained open as required on save failure. The failure did not reproduce
+in a diagnostic rerun or the final Japanese matrix rerun. Its cause remains under
+investigation; the fixture now logs the underlying stop error, and the original
+failure capture is retained. The final 24-run matrix passed without internal
+retries or weakened shutdown assertions. An additional English timer probe
+confirmed a five-minute setup (300 seconds) and passed the workflow.
+
+Evidence: `/private/tmp/galactica-host-extras-regression.log`,
+`galactica-host-extras-{pdg,pdg-devel}-unit.log`,
+`galactica-host-extras-{admission,async}.log`,
+`galactica-host-extras-{340,600}-{before,after}-<language>.log`,
+`galactica-host-extras-comparison.json`, screenshot/geometry trees,
+`galactica-host-extras-stop-failure-ja.{png,json}` and
+`galactica-host-extras-timer-probe-en.log`. Window chrome remains Partial pending
+other discovery/turn-notice/remote-administration and busy/error variants, plus
+the separate compact gameplay minimum-viewport audit. PDG fixes remain private
+until the post-parity v1.2.1 integration.
