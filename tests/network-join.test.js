@@ -7,8 +7,9 @@ module.exports=()=>test.describe('Multiplayer admission window',()=>{
    window.open();window.mode=mode;window.info={...info,slots:info.slots.slice(0,8)};
    const ids=mode==='administrator'?[1012,1013,1020,1022,1026,1027,1028,1029,1030,1031,1032,1157,1166]:[1012,1013,1020,1021,1022,1023,1024,1025,1026,1027,1028,1029,1030,1031,1032,1150];
    for(const id of ids){window.message=I18n.getString(id);const layout=window.layout(width,height,measure);test.assertEqual(layout.statusLines.map(line=>line.text).join(''),window.message);
+    if(layout.bodyClip)test.assertTrue(layout.statusLines[0].point.y-12>=layout.bodyClip.y+layout.bodyClip.height);
     for(const line of layout.statusLines){test.assertTrue(measure(line.text,line.size)<=layout.rect.width-48,'Caption width '+lang+' '+mode+' '+id);const top=line.point.y-line.size*.8,bottom=line.point.y+line.size*.2;test.assertTrue(top>=layout.rect.y && bottom<=layout.rect.y+layout.rect.height);
-     for(const item of ['fields','slots','checks','choices','buttons','labels'].flatMap(key=>layout[key] || []))test.assertTrue(bottom<=item.rect.y || top>=item.rect.y+item.rect.height,'Caption overlap '+lang+' '+mode+' '+id+' '+width+'x'+height);
+     for(const item of ['fields','slots','checks','choices','buttons','labels'].flatMap(key=>layout[key] || []))test.assertTrue(item.body || bottom<=item.rect.y || top>=item.rect.y+item.rect.height,'Caption overlap '+lang+' '+mode+' '+id+' '+width+'x'+height);
     }
    }window.cancel();
   }}}}finally{pdg.res.setLanguage(language);}
@@ -34,6 +35,16 @@ module.exports=()=>test.describe('Multiplayer admission window',()=>{
    for(const row of Information.rows(w.info,w.inspectedAt)){test.assertEqual(found[row.key],row.text);if(row.key!=='title')test.assertEqual(captionPages[row.key].size,1);test.assertFalse(/undefined|\{\d+\}/.test(row.text));}
    test.assertTrue(pages>1);w.key(pdg.key_Escape);test.assertEqual(w.stage,'form');test.assertTrue(w.active);test.assertEqual(w.password.text,'secret');test.assertEqual(w.name.text,'Voyager');test.assertEqual(w.page,3);w.cancel();
   }}finally{pdg.res.setLanguage(old);}
+ });
+ test.it('keeps compact credentials, complete lobby text and all player slots accessible while feedback and commands stay fixed',()=>{
+  const w=new JoinWindow({passwordPreferences:{},hostPreferences:{},discovery:{}});w.open();w.info={...info,humans:99,computers:0};w.message=I18n.getString(1150);
+  const initial=w.layout(320,340),footer=initial.buttons.filter(b=>!b.body && !b.action.startsWith('scroll'));
+  test.assertTrue(initial.compact);test.assertTrue(w.scrollLimit>0);test.assertEqual(initial.slots.length,4);
+  for(let i=0;i<footer.length;i++)for(let j=i+1;j<footer.length;j++){const a=footer[i].rect,b=footer[j].rect;test.assertTrue(a.x+a.width<=b.x || b.x+b.width<=a.x || a.y+a.height<=b.y || b.y+b.height<=a.y);}
+  test.assertTrue(w.scroll(100000));const end=w.layout(320,340);test.assertDeepEqual(end.statusLines,initial.statusLines);test.assertDeepEqual(end.buttons.filter(b=>!b.body && !b.action.startsWith('scroll')),footer);
+  const check=end.checks[0];test.assertTrue(check.rect.y>=end.bodyClip.y && check.rect.y+check.rect.height<=end.bodyClip.y+end.bodyClip.height+.01);
+  w.focus='rememberPassword';w.key(pdg.key_Tab);const restored=w.layout(320,340);test.assertEqual(w.focus,'address');test.assertTrue(restored.fields[0].rect.y>=restored.bodyClip.y);test.assertTrue(restored.fields[0].rect.y+restored.fields[0].rect.height<=restored.bodyClip.y+restored.bodyClip.height);
+  w.action('next');test.assertEqual(w.layout(320,340).slots[0].slot.player,5);w.cancel();
  });
  test.it('opens selected address/name fields and keeps passwords out of the public descriptor',()=>{
   const w=new JoinWindow({defaultName:()=> '航行者'});test.assertTrue(w.open());test.assertEqual(w.name.text,'航行者');test.assertEqual(w.focus,'address');test.assertFalse(w.open());w.cancel();

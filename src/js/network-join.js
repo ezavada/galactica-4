@@ -12,7 +12,7 @@ class JoinWindow {
  }
  open(descriptor=null){
   if(this.active)return false;
-  this.resetInspectionError();this.stage='form';this.active=true;this.busy=false;this.refreshing=null;this.client=null;this.owned=false;this.info=null;this.message='';this.page=0;
+  this.bodyScroll=0;this.revealFocus=true;this.resetInspectionError();this.stage='form';this.active=true;this.busy=false;this.refreshing=null;this.client=null;this.owned=false;this.info=null;this.message='';this.page=0;
   this.address=Names.createEditor(descriptor?descriptor.address:'',256);
   this.name=Names.createEditor(descriptor && descriptor.role!=='administrator'?descriptor.name:this.defaultName());this.password=Names.createEditor('',64);this.admissionCode=Names.createEditor('',64);
   this.rememberPassword=false;this.savedPasswordLoaded=false;this.mode=descriptor && descriptor.role==='administrator'?'administrator':descriptor?'rejoin':'join';this.expectedId=descriptor?descriptor.gameId:null;this.focus=descriptor?'password':'address';if(descriptor)this.loadSavedPassword();return true;
@@ -58,7 +58,7 @@ class JoinWindow {
  selectSlot(slot){
   if(this.busy)return false;this.mode=slot.status==='occupied'?'rejoin':'join';
   this.name=Names.createEditor(slot.status==='occupied'?slot.name:this.defaultName());this.clearPasswordIdentity();this.admissionCode.text='';if(this.mode==='rejoin')this.loadSavedPassword();
-  this.focus=slot.status==='occupied'?'password':'name';this.message='';return true;
+  this.revealFocus=true;this.focus=slot.status==='occupied'?'password':'name';this.message='';return true;
  }
  async inspect(){
   if(!this.active || this.busy)return false;this.resetInspectionError();const sequence=++this.sequence;this.busy=true;this.message=I18n.getString(1012);
@@ -67,7 +67,7 @@ class JoinWindow {
    this.client=(this.mode==='administrator'?this.createAdmin:this.create)(this.address.text);this.owned=true;
    const info=await this.client.inspect();if(sequence!==this.sequence || !this.active)return false;
    if(this.expectedId && info.gameId!==this.expectedId)throw {code:'wrong_game'};
-   this.info=info;this.inspectedAt=Information.now();this.nextInspection=this.inspectedAt+3000;this.informationPage=0;this.expectedId=info.gameId;this.page=0;this.loadSavedPassword();this.message='';this.focus=this.mode==='join'?'name':'password';return true;
+   this.info=info;this.inspectedAt=Information.now();this.nextInspection=this.inspectedAt+3000;this.informationPage=0;this.expectedId=info.gameId;this.page=0;this.loadSavedPassword();this.message='';this.revealFocus=true;this.focus=this.mode==='join'?'name':'password';return true;
   }catch(error){if(sequence===this.sequence && this.active){this.info=null;this.message=errorText(error);}return false;}
   finally{if(sequence===this.sequence)this.busy=false;}
  }
@@ -99,29 +99,31 @@ class JoinWindow {
   finally{if(sequence===this.sequence)this.busy=false;}
  }
  action(action,value){
-  if(action==='cancel')return this.cancel();if(this.busy)return false;
+  if(action==='cancel')return this.cancel();if(action==='scrollUp' || action==='scrollDown')return this.scroll((action==='scrollUp'?-1:1)*(this.scrollStep || 64));if(this.busy)return false;
   if(action==='gameInformation'){if(!this.info)return false;this.stage='information';this.informationPage=0;return true;}
   if(this.stage==='information'){if(action==='backInformation'){this.stage='form';return true;}if(action==='inspect'){this.informationPage=0;return this.refreshInfo();}if(action==='previous' || action==='next'){this.informationPage=Math.max(0,(this.informationPage || 0)+(action==='next'?1:-1));return true;}return false;}
   if(action==='lan' || action==='refreshLan')return this.openLan();if(action==='savedHosts')return this.openSavedHosts();
   if(this.stage==='lan'){if(action==='chooseLan')return this.chooseLan();if(action==='directAddress'){this.stopDiscovery();this.stage='form';this.clearInfo();this.focus='address';this.message='';return true;}const keyFor=require('./network-discovery.js').identity;if(action==='selectLan'){if(!this.lanRows.some(r=>keyFor(r)===value))return false;this.lanSelection=value;return true;}if(action==='previous' || action==='next'){this.page=Math.max(0,Math.min(Math.ceil(this.lanRows.length/4)-1,this.page+(action==='next'?1:-1)));this.lanSelection=this.lanRows[this.page*4]?keyFor(this.lanRows[this.page*4]):null;return true;}return false;}
 if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();if(action==='removeSavedHost')return this.removeSavedHost();if(action==='chooseSavedHost')return this.chooseSavedHost();if(action==='directAddress'){this.stage='form';this.clearInfo();this.focus='address';this.message='';return true;}if(action==='selectSavedHost'){if(!this.savedHosts.some(r=>require('./network-host-preferences.js').identity(r)===value))return false;this.savedSelection=value;this.focus='savedHosts';return true;}if(action==='previous' || action==='next'){this.page=Math.max(0,Math.min(Math.ceil(this.savedHosts.length/4)-1,this.page+(action==='next'?1:-1)));this.savedSelection=this.savedHosts[this.page*4]?require('./network-host-preferences.js').identity(this.savedHosts[this.page*4]):null;return true;}return false;}
   if(action==='rememberPassword'){if(!this.passwordPreferences)return false;this.rememberPassword=!this.rememberPassword;return true;}if(action==='inspect')return this.inspect();if(action==='connect')return this.connect();
-  if(['join','rejoin','administrator'].includes(action)){if((this.mode==='administrator')!==(action==='administrator')){if(this.owned && this.client)this.client.disconnect({keepView:true});this.client=null;this.owned=false;this.info=null;this.clearPasswordIdentity();}this.mode=action;if(action!=='join'){this.admissionCode.text='';if(action==='administrator' || this.focus==='admissionCode')this.focus='password';}this.loadSavedPassword();this.message='';return true;}
+  if(['join','rejoin','administrator'].includes(action)){this.bodyScroll=0;this.revealFocus=true;if((this.mode==='administrator')!==(action==='administrator')){if(this.owned && this.client)this.client.disconnect({keepView:true});this.client=null;this.owned=false;this.info=null;this.clearPasswordIdentity();}this.mode=action;if(action!=='join'){this.admissionCode.text='';if(action==='administrator' || this.focus==='admissionCode')this.focus='password';}this.loadSavedPassword();this.message='';return true;}
   if((action==='previous' || action==='next') && this.info){this.page=Math.max(0,Math.min(Math.ceil(this.info.slots.length/4)-1,this.page+(action==='next'?1:-1)));return true;}
   return false;
  }
  key(key,pdgRef=globalThis.pdg){
   if(key===pdgRef.key_Escape)return this.stage==='information' && !this.busy?this.action('backInformation'):this.cancel();if(this.busy)return true;
+  if(this.stage==='form' && (key===pdgRef.key_PageUp || key===pdgRef.key_PageDown)){this.scroll(key===pdgRef.key_PageUp?-120:120);return true;}
   if(this.stage==='information'){if(key===82 || key===114)this.action('inspect');return true;}
   if(this.stage==='lan'){if([13,10,3].includes(key)){this.chooseLan();return true;}if(key===82 || key===114){this.openLan();return true;}if(key===pdgRef.key_UpArrow || key===pdgRef.key_DownArrow){const keyFor=require('./network-discovery.js').identity,index=Math.max(0,Math.min(this.lanRows.length-1,this.lanRows.findIndex(r=>keyFor(r)===this.lanSelection)+(key===pdgRef.key_UpArrow?-1:1)));this.lanSelection=this.lanRows[index]?keyFor(this.lanRows[index]):null;this.page=Math.floor(index/4);}return true;}
   if(this.stage==='hosts'){if(key===pdgRef.key_Tab){this.focus=this.focus==='address'?'savedHosts':'address';return true;}if(key===pdgRef.key_UpArrow || key===pdgRef.key_DownArrow){const keyFor=require('./network-host-preferences.js').identity,index=Math.max(0,Math.min(this.savedHosts.length-1,this.savedHosts.findIndex(r=>keyFor(r)===this.savedSelection)+(key===pdgRef.key_UpArrow?-1:1)));this.savedSelection=this.savedHosts[index]?keyFor(this.savedHosts[index]):null;this.page=Math.floor(index/4);this.focus='savedHosts';return true;}if([13,10,3].includes(key)){this.focus==='address'?this.addSavedHost():this.chooseSavedHost();return true;}if(this.focus==='address')Names.edit(this.address,key,pdgRef);return true;}
-  if(key===pdgRef.key_Tab){const fields=[...this.layout(800,600).fields.map(f=>f.name),...(this.passwordPreferences?['rememberPassword']:[])];this.focus=fields[(fields.indexOf(this.focus)+1)%fields.length];if(this.focus!=='rememberPassword')this[this.focus].selected=true;return true;}
+  if(key===pdgRef.key_Tab){const fields=[...(this.mode==='administrator'?['address','password']:['address','name','password',...(this.mode==='join'?['admissionCode']:[])]),...(this.passwordPreferences?['rememberPassword']:[])];this.revealFocus=true;this.focus=fields[(fields.indexOf(this.focus)+1)%fields.length];if(this.focus!=='rememberPassword')this[this.focus].selected=true;return true;}
   if(this.focus==='rememberPassword'){if(key===32)this.action('rememberPassword');else if([13,10,3].includes(key))this.connect();return true;}
   if([13,10,3].includes(key)){if(this.focus==='address')this.inspect();else this.connect();return true;}
   const before=this[this.focus].text;Names.edit(this[this.focus],key,pdgRef);
   if(this[this.focus].text!==before){this.message='';if(this.focus==='address'){this.clearInfo();this.clearPasswordIdentity();}else if(this.focus==='name'){this.clearPasswordIdentity();this.loadSavedPassword();}else if(this.focus==='password')this.savedPasswordLoaded=false;}return true;
  }
  layout(width,height,measure=(text,size)=>Array.from(String(text)).length*size/2){
+  if(this.active && this.stage==='form' && width<400)return this.compactLayout(width,height,measure);
   const layout=this.baseLayout(width,height,measure);if(!layout)return null;
   const {rect,scale}=layout,inner=rect.width-48,baseline=rect.y+(layout.messageY || 477)*scale;layout.statusLines=[];
   if(!this.message)return layout;
@@ -137,6 +139,63 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
   const gap=gaps.filter(gap=>gap.bottom-gap.top>=heightNeeded).sort((a,b)=>distance(a)-distance(b))[0] || gaps.sort((a,b)=>(b.bottom-b.top)-(a.bottom-a.top))[0];
   const first=gap?Math.max(gap.top+size*.8,Math.min(baseline-(lines.length-1)*pitch/2,gap.bottom-size*.2-(lines.length-1)*pitch)):baseline;
   layout.statusLines=lines.map((text,index)=>({text,size,point:{x:rect.x+24,y:first+index*pitch}}));return layout;
+ }
+ scroll(delta){
+  if(this.stage!=='form' || !this.scrollLimit)return false;
+  this.revealFocus=false;this.bodyScroll=Math.max(0,Math.min(this.scrollLimit,(this.bodyScroll || 0)+delta));return true;
+ }
+ compactLayout(width,height,measure){
+  const Caption=require('./button-caption.js'),wrap=require('./text-wrapping.js');
+  const rect={x:12,y:12,width:width-24,height:height-24},scale=rect.height/548;
+  const inner=rect.width-48,left=rect.x+24,bottom=rect.y+rect.height-12;
+  const button=(action,id,key=null)=>({action,label:I18n.getString(id),key});
+  const pack=(buttons,available)=>{
+   let rows=[[]],used=0;for(const b of buttons){let size=12;
+    while(size>9 && Caption.width(b.label,b.key,measure,{size})+12>available)size--;
+    b.size=size;const w=Math.min(available,Caption.width(b.label,b.key,measure,{size})+12);
+    if(used && used+6+w>available){rows.push([]);used=0;}
+    b.rect={x:left+used,y:0,width:w,height:24};rows[rows.length-1].push(b);used+=w+6;
+   }return rows;
+  };
+  const footer=[button('cancel',683,'Esc'),...(this.hostPreferences?[button('savedHosts',1183)]:[]),...(this.discovery?[button('lan',1191)]:[]),button('connect',this.mode==='administrator'?1163:this.mode==='rejoin'?1011:1010,'Enter')];
+  const footerRows=pack(footer,inner),footerTop=bottom-footerRows.length*30+6;
+  footerRows.forEach((row,index)=>row.forEach(b=>b.rect.y=footerTop+index*30));
+  const status=wrap(this.message || '',inner,text=>measure(text,12));
+  const statusHeight=status.length?status.length*14+8:0,statusTop=footerTop-statusHeight;
+  const bodyClip={x:left,y:rect.y+44,width:inner,height:Math.max(40,statusTop-(rect.y+44)-8)};
+  const bodyWidth=inner-22,fields=[],slots=[],checks=[],labels=[],bodyButtons=[];let y=bodyClip.y;
+  const names=this.mode==='administrator'?['address','password']:['address','name','password',...(this.mode==='join'?['admissionCode']:[])];
+  const fieldLabels=names.map(name=>I18n.getString(name==='admissionCode'?1147:name==='password'?1008:name==='name'?1007:1006));
+  const column=Math.min(bodyWidth-80,Math.max(100,...fieldLabels.map(label=>Math.ceil(measure(label,12))+10)));
+  for(const [index,name] of names.entries()){
+   fields.push({name,label:fieldLabels[index],labelWidth:column-10,rect:{x:left+column,y,width:bodyWidth-column,height:24},labelPoint:{x:left,y:y+17},baseline:17});y+=30;
+  }
+  const roles=[button('inspect',1009),button('join',1010),button('rejoin',1011),button('administrator',1163)];
+  for(const row of pack(roles,bodyWidth)){for(const b of row){b.rect.y=y;bodyButtons.push(b);}y+=30;}
+  const label=text=>{for(const line of wrap(text,bodyWidth,t=>measure(t,12))){labels.push({text:line,size:12,baseline:13,rect:{x:left,y,width:bodyWidth,height:16}});y+=16;}};
+  if(this.info){
+   label(I18n.formatString(1014,'',this.info.title,this.info.turn));y+=4;
+   const details=button('gameInformation',1230);pack([details],bodyWidth);details.rect.y=y;bodyButtons.push(details);y+=30;
+   label(I18n.formatString(1015,'',this.info.humans,this.info.computers));y+=6;
+   if(this.mode!=='administrator'){
+    for(const slot of this.info.slots.slice(this.page*4,this.page*4+4)){
+     slots.push({slot,rect:{x:left,y,width:bodyWidth,height:24},baseline:17,label:slot.status==='open'?I18n.formatString(1016,'',slot.player):I18n.formatString(1017,'',slot.player,slot.name,I18n.getString(slot.online?1018:1019))});y+=28;
+    }
+    if(this.info.slots.length>4){const pager=[button('previous',1033),button('next',1034)];pager[0].disabled=this.page===0;pager[1].disabled=(this.page+1)*4>=this.info.slots.length;for(const row of pack(pager,bodyWidth)){for(const b of row){b.rect.y=y;bodyButtons.push(b);}y+=30;}}
+   }
+  }
+  if(this.passwordPreferences){checks.push({action:'rememberPassword',label:I18n.getString(1182),value:this.rememberPassword,rect:{x:left,y,width:bodyWidth,height:24}});y+=28;}
+  this.scrollStep=Math.min(64,bodyClip.height/2);this.scrollLimit=Math.max(0,y-bodyClip.y-bodyClip.height);this.bodyScroll=Math.max(0,Math.min(this.scrollLimit,this.bodyScroll || 0));
+  if(this.revealFocus){const target=fields.find(f=>f.name===this.focus) || (this.focus==='rememberPassword'?checks[0]:null);
+   if(target){if(target.rect.y-this.bodyScroll<bodyClip.y)this.bodyScroll=target.rect.y-bodyClip.y;else if(target.rect.y+target.rect.height-this.bodyScroll>bodyClip.y+bodyClip.height)this.bodyScroll=target.rect.y+target.rect.height-bodyClip.y-bodyClip.height;}
+   this.revealFocus=false;
+  }
+  for(const item of [...fields,...slots,...checks,...labels,...bodyButtons]){item.body=true;item.rect.y-=this.bodyScroll;if(item.labelPoint)item.labelPoint.y-=this.bodyScroll;}
+  const scrollButtons=this.scrollLimit?[{action:'scrollUp',label:'↑',disabled:this.bodyScroll===0,rect:{x:left+bodyWidth+2,y:bodyClip.y,width:20,height:24}},{action:'scrollDown',label:'↓',disabled:this.bodyScroll===this.scrollLimit,rect:{x:left+bodyWidth+2,y:bodyClip.y+bodyClip.height-24,width:20,height:24}}]:[];
+  const scrollTrack=this.scrollLimit?{x:left+bodyWidth+10,y:bodyClip.y+28,width:4,height:Math.max(4,bodyClip.height-56)}:null;
+  const scrollThumb=scrollTrack?{...scrollTrack,height:Math.max(4,scrollTrack.height*bodyClip.height/(bodyClip.height+this.scrollLimit))}:null;
+  if(scrollThumb)scrollThumb.y+=(scrollTrack.height-scrollThumb.height)*this.bodyScroll/this.scrollLimit;
+  return {rect,scale,compact:true,titleHeight:40,scrollTrack,scrollThumb,bodyClip,fields,slots,checks,labels,buttons:[...bodyButtons,...footer,...scrollButtons],statusLines:status.map((text,index)=>({text,size:12,point:{x:left,y:statusTop+12+index*14}}))};
  }
  baseLayout(width,height,measure){
   if(!this.active)return null;const rect={width:Math.min(560,width-24),height:Math.min(548,height-24)};

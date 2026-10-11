@@ -255,3 +255,18 @@ message/mode/size layouts with actual font metrics. All six narrow and short
 feedback layouts were visually reviewed. Evidence:
 `/private/tmp/galactica-join-status/{verified,measured}`. Pre-existing narrow
 footer/summary crowding remains a separate compact Join layout item.
+
+
+### Compact direct Join controls
+
+Join/Rejoin/Administrator retain their existing six-language resources while
+measured button rows include shortcut hints and complete title/count summaries
+wrap inside the scrollable body. Feedback and footer commands remain visible.
+No new strings were introduced; scroll arrows are universal symbols.
+All six narrow before/after error, Rejoin and Administrator forms, plus scrolled
+summary/final-checkbox views, were visually inspected. Actual native-backed
+wheel/arrow/PageDown/Tab, role changes and admission recovery pass in every
+language. Full native suites pass 1,765 tests; 36 matched browser runs pass
+across three sizes. Evidence: `/private/tmp/galactica-join-layout/verified`.
+The direct narrow form item is complete; saved-host/LAN/information control
+bars and broader compact/hosting/busy/error audits remain open.

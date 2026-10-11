@@ -1021,3 +1021,30 @@ feedback surviving metadata refresh/error/recovery in all six languages;
 The unchanged original Join class fails the new native refresh regression.
 Compact footer/summary crowding and other busy/error variants remain separate
 UI audits. Public PDG remains unchanged.
+
+
+### Compact direct Join form
+
+Run `node tools/test-web-join-layout.cjs BUILD_DIR SCREENSHOT_DIR LANGUAGE
+before|after WIDTH HEIGHT` against the retained 551e314 baseline or the current
+web build. Use en/de/es/fr/ja/ru at 800×600, 640×340 and 320×340. The native host
+requires its allowed admission code; both host and Chrome are muted.
+
+The helper drives actual duplicate-name/code rejection, refresh, title drag,
+retry and successful admission. Narrow runs additionally switch through Rejoin
+and Administrator, inspect the restored Join lobby and capture each form.
+Current narrow runs verify wheel delivery, PageDown, arrows, final checkbox
+access and Tab revealing its field. Actual-font assertions check complete
+button captions/hints and rectangle separation, plus 810 message/mode/size
+geometry cases across six languages. This is separate from claiming every
+error was individually emitted by the real host. Recovered-map screenshots
+use the same animation time before/after.
+
+Final verification: 36 matched input runs pass; 126 screenshot pairs comprise
+18 identical recovered maps, 60 temporary-address-only ordinary/short lobby
+differences, and 48 intended narrow-layout changes. Both complete native
+suites pass 1,765 tests. Evidence lives in
+`/private/tmp/galactica-join-layout/verified`,
+`galactica-join-layout-comparison.json`, and
+`galactica-join-layout-{pdg,pdg-devel}-unit.log`. Saved-host/LAN/information
+control bars and other busy/error variants remain separate audits.
