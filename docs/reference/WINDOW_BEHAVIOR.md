@@ -114,6 +114,13 @@ acceptance of the game title and Escape cancellation of Save As. Both full
 native suites pass 1,750 tests. Of 78 before/after screenshot pairs, 54 show
 intended editor hints/sizing and 24 setup/skill scenes remain identical.
 English pairs and all six title/player/save editor layouts were inspected.
-A supplemental 320×340 browser probe exposed a mismatch between apparent
-rendered and model coordinates; its input validation did not pass and needs
-separate investigation before any claim of complete narrow-browser coverage.
+The 320×340 browser probe now passes in all six languages. Restored
+fullscreen letterboxed the canvas on the first gesture, so the driver needed
+to convert model coordinates through the current CSS canvas bounds and
+account for pixel quantization at fractional control edges. Title drags move
+away from clamped corners. The application and PDG needed no rendering fix.
+The helper accepts optional width/height arguments. All twelve narrow
+baseline/current runs pass; 78 pairs include 54 intended editor changes and
+24 unchanged setup/skill scenes. English before/after and all six localized
+narrow title/player/save layouts were visually inspected. The standard
+640×480 English before/after runs also pass with the corrected driver.

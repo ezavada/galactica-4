@@ -6453,11 +6453,27 @@ layouts were visually inspected. Evidence:
 `galactica-text-hints-{before,after}-<language>.log`,
 `galactica-text-hints-comparison.json` and matching screenshot trees.
 
-A supplemental 320×340 browser probe did not pass actual-input validation:
-the rendered panel appears at different coordinates from its model rectangle,
-despite matching 320×340 canvas/backing/CSS dimensions. The probe needs a
-separate rendering/input investigation; native narrow-layout success is not
-evidence that this browser path works. Current complete browser evidence for
-this item is 640×480. Foreground document, network and error inventory remains
-open. No PDG source changed; any resulting engine fixes must stay in private
-`pdg-devel` under the deferred v1.2.1 release plan.
+The supplemental 320×340 browser probe is now resolved. Initial canvas,
+viewport and GL transform measurements were correct. On the first gesture,
+restored fullscreen changed CSS bounds to a 320×240 canvas centered in the
+340px port. The driver assumed a 1:1 pixel mapping. It now scales model points
+through the current CSS/backing bounds and uses representable edge pixels.
+Drags also choose a direction away from constrained corners. No application
+or PDG rendering fix was needed. The helper accepts optional width/height
+arguments for repeatable narrow coverage.
+
+All twelve narrow baseline/current runs pass in the six supported languages,
+including actual title/count/player/Save As controls, title dragging, modal
+outside clicks, Enter acceptance and Escape cancellation. Of 78 paired
+screenshots, 54 show the intended stacked buttons/hints and 24 setup/skill
+scenes are identical. English before/after and all six narrow title/player/save
+layouts were visually inspected. Both standard 640×480 English runs also pass
+with the corrected driver. The two complete native suites retain their
+1750-test passing results; this follow-up changes only the browser driver and
+documentation. Evidence: `/private/tmp/galactica-text-hints-narrow-{before,after}-<language>.log`,
+`galactica-text-hints-narrow-comparison.json`, corresponding screenshot trees,
+and `galactica-text-hints-wide-recheck-{before,after}-en.log`.
+
+Foreground document, network and error inventory remains open. No PDG source
+changed; any engine fixes must stay in private `pdg-devel` under the deferred
+v1.2.1 release plan.
