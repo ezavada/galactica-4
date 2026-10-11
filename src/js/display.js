@@ -4139,6 +4139,20 @@ class Display {
         return true;
     }
 
+    getClassArtRect(drawingArea) {
+        // Every shipped Lab/Stardock layer uses the same 408x240 frame.
+        // Fit the complete composite between its heading and dismissal hint.
+        const availableWidth = drawingArea.width() * 0.9;
+        const availableHeight = drawingArea.height() * 0.75;
+        const scale = Math.min(availableWidth / 408, availableHeight / 240);
+        const width = 408 * scale, height = 240 * scale;
+        return this.toPDGRect({
+            x: (drawingArea.width() - width) / 2,
+            y: drawingArea.height() * 0.15 + (availableHeight - height) / 2,
+            width, height
+        });
+    }
+
     drawOverlay(overlay) {
         const exploding=this.drawDestructionEffect(overlay);
         if(this.game.sound)this.game.sound.present(this.game,overlay,exploding);
@@ -4153,18 +4167,19 @@ class Display {
         
         if(overlay.type==='outcome'){this.drawOutcome(overlay);return;}
         if(overlay.type==='report'){this.drawReport(overlay);return;}
+        if (overlay.type === 'lab' || overlay.type === 'stardock') {
+            const artRect = this.getClassArtRect(drawingArea);
+            for (const baseline of [drawingArea.height() * 0.1, drawingArea.height() * 0.95]) {
+                this.port.drawRect(new pdg.Rect(artRect.left, baseline - 22, artRect.right, baseline + 8), this.styles.clear);
+            }
+        }
         if (overlay.type === 'lab') {
             const back = this.getImageCached('labback', 'events/labback.png');
             const top = this.getImageCached('labtop', 'events/labtop.png');
             const blueprintIdx = Math.max(1, Math.min(12, overlay.classIndex + 1));
             const blueprintName = `tech/blue-${String(blueprintIdx).padStart(2, '0')}.png`;
             const blueprint = this.getImageCached(blueprintName, blueprintName, new pdg.Color('black'));
-            const centerRect = this.toPDGRect({
-                x: drawingArea.width() * 0.1,
-                y: drawingArea.height() * 0.05,
-                width: drawingArea.width() * 0.8,
-                height: drawingArea.height() * 0.9
-            });
+            const centerRect = this.getClassArtRect(drawingArea);
             if (back) this.port.drawImage(back, centerRect, this.styles.image);
             if (blueprint) this.port.drawImage(blueprint, centerRect, this.styles.image);
             if (top) this.port.drawImage(top, centerRect, this.styles.image);
@@ -4175,18 +4190,13 @@ class Display {
             const hull=overlay.shipType || overlay.ship && overlay.ship.type;
             const base = hull && hull!=='battleship' ? {defense:'satellite',scout:'scout',colony:'colony'}[hull] : this.getShipArtNameForClass(overlay.classIndex);
             const shipImg = this.getImageCached(`ship:${base}`, `ships/${base}.png`);
-            const centerRect = this.toPDGRect({
-                x: drawingArea.width() * 0.05,
-                y: drawingArea.height() * 0.15,
-                width: drawingArea.width() * 0.9,
-                height: drawingArea.height() * 0.75
-            });
+            const centerRect = this.getClassArtRect(drawingArea);
             if (back) this.port.drawImage(back, centerRect, this.styles.image);
             if (shipImg) this.port.drawImage(shipImg, centerRect, this.styles.image);
             if (front) this.port.drawImage(front, centerRect, this.styles.image);
             const name = hull && hull!=='battleship' ? I18n.getShipTypeName(hull,{capitalized:true}) :
                 overlay.ship && overlay.ship.name ? overlay.ship.name.split('\t')[0] : this.getShipArtNameForClass(overlay.classIndex);
-            this.port.drawText(I18n.formatString(571, 'New {0} Class Commissioned', name), new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.2), this.getTextAttributes('cyan', 16, pdg.textStyle_Centered));
+            this.port.drawText(I18n.formatString(571, 'New {0} Class Commissioned', name), new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.1), this.getTextAttributes('cyan', 16, pdg.textStyle_Centered));
         }
         // Footer hint
         this.port.drawText(this.STR.pressAnyKey, new pdg.Point(drawingArea.width()/2, drawingArea.height()*0.95), this.getTextAttributes('white', 12, pdg.textStyle_Centered));

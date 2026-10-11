@@ -327,10 +327,11 @@ All these pictures have 408×240 bounds. CStar supplies LabBase + tech/5
 and StardockBase + class index, independently of the PPob window choice.
 Missing Layr IDs fall back through decimal boundaries in SetLayrResID.
 
-V4 currently stretches the Lab/Stardock composites to different viewport
-proportions and uses a transparent PNG blueprint rather than proving the
-source additive composition. Those rendering and blueprint mapping checks
-are actionable follow-up work, not missing-resource blockers. The newly
+V4 now fits all three Lab/Stardock layers to one centered 408:240 rectangle
+between the heading and dismissal hint, preserving the shipped proportions
+on wide, short and tall layouts. The PNG blueprint still uses transparency
+rather than proving the source additive composition. Additive rendering and
+blueprint mapping remain actionable follow-up work, not missing-resource blockers. The newly
 recovered victory and defeat PICTs are 500×432; their raw hashes now allow a
 future decoded comparison against the retained PNGs. PICT1000 is absent from
 this art fork and must be checked in the application resource fork separately.

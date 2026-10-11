@@ -4607,3 +4607,26 @@ claiming decoded PICT/PNG equality or full art parity. Five importer regressions
 recipient-independent picture bounds and class fallback. No game behavior or
 localized text changed, so UI screenshots are not required for this evidence
 commit. The full parity and map-generation checklists remain active.
+
+
+### Original class-art proportions
+
+The recovered shipped Layr records establish a 408×240 frame for every Lab
+and Stardock picture. The packaged PNG layers have matching dimensions. V4
+now uses one shared aspect-preserving destination for all three layers,
+centered between the heading and dismissal hint; the commissioning heading
+moves above the artwork. Dark caption backings keep underlying map text from
+interfering with translated headings and hints. No gameplay, image selection,
+recipient privacy or translated string changes are included in this item.
+
+A new regression checks actual layer destinations and heading/hint separation
+at 800×600, 320×340, 1280×720 and 600×900. Both rebuilt native PDG runtimes
+pass all 1,693 unit tests. Six-language browser report controls and before/after
+captures pass: 48 paired scenes, with the 12 owner-art views changed and
+36 observer/list/manual views byte-identical. Final translated captures and
+the English before/after views were inspected. Evidence is recorded under
+`/private/tmp/galactica-class-proportions`, with
+logs `/private/tmp/galactica-class-proportions-{before,after}-<language>.log`.
+The source additive blueprint blend, precise blueprint-resource mapping and
+decoded PICT/PNG comparisons remain separate active checks; the Original art
+row and the overall parity/map-generation goal are not marked complete.
