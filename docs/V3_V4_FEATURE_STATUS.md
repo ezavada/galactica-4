@@ -83,8 +83,8 @@ The largest blockers to a complete game are:
 | Procedural galaxy construction | Random star count/placement, separated home systems, unique names, named homeworlds. | ✅ Implemented | ➖ N/A | `map-generator.js:36-239` ports the main v3 construction path with the corrected 1024×1024 coordinate scale. |
 | Initial homeworld state | One named home system, tech 1, population, scanner, and colony construction at 99%. | ✅ Implemented | ➖ N/A | `map-generator.js:249-299`. |
 | Computer faction naming | Home-star name plus faction word, such as “Vega Alliance.” | ✅ Implemented | ➖ N/A | Resource-driven templates and group names are used in `map-generator.js:302-333`. |
-| End turn | Button/menu/shortcut; multiplayer waits for posts as needed. | 🟡 Partial | 🟡 Partial | Enter and the End Turn map button advance the local simulation. Unreviewed attention requests/event presentations require confirmation, with Review/End anyway/Esc paths; actual advancement closes event overlays/list/confirmation first. Awaiting map clicks and captured sliders cannot advance via the UI. Normal host-authoritative posting, timed turns and multiplayer coordination are implemented and covered by the current full suite. Local victory starts the next turn, and later End Turn requests enter post-game play with production and the original recorded result preserved. Multiplayer post-game continuation remains a concrete gap. |
-| Victory and defeat | Defeat notifications and victory/defeat conclusion screens. | ✅ Implemented | ✅ Implemented | Piece counts and combat/capture trigger queued defeat notices and terminal victory/stalemate reports. Local victory/defeat show the complete v3 TEXT 4000/4001 narratives with the actual full player name; other players/observers receive broadcast summaries. Neutral modal panels wrap/page Unicode text, isolate map input and acknowledge without advancing turns. Retained outcomes replay through View report/Enter, without advancing the clock during replay. Local End Turn now starts the next turn even when victory is first recorded, and subsequent requests continue post-game production without repeating the result. The phase persists in complete saves; all six actual UI comparisons passed and both suites pass 1,660 tests. Multiplayer hosts still reject post-game posting and need the corresponding continuation path. All six languages and actual turn-7 browser transitions are verified. Sound/art enhancements remain their separate checklist items. |
+| End turn | Button/menu/shortcut; multiplayer waits for posts as needed. | 🟡 Partial | 🟡 Partial | Enter and the End Turn map button advance the local simulation. Unreviewed attention requests/event presentations require confirmation, with Review/End anyway/Esc paths; actual advancement closes event overlays/list/confirmation first. Awaiting map clicks and captured sliders cannot advance via the UI. Normal host-authoritative posting, timed turns and multiplayer coordination are implemented and covered by the current full suite. Local victory starts the next turn, and later End Turn requests enter post-game play with production and the original recorded result preserved. Multiplayer hosts also continue post-game orders, timed turns and host administration while retaining the original result; see the network post-game audit below. |
+| Victory and defeat | Defeat notifications and victory/defeat conclusion screens. | ✅ Implemented | ✅ Implemented | Piece counts and combat/capture trigger queued defeat notices and terminal victory/stalemate reports. Local victory/defeat show the complete v3 TEXT 4000/4001 narratives with the actual full player name; other players/observers receive broadcast summaries. Neutral modal panels wrap/page Unicode text, isolate map input and acknowledge without advancing turns. Retained outcomes replay through View report/Enter, without advancing the clock during replay. Local End Turn now starts the next turn even when victory is first recorded, and subsequent requests continue post-game production without repeating the result. The phase persists in complete saves; all six actual UI comparisons passed and both suites pass 1,660 tests. Multiplayer hosts now retain the result while accepting post-game orders and continuing countdowns and host administration; the network post-game audit below records verification. All six languages and actual turn-7 browser transitions are verified. Sound/art enhancements remain their separate checklist items. |
 
 ### Possible lifecycle enhancements beyond v3, not counted in Section 1
 
@@ -3911,3 +3911,60 @@ Multiplayer continuation remains pending: current host admission/order/posting,
 administrator controls and clocks still treat `isGameOver` as terminal. V3 host
 source exposes separate over/post states and transitions to PostGame in its
 piece-count processing. This local item does not claim that server path is done.
+
+### Network post-game continuation (2026-10-11)
+
+Source evidence: `GalacticaHost.cpp:1107` transitions an already recorded game
+result to `state_PostGame`; the subsequent victory check runs only during normal
+play. `GalacticaHost.cpp:811` resumes timed turns without a result-state guard.
+`GalacticaHostDoc.cp:436–439` leaves Change Settings, Change Player and End Turn
+Now enabled. V4 previously rejected post-result orders and host controls, cleared
+the countdown and omitted the result/phase from client projections.
+
+Human hosts now accept post-game orders and resolve subsequent turns while
+preserving the original winner and victory turn. Countdown expiry, pause/resume,
+forced turns, settings and player administration remain available. Both desktop
+host service controls and separately authenticated remote administration use the
+same rule. Player credentials still cannot invoke administrator commands.
+Synthetic no-human automated games remain finite; converting the last humans to
+AI stops the clock and remains reopenable, including the recorded post-game phase.
+
+The public client projection includes optional continuation capability, phase,
+winner and victory turn. Legacy terminal views remain accepted; same-turn refresh
+updates those fields without discarding unposted player orders. Administrator
+status and model capability must agree. Legacy completed-host saves with a stopped
+clock receive a fresh turn allowance, preserving pause state; partial countdowns
+retain their remainder and saved limit. Posting or changing an unrelated setting
+does not reset the current deadline. Failed persistence rolls back turn, receipt
+and clock, and retry remains idempotent.
+
+Verification:
+
+- All **1,669 unit tests pass against both public and development native PDG**.
+  Nine new post-game network regressions cover real victory, orders, timer expiry,
+  pause/resume, persistence failure, migration, legacy/invalid projections,
+  authenticated controls, same-turn order retention and no-human conversion.
+- `tools/test-network-postgame.js` passes with a real native HTTP host and player/
+  administrator clients: actual turn-7 victory, post-result rename orders, lost
+  response and receipt retry, forbidden player administration, forced turns via
+  both administration paths, host reopening and rejoining.
+- `tools/test-web-host-setup.cjs` modes `before-postgame` and `postgame` pass in
+  **English, German, Spanish, French, Japanese and Russian**. The fixture records
+  victory through actual host turn resolution. Before/after screenshots show the
+  formerly disabled host controls becoming usable, a paused countdown instead of
+  a terminal label, settings/player forms, End Turn confirmation and turn 9.
+  All six localized result/control layouts were inspected. Existing localized
+  labels are reused; no new untranslated text is introduced. Dynamic native ports
+  and temporary save paths differ between runs, so these captures are visual
+  comparisons rather than byte-identical images.
+
+Evidence is under `/private/tmp/galactica-network-postgame/{before,after}/<lang>`
+and `/private/tmp/galactica-network-postgame-{public,devel}-unit.log`, with the
+actual HTTP log at `/private/tmp/galactica-network-postgame-http.log`. Native
+fixtures and Chrome output are muted. The first actual UI run found a remaining
+terminal guard in the desktop host service; that path is fixed and covered by
+both the integration helper and the final six-language UI runs.
+
+This closes the identified multiplayer post-game continuation gap. It does not
+prove every remaining End Turn/contextual UI parity detail; that broader row stays
+Partial until its remaining source and presentation checks are completed.

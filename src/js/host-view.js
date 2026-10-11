@@ -96,7 +96,7 @@ function project(game,viewer,administrator=false){
   map:{width:1024*1024*game.config.sectorSize,height:1024*1024*game.config.sectorSize},
   playerRevision:game.config.networkHost.playerStateRevision || 0,initialStateRevision:game.config.networkHost.initialStateRevision || 0,
   config:{...(game.config.humanPlayerSlots===undefined?{}:{humanPlayerSlots:[...game.config.humanPlayerSlots]}),...pick(game.config,['humanPlayerSlots','gameTitle','numHumans','numComputers','totalPlayers','sectorSize','density','fastGame','omniscient','compSkill','compAdvantage','maxTimePerTurn','endEarly'])},
-  ...(administrator?{role:'administrator'}:{}),isGameOver:game.isGameOver,privatePlayer,comparisons,entities,events};
+  ...(administrator?{role:'administrator'}:{}),isGameOver:game.isGameOver,canContinue:game.canAdvanceTurns(),postGame:game.postGame,winningPlayerNum:game.winningPlayerNum,victoryTurn:game.victoryTurn,privatePlayer,comparisons,entities,events};
 }
 function adminSnapshot(game){const state=project(game,0,true);state.config.omniscient=true;return state;}
 module.exports={snapshot,adminSnapshot,reports};

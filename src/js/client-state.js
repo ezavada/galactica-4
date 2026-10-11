@@ -20,6 +20,10 @@ function restore(input,administrator=false){
  const config=new Config({...object(state.config),hosting:false,skipMapGeneration:true,autoplay:{enabled:false}});
  if(config.validate().length || state.config.totalPlayers!==config.totalPlayers)invalid();
  if(administrator && (state.role!=='administrator' || state.viewer!==0 || state.config.omniscient!==true))invalid();
+ if(state.canContinue!==undefined && (typeof state.canContinue!=='boolean' || state.canContinue && state.isGameOver && config.numHumans===0))invalid();
+ if(state.postGame!==undefined && (typeof state.postGame!=='boolean' || state.postGame && !state.isGameOver))invalid();
+ if(state.winningPlayerNum!=null)integer(state.winningPlayerNum,0,config.totalPlayers);
+ if(state.victoryTurn!=null)integer(state.victoryTurn,1,integer(state.turn,1));
  const viewer=integer(state.viewer,administrator?0:1,config.totalPlayers),turn=integer(state.turn,1);
  if(!administrator && !config.isHumanPlayer(viewer))invalid();
  const map=object(state.map);number(map.width);number(map.height);if(map.width!==1024*1024*config.sectorSize || map.height!==1024*1024*config.sectorSize)invalid();
@@ -36,8 +40,8 @@ function restore(input,administrator=false){
   byId.set(key,{row,entity:null});
  }
  const game=new Game(new Factory(),new Rules(config.fastGame),config);
- game.clientClock=require('./client-clock.js').receive(state.clock,{config,turn,isGameOver:state.isGameOver});
- game.clientInitialStateRevision=state.initialStateRevision===undefined?0:integer(state.initialStateRevision);game.clientPlayerRevision=state.playerRevision===undefined?0:integer(state.playerRevision);game.clientPlayerNum=viewer;game.clientAdministrator=administrator;game.clientGameId=state.gameId;game.turn=turn;game.gameWidth=map.width;game.gameHeight=map.height;game.isGameOver=state.isGameOver;
+ game.clientClock=require('./client-clock.js').receive(state.clock,{config,turn,isGameOver:state.isGameOver,canContinue:state.canContinue});
+ game.clientInitialStateRevision=state.initialStateRevision===undefined?0:integer(state.initialStateRevision);game.clientPlayerRevision=state.playerRevision===undefined?0:integer(state.playerRevision);game.clientPlayerNum=viewer;game.clientAdministrator=administrator;game.clientGameId=state.gameId;game.turn=turn;game.gameWidth=map.width;game.gameHeight=map.height;game.isGameOver=state.isGameOver;game.canContinue=state.canContinue===true;game.postGame=state.postGame===true;game.winningPlayerNum=state.winningPlayerNum ?? null;game.victoryTurn=state.victoryTurn ?? null;
  game.eventLog=[];game.overlay=null;game.overlayQueue=[];game.attention.queue=[];game.remoteComparisons=[];
  const comparisonFields=['stars','ships','shipsBuilding','population','production','productionRaw','power','minimumTech','maxTech','averageTech','minimumShipTech','maximumShipTech','averageShipTech','pieces'];
  const comparisons=list(state.comparisons);if(comparisons.length!==config.totalPlayers+1)invalid();

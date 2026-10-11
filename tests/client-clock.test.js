@@ -14,7 +14,7 @@ module.exports=()=>test.describe('Authoritative client countdown presentation',(
  }));
  test.it('rejects malformed, impossible and oversized host clocks before installing client state',()=>fixture(({data})=>{
   for(const clock of [null,[],{}, {secondsRemaining:null,paused:false,running:false},{secondsRemaining:-1,paused:false,running:true},{secondsRemaining:172801,paused:false,running:true},{secondsRemaining:1.5,paused:false,running:true},{secondsRemaining:NaN,paused:false,running:true},{secondsRemaining:1,paused:true,running:true},{secondsRemaining:null,paused:false,running:true},{secondsRemaining:1,paused:'yes',running:false}]){const s=data();s.clock=clock;let rejected=false;try{State.restore(s);}catch(e){rejected=e.message==='invalid_player_state';}test.assertTrue(rejected);}
-  for(const update of [s=>s.turn=1,s=>s.isGameOver=true,s=>s.config.maxTimePerTurn=0]){const s=data();update(s);let rejected=false;try{State.restore(s);}catch(e){rejected=e.message==='invalid_player_state';}test.assertTrue(rejected);}
+  for(const update of [s=>s.turn=1,s=>{s.isGameOver=true;delete s.canContinue;},s=>s.config.maxTimePerTurn=0]){const s=data();update(s);let rejected=false;try{State.restore(s);}catch(e){rejected=e.message==='invalid_player_state';}test.assertTrue(rejected);}
  }));
  test.it('ticks running host samples monotonically, holds paused/stopped samples and clamps at zero',()=>fixture(({model})=>{
   model.clientClock=Clock.receive({secondsRemaining:299,paused:false,running:true},model,1000);test.assertEqual(Clock.seconds(model.clientClock,3000),297);test.assertEqual(Clock.seconds(model.clientClock,0),299);test.assertEqual(Clock.seconds(model.clientClock,999999),0);

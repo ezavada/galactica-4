@@ -6,7 +6,7 @@ Run the full suite from the project root with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1660 passed, 0 failed.
+Current expected result: 1669 passed, 0 failed.
 
 The launcher downloads the checksum-pinned public PDG release on first use;
 no sibling `pdg` or `pdg-devel` checkout is required.
@@ -85,3 +85,12 @@ These cover atomic writes, failure preservation, browser file handles/download/u
 - `colony-setup-reports.test.js`: private naming/production attention reports after neutral human colonization, default retention, computer/capture exclusions, recapture/removal privacy, actionable inspector controls, report navigation, local save identity and translated bounds.
 
 - `ship-commissioning.test.js` and `game-rules.test.js`: allied standalone/fleet arrival refreshes selected hull prices at current colony technology, retaining fractional and banked credit; progress/ETA, paused/enemy cases, unchanged-library arrivals and save round trips follow the v3 behavior.
+
+Post-game network integration (native runtime, audio muted):
+
+```sh
+./gad4 tools/test-network-postgame.js
+```
+
+This exercises actual victory, post-result orders, lost-response retry, host-owner
+authorization, desktop host service controls, durable reopening and rejoining.

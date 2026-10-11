@@ -35,8 +35,8 @@ module.exports=()=>test.describe('Host turn clock and durable countdown',()=>{
   host.persist=()=>{throw Error('disk full');};let code;try{host.tick();}catch(e){code=e.code;}test.assertEqual(code,'host_save_failed');test.assertEqual(Save.serialize(host.game),before);test.assertDeepEqual(host.clock.snapshot(),clock);test.assertDeepEqual([require('../src/js/star.js'),require('../src/js/ship.js'),require('../src/js/fleet.js'),require('../src/js/rendezvous.js')].map(t=>t.nextId),ids);
   host.persist=persist;test.assertTrue(host.tick());test.assertEqual(host.game.turn,3);test.assertFalse(host.tick());
  }));
- test.it('stops clocks for unlimited/completed games and does not manufacture elapsed time when the clock moves backward',()=>fixture((host,time)=>{
-  later(host);time(-1000);test.assertEqual(host.clock.snapshot().remainingMs,10000);test.assertFalse(host.tick());host.game.isGameOver=true;host.clock.reset(host.game,true);host.persist();test.assertFalse(host.tick());test.assertEqual(NetworkHost.open(host.file).clock.info().secondsRemaining,null);
+ test.it('stops unlimited clocks and retains human post-result countdowns and does not manufacture elapsed time when the clock moves backward',()=>fixture((host,time)=>{
+  later(host);time(-1000);test.assertEqual(host.clock.snapshot().remainingMs,10000);test.assertFalse(host.tick());host.game.markGameWon(1);host.clock.reset(host.game,true);host.persist();test.assertFalse(host.tick());test.assertEqual(NetworkHost.open(host.file).clock.info().secondsRemaining,10);
   host.game.isGameOver=false;host.game.config.maxTimePerTurn=0;host.clock.reset(host.game,true);test.assertEqual(host.clock.info().secondsRemaining,null);test.assertFalse(host.clock.info().running);
  }));
  test.it('keeps pause/resume and the durable clock unchanged when writes fail',()=>fixture((host,time)=>{

@@ -25,6 +25,8 @@ const server=http.createServer((req,res)=>{
   }else if(req.url==='/open'){
    if(path.basename(input.file)!==input.file)throw Error('Fixture filename must be a basename');
    result=service.describe(await service.open(path.join(directory,input.file),input.listen));
+  }else if(req.url==='/postgame-victory' && record){
+   const host=record.host;host.pauseClock();host.game.turn=7;for(const star of host.game.stars){if(star.owner===2)star.owner=0;star.currentShip=null;}host.forceEndTurn(7);if(!host.game.isGameOver || host.game.winningPlayerNum!==1)throw Error('Fixture victory failed');result=service.describe(record);
   }else if(req.url==='/turn-control' && record)result=service.describe(await service.turnControl(record,input.action,input.turn));
   else if(req.url==='/initial-state' && record)result=service.describe(await service.editInitialState(record,input.change,input.revision,input.turn));
   else if(req.url==='/player' && record)result=service.describe(await service.changePlayer(record,input.change,input.revision,input.turn));

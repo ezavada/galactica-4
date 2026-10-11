@@ -3131,13 +3131,19 @@ class Game {
         if(eligible(top))this.moveActorForTurn(top);
     }
 
+    canAdvanceTurns() {
+        if(!this.isGameOver)return true;
+        if(this.clientPlayerNum || this.clientAdministrator)return this.canContinue===true;
+        return this.config.numHumans>0;
+    }
+
     endTurn() {
         if(this.clientAdministrator)return false;
         // Client turns are resolved by the host after order submission.
         if(this.clientPlayerNum)return this.networkCommands?this.networkCommands.post():false;
         // Synthetic no-human autoplay remains finite. Human documents retain
         // the recorded result and can keep playing, as v3 state_PostGame does.
-        if (this.isGameOver && this.config.numHumans===0) return this.getGameResult();
+        if (!this.canAdvanceTurns()) return this.getGameResult();
         if (this.isGameOver) this.postGame=true;
 
         this.turnAttentionPending=false;

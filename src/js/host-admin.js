@@ -22,14 +22,14 @@ class HostAdmin {
  state(token){this.authenticate(token);return {...require('./host-view.js').adminSnapshot(this.host.game),gameId:this.host.game.config.networkHost.id,clock:this.host.clock.info()};}
  status(token){
   this.authenticate(token);const host=this.host,game=host.game,Players=require('./host-players.js'),Settings=require('./host-settings.js'),Admission=require('./host-admission.js'),slots=game.config.getHumanPlayerSlots();
-  return {protocol,role:'administrator',gameId:game.config.networkHost.id,info:host.info(),administration:{initialState:require('./initial-state-edit.js').describe(game),initialStateRevision:require('./initial-state-edit.js').revision(game),complete:game.isGameOver,players:Players.describe(game),playersRevision:Players.revision(game),settings:Settings.snapshot(game),settingsRevision:game.config.networkHost.settingsRevision || 0,admission:Admission.snapshot(game),admissionRevision:Admission.revision(game),pending:slots.flatMap((id,i)=>{const claim=game.config.networkHost.players[i],p=game.players[id];return claim && p.isAlive && p.lastTurnPosted<game.turn?[{player:id,name:claim.name}]:[];})}};
+  return {protocol,role:'administrator',gameId:game.config.networkHost.id,info:host.info(),administration:{initialState:require('./initial-state-edit.js').describe(game),initialStateRevision:require('./initial-state-edit.js').revision(game),complete:game.isGameOver,canContinue:game.canAdvanceTurns(),players:Players.describe(game),playersRevision:Players.revision(game),settings:Settings.snapshot(game),settingsRevision:game.config.networkHost.settingsRevision || 0,admission:Admission.snapshot(game),admissionRevision:Admission.revision(game),pending:slots.flatMap((id,i)=>{const claim=game.config.networkHost.players[i],p=game.players[id];return claim && p.isAlive && p.lastTurnPosted<game.turn?[{player:id,name:claim.name}]:[];})}};
  }
  action(token,value){
   this.authenticate(token);if(!value || typeof value!=='object' || Array.isArray(value))failure('invalid_admin_action');
   const fields={pause:['action'],resume:['action'],end:['action','turn'],settings:['action','settings','revision'],player:['action','change','revision','turn'],admission:['action','policy','revision'],initialState:['action','change','revision','turn']},keys=typeof value.action==='string' && Object.hasOwn(fields,value.action)?fields[value.action]:null;
   if(!keys || Object.keys(value).length!==keys.length || Object.keys(value).some(k=>!keys.includes(k)))failure('invalid_admin_action');
   const host=this.host;
-  if(['pause','resume','end'].includes(value.action) && host.game.isGameOver)failure('game_complete');
+  if(['pause','resume','end'].includes(value.action) && !host.game.canAdvanceTurns())failure('game_complete');
   if(value.action==='pause')host.pauseClock();else if(value.action==='resume')host.resumeClock();else if(value.action==='end')host.forceEndTurn(value.turn);else if(value.action==='settings')host.updateSettings(value.settings,value.revision);else if(value.action==='player')host.changePlayer(value.change,value.revision,value.turn);else if(value.action==='initialState')host.editInitialState(value.change,value.revision,value.turn);else host.updateAdmission(value.policy,value.revision);
   return this.status(token);
  }

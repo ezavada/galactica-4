@@ -110,7 +110,7 @@ class HostWindow {
   finally{this.busy=false;}
  }
  editPlayers(){
-  if(this.busy || !this.record)return false;const info=this.backend.describe(this.record);if(!info.address || info.administration.complete && !info.administration.players.some(p=>!p.isComputer && p.online))return false;this.playersComplete=info.administration.complete;
+  if(this.busy || !this.record)return false;const info=this.backend.describe(this.record);if(!info.address || (info.administration.complete && !info.administration.canContinue) && !info.administration.players.some(p=>!p.isComputer && p.online))return false;this.playersComplete=(info.administration.complete && !info.administration.canContinue);
   this.playerList=info.administration.players.map(p=>({...p}));this.playersRevision=info.administration.playersRevision;this.playersTurn=info.info.turn;this.playerSelection=null;this.page=0;this.stage='players';this.message='';return true;
  }
  selectPlayer(value){if(this.stage!=='players' || !this.playerList.some(p=>p.player===value))return false;this.playerSelection=value;this.message='';return true;}
@@ -127,7 +127,7 @@ class HostWindow {
   finally{this.busy=false;}
  }
  editSettings(){
-  if(this.busy || !this.record)return false;const info=this.backend.describe(this.record);if(!info.address || info.administration.complete)return false;
+  if(this.busy || !this.record)return false;const info=this.backend.describe(this.record);if(!info.address || (info.administration.complete && !info.administration.canContinue))return false;
   this.previousConfig=this.config;this.config={...info.administration.settings};this.settingsRevision=info.administration.settingsRevision;this.settingsInfo=info.info;
   const limit=this.config.maxTimePerTurn;this.timed=limit>0;this.unit=limit?settingsUnits.map(u=>limit%u.multiplier===0).slice(0,4).lastIndexOf(true):0;if(this.unit<0)this.unit=4;
   this.time=Name.createEditor(String(limit?limit/settingsUnits[this.unit].multiplier:5),16);this.focus='time';this.stage='settings';this.message='';return true;
@@ -144,7 +144,7 @@ class HostWindow {
   finally{this.busy=false;}
  }
  requestEnd(){
-  if(this.busy || !this.record)return false;const info=this.backend.describe(this.record);if(!info.address || info.administration.complete)return false;
+  if(this.busy || !this.record)return false;const info=this.backend.describe(this.record);if(!info.address || (info.administration.complete && !info.administration.canContinue))return false;
   if(!info.administration.pending.length)return this.control('end',info.info.turn);
   this.confirmation={turn:info.info.turn,pending:info.administration.pending.map(p=>({...p}))};this.page=0;this.stage='endTurn';this.message='';return true;
  }
@@ -229,14 +229,14 @@ class HostWindow {
   }
   if(this.stage==='hosting'){
    const info=this.backend.describe(this.record),inner=rect.width-48;
-   return {rect,scale,title:I18n.formatString(info.remoteAdministrator?1164:1062,'',info.title),messageY:info.remoteAdministrator?334:350,info,fields:info.address?[]:[{name:'port',label:I18n.getString(1053),rect:at(180,300,rect.width-204),labelRect:at(24,300,140)}],choices:[],checks:[],labels:info.address?[{text:info.administration.complete?I18n.getString(1043):info.info.clock.paused?info.info.clock.secondsRemaining===null?I18n.getString(1049):I18n.formatString(1046,'',require('./client-clock.js').duration(info.info.clock.secondsRemaining)):info.info.clock.secondsRemaining===null?I18n.getString(1113):I18n.formatString(1045,'',require('./client-clock.js').duration(info.info.clock.secondsRemaining)),rect:at(24,info.remoteAdministrator?164:230,inner)},...(!info.remoteAdministrator && info.discovery?[{text:I18n.getString(info.discovery==='active'?1199:1200),rect:at(24,310,inner)}]:[])]:[],buttons:[
-    ...(info.address?[{action:info.info.clock.paused?'resumeClock':'pause',id:info.info.clock.paused?1117:1116,disabled:info.administration.complete,rect:at(24,266,inner/2-4)},{action:'endNow',id:1107,disabled:info.administration.complete,rect:at(28+inner/2,266,inner/2-4)}]:[]),
+   return {rect,scale,title:I18n.formatString(info.remoteAdministrator?1164:1062,'',info.title),messageY:info.remoteAdministrator?334:350,info,fields:info.address?[]:[{name:'port',label:I18n.getString(1053),rect:at(180,300,rect.width-204),labelRect:at(24,300,140)}],choices:[],checks:[],labels:info.address?[{text:(info.administration.complete && !info.administration.canContinue)?I18n.getString(1043):info.info.clock.paused?info.info.clock.secondsRemaining===null?I18n.getString(1049):I18n.formatString(1046,'',require('./client-clock.js').duration(info.info.clock.secondsRemaining)):info.info.clock.secondsRemaining===null?I18n.getString(1113):I18n.formatString(1045,'',require('./client-clock.js').duration(info.info.clock.secondsRemaining)),rect:at(24,info.remoteAdministrator?164:230,inner)},...(!info.remoteAdministrator && info.discovery?[{text:I18n.getString(info.discovery==='active'?1199:1200),rect:at(24,310,inner)}]:[])]:[],buttons:[
+    ...(info.address?[{action:info.info.clock.paused?'resumeClock':'pause',id:info.info.clock.paused?1117:1116,disabled:(info.administration.complete && !info.administration.canContinue),rect:at(24,266,inner/2-4)},{action:'endNow',id:1107,disabled:(info.administration.complete && !info.administration.canContinue),rect:at(28+inner/2,266,inner/2-4)}]:[]),
     {action:'join',id:1063,key:'Enter',disabled:!info.address,rect:at(24,380,info.address && this.backend.setAdminPassword?inner/2-4:inner)},
     ...(info.address && this.backend.setAdminPassword?[{action:'adminPassword',id:1158,rect:at(28+inner/2,380,inner/2-4)}]:[]),
-    {action:info.address?'settings':'retry',id:info.address?1118:1075,disabled:info.address && info.administration.complete,rect:at(24,418,info.address?inner/2-4:inner)},
-    ...(info.address?[{action:'players',id:1125,disabled:info.administration.complete && !info.administration.players.some(p=>!p.isComputer && p.online),rect:at(28+inner/2,418,inner/2-4)}]:[]),
+    {action:info.address?'settings':'retry',id:info.address?1118:1075,disabled:info.address && (info.administration.complete && !info.administration.canContinue),rect:at(24,418,info.address?inner/2-4:inner)},
+    ...(info.address?[{action:'players',id:1125,disabled:(info.administration.complete && !info.administration.canContinue) && !info.administration.players.some(p=>!p.isComputer && p.online),rect:at(28+inner/2,418,inner/2-4)}]:[]),
     {action:'another',id:1065,rect:at(24,456,info.address?inner/3-6:inner)},
-    ...(info.address?[{action:'admission',id:1143,rect:at(28+inner/3,456,inner/3-6)},{action:'initialState',id:1169,disabled:info.info.turn!==1 || info.administration.complete || !info.administration.initialState || !this.backend.editInitialState,rect:at(32+2*inner/3,456,inner/3-8)}]:[]),
+    ...(info.address?[{action:'admission',id:1143,rect:at(28+inner/3,456,inner/3-6)},{action:'initialState',id:1169,disabled:info.info.turn!==1 || (info.administration.complete && !info.administration.canContinue) || !info.administration.initialState || !this.backend.editInitialState,rect:at(32+2*inner/3,456,inner/3-8)}]:[]),
     {action:'stop',id:1064,rect:at(24,494,inner/2-4)},
     {action:'cancel',id:834,key:'Esc',rect:at(28+inner/2,494,inner/2-4)}].filter(b=>!info.remoteAdministrator || !['join','another','retry'].includes(b.action)).map(b=>({...b,rect:info.remoteAdministrator?at(b.action==='admission'?24:b.action==='initialState'?28+inner/2:b.rect.x-rect.x,['pause','resumeClock','endNow'].includes(b.action)?200:['settings','players'].includes(b.action)?244:['admission','initialState'].includes(b.action)?288:376,['admission','initialState'].includes(b.action)?inner/2-4:b.rect.width):b.rect,id:info.remoteAdministrator && b.action==='stop'?1165:b.id,disabled:b.disabled || info.remoteAdministrator && !info.administration.connected && !['cancel','stop'].includes(b.action),label:I18n.getString(info.remoteAdministrator && b.action==='stop'?1165:b.id)}))};
   }

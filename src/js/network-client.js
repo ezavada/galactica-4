@@ -75,6 +75,7 @@ class NetworkClient {
     old.eventLog=fresh.eventLog.map(event=>{if(previousEvents.get(event.id)?.handled)event.handled=true;return event;}).concat(old.eventLog.filter(event=>event.id<0 || old.heldReports.some(row=>row.eventId===event.id) && !fresh.eventLog.some(row=>row.id===event.id)));
     for(const event of old.eventLog)if(!previousEvents.has(event.id) && !event.handled){old.attention.requestEvent(event);if(event.playerMessage)old.queueReport(event);}
     old.clientClock=fresh.clientClock;
+    for(const key of ['canContinue','postGame','winningPlayerNum','victoryTurn'])old[key]=fresh[key];
     old.remoteComparisons=fresh.remoteComparisons;
     for(let i=1;i<old.players.length;i++){old.players[i].name=fresh.players[i].name;old.players[i].isAlive=fresh.players[i].isAlive;old.players[i].numPiecesRemaining=fresh.players[i].numPiecesRemaining;}
     return old;

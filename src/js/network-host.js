@@ -57,7 +57,7 @@ class NetworkHost {
         if(request.gameId!==host.id)throw failure('wrong_game');
         if(request.turn!==old.turn)throw failure('wrong_turn');
         if(old.players[player].lastTurnPosted===old.turn)throw failure('already_posted');
-        if(old.isGameOver)throw failure('game_complete');
+        if(!old.canAdvanceTurns())throw failure('game_complete');
         this.transact(staged=>{
             const ids=Orders.apply(staged,player,request);staged.players[player].lastTurnPosted=staged.turn;
             staged.config.networkHost.posts={...(staged.config.networkHost.posts || {}),[player]:{postId:request.postId,digest,turn:request.turn,ids}};
@@ -71,7 +71,7 @@ class NetworkHost {
         const clockState={turn:clock.turn,limit:clock.limit,configuredLimit:clock.configuredLimit,remainingMs:clock.remainingMs,paused:clock.paused,startedAt:clock.startedAt};
         try{
             const staged=Save.restore(Save.serialize(old));change(staged);this.game=staged;this.login.game=staged;
-            if(staged.turn!==old.turn || staged.isGameOver)clock.reset(staged,!!this.server);
+            if(staged.turn!==old.turn || staged.canAdvanceTurns()!==old.canAdvanceTurns())clock.reset(staged,!!this.server);
             try{this.persist();}catch(error){throw failure('host_save_failed');}
             this.clockError=null;
         }catch(error){this.game=old;this.login.game=old;Object.assign(clock,clockState);types.forEach((type,index)=>{type.nextId=counters[index];});throw error;}
@@ -84,7 +84,7 @@ class NetworkHost {
         return game.config.networkHost.players.every((claim,index)=>claim && (!game.players[slots[index]].isAlive || game.players[slots[index]].lastTurnPosted===game.turn));
     }
     tick(){
-        if(!this.server || this.game.isGameOver || this.clock.paused)return false;
+        if(!this.server || !this.game.canAdvanceTurns() || this.clock.paused)return false;
         const ready=this.ready(this.game) && (this.game.config.numHumans===0 || this.game.turn===1 || this.game.config.maxTimePerTurn===0 || this.game.config.endEarly);
         if(!ready && (this.game.config.numHumans===0 || !this.clock.expired()))return false;
         this.transact(game=>game.endTurn());return true;
@@ -96,7 +96,7 @@ class NetworkHost {
     changePlayer(value,revision,turn){
         const Players=require('./host-players.js'),current=Players.revision(this.game);
         if(!Number.isSafeInteger(revision) || revision!==current || current===Number.MAX_SAFE_INTEGER || turn!==this.game.turn)throw failure('stale_host_player');
-        if(this.game.isGameOver && value?.action!=='eject')throw failure('game_complete');
+        if(!this.game.canAdvanceTurns() && value?.action!=='eject')throw failure('game_complete');
         let revoke;this.transact(game=>{revoke=Players.apply(game,value);});if(revoke)this.login.revokePlayer(value.player,value.action==='eject'?'admin_ejected':'not_logged_in');
     }
     setAdminPassword(password,revision){
@@ -112,12 +112,12 @@ class NetworkHost {
     updateSettings(value,revision){
         const Settings=require('./host-settings.js'),settings=Settings.validate(value),current=this.game.config.networkHost.settingsRevision || 0;
         if(!Number.isSafeInteger(revision) || revision!==current || current===Number.MAX_SAFE_INTEGER)throw failure('stale_host_settings');
-        if(this.game.isGameOver)throw failure('game_complete');
+        if(!this.game.canAdvanceTurns())throw failure('game_complete');
         this.transact(game=>{Settings.apply(game,settings);game.config.networkHost.settingsRevision=current+1;this.clock.configure(game,!!this.server);});
     }
     forceEndTurn(expectedTurn){
         if(expectedTurn!==this.game.turn)throw failure('stale_host_turn');
-        if(this.game.isGameOver)throw failure('game_complete');
+        if(!this.game.canAdvanceTurns())throw failure('game_complete');
         this.transact(game=>game.endTurn());
     }
     pauseClock(){this.transact(()=>this.clock.pause());}

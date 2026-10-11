@@ -40,9 +40,9 @@ module.exports=()=>test.describe('Durable active host settings',()=>{
   test.assertEqual(Save.serialize(host.game),before);test.assertEqual(fs.readFileSync(host.file,'utf8'),saved);test.assertDeepEqual(host.clock.snapshot(),clock);test.assertEqual(host.clock.configuredLimit,300000);
   host.fs=original;change(host,{maxTimePerTurn:60});test.assertEqual(host.game.config.networkHost.settingsRevision,1);
  }));
- test.it('rejects stale drafts and completed games without overwriting accepted changes',()=>fixture(host=>{
+ test.it('rejects stale drafts and accepts post-result settings without rewriting the result',()=>fixture(host=>{
   const draft=Settings.snapshot(host.game);change(host,{compSkill:1});rejects(()=>host.updateSettings(draft,0),'stale_host_settings');test.assertEqual(host.game.config.compSkill,1);
-  host.game.isGameOver=true;rejects(()=>change(host),'game_complete');
+  host.game.markGameWon(1);change(host,{compSkill:2});test.assertEqual(host.game.config.compSkill,2);test.assertEqual(host.game.winningPlayerNum,1);
  }));
  test.it('refreshes same-turn settings while preserving editable orders, new groups, selection and report subjects',()=>fixture(host=>{
   const State=require('../src/js/client-state.js'),Client=require('../src/js/network-client.js').NetworkClient,Orders=require('../src/js/player-orders.js');
