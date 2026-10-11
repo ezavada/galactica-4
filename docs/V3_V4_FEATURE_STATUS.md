@@ -5788,3 +5788,38 @@ The five event-resource import checks also pass against the peer shipped-v3
 checkout (`/private/tmp/galactica-event-coverage-source.log`). This completes
 the concrete owner-text omission, while the broader event/attention and
 Map Generation audits remain open.
+
+
+## Repair and rendezvous attention presentation audit
+
+Shipped v3 `Classes/CMessage.cpp:883–896` treats a zero PPob resource as
+a sound-only notice: it plays the assigned cue, then returns without opening
+a text dialog. Evnt 128 assigns PPob zero to ShipDamageFixed 20,
+FleetDamageFixed 21 and NewFleet 15. Repairs use cue 1001; fleet formation
+has no assigned cue. The existing v4 attention path instead opened an extra
+manual narrative dialog when focusing these notices, including the first
+attention item after End Turn.
+
+`Attention.next()` now focuses and handles the notice and delegates its
+source-assigned cue without opening that dialog. Explicit Events → View report
+retains the full localized narrative. Tests cover private repair notices,
+nested fleet repair, rendezvous selection and immediate rename, unchanged
+turn counts and immutable report snapshots through save/restore. The tutorial
+regression verifies steps 55–58 still select the new fleet and open its contents
+without relying on the extra dialog. Both complete muted native suites pass
+1731 tests with zero failures, recorded in
+`/private/tmp/galactica-manual-attention-{public,devel}-unit.log`.
+
+`tools/test-web-repair-reports.cjs` drives actual End Turn, Tab, Events review
+and rename input. Before/after runs pass in English, German, Spanish, French,
+Japanese and Russian. The 84 paired screenshots under
+`/private/tmp/galactica-manual-attention/{before,after}/<language>` contain
+30 changed attention-focus views and 54 pixel-identical views, including all
+explicit event-list/narrative views. English before/after focus comparisons,
+all six ship and fleet repair narratives and all six new rendezvous focus
+views were visually inspected. Existing localized strings are reused.
+Comparison evidence is in
+`/private/tmp/galactica-manual-attention-comparison.json`; browser logs are
+`/private/tmp/galactica-manual-attention-{before,after}-<language>.log`.
+This closes the concrete extra-dialog discrepancy; the broader event/attention
+and Map Generation requirements remain subject to their full audits.

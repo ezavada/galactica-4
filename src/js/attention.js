@@ -40,8 +40,9 @@ class Attention {
         if(!entry){if(this.game.sound)this.game.sound.noMore(this.game);return false;}
         entry.handled=true;if(entry.event) {
             this.game.focusEvent(entry.event,true);
-            if(entry.event.automatic===false && this.game.hasReplayableReport(entry.event))this.game.queueReport(entry.event,false,true);
-            else if(this.game.sound)this.game.sound.attention(this.game,entry.event);
+            // Zero-PPob repair/rendezvous notices focus and cue their subject.
+            // The full narrative belongs to explicit Events replay.
+            if(this.game.sound)this.game.sound.attention(this.game,entry.event);
             return true;
         }
         if(this.game.sound)this.game.sound.attention(this.game);

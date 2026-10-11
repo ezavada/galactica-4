@@ -469,3 +469,16 @@ captures contain 12 changed owner list/narrative views and 48 identical views.
 Evidence and scope are recorded in the owner commissioning audit in
 `docs/V3_V4_FEATURE_STATUS.md`. This fixes one verified STR#500 omission and
 does not by itself establish blanket parity of every event or artwork role.
+
+
+## Zero-PPob manual attention notices
+
+Repair events 20/21 and new-rendezvous fleet event 15 have zero PPob in
+shipped v3 Evnt 128. `CMessage::DoMessage` plays any assigned sound and
+returns without opening a dialog. V4 attention now follows this behavior:
+focus and handle the subject, play repair cue 1001, and invent no cue for
+fleet formation. Full localized narratives remain available through explicit
+Events review. Real End Turn/Tab/rename/browser review checks pass before
+and after in all six languages; both complete native suites pass 1731 tests.
+The repair and rendezvous attention audit in `docs/V3_V4_FEATURE_STATUS.md`
+records the source, screenshot comparisons, save behavior and test evidence.

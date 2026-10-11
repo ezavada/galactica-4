@@ -88,8 +88,8 @@ module.exports=()=>test.describe('Tutorial bindings to real game actions',()=>{
   const {game,tutorial,home}=setup();tutorial.goto(55);game.overlay={type:'stardock'};
   const enemy=game.stars.find(s=>s.owner===2);enemy.setVisibilityTo(1,2);const observer=game.recordColonizationReports(enemy).find(e=>e.recipient===1);test.assertTrue(game.overlayQueue.some(o=>o.eventId===observer.id));
   const point=game.factory.createRendezvous(home.x+1000,home.y,1,'Alpha'),ship=game.factory.createShip(home.x,home.y,'battleship',home,true);home.shipArrived(ship);ship.destination=point;ship.move();const fleet=point.getFleet();test.assertDefined(fleet);game.turnAttentionPending=true;
-  game.dismissEventPresentation();test.assertEqual(tutorial.pageId,56);test.assertFalse(game.showEnemyEvents);test.assertTrue(observer.handled);test.assertTrue(game.presentTurnAttention());test.assertTrue(game.selectedObject===fleet);test.assertEqual(game.overlay.type,'report');
-  tutorial.pressButton();test.assertEqual(tutorial.pageId,57);game.dismissEventPresentation();test.assertTrue(game.showFleetExchange(fleet));test.assertEqual(tutorial.pageId,58);
+  game.dismissEventPresentation();test.assertEqual(tutorial.pageId,56);test.assertFalse(game.showEnemyEvents);test.assertTrue(observer.handled);test.assertTrue(game.presentTurnAttention());test.assertTrue(game.selectedObject===fleet);test.assertNull(game.overlay);
+  tutorial.pressButton();test.assertEqual(tutorial.pageId,57);test.assertTrue(game.showFleetExchange(fleet));test.assertEqual(tutorial.pageId,58);
  });
  test.it('retains the original courier identity rather than substituting another surviving scout',()=>{
   const {game,tutorial,runtime,home,s7}=setup(),first=game.factory.createShip(home.x,home.y,'scout',home,true);home.shipArrived(first);game.setSelectedObject(first);const second=game.factory.createShip(home.x,home.y,'scout',home,true);home.shipArrived(second);game.removeDestroyedShip(first,2,false);tutorial.goto(44);game.attention.queue=[];game.attention.next();test.assertEqual(runtime.roleIds.scout,first.id);test.assertNull(second.destination);test.assertFalse(second.destination===s7);
