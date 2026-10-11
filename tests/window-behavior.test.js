@@ -130,6 +130,20 @@ module.exports=()=>test.describe('System window modality and title dragging',()=
    const moved=placement.layout('startup',rect,screen);test.assertTrue(moved.x>=10 && moved.y>=10 && moved.x+moved.width<=screen.width-10 && moved.y+moved.height<=screen.height-10);
   }
  });
+ test.it('keeps the scaled chat title drag area clear of recipient choices',()=>{
+  const {ChatWindow}=require('../src/js/network-chat-window.js'),{prefs}=preferences();
+  const channel={client:{session:{player:1}},messages:[],players:[],administrator:false,refresh:()=>Promise.resolve([])};
+  const chat=new ChatWindow();chat.open(channel);chat.action('recipients');
+  for(const size of [[800,600],[640,480],[640,360],[640,340]]){
+   const screen={width:size[0],height:size[1]},layout=chat.layout(...size),placement=new Placement(prefs),choice=layout.choices[0].rect;
+   test.assertFalse(placement.begin('networkChat',layout.rect,choice.x+5,choice.y+1,screen));
+   test.assertEqual(placement.drag,null);
+   test.assertTrue(placement.begin('networkChat',layout.rect,layout.rect.x+20,layout.rect.y+14*layout.scale,screen));
+   placement.end(layout.rect.x+40,layout.rect.y+24*layout.scale);
+   const moved=placement.layout('networkChat',layout,screen).rect;
+   test.assertTrue(moved.x>=10 && moved.y>=10 && moved.x+moved.width<=screen.width-10 && moved.y+moved.height<=screen.height-10);
+  }
+ });
  test.it('persists native positions, rejects malformed config, and keeps controls aligned in application dialogs',()=>{
   const values=new Map(),prefs=Preferences.createPreferences({pdg:{cfg:{useConfig:()=>{},getConfigString:k=>values.get(k),setConfigString:(k,v)=>values.set(k,v)}}});
   prefs.writeWindowPosition('startup',{x:25,y:45});test.assertEqual(prefs.readWindowPosition('startup').y,45);

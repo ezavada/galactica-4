@@ -15,7 +15,7 @@ class WindowPlacement {
         return shift(layout);
     }
     begin(name,rect,x,y,screen){
-        const titleHeight=name==='startup'?52*rect.height/540:52;
+        const titleHeight=name==='startup'?52*rect.height/540:name==='networkChat'?52*rect.height/480:52;
         if(x<rect.x || x>rect.x+rect.width || y<rect.y || y>rect.y+titleHeight)return false;
         this.drag={name,rect:{...rect},x,y,screen};return true;
     }

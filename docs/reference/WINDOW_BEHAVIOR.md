@@ -151,3 +151,21 @@ inventory. Network/chat/hosting/join/turn-notice surfaces and remaining busy/err
 variants still require their current chrome audit. The narrow map inspector
 layout also needs a separate minimum-viewport/source check; dialog bounds do not
 establish that every gameplay panel fits that viewport.
+
+
+Chat's title drag hit area scales with the panel height, keeping the top edge of
+recipient choices clickable in short ports. The recipient and composer surfaces
+have actual-input browser coverage against a temporary native HTTP host in all
+six languages at 640×340 and 640×480. Checks open Chat from the command menu, use
+Tab and recipient clicks, drag the title, verify persisted bounded coordinates,
+reject outside clicks with a clunk, send a real broadcast with Enter and close
+with Esc without advancing the game. Admission is fixture bootstrap here; the
+Join UI has its separate test helper. Automation remains muted.
+
+The native regression fails with the original fixed 52px hit area; both full
+suites pass 1,752 tests after the fix. Dedicated HTTP chat routing/retry/offline
+checks also pass. Of 84 before/after pairs, 78 are identical and six show the
+corrected recipient-edge action. English before/after and the six-language short
+recipient/composer layouts were visually inspected. These checks establish the
+listed 640px-wide chat interactions; narrower gameplay layout and remaining
+network/host/join/turn-notice and busy/error variants remain in the chrome audit.

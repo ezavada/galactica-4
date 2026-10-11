@@ -242,7 +242,7 @@ The largest blockers to a complete game are:
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
 | Main information/navigation panels | Context-sensitive system, ship, fleet, rendezvous, and list panels with command buttons. | ✅ Implemented | ✅ Implemented | System production/allocation/destination controls, owned ship/fleet orders and member operations, rendezvous controls, paged system/member lists and the eight-column sortable fleet roster cover the shipped contextual workflows. Actual-input browser checks pass in all six languages for production, equalizing, member exchange, fleet navigation/sorting, rendezvous and read-only foreign inspectors, including save/restore. See the completion audit below. The deliberately modern radial architecture, removed pause/position controls and separate window chrome audit remain explicit. |
-| Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Gameplay title dragging, modal isolation, contextual lists and production/confirmation dismissal have six-language actual-input coverage. Startup/text-entry and document/manual decisions now have six-language actual-input coverage, including narrow dialog bounds, real Save As and Revert. Remaining chrome coverage includes network/chat/hosting/join/turn-notice surfaces, busy/error variants and a separate compact gameplay minimum-viewport audit. |
+| Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Gameplay title dragging, modal isolation, contextual lists and production/confirmation dismissal have six-language actual-input coverage. Startup/text-entry and document/manual decisions now have six-language actual-input coverage, including narrow dialog bounds, real Save As and Revert. Chat composer/recipient selection also has real-host input and drag coverage at ordinary and short heights. Remaining chrome coverage includes other network/hosting/join/turn-notice surfaces, busy/error variants and a separate compact gameplay minimum-viewport audit. |
 | Keyboard shortcuts and hover help | Buttons advertise shortcuts; balloon/flyby help describes controls. | ✅ Implemented | ✅ Implemented | Current controls advertise their working v4 shortcuts. Delayed explanatory help uses the same hit targets as clicks across inspectors, allocation sliders, command/list/course/report windows, startup options and local file dialogs. Text wraps by measured Unicode glyph width and stays within the viewport; covered controls behind modal windows, active drags, destination placement and illustrated overlays cannot show help. Clicks/keys clear it without intercepting input. Settings → Control help persists through native/browser preferences, reload and open-game switching. Eleven regressions and actual six-language browser comparisons cover timing, privacy/input isolation, allocation semantics, current action coverage, persistence, complete text and viewport bounds. New commands introduced with the remaining unported dialogs will need their own help alongside those implementations. |
 | Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | ✅ Implemented | ✅ Implemented | E/Events lists recipient-visible last-turn reports in chronological order, including retained held reports and unread offline messages. Paged rows select and center live subjects, preserve lost-subject locations and show reviewed state; narratives page independently without another turn. The complete source-reachable event inventory is implemented. View report replays full combat, colony, repair, rendezvous, message and outcome narratives. Owner commissioning/discovery now also restore their snapshot-based Stardock/Lab illustrations; observers never receive owner artwork. Actual six-language Events/button checks and before/after image comparisons pass, with both full suites at 1734 tests. Art pixel equivalence, attention sequencing and enemy movement playback remain their separate checklist rows. |
 | Attention queue | Manual requests select/focus subjects sequentially; automatic messages have a separate presentation/review path. | ✅ Implemented | ✅ Implemented | Owner call-ins, ordinary mobile builds, rendezvous fleets, repairs and colony instructions use Next. Automatic notices and foreign manual observer notices are excluded from Next counts, Tab and deferred post-turn goto, matching ShowMessages (GalacticaDoc.cp:1561–1570). Previously saved foreign manual queue entries are filtered too. Unread automatic entries retain End Turn protection and explicit Review. Detected observer narratives remain available through explicit Events review. Both full suites pass 1740 tests; actual arrival, Next, explicit review and save checks pass in all six languages. Enemy playback and native/art/audio work remain separate rows. |
@@ -6511,3 +6511,35 @@ inventory. Compact map inspectors need a separate source/minimum-viewport check;
 these narrow dialog checks do not certify all gameplay layouts. PDG fixes remain
 private in `pdg-devel`; public integration is deferred to the planned v1.2.1
 release after parity work.
+
+
+### Compact chat recipient clicks stay outside the title drag area
+
+Source audit: v3 `Classes/GalacticaClient.cpp:926–992` builds the chat recipient
+menu, marks the viewer/unclaimed names in italics and activates the composer;
+`1080–1112` sends on Enter/Return, records the message and clears the edit field.
+The modern modal chat retains those interactions. Its scaled first recipient row
+crossed the unscaled 52px title hit area in short ports. Clicking that row's top
+edge started a drag instead of choosing it. The chat title hit area now scales
+with the same 480px reference height as its controls.
+
+The regression fails on the old code and passes with the fix. Both full native
+suites pass 1,752 tests. The dedicated private-runtime HTTP chat suite passes
+all six languages, including private/broadcast routing, offline delivery,
+response-loss retries and cancellation. Actual muted browser checks use a real
+temporary native host and authenticated client at 640×340 and 640×480 in each
+language. Command-menu opening, Tab/recipient selection, bounded persisted title
+drags, outside-click clunks, Enter broadcast and Escape dismissal pass without
+advancing the turn. This fixture bootstraps admission; it does not claim to test
+the Join form in this item.
+
+Of 84 screenshot pairs, 78 are pixel-identical and six show the intended
+recipient-edge action. Baseline recovery uses a center click so later history is
+the same in both runs. English before/after and all six short recipient/composer
+layouts were visually inspected. No new localization strings or PDG changes.
+Evidence: `/private/tmp/galactica-chat-drag-{pdg,pdg-devel}-unit.log`,
+`galactica-chat-drag-regression.log`, `galactica-chat-drag-pdg-devel-http.log`,
+`galactica-chat-drag-{before,after}-<language>.log`, corresponding wide logs,
+both comparison JSON files and screenshot trees. Chrome remains Partial for
+other foreground network/busy/error surfaces and the compact gameplay layout
+audit. Public PDG remains unchanged under the deferred v1.2.1 plan.
