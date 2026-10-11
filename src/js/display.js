@@ -312,7 +312,7 @@ class Display {
                 fillColor: this.getUIColor('buttonFillActiveHover'),
                 lineColor: this.getUIColor('buttonBorder')
             }),
-            gridLine: this.createAttributes({ lineColor: this.getUIColor('gridLine') }),
+            gridLines: Array.from({length:3},()=>this.createAttributes({lineColor:new pdg.Color('black')}).blendMode(pdg.blendMode_Additive)),
             overlayDim: this.createAttributes({ fillColor: this.getUIColor('overlayDim') }),
             selectionFrame: this.createAttributes({ lineColor: this.getUIColor('selectionFrame') }),
             defaultDestinationLine: this.createAttributes({ lineColor: this.getUIColor('defaultDestination') }),
@@ -3817,44 +3817,29 @@ class Display {
         this.drawTextLine(this.STR.dragZoomHelp, 10, drawingArea.height() - 18, 'gray', 11);
     }
     
-    // Draw grid lines based on sector boundaries
+    // CStarMapView draws hundredths, tenths and full sector boundaries.
     drawGrid() {
         if(this.game.showGrid===false)return;
-        const drawingArea = this.port.getDrawingArea();
-        // Use original C++ grid spacing - full sectors only (no subgrid)
-        const sectorSize = 1024 * 1024; // PIXELS_PER_SECTOR * COORDINATE_SCALE
-        const gridSpacing = sectorSize; // Full sector spacing (matches original C++)
-        
-        // Get visible bounds in galactic coordinates
-        const visibleBounds = this.camera.getVisibleBounds();
-        
-        // Calculate grid spacing - only draw grid lines that are visible
-        const minX = Math.floor(visibleBounds.left / gridSpacing) * gridSpacing;
-        const maxX = Math.ceil(visibleBounds.right / gridSpacing) * gridSpacing;
-        const minY = Math.floor(visibleBounds.top / gridSpacing) * gridSpacing;
-        const maxY = Math.ceil(visibleBounds.bottom / gridSpacing) * gridSpacing;
-        
-        // Draw vertical grid lines
-        for (let x = minX; x <= maxX; x += gridSpacing) {
-            const screenX = this.toScreenX(x);
-            if (screenX >= 0 && screenX <= drawingArea.width()) {
-                this.port.drawLine(
-                    new pdg.Point(screenX, 0),
-                    new pdg.Point(screenX, drawingArea.height()),
-                    this.styles.gridLine
-                );
+        const area=this.port.getDrawingArea(),bounds=this.camera.getVisibleBounds();
+        const sector=1024*1024;
+        for(let level=0;level<3;level++) {
+            const spacing=sector/Math.pow(10,2-level);
+            const pixels=Math.abs(this.toScreenX(spacing)-this.toScreenX(0));
+            if(pixels<10)continue;
+            const brightness=Math.min(0x6666,Math.trunc((pixels-10)*0x33))/65535;
+            const style=this.styles.gridLines[level];
+            style.lineColor(new pdg.Color(brightness,brightness,brightness,1));
+            // Coincident boundaries use only their coarsest (brightest) level.
+            // This avoids adding the subdivision color more than once.
+            for(let i=Math.ceil(bounds.left/spacing);i<=Math.floor(bounds.right/spacing);i++) {
+                if(level<2 && i%10===0)continue;
+                const x=this.toScreenX(i*spacing);
+                if(x>=0 && x<=area.width())this.port.drawLine(new pdg.Point(x,0),new pdg.Point(x,area.height()),style);
             }
-        }
-        
-        // Draw horizontal grid lines
-        for (let y = minY; y <= maxY; y += gridSpacing) {
-            const screenY = this.toScreenY(y);
-            if (screenY >= 0 && screenY <= drawingArea.height()) {
-                this.port.drawLine(
-                    new pdg.Point(0, screenY),
-                    new pdg.Point(drawingArea.width(), screenY),
-                    this.styles.gridLine
-                );
+            for(let i=Math.ceil(bounds.top/spacing);i<=Math.floor(bounds.bottom/spacing);i++) {
+                if(level<2 && i%10===0)continue;
+                const y=this.toScreenY(i*spacing);
+                if(y>=0 && y<=area.height())this.port.drawLine(new pdg.Point(0,y),new pdg.Point(area.width(),y),style);
             }
         }
     }

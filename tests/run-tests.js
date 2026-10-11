@@ -4,6 +4,7 @@
 // Uses PDG's built-in pdg.srand() and pdg.rand() for deterministic testing
 
 const test = require('./test-framework.js');
+const runMapGridTests=require('./map-grid.test.js');
 require('./postgame.test.js')();
 require('./network-postgame.test.js')();
 require('./quit-request.test.js')();
@@ -315,6 +316,7 @@ require('./network-turn-attention.test.js')();
 require('./network-turn-notice.test.js')();
 runNetworkClientTests();
     runMapDisplayModeTests();
+    runMapGridTests();
 
     // Print summary
     const success = test.printSummary();

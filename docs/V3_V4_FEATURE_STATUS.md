@@ -90,11 +90,11 @@ The largest blockers to a complete game are:
 
 - More elaborate cinematic or art-heavy victory/defeat treatment beyond the v3 text/window resources.
 
-## 2. Map, camera, visibility, and display modes (Functionality 89%, UI 89%)
+## 2. Map, camera, visibility, and display modes (Functionality 95%, UI 95%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
-| Galaxy map with grid | Main play field renders stars, ships, fleets, courses, and sector grid. | 🟡 Partial | 🟡 Partial | v4 renders background, grid, stars, ships, fleets, destinations, and selection. It draws allied waypoint circuits and now has display brightness modes and grid/names/ships/courses/scanner controls. Remaining map UI differences are listed below. |
+| Galaxy map with grid | Main play field renders stars, ships, fleets, courses, and sector grid. | ✅ Implemented | ✅ Implemented | The layered renderer includes background/influence, source sector/tenth/hundredth grids, stars, ships, fleets, rendezvous, allied courses, destinations and selection. Grid levels follow v3’s ten-pixel cutoff and spacing-dependent neutral brightness, remain camera-aligned, and use retained drawing attributes. Native renderer regressions and actual six-language before/after zoom/F3 captures verify subdivisions and toggling; earlier object-knowledge, arrival, course and scanner audits cover their separate map layers and hit eligibility. Replay and fullscreen remain their own rows. |
 | Pan/scroll map | Scroll bars; Option-drag in the tutorial/manual. | ✅ Implemented | ✅ Implemented | Horizontal and vertical map scroll bars use proportional thumbs, captured dragging, page clicks and step arrows with held-button repetition. They reflect current zoom, pan and viewport, clamp their own movement to the sector map extent, and disable fitted axes. Option/Alt-drag pans over entities without changing selection or issuing orders, matching v3; existing empty-space/middle dragging remains. Browser releases outside the canvas or on blur recover through the normal input path. |
 | Zoom in/out | Buttons and +/- keys. | ✅ Implemented | ✅ Implemented | Compact cached 2× plus/minus map icons and Command Menu → View offer zoom in/out alongside existing +/- and wheel input. Existing camera anchors and limits are preserved. |
 | Zoom to fit | “Zoom Fill”/0 command. | ✅ Implemented | ✅ Implemented | Map Fit icon and View menu use content-aware fitting; zero and keypad star match v3. F remains an alias. Reset view remains a separate View command. |
@@ -5700,3 +5700,47 @@ with the neutral-colonization, inherited-course and combat audits, this
 closes Section 4's arrival-outcome UI row. Section 4 now has every counted
 functionality and UI row complete; this is a local checklist estimate, not
 a claim that the broader parity or Map Generation goal is finished.
+
+
+### Map grid: restore the shipped v3 subdivisions
+
+`Classes/GalacticaPanes.cp:916–965` draws three grid levels: sector
+boundaries, tenths and hundredths. Levels with screen spacing below ten
+pixels are omitted. Neutral intensity is derived from spacing using
+`min(0x6666, trunc((pixelSpacing - 10) * 0x33)) / 65535`.
+The previous v4 renderer drew full sectors only, with a misleading comment
+claiming subdivisions were absent from v3. Three new actual-renderer specs
+failed on that baseline while the other 1727 native tests passed.
+
+The renderer now draws all source levels at camera-derived spacing, using
+three reusable `pdg.Attributes` styles. Their neutral intensity updates with
+zoom; PDG additive blending keeps the grid above its background. Coincident
+lines on one axis use only the coarsest eligible level, avoiding repeated
+addition of subdivision colors. Geometry stays aligned to galactic sector
+coordinates during pans, and the existing saved grid preference/F3 action
+still removes every line. The existing renderer keeps grids behind objects
+and UI, independently of names, ship, course and scanner display controls.
+
+Native specs check subdivisions, alignment before/after panning, absence
+of duplicate boundaries, viewport bounds, the ten-pixel cutoff, neutral
+brightness, bounded line counts across zooms 0.1, 0.97, 0.98, 1, 2 and 10,
+and disabled-grid suppression. They run after the suite's resource setup:
+an initial early invocation exposed the debug engine's resource assertion,
+which was corrected by registering these tests with the initialized renderer
+suite. Both full muted native suites pass 1730 tests, zero failures, recorded
+in `/private/tmp/galactica-grid-{public,devel}-unit.log`.
+
+`tools/test-web-map-grid.cjs` delegates actual native line drawing and uses
+real F3 input. Before and after runs pass in all six supported languages,
+at zooms 0.5, 1 and 2 plus grid-off. The 24 paired screenshots under
+`/private/tmp/galactica-grid/{before,after}/<language>` have 18 changed grid-on
+views and six pixel-identical grid-off views. Zoom comparisons and all six
+localized map views were visually inspected: the hierarchy remains subtle,
+with readable markers and unchanged UI text. Comparison records are in
+`/private/tmp/galactica-grid-comparison.json`; logs use
+`/private/tmp/galactica-grid-{before,after}-<language>.log`.
+The updated independent web build is `/private/tmp/galactica-grid-after-app`.
+No new user-facing strings are required. The Galaxy map with grid row is
+complete; Section 2's estimate is recomputed over its 19 counted rows,
+with replay and fullscreen still partial. The broader parity and Map
+Generation goal remains open.
