@@ -116,7 +116,7 @@ class TutorialController {
         if(!this.active || !event || typeof event.type!=='string')return result;
         const page=this.pageId;
         const next=()=>{result.advanced=this.advance(event.window);};
-        if(page===2 && event.type==='newGameOpened') {
+        if((page===2 || page===3 && event.hosting) && event.type==='newGameOpened') {
             if(event.hosting)result.advanced=this.goto(103);else next();
         } else if(page===3 && event.type==='setupAccepted' || page===4 && event.type==='playerNameAccepted')next();
         else if(page===7 && event.type==='zoomChanged' || page===10 && event.type==='allocationChanged') {

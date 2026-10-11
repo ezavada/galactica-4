@@ -41,7 +41,7 @@ class HostWindow {
  async create(){
   if(this.busy)return false;if(!this.backend.supported){this.message=I18n.getString(1066);return false;}
   const options=this.options();if(!options){this.message=I18n.getString(1067);return false;}
-  this.config=options.config;this.busy=true;this.message=I18n.getString(1061);
+  if(this.prepareConfig)options.config=this.prepareConfig(options.config);this.config=options.config;this.busy=true;this.message=I18n.getString(1061);
   try{this.record=await this.backend.create(options.config,options.file,options.listen);this.stage='hosting';this.port=Name.createEditor(String(this.backend.describe(this.record).port),5);this.message='';return true;}
   catch(error){if(error.record){this.record=error.record;this.stage='hosting';}this.message=errorText(error);return false;}
   finally{this.busy=false;}

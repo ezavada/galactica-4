@@ -95,10 +95,18 @@ const hostedGames=require('./src/js/host-games.js').createService();
 const networkHosting=new (require('./src/js/network-host-setup.js')).HostWindow(hostedGames,info=>{
     if(!networkJoin.open())return false;networkJoin.address=PlayerName.createEditor(info.address,256);networkJoin.expectedId=info.id;networkJoin.focus='name';networkJoin.inspect();return true;
 });
+networkHosting.prepareConfig=config=>tutorialSession && tutorialSession.controller.pageId===103?new GameConfig({...config,fastGame:true}):config;
 documents.host=openNetworkHosting;
 documents.openHost=()=>openNetworkHosting(true);
 function openNetworkHosting(saved=false){
-    if(tutorialSession || quitDocuments.state!=='idle' || networkJoin.active)return false;
+    if(quitDocuments.state!=='idle' || networkJoin.active)return false;
+    if(tutorialSession){
+        if(saved)return false;
+        return tutorialSession.openHosting(()=>{
+            clearSessionInput();startupHelp.clear();networkHosting.backend=hostedGames;
+            return networkHosting.open({...pendingConfig,fastGame:true,omniscient:true},null);
+        });
+    }
     clearSessionInput();startupHelp.clear();if(game)game.uiWindow=null;
     const identity=sessions.active && sessions.active.network && sessions.active.network.identity;
     const activeClient=sessions.active && sessions.active.network;
@@ -351,6 +359,7 @@ function drawStartupDivider(x, y, width) {
 }
 
 function beginPlayerName() {
+    if(tutorialSession && tutorialSession.engaged && tutorialSession.controller.pageId===2)return tutorialSession.openSetup();
     if(tutorialSession && tutorialSession.engaged && !tutorialSession.acceptSetup())return false;
     if(pendingConfig.numHumans===0){startGame();return;}
     startupPlayerName=PlayerName.createEditor(pendingConfig.humanPlayerNames[1] || playerNamePreferences.read() || I18n.getString(17,'You'));
@@ -746,7 +755,7 @@ function tutorialPanelContext(){
     }
     return {screen,measure:(text,size)=>port.getTextWidth(text,size),targets};
 }
-function drawTutorialPanel(){if(tutorialPanel){const c=tutorialPanelContext();tutorialPanel.draw(port,c.screen,c.targets);}}
+function drawTutorialPanel(){if(tutorialSession)tutorialSession.hostingChanged({active:networkHosting.active,created:networkHosting.stage==='hosting' && !!networkHosting.record});if(tutorialPanel){const c=tutorialPanelContext();tutorialPanel.draw(port,c.screen,c.targets);}}
 
 function beginNewGame() {
     if(tutorialSession && tutorialSession.engaged)return tutorialSession.openSetup();
@@ -1041,7 +1050,7 @@ const drawHandler = new pdg.IEventHandler(function(event) {
     }
     if(networkChat.active && sessions.active?.network?.chat!==networkChat.channel)networkChat.close();
     if(networkChat.active){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawNetworkChat();return true;}
-    if(networkHosting.active){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawNetworkHosting();return true;}
+    if(networkHosting.active){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawNetworkHosting();drawTutorialPanel();return true;}
     if(networkJoin.active){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawNetworkJoin();return true;}
     if(startupSettings.active){if(game && !sessions.starting)game.draw();else drawStartupDialog();startupSettings.draw();drawTutorialPanel();return true;}
     if(userManual.error()){if(game && !sessions.starting)game.draw();else drawStartupDialog();drawManualFailure();return true;}
@@ -1090,7 +1099,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     if(game && game.display)game.display.clearControlHelp();
     if(event && event.eventType===pdg.eventType_MouseUp && windowPlacement.end(event.mousePos.x,event.mousePos.y))return true;
     if(event && event.eventType===pdg.eventType_MouseUp && event.buttonNumber===0 && tutorialPointerCapture){tutorialPointerCapture=false;if(tutorialPanel)tutorialPanel.mouseUp(event.mousePos.x,event.mousePos.y);return true;}
-    if(tutorialPanel && !networkChat.active && !networkJoin.active && !networkHosting.active && !userManual.error() && !documents.dialog && event){
+    if(tutorialPanel && !networkChat.active && !networkJoin.active && (!networkHosting.active || tutorialSession?.controller.pageId===103) && !userManual.error() && !documents.dialog && event){
         const p=event.mousePos;
         if(event.eventType===pdg.eventType_MouseUp && tutorialPanel.mouseUp(p.x,p.y))return true;
         if(event.eventType===pdg.eventType_MouseDown && event.buttonNumber===0){const c=tutorialPanelContext();if(tutorialPanel.mouseDown(p.x,p.y,c.screen,c.measure,c.targets)){tutorialPointerCapture=true;return true;}}
@@ -1271,7 +1280,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
 
 // Mouse wheel handler for zooming
 const mouseWheelHandler = new pdg.IEventHandler(function(event) {
-    if(tutorialPanel && !networkChat.active && !networkJoin.active && !networkHosting.active && !userManual.error() && !documents.dialog && event && event.eventType===pdg.eventType_ScrollWheel){
+    if(tutorialPanel && !networkChat.active && !networkJoin.active && (!networkHosting.active || tutorialSession?.controller.pageId===103) && !userManual.error() && !documents.dialog && event && event.eventType===pdg.eventType_ScrollWheel){
         const p=pdg.gfx.getMouse(),c=tutorialPanelContext();if(tutorialPanel.wheel(p.x,p.y,event.vertDelta || 0,c.screen,c.measure,c.targets))return true;
     }
     if(networkChat.active || networkJoin.active || networkHosting.active || startupSettings.active || userManual.error() || documents.dialog)return true;
@@ -1297,7 +1306,7 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
 // Mouse move handler for drag scrolling
 const mouseMoveHandler = new pdg.IEventHandler(function(event) {
     if(tutorialPointerCapture && event && event.eventType===pdg.eventType_MouseMove && event.leftButton===false)tutorialPointerCapture=false;
-    if(tutorialPanel && !networkChat.active && !networkJoin.active && !networkHosting.active && !documents.dialog && event && event.eventType===pdg.eventType_MouseMove && tutorialPanel.mouseMove(event.mousePos.x,event.mousePos.y,event.leftButton))return true;
+    if(tutorialPanel && !networkChat.active && !networkJoin.active && (!networkHosting.active || tutorialSession?.controller.pageId===103) && !documents.dialog && event && event.eventType===pdg.eventType_MouseMove && tutorialPanel.mouseMove(event.mousePos.x,event.mousePos.y,event.leftButton))return true;
     if(startupSettings.active)return startupSettings.move(event);
     if(event && event.eventType===pdg.eventType_MouseMove && windowPlacement.drag){
         if(event.leftButton===false)windowPlacement.end();else windowPlacement.move(event.mousePos.x,event.mousePos.y);return true;

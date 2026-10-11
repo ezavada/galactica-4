@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1634 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1637 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -255,7 +255,7 @@ The largest blockers to a complete game are:
 | Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | 🟡 Partial | 🟡 Partial | The localized persistent Sound setting now controls cached PDG audio across open/restored games. Presented colony, battle, destruction, repair, lab and stardock reports and attention navigation select recipient cues from the shipped samples; explosions precede the later cue by the source animation cadence plus 20 ticks. Hidden reports and quiet autoplay are silent, and mute stops owned playback. Native suites and actual browser controls/playback are verified below. Empty Tab/Next item now plays the shipped No more cue without changing selection or the turn. Chat and offline-message reports now play the cached Message cue; background network-turn and tutorial cue integration remains separate work; Left Arrow at a top-level object also plays No more. Startup/About music is blocked by missing source movie metadata, documented below. |
 | Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen choices now persist across launch: native restoration is immediate, while browsers defer until the first user gesture and remember external exits. Startup Settings and Menu → Settings → New game defaults now select numeric values directly and saves map size, density, AI skill/advantage, fast game and fog of war separately from ordinary setup and current games. Startup and New Game apply these defaults; tutorial setup is isolated. Colony hull and coupled production defaults now persist independently and are available from startup/in-game Settings and the game menu. Save applies them to the local human and future games; opening saves reapplies application colony defaults as in v3, while existing systems and computer defaults stay unchanged. Fixed tutorial practice is isolated. Startup now offers a persistent introduction and independent About presentation with original artwork, localized narrative/credits, paging, modal dragging and tutorial entry. First-install automatic tutorial is implemented. Stored numeric startup actions now dispatch available About/New/Open/Save/Revert/Quit/Fullscreen/Sound/Preferences/Flyby Help/Help/Tutorial handlers once after introduction/onboarding. Browser commands requiring activation wait for trusted input. Arbitrary inherited/window commands and multiplayer startup actions remain unfinished, alongside other preference coverage and the pinned native runtime update. |
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
-| Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | 🟡 Partial | 🟡 Partial | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; Open and Revert retain active instruction bindings and production safeguards, with independent documents preserved. The optional wrong-course retry is verified through actual controls in all six languages. Existing-game recovery (100) is verified through actual Hide/Close controls, full completion and Open Games restoration in all six languages. Modal recovery (101) is verified through actual startup/in-game Settings entry, retry, Cancel and original restoration in all six languages; hosting recovery (103) depends on the unported multiplayer startup flow. See docs/reference/TUTORIAL_CONTROLLER.md. |
+| Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | 🟡 Partial | 🟡 Partial | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; Open and Revert retain active instruction bindings and production safeguards, with independent documents preserved. The optional wrong-course retry is verified through actual controls in all six languages. Existing-game recovery (100) is verified through actual Hide/Close controls, full completion and Open Games restoration in all six languages. Modal recovery (101) is verified through actual startup/in-game Settings entry, retry, Cancel and original restoration in all six languages; hosting recovery (103) is verified through actual Host, Cancel/Escape, local practice continuation, instruction cancellation and native-backed host creation in all six languages. The floating recovery panel stays visible and interactive above the Host modal; original documents and setup are preserved. See docs/reference/TUTORIAL_CONTROLLER.md. |
 | Internationalization | v3 language plug-ins; menu can switch languages. | ✅ Implemented | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian resources and accepts runtime language with `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven/tested; Menu → Settings → Language switches cached UI labels and numeric formatting immediately, remembers the selection and always lists native-script language names. Unported v3 dialogs/help still need future resources. |
 | Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | 🟡 Partial | v4 uses background and lab/stardock/ship assets, while most UI buttons, panels, animations, and states are styled primitives/text. Remaining parity should be tied to specific shipped v3 event/help/window imagery. |
 
@@ -3656,3 +3656,44 @@ Screenshots: `/private/tmp/galactica-parity/report-before/<language>` and
 `/private/tmp/galactica-report-playback-{unit,public-unit}.log`. All six manuals
 explain Hold, explicit Show and manual Events replay; four new labels/help texts
 are localized. The broader parity and Map Generation goal remains active.
+
+
+### Tutorial multiplayer hosting recovery — 2026-10-10
+
+Audited shipped `Classes/CGameSetupAttach.cpp:142–158,400–407` and source page
+103 metadata: choosing hosting at the New Game lesson opens the no-multiplayer
+recovery instruction. Cancel returns to lesson 2; a different game window ends
+the instructions. Tutorial setup starts fast with fog disabled, and creation
+keeps the fast-game rule even if its checkbox is cleared.
+
+V4 now permits Host at lesson 2 and at the already-visible local setup (lesson
+3). This second entry is necessary because v4's startup form is already present
+under the welcome instruction, and the existing source window-34 exception
+skips to lesson 3. The normal path retains that shortcut. Host opens a fresh form
+rather than an unrelated existing hosted record. Recovery 103 is drawn above
+Host and receives its own Close/drag/scroll input. Host Cancel or Escape returns
+to lesson 2; Start then re-enters local setup and continues into the practice
+game. Cancelling the instructions restores the ordinary document/setup while
+leaving an independently opened Host form available. Creating a real hosted game
+ends the instructions through page 103's exception transition and restores the
+ordinary game without converting it or starting a tutorial network simulation.
+
+All 1,637 unit tests pass on both native PDG runtimes. Three new session cases
+cover failed opening, lesson-2/3 entry, cancellation, restored ordinary graph
+identity and successful hosting exit. Actual muted browser before/after checks
+pass in en/de/es/fr/ja/ru: Host clicks, visible recovery, Cancel/Escape, normal
+setup/name continuation into the practice fixture, original document restoration,
+instruction Close while Host remains open, and native-backed hosted creation.
+Rendered recovery text is complete and readable in all six languages, with Host
+Cancel unobstructed. Existing localized page 103 text and Host controls are used;
+no new untranslated strings are introduced.
+
+Screenshots: `/private/tmp/galactica-parity/tutorial-host-before/<language>` and
+`/private/tmp/galactica-parity/tutorial-host-after/<language>`. Unit logs:
+`/private/tmp/galactica-tutorial-host-{unit,public-unit}.log`.
+The complete normal existing-game tutorial route passes through lesson 60 and
+restores the original game. Ordinary hosting also passes actual modal setup,
+native durable creation/admission, two-human timed turns, saved-host resume/rejoin,
+Stop and save-safe Quit. Logs: `/private/tmp/galactica-tutorial-host-normal-route.log`
+and `/private/tmp/galactica-tutorial-host-normal-host.log`. Native Quit/window-close integration and the broader
+parity/Map Generation requirements remain separate work.

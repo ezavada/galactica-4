@@ -570,3 +570,44 @@ This completes actual-entry verification for recovery 101. Recovery 103 remains
 a requirement of multiplayer hosting, and native Quit/window-close integration,
 other application/window commands, the wider parity inventory and Map Generation
 remain active work. No global completion or unavailable-help blocker is claimed.
+
+
+### Tutorial multiplayer hosting recovery — 2026-10-10
+
+Audited shipped `Classes/CGameSetupAttach.cpp:142–158,400–407` and source page
+103 metadata: choosing hosting at the New Game lesson opens the no-multiplayer
+recovery instruction. Cancel returns to lesson 2; a different game window ends
+the instructions. Tutorial setup starts fast with fog disabled, and creation
+keeps the fast-game rule even if its checkbox is cleared.
+
+V4 now permits Host at lesson 2 and at the already-visible local setup (lesson
+3). This second entry is necessary because v4's startup form is already present
+under the welcome instruction, and the existing source window-34 exception
+skips to lesson 3. The normal path retains that shortcut. Host opens a fresh form
+rather than an unrelated existing hosted record. Recovery 103 is drawn above
+Host and receives its own Close/drag/scroll input. Host Cancel or Escape returns
+to lesson 2; Start then re-enters local setup and continues into the practice
+game. Cancelling the instructions restores the ordinary document/setup while
+leaving an independently opened Host form available. Creating a real hosted game
+ends the instructions through page 103's exception transition and restores the
+ordinary game without converting it or starting a tutorial network simulation.
+
+All 1,637 unit tests pass on both native PDG runtimes. Three new session cases
+cover failed opening, lesson-2/3 entry, cancellation, restored ordinary graph
+identity and successful hosting exit. Actual muted browser before/after checks
+pass in en/de/es/fr/ja/ru: Host clicks, visible recovery, Cancel/Escape, normal
+setup/name continuation into the practice fixture, original document restoration,
+instruction Close while Host remains open, and native-backed hosted creation.
+Rendered recovery text is complete and readable in all six languages, with Host
+Cancel unobstructed. Existing localized page 103 text and Host controls are used;
+no new untranslated strings are introduced.
+
+Screenshots: `/private/tmp/galactica-parity/tutorial-host-before/<language>` and
+`/private/tmp/galactica-parity/tutorial-host-after/<language>`. Unit logs:
+`/private/tmp/galactica-tutorial-host-{unit,public-unit}.log`.
+The complete normal existing-game tutorial route passes through lesson 60 and
+restores the original game. Ordinary hosting also passes actual modal setup,
+native durable creation/admission, two-human timed turns, saved-host resume/rejoin,
+Stop and save-safe Quit. Logs: `/private/tmp/galactica-tutorial-host-normal-route.log`
+and `/private/tmp/galactica-tutorial-host-normal-host.log`. Native Quit/window-close integration and the broader
+parity/Map Generation requirements remain separate work.

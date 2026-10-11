@@ -28,6 +28,19 @@ class TutorialSession {
         if(!this.engaged || this.controller.pageId!==2)return false;
         return this.controller.observe({type:'newGameOpened',hosting:false,window:34}).advanced;
     }
+    openHosting(open){
+        if(!this.engaged || !this.controller.active || ![2,3].includes(this.controller.pageId) || typeof open!=='function')return false;
+        if(!open())return false;
+        return this.controller.observe({type:'newGameOpened',hosting:true}).advanced;
+    }
+    hostingChanged({active,created=false}){
+        if(!this.engaged || !this.controller.active || this.controller.pageId!==103)return false;
+        // Source page 103 returns to New Game after Cancel. A different game
+        // window ends the tutorial through its exception transition.
+        if(created)return this.controller.advance(99);
+        if(!active)return this.controller.advance(null);
+        return false;
+    }
     acceptSetup(){
         if(!this.engaged || this.controller.pageId!==3)return false;
         return this.controller.observe({type:'setupAccepted',window:4}).advanced;

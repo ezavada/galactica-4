@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1634
-Passed: 1634 ✓
+Total: 1637
+Passed: 1637 ✓
 Failed: 0 ✗
 ```
 
@@ -821,3 +821,17 @@ Hold, pending colonization reports, ordered one-shot Show, acknowledgements,
 retained Hold for subsequent reports, and automatic resume. Unit coverage also
 checks manual replay, privacy, old-save defaults, Lab/Stardock/outcome saves and
 client subject identity across refresh.
+
+
+Tutorial hosting recovery verification:
+
+```sh
+node tools/test-web-host-setup.cjs /private/tmp/galactica-tutorial-host-ui-app /private/tmp/galactica-parity/tutorial-host-after/en en tutorial-host
+```
+
+Repeat for de/es/fr/ja/ru. Mode `before-tutorial-host` captures the rejected Host
+entry in the previous build. The muted runner covers visible page 103 over Host,
+Cancel/Escape, local setup/name continuation, restoration of the unchanged
+original document, cancelling instructions without closing Host, and actual
+native-backed host creation ending the instructions. The fixture stops its hosts
+and removes temporary files.
