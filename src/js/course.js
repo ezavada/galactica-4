@@ -49,6 +49,19 @@ class Course {
         }),current:this.current,previous:this.previous,loop:this.loop,hunt:this.hunt,hasOrigin:this.hasOrigin,
             patrol:this.owner.isOnPatrol?this.owner.isOnPatrol():false};
     }
+    // V3 fleet creation duplicates the intercepted ship's course and memory.
+    copyFrom(other) {
+        const clone=snapshot=>snapshot && {...snapshot,waypoints:snapshot.waypoints.map(point=>({
+            ...point,target:this.owner.game.getObjectType(point.target)!==Common.ObjectType.UNKNOWN
+                ? point.target : {x:point.target.x,y:point.target.y}
+        }))};
+        const active=clone(other.snapshot());
+        this.waypoints=active.waypoints;this.current=active.current;this.previous=active.previous;
+        this.loop=active.loop;this.hunt=active.hunt;this.hasOrigin=active.hasOrigin;
+        this.memory=clone(other.memory);
+        if(this.owner.setPatrol)this.owner.setPatrol(active.patrol);
+        this.changed();
+    }
     swapMemory() {
         if(!this.waypoints.length && !this.hasMemory)return false;
         const current=this.snapshot();

@@ -167,7 +167,7 @@ The largest blockers to a complete game are:
 | Courier technology pickup/transfer | Courier updates its library from higher-tech systems and upgrades lower-tech colonies. | ✅ Implemented | ✅ Implemented | Departure/arrival and docked standalone refresh match v3 pickup/delivery, including the restriction on scouts inside fleets. Allied arrival reselects the existing hull price at current star technology while preserving paid effort, paused production and other hull credits. Technology, completion, scanner and ETA displays refresh through ordinary inspectors. Audited v3 `CShip.cpp:204–213,466–489` logs transfers only to debug output and emits no dedicated transfer report, so a separate popup is not a parity requirement. |
 | Battleship technology delivery | Battleships can upgrade colonies but cannot update their own library. | ✅ Implemented | ➖ N/A | `applyTechnologyTransferToStar()` lets battleships/fleets raise lower allied star tech while only scouts can pick up higher star tech. |
 | Docking and repair | Damaged mobile ships repair at friendly systems using a tech-level repair budget. | ✅ Implemented | ✅ Implemented | `Star.update()` repairs docked, non-patrolling, non-moving mobile ships and member ships inside docked fleets using `35 * techLevel`, excluding satellites. The ship panel shows docking/fleet state, current damage percentage and a live health bar that updates after repairs. v3 `CShip::RepairDamage` refreshes the object without a separate player-facing repair summary. |
-| Ship arrival/interception outcomes | Friendly arrival docks/forms fleet; enemy arrival fights. | ✅ Implemented | 🟡 Partial | Shared ship/fleet arrival resolves combat, neutral colonization and technology at the highest container, then places survivors in a living neutral/allied container or at coordinates. Nested navigation and rendezvous arrivals retain fleet groups and register the docked outer group once. Destroyed navigation targets fall back to the surviving container. Courses advance only for surviving independent actors; colony ships and their containing fleets remain docked and available for further orders. Twelve regressions and actual browser End Turn comparisons cover these paths. Richer recipient-specific arrival narratives and result presentation remain Section 8 work. |
+| Ship arrival/interception outcomes | Friendly arrival docks/forms fleet; enemy arrival fights. | ✅ Implemented | 🟡 Partial | Shared ship/fleet arrival resolves combat, neutral colonization and technology at the highest container, then places survivors in a living neutral/allied container or at coordinates. Nested navigation and rendezvous arrivals retain fleet groups and register the docked outer group once. Destroyed navigation targets fall back to the surviving container. Courses advance only for surviving independent actors; colony ships and their containing fleets remain docked and available for further orders. Highest-container regressions and actual browser End Turn comparisons cover these paths. A source-confirmed friendly ship interception fix now copies the destination ship’s active course and memory to the newly formed fleet, retaining progress and flags; actual six-language Course/Memory input and saved fleet movement verify it. The wider friendly docking/rendezvous presentation audit and broader Section 8 report inventory remain open. |
 
 ### Possible ship/navigation enhancements beyond v3, not counted in Section 4
 
@@ -5616,3 +5616,42 @@ source or translated strings changed in this audit, so before/after product
 comparisons are not needed. The neutral-colonization UI row is complete;
 Section 4's remaining arrival-outcome row and the wider parity and Map
 Generation requirements remain open.
+
+
+### Friendly interception: retain the destination ship's course and memory
+
+V3 `Classes/CShip.cpp:523–530` copies the destination ship's active course
+and course memory before adding it to the new fleet. `CShip::SetCourse`
+and `SetCourseMem` delegate to `CourseT::Duplicate`, which retains current
+and previous indices, waypoints, Loop, Hunt and Patrol flags. The v4
+formation path instead started with an empty fleet course and cleared both
+members' independent orders. A new real-game regression reproduced this
+loss: the baseline full suite passed 1726 tests and failed only the new
+course-inheritance test. The six muted browser baselines likewise displayed
+“No waypoints” on the newly formed fleet.
+
+Fleet formation now copies the intercepted ship's course and memory before
+adding members, and recalculates fleet movement after membership establishes
+its speed. The copy retains live object targets while separating coordinate
+values and mutable waypoint records, so editing the old ship's memory cannot
+change the fleet's memory. Member independent courses still clear as in v3.
+The regression verifies course progress/flags, separate memory, save/restore,
+Memory swaps, actual subsequent fleet movement and synchronized member
+positions. Both full muted native suites pass 1727 tests, zero failures:
+`/private/tmp/galactica-arrival-course-{public,devel}-unit.log`.
+
+`tools/test-web-arrival-course.cjs` exercises actual friendly ship arrival,
+then real G and M shortcuts to inspect and swap the inherited fleet courses,
+with save/restore assertions and no turn advancement from inspection.
+English, German, Spanish, French, Japanese and Russian pass both baseline
+and fixed runs. The twelve paired fleet/course images under
+`/private/tmp/galactica-arrival-course/{before,after}/<language>` were compared;
+all six before/after course screens and all six restored-memory screens were
+visually inspected. The inherited rows, flags and controls fit existing
+localized layouts. Comparison results are recorded in
+`/private/tmp/galactica-arrival-course-comparison.json`; browser logs use
+`/private/tmp/galactica-arrival-course-{before,after}-<language>.log`.
+The independent updated web app is `/private/tmp/galactica-arrival-course-after-app`.
+No new user-facing strings are required. This closes the concrete inheritance
+bug; the broader arrival UI row remains partial until the remaining friendly
+docking/rendezvous presentation is audited.

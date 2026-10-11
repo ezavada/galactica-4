@@ -4130,8 +4130,12 @@ class Game {
             } else {
                 // Neither ship is in a fleet, create a new fleet
                 const fleet = this.factory.createFleet(entity1.x, entity1.y, entity1.owner);
+                // CShip::Arriving preserves the destination ship's orders before
+                // AddContent clears the independent courses of its new members.
+                fleet.course.copyFrom(entity2.course);
                 fleet.addShip(entity1);
                 fleet.addShip(entity2);
+                fleet.calculateMovement();
                 this.recordEvent(
                     I18n.getString(566, 'Fleets'),
                     I18n.formatString(669, '{0} formed at {1}', this.getObjectDisplayName(fleet), I18n.formatString(656, '({0}, {1})', Math.round(fleet.x / 1024), Math.round(fleet.y / 1024))),

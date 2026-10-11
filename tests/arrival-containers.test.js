@@ -8,6 +8,32 @@ function fixture(owner=1) {
  return {game,home,target,ship,group};
 }
 module.exports=()=>test.describe('V3 highest-container arrival and survivor placement',()=>{
+ test.it('inherits the intercepted friendly ship course and memory when forming a fleet',()=>{
+  const {game,home,target,ship}=fixture(),waiting=ship(target),incoming=ship(home);
+  waiting.name='Leader';incoming.name='Joiner';
+  game.issuePlayerWaypoint(waiting,{x:500,y:25});waiting.course.swapMemory();
+  game.issuePlayerWaypoint(waiting,{x:700,y:75});waiting.course.hunt=true;
+  const original=waiting.course.snapshot(),memory=waiting.course.memory;
+  incoming.setDestination(waiting);incoming.speed=100;incoming.move();
+  const fleet=waiting.fleet;
+  test.assertTrue(fleet===incoming.fleet);test.assertTrue(fleet.star===target);
+  test.assertEqual(fleet.course.waypoints.length,original.waypoints.length);
+  test.assertEqual(fleet.course.current,original.current);test.assertEqual(fleet.course.previous,original.previous);
+  test.assertEqual(fleet.course.loop,original.loop);test.assertTrue(fleet.course.hunt);test.assertEqual(fleet.course.hasOrigin,original.hasOrigin);
+  test.assertTrue(fleet.destination!==null);test.assertEqual(fleet.destination.x,500);
+  test.assertTrue(fleet.course.hasMemory);test.assertEqual(fleet.course.memory.waypoints.length,memory.waypoints.length);
+  test.assertFalse(fleet.course.memory===memory);test.assertFalse(fleet.course.memory.waypoints[1]===memory.waypoints[1]);
+  memory.waypoints[1].target.x=900;test.assertEqual(fleet.course.memory.waypoints[1].target.x,500);
+  test.assertNull(waiting.destination);test.assertNull(incoming.destination);
+  const loaded=Save.restore(Save.serialize(game)),saved=loaded.allFleets.find(f=>f.id===fleet.id);
+  test.assertEqual(saved.destination.x,500);test.assertTrue(saved.course.hunt);test.assertTrue(saved.course.loop);
+  test.assertTrue(saved.course.swapMemory());test.assertEqual(saved.course.waypoints.length,2);
+  test.assertEqual(saved.destination.x,500);test.assertFalse(saved.course.hunt);test.assertFalse(saved.course.loop);
+  saved.course.swapMemory();saved.totalSpeed=1000;saved.move();
+  test.assertEqual(saved.x,500);test.assertEqual(saved.y,25);test.assertEqual(saved.destination.x,700);
+  test.assertEqual(saved.course.current,2);test.assertTrue(saved.ships.every(member=>member.x===500 && member.y===25));
+ });
+
  test.it('includes every planetary defender when navigating to a nested enemy member',()=>{
   const {game,home,target,ship,group}=fixture(2),outer=group(target,'Outer'),inner=group(target,'Inner');outer.addShip(inner);
   const defense=ship(target,'defense');target.addDefenseSatellite(defense);const attacker=ship(home,'battleship'),nav=inner.getLeafShips()[0];
