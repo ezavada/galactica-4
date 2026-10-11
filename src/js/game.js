@@ -1065,7 +1065,10 @@ class Game {
     queueOutcome(event,kind,playerNum=0) {
         const player=this.players && this.players[playerNum];
         event.outcome={kind,playerNum,name:player && player.name?player.name:`${I18n.getString(18,'Player')} ${playerNum}`,turn:event.turn};
-        return this.queueEventOverlay({type:'outcome',...event.outcome,eventId:event.id,page:0});
+        // Evnt128 gives outcome dialogs only to the affected player. These notices
+        // concern everyone, so observer completion does not use Show enemy events.
+        const animationOnly=kind!=='draw' && playerNum!==this.getCurrentHumanPlayer();
+        return this.queueEventOverlay({type:'outcome',...event.outcome,eventId:event.id,page:0,animationOnly});
     }
 
     replayOutcome(event) {

@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1687 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1689 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4456,3 +4456,33 @@ Events-list and manual-narrative views are byte-identical; only the 12 automatic
 observer views change, returning to the map. Updated map views and translated
 narratives were visually reviewed in all supported languages, with owner Lab/
 Stardock art also inspected. The broader event-presentation row remains partial.
+
+
+### Recipient-specific outcome automatic presentation (2026-10-11)
+
+Evnt128 codes 17/18 assign outcome windows only to the affected player:
+PPob4001 for their defeat and PPob4000 for their victory. Other recipient
+columns have no PPob. `CMessage::MessageConcernsEveryone` and
+`GalacticaDoc::ShowMessages` explicitly exempt these notices from the Show
+enemy events filter. V4 now automatically completes opponent outcome notices
+without a dimmed text dialog, even when enemy-event playback is off. A queued
+local victory then opens directly. Local defeat/victory narratives and explicit
+Events → View report review remain available; draw behavior is unchanged.
+
+Both rebuilt public/development runtimes pass **1,689 tests**. Added tests use
+real piece-count outcome generation, check automatic draw completion without
+a dimmed narrative, preserve manual review and verify the opponent-defeat →
+local-victory queue transition without a keypress or turn advance. Existing
+local defeat, replay, save, quiet autoplay and post-game tests continue to pass.
+`tools/test-web-outcome-recipient-cues.cjs` generates actual piece-count losses,
+uses real Events/row/View report controls and checks a subsequent local win.
+Before/after browser artifacts are under `/private/tmp/galactica-outcome-recipient`,
+with logs `/private/tmp/galactica-outcome-recipient-{before,after}-<language>.log`.
+Existing six-language narratives and controls are reused. Source outcome
+illustrations and broader event/Layr equivalence remain separate audit work.
+
+All six before/after browser runs pass. Across 30 screenshot pairs, 18 Events,
+manual-review and local-victory views are byte-identical; only the 12 automatic
+observer/terminal-transition views change. Updated terminal dialogs were
+visually reviewed in all six languages, together with the baseline/updated
+English observer presentation. The broad event-presentation row remains partial.

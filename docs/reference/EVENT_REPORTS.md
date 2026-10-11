@@ -133,6 +133,11 @@ observer copies. Repairs and call-ins are owner-only. Rendezvous creation is
 manual-only. Victory/defeat have viewer-relative modal narratives in addition
 to their shorter event-list summaries; STR#500/30–33 distinguishes the affected
 player from observers. Those perspectives are exercised by `outcome-reports`.
+Automatic observer outcome notices now complete without a modal text window,
+matching their zero PPob entries; affected-player windows and manual review
+remain. These notices concern everyone and are therefore processed even when
+Show enemy events is disabled (`CMessage::MessageConcernsEveryone` and
+`GalacticaDoc::ShowMessages`).
 
 ## Reproducible presentation-resource audit (2026-10-11)
 

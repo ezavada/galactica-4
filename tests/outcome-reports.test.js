@@ -4,6 +4,18 @@ function fixture(options={},width=800,height=600){const game=new Game(new Factor
 function ownStar(game,owner){const star=game.factory.createStar(owner*100000,0,'Home '+owner);star.owner=owner;return star;}
 function dismissUntil(game,kind){while(game.overlay && game.overlay.kind!==kind)game.dismissEventPresentation();return game.overlay;}
 module.exports=()=>test.describe('Victory and defeat reports',()=>{
+ test.it('automatically completes an opponent defeat notice even with enemy events off and retains manual review',()=>{
+  const {game,display}=fixture({numComputers:2});ownStar(game,1);ownStar(game,3);game.showEnemyEvents=false;game.updatePlayerPieceCounts();
+  const event=game.eventLog.find(e=>e.outcome && e.outcome.playerNum===2);test.assertDefined(event);test.assertFalse(game.isGameOver);test.assertTrue(game.overlay.animationOnly);
+  let dim=0,narrative=0;display.port.drawRect=()=>dim++;display.drawOutcome=()=>narrative++;display.drawDestructionEffect=()=>false;
+  display.drawOverlay(game.overlay);test.assertNull(game.overlay);test.assertEqual(dim,0);test.assertEqual(narrative,0);test.assertTrue(event.handled);
+  test.assertTrue(game.replayOutcome(event));test.assertTrue(game.overlay.manual);test.assertFalse(!!game.overlay.animationOnly);display.drawOverlay(game.overlay);test.assertEqual(dim,1);test.assertEqual(narrative,1);test.assertEqual(game.turn,1);
+ });
+ test.it('automatically advances opponent defeat to the local victory dialog without dismissing or advancing time',()=>{
+  const {game,display}=fixture();ownStar(game,1);game.updatePlayerPieceCounts();test.assertEqual(game.overlay.kind,'defeat');test.assertTrue(game.overlay.animationOnly);
+  display.drawDestructionEffect=()=>false;display.drawOverlay(game.overlay);test.assertEqual(game.overlay.kind,'win');test.assertEqual(game.overlay.playerNum,1);test.assertFalse(game.overlay.animationOnly);test.assertEqual(game.turn,1);
+  test.assertTrue(display.getOutcomeLayout(game.overlay).lines.join(' ').includes('Victory is yours!'));
+ });
  test.it('queues a defeated-opponent notice then the full local victory narrative after the last opponent falls',()=>{
   const {game,display}=fixture();ownStar(game,1);game.players[1].name='Captain 星';game.updatePlayerPieceCounts();
   test.assertTrue(game.isGameOver);test.assertEqual(game.overlay.kind,'defeat');test.assertEqual(game.overlay.playerNum,2);test.assertEqual(game.overlayQueue.length,1);
