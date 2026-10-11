@@ -36,6 +36,19 @@ module.exports=()=>test.describe('Multiplayer admission window',()=>{
    test.assertTrue(pages>1);w.key(pdg.key_Escape);test.assertEqual(w.stage,'form');test.assertTrue(w.active);test.assertEqual(w.password.text,'secret');test.assertEqual(w.name.text,'Voyager');test.assertEqual(w.page,3);w.cancel();
   }}finally{pdg.res.setLanguage(old);}
  });
+ test.it('keeps narrow information pages clear of complete feedback and measured fixed commands',()=>{
+  const old=pdg.res.getLanguage(),measure=(text,size)=>Array.from(text).length*size/2;
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);
+   const w=new JoinWindow();w.open();w.info={...info,title:'星'.repeat(256),humans:99,computers:0,sectorSize:5,density:10,skill:1,advantage:3,maxTimePerTurn:172800,requiresAdmissionCode:true};w.action('gameInformation');
+   for(const message of ['',I18n.getString(1028),I18n.getString(1029)]){w.message=message;w.informationPage=0;let count=0;
+    for(;;){const l=w.layout(320,340,measure);test.assertTrue(l.compact);test.assertEqual(l.titleHeight,40);test.assertEqual(l.statusLines.map(line=>line.text).join(''),message);
+     for(const label of l.labels){test.assertTrue(label.rect.y>=l.rect.y+40);for(const b of l.buttons)test.assertTrue(label.rect.y+label.rect.height<=b.rect.y);for(const line of l.statusLines)test.assertTrue(label.rect.y+label.rect.height<=line.point.y-12);}
+     for(const b of l.buttons)test.assertTrue(require('../src/js/button-caption.js').width(b.label,b.key,measure,{size:b.size})<=b.rect.width);
+     const next=l.buttons.find(b=>b.action==='next');count++;if(!next || next.disabled)break;test.assertTrue(count<100);const selected=w.informationPage;w.action('next');w.layout(320,340,measure);test.assertEqual(w.informationPage,selected+1);}
+    test.assertTrue(count>1);const last=w.informationPage;w.layout(320,340,measure);test.assertEqual(w.informationPage,last);
+   }w.key(pdg.key_Escape);test.assertEqual(w.stage,'form');w.cancel();
+  }}finally{pdg.res.setLanguage(old);}
+ });
  test.it('keeps compact credentials, complete lobby text and all player slots accessible while feedback and commands stay fixed',()=>{
   const w=new JoinWindow({passwordPreferences:{},hostPreferences:{},discovery:{}});w.open();w.info={...info,humans:99,computers:0};w.message=I18n.getString(1150);
   const initial=w.layout(320,340),footer=initial.buttons.filter(b=>!b.body && !b.action.startsWith('scroll'));

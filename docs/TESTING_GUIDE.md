@@ -1098,3 +1098,21 @@ Both native suites pass 1,767 tests. Evidence:
 `galactica-lan-layout-comparison.json`, and
 `galactica-lan-layout-{pdg,pdg-devel}-unit.log`.
 Physical LAN and other hosting/error variants remain separate audits.
+
+
+### Compact public-information controls
+
+Run `node tools/test-web-information-layout.cjs BUILD_DIR SCREENSHOT_DIR LANGUAGE
+before|after WIDTH HEIGHT` against d3eba44 and the current build. Both builds
+already have Details and live inspection. Test all six languages at 800×600,
+640×340 and 320×340. The muted native host supplies real public settings,
+countdown updates, malformed responses and authenticated admission; muted
+Chrome drives actual input, paging, title dragging, modal isolation and Back.
+Narrow after runs also measure complete command captions/hints.
+
+All 36 workflows pass. Of 180 screenshot pairs, 111 match exactly (including
+18 admitted maps), 27 differ only in connection-address regions and 42 narrow
+information views change layout. Both native suites pass 1,768 tests. Evidence:
+`/private/tmp/galactica-information-layout/verified`,
+`galactica-information-layout-comparison.json`, and
+`galactica-information-layout-{pdg,pdg-devel}-unit.log`.

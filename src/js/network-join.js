@@ -133,6 +133,7 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
   if(this[this.focus].text!==before){this.message='';if(this.focus==='address'){this.clearInfo();this.clearPasswordIdentity();}else if(this.focus==='name'){this.clearPasswordIdentity();this.loadSavedPassword();}else if(this.focus==='password')this.savedPasswordLoaded=false;}return true;
  }
  layout(width,height,measure=(text,size)=>Array.from(String(text)).length*size/2){
+  if(this.active && this.stage==='information' && width<400)return this.compactInformationLayout(width,height,measure);
   if(this.active && this.stage==='lan' && width<400)return this.compactLanLayout(width,height,measure);
   if(this.active && this.stage==='hosts' && width<400)return this.compactSavedHostsLayout(width,height,measure);
   if(this.active && this.stage==='form' && width<400)return this.compactLayout(width,height,measure);
@@ -268,6 +269,40 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
   if(scrollThumb)scrollThumb.y+=(scrollTrack.height-scrollThumb.height)*this.bodyScroll/this.scrollLimit;
   return {rect,scale,compact:true,titleHeight:40,title:I18n.getString(1192),scrollTrack,scrollThumb,bodyClip,fields,choices,labels,slots:[],checks:[],buttons:[...bodyButtons,...footer,...scrollButtons],statusLines:status.map((text,index)=>({text,size:12,point:{x:left,y:statusTop+12+index*14}}))};
  }
+ informationPages(width,pageSize,measure){
+  const pages=[];let page=[];
+  for(const row of Information.rows(this.info,this.inspectedAt)){
+   const lines=Information.wrap(row.text,width,measure).map(text=>({...row,text}));
+   // Keep a wrapped setting's label and value on the same page. A long
+   // player-supplied title can still span pages without losing characters.
+   if(lines.length<=pageSize && page.length+lines.length>pageSize){pages.push(page);page=[];}
+   for(const line of lines){if(page.length===pageSize){pages.push(page);page=[];}page.push(line);}
+  }
+  if(page.length || !pages.length)pages.push(page);
+  return pages;
+ }
+ compactInformationLayout(width,height,measure){
+  const rect={x:12,y:12,width:width-24,height:height-24},scale=rect.height/548;
+  const left=rect.x+24,inner=rect.width-48,lineHeight=18;
+  const button=(action,id,key=null,disabled=false)=>({action,label:I18n.getString(id),key,disabled});
+  const footerRows=buttonRows([button('backInformation',1243,'Esc'),button('inspect',1197,'R')],left,inner,measure);
+  const footerTop=rect.y+rect.height-12-footerRows.length*30+6;
+  footerRows.forEach((row,index)=>row.forEach(b=>b.rect.y=footerTop+index*30));
+  const status=require('./text-wrapping.js')(this.message || '',inner,text=>measure(text,12));
+  const statusTop=footerTop-(status.length?status.length*14+8:0),top=rect.y+44;
+  // Reserve the measured pager before pagination so every wrapped setting can
+  // stay together without occupying the feedback or fixed command area.
+  const pagerRows=buttonRows([button('previous',1033),button('next',1034)],left,inner,measure);
+  let pageSize=Math.max(1,Math.floor((statusTop-top-8)/lineHeight)),pages=this.informationPages(inner,pageSize,measure);
+  let pager=[];
+  if(pages.length>1){const pagerTop=statusTop-8-pagerRows.length*30+6;
+   pageSize=Math.max(1,Math.floor((pagerTop-top-8)/lineHeight));pages=this.informationPages(inner,pageSize,measure);
+   pager=pagerRows.flat();pagerRows.forEach((row,index)=>row.forEach(b=>b.rect.y=pagerTop+index*30));
+  }
+  this.informationPage=Math.max(0,Math.min(this.informationPage || 0,pages.length-1));
+  for(const b of pager)b.disabled=b.action==='previous'?this.informationPage===0:this.informationPage===pages.length-1;
+  return {rect,scale,compact:true,titleHeight:40,kind:'information',title:I18n.getString(1229),fields:[],slots:[],checks:[],choices:[],labels:pages[this.informationPage].map((row,index)=>({...row,size:12,baseline:14,rect:{x:left,y:top+index*lineHeight,width:inner,height:lineHeight}})),buttons:[...pager,...footerRows.flat()],statusLines:status.map((text,index)=>({text,size:12,point:{x:left,y:statusTop+12+index*14}}))};
+ }
  baseLayout(width,height,measure){
   if(!this.active)return null;const rect={width:Math.min(560,width-24),height:Math.min(548,height-24)};
   rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;const scale=rect.height/548,at=(x,y,w,h)=>({x:rect.x+x,y:rect.y+y*scale,width:w,height:h*scale});
@@ -278,15 +313,8 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
   };
   if(this.stage==='information'){
    const inner=rect.width-48,top=62*scale,lineHeight=18,pageSize=Math.max(1,Math.floor((452*scale-top-28)/lineHeight));
-   const pages=[];let page=[];
-   for(const row of Information.rows(this.info,this.inspectedAt)){
-    const lines=Information.wrap(row.text,inner,measure).map(text=>({...row,text}));
-    // Keep a wrapped setting's label and value on the same page. A long
-    // player-supplied title can still span pages without losing characters.
-    if(lines.length<=pageSize && page.length+lines.length>pageSize){pages.push(page);page=[];}
-    for(const line of lines){if(page.length===pageSize){pages.push(page);page=[];}page.push(line);}
-   }
-   if(page.length || !pages.length)pages.push(page);this.informationPage=Math.max(0,Math.min(this.informationPage || 0,pages.length-1));
+   const pages=this.informationPages(inner,pageSize,measure);
+   this.informationPage=Math.max(0,Math.min(this.informationPage || 0,pages.length-1));
    const buttons=[...(pages.length>1?[{action:'previous',id:1033,disabled:this.informationPage===0,rect:at(24,452,inner/2-4,28)},{action:'next',id:1034,disabled:this.informationPage===pages.length-1,rect:at(28+inner/2,452,inner/2-4,28)}]:[]),{action:'backInformation',id:1243,key:'Esc',rect:at(24,496,inner/2-4,30)},{action:'inspect',id:1197,key:'R',rect:at(28+inner/2,496,inner/2-4,30)}];
    return {rect,scale,kind:'information',title:I18n.getString(1229),messageY:452-8/scale,fields:[],slots:[],checks:[],labels:pages[this.informationPage].map((row,i)=>({...row,size:12,baseline:14,rect:{x:rect.x+24,y:rect.y+top+i*lineHeight,width:inner,height:lineHeight}})),buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
   }

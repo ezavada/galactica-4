@@ -298,3 +298,15 @@ browser workflows pass across three sizes; both full native suites pass
 1,767 tests. Evidence: `/private/tmp/galactica-lan-layout/verified`.
 This completes compact LAN controls, with information bars and broader
 hosting/error/gameplay and physical-network audits still open.
+
+
+### Compact public-information controls
+
+The information panel retains all six languages' existing public settings,
+paging, Back/Esc, Refresh/R and error captions. Narrow commands use measured
+24px rows; complete 12px feedback remains separate from the paged settings.
+All six narrow before/after first pages, malformed-response views and final
+updated pages were inspected. Thirty-six native-backed browser workflows and
+both 1,768-test native suites pass. No strings changed. Evidence:
+`/private/tmp/galactica-information-layout/verified`. Other hosting/error and
+compact gameplay audits remain open.
