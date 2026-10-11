@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1656
-Passed: 1656 ✓
+Total: 1660
+Passed: 1660 ✓
 Failed: 0 ✗
 ```
 
@@ -921,3 +921,17 @@ and `test/cxx/test-quit-request.js` native bridge fixture. Browser dispatch does
 not prove operating-system event delivery. Connected macOS and Windows GUI
 validation remain pending. Current evidence and release-runtime limitations are
 recorded in `docs/reference/STARTUP_ABOUT.md`.
+
+### Local post-game turns
+
+```bash
+node tools/test-web-postgame.cjs /private/tmp/galactica-postgame-app /private/tmp/postgame-en en
+```
+
+Repeat for de/es/fr/ja/ru. Add `before` when comparing with the previous packaged
+application: it confirms the old frozen turn. The muted runner prepares a
+turn-seven endgame, uses actual End Turn and acknowledgment controls, then checks
+real post-game production, the unchanged recorded result and complete save data.
+No direct `markGameWon`/`endTurn` call substitutes for the tested UI actions.
+Local continuation is implemented; multiplayer host clocks/posting still need
+separate post-game work.

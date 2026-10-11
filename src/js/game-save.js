@@ -10,7 +10,7 @@ const types={Star,Ship,Fleet,Rendezvous,Course,Player,Allocation:Star.Allocation
 const entityTypes=[Star,Ship,Fleet,Rendezvous];
 const forbidden=new Set(['__proto__','constructor','prototype']);
 const fields=['config','rules','players','stars','allShips','allFleets','allRendezvous','turn','gameWidth','gameHeight',
-    'selectedObject','isGameOver','winningPlayerNum','victoryTurn','eventLog','nextEventId','eventSelection','eventPage',
+    'selectedObject','isGameOver','postGame','winningPlayerNum','victoryTurn','eventLog','nextEventId','eventSelection','eventPage',
     'eventDetailPage','turnAttentionPending','holdGameReports','heldReports','uiWindow','overlay','overlayQueue','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames','showEnemyEvents','mapDisplayMode'];
 const maximumNodes=300000,maximumLength=64*1024*1024;
 function invalid() {throw new Error('Invalid Galactica-4 saved game');}
@@ -106,6 +106,7 @@ function validate(state,nodes) {
     if(state.showEnemyEvents!==undefined && typeof state.showEnemyEvents!=='boolean')invalid();
     if(state.tutorialRandom!=null && !Random.valid(state.tutorialRandom))invalid();
     const total=state.config.totalPlayers;if(total!==state.config.numHumans+state.config.numComputers)invalid();
+    if(state.postGame!==undefined && (typeof state.postGame!=='boolean' || state.postGame && !state.isGameOver))invalid();
     for(const key of ['isGameOver','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames'])if(typeof state[key]!=='boolean')invalid();
     if(!DisplayModes.valid(state.mapDisplayMode) || (state.uiWindow!==null && state.uiWindow!=='events'))invalid();
     if(!Array.isArray(state.players) || state.players.length!==total+1 || state.players[0]!==null)invalid();
@@ -151,6 +152,7 @@ function restore(input) {
     // Suppress generation and constructor startup reports; install saved state afterwards.
     const game=new Game(factory,state.rules,new Config({...state.config,skipMapGeneration:true}));
     for(const key of fields)game[key]=state[key];
+    game.postGame=state.postGame===true;
     game.holdGameReports=state.holdGameReports===true;
     game.heldReports=state.heldReports || [];
     game.turnAttentionPending=state.turnAttentionPending===true;

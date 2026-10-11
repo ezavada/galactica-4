@@ -3076,9 +3076,11 @@ class Display {
         let headline = `${gameName}  •  ${this.STR.turn} ${turn}`;
         if (this.game.isGameOver) {
             const winner = this.game.winningPlayerNum ? this.game.players[this.game.winningPlayerNum] : null;
-            headline = winner ?
-                `${gameName}  •  ${this.STR.winner} ${winner.name || `${I18n.getString(18, 'Player')} ${winner.playerNum}`}` :
-                `${gameName}  •  ${I18n.getString(653, 'No winner')}`;
+            const result = winner ?
+                `${this.STR.winner} ${winner.name || `${I18n.getString(18, 'Player')} ${winner.playerNum}`}` :
+                I18n.getString(653, 'No winner');
+            headline = this.game.postGame ? `${gameName}  •  ${this.STR.turn} ${turn}  •  ${result}` :
+                `${gameName}  •  ${result}`;
         }
 
         this.drawPanelSurface(rect,this.styles.topInfoPanel);

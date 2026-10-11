@@ -85,6 +85,7 @@ class Game {
         this.renameTarget = null;
         this.renameText = '';
         this.isGameOver = false;
+        this.postGame = false;
         this.winningPlayerNum = null;
         this.victoryTurn = null;
         
@@ -3134,10 +3135,10 @@ class Game {
         if(this.clientAdministrator)return false;
         // Client turns are resolved by the host after order submission.
         if(this.clientPlayerNum)return this.networkCommands?this.networkCommands.post():false;
-        if (this.isGameOver) {
-            console.log(`Game already complete on turn ${this.victoryTurn}`);
-            return this.getGameResult();
-        }
+        // Synthetic no-human autoplay remains finite. Human documents retain
+        // the recorded result and can keep playing, as v3 state_PostGame does.
+        if (this.isGameOver && this.config.numHumans===0) return this.getGameResult();
+        if (this.isGameOver) this.postGame=true;
 
         this.turnAttentionPending=false;
         if (this.tutorialSimulation) this.tutorialSimulation.beforeEndTurn(this);
@@ -3183,11 +3184,8 @@ class Game {
         // Update player piece counts and check for defeats
         this.updatePlayerPieceCounts();
 
-        if (this.isGameOver) {
-            console.log(`=== Game ended on turn ${this.victoryTurn} ===`);
-            return this.getGameResult();
-        }
-
+        // v3 starts the next turn even when this turn first records victory.
+        // updateVictoryState keeps the original result without announcing it again.
         this.turn++;
         this.turnAttentionPending=this.shouldShowEventWindows() && !!this.getCurrentHumanPlayer();
         console.log(`=== Start of Turn ${this.turn} ===`);
