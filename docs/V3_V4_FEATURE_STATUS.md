@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1740 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1742 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -83,7 +83,7 @@ The largest blockers to a complete game are:
 | Procedural galaxy construction | Random star count/placement, separated home systems, unique names, named homeworlds. | ✅ Implemented | ➖ N/A | `map-generator.js:36-239` ports the main v3 construction path with the corrected 1024×1024 coordinate scale. |
 | Initial homeworld state | One named home system, tech 1, population, scanner, and colony construction at 99%. | ✅ Implemented | ➖ N/A | `map-generator.js:249-299`. |
 | Computer faction naming | Home-star name plus faction word, such as “Vega Alliance.” | ✅ Implemented | ➖ N/A | Resource-driven templates and group names are used in `map-generator.js:302-333`. |
-| End turn | Button/menu/shortcut; multiplayer waits for posts as needed. | 🟡 Partial | 🟡 Partial | Enter and the End Turn map button advance the local simulation. Unreviewed attention requests/event presentations require confirmation, with Review/End anyway/Esc paths; actual advancement closes event overlays/list/confirmation first. Awaiting map clicks and captured sliders cannot advance via the UI. Normal host-authoritative posting, timed turns and multiplayer coordination are implemented and covered by the current full suite. Local victory starts the next turn, and later End Turn requests enter post-game play with production and the original recorded result preserved. Multiplayer hosts also continue post-game orders, timed turns and host administration while retaining the original result; see the network post-game audit below. |
+| End turn | Button/menu/shortcut; multiplayer waits for posts as needed. | 🟡 Partial | 🟡 Partial | Enter and the End Turn map button advance the local simulation. Unreviewed attention requests and visible, queued or held accessible reports require confirmation, with Review/End anyway/Esc paths; Review explicitly plays held reports without changing Hold; actual advancement closes event overlays/list/confirmation first. Awaiting map clicks and captured sliders cannot advance via the UI. Normal host-authoritative posting, timed turns and multiplayer coordination are implemented and covered by the current full suite. Local victory starts the next turn, and later End Turn requests enter post-game play with production and the original recorded result preserved. Multiplayer hosts also continue post-game orders, timed turns and host administration while retaining the original result; see the network post-game audit below. |
 | Victory and defeat | Defeat notifications and victory/defeat conclusion screens. | ✅ Implemented | ✅ Implemented | Piece counts and combat/capture trigger queued defeat notices and terminal victory/stalemate reports. Local victory/defeat show the complete v3 TEXT 4000/4001 narratives with the actual full player name; other players/observers receive broadcast summaries. Neutral modal panels wrap/page Unicode text, isolate map input and acknowledge without advancing turns. Retained outcomes replay through View report/Enter, without advancing the clock during replay. Local End Turn now starts the next turn even when victory is first recorded, and subsequent requests continue post-game production without repeating the result. The phase persists in complete saves; all six actual UI comparisons passed and both suites pass 1,660 tests. Multiplayer hosts now retain the result while accepting post-game orders and continuing countdowns and host administration; the network post-game audit below records verification. All six languages and actual turn-7 browser transitions are verified. Sound/art enhancements remain their separate checklist items. |
 
 ### Possible lifecycle enhancements beyond v3, not counted in Section 1
@@ -6038,3 +6038,42 @@ the independent app is `/private/tmp/galactica-foreign-manual-after-app`.
 No user-facing strings changed. The attention row is closed and Section 8
 returns to Functionality 88%, UI 82%. End Turn's wider audit and the other
 parity/map-generation rows remain open.
+
+## Held reports remain unread for End Turn
+
+Primary source `GalacticaDoc.cp:597–610` warns when either manual goto or
+automatic report counts remain. `ShowMessages:1533–1606` computes those counts
+before checking `mWantGameMessages`; Hold only suppresses playback, not unread
+status. The Hold command (683–686) toggles that flag. Explicit Show Messages
+(673–680) temporarily permits playback and restores the previous flag.
+
+V4 previously omitted held reports from End Turn's count because its attention
+filter deliberately excludes held entries from normal playback. The warning now
+includes `pendingGameReports()` with the same event-ID deduplication used for
+visible/queued reports. Handled or inaccessible held snapshots are excluded.
+V4's explicit Review action opens the held batch through the existing Show path
+without changing Hold, then leaves independent manual build requests for Next.
+Cancel preserves held reports and the current turn. Save/open preserves Hold,
+unread identities and the warning count. No new text was introduced; all six
+languages use their existing singular/plural count and Review controls.
+
+Both complete muted native suites pass 1742 tests, zero failures, in
+`/private/tmp/galactica-held-warning-{public,devel}-unit.log`. Two new native
+regressions use actual discovery and exactly paid commissioning reports, plus
+save/restore, handled/inaccessible filtering and separate manual build requests.
+`tools/test-web-held-warning.cjs` passes actual command-menu Hold, Enter,
+Cancel, Review, dismissal, Tab and save checks in en/de/es/fr/ja/ru before/after.
+The baseline held-only discovery actually advances to turn 3; the fixed version
+stays on turn 2 with a one-item warning. Commissioning counts two distinct items
+and Review shows its class art while preserving Hold.
+
+All 42 matched before/after screenshots were compared: 18 expected changes
+(discovery confirmation, commissioning count and Review), 24 identical views
+(held states, commissioning Cancel and final review). The fixed discovery
+Cancel/Review/dismissal views also passed in all six languages. English
+before/after and six localized singular warning views were visually inspected.
+Evidence is `/private/tmp/galactica-held-warning-comparison.json`, matching
+browser logs/screenshots and `/private/tmp/galactica-held-warning-after-app`.
+The broad End Turn row remains partial pending its complete workflow audit;
+this closes the concrete held-report discrepancy without claiming overall
+parity or map-generation completion.

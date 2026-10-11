@@ -2189,6 +2189,7 @@ class Game {
                     if(!this.overlay)this.dismissEventPresentation();
                     return true;
                 }
+                if(this.pendingGameReports().length)return this.showPendingGameReports();
                 if(this.attention.manualPending().length){this.attention.next();return true;}
                 const unread=this.attention.pending()[0]?.event;
                 if(unread && this.replayReport(unread))return true;
@@ -2705,7 +2706,7 @@ class Game {
         // A presentation and its attention entry refer to the same report.
         // Anonymous requests/presentations still represent independent items.
         const items=new Set(this.attention.pending().map(entry=>entry.event?entry.event.id:entry));
-        for(const overlay of [this.overlay,...(this.overlayQueue || [])])
+        for(const overlay of [this.overlay,...(this.overlayQueue || []),...this.pendingGameReports()])
             if(overlay)items.add(overlay.eventId ?? overlay);
         return items.size;
     }

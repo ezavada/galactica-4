@@ -544,3 +544,15 @@ image pairs were compared (12 expected counter/selection changes, 18 unchanged
 explicit-review views), with English comparisons and six localized reports
 visually inspected. The completed source attention audit is recorded in
 `docs/V3_V4_FEATURE_STATUS.md`.
+
+
+## Held unread reports and End Turn protection
+
+Hold suppresses playback while source automatic unread counts remain active
+(`GalacticaDoc.cp:597–610,1533–1606`). V4 now counts accessible unread held
+snapshots once alongside visible/queued reports and independent manual requests.
+Explicit Review uses the existing Show path without changing Hold. Actual
+command-menu Hold, Enter warning, Cancel/Review, dismissal and save checks pass
+in all six languages; both full native suites pass 1742 tests. The source audit
+and 42 matched screenshot comparisons are recorded in
+`docs/V3_V4_FEATURE_STATUS.md`.
