@@ -28,6 +28,26 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         const button=buttons.find(b=>b.action.type==='endTurn');test.assertEqual(d.getUIActionAt(button.rect.x+button.rect.width-2,button.rect.y+3).type,'endTurn');
         d.port.getDrawingArea=()=>new pdg.Rect(480,600);const narrow=d.getMapButtonRegions();test.assertTrue(narrow.filter(b=>!b.icon).every(b=>b.rect.x===narrow.find(b=>!b.icon).rect.x));
     });
+    test.it('keeps full map instructions beside controls and retains manual access on compact maps',()=>{
+        const {game,display:d}=fixture(),language=pdg.res.getLanguage();let opened;
+        game.manualCommands={open:lang=>{opened=lang;return true;}};d.port.getTextWidth=(text,size)=>Array.from(String(text)).length*size*.6;
+        try{for(const lang of ['en','de','es','fr','ja','ru']){
+            pdg.res.setLanguage(lang);d.reloadUIStrings();
+            for(const administrator of [false,true])for(const size of [[800,600],[640,340],[320,340]]){
+                game.clientAdministrator=administrator;
+                d.port.getDrawingArea=()=>new pdg.Rect(...size);const layout=d.getMapInstructionsLayout(),buttons=d.getMapButtonRegions();
+                if(layout.mode==='inline'){
+                    test.assertTrue(layout.rect.x>=10 && layout.rect.y>=10 && layout.rect.y+layout.rect.height<=size[1]-10);
+                    test.assertTrue(buttons.every(button=>layout.rect.x+layout.rect.width+10<=button.rect.x));
+                    test.assertTrue(layout.lines.every(line=>d.port.getTextWidth(line.text,line.size)<=layout.rect.width));
+                    layout.paragraphs.forEach(paragraph=>test.assertEqual(layout.lines.filter(line=>line.size===paragraph.size && line.color===paragraph.color).map(line=>line.text).join(''),paragraph.text));
+                }else{test.assertEqual(layout.mode,'manual');test.assertEqual(layout.lines.length,0);}
+                game.uiWindow='menu';test.assertTrue(d.getCommandActionRegions().some(button=>button.action.type==='openManual'));
+                test.assertTrue(game.executeUIAction({type:'openManual'}));test.assertEqual(opened,lang);game.uiWindow=null;
+                game.pendingRendezvousPlacement={mode:'create',owner:1};test.assertEqual(d.getMapInstructionsLayout().mode,'targeting');test.assertEqual(d.getMapInstructionsLayout().lines.length,0);game.pendingRendezvousPlacement=null;
+            }
+        }}finally{pdg.res.setLanguage(language);}
+    });
     test.it('expands popup buttons together with their click areas and connectors',()=>{
         const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Home');star.owner=1;game.setSelectedObject(star);
         d.port.getTextWidth=(text,size)=>text.length*size*.6;d.STR.rename='A longer localized rename action';

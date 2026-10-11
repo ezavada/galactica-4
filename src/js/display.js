@@ -3861,14 +3861,28 @@ class Display {
         }
     }
     
-    // Draw instructions
-    drawInstructions() {
-        const drawingArea = this.port.getDrawingArea();
-        this.drawTextLine(this.game.clientAdministrator?I18n.getString(1162):`${this.STR.clickStars}   ${this.STR.clickShips}`, 10, drawingArea.height() - 60, 'gray', 12);
-        this.drawTextLine(`${this.game.clientAdministrator?'':this.STR.tabEndTurn+'   '}${this.STR.zoomResetCenterHelp}`, 10, drawingArea.height() - 38, 'lightgray', 11);
-        this.drawTextLine(this.STR.dragZoomHelp, 10, drawingArea.height() - 18, 'gray', 11);
+    getMapInstructionsLayout() {
+        const screen=this.getScreenSize(),buttons=this.getMapButtonRegions();
+        const width=Math.min(screen.width-20,...buttons.map(button=>button.rect.x-24));
+        // The manual and delayed control help retain these descriptions when
+        // a compact toolbar fills the width; targeting has its own prompt.
+        if(this.game.isAwaitingMapTarget())return {mode:'targeting',lines:[]};
+        if(width<160)return {mode:'manual',lines:[]};
+        const paragraphs=[
+            {text:this.game.clientAdministrator?I18n.getString(1162):`${this.STR.clickStars}   ${this.STR.clickShips}`,size:12,color:'gray'},
+            {text:`${this.game.clientAdministrator?'':this.STR.tabEndTurn+'   '}${this.STR.zoomResetCenterHelp}`,size:11,color:'lightgray'},
+            {text:this.STR.dragZoomHelp,size:11,color:'gray'}];
+        const wrap=require('./text-wrapping.js'),lines=[];let height=0;
+        for(const paragraph of paragraphs){for(const text of wrap(paragraph.text,width,t=>this.port.getTextWidth(t,paragraph.size))){lines.push({...paragraph,text,offset:height});height+=16;}height+=4;}
+        if(height>screen.height-100)return {mode:'manual',lines:[]};
+        const rect={x:10,y:screen.height-12-height,width,height};
+        return {mode:'inline',rect,paragraphs,lines:lines.map(line=>({...line,x:rect.x,y:rect.y+line.offset+12}))};
     }
-    
+
+    drawInstructions() {
+        for(const line of this.getMapInstructionsLayout().lines)this.drawTextLine(line.text,line.x,line.y,line.color,line.size);
+    }
+
     // CStarMapView draws hundredths, tenths and full sector boundaries.
     drawGrid() {
         if(this.game.showGrid===false)return;

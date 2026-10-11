@@ -1435,3 +1435,23 @@ under `/private/tmp/galactica-target-prompt`. Comparison records 126 common pair
 rendezvous views change. Reviewed all six narrow course/place/move comparisons
 and the changed ordinary prompts. The older rendezvous UI mock now provides
 text-width measurements for geometry, as real graphics ports do.
+
+
+### Map instruction separation and real manual access
+
+Add `GALACTICA_MAP_INSTRUCTIONS=1` to the arrival-course helper. Baseline builds
+without the new layout API additionally use `GALACTICA_MAP_INSTRUCTIONS_BASELINE=1`.
+The helper captures the map, clicks Menu and User’s Manual, attaches to the actual
+new tab, verifies the supported language/map section/no opener and captures that
+section at the game viewport size. The server must serve `.css` as `text/css`;
+checks assert the system font stylesheet loaded and the document has no horizontal
+overflow. Closing the manual preserves game selection and turn.
+
+Full native suites pass 1,793 tests, including owner/administrator layouts in all
+six languages/three sizes. Thirty-six initial before/after workflows and 24 final
+styled-help follow-ups pass. Evidence: `/private/tmp/galactica-map-instructions`.
+The 162 common image pairs change only within the combined footer/help band
+(zero outside-band pixels). Reviewed all six compact map/manual and short map
+comparisons. Earlier unstyled screenshots reflected the helper's MIME mistake,
+not a product/manual stylesheet bug. Compressed command-menu presentation and
+other compact toolbar variants remain separate work. Audio remains muted.

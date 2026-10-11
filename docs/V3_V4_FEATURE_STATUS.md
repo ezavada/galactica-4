@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1792 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1793 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -7935,3 +7935,43 @@ views were visually inspected. This closes the prompt truncation noted in the
 compact Course item; remaining compact map controls/help, gameplay tables/lists/
 inspectors and broader parity/localization/Map Generation audits remain open.
 No PDG or unrelated artwork changes are included.
+
+
+### Map instructions clear of controls (completed)
+
+The v4 explanatory footer previously drew across map buttons and shortcut icons.
+It now wraps complete localized paragraphs into the measured space to their left.
+When the toolbar fills the width, the compact map uses the existing manual and
+delayed control help instead of permanent text across the buttons. While placing
+orders/rendezvous, the dedicated target prompt remains and the redundant generic
+footer is hidden. No controls, shortcuts or gameplay operations are removed.
+Audited v3 `GalacticaPanes.cp` 831–975 (`CStarMapView::DrawSelf`) for the underlying
+nebula/scanner/grid presentation; this is responsive layout of v4's explanatory
+footer, not a change to source navigation mechanics. Existing localized IDs and
+manual pages are reused.
+
+Both full native suites pass **1,793 tests, zero failures**. The new six-language
+owner/administrator regression checks complete wrapped paragraphs, separation
+from every map button, port bounds, compact/manual mode, manual-command routing
+and targeting suppression at 800×600, 640×340 and 320×340.
+
+All 36 six-language/three-size before/after browser workflows pass, including
+course/memory/save and target-prompt checks. Actual map Menu/Manual clicks open
+the correct bundled language page, preserve turn/selection and leave no opener.
+The helper initially served CSS as HTML: this fixture MIME error was corrected,
+then 24 follow-up workflows passed (six narrow baseline and eighteen after).
+These final checks assert actual stylesheet loading and no horizontal document
+overflow at the game viewport size. The initial unstyled review montage/logs remain separate
+from final styled evidence; no manual CSS/product change was needed.
+
+Evidence: `/private/tmp/galactica-map-instructions/` and matching logs. The common
+comparison records 162 changed pairs, all with zero changed pixels outside the
+combined footer/help band. All six narrow before/after maps and styled manuals,
+and all six short before/after maps were visually inspected. At ordinary widths,
+three full instruction lines remain; at short widths they wrap to four–six lines;
+320px maps use the existing help entry. The compact command menu's compressed
+layout remains a separate audit item; successful manual clicks do not claim its
+entire presentation is complete. Other compact toolbar states, tables/lists/
+inspectors, broader localization/native GUI audits and Map Generation remain
+open. No engine or unrelated artwork changes are included. Automated audio is
+muted throughout.

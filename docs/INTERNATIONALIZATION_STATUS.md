@@ -509,3 +509,19 @@ and six final-source narrow flows pass. Reviewed all six narrow prompt compariso
 and ordinary German/Japanese rendezvous help changes. Evidence:
 `/private/tmp/galactica-target-prompt`. Broader localization and compact map help/
 control audits remain open.
+
+
+### Map instruction layout and compact manual access (2026-10-11)
+
+Existing en/de/es/fr/ja/ru map instructions now wrap beside the toolbar instead
+of crossing buttons. Compact maps retain the same help through the bundled manual
+and delayed control help; active targeting shows its own complete prompt.
+No strings, manual content or controls are removed, and no new IDs are introduced.
+Full suites pass 1,793 tests, including owner/administrator wording and complete
+paragraphs at three sizes in all languages. Thirty-six before/after workflows
+and 24 styled-help follow-ups pass. Real Menu/Manual clicks load the correct
+language, actual CSS, map chapter and bounded page at each viewport size.
+Reviewed all six compact map/styled-manual and short map comparisons under
+`/private/tmp/galactica-map-instructions`. Initial missing styles came from a
+helper MIME error, now corrected. Command-menu/toolbar variants and broader
+localization audits remain open.
