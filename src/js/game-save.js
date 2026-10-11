@@ -11,7 +11,7 @@ const entityTypes=[Star,Ship,Fleet,Rendezvous];
 const forbidden=new Set(['__proto__','constructor','prototype']);
 const fields=['config','rules','players','stars','allShips','allFleets','allRendezvous','turn','gameWidth','gameHeight',
     'selectedObject','isGameOver','winningPlayerNum','victoryTurn','eventLog','nextEventId','eventSelection','eventPage',
-    'eventDetailPage','turnAttentionPending','uiWindow','overlay','overlayQueue','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames','showEnemyEvents','mapDisplayMode'];
+    'eventDetailPage','turnAttentionPending','holdGameReports','heldReports','uiWindow','overlay','overlayQueue','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames','showEnemyEvents','mapDisplayMode'];
 const maximumNodes=300000,maximumLength=64*1024*1024;
 function invalid() {throw new Error('Invalid Galactica-4 saved game');}
 function encodeGraph(root) {
@@ -90,7 +90,7 @@ function snapshot(game,contentOnly=false) {
     state.chart=ChartNames.snapshot(game);
     state.aiSkills=[...game.aiManager.aiPlayers].map(([id,player])=>[id,player.skillManager.getSkillLevel()]);
     state.camera=game.display?{zoom:game.display.camera.zoom,panX:game.display.camera.panX,panY:game.display.camera.panY}:game.savedCamera || null;
-    if(contentOnly)for(const key of ['selectedObject','eventLog','nextEventId','eventSelection','eventPage','eventDetailPage','turnAttentionPending','uiWindow','overlay','overlayQueue','attention','chart','camera','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames','showEnemyEvents','mapDisplayMode'])delete state[key];
+    if(contentOnly)for(const key of ['selectedObject','eventLog','nextEventId','eventSelection','eventPage','eventDetailPage','turnAttentionPending','holdGameReports','heldReports','uiWindow','overlay','overlayQueue','attention','chart','camera','showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames','showEnemyEvents','mapDisplayMode'])delete state[key];
     return {format:'Galactica-4',version:1,graph:encodeGraph(state)};
 }
 // Navigation and report review do not mark the document modified in v3.
@@ -99,8 +99,10 @@ function serialize(game) {return JSON.stringify(snapshot(game));}
 function validate(state,nodes) {
     if(!state || !Number.isInteger(state.turn) || state.turn<1 || !Number.isFinite(state.gameWidth) || state.gameWidth<=0 || !Number.isFinite(state.gameHeight) || state.gameHeight<=0)invalid();
     if(!(state.config instanceof Config) || state.config.validate().length || !(state.rules instanceof Rules) || state.rules.isFast!==state.config.fastGame)invalid();
-    if(fields.some(key=>key!=='showEnemyEvents' && key!=='turnAttentionPending' && !Object.prototype.hasOwnProperty.call(state,key)))invalid();
+    if(fields.some(key=>key!=='showEnemyEvents' && key!=='turnAttentionPending' && key!=='holdGameReports' && key!=='heldReports' && !Object.prototype.hasOwnProperty.call(state,key)))invalid();
     if(state.turnAttentionPending!==undefined && typeof state.turnAttentionPending!=='boolean')invalid();
+    if(state.holdGameReports!==undefined && typeof state.holdGameReports!=='boolean')invalid();
+    if(state.heldReports!==undefined && (!Array.isArray(state.heldReports) || state.heldReports.some(row=>!row || !['report','outcome','lab','stardock'].includes(row.type) || !Number.isSafeInteger(row.eventId) || !Array.isArray(state.eventLog) || !state.eventLog.some(event=>event.id===row.eventId))))invalid();
     if(state.showEnemyEvents!==undefined && typeof state.showEnemyEvents!=='boolean')invalid();
     if(state.tutorialRandom!=null && !Random.valid(state.tutorialRandom))invalid();
     const total=state.config.totalPlayers;if(total!==state.config.numHumans+state.config.numComputers)invalid();
@@ -149,6 +151,8 @@ function restore(input) {
     // Suppress generation and constructor startup reports; install saved state afterwards.
     const game=new Game(factory,state.rules,new Config({...state.config,skipMapGeneration:true}));
     for(const key of fields)game[key]=state[key];
+    game.holdGameReports=state.holdGameReports===true;
+    game.heldReports=state.heldReports || [];
     game.turnAttentionPending=state.turnAttentionPending===true;
     game.showEnemyEvents=state.showEnemyEvents===undefined?true:state.showEnemyEvents;
     if(state.tutorialRandom)game.tutorialRandom=state.tutorialRandom;

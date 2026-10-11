@@ -307,6 +307,7 @@ require('./network-discovery.test.js')();
 require('./host-chat.test.js')();
 require('./network-chat.test.js')();
 require('./network-chat-window.test.js')();
+require('./report-playback.test.js')();
 runNetworkClientTests();
     runMapDisplayModeTests();
 

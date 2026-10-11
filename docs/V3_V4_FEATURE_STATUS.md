@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1627 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1634 passed, 0 failed on release/current native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -237,7 +237,7 @@ The largest blockers to a complete game are:
 - Strategic uses of computer advantage beyond the v3 production-style modifiers.
 - Combat-odds estimation, retreat/avoidance, and late-game attack-pressure tuning beyond matching the v3 decision factors.
 
-## 8. Events, messages, comparison, help, and general UI (Functionality 74%, UI 68%)
+## 8. Events, messages, comparison, help, and general UI (Functionality 76%, UI 71%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -250,7 +250,7 @@ The largest blockers to a complete game are:
 | New hull/class Stardock presentation | Illustrated first-built satellite, scout/courier, colony or higher battleship class event. | ✅ Implemented | ✅ Implemented | Owner-only Stardock overlays use matching hull/class art and translated titles. Reports retain role explanations and focus the building system even after default-order departure. First-build flags, highest built class and queued presentation identities survive saves; repeated hulls and older classes are suppressed. Source-confirmed observer broadcasts now retain faction/class/technology/origin snapshots, follow current detection and Show enemy events, and replay as ordinary reports. Illustrated Stardock art stays owner-only. Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
 | Colonization/capture/battle event text | 22 event codes select 45 player-relative text templates. | 🟡 Partial | 🟡 Partial | Participant battle outcomes, system capture, defeated resistance and individual ship/fleet destruction now have private winner/loser narratives, retained battle-time names, remembered-location navigation and replay. Commissioning, discovery and neutral colony naming/production reports are also present. Neutral colonization now has separate owner and observer narratives, automatic eligible playback, Events replay and retained colony-time names. Capture observer narratives are also available through Events with fog gating; resistance and destruction remain direct-participant notices. First-class construction now broadcasts owner/observer copies: detected observers receive automatic/plain reports and manual replay, while owner Stardock art remains private. Discovery now also broadcasts separate owner/observer copies with private Lab art, current detection checks and replay. Other observer variants, multiplayer messages and remaining event types are still incomplete. |
 | Compare players | Player summary table with best values blue and worst red; the audited v3 sort handler is empty. | ✅ Implemented | ✅ Implemented | Menu/V opens all eleven v3 numeric fields: systems, population in thousands, production, system min/max/average technology, completed ships, raw ship power and ship min/max/average technology. Unowned systems have an italic neutral row and no ship fields; unassigned names are italic Unknown; defeated rows show a localized suffix and dashes. Living category-specific extrema exclude neutral/dead rows; blue takes precedence for tied best values. Production comparisons retain hundredths before formatting. Names retain true enemy homeworld/faction identity under fog, with full hover text when needed. Viewport paging reaches every player; Close/V/Escape and modal map input are verified in all six languages. Full suites: 919 passed on release/current native PDG. Functional sorting and aggregate score columns were not confirmed in v3 C++. |
-| Send player messages; show/hold game reports | Connected multiplayer chat to one/all/admin; separate Show/Hold commands govern automatic game-report playback. | 🟡 Partial | 🟡 Partial | Authenticated player/admin chat, broadcast/private routing, retained paged history, recipient status, cached Message cues and durable offline private reports/acknowledgments are implemented. Shipped GalacticaDoc Show/Hold commands affect game reports independently of chat; their manual-playback/hold requirements remain to implement. Existing report windows and Events replay are tracked separately. |
+| Send player messages; show/hold game reports | Connected multiplayer chat to one/all/admin; separate Show/Hold commands govern automatic game-report playback. | ✅ Implemented | ✅ Implemented | Authenticated chat and durable offline messages are implemented. Menu → Hold game reports pauses automatic report, Lab, Stardock and outcome playback without marking reports read. Show game reports plays the pending batch while retaining Hold; turning Hold off resumes automatically. Manual Events replay remains available. Each complete save retains Hold and pending report identities, and client refresh remaps retained subjects to the new model. Localized controls/help and all six manuals are updated; native and browser evidence is recorded below. Existing report-window chrome remains separately tracked. |
 | Rename ship/fleet/colony/rendezvous | Edit menu rename workflow. | ✅ Implemented | ✅ Implemented | Owned ships, systems, fleets and rendezvous points have localized Unicode Rename/Save/Cancel controls. New human neutral colonies create the private v3 naming/production instruction and attention navigation, rather than a forced naming modal. Requests disappear for recaptured/removed colonies and do not target computer or captured enemy systems. |
 | Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | 🟡 Partial | 🟡 Partial | The localized persistent Sound setting now controls cached PDG audio across open/restored games. Presented colony, battle, destruction, repair, lab and stardock reports and attention navigation select recipient cues from the shipped samples; explosions precede the later cue by the source animation cadence plus 20 ticks. Hidden reports and quiet autoplay are silent, and mute stops owned playback. Native suites and actual browser controls/playback are verified below. Empty Tab/Next item now plays the shipped No more cue without changing selection or the turn. Chat and offline-message reports now play the cached Message cue; background network-turn and tutorial cue integration remains separate work; Left Arrow at a top-level object also plays No more. Startup/About music is blocked by missing source movie metadata, documented below. |
 | Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen choices now persist across launch: native restoration is immediate, while browsers defer until the first user gesture and remember external exits. Startup Settings and Menu → Settings → New game defaults now select numeric values directly and saves map size, density, AI skill/advantage, fast game and fog of war separately from ordinary setup and current games. Startup and New Game apply these defaults; tutorial setup is isolated. Colony hull and coupled production defaults now persist independently and are available from startup/in-game Settings and the game menu. Save applies them to the local human and future games; opening saves reapplies application colony defaults as in v3, while existing systems and computer defaults stay unchanged. Fixed tutorial practice is isolated. Startup now offers a persistent introduction and independent About presentation with original artwork, localized narrative/credits, paging, modal dragging and tutorial entry. First-install automatic tutorial is implemented. Stored numeric startup actions now dispatch available About/New/Open/Save/Revert/Quit/Fullscreen/Sound/Preferences/Flyby Help/Help/Tutorial handlers once after introduction/onboarding. Browser commands requiring activation wait for trusted input. Arbitrary inherited/window commands and multiplayer startup actions remain unfinished, alongside other preference coverage and the pinned native runtime update. |
@@ -3619,3 +3619,40 @@ shrinking recipient list. Screenshots are under
 `/private/tmp/galactica-chat-{unit,public-unit,native,public-native}.log`.
 Automated sound output remains muted. The broader parity and Map Generation goal
 remains active; Show/Hold reports is still incomplete.
+
+
+### Show/Hold automatic game reports — 2026-10-10
+
+Audited `Classes/GalacticaDoc.cp:672–687,998–1020,1519–1640` in shipped v3:
+Hold leaves automatic messages unhandled; Show temporarily permits a pending
+batch without changing Hold. These are game-report controls, including in local
+single-player games, rather than chat preferences.
+
+The command menu now exposes Show game reports with an unread pending count and
+Hold game reports with a selected state. An empty Show control is visibly inactive
+and consumes the click without closing the menu. Hold pauses active/queued
+automatic reports, including research Lab, commissioning Stardock and outcomes.
+Explicit Show plays its batch in order while future automatic reports stay held;
+turning Hold off resumes. Manual Events replay consumes only the selected report.
+Held reports remain accessible across turns and are protected from event-log
+pruning. Complete saves preserve Hold, report/event identity and illustrated
+subject references; older saves default to automatic playback. Network model
+replacement preserves held reports, acknowledges previously reviewed entries,
+and remaps ship/origin references rather than retaining objects from an old model.
+No chat polling, order posting or saved gameplay settings are changed by Hold.
+
+Validation: 1,634 tests pass on both native PDG runtimes, including seven new
+playback cases and current control-help/resource coverage. Actual muted browser
+before/after flows pass in en/de/es/fr/ja/ru, covering menu clicks, unread Hold,
+one-shot ordered Show, acknowledgements and automatic resume. The final English
+run includes the inactive empty control styling. Rendered menu comparisons keep
+the existing actions, fit both new controls and show readable native-script
+labels; report playback retains its existing presentation. The broader report
+chrome requirement remains Partial. Browser chat regression and actual native
+two-player posting checks on both runtimes pass.
+
+Screenshots: `/private/tmp/galactica-parity/report-before/<language>` and
+`/private/tmp/galactica-parity/report-after/<language>`. Unit logs:
+`/private/tmp/galactica-report-playback-{unit,public-unit}.log`. All six manuals
+explain Hold, explicit Show and manual Events replay; four new labels/help texts
+are localized. The broader parity and Map Generation goal remains active.

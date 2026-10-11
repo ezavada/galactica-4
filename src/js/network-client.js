@@ -33,12 +33,22 @@ function validateLogin(data,info,name){
 }
 function preservePresentation(old,fresh){
  for(const key of ['showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames','showEnemyEvents','mapDisplayMode'])fresh[key]=old[key];
+ fresh.holdGameReports=old.holdGameReports===true;
+ const held=old.heldReports || [];
+ for(const row of held){
+  if(fresh.eventLog.some(event=>event.id===row.eventId))continue;
+  const event=old.eventLog.find(event=>event.id===row.eventId && !event.handled);if(!event)continue;
+  const lists=['stars','allShips','allFleets','allRendezvous'];const key=lists.find(key=>old[key]?.includes(event.subject));
+  fresh.eventLog.push({...event,subject:key?fresh[key]?.find(entity=>entity.id===event.subject.id) || null:null});
+ }
+ fresh.heldReports=held.filter(row=>fresh.eventLog.some(event=>event.id===row.eventId && !event.handled)).map(row=>{const copy={...row};for(const field of ['ship','origin'])if(row[field]){const key=['stars','allShips','allFleets','allRendezvous'].find(key=>old[key]?.includes(row[field]));copy[field]=key?fresh[key]?.find(entity=>entity.id===row[field].id) || null:null;}return copy;});
  const camera=old.display && old.display.camera;
  fresh.savedCamera=camera?{zoom:camera.zoom,panX:camera.panX,panY:camera.panY}:old.savedCamera || null;fresh.restoredFromSave=true;
  if(old.selectedObject){const lists=['stars','allShips','allFleets','allRendezvous'];const key=lists.find(key=>old[key].includes(old.selectedObject));fresh.selectedObject=key?fresh[key].find(e=>e.id===old.selectedObject.id) || null:null;}
  const handled=new Set(old.eventLog.filter(e=>e.handled).map(e=>e.id));
  for(const event of fresh.eventLog)if(handled.has(event.id))event.handled=true;
  for(const entry of fresh.attention.queue)if(entry.event && entry.event.handled)entry.handled=true;
+ if(fresh.holdGameReports){const overlays=[fresh.overlay,...fresh.overlayQueue].filter(Boolean);fresh.overlay=null;fresh.overlayQueue=[];for(const row of overlays){const event=fresh.eventLog.find(event=>event.id===row.eventId);if(!event?.handled)fresh.queueEventOverlay(row);}}
 }
 class NetworkClient {
  constructor(address,{timeout=8000,request=HTTP.request}={}){
@@ -62,7 +72,7 @@ class NetworkClient {
     const changed=old.clientPlayerRevision!==fresh.clientPlayerRevision || JSON.stringify(old.config.getHumanPlayerSlots())!==JSON.stringify(fresh.config.getHumanPlayerSlots()) || require('./host-settings.js').fields.some(k=>old.config[k]!==fresh.config[k]);
     if(changed){if(!old.clientTurnPosted)require('./client-settings-refresh.js').preserveOrders(old,fresh);preservePresentation(old,fresh);this.model=fresh;return fresh;}
     const previousEvents=new Map(old.eventLog.map(event=>[event.id,event]));
-    old.eventLog=fresh.eventLog.map(event=>{if(previousEvents.get(event.id)?.handled)event.handled=true;return event;}).concat(old.eventLog.filter(event=>event.id<0));
+    old.eventLog=fresh.eventLog.map(event=>{if(previousEvents.get(event.id)?.handled)event.handled=true;return event;}).concat(old.eventLog.filter(event=>event.id<0 || old.heldReports.some(row=>row.eventId===event.id) && !fresh.eventLog.some(row=>row.id===event.id)));
     for(const event of old.eventLog)if(!previousEvents.has(event.id) && !event.handled){old.attention.requestEvent(event);if(event.playerMessage)old.queueReport(event);}
     old.clientClock=fresh.clientClock;
     old.remoteComparisons=fresh.remoteComparisons;

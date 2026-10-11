@@ -922,3 +922,7 @@
 1219	The unread message inbox is full. Wait for recipients to read their messages.
 1220	Type your message here. Enter or Return sends; Escape closes chat and keeps your draft.
 1221	Refresh messages and connection status without changing game orders.
+1222	Show game reports
+1223	Hold game reports
+1224	Play pending automatic game reports once, even while Hold is on.
+1225	Pause automatic game reports without marking them read. Turn this off to resume.

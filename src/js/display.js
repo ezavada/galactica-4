@@ -1447,7 +1447,7 @@ class Display {
     drawUIButton(rect, label, hotkey = null, options = {}) {
         const drawRect = this.snapRectToPixels(rect);
         const active = !!options.active;
-        const hovered = this.isHovered(drawRect);
+        const hovered = !options.disabled && this.isHovered(drawRect);
         if (hovered) this.hoverControl={rect:drawRect,label:options.tooltipLabel || ButtonCaption.tooltip(label,hotkey)};
         let fillColorName = active ? 'buttonFillActive' : 'buttonFill';
         if (hovered) {
@@ -1470,6 +1470,7 @@ class Display {
                 return;
             }
         }
+        if(options.disabled){this.port.drawText(caption.label,new pdg.Point(caption.labelX,Math.round(drawRect.y+drawRect.height/2+4)),this.getTextAttributes('gray',options.size || 11,pdg.textStyle_Centered));return;}
         this.drawTextLine(caption.label,caption.labelX,Math.round(drawRect.y+drawRect.height/2+4),
             hovered?'hovergray':'lightgray',options.size || 11,
             pdg.textStyle_Centered | (options.bold?pdg.textStyle_Bold:0));
@@ -1801,7 +1802,7 @@ class Display {
     }
 
     getCommandWindowHeight() {
-        return (this.game.chatCommands?34:0)+(this.game.canStartTutorial()?34:0)+(this.game.manualCommands?34:0)+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error?438:396):362);
+        return 68+(this.game.chatCommands?34:0)+(this.game.canStartTutorial()?34:0)+(this.game.manualCommands?34:0)+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error?438:396):362);
     }
 
     getCommandWindowRect() {
@@ -1977,7 +1978,10 @@ class Display {
         const tutorial=this.game.canStartTutorial()?[{rect:{x:rect.x+14,y:rect.y+318+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported?34:0)+(this.game.manualCommands?34:0),width:rect.width-28,height:28},label:I18n.getString(960,'Tutorial'),action:{type:'startTutorial'}}]:[];
         const file=this.game.fileCommands?[{rect:{x:rect.x+14,y:rect.y+318+(this.game.sessionCommands?68:0),width:rect.width-28,height:28},label:I18n.getString(838,'File'),action:{type:'fileMenu'}}]:[];
         const chat=this.game.chatCommands?[{rect:{x:rect.x+14,y:rect.y+318+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported?34:0)+(this.game.manualCommands?34:0)+(this.game.canStartTutorial()?34:0),width:rect.width-28,height:28},label:I18n.getString(1201),action:{type:'openChat'}}]:[];
-        if(!this.game.getCurrentHumanPlayer())return fit([comparison,settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial,...chat]);
+        const reportsY=rect.y+318+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported?34:0)+(this.game.manualCommands?34:0)+(this.game.canStartTutorial()?34:0)+(this.game.chatCommands?34:0);
+        const reports=[{rect:{x:rect.x+14,y:reportsY,width:rect.width-28,height:28},label:I18n.getString(1222)+` (${this.game.pendingGameReports().length})`,disabled:this.game.pendingGameReports().length===0,action:{type:'showGameReports'}},
+            {rect:{x:rect.x+14,y:reportsY+34,width:rect.width-28,height:28},label:I18n.getString(1223),active:this.game.holdGameReports,action:{type:'holdGameReports'}}];
+        if(!this.game.getCurrentHumanPlayer())return fit([comparison,settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial,...chat,...reports]);
         return fit([{rect:{x:rect.x+14,y:rect.y+80,width:rect.width-28,height:28},
             icon:'gear',label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}},
             {rect:{x:rect.x+14,y:rect.y+114,width:rect.width-28,height:28},
@@ -1985,7 +1989,7 @@ class Display {
             comparison,
             {rect:{x:rect.x+14,y:rect.y+182,width:rect.width-28,height:28},
             label:I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`,key:'Tab',active:this.game.attention.pending().length>0,action:{type:'nextAttention'}},
-            settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial,...chat]);
+            settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial,...chat,...reports]);
     }
 
     getMapSelectionRect() {
@@ -2827,7 +2831,7 @@ class Display {
                 desired: this.clamp(Math.round((x - slider.trackRect.x) / slider.trackRect.width * 1000)/10, 0, 100) };
         }
         const control = controls.find(region => this.containsPoint(region.rect, x, y));
-        return control ? control.action : { type: 'consume' };
+        return control ? (control.disabled?{type:'consume',blocked:true}:control.action) : { type: 'consume' };
     }
 
     getUIActionAt(x, y) {
@@ -3375,7 +3379,7 @@ class Display {
         const x = rect.x + 14;
         let y = this.getPanelContentStartY(rect);
         this.drawTextLine(this.STR.keyboardShortcutsActive, x, y, 'gray', 11);
-        this.getCommandActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,region.key,{icon:region.icon,active:!!region.active,size:region.rect.height<24?10:11}));
+        this.getCommandActionRegions().forEach(region=>this.drawUIButton(region.rect,region.label,region.key,{icon:region.icon,active:!!region.active,disabled:!!region.disabled,size:region.rect.height<24?10:11}));
         if(this.game.fullscreen && this.game.fullscreen.error)this.wrapEventMessage(I18n.getString(772,'Could not change full screen. Please try again.'),rect.width-28,11).slice(0,3).forEach((line,index)=>this.drawTextLine(line,x,rect.y+rect.height-71+index*15,'lightgray',11));
         this.drawTextLine(this.STR.escClose,x,rect.y+rect.height-16,'gray',10);
     }

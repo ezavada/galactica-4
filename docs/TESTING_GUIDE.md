@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1627
-Passed: 1627 ✓
+Total: 1634
+Passed: 1634 ✓
 Failed: 0 ✗
 ```
 
@@ -806,3 +806,18 @@ recipient pages, broadcast/private traffic, incoming selection, modal outside
 clicks, failed-send draft retry, retained history, viewport-clamped persistent
 dragging, admin composition, localized offline report/acknowledgment and
 unsupported disconnected sending. Chrome and native test audio remain muted.
+
+
+Show/Hold game reports verification:
+
+```sh
+./gad4 tests/run-tests.js
+node tools/test-web-host-setup.cjs /private/tmp/galactica-report-ui-app /private/tmp/galactica-parity/report-after/en en reports
+```
+
+Repeat the browser check for de/es/fr/ja/ru. Mode `before-reports` captures the
+previous build's menu without the controls. The muted runner checks actual menu
+Hold, pending colonization reports, ordered one-shot Show, acknowledgements,
+retained Hold for subsequent reports, and automatic resume. Unit coverage also
+checks manual replay, privacy, old-save defaults, Lab/Stardock/outcome saves and
+client subject identity across refresh.

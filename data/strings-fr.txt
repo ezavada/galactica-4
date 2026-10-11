@@ -922,3 +922,7 @@
 1219	La boîte des messages non lus est pleine. Attendez que les destinataires les lisent.
 1220	Saisissez votre message. Entrée envoie ; Échap ferme la discussion en conservant le brouillon.
 1221	Actualiser les messages et connexions sans modifier les ordres de jeu.
+1222	Afficher les rapports de partie
+1223	Suspendre les rapports de partie
+1224	Afficher une fois les rapports automatiques en attente, même si leur suspension est activée.
+1225	Suspendre les rapports automatiques sans les marquer comme lus. Désactiver pour reprendre.

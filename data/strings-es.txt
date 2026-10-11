@@ -922,3 +922,7 @@
 1219	El buzón de mensajes sin leer está lleno. Espera a que los destinatarios los lean.
 1220	Escribe aquí. Enter envía; Esc cierra el chat y conserva el borrador.
 1221	Actualiza mensajes y conexiones sin modificar las órdenes de juego.
+1222	Mostrar informes de la partida
+1223	Retener informes de la partida
+1224	Reproducir una vez los informes automáticos pendientes, incluso con Retener activado.
+1225	Pausar los informes automáticos sin marcarlos como leídos. Desactivar para continuar.

@@ -922,3 +922,7 @@
 1219	Der Posteingang ist voll. Warten, bis Empfänger ihre Nachrichten gelesen haben.
 1220	Nachricht hier eingeben. Enter sendet; Esc schließt den Chat und behält den Entwurf.
 1221	Nachrichten und Verbindungsstatus aktualisieren, ohne Spielbefehle zu ändern.
+1222	Spielberichte anzeigen
+1223	Spielberichte zurückhalten
+1224	Ausstehende automatische Spielberichte einmal abspielen, auch bei aktivem Zurückhalten.
+1225	Automatische Spielberichte anhalten, ohne sie als gelesen zu markieren. Zum Fortsetzen ausschalten.

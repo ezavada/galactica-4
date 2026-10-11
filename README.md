@@ -266,7 +266,7 @@ closes chat while retaining its draft and paged history. Failed sends retain the
 original draft for a retry; uncertain requests keep their text/recipient fixed.
 The modal window remembers its position and stays within the viewport. Read
 acknowledgments persist, and a full unread inbox refuses additional messages
-rather than dropping them. Show/Hold game-report controls remain separate work.
+rather than dropping them. Menu → Hold game reports pauses automatic reports without marking them read; Show game reports plays the pending batch while preserving Hold. Manual Events replay remains available, and each save retains its Hold choice and pending reports.
 
 Multiplayer remains incomplete: Internet matchmaking needs an available service,
 and network-game saving is still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).

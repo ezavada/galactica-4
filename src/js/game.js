@@ -46,6 +46,8 @@ class Game {
         this.mapDisplayMode = 'ownership';
         this.showMapNames = true;
         this.showEnemyEvents = true;
+        this.holdGameReports = false;
+        this.heldReports = [];
         this.settingsPage = 0;
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
@@ -1003,11 +1005,50 @@ class Game {
         return true;
     }
 
+    isAutomaticReport(overlay) {
+        return !!(overlay && !overlay.manual && ['report','outcome','lab','stardock'].includes(overlay.type));
+    }
+
+    pendingGameReports() {
+        return this.heldReports.filter(overlay=>{
+            const event=this.eventLog.find(event=>event.id===overlay.eventId);
+            return event && !event.handled && this.isEventAccessible(event);
+        });
+    }
+
+    showPendingGameReports() {
+        if(!this.heldReports.length)return false;
+        const pending=this.heldReports;
+        this.heldReports=[];
+        this.uiWindow=null;
+        for(const overlay of pending) {
+            const event=this.eventLog.find(event=>event.id===overlay.eventId);
+            if(event && !event.handled && this.isEventAccessible(event))this.queueEventOverlay({...overlay,manual:true});
+        }
+        return pending.length>0;
+    }
+
+    toggleHoldGameReports() {
+        this.holdGameReports=!this.holdGameReports;
+        if(this.holdGameReports) {
+            if(this.isAutomaticReport(this.overlay)){this.heldReports.push({...this.overlay});this.overlay=null;}
+            this.overlayQueue=this.overlayQueue.filter(overlay=>{
+                if(!this.isAutomaticReport(overlay))return true;
+                this.heldReports.push({...overlay});return false;
+            });
+        } else this.showPendingGameReports();
+        return true;
+    }
+
     queueEventOverlay(overlay) {
         if (!overlay || !this.shouldShowEventWindows()) {
             return false;
         }
 
+        if(this.holdGameReports && this.isAutomaticReport(overlay)) {
+            if(!this.heldReports.some(row=>row.eventId===overlay.eventId))this.heldReports.push({...overlay});
+            return true;
+        }
         if (!this.overlay) {
             this.showEventOverlay(overlay);
         } else {
@@ -1029,7 +1070,7 @@ class Game {
     replayOutcome(event) {
         if(!this.getEventRows().includes(event) || !event.outcome)return false;
         this.uiWindow=null;
-        return this.queueEventOverlay({type:'outcome',...event.outcome,eventId:event.id,page:0});
+        return this.queueEventOverlay({type:'outcome',...event.outcome,eventId:event.id,page:0,manual:true});
     }
 
     getReportDestructionPosition(event) {
@@ -1045,7 +1086,7 @@ class Game {
 
     queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense)), manual = false) {
         if (!this.hasReplayableReport(event) || !this.isEventAccessible(event)) return false;
-        return this.queueEventOverlay({type:'report',eventId:event.id,page:0,animationOnly,automaticObserver:!!event.observer && !manual});
+        return this.queueEventOverlay({type:'report',eventId:event.id,page:0,animationOnly,manual,automaticObserver:!!event.observer && !manual});
     }
 
     queueObserverReports() {
@@ -1054,7 +1095,7 @@ class Game {
         for(const event of this.eventLog) {
             if(event.turn!==this.turn && !retained.has(event))continue;
             if(!event.observer || event.automatic===false || event.handled || this.overlay && this.overlay.eventId===event.id ||
-                    this.overlayQueue.some(overlay=>overlay.eventId===event.id))continue;
+                    this.overlayQueue.some(overlay=>overlay.eventId===event.id) || this.heldReports.some(overlay=>overlay.eventId===event.id))continue;
             if(!this.showEnemyEvents) {
                 if(this.isEventAccessible(event)){event.handled=true;this.attention.handleEvent(event);}
                 continue;
@@ -1138,7 +1179,7 @@ class Game {
         this.eventLog.push(event);
         // Keep every current/last-turn report, even in a busy construction turn.
         while(this.eventLog.length>80){
-            const index=this.eventLog.findIndex(event=>event.turn<Math.max(1,this.turn-1) && !(event.playerMessage && !event.handled));
+            const index=this.eventLog.findIndex(event=>event.turn<Math.max(1,this.turn-1) && !(event.playerMessage && !event.handled) && !this.heldReports.some(overlay=>overlay.eventId===event.id));
             if(index<0)break;
             this.eventLog.splice(index,1);
         }
@@ -1160,7 +1201,7 @@ class Game {
     getEventRows() {
         const reportTurn=Math.max(1,this.turn-1);
         // Terminal turns do not advance; their reports must remain available for replay.
-        return this.eventLog.filter(event=>(event.turn===reportTurn || event.playerMessage && !event.handled ||
+        return this.eventLog.filter(event=>(event.turn===reportTurn || this.heldReports.some(overlay=>overlay.eventId===event.id) || event.playerMessage && !event.handled ||
             (event.outcome || this.isGameOver && this.hasReplayableReport(event)) && event.turn===this.turn) && this.isEventAccessible(event));
     }
 
@@ -1179,6 +1220,7 @@ class Game {
     focusEvent(event,closeWindow=false) {
         if(!this.isEventAccessible(event))return false;
         event.handled=true;this.attention.handleEvent(event);
+        this.heldReports=this.heldReports.filter(row=>row.eventId!==event.id);
         if(event.type===Common.EventType.RENAME_COLONY)this.eventSelection=event.id;
         const focus=this.getEventFocus(event);
         if(focus) {
@@ -1909,6 +1951,8 @@ class Game {
                 if(!this.manualCommands)return false;
                 this.manualCommands.open(pdg.res.getLanguage());return true;
             case 'quit':return !!(this.fileCommands && this.fileCommands.quit && this.fileCommands.quit());
+            case 'showGameReports':return this.showPendingGameReports();
+            case 'holdGameReports':return this.toggleHoldGameReports();
             case 'openChat':return !!(this.chatCommands && this.chatCommands.open());
             case 'fileMenu':return !!(this.fileCommands && this.fileCommands.menu());
             case 'newGame':return !!(this.sessionCommands && this.sessionCommands.begin());
