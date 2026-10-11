@@ -21,7 +21,29 @@ module.exports=()=>test.describe('Shipped high-class presentation artwork',()=>{
   for(const draw of draws)test.assertTrue(draw.attrs===(draw.blueprint?style:original));
   test.assertEqual(original.getBlendMode(),pdg.blendMode_Normal);
  });
- test.it('renders every supplied lab blueprint including two-digit image numbers',()=>{const r=renderer({});for(let index=1;index<=20;index++){r.images.length=0;r.display.drawOverlay({type:'lab',classIndex:index});const expected='tech/blue-'+String(Math.min(12,index+1)).padStart(2,'0')+'.png';test.assertTrue(r.images.includes(expected));}});
+ test.it('selects each available Lab milestone picture from the shipped layer records',()=>{
+  const source=JSON.parse(fs.readFileSync(path.join(__dirname,'../docs/reference/v3-art-resources.json'),'utf8'));
+  const r=renderer({});
+  for(let index=0;index<=10;index++){
+   r.images.length=0;r.display.drawOverlay({type:'lab',classIndex:index});
+   const picture=source.layers[String(400+index)].layers[1].picture;
+   const expected='tech/blue-'+String(picture-2200).padStart(2,'0')+'.png';
+   test.assertTrue(r.images.includes(expected),'Wrong original Lab picture for milestone '+index);
+  }
+ });
+ test.it('uses the first milestone blueprint for a real tech-level-five discovery in every language',()=>{
+  const previous=pdg.res.getLanguage();
+  try{for(const language of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(language);
+   const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true,numHumans:1,numComputers:1}));
+   const star=game.factory.createStar(0,0,'Home');star.owner=1;star.techLevel=4;
+   game.players[1].hiStarTech=4;star.paidTowardResearch=1001;game.rules.getStarResearchAmount=()=>0;
+   star.update();
+   test.assertEqual(game.overlay.type,'lab');test.assertEqual(game.overlay.classIndex,1);
+   const r=renderer(game);r.display.drawOverlay(game.overlay);test.assertTrue(r.images.includes('tech/blue-03.png'));
+   test.assertEqual(star.techLevel,5);
+  }}finally{pdg.res.setLanguage(previous);}
+ });
  test.it('renders all hull and capped high-class artwork in each supported language',()=>{const previous=pdg.res.getLanguage();try{for(const language of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(language);const r=renderer({});for(const hull of ['scout','colony','defense','battleship']){r.images.length=0;r.display.drawOverlay({type:'stardock',shipType:hull,classIndex:20});test.assertTrue(r.images.includes('ships/'+({scout:'scout',colony:'colony',defense:'satellite',battleship:'banshee'}[hull])+'.png'));}}}finally{pdg.res.setLanguage(previous);}});
  test.it('preserves shipped layer proportions and keeps heading and hint clear at all viewport shapes',()=>{
   const source=JSON.parse(fs.readFileSync(path.join(__dirname,'../docs/reference/v3-art-resources.json'),'utf8'));

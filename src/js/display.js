@@ -4177,7 +4177,8 @@ class Display {
         if (overlay.type === 'lab') {
             const back = this.getImageCached('labback', 'events/labback.png');
             const top = this.getImageCached('labtop', 'events/labtop.png');
-            const blueprintIdx = Math.max(1, Math.min(12, overlay.classIndex + 1));
+            // Layr400 starts at PICT2202; milestone one selects PICT2203.
+            const blueprintIdx = Math.max(1, Math.min(12, overlay.classIndex + 2));
             const blueprintName = `tech/blue-${String(blueprintIdx).padStart(2, '0')}.png`;
             const blueprint = this.getImageCached(blueprintName, blueprintName, new pdg.Color('black'));
             const centerRect = this.getClassArtRect(drawingArea);

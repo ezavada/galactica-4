@@ -331,7 +331,8 @@ V4 now fits all three Lab/Stardock layers to one centered 408:240 rectangle
 between the heading and dismissal hint, preserving the shipped proportions
 on wide, short and tall layouts. The blueprint now uses an additive textured rectangle, matching the source
 mode33 color operation; neutral black pixels remain transparent. The dedicated
-style has no outline and is reused. Blueprint selection mapping remains an
+style has no outline and is reused. The available Lab milestone entries now select PICT2202 + classIndex,
+matching Layr400–410. Missing-layer fallback above those entries remains an
 actionable follow-up, not a missing-resource blocker. The newly
 recovered victory and defeat PICTs are 500×432; their raw hashes now allow a
 future decoded comparison against the retained PNGs. PICT1000 is absent from
@@ -368,3 +369,16 @@ both an ignored blend setting and black-background overwrite. It complements
 the native tests for cache reuse, real style modes, no outline and layer roles.
 The source LabBase + tech/5 picture mapping is a separate remaining requirement;
 this blend change does not claim to close it or full Original art parity.
+
+
+### Available Lab milestone picture mapping
+
+`CStar.cpp` supplies Layr400 + tech/5; the recovered Layr400–410 entries select
+blueprint PICT2202–2212. The current `blue-NN.png` images retain those picture
+numbers minus 2200. Thus the first new drive class at tech5 (Layr401) uses
+`blue-03.png`, not `blue-02.png`. V4 now follows this offset for every available
+Lab entry; game class indices and research technology values are unchanged.
+Source-driven tests cover all eleven available entries and a real tech5 owner
+discovery in each supported language. Source decimal fallback for absent
+Layr411–499 and generic fallback outside the Lab range remain to implement
+separately; clamping to the last blueprint is not claimed as source parity.

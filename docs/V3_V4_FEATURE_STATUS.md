@@ -4653,3 +4653,26 @@ captures and English before/after images were visually inspected.
 real additive brightness change, retained room imagery and unchanged unrelated reports. All changed functionality
 is visual and reuses the six existing localized headings and dismissal hints.
 The broader parity and map-generation goal remains active.
+
+
+### Available Lab research milestone artwork
+
+V3 CStar selects Layr400 + tech/5, whose available entries select
+PICT2202–2212. Corrected v4's one-picture offset: a tech5 discovery now shows
+blueprint03, with all eleven available Lab entries matching the recovered
+resource inventory. Research technology, event recipients and existing six-
+language strings remain intact. The missing-resource decimal fallback at
+higher research levels is still a separate active item, not treated as a
+completed requirement by this offset correction.
+
+A source-driven regression checks all eleven entries; another advances an
+actual star from tech4 to tech5 through paid research and checks the owner
+Lab drawing in all six languages. Both rebuilt native runtimes pass all
+1,694 unit tests; all six resource-import checks pass. Actual browser report
+controls pass before and after in en/de/es/fr/ja/ru. Of 48 paired captures,
+only the six owner Lab views change; the other 42 are byte-identical. English
+before/after and final translated Lab captures were visually inspected under
+`/private/tmp/galactica-lab-mapping/{before,after}/<language>`. Logs use
+`/private/tmp/galactica-lab-mapping-{before,after}-<language>.log` and
+`/private/tmp/galactica-lab-mapping-{public,devel}-unit.log`.
+The broader parity and map-generation goal remains active.
