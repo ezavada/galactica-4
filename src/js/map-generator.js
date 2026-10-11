@@ -65,21 +65,18 @@ class MapGenerator {
      */
     reservePlayerNames(totalPlayers) {
         const playerReservedNames = [];
-        const availableNames = [...this.STAR_NAMES]; // Create a copy to avoid modifying original
-        
+        const availableNames = this.STAR_NAMES.map((_, index) => index);
+        const nameUsage = new Array(this.STAR_NAMES.length).fill(0);
         for (let playerNum = 1; playerNum <= totalPlayers; playerNum++) {
-            if (availableNames.length > 0) {
-                const randomIndex = this.random(availableNames.length);
-                const reservedName = availableNames.splice(randomIndex, 1)[0]; // Remove and get the name
-                playerReservedNames[playerNum] = reservedName;
-                console.log(`MapGenerator: Reserved name "${reservedName}" for player ${playerNum}`);
-            } else {
-                // Fallback if we run out of names
-                playerReservedNames[playerNum] = `Player${playerNum}Star`;
-                console.log(`MapGenerator: Using fallback name for player ${playerNum}`);
-            }
+            // Preserve distinct initial names, then reuse the localized pool
+            // with numerals as v3 does instead of English placeholder names.
+            const index = availableNames.length
+                ? availableNames.splice(this.random(availableNames.length), 1)[0]
+                : this.random(this.STAR_NAMES.length);
+            playerReservedNames[playerNum] = this.allocateNamedStar(index, nameUsage).name;
         }
-        
+        this.playerReservedNames = playerReservedNames;
+        this.playerReservedNameUsage = nameUsage;
         return playerReservedNames;
     }
 
@@ -108,11 +105,16 @@ class MapGenerator {
         const unused = [];
         const sectorSizePixels = this.PIXELS_PER_SECTOR * this.COORDINATE_SCALE * sectorSize;
         
-        const nameUsage = new Array(this.STAR_NAMES.length).fill(0);
-        // Homeworld names share the same usage accounting as ordinary stars in v3.
-        for (const name of reservedNames) {
-            const index = this.STAR_NAMES.indexOf(name);
-            if (index >= 0) nameUsage[index]++;
+        // Copy the reservation counts, including numbered homeworlds, so
+        // ordinary stars cannot reuse one of their labels.
+        const nameUsage = reservedNames === this.playerReservedNames
+            ? this.playerReservedNameUsage.slice()
+            : new Array(this.STAR_NAMES.length).fill(0);
+        if (reservedNames !== this.playerReservedNames) {
+            for (const name of reservedNames) {
+                const index = this.STAR_NAMES.indexOf(name);
+                if (index >= 0) nameUsage[index]++;
+            }
         }
         
         for (let i = 0; i < numStars; i++) {
@@ -322,7 +324,11 @@ class MapGenerator {
         if (pdg.rand() % 100 > 10) {
             return { name: `S-${this.nextStarNum++}`, namedStar: false };
         }
-        const nameIndex = this.random(this.STAR_NAMES.length);
+        return this.allocateNamedStar(this.random(this.STAR_NAMES.length), nameUsage);
+    }
+
+    // Homeworlds and ordinary named stars share the same numeral accounting.
+    allocateNamedStar(nameIndex, nameUsage) {
         const baseName = this.STAR_NAMES[nameIndex];
         // add roman numeral if the name is used more than once
         nameUsage[nameIndex]++;

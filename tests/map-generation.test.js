@@ -95,6 +95,24 @@ function runMapGenerationTests() {
                 const names=generator.reservePlayerNames(2).filter(Boolean);test.assertEqual(new Set(names).size,2);
             } finally {i18n.getString=getString;}
         });
+        test.it('shares numbered homeworld reservations with ordinary stars when a translated pool is exhausted',()=>{
+            const generator=new MapGenerator({});generator.STAR_NAMES=['Vega'];generator.ROMAN_NUMERALS=['','二','三'];generator.random=()=>0;
+            const reserved=generator.reservePlayerNames(4);test.assertDeepEqual(reserved.slice(1),['Vega','Vega 二','Vega 三','S-11']);
+            const oldRand=pdg.rand;pdg.rand=()=>0;
+            try{const ordinary=generator.createRandomStars(2,1,()=>({}),reserved);test.assertDeepEqual(ordinary.map(s=>s.name),['S-12','S-13']);}
+            finally{pdg.rand=oldRand;}
+        });
+        test.it('creates 99 localized homeworlds and distinct ordinary stars in every supported language',()=>{
+            const language=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){
+                pdg.res.setLanguage(code);pdg.srand(TEST_SEED);
+                const game=new Game(new Factory(),new Rules(),new GameConfig({numHumans:1,numComputers:98,sectorSize:2,density:1}));
+                const homes=game.stars.filter(s=>s.owner>0),names=game.stars.map(s=>s.name);
+                test.assertEqual(homes.length,99);test.assertEqual(new Set(names).size,names.length);
+                test.assertFalse(names.some(n=>/^Player\d+Star$/.test(n)));
+                for(const home of homes){test.assertEqual(home.techLevel,1);test.assertEqual(home.currentShip.progress,99);test.assertEqual(game.players[home.owner].homeStarId,home.id);}
+                for(const player of game.players.filter(p=>p && p.isComputer))test.assertFalse(/Player\d+Star/.test(player.name));
+            }}finally{pdg.res.setLanguage(language);}
+        });
         test.it('counts reserved home names before ordinary names and avoids exhausted or duplicate numerals',()=>{
             const game=new Game(new Factory(),new Rules(),new GameConfig({skipMapGeneration:true})),generator=new MapGenerator(game);
             generator.STAR_NAMES=['Vega'];generator.random=()=>0;

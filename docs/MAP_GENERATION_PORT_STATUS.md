@@ -49,7 +49,7 @@ The full suite was last verified with:
 ./gad4 tests/run-tests.js
 ```
 
-Latest verified result: 1700 passed, 0 failed on both rebuilt public/development native PDG runtimes.
+Latest verified result: 1703 passed, 0 failed on both rebuilt public/development native PDG runtimes.
 
 ## Maintenance notes
 
@@ -97,3 +97,45 @@ regression, not inferred from those screenshots. Evidence is under
 `/private/tmp/galactica-homeworld-selection`, with logs sharing that prefix.
 No user-facing strings changed. The remaining checklist still needs its
 separate audit; this entry closes only this selection-rule difference.
+
+
+### Localized homeworld naming at the player limit (2026-10-11)
+
+The supported 99-player configuration can exceed the 53 unique names in the
+translated pools. V4 previously emitted English `Player54Star` placeholders
+for those homeworlds and their AI faction names. Source `FillSector` reuses
+star names with resource-driven numerals. V4 now retains its distinct initial
+reservations, then reuses the localized pool with numerals. Shared reservation
+counts include those numbered homeworlds, preventing ordinary stars from
+reusing their names. Missing/exhausted numerals retain unique language-neutral
+S-number designations. No new strings are required.
+
+The real large-game UI check exposed an independent high-owner inspector
+crash: ownership colors indexed beyond the eight-entry v4 palette. All map,
+ship/fleet, scanner, rendezvous, panel/pointer and comparison color lookups now
+use a bounded accessor. Source `GalacticaDoc::GetColorIndex` also clamps owners
+past the palette to its last entry; this fix preserves v4's existing palette
+and alpha rather than claiming pixel equivalence to v3's 15-color resource.
+
+Native regressions cover shared numbered reservations, numeral exhaustion,
+99 homeworlds plus ordinary stars in all six languages, unique labels,
+localized AI names, initial tech/construction/home references and owner
+colors/borders through player 99. Both full suites pass 1703 tests. Final real
+99-player browser startup and player-54 inspection pass in all six languages;
+those inspector screenshots were visually inspected. The prior English
+baseline inspector raised an undefined-color exception; the prior German
+large-game baseline repeatedly timed out before its map capture. Consequently
+no complete six-language large-map before/after comparison is claimed.
+
+For the visual naming comparison, a separate controlled preview reserves 99
+names through the production generator with fixed selection randomness and
+renders the 54th name in an otherwise unchanged normal game. All twelve
+before/after preview runs pass: English is byte-identical, and five translated
+frames replace the English placeholder with localized numbered names. The
+German before/after and translated final previews were inspected. The preview
+is deliberately separate from the six real large-game startup checks.
+Helpers are `tools/test-web-homeworld-names.cjs` (large game) and
+`tools/test-web-homeworld-name-preview.cjs` (controlled comparison). Captures,
+comparison metadata and logs are under `/private/tmp/galactica-homeworld-names`
+and the matching log prefix. Automated output remains muted. This closes the
+large-game naming/display defects, not the full map-port audit.

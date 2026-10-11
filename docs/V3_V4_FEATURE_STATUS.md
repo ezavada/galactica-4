@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1700 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1703 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4771,3 +4771,17 @@ reservations are preserved, and each rejection reduces the eligible pool.
 Source comparison, three new native regressions, 1700 passing tests on both
 native runtimes, six-language browser checks and 12 identical startup/map
 screenshot pairs are recorded in `MAP_GENERATION_PORT_STATUS.md`.
+
+
+### Supported large games: localized homeworlds and safe owner colors
+
+The 99-player map audit corrected English fallback homeworld/faction names
+when translated resource pools run out, using localized numerals and shared
+ordinary-star reservation counts. The accompanying real browser check caught
+and fixed a high-owner inspector crash through bounded ownership-color lookup
+across all drawing paths. Both native suites pass 1703 tests, including
+six-language 99-homeworld integration and owner bounds through 99. Six real
+large-game startup/inspection runs and twelve controlled naming-preview runs
+pass. Source references, baseline failure limits, screenshot inspection and
+evidence are detailed in `MAP_GENERATION_PORT_STATUS.md`. Existing saved names
+are not rewritten; changed generation applies to new maps.

@@ -188,6 +188,13 @@ class Display {
         };
     }
 
+    getOwnerColor(owner) {
+        // As in v3 GetColorIndex, owners beyond the palette use its final
+        // entry. Keep the existing v4 palette and tint opacity unchanged.
+        const index = Number.isInteger(owner) ? Math.max(0, Math.min(owner, this.ownerColors.length - 1)) : 0;
+        return this.ownerColors[index] || new pdg.Color('white');
+    }
+
     createUIColorPalette() {
         const colors = {
             panelFill: PanelAppearance.colors.panelFill,
@@ -700,7 +707,7 @@ class Display {
         
         // Only show ownership color if we can see ownership details
         if (star.owner && this.isStarOwnerKnown(star)) {
-            const ownerColor = this.ownerColors[star.owner];
+            const ownerColor = this.getOwnerColor(star.owner);
             const attrs = this.createAttributes({
                 fillColor: ownerColor,
                 fillOpacity: 0.25*this.getMapDisplayBrightness(star,true)
@@ -833,7 +840,7 @@ class Display {
             if(!Number.isFinite(radius) || radius<=0)continue;
             const x=this.toScreenX(object.x),y=this.toScreenY(object.y);
             if(x+radius*4<0 || x-radius*4>screen.width || y+radius*4<0 || y-radius*4>screen.height)continue;
-            const selected=object===this.selectedObject,color=this.ownerColors[object.owner] || new pdg.Color('white');
+            const selected=object===this.selectedObject,color=this.getOwnerColor(object.owner) || new pdg.Color('white');
             if(isStar && this.game.showScannerRanges!==false) {
                 if(!groups.has(object.owner))groups.set(object.owner,{owner:object.owner,color,circles:[]});
                 groups.get(object.owner).circles.push({x,y,radius});
@@ -894,7 +901,7 @@ class Display {
             new pdg.Point(x-frameRadius, y+frameRadius)
         );
         const shipAttrs = this.createAttributes({
-            fillColor: this.ownerColors[ship.owner],
+            fillColor: this.getOwnerColor(ship.owner),
             fillOpacity: shipOpacity,
             lineStyle: pdg.lineStyle_Solid,
             lineColor: new pdg.Color(1, 1, 1, shipOpacity)
@@ -998,7 +1005,7 @@ class Display {
         
         // Fleet appearance
         const fleetAttrs = this.createAttributes({
-            fillColor: this.ownerColors[fleet.owner],
+            fillColor: this.getOwnerColor(fleet.owner),
             fillOpacity: fleetOpacity * 0.7,
             lineStyle: pdg.lineStyle_Solid,
             lineColor: new pdg.Color(1, 1, 1, fleetOpacity)
@@ -1053,7 +1060,7 @@ class Display {
         let y = this.toScreenY(rendezvous.y);
         const selected = rendezvous === this.selectedObject;
         const opacity = selected ? 1.0 : Math.max(0.85, this.mapEntityNameOpacity || 0);
-        const owner = this.ownerColors[rendezvous.owner] || new pdg.Color('white');
+        const owner = this.getOwnerColor(rendezvous.owner) || new pdg.Color('white');
         const pulse=this.visualEffects.rendezvousPulse(this.getVisualTime());
         const blend=0.5*pulse;
         const color=new pdg.Color(owner.red*(1-blend)+blend,
@@ -1305,7 +1312,7 @@ class Display {
         const sideX=pointer.points[0].x;
         this.port.drawRect(new pdg.Rect(new pdg.Point(sideX-.5,pointer.centerY-10),1,20),seam);
         const border=this.inspectorPointerBorder || (this.inspectorPointerBorder=this.createAttributes({lineStyle:pdg.lineStyle_Solid}).lineThickness(.7));
-        border.lineColor(borderColor?new pdg.Color(borderColor):owner?PanelAppearance.ownerBorder(this.ownerColors[object.owner]):this.getUIColor('panelBorder'));
+        border.lineColor(borderColor?new pdg.Color(borderColor):owner?PanelAppearance.ownerBorder(this.getOwnerColor(object.owner)):this.getUIColor('panelBorder'));
         this.port.drawLine(pointer.points[0],pointer.points[1],border);
         this.port.drawLine(pointer.points[1],pointer.points[2],border);
     }
@@ -1319,7 +1326,7 @@ class Display {
         if(!known)return null;
         if(!this.ownerPanelStyles.has(object.owner))this.ownerPanelStyles.set(object.owner,this.createAttributes({lineColor:this.getUIColor('panelBorder')}));
         const style=this.ownerPanelStyles.get(object.owner);
-        const base=this.getUIColor('panelFill'),owner=this.ownerColors[object.owner] || this.getUIColor('panelBorder');
+        const base=this.getUIColor('panelFill'),owner=this.getOwnerColor(object.owner) || this.getUIColor('panelBorder');
         const tint=new pdg.Color(base.red*0.94+owner.red*0.06,base.green*0.94+owner.green*0.06,base.blue*0.94+owner.blue*0.06,base.alpha);
         style.fillColor(tint).lineColor(PanelAppearance.ownerBorder(owner));
         this.panelStyleColors.set(style,tint);
@@ -3505,7 +3512,7 @@ class Display {
             if(row.playerNum>0) {
                 if(!this.comparisonOwnerAttributes)this.comparisonOwnerAttributes=new Map();
                 if(!this.comparisonOwnerAttributes.has(row.playerNum)) {
-                    const color=this.ownerColors[row.playerNum] || this.getUIColor('textLight');
+                    const color=this.getOwnerColor(row.playerNum) || this.getUIColor('textLight');
                     this.comparisonOwnerAttributes.set(row.playerNum,this.createAttributes({fillColor:new pdg.Color(color.red,color.green,color.blue,1),lineOpacity:0}));
                 }
                 this.port.drawCircle(new pdg.Point(rect.x+nameColumn.offset+7,y-4),3,this.comparisonOwnerAttributes.get(row.playerNum));

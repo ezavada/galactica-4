@@ -255,6 +255,12 @@ module.exports=function(){test.describe('Subtle presentation effects',()=>{
         test.assertEqual(style,pdg.lineStyle_Solid);test.assertEqual(thickness,.7);
         const border=appearance.color('panelBorder');test.assertEqual(border.red,border.blue);
     });
+    test.it('renders identified system borders for every supported owner without indexing beyond the palette',()=>{
+        const {game,display:d}=fixture();game.config.omniscient=true;
+        const star=game.factory.createStar(0,0,'High-owner system');
+        for(let owner=1;owner<=99;owner++){star.owner=owner;const color=d.getOwnerColor(owner);test.assertNotNull(color);test.assertNotNull(d.getOwnerPanelStyle(star));if(owner>=d.ownerColors.length)test.assertTrue(color===d.ownerColors[d.ownerColors.length-1]);}
+        test.assertTrue(d.getOwnerColor(1)===d.ownerColors[1]);test.assertTrue(d.getOwnerColor(2)===d.ownerColors[2]);
+    });
     test.it('adds a restrained owner tint to cached borders without revealing unknown owners',()=>{
         const {game,display:d}=fixture(),star=game.factory.createStar(0,0,'Home');star.owner=1;
         let border;const original=d.createAttributes.bind(d);d.createAttributes=definition=>{const attrs=original(definition);attrs.lineColor=c=>{border=c;return attrs;};return attrs;};
