@@ -1048,3 +1048,31 @@ suites pass 1,765 tests. Evidence lives in
 `galactica-join-layout-comparison.json`, and
 `galactica-join-layout-{pdg,pdg-devel}-unit.log`. Saved-host/LAN/information
 control bars and other busy/error variants remain separate audits.
+
+
+### Compact saved-host browser
+
+Run `node tools/test-web-saved-hosts.cjs BUILD_DIR SCREENSHOT_DIR LANGUAGE
+before|after WIDTH HEIGHT` against the f9cec7e baseline and current web build.
+Use all six languages at 800×600, 640×340 and 320×340. The temporary native
+host and Chrome are muted; bookmark/profile storage is isolated.
+
+The helper uses actual UI controls for invalid-address handling, five adds,
+paging, deletion, dismissal/reopening, injected localStorage write failure,
+retry, persisted constrained dragging, outside-click clunk and admission to
+the actual native host through the selected bookmark. It then opens the
+browser through the model to examine the saved-game descriptor and drive
+list keyboard paging. Current narrow runs additionally assert actual wheel
+movement, PageDown/PageUp, caption/hint fit and visible keyboard selection.
+The fixture skips the native host port when constructing dummy addresses;
+a retained baseline artifact proved an earlier 61001 collision.
+
+All 36 matched workflows pass. Of 234 screenshot pairs, 90 match exactly
+(including all 18 recovered maps), 72 ordinary/short differences stay within
+connection-address fields/lines, and 72 narrow pairs are intended layout
+changes. Descriptor-line masking is a region comparison. Both complete native
+suites pass 1,766 tests. Evidence:
+`/private/tmp/galactica-saved-hosts/verified`,
+`galactica-saved-hosts-comparison.json`, and
+`galactica-saved-hosts-{pdg,pdg-devel}-unit.log`.
+LAN/information bars and other hosting/busy/error audits remain separate.

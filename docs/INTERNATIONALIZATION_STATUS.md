@@ -270,3 +270,17 @@ language. Full native suites pass 1,765 tests; 36 matched browser runs pass
 across three sizes. Evidence: `/private/tmp/galactica-join-layout/verified`.
 The direct narrow form item is complete; saved-host/LAN/information control
 bars and broader compact/hosting/busy/error audits remain open.
+
+
+### Compact saved-host browser
+
+Saved-host Add address, direct address, paging, remove, Open/Enter, Cancel/Esc
+and persistence guidance retain their existing six-language resources.
+Measured button rows preserve complete captions/hints; fixed wrapped feedback
+and the scrollable list remain usable at 320×340. No strings were added.
+All six narrow before/after persistence-failure layouts, saved-game descriptor
+rows and scrolled paging/removal views were visually inspected. Thirty-six
+matched native-backed UI workflows pass across three sizes; both native
+suites pass 1,766 tests. Evidence:
+`/private/tmp/galactica-saved-hosts/verified`. This completes compact saved
+hosts; LAN/information bars and broader hosting/error/gameplay audits remain.
