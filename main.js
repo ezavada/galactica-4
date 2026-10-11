@@ -270,7 +270,7 @@ const windowPlacement=new (require('./src/js/window-placement.js'))(drawingPrefe
 for(const [object,method,name] of [[StartupSetup,'panelRect','startup'],[StartupSetup,'skillMenu','startupSkill'],
     [PlayerName,'layout','textEntry'],[networkTurnNotice,'layout','networkTurnNotice'],[networkChat,'layout','networkChat'],[networkHosting,'layout','networkHosting'],[networkJoin,'layout','networkJoin'],[documents,'layout','documents'],[userManual,'layout','manualError']]){
     const original=object[method];object[method]=function(width,height,...args){
-        const layout=object===PlayerName?original.call(this,width,height,args[0],(text,size)=>port.getTextWidth(text,size)):(object===documents || object===networkJoin || object===networkHosting)?original.call(this,width,height,(text,size)=>port.getTextWidth(text,size)):original.call(this,width,height,...args);
+        const layout=object===networkHosting?original.call(this,width,height,(text,size)=>port.getTextWidth(text,size),require('./src/js/network-host-status.js').message(networkHosting,sessions.sessions)):object===PlayerName?original.call(this,width,height,args[0],(text,size)=>port.getTextWidth(text,size)):(object===documents || object===networkJoin || object===networkHosting)?original.call(this,width,height,(text,size)=>port.getTextWidth(text,size)):original.call(this,width,height,...args);
         return name==='documents' && documents.dialog && documents.dialog.kind==='editor'?layout:windowPlacement.layout(name,layout,{width,height});
     };
 }
@@ -449,6 +449,7 @@ function drawNetworkHosting(){
     const activeStyle=startupStyles.hostButtonActive || (startupStyles.hostButtonActive=createStartupAttributes({fillColor:new pdg.Color(.83,.87,.9,1),lineColor:new pdg.Color(0,0,0,.5)}).lineThickness(.7).lineStyle(pdg.lineStyle_Solid));
     const fit=(text,width,size=12)=>{while(size>9 && port.getTextWidth(text,size)>width)size--;return size;};
     startupStyles.subtitleText.textSize(fit(layout.title,r.width-48,16));port.drawText(layout.title,new pdg.Point(r.x+r.width/2,r.y+(layout.compact?26:34*scale)),startupStyles.subtitleText);
+    const drawButton=button=>{drawStartupRoundedRect(button.rect,6,buttonStyle);const disabled=button.disabled || networkHosting.busy,attrs=disabled?(startupStyles.hostDisabledText || (startupStyles.hostDisabledText=createStartupAttributes({fillColor:new pdg.Color(.35,.35,.35,.65)}))):startupStyles.advantageText;drawStartupButtonCaption(button.rect,button.label,attrs,fit(button.label,button.rect.width-(layout.compact?16:24),button.size || 12),disabled?null:button.key);};
     const drawBody=()=>{
     for(const field of layout.fields){const editor=networkHosting[field.name],f=field.rect;
         if(field.labelRect.width>0){startupStyles.lineText.textSize(fit(field.label,field.labelRect.width));port.drawText(field.label,new pdg.Point(field.labelRect.x,field.labelRect.y+18*scale),startupStyles.lineText);}
@@ -462,6 +463,7 @@ function drawNetworkHosting(){
         if(layout.compact){startupStyles.lineText.textSize(12);check.labelLines.forEach((line,i)=>port.drawText(line,new pdg.Point(check.rect.x+32,check.rect.y+18+i*16),startupStyles.lineText));}}
 
     for(const choice of layout.choices){drawStartupRoundedRect(choice.rect,5,choice.active?activeStyle:buttonStyle);drawStartupButtonCaption(choice.rect,choice.label,startupStyles.advantageText,fit(choice.label,choice.rect.width-12),null);}
+    if(layout.compact)for(const button of layout.buttons.filter(button=>button.body))drawButton(button);
     };
     if(layout.bodyClip){const old=port.getClipRect();port.setClipRect(new pdg.Rect(layout.bodyClip.x,layout.bodyClip.y,layout.bodyClip.x+layout.bodyClip.width,layout.bodyClip.y+layout.bodyClip.height));try{drawBody();}finally{port.setClipRect(old);}}
     else drawBody();
@@ -473,7 +475,7 @@ function drawNetworkHosting(){
     else if(message){let size=fit(message,r.width-48,11);startupStyles.hintText.textSize(size);const display=game && game.display;
         const text=display?display.fitShipDiagnosticText(message,r.width-48,size):PlayerName.visibleText({...PlayerName.createEditor(message,1024),caret:0},r.width-48,t=>port.getTextWidth(t,size)).text;
         port.drawText(text,new pdg.Point(r.x+24,r.y+(layout.messageY || 520)*scale),startupStyles.hintText);}
-    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,buttonStyle);const disabled=button.disabled || networkHosting.busy,attrs=disabled?(startupStyles.hostDisabledText || (startupStyles.hostDisabledText=createStartupAttributes({fillColor:new pdg.Color(.35,.35,.35,.65)}))):startupStyles.advantageText;drawStartupButtonCaption(button.rect,button.label,attrs,fit(button.label,button.rect.width-(layout.compact?16:24),button.size || 12),disabled?null:button.key);}
+    for(const button of layout.buttons.filter(button=>!button.body))drawButton(button);
 }
 
 function drawNetworkJoin(){

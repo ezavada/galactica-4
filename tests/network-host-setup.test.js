@@ -19,6 +19,26 @@ module.exports=()=>test.describe('Multiplayer Host setup controls',()=>{
   const w=form();w.cancel();w.openSaved();const l=w.layout(320,340);test.assertTrue(l.compact);test.assertEqual(l.fields.map(f=>f.name).join(','),'file,port');
   test.assertTrue(l.fields.every(f=>f.body));test.assertTrue(l.buttons.every(b=>!b.body));w.key(pdg.key_Escape);test.assertFalse(w.active);test.assertNull(w.layout(320,340));
  });
+ test.it('preserves full compact Host metadata and measured commands across local and remote states in six languages',()=>{
+  const language=pdg.res.getLanguage(),Caption=require('../src/js/button-caption.js'),measure=(text,size=12)=>Array.from(text).length*size*.65;
+  try{for(const lang of ['en','de','es','fr','ja','ru'])for(const remote of [false,true]){pdg.res.setLanguage(lang);
+   const w=form(),info={title:'星Host'.repeat(40),address:'http://192.168.123.123:65535',port:65535,file:'/'+('長い名前/'.repeat(100))+'host.json',remoteAdministrator:remote,discovery:'active',info:{humans:3,computers:2,turn:2,clock:{paused:false,secondsRemaining:300}},administration:{complete:false,canContinue:false,players:[],initialState:true}};
+   w.record=info;w.stage='hosting';w.backend.describe=()=>info;w.backend.setAdminPassword=()=>{};w.backend.editInitialState=()=>{};
+   const feedback=pdg.res.getString(1030),l=w.layout(320,340,measure,feedback);
+   test.assertTrue(l.compact);test.assertEqual(l.statusLines.map(line=>line.text).join(''),feedback);
+   const content=l.labels.map(label=>label.text).join('');test.assertTrue(content.includes(info.title));test.assertTrue(content.includes(info.address));if(!remote)test.assertTrue(content.includes(info.file));
+   test.assertEqual(l.buttons.filter(b=>!b.body).map(b=>b.action).join(','),'stop,cancel');test.assertTrue(w.scrollLimit>0);
+   for(const b of l.buttons)test.assertTrue(Caption.width(b.label,b.key,measure,{size:b.size})+16<=b.rect.width+.001);
+   test.assertTrue(l.buttons.find(b=>b.action==='initialState').disabled);w.key(pdg.key_PageDown);test.assertTrue(w.bodyScroll>0);
+   info.administration.complete=true;const complete=w.layout(320,340,measure);for(const action of ['pause','endNow','settings','players','initialState'])test.assertTrue(complete.buttons.find(b=>b.action===action).disabled);
+   if(remote){info.administration.complete=false;info.administration.connected=false;const disconnected=w.layout(320,340,measure,feedback);test.assertTrue(disconnected.buttons.filter(b=>b.body).every(b=>b.disabled));test.assertFalse(disconnected.buttons.find(b=>b.action==='cancel').disabled);}
+  }}finally{pdg.res.setLanguage(language);}
+ });
+ test.it('retains compact listen failure feedback and port retry input without losing the host record',()=>{
+  const w=form(),info={title:'Failed host',address:null,port:12345,file:'host.json',info:{humans:2,computers:1,turn:1,clock:{paused:false,secondsRemaining:300}},administration:{complete:false,canContinue:false,players:[]}};
+  w.record=info;w.stage='hosting';w.backend.describe=()=>info;w.focus='port';w.message=pdg.res.getString(1069);const l=w.layout(320,340);
+  test.assertTrue(l.fields.some(f=>f.name==='port'));test.assertTrue(l.buttons.some(b=>b.action==='retry' && b.body));test.assertTrue(l.buttons.find(b=>b.action==='join').disabled);test.assertEqual(l.statusLines.map(line=>line.text).join(''),w.message);test.assertTrue(w.record===info);
+ });
  test.it('opens an independent multiplayer draft without changing local setup defaults',()=>{
   const source=new Config({numHumans:1,numComputers:98,gameTitle:'Local 星'}),before=JSON.stringify(source),w=form(source);test.assertEqual(w.humans.text,'2');test.assertEqual(w.computers.text,'97');test.assertEqual(JSON.stringify(source),before);test.assertEqual(w.options().config.totalPlayers,99);test.assertEqual(w.title.text,'Local 星');test.assertTrue(w.file.text.endsWith('.gad4.json'));test.assertEqual(w.options().listen.port,0);
  });

@@ -356,3 +356,17 @@ visually inspected. Both native suites pass 1,777 tests. Evidence uses the
 `/private/tmp/galactica-host-compact` and
 `/private/tmp/galactica-host-conversion-compact` prefixes. Other compact hosting
 surfaces and the localization completion audit remain open.
+
+
+### Compact live hosting status (2026-10-11)
+
+Local/remote hosting and listen failure below 400px wide reuse existing localized
+metadata, commands and errors with measured wrapping, body scrolling and fixed
+feedback/footer areas. Long titles and literal paths remain accessible. No
+resource IDs were added. All six languages pass 36 local ordinary/short/narrow
+before/after runs and twelve authenticated remote narrow runs. Final local
+status/failure/retry and remote active/revoked comparisons were visually reviewed.
+Both full native suites pass 1,779 tests. Evidence is under
+`/private/tmp/galactica-host-status-compact/` and
+`/private/tmp/galactica-remote-admin-compact/`. Nested compact administration
+surfaces and the broader localization completion audit remain open.

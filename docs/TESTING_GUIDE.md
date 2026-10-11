@@ -1206,3 +1206,25 @@ Both complete native suites pass 1,777 tests. Logs and screenshots use
 `/private/tmp/galactica-host-conversion-compact` prefixes; each screenshot tree
 includes JSON layout geometry and `comparison.json`. The parity status entry
 records the precise comparisons and remaining scope.
+
+
+### Compact live Host and remote administrator status checks
+
+`tools/test-web-host-status-compact.cjs BUILD OUTPUT LANG before|after WIDTH HEIGHT`
+uses real native hosts for pause/resume, turn advancement, occupied-port failure,
+retry, modal drag/cancellation, reopening and independent host stop. All 36
+six-language before/after runs pass at 800×600, 640×340 and 320×340.
+`tools/test-web-remote-admin-compact.cjs` accepts the same arguments and checks
+actual authenticated administration, durable changes, revocation, blur release
+and disconnect without stopping the host; all twelve narrow runs pass.
+Clipped Join/body controls are scrolled into view before actual clicks. Both
+helpers mute Chrome/native output and use localhost HTTP adapters.
+
+Both full native suites pass 1,779 tests. Evidence uses the
+`/private/tmp/galactica-host-status-compact` and
+`/private/tmp/galactica-remote-admin-compact` prefixes. Comparison JSON records
+162 local pairs and 108 remote pairs; six-language final status/failure/retry
+and authorization-loss reviews are recorded there. Ordinary local differences
+are confined to connection/file/clock/input metadata. See the parity entry for
+remaining scope and exact counts; these checks do not establish physical LAN
+or packaged native GUI behavior.
