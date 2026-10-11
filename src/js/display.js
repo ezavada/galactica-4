@@ -1612,6 +1612,7 @@ class Display {
     }
 
     getContextButtonArc(object, panelRect) {
+        if(this.game.isAwaitingMapTarget())return [];
         const actions = this.getContextActions(object);
         const position = this.getObjectScreenPosition(object);
         const screen=this.getScreenSize();
@@ -1776,7 +1777,7 @@ class Display {
     }
 
     getSelectedObjectPanelRect(object) {
-        if(this.game.pendingCourseEdit)return null;
+        if(this.game.isAwaitingMapTarget())return null;
         const objectType = this.game.getObjectType(object);
         if (objectType === Common.ObjectType.STAR) {
             return this.getStarDetailsLayout(object).rect;
@@ -2872,10 +2873,15 @@ class Display {
 
         if(WindowBehavior.isSystem(this.game.uiWindow))return this.getActiveWindowActionAt(x,y) || {type:'consume',blocked:true};
         if(this.game.uiWindow==='mapPick')return this.getActiveWindowActionAt(x,y) || {type:'consume'};
-        if(this.game.pendingCourseEdit) {
+        if(this.game.isAwaitingMapTarget()) {
+            const windowAction=this.getActiveWindowActionAt(x,y);
+            if(windowAction)return windowAction;
             const screen=this.getScreenSize(),hint={x:20,y:78,width:screen.width-40,height:40};
-            if(this.containsPoint(hint,x,y) || this.getMapButtonRegions().some(button=>this.containsPoint(button.rect,x,y)))return {type:'consume'};
-            return null;
+            if(this.game.pendingCourseEdit && this.containsPoint(hint,x,y) ||
+                this.game.pendingRendezvousPlacement && this.containsPoint(this.getRendezvousPlacementPromptRect(),x,y) ||
+                this.getMapButtonRegions().some(button=>this.containsPoint(button.rect,x,y)))return {type:'consume'};
+            // Hidden inspector controls must not intercept a destination click.
+            return this.getMapScrollActionAt(x,y);
         }
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
@@ -3943,7 +3949,8 @@ class Display {
         this.drawInstructions();
 
         // Draw selected object details
-        this.drawTransitionLayer('inspector',game.selectedObject && !game.pendingCourseEdit?game.selectedObject:null,()=>{
+        // Targeting hides the inspector immediately, including its cached fade.
+        if(!game.isAwaitingMapTarget())this.drawTransitionLayer('inspector',game.selectedObject && !game.pendingCourseEdit?game.selectedObject:null,()=>{
         if (game.selectedObject && !game.pendingCourseEdit && game.uiWindow!=='rename') {
             const objectType = game.getObjectType(game.selectedObject);
             if (objectType === Common.ObjectType.STAR) {

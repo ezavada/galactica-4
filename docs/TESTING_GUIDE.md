@@ -1116,3 +1116,16 @@ information views change layout. Both native suites pass 1,768 tests. Evidence:
 `/private/tmp/galactica-information-layout/verified`,
 `galactica-information-layout-comparison.json`, and
 `galactica-information-layout-{pdg,pdg-devel}-unit.log`.
+
+
+### Tutorial Add orders visibility
+
+Run `node tools/test-web-map-target-ui.cjs BUILD_DIR SCREENSHOT_DIR LANGUAGE
+before|after` against 7afcfb9 and the current build in all six languages. Chrome
+is muted. Actual tutorial startup/setup installs the original practice galaxy;
+a completed colony-ship fixture starts the focused interaction at lesson 16.
+The helper clicks Add orders, captures the hidden inspector/radials and
+crosshair over their old location, checks Escape restoration, then clicks S-20.
+All twelve workflows pass. Eighteen screenshot pairs are identical; twelve
+show the intended targeting changes. Both full suites pass 1,769 tests.
+Evidence: `/private/tmp/galactica-map-target-ui` and matching log prefixes.

@@ -310,3 +310,12 @@ updated pages were inspected. Thirty-six native-backed browser workflows and
 both 1,768-test native suites pass. No strings changed. Evidence:
 `/private/tmp/galactica-information-layout/verified`. Other hosting/error and
 compact gameplay audits remain open.
+
+
+### Tutorial Add orders visibility
+
+Inspector/radial suppression during targeting changes no captions. Actual
+six-language tutorial input and inspected before/after screenshots confirm
+Add orders, crosshair, cancellation and S-20 selection. Both native suites
+pass 1,769 tests; evidence: `/private/tmp/galactica-map-target-ui`.
+The separate S-20 camera/target cue remains the next item.

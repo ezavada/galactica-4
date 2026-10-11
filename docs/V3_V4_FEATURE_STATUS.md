@@ -7310,3 +7310,33 @@ Evidence: `/private/tmp/galactica-information-layout/verified`,
 controls; other hosting/network busy/error variants and compact gameplay remain
 open. No engine checkout changed. The newly reported tutorial target/ordering
 visibility issues are the next item.
+
+
+### Map-target selection hides inspectors (completed)
+
+The user-reported Add orders obstruction was reproduced in tutorial lesson 17:
+the ship inspector and radial buttons remained drawn and retained hit targets.
+All map targeting now hides the selected-object inspector and radials immediately,
+including cached fade content. Hidden allocation, destination and member controls
+cannot consume map clicks. Scrollbars remain usable; map buttons and the existing
+waypoint/rendezvous prompts retain their input guards. Selection/cancellation
+restores the same inspector. Events remains a non-modal window.
+
+The original tutorial's page 17 names S-20 (star ID 9); the galaxy coordinates and
+order rules are unchanged. Both full native suites pass 1,769 tests. A focused
+regression covers system, standalone ship, fleet and rendezvous targeting, hidden
+hit regions and Escape restoration. Its commissioning reports are cleared before
+targeting, matching the actual UI prerequisite. Twelve muted browser workflows
+pass before/after in all six languages using the real tutorial entry/setup and a
+completed colony-ship fixture positioned at lesson 16. They click Add orders,
+move the crosshair over the old inspector, cancel, retry and click S-20. All
+six actual destination selections succeed on both builds; this reproduces a
+visual obstruction rather than claiming that every baseline click was blocked.
+Of 30 screenshot pairs, 18 are identical; only the 12 targeting/hover views change.
+All six before/after targeting views were inspected. No strings or engine files
+changed. Evidence: `/private/tmp/galactica-map-target-ui`, its `comparison.json`,
+and `galactica-map-target-ui-{pdg,pdg-devel}-unit.log`.
+
+The separate S-20 discovery issue is confirmed: its source position is only about
+21 screen pixels from Andromeda at 100% zoom, with overlapping names. A tutorial
+camera/target cue is the next item; this commit does not claim to close it.

@@ -1,9 +1,9 @@
 const test=require('./test-framework.js'),Factory=require('../src/js/factory.js'),Game=require('../src/js/game.js'),Rules=require('../src/js/rules.js'),Config=require('../src/js/game-config.js'),Display=require('../src/js/display.js'),Cursor=require('../src/js/map-cursor.js');
-function fixture(){
+function fixture(x=0,y=0){
  const game=new Game(new Factory(),new Rules(),new Config({numHumans:1,numComputers:1,skipMapGeneration:true}));
- const star=game.factory.createStar(0,0,'Andromeda');star.owner=1;star.namedStar=true;game.setSelectedObject(star);
+ const star=game.factory.createStar(x,y,'Andromeda');star.owner=1;star.namedStar=true;game.setSelectedObject(star);
  game.port={getDrawingArea:()=>new pdg.Rect(800,600),getTextWidth:(text,size)=>Array.from(text).length*size/2};
- const display=new Display(game);display.camera.centerOn(0,0);display.scaledStarRadius=8;display.scaledShipRadius=5;
+ const display=new Display(game);display.camera.centerOn(x,y);display.scaledStarRadius=8;display.scaledShipRadius=5;
  return {game,star,display};
 }
 module.exports=()=>test.describe('Inline map editing and destination controls',()=>{
@@ -42,6 +42,15 @@ module.exports=()=>test.describe('Inline map editing and destination controls',(
   game.handleKeyPress(pdg.key_Escape);display.drawMapTargetPreview();test.assertEqual(lines.length,1);
   star.startBuildingShip('scout');const ship=star.completeShip();game.issuePlayerWaypoint(ship,{x:10000,y:20000});game.showCourse(ship);game.beginCourseEdit();game.overlay=null;game.overlayQueue=[];display.setHoverPoint(123,234);display.drawMapTargetPreview();
   test.assertEqual(lines[1][0].x,display.toScreenX(10000));test.assertEqual(lines[1][0].y,display.toScreenY(20000));
+ });
+ test.it('removes inspector hit targets and radial buttons while choosing orders, then restores them on cancel',()=>{
+  const {game,star,display}=fixture(512000,512000);star.startBuildingShip('scout');const ship=star.completeShip();const fleet=game.factory.createFleet(star.x,star.y,1,'Fleet');fleet.addShip(game.factory.createShip(star.x,star.y,'scout',star,true));game.overlay=null;game.overlayQueue=[];
+  for(const object of [star,ship,fleet]){game.setSelectedObject(object);const panel=display.getSelectedObjectPanelRect(object),before=display.getContextButtonRegions();test.assertDefined(panel);test.assertTrue(before.length>0,"Initial controls "+game.getObjectType(object));
+   const point={x:panel.x+6,y:panel.y+42};test.assertDefined(display.getUIActionAt(point.x,point.y));
+   test.assertTrue(game.beginMapOrder(object),"Begin order "+game.getObjectType(object));test.assertNull(display.getSelectedObjectPanelRect(object));test.assertEqual(display.getContextButtonRegions().length,0);test.assertEqual(display.getContextButtonArc(object,panel).length,0);test.assertNull(display.getUIActionAt(point.x,point.y));
+   game.handleKeyPress(pdg.key_Escape);test.assertTrue(game.selectedObject===object,"Selection restored "+game.getObjectType(object));test.assertDefined(display.getSelectedObjectPanelRect(object));test.assertTrue(display.getContextButtonRegions().length>0,"Controls restored "+game.getObjectType(object));
+  }
+  game.setSelectedObject(star);game.beginRendezvousPlacement();test.assertNull(display.getSelectedObjectPanelRect(star));test.assertEqual(display.getContextButtonRegions().length,0);game.handleKeyPress(pdg.key_Escape);test.assertDefined(display.getSelectedObjectPanelRect(star));
  });
  test.it('restores crosshair/text cursors after targeting and edits without touching unrelated canvas styles',()=>{
   const canvas={style:{cursor:'default',color:'red'}},cursor=new Cursor({},pdg,canvas);cursor.set('crosshair');test.assertEqual(canvas.style.cursor,'crosshair');cursor.set('text');test.assertEqual(canvas.style.cursor,'text');cursor.dispose();test.assertEqual(canvas.style.cursor,'default');test.assertEqual(canvas.style.color,'red');
