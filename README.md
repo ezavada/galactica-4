@@ -257,8 +257,19 @@ a saved password, uncheck the option and log in successfully. Failed or cancelle
 logins preserve the previous preference. Password fields stay masked; connection
 descriptors and game/host saves contain no remembered plaintext credentials.
 
+Connected players and administrators use **Menu → Chat**. Choose a human player,
+the administrator, or All players; the picker shows online/offline status.
+Broadcasts reach connected participants; private messages stay with their
+recipient, and offline human recipients receive saved reports at their next login.
+Enter/Return sends up to 256 Unicode characters without posting the turn. Escape
+closes chat while retaining its draft and paged history. Failed sends retain the
+original draft for a retry; uncertain requests keep their text/recipient fixed.
+The modal window remembers its position and stays within the viewport. Read
+acknowledgments persist, and a full unread inbox refuses additional messages
+rather than dropping them. Show/Hold game-report controls remain separate work.
+
 Multiplayer remains incomplete: Internet matchmaking needs an available service,
-and chat and network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
+and network-game saving is still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
 

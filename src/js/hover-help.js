@@ -1,6 +1,7 @@
 const Tooltip=require('./tooltip.js');
 const I18n=require('./i18n.js');
 const helpIds=Object.freeze({
+  "openChat":1215,"chatRecipients":1216,"chatSend":1217,"chatPage":1218,"chatText":1220,"chatRefresh":1221,
   "startupSettings":888,
   "openNewGameDefaults":966,
   "presentationPage":981,

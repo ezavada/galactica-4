@@ -1040,7 +1040,7 @@ class Game {
     }
 
     hasReplayableReport(event) {
-        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair || event.rendezvousFormation || event.colonization || event.commissioning || event.discovery));
+        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair || event.rendezvousFormation || event.colonization || event.commissioning || event.discovery || event.playerMessage));
     }
 
     queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense)), manual = false) {
@@ -1137,13 +1137,18 @@ class Game {
         };
         this.eventLog.push(event);
         // Keep every current/last-turn report, even in a busy construction turn.
-        while(this.eventLog.length>80 && this.eventLog[0].turn<Math.max(1,this.turn-1))this.eventLog.shift();
+        while(this.eventLog.length>80){
+            const index=this.eventLog.findIndex(event=>event.turn<Math.max(1,this.turn-1) && !(event.playerMessage && !event.handled));
+            if(index<0)break;
+            this.eventLog.splice(index,1);
+        }
         return event;
     }
 
     isEventAccessible(event, player=this.getCurrentHumanPlayer()) {
         if(!event || !this.eventLog.includes(event))return false;
         if(event.recipient!==undefined && event.recipient!==player)return false;
+        if(event.playerMessage && event.playerMessage.claim && this.config.networkHost && event.playerMessage.claim!==require('./host-chat.js').claimKey(this,player))return false;
         if(event.type===Common.EventType.RENAME_COLONY && (!this.stars.includes(event.subject) || event.subject.owner!==player))return false;
         const subject=event.subject;
         // Broadcast observer copies must still satisfy fog; participant copies bypass it.
@@ -1155,7 +1160,7 @@ class Game {
     getEventRows() {
         const reportTurn=Math.max(1,this.turn-1);
         // Terminal turns do not advance; their reports must remain available for replay.
-        return this.eventLog.filter(event=>(event.turn===reportTurn ||
+        return this.eventLog.filter(event=>(event.turn===reportTurn || event.playerMessage && !event.handled ||
             (event.outcome || this.isGameOver && this.hasReplayableReport(event)) && event.turn===this.turn) && this.isEventAccessible(event));
     }
 
@@ -1904,6 +1909,7 @@ class Game {
                 if(!this.manualCommands)return false;
                 this.manualCommands.open(pdg.res.getLanguage());return true;
             case 'quit':return !!(this.fileCommands && this.fileCommands.quit && this.fileCommands.quit());
+            case 'openChat':return !!(this.chatCommands && this.chatCommands.open());
             case 'fileMenu':return !!(this.fileCommands && this.fileCommands.menu());
             case 'newGame':return !!(this.sessionCommands && this.sessionCommands.begin());
             case 'showGames':

@@ -91,6 +91,7 @@ class Display {
     }
 
     reloadUIStrings() {
+        for(const event of this.game.eventLog || [])require('./player-message.js').apply(event);
         this.STR = {
             turn: I18n.getString(1, "Turn"),
             stars: I18n.getString(2, "Stars:"),
@@ -1331,7 +1332,7 @@ class Display {
         return WindowBehavior.constrain(rect,this.getScreenSize());
     }
 
-    isSystemWindowDrawing(){return this.drawingActiveWindow && WindowBehavior.isSystem(this.game.uiWindow);}
+    isSystemWindowDrawing(){return this.drawingSystemReport || this.drawingActiveWindow && WindowBehavior.isSystem(this.game.uiWindow);}
 
     fitPanelToScreen(rect) {
         const screen = this.getScreenSize();
@@ -1800,7 +1801,7 @@ class Display {
     }
 
     getCommandWindowHeight() {
-        return (this.game.canStartTutorial()?34:0)+(this.game.manualCommands?34:0)+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error?438:396):362);
+        return (this.game.chatCommands?34:0)+(this.game.canStartTutorial()?34:0)+(this.game.manualCommands?34:0)+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported ? (this.game.fullscreen.error?438:396):362);
     }
 
     getCommandWindowRect() {
@@ -1975,7 +1976,8 @@ class Display {
         const manual=this.game.manualCommands?[{rect:{x:rect.x+14,y:rect.y+318+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported?34:0),width:rect.width-28,height:28},label:I18n.getString(943,'User’s Manual'),key:'H',action:{type:'openManual'}}]:[];
         const tutorial=this.game.canStartTutorial()?[{rect:{x:rect.x+14,y:rect.y+318+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported?34:0)+(this.game.manualCommands?34:0),width:rect.width-28,height:28},label:I18n.getString(960,'Tutorial'),action:{type:'startTutorial'}}]:[];
         const file=this.game.fileCommands?[{rect:{x:rect.x+14,y:rect.y+318+(this.game.sessionCommands?68:0),width:rect.width-28,height:28},label:I18n.getString(838,'File'),action:{type:'fileMenu'}}]:[];
-        if(!this.game.getCurrentHumanPlayer())return fit([comparison,settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial]);
+        const chat=this.game.chatCommands?[{rect:{x:rect.x+14,y:rect.y+318+(this.game.sessionCommands?68:0)+(this.game.fileCommands?34:0)+(this.game.fullscreen && this.game.fullscreen.supported?34:0)+(this.game.manualCommands?34:0)+(this.game.canStartTutorial()?34:0),width:rect.width-28,height:28},label:I18n.getString(1201),action:{type:'openChat'}}]:[];
+        if(!this.game.getCurrentHumanPlayer())return fit([comparison,settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial,...chat]);
         return fit([{rect:{x:rect.x+14,y:rect.y+80,width:rect.width-28,height:28},
             icon:'gear',label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}},
             {rect:{x:rect.x+14,y:rect.y+114,width:rect.width-28,height:28},
@@ -1983,7 +1985,7 @@ class Display {
             comparison,
             {rect:{x:rect.x+14,y:rect.y+182,width:rect.width-28,height:28},
             label:I18n.getString(743,'Next item')+` (${this.game.attention.pending().length})`,key:'Tab',active:this.game.attention.pending().length>0,action:{type:'nextAttention'}},
-            settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial]);
+            settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial,...chat]);
     }
 
     getMapSelectionRect() {
@@ -4019,9 +4021,12 @@ class Display {
 
     drawReport(overlay) {
         const layout=this.getReportLayout(overlay),r=layout.rect;
-        this.drawWindowPanel(r,layout.title);
-        layout.visibleLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,layout.bodyY+index*18,'lightgray',13));
-        layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,null,{size:11}));
+        const previous=this.drawingSystemReport;this.drawingSystemReport=!!(layout.event && layout.event.playerMessage);
+        try{
+            this.drawWindowPanel(r,layout.title);
+            layout.visibleLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,layout.bodyY+index*18,'lightgray',13));
+            layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,this.drawingSystemReport && button.action.type==='dismissReport'?'Esc':null,{size:11}));
+        }finally{this.drawingSystemReport=previous;}
     }
 
     getDestructionEffect(overlay, start=false) {

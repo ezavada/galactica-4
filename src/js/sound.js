@@ -4,6 +4,7 @@ const Destruction=require('./destruction-effect.js');
 const available=new Set([1000,1001,1002,1003,1007,1008,1009,1010,1011,1012,1013,1014,7000]);
 function eventCue(event) {
     if(!event)return null;
+    if(event.playerMessage)return 1003;
     if(event.colonization)return event.observer?1014:1011;
     if(event.occupation) {
         const report=event.occupation;

@@ -44,10 +44,11 @@ class HostLogin {
             if(!Admission.allows(this.game,request.admissionCode))throw failure('not_admitted');
             slot=free;
             const salt=random(),claim={name:request.name,salt,hash:passwordHash(password,salt)};
-            const previousName=this.game.players[slots[slot]].name,previousNames=c.humanPlayerNames;
+            const previousName=this.game.players[slots[slot]].name,previousNames=c.humanPlayerNames,previousEvents=this.game.eventLog,previousChatKey=require('./host-chat.js').claimKey(this.game,slots[slot]);
             c.networkHost={...host,playersRevision:(host.playersRevision || 0)+1,players:host.players.map((p,i)=>i===slot?claim:p)};
             c.humanPlayerNames={...previousNames,[slots[slot]]:request.name};this.game.players[slots[slot]].name=request.name;
-            try{this.commit();}catch(error){c.networkHost=host;c.humanPlayerNames=previousNames;this.game.players[slots[slot]].name=previousName;throw error;}
+            require('./host-chat.js').bindClaim(this.game,slots[slot],previousChatKey);
+            try{this.commit();}catch(error){this.game.eventLog=previousEvents;c.networkHost=host;c.humanPlayerNames=previousNames;this.game.players[slots[slot]].name=previousName;throw error;}
         }else{
             if(matching<0)throw failure('player_not_found');
             slot=matching;const claim=host.players[slot];

@@ -304,6 +304,9 @@ runNetworkJoinTests();
 require('./network-password-preferences.test.js')();
 require('./network-host-preferences.test.js')();
 require('./network-discovery.test.js')();
+require('./host-chat.test.js')();
+require('./network-chat.test.js')();
+require('./network-chat-window.test.js')();
 runNetworkClientTests();
     runMapDisplayModeTests();
 

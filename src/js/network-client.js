@@ -43,7 +43,7 @@ function preservePresentation(old,fresh){
 class NetworkClient {
  constructor(address,{timeout=8000,request=HTTP.request}={}){
   this.address=normalizeAddress(address);if(!Number.isInteger(timeout) || timeout<1 || timeout>60000)throw fail('invalid_network_timeout');
-  this.timeout=timeout;this.request=request;this.session=null;this.identity=null;this.model=null;this.status='idle';this.connecting=false;this.generation=0;this.pending=new Set();this.refreshPromise=null;this.postPromise=null;this.pendingPost=null;
+  this.timeout=timeout;this.request=request;this.session=null;this.identity=null;this.model=null;this.status='idle';this.connecting=false;this.generation=0;this.pending=new Set();this.refreshPromise=null;this.postPromise=null;this.pendingPost=null;this.chat=new (require('./network-chat.js').NetworkChat)(this);
  }
  get connected(){return this.status==='connected' && !!this.session;}
  descriptor(){return this.identity?{address:this.address,...this.identity}:null;}
@@ -61,6 +61,9 @@ class NetworkClient {
     if(old.clientInitialStateRevision!==fresh.clientInitialStateRevision){preservePresentation(old,fresh);this.model=fresh;return fresh;}
     const changed=old.clientPlayerRevision!==fresh.clientPlayerRevision || JSON.stringify(old.config.getHumanPlayerSlots())!==JSON.stringify(fresh.config.getHumanPlayerSlots()) || require('./host-settings.js').fields.some(k=>old.config[k]!==fresh.config[k]);
     if(changed){if(!old.clientTurnPosted)require('./client-settings-refresh.js').preserveOrders(old,fresh);preservePresentation(old,fresh);this.model=fresh;return fresh;}
+    const previousEvents=new Map(old.eventLog.map(event=>[event.id,event]));
+    old.eventLog=fresh.eventLog.map(event=>{if(previousEvents.get(event.id)?.handled)event.handled=true;return event;}).concat(old.eventLog.filter(event=>event.id<0));
+    for(const event of old.eventLog)if(!previousEvents.has(event.id) && !event.handled){old.attention.requestEvent(event);if(event.playerMessage)old.queueReport(event);}
     old.clientClock=fresh.clientClock;
     old.remoteComparisons=fresh.remoteComparisons;
     for(let i=1;i<old.players.length;i++){old.players[i].name=fresh.players[i].name;old.players[i].isAlive=fresh.players[i].isAlive;old.players[i].numPiecesRemaining=fresh.players[i].numPiecesRemaining;}

@@ -13,7 +13,7 @@ class NetworkHost {
     constructor(game,file,fs){validate(game.config);if(game.config.networkHost && game.config.networkHost.settingsRevision!==undefined && (!Number.isSafeInteger(game.config.networkHost.settingsRevision) || game.config.networkHost.settingsRevision<0))throw failure('invalid_host_settings');this.game=game;this.file=file;this.fs=fs;this.server=null;this.login=new HostLogin(game,()=>this.persist());this.admin=new (require('./host-admin.js').HostAdmin)(this);
         // Each host owns its portable stream, so failed staging never consumes live/global randomness.
         if(game.tutorialRandom==null)game.tutorialRandom=require('./simulation-random.js').create(parseInt(game.config.networkHost.id.slice(0,8),16)%2147483646+1);
-        this.clock=new (require('./host-clock.js'))(game);this.clockTimer=null;this.clockError=null;}
+        this.chat=new (require('./host-chat.js').HostChat)(this);this.clock=new (require('./host-clock.js'))(game);this.clockTimer=null;this.clockError=null;}
     static create(options,file,fs=require('fs')){
         const admission=options.admission===undefined?undefined:require('./host-admission.js').validate(options.admission);
         const admin=options.adminPassword===undefined?undefined:require('./host-admin.js').credentials(options.adminPassword);
@@ -128,6 +128,7 @@ class NetworkHost {
             'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Content-Type, Authorization',
             'Access-Control-Allow-Methods':'GET, POST, OPTIONS'};
         const respond=(status,body)=>{res.writeHead(status,headers);res.end(body===undefined?'':JSON.stringify(body));};
+        if(req.url==='/chat' || req.url==='/chat/ack'){this.chat.handle(req,res);return;}
         if(req.url.startsWith('/admin/')){this.admin.handle(req,res);return;}
         const routes=['/info','/login','/session','/logout','/state','/orders'];
         if(!routes.includes(req.url)){respond(404,{error:'not_found'});return;}

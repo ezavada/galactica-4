@@ -5,6 +5,7 @@ const Common=require('./common.js'),Names=require('./chart-names.js');
 const V=Common.VisibilityLevel;
 function pick(source,keys){const result={};for(const key of keys)if(source[key]!==undefined && (source[key]===null || ['string','boolean','number'].includes(typeof source[key])))result[key]=source[key];return result;}
 const reports={
+ playerMessage:['sender','name','text'],
  combat:['side','result','forceName','ownShipsLost','enemyShipsLost','location'],
  occupation:['kind','starName','attackerOwner','previousOwner','attackerName','defenderName','side'],
  destruction:['kind','name','owner','opponentOwner','ownerName','opponentName','location','side'],

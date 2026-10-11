@@ -901,3 +901,24 @@
 1198	Turn {0} · {1} of {2} human slots open
 1199	Advertised on the local network
 1200	LAN advertisement unavailable; direct address joining still works
+1201	Chat
+1202	Send
+1203	To: {0}
+1204	All players
+1205	Message from {0}
+1206	Chatting with {0}
+1207	Message saved for the offline recipient.
+1208	Could not send. Retry without changing the message.
+1209	Choose recipient
+1210	Message text (Enter to send)
+1211	Chat unavailable while disconnected. Rejoin the game.
+1212	{0} → {1}
+1213	Unknown player {0}
+1214	Recipient no longer available. Choose another.
+1215	Open multiplayer chat. Send private messages to a player or administrator, or broadcast to everyone online.
+1216	Choose all players, the administrator, or an individual human player. Offline private messages are saved.
+1217	Send this message to the selected recipient. Enter sends without posting your turn.
+1218	Read earlier or later chat history. Long messages wrap across pages.
+1219	The unread message inbox is full. Wait for recipients to read their messages.
+1220	Type your message here. Enter or Return sends; Escape closes chat and keeps your draft.
+1221	Refresh messages and connection status without changing game orders.

@@ -105,13 +105,13 @@ function restore(input,administrator=false){
   if(ids.has(row.id) || row.recipient!==undefined && row.recipient!==viewer)invalid();ids.add(row.id);
   const event={...scalar(row,['id','turn','title','message','type','recipient','handled','observer','automatic']),subject:ref(row.subject),position:row.position?{x:number(row.position.x),y:number(row.position.y)}:null};
   for(const [key,fields] of Object.entries(require('./host-view.js').reports))if(row[key])event[key]=scalar(object(row[key]),fields);
-  return event;
+  require('./player-message.js').apply(event);return event;
  });
  game.nextEventId=0;for(const id of ids)game.nextEventId=Math.max(game.nextEventId,id);
  const lists={star:game.stars,ship:game.allShips,fleet:game.allFleets,rendezvous:game.allRendezvous};
  const spatial={star:'ENTITY_TYPE_STAR',ship:'ENTITY_TYPE_SHIP',fleet:'ENTITY_TYPE_FLEET',rendezvous:'ENTITY_TYPE_RENDEZVOUS'};
  for(const {row,entity:e} of byId.values()){lists[row.kind].push(e);game.spatialPartition.addEntity(e,Common.SpatialConstants[row.kind==='ship' && e.type==='defense'?'ENTITY_TYPE_DEFENSE':spatial[row.kind]]);}
- for(const event of game.eventLog)if(!event.handled)game.attention.requestEvent(event);
+ for(const event of game.eventLog)if(!event.handled){game.attention.requestEvent(event);if(event.playerMessage)game.queueReport(event);}
  for(const row of records)types[row.kind].nextId=Math.max(types[row.kind].nextId,row.id+1);
  game.clientOrderBase=administrator?null:require('./player-orders.js').baseline(game);
  return game;

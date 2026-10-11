@@ -901,3 +901,24 @@
 1198	Runde {0} · {1} von {2} menschlichen Plätzen frei
 1199	Im lokalen Netzwerk sichtbar
 1200	LAN-Ankündigung nicht verfügbar; Beitritt über Adresse funktioniert
+1201	Chat
+1202	Senden
+1203	An: {0}
+1204	Alle Spieler
+1205	Nachricht von {0}
+1206	Chat mit {0}
+1207	Nachricht für den nicht verbundenen Empfänger gespeichert.
+1208	Senden fehlgeschlagen. Unverändert erneut versuchen.
+1209	Empfänger wählen
+1210	Nachrichtentext (Enter zum Senden)
+1211	Chat ohne Verbindung nicht verfügbar. Erneut beitreten.
+1212	{0} → {1}
+1213	Unbekannter Spieler {0}
+1214	Empfänger nicht mehr verfügbar. Einen anderen wählen.
+1215	Mehrspieler-Chat öffnen. Privat an Spieler oder Administrator schreiben oder an alle Verbundenen senden.
+1216	Alle Spieler, den Administrator oder einen menschlichen Spieler wählen. Private Offline-Nachrichten werden gespeichert.
+1217	An den gewählten Empfänger senden. Enter sendet, ohne den Zug abzugeben.
+1218	Älteren oder neueren Chatverlauf lesen. Lange Nachrichten werden auf mehrere Seiten verteilt.
+1219	Der Posteingang ist voll. Warten, bis Empfänger ihre Nachrichten gelesen haben.
+1220	Nachricht hier eingeben. Enter sendet; Esc schließt den Chat und behält den Entwurf.
+1221	Nachrichten und Verbindungsstatus aktualisieren, ohne Spielbefehle zu ändern.

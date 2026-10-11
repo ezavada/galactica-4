@@ -901,3 +901,24 @@
 1198	Tour {0} · {1} places humaines libres sur {2}
 1199	Annoncée sur le réseau local
 1200	Annonce LAN indisponible ; la connexion par adresse reste possible
+1201	Discussion
+1202	Envoyer
+1203	À : {0}
+1204	Tous les joueurs
+1205	Message de {0}
+1206	Discussion avec {0}
+1207	Message enregistré pour le destinataire hors ligne.
+1208	Envoi impossible. Réessayez sans modifier le message.
+1209	Choisir le destinataire
+1210	Message (Entrée pour envoyer)
+1211	Discussion indisponible hors ligne. Rejoignez la partie.
+1212	{0} → {1}
+1213	Joueur inconnu {0}
+1214	Destinataire indisponible. Choisissez-en un autre.
+1215	Ouvrir la discussion multijoueur. Écrivez en privé à un joueur ou à l’administrateur, ou à tous les joueurs en ligne.
+1216	Choisissez tous les joueurs, l’administrateur ou un joueur humain. Les messages privés hors ligne sont enregistrés.
+1217	Envoyer au destinataire choisi. Entrée envoie sans terminer votre tour.
+1218	Lire les messages précédents ou suivants. Les longs messages occupent plusieurs pages.
+1219	La boîte des messages non lus est pleine. Attendez que les destinataires les lisent.
+1220	Saisissez votre message. Entrée envoie ; Échap ferme la discussion en conservant le brouillon.
+1221	Actualiser les messages et connexions sans modifier les ordres de jeu.

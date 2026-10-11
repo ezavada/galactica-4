@@ -901,3 +901,24 @@
 1198	Turno {0} · {1} de {2} plazas humanas libres
 1199	Anunciada en la red local
 1200	Anuncio LAN no disponible; puedes unirte mediante la dirección
+1201	Chat
+1202	Enviar
+1203	Para: {0}
+1204	Todos los jugadores
+1205	Mensaje de {0}
+1206	Conversación con {0}
+1207	Mensaje guardado para el destinatario desconectado.
+1208	No se pudo enviar. Reintenta sin cambiar el mensaje.
+1209	Elegir destinatario
+1210	Texto del mensaje (Enter para enviar)
+1211	Chat no disponible sin conexión. Vuelve a unirte.
+1212	{0} → {1}
+1213	Jugador desconocido {0}
+1214	Destinatario no disponible. Elige otro.
+1215	Abrir el chat multijugador. Envía mensajes privados a un jugador o al administrador, o a todos los conectados.
+1216	Elige a todos, al administrador o a un jugador humano. Los mensajes privados sin conexión se guardan.
+1217	Envía el mensaje al destinatario elegido. Enter envía sin terminar tu turno.
+1218	Lee el historial anterior o posterior. Los mensajes largos ocupan varias páginas.
+1219	El buzón de mensajes sin leer está lleno. Espera a que los destinatarios los lean.
+1220	Escribe aquí. Enter envía; Esc cierra el chat y conserva el borrador.
+1221	Actualiza mensajes y conexiones sin modificar las órdenes de juego.

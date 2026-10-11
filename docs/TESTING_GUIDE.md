@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1606
-Passed: 1606 ✓
+Total: 1627
+Passed: 1627 ✓
 Failed: 0 ✗
 ```
 
@@ -53,7 +53,7 @@ Repeat for `de`, `es`, `fr`, `ja`, and `ru`. The script starts its own temporary
 native host, exercises real browser fetch/CORS traffic and production controls,
 and captures the manually-fed client baseline, live client, preserved same-turn
 edits, and authoritative next turn. It stops Chrome and the host afterward. This
-is transport/renderer coverage. Host setup remains unfinished.
+is transport/renderer coverage; actual host setup checks are documented below.
 
 For actual startup/File-menu admission, masked password input, modal outside
 clicks, remembered title dragging, retained local documents, automatic turn
@@ -780,3 +780,29 @@ normal browser explicitly reports that UDP discovery requires the desktop app.
 For the shared dialog controls, browser automation uses a test-only bridge to an
 actual native multicast browser. This does not enable UDP in the released web
 app. Native and browser output stays muted.
+
+
+## Multiplayer chat
+
+Run the full synchronous suite with either native runtime, then the actual HTTP
+integration checks:
+
+```bash
+./gad4 tools/test-network-chat.js
+PDG_EXECUTABLE=/Users/edz/Documents/Personal/pdg/build/darwin/arm64/pdg/src/pdg.app/Contents/MacOS/pdg ./gad4 tools/test-network-chat.js
+node tools/test-web-host-setup.cjs /path/to/before-build /tmp/chat-before en before-chat
+node tools/test-web-host-setup.cjs /path/to/current-build /tmp/chat-after en chat
+```
+
+Repeat browser checks for de/es/fr/ja/ru. Twenty-one new synchronous regressions
+cover authenticated routing, private identity isolation, unclaimed-slot binding,
+saved offline reports/acknowledgments, failed-write rollback, unread capacity,
+strict response validation, Unicode paging, draft/history retention, uncertain
+retry editing and localization. The native integration runner exercises real
+HTTP with players/admins in all six languages, host reopening, response-loss
+retry and late cancellation. It never replaces the player's pending game orders.
+The browser runner uses actual input, native hosts and player/admin transport:
+recipient pages, broadcast/private traffic, incoming selection, modal outside
+clicks, failed-send draft retry, retained history, viewport-clamped persistent
+dragging, admin composition, localized offline report/acknowledgment and
+unsupported disconnected sending. Chrome and native test audio remain muted.
