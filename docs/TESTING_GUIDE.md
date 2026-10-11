@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Current expected result:
 
 ```text
-Total: 1637
-Passed: 1637 ✓
+Total: 1642
+Passed: 1642 ✓
 Failed: 0 ✗
 ```
 
@@ -835,3 +835,18 @@ Cancel/Escape, local setup/name continuation, restoration of the unchanged
 original document, cancelling instructions without closing Host, and actual
 native-backed host creation ending the instructions. The fixture stops its hosts
 and removes temporary files.
+
+
+Background network turn audio verification:
+
+```sh
+./gad4 tools/test-network-turn-attention.js
+node tools/test-web-host-setup.cjs /private/tmp/galactica-turn-ui-app /private/tmp/galactica-parity/turn-after/en en turn-attention
+```
+
+Run the native helper with both PDG runtimes and the browser helper in all six
+languages. Both are muted. The real host advances behind a selected local game;
+Warning playback, foreground silence, duplicate guards, mute/no replay and actual
+browser focus loss are checked. Mode `before-turn-attention` captures the previous
+build without the cue. Native OS activation detection and the foreground new-turn
+notice remain pending; these checks do not claim to cover them.

@@ -139,7 +139,11 @@ function installNetworkGame(model,client){
     else{installSavedGame(model,null);session=sessions.active;session.network=client;}
     session.deferredNetworkModel=null;session.nextRefresh=Date.now()+3000;session.networkError=null;if(client.identity.role!=='administrator')playerNamePreferences.write(client.identity.name);
 }
+let networkTurnAttention=null;
 function replaceNetworkModel(session,model){
+    if(!networkTurnAttention)networkTurnAttention=new (require('./src/js/network-turn-attention.js')).TurnAttention(sound);
+    networkTurnAttention.receive(session,model,{front:sessions.active===session && !sessions.starting && !sessions.transient && !networkHosting.active && !networkJoin.active && !startupSettings.active && !documents.dialog,
+        focused:require('./src/js/network-turn-attention.js').applicationFocused()});
     if(session.game===model)return;
     attachGameServices(model);const previous=session.display,nextDisplay=new Display(model);session.game=model;session.display=nextDisplay;
     if(sessions.active===session && !sessions.transient){if(!sessions.starting)clearSessionInput();game=model;display=nextDisplay;autoplayController=null;}
