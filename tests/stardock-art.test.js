@@ -11,6 +11,14 @@ module.exports=()=>test.describe('Shipped high-class presentation artwork',()=>{
   const art=require('../src/js/stardock-art.js');for(const n of [undefined,NaN,Infinity,-1,0])test.assertEqual(art.resolve('battleship',n).resource,303);
  });
  test.it('draws a real newly commissioned high-class ship without clamping its name, class or technology',()=>{const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true,numHumans:1,numComputers:1})),star=game.factory.createStar(0,0,'Home');star.owner=1;star.techLevel=75;star.startBuildingShip('battleship');const ship=star.completeShip(),r=renderer(game);test.assertEqual(ship.classIndex,16);test.assertEqual(ship.techLevel,75);test.assertTrue(ship.name.startsWith('Viper'));r.display.drawOverlay(game.overlay);test.assertTrue(r.images.includes('events/layers/pict-3010.png'));test.assertTrue(r.text.some(t=>t.includes('Viper')));});
+ test.it('commissions and displays the corrected first and nineteenth class names in all six languages',()=>{
+  const language=pdg.res.getLanguage(),names={en:['Traveler','Shark'],de:['Reisender','Hai'],es:['Viajero','Tiburón'],fr:['Voyageur','Requin'],ja:['旅人','サメ'],ru:['Странник','Акула']};
+  try{for(const code of Object.keys(names)){pdg.res.setLanguage(code);const classes=pdg.res.getString(800).split('|');test.assertEqual(classes.length,20);
+   for(const [n,index] of [1,19].entries()){const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true,numHumans:1,numComputers:1})),star=game.factory.createStar(0,0,'Home');star.owner=1;star.techLevel=(index-1)*5;star.startBuildingShip('battleship',false);const ship=star.completeShip(),r=renderer(game);
+    test.assertEqual(classes[index-1],names[code][n]);test.assertEqual(ship.classIndex,index);test.assertEqual(ship.techLevel,(index-1)*5);test.assertTrue(ship.name.startsWith(names[code][n]));test.assertEqual(game.overlay.type,'stardock');r.display.drawOverlay(game.overlay);test.assertTrue(r.text.some(t=>t.includes(names[code][n])));
+   }
+  }}finally{pdg.res.setLanguage(language);}
+ });
  test.it('adds blueprint colors to the Lab background with a reusable dedicated style',()=>{
   const d=Object.create(Display.prototype);d.images={};const first=d.getImageCached('testBlueprint','tech/blue-11.png',new pdg.Color('black'));
   test.assertNotNull(first);test.assertEqual(first.getAlphaValue(new pdg.Point(0,0)),0);

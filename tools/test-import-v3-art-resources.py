@@ -79,6 +79,14 @@ class ArtReferenceTests(unittest.TestCase):
         for name in ('gal-en-shareware.r','gal-de-shareware.r','gal-en-cdrom.r','gal-de-cdrom.r'):
             blob=presentation.resource((root/name).read_bytes().decode('mac_roman'),'STR#',401)
             self.assertEqual(struct.unpack_from('>H',blob)[0],23)
+            cursor=2;names=[]
+            for _ in range(23):
+                size=blob[cursor];cursor+=1;names.append(blob[cursor:cursor+size].decode('mac_roman'));cursor+=size
+            self.assertEqual(cursor,len(blob))
+            strings=ROOT/'data'/('strings-de.txt' if '-de-' in name else 'strings.txt')
+            current=next(line.split('\t',1)[1].split('|') for line in strings.read_text().splitlines() if line.startswith('800\t'))
+            self.assertEqual(current,names[3:])
+
         self.assertEqual([self.reference['layers'][str(n)]['layers'][1]['picture'] for n in range(300,304)],
                          [3000,3001,3002,3003])
         for n in (313,314):self.assertEqual(self.reference['layers'][str(n)]['layers'][1]['picture'],3012)

@@ -148,7 +148,7 @@ The largest blockers to a complete game are:
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
 | Four hull roles | Satellite, Scout/Courier, Colony, Battleship with distinct cost/speed/combat/scanner roles. | ✅ Implemented | ✅ Implemented | V3 construction/cost rules match the runtime hulls, including stationary satellite patrol, fast unarmed scanning couriers, slower reusable colony ships, battleship combat and class progression. Diagnostics and destination-entry eligibility reflect these roles. Build/default choices have translated role help; first-built hulls and higher battleship classes have owner-only Stardock art/reports focused on the building system. Milestones and pending presentations survive save/restore; repeated/older classes do not announce again. Broader recipient-relative arrival/colonization narratives remain their separate Section 8 rows. |
-| Battleship drive classes/names | A new named class every five tech levels (Traveler through Hellion). | ✅ Implemented | ✅ Implemented | Class index/name and first-of-class event are assigned in `star.js:180-203`, using resource ID 800. |
+| Battleship drive classes/names | A new named class every five tech levels (Traveler through Hellion). | ✅ Implemented | ✅ Implemented | Class index/name and first-of-class event use resource ID 800. English and German class lists match shipped STR#401; all six supported languages provide localized class names, including Traveler and Shark (classes 1 and 19). Real commissioning and Stardock caption regressions cover all six languages. |
 | Ship information/diagnostics | Name, class, tech, speed, power, damage/health bar. | ✅ Implemented | ✅ Implemented | The retained panel shows the real/renamed ship name, hull, named drive class, owner, integer tech/power, localized v3 speed, integer damage percent and health bar, scanner range in light-years, docking/patrol/travel/fleet status, location and current destination. Long Unicode names and values fit the panel. Selected map ships show the v3 health bar at normal zoom or closer. Enemy fields respect v3 visibility thresholds and enemy courses remain hidden. Full course editing is its separate navigation checklist item. |
 | Direct destination orders | Add destination to a star, ship, fleet, or open space. | ✅ Implemented | ✅ Implemented | Human right-click and Orders targeting append star, ship, fleet or coordinate waypoints. AI destination assignments retain one-point replacement semantics. |
 | Multi-waypoint courses | Ordered waypoint list with current destination in bold. | ✅ Implemented | ✅ Implemented | Shared ship/fleet course model retains origin, active/previous indices and live object references. The paged editor highlights the active destination, shows localized leg/remaining turns and draws the remaining circuit. |
@@ -4734,3 +4734,29 @@ The separate actual research/production/End Turn workflow is verified in
 The overall parity and map-generation goal remains active; other window/art
 roles, decoded payload limitations and platform/runtime blockers are not
 claimed complete by this Stardock change.
+
+
+### Shipped battleship class names and localization
+
+Recovered STR#401 in both English and German shareware/CD-ROM resources
+confirms battleship classes 1–20 after the three basic hulls. Resource 800 now
+matches those source lists exactly: English starts with Traveler and class 19
+is Shark, replacing the earlier Traveller/Wyvren errors. German uses the
+shipped translated names. Spanish, French, Japanese and Russian now localize
+this list rather than repeating English; distinct fictional names retain their
+identity or use the native script. This changes newly commissioned ship names
+and class captions; existing saved ship names are not rewritten.
+
+Native regression commissions classes 1 and 19 in every supported language,
+checking class index, technology, actual ship name and rendered Stardock
+caption. Original-resource regression compares the complete English/German
+lists against all four shipped variants. Both full native PDG lanes pass
+1,697 tests, and all nine recovered-resource tests pass. Actual-input browser
+commissioning and dismissal pass in all six languages. The 120 before/after
+pairs contain 79 identical frames and 41 corrected/localized class captions;
+all 72 Stardock artwork crops remain pixel-identical. English before/after
+and the localized first/nineteenth-class frames were visually inspected for
+readability. A partially redrawn German baseline was recaptured before the
+final comparison. Screenshots and comparison totals are under
+`/private/tmp/galactica-class-names`; native/source/browser logs use the
+`/private/tmp/galactica-class-names-` prefix. Tests remain muted.

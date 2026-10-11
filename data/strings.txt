@@ -241,7 +241,7 @@
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
 # Order maps to class index floor(tech/5):
-800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion
+800	Traveler|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Shark|Hellion
 
 # Production allocation locks
 674	Lock

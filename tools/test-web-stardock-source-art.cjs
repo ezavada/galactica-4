@@ -46,10 +46,11 @@ for(const kind of ['commissioning','discovery']){
  await check('g.overlay && g.overlay.type==="'+(kind==='commissioning'?'stardock':'lab')+'" && !report.observer','Private owner artwork lost');
  await capture('owner-'+kind+'-artwork');await key('Escape');
 }
-for(const [hull,index,resource] of [['defense',0,300],['scout',0,301],['colony',0,302],['battleship',1,303],['battleship',10,312],['battleship',11,313],['battleship',12,314],['battleship',13,310],['battleship',16,310],['battleship',18,300],['battleship',20,300]]){
+for(const [hull,index,resource] of [['defense',0,300],['scout',0,301],['colony',0,302],['battleship',1,303],['battleship',10,312],['battleship',11,313],['battleship',12,314],['battleship',13,310],['battleship',16,310],['battleship',18,300],['battleship',19,300],['battleship',20,300]]){
  await evaluate(`g.uiWindow=null;g.clearEventPresentations();g.eventLog=[];g.turn=1;g.players[1].builtColony=false;g.players[1].builtScout=false;g.players[1].builtSatellite=false;g.players[1].builtFighterClasses=new Set();home.techLevel=${hull==='battleship'?(index-1)*5:0};home.startBuildingShip("${hull}",false);window.built=home.completeShip();g.turn=2;void 0`);
  await check('built && g.overlay && g.overlay.type==="stardock" && g.overlay.ship===built','Real first-class commissioning missing');
  if(hull==='battleship')await check('built.classIndex==='+index+' && built.techLevel==='+((index-1)*5),'Artwork altered ship class or technology');
+ if(!before && hull==='battleship')await check('built.name.startsWith(pdg.res.getString(800).split("|")['+(index-1)+'])','Commissioned class name is not localized');
  if(!before)await check('visual.stardockResource("'+hull+'",'+index+')==='+resource,'Wrong original Stardock resource');
  await capture('owner-stardock-'+hull+'-'+index);await key('Escape');
  await check('!g.overlay && g.turn===2','Stardock dismissal advanced game');

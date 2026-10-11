@@ -6,7 +6,7 @@ if (typeof global.pdg === 'undefined') {
         res: {
             getString: (id) => {
                 if (id === 800) {
-                    return 'Traveller|Rama|Hawk|Falcon|Riviel|Valkyrie|Wolven|Banshee|Avenger|Raven|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion';
+                    return 'Traveler|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Shark|Hellion';
                 }
                 return '';
             },

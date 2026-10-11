@@ -241,7 +241,7 @@
 673	{0} umbenennen
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
-800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion
+800	Reisender|Rama|Habicht|Falke|Riviel|Rabe|Valkyrie|Wolven|Rächer|Todesfee|Kralle|Sturm|Skorpion|Verteidiger|Kobra|Natter|Kriegesfalke|Barracuda|Hai|Bengel
 
 # Production allocation locks
 674	Sperren
