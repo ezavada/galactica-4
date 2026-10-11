@@ -90,7 +90,7 @@ The largest blockers to a complete game are:
 
 - More elaborate cinematic or art-heavy victory/defeat treatment beyond the v3 text/window resources.
 
-## 2. Map, camera, visibility, and display modes (Functionality 95%, UI 95%)
+## 2. Map, camera, visibility, and display modes (Functionality 97%, UI 97%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -101,7 +101,7 @@ The largest blockers to a complete game are:
 | Go to home planet | Goto menu/Home-key command centers/selects home. | ✅ Implemented | ✅ Implemented | House icon, View menu and Home key select and center the current human homeworld without changing zoom. H is reserved for eligible selected mobile Hunt, matching v3. |
 | Go to selected/current item | Centers map on selected entity. | ✅ Implemented | ✅ Implemented | View → Center selected item and Shift+C center the current selection; lowercase c remains colony building. |
 | Go to next item needing attention | Menu/Tab cycles the attention queue. | ✅ Implemented | ✅ Implemented | Tab, the Next item map button and command-menu entry select and center the next unhandled valid subject. Counts/active controls reflect pending requests. Selecting a subject manually also handles its request; removed/captured/member objects are skipped. Empty queues never advance the turn. Remaining event-subject coverage is tracked under Attention queue in Section 8. |
-| Replay/go to enemy moves | Shows noteworthy enemy movement. | 🟡 Partial | 🟡 Partial | Settings → Show enemy events controls automatic playback of accessible observer reports, defaults on as in v3, persists as a new-game default and in complete-game saves, and leaves manual Events replay available when off. Observer captures focus/center the known system; movement-time notices defer until visibility is recalculated. Disabled or newly hidden queued observer copies are skipped, and quiet autoplay/private recipients remain respected. Settings pages in short viewports with mouse/arrow input and localized hover help. Surviving-system defense losses and neutral-colonization notices also broadcast detected observer reports with the same playback preference. Automatic notices without dialogs now retain their map focus for four seconds (eight during tutorials), including the final notice, without repeating their cues. Manual Events review stays immediate. Clicking during an automatic no-dialog notice now stops the remaining autoshow batch and consumes the click; Escape/Return/Space also stop the batch. Unread reports and owner-art metadata remain available for explicit review and survive saves. Hold/Show enemy events preferences and subsequent attention navigation are preserved. Local playback now restores a surviving pre-turn selection when no real go-to request remains, including interrupted playback; held autoshow reports stay reserved for explicit review. Restoration survives playback saves, ignores removed objects, and yields to manual attention navigation. The remaining emitted-event inventory still needs separate audit. |
+| Replay/go to enemy moves | Shows noteworthy enemy movement. | ✅ Implemented | ✅ Implemented | Settings → Show enemy events controls automatic playback of accessible observer reports, defaults on as in v3, persists as a new-game default and in complete-game saves, and leaves manual Events replay available when off. Observer captures focus/center the known system; movement-time notices defer until visibility is recalculated. Disabled or newly hidden queued observer copies are skipped, and quiet autoplay/private recipients remain respected. Settings pages in short viewports with mouse/arrow input and localized hover help. Surviving-system defense losses and neutral-colonization notices also broadcast detected observer reports with the same playback preference. Automatic notices without dialogs now retain their map focus for four seconds (eight during tutorials), including the final notice, without repeating their cues. Manual Events review stays immediate. Clicking during an automatic no-dialog notice now stops the remaining autoshow batch and consumes the click; Escape/Return/Space also stop the batch. Unread reports and owner-art metadata remain available for explicit review and survive saves. Hold/Show enemy events preferences and subsequent attention navigation are preserved. Local playback now restores a surviving pre-turn selection when no real go-to request remains, including interrupted playback; held autoshow reports stay reserved for explicit review. Restoration survives playback saves, ignores removed objects, and yields to manual attention navigation. The complete emitted-event inventory and final observer-family/control/privacy audit are verified below: all five automatic observer families, the two globally relevant outcomes and the excluded foreign manual fleet notice are accounted for. |
 | Select objects on map | Stars/ships/fleets can be clicked; overlapping items can be chosen explicitly. | ✅ Implemented | ✅ Implemented | Shared marker centers/extents align drawing and hits at every zoom, including scaled docking offsets and fleet size. Omitted small mobiles, satellites, dead ships, empty fleets, members and fog/preference-hidden markers cannot intercept input. A paged neutral chooser resolves stacked clicks, Control-click nearby items and ambiguous order targets; numbered keys/clicks choose, Escape preserves pending commands, and Enter/Tab cannot advance the game. Labels conceal unknown mobile names; cached type icons and allied-only plotted/scrap hints distinguish entries. Fleet inspector/marker information visibility remains the separate Section 5 gap. |
 | Navigate containing objects | Left Arrow selects the immediate container and remembers the child; Right Arrow inspects the selected contents row. | ✅ Implemented | ✅ Implemented | Docked ships, nested groups and top-level fleets navigate one real container at a time through the existing fleet-exchange UI. The previous child is highlighted and revealed on its sorted page. Parent and Inspect buttons share the same behavior and display arrow hints; the system-parent button has a translated Containing system label. Right Arrow selects a fleet’s first row on entry and can return through a nested hierarchy. Hidden/stale containers, map targeting, drags and modal/editor input retain their existing restrictions. At the top level the shipped No more sample plays without changing selection or turn. Source and verification are recorded below. |
 | Selection marker | Pulsing marker around selected object. | ✅ Implemented | ✅ Implemented | Rendered for stars, ships, and fleets in `display.js`. |
@@ -6166,3 +6166,69 @@ estimates are recomputed from its current table: all sixteen functionality rows
 are implemented, and all thirteen applicable UI rows are implemented (three
 map/state rows have no independent UI). Other partial rows retain their scope;
 overall parity and the Map Generation completion audit remain active.
+
+## Enemy-event replay completion audit
+
+The source command toggles `mGotoEnemyMoves` (`GalacticaDoc.cp:689–690`). Its
+behavior is the observer-autoshow filter in `ShowMessages:1610–1689`, using
+`MessageIsAboutMe` and `MessageConcernsEveryone` (`CMessage.cpp:677–688`).
+It skips foreign automatic reports when disabled while retaining explicit
+Events review; notices about the player and global outcomes remain eligible.
+The prior complete-emitter audit supplies the actual reachable recipient
+inventory, rather than assuming every Evnt128 resource entry is emitted.
+
+| Source foreign recipient | Source code / STR#500 | Current verified delivery |
+|---|---|---|
+| System capture | 1 / 3 | Detected observer focus, automatic playback preference, explicit narrative |
+| System-defense losses | 6 / 39 | Detected observer explosion/focus, preference, complete plural narrative |
+| First ship class | 11 / 19 | Observer cue/focus and narrative; private Stardock art remains owner-only |
+| New drive class | 12 / 21 | Observer cue/focus and narrative; private Lab art remains owner-only |
+| Neutral colonization | 14 / 25 | Detected observer focus, preference and colony narrative |
+| Player defeated / victory | 17 / 31 and 18 / 33 | Concern everyone; automatic completion remains available with enemy events off |
+| New fleet, manual | 15 / 27 | Excluded from automatic playback and foreign Next; explicit detected Events review retained |
+
+This completes the stale remaining-inventory clause in the replay row. Source
+entries outside the reachable emitter inventory remain documented in
+`docs/reference/EVENT_NARRATIVE_COVERAGE.md`; no invented event family is needed.
+The completed report-family tests exercise actual construction, arrival,
+colonization, battle and outcome producers. `tests/enemy-events.test.js` covers
+the shared filter, queue deduplication, movement/visibility deferral, mid-queue
+setting/visibility changes, private recipients and quiet automation. Its timing
+and interruption tests cover four-second/eight-second tutorial dwell, final
+notice, consumed clicks/keys, retained owner-art metadata and explicit review.
+Saved playback preferences, pending copies and short-screen localized Settings
+navigation are covered there; pre-turn selection/attention restoration remains
+covered by `tests/attention.test.js` and its actual-input browser audits.
+
+Fresh complete muted native suites pass 1744 tests on public/development PDG,
+zero failures: `/private/tmp/galactica-enemy-replay-{public,devel}-unit.log`.
+The original event importer verifier passes all eight actual-resource tests in
+`galactica-enemy-replay-source.log`.
+
+New `tools/test-web-enemy-replay.cjs` exercises each of the five observer families
+through actual Settings toggles and Events selection/View/dismissal in all six
+languages. It verifies automatic on/off behavior, hidden recipients, quiet
+playback, save/open preference and private-art exclusion. It waits for rendered
+frames and the destruction cadence before photographing manual narratives.
+The baseline and independently rebuilt app have the same application code and
+asset index; only build-revision metadata differs. All twelve runs finish with
+status zero, and all 120 matched screenshots are byte-identical. English
+before/after and all six localized commissioning/defense narrative views were
+visually inspected. Evidence is `/private/tmp/galactica-enemy-replay-comparison.json`,
+matching `galactica-enemy-replay-{before,after}-<language>.log` files and the
+`galactica-enemy-replay/{before,after}` screenshot trees.
+
+`tools/test-web-outcome-recipient-cues.cjs` also passes current actual outcome
+generation, observer automatic completion with enemy events disabled and manual
+review in all six languages, recorded in
+`galactica-enemy-replay-outcomes-<language>.log`. Foreign manual fleet attention
+was separately verified and committed in the earlier source-filter audit.
+Automation remains muted, with application sound behavior intact. No gameplay
+code or localized strings changed in this completion audit.
+
+The replay row is now implemented in both columns. Section 2 estimates are
+recomputed across nineteen applicable rows: eighteen implemented plus the
+separate partially verified Full screen row, rounded to Functionality/UI 97%.
+The dormant starlanes and danger entries are excluded as documented source
+non-blockers. Native/package validation, other UI rows and Map Generation
+completion retain their original scope and remain active.
