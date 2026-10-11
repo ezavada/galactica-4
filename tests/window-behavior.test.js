@@ -186,6 +186,24 @@ module.exports=()=>test.describe('System window modality and title dragging',()=
    }
   }}finally{pdg.res.setLanguage(old);}
  });
+ test.it('scales Host title capture for each dialog without stealing fields or list controls',()=>{
+  const {HostWindow}=require('../src/js/network-host-setup.js'),{prefs}=preferences();
+  const info={title:'Host',address:'http://localhost:1',port:1,administration:{complete:false,canContinue:true,players:[],initialState:true,connected:true},info:{turn:1,clock:{paused:true,secondsRemaining:300}}};
+  const backend={supported:true,latest:()=>null,describe:()=>info},host=new HostWindow(backend,()=>true);host.open();
+  host.record={};host.playerSelection=1;host.playerList=[{player:1,name:'Alpha',assigned:true,isAlive:true,isComputer:false,online:false}];host.pendingPlayerAction='rename';host.playersComplete=false;
+  host.initialRows=[{id:1,name:'Home',population:1000,technology:1,owner:1}];host.initialSelection=1;host.initialKind='population';host.initialPlayers=2;
+  host.admission={allowWithoutCode:true,allowed:[],banned:[]};host.admissionList='allowed';host.admissionSelection=null;host.page=0;
+  host.confirmation={turn:1,pending:[]};host.conversion={title:'Local',turn:1,totalPlayers:2};host.settingsInfo={title:'Host',humans:2,computers:0,sectorSize:1,density:1};
+  for(const size of [[800,600],[640,480],[640,340]]){
+   for(const stage of ['form','open','conversion','hosting','settings','players','playerName','admission','adminPassword','initialState','initialValue','endTurn']){
+    host.stage=stage;const layout=host.layout(...size),screen={width:size[0],height:size[1]},placement=new Placement(prefs);
+    for(const item of [...layout.fields,...layout.choices,...layout.checks,...layout.buttons]){
+     test.assertFalse(placement.begin('networkHosting',layout.rect,item.rect.x+1,item.rect.y+1,screen,layout.titleHeight),stage+' control hit the title');
+    }
+    test.assertTrue(placement.begin('networkHosting',layout.rect,layout.rect.x+20,layout.rect.y+14*layout.scale,screen,layout.titleHeight));placement.end();
+   }
+  }
+ });
  test.it('persists native positions, rejects malformed config, and keeps controls aligned in application dialogs',()=>{
   const values=new Map(),prefs=Preferences.createPreferences({pdg:{cfg:{useConfig:()=>{},getConfigString:k=>values.get(k),setConfigString:(k,v)=>values.set(k,v)}}});
   prefs.writeWindowPosition('startup',{x:25,y:45});test.assertEqual(prefs.readWindowPosition('startup').y,45);

@@ -217,3 +217,29 @@ the localhost address field's temporary port. Before/after Spanish/French/
 Japanese dragged panels and all six full/short credential layouts plus short
 saved-host layouts were visually inspected. Other hosting/discovery/turn-notice
 and busy/error variants remain in the chrome audit.
+
+
+Host layouts expose a title height scaled from their own reference height.
+Foreground mouse routing passes it to window placement instead of capturing a
+fixed 52px strip. This matters because Host setup/status, player/admission lists
+and nested editors use different reference heights. In short ports the old
+strip swallowed the title field, first player/initial-system row and admission
+checkbox. Other application windows keep their existing title capture behavior.
+
+The regression fails with the old implementation; native geometry checks cover
+all twelve Host stages at 800×600, 640×480 and 640×340. Both full suites pass
+1,755 tests. Dedicated native Host lifecycle checks pass actual durable files,
+listeners/admission, retained hosting, failure recovery and save-before-stop.
+
+Actual-input browser checks use the shared Host UI and a test adapter to real
+native hosts, not a browser-hosting implementation. All six languages pass at
+800×600 and 640×340 for startup Host, field/list/checkbox edge clicks, real host
+creation, bounded persisted title drags, modal outside-click clunks, players,
+admission, initial state, administrator password and actual shutdown. Across
+204 screenshot pairs, 156 are identical and 24 show the corrected short control
+edges. Twenty-four Host status pairs differ only in temporary address/port/file
+rows; masking those identified fixture rows leaves zero differences. English
+before/after controls/status and all six short setup/player/admission/initial/
+password layouts were visually inspected. Remaining current foreground coverage
+includes settings/open/conversion/confirmation/value editors, discovery,
+turn-notice and busy/error variants.

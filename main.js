@@ -275,7 +275,7 @@ function foregroundApplicationWindow(){
     const area=port.getDrawingArea(),width=area.width(),height=area.height();
     if(networkTurnNotice.active(sessions.active,game))return {name:'networkTurnNotice',rect:networkTurnNotice.layout(width,height,text=>port.getTextWidth(text,14)).rect};
     if(networkChat.active)return {name:'networkChat',rect:networkChat.layout(width,height,text=>port.getTextWidth(text,12)).rect};
-    if(networkHosting.active)return {name:'networkHosting',rect:networkHosting.layout(width,height).rect};
+    if(networkHosting.active){const layout=networkHosting.layout(width,height);return {name:'networkHosting',rect:layout.rect,titleHeight:layout.titleHeight};}
     if(networkJoin.active)return {name:'networkJoin',rect:networkJoin.layout(width,height).rect};
     if(userManual.error())return {name:'manualError',rect:userManual.layout(width,height,(text,size=13)=>port.getTextWidth(text,size)).rect};
     if(documents.dialog)return {name:documents.dialog.kind==='editor'?'textEntry':'documents',rect:documents.dialog.kind==='editor'?PlayerName.layout(width,height).rect:documents.layout(width,height).rect};
@@ -1131,7 +1131,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
     const foreground=foregroundApplicationWindow();
     if(foreground && event && event.eventType===pdg.eventType_MouseDown){
         const area=port.getDrawingArea(),p=event.mousePos;
-        if(event.buttonNumber===0 && windowPlacement.begin(foreground.name,foreground.rect,p.x,p.y,{width:area.width(),height:area.height()}))return true;
+        if(event.buttonNumber===0 && windowPlacement.begin(foreground.name,foreground.rect,p.x,p.y,{width:area.width(),height:area.height()},foreground.titleHeight))return true;
         if(p.x<foreground.rect.x || p.x>foreground.rect.x+foreground.rect.width || p.y<foreground.rect.y || p.y>foreground.rect.y+foreground.rect.height){sound.play(1012);return true;}
     }
     if(networkTurnNotice.active(sessions.active,game))return true;
