@@ -194,7 +194,7 @@ The largest blockers to a complete game are:
 - Automatic unique fleet names for computer-created fleets; v3 source notes this as a TODO rather than shipped behavior.
 - Higher-level task-force or staging automation beyond v3 rendezvous points.
 
-## 6. Combat, occupation, defense, and fog of war (Functionality 100%, UI 80%)
+## 6. Combat, occupation, defense, and fog of war (Functionality 100%, UI 85%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -205,7 +205,7 @@ The largest blockers to a complete game are:
 | Capture and defeated resistance | Successful invasion reports the loss of resistance and transfers ownership when a colony survives. | ✅ Implemented | 🟡 Partial | A surviving colony ship can transfer ownership after ground combat, defeated systems clear stale default destinations, new colony defaults apply where v3 does, non-colony survivors are kept outside hostile stars that hold, and defeat/victory updates run after combat. V3 `CShip::Arriving` distinguishes defeated resistance from subsequent occupation; both have private winner/loser reports, queued modal presentation, attention and Events replay. A separate surrender event has enum/resource definitions but no runtime emitter in the shipped source; it is not treated as an additional confirmed gameplay trigger. Defeated resistance plays a source-timed procedural explosion before its report. Private ship/fleet destruction notices are implemented separately. Captures broadcast an observer narrative visible for detected/allied subjects or in all-visible mode, retained for manual replay and automatically presented when Show enemy events is enabled; resistance remains private. Sound and other event variants remain presentation work. |
 | Defense satellites | Stationary, strong, always on patrol, cannot repair. | ✅ Implemented | ✅ Implemented | The hull is stationary, completed defense builds attach to the star, satellites patrol automatically, satellites do not repair, and attached satellites defend systems. Localized hull/build/progress controls, ship inspection and separate damaged-satellite defense totals are present in the system panel and comparison table. |
 | Patrol coordination bonus | Patrolling defenders receive attack/defense advantages. | ✅ Implemented | ✅ Implemented | Satellite completion, Good/Expert AI and docked human ship/fleet commands enable Patrol. Ship combat formulas apply the v3 docked attack/damage bonuses; localized ship/fleet status and active editor/context controls indicate the mode. |
-| Damage and destruction | Health decreases, units die, fleet loss accounting and explosion feedback. | ✅ Implemented | 🟡 Partial | Runtime combat applies v3-style ship power, star strength, and population damage, removes destroyed ships robustly, and recalculates/cleans up affected fleets. Private casualty and defeated-resistance reports now center their recorded battle location and play eight expanding/contracting frames at the v3 tick cadence before showing the complete message. Events replay and restored pending messages restart the effect; quiet autoplay, private access and reduced motion are respected. Attributes are cached and disposed, and the simulation RNG is untouched. Private ship/fleet destruction narratives now retain separate winner/loser perspectives and automatically play an animation-only notice after the existing battle summary. Fleet members, nested subfleets and individual defenders at their own systems are suppressed. Events retains and replays the full narrative. Partial fleet losses do not announce fleet destruction. Sound and other event variants remain Section 8 work. Persistent debris art was not confirmed in the audited destruction renderer. |
+| Damage and destruction | Health decreases, units die, fleet loss accounting and explosion feedback. | ✅ Implemented | ✅ Implemented | Runtime combat applies v3-style ship power, star strength, and population damage, removes destroyed ships and empty fleets, and preserves survivor accounting. Private ship/fleet destruction notices retain winner/loser perspectives, recorded names and locations, suppress fleet members/nested fleets/system defenders, and automatically play without an extra dialog. The recovered PICT 1000 atlas supplies eight fixed 26px frames at the original 2,3,4,5,6,5,4,3 tick cadence; explosion sound 1000 precedes recipient cue 1007/1008 after the source 20-tick delay. Events replays the full localized narrative without advancing the turn. Source-backed native coverage includes saves, access, suppression and partial-loss cases; actual arrival-combat browser runs verify both local perspectives for ships/fleets, real draws and muted sound starts, automatic completion and paginated replay in all six languages. Persistent debris and an ordinary FleetDamaged broadcast were not confirmed in shipped v3; see the event inventory and the destruction presentation audit below. |
 | Repairs | Friendly docking repairs surviving mobile ships; satellites do not repair. | ✅ Implemented | ✅ Implemented | Friendly stars repair docked, non-patrolling, non-moving mobile ships and fleet members using the v3 tech-level budget, excluding satellites. Damage and health displays update after repair. The separate CStar::EndOfTurn completion emitter now creates private human-system-owner notices when positive repair reaches zero ship or whole-fleet damage, with retained names, attention, Events navigation and manual replay. Partial repairs and completed individual fleet members do not emit notices; sound remains separate Section 8 work. |
 | Scanner-based fog of war | Stars/scouts reveal enemy presence, owner, tech, then class/details by range; scout stealth matters. | ✅ Implemented | ✅ Implemented | Spatial visibility levels, star/scout/fleet scanners, stealth calculations, current-visibility recalculation, and preserved last-seen memory are implemented. Current detection controls map/inspector knowledge. V3 stores last-seen history for scanner bookkeeping; a separate remembered-object drawing mode was not found. That optional extension is recorded in `FUTURE_IMPROVEMENTS.md`. | Source-backed browser scanner checks now confirm enemy system rings begin at Tech, mobile scout rings begin at Speed, selected rings survive the range switch, and undetected mobile ranges disappear. Actual runs and inspected system/ship panels pass in all six languages; the detailed audit below distinguishes explicit presentation fixtures from real spatial scanner unit coverage.
 | Fog-of-war rendering | Enemy colonies/ships are hidden or partially identified according to visibility. | ✅ Implemented | ✅ Implemented | Enemy ships/fleets are hidden when visibility is none, star ownership/detail rendering reads numeric visibility levels, and scanner-based fleet visibility queries work. Stars remain plotted while undetected enemy ownership is hidden. Ownership halos and inspectors agree at first detection; allied/all-visible systems remain identified without scanners. Losing detection hides current ownership and mobile markers while preserving last-seen history. Yellow-star labels retain the requested v4 naming deviation. Detected fleet markers now expose owner color at Speed, matching the inherited v3 ship drawing path in local and multiplayer views. Names, contents, technology and orders retain their separate gates. The five-level fleet rendering audit now passes in actual muted browser runs in all six languages, including independent member-name gates, Class-visible table statistics, private enemy orders, loss of detection and all-visible mode. The standalone ship/system browser audit also passes all five visibility levels, rendered retained ship text, private enemy economy/destinations, lost detection, all-visible mode, ordinary yellow-star labels and discovered-home name memory in all six languages. No v3 last-seen ghost drawing mode was confirmed. |
@@ -5302,3 +5302,47 @@ option rows can now be marked implemented. Section 6's rough UI estimate is
 Partial rows count half; non-UI rows and non-parity enhancements are excluded.
 Those combat/report rows and the rest of the parity and map-generation
 checklists still require their own completion audits.
+
+### Destruction presentation audit (2026-10-11)
+
+The Damage and destruction UI row is now implemented. Shipped
+`Classes/CMessage.cpp`, `CDestructionMsg::DoMessage`, uses PICT 1000's eight
+subimages, frame delays of 2,3,4,5,6,5,4,3 ticks, explosion sound 1000, then a
+20-tick delay before the recipient cue. `AGalacticThingy::Destroyed` sends the
+private owner/opponent event; it does not create a third-player destruction
+notice. The recovered atlas provenance is recorded in
+`data/events/explosion-art.json`. V4 uses those pixels, fixed 26px frames,
+source cadence and winner/loser cues, with animation-only automatic notices
+and full manual Events narratives.
+
+`tools/test-web-destruction-reports.cjs` exercises real ship/fleet arrival combat
+for both local winner and local loser. It checks removal and private recipient
+access, delegates to the actual renderer at every frame midpoint, records real
+muted sound starts, verifies automatic completion, then uses actual paginated
+Events controls to reopen and dismiss the localized narrative. The fixture
+sets the post-movement turn explicitly; this is an arrival-combat presentation
+audit, not a replacement for full end-turn tests. Existing native destruction
+specs cover nested/member/defender suppression, surviving fleets, partial losses,
+saved literal names, pending presentations and reduced motion.
+
+All six corrected browser runs pass (English, German, Spanish, French, Japanese
+and Russian), with 16 captures per language under
+`/private/tmp/galactica-destruction-final/<language>`. All 24 peak captures and
+winner/loser narrative samples were visually inspected. Both full native suites
+pass 1725 tests, zero failures; logs are
+`/private/tmp/galactica-destruction-audit-public-unit.log` and
+`/private/tmp/galactica-destruction-audit-devel-unit.log`.
+
+An earlier apparent missing-sprite finding was a test helper error: its normal
+UI-settling capture advanced the clock 251 ms from the peak, past the 533 ms
+animation's end. Peak captures now freeze the requested clock. The corrected
+screenshots show the source art; no product or engine rendering fix is needed.
+This item changes only verification and documentation, with no new product
+strings. FleetDamaged's dormant shipped emitter and unconfirmed persistent
+wreckage remain distinguished from confirmed source requirements in
+`docs/reference/EVENT_REPORTS.md`.
+
+Section 6's current rough UI estimate is 85%: seven implemented UI rows and
+three Partial combat/report rows out of ten counted rows. Historical estimates
+above describe their earlier audits. The other combat presentations and the
+remaining parity and Map Generation checklists still require completion audits.
