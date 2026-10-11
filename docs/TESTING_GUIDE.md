@@ -1378,3 +1378,23 @@ works in every language. Evidence: `/private/tmp/galactica-compare-footer/` and
 its comparison/result/geometry files. All 48 ordinary/short screenshot pairs are
 pixel-identical; 24 narrow pairs change. First/middle/last views were inspected
 in all six languages. Compact table text readability remains a separate item.
+
+
+### Compact comparison text, statistics and scrolling
+
+The comparison-footer helper also exercises complete 32-character player names,
+all eleven statistic pages, keyboard/mouse navigation and delayed translated help.
+Use `GALACTICA_TEST_COMPARISON_DEFEATED=1` for maximum-length defeated names.
+Add `GALACTICA_TEST_COMPARISON_WIDE_FONT=1` to induce conservative overflow with
+1.7× measured widths on both screen and retained offscreen ports. This fixture
+simulates wider metrics; it does not replace actual platform-font validation.
+It checks fixed commands, Page Up/Down and actual wheel scrolling.
+
+Both full native suites pass 1,790 tests. All 60 six-language before/after standard,
+defeated-name and wider-font workflows pass; twelve final narrow normal/wider-font
+runs also verify the exact translated tooltip text. Evidence roots are
+`/private/tmp/galactica-compare-columns`, `galactica-compare-columns-defeated`
+and `galactica-compare-columns-wide-font`. Final common scenes have 72 pairs,
+48 ordinary/short pairs identical and 24 narrow changes. Reviewed complete names,
+values, group headings, overflow and help in all six languages. Chrome and native
+fixtures remain muted. Broader compact/native GUI audits remain open.

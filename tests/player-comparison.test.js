@@ -64,7 +64,7 @@ module.exports=()=>test.describe('Compare Players v3 summary',()=>{
    pdg.res.setLanguage(lang);const {game,display}=fixture();display.reloadUIStrings();game.port.getDrawingArea=()=>new pdg.Rect(320,340);game.config.totalPlayers=30;game.uiWindow='comparison';const seen=[];
    for(let page=0;page<display.getPlayerComparisonLayout().pages;page++){
     game.playerComparisonPage=page;const layout=display.getPlayerComparisonLayout(),buttons=display.getPlayerComparisonActionRegions();seen.push(...layout.visibleRows.map(row=>row.playerNum));
-    test.assertTrue(layout.rect.y+layout.rect.height<=330);test.assertEqual(buttons.length,3);
+    test.assertTrue(layout.rect.y+layout.rect.height<=330);test.assertEqual(buttons.length,5);
     for(let i=0;i<buttons.length;i++){const a=buttons[i].rect;test.assertTrue(a.x>=layout.rect.x && a.x+a.width<=layout.rect.x+layout.rect.width);test.assertTrue(a.y>=layout.rect.y+70+layout.visibleRows.length*26 && a.y+a.height<=layout.rect.y+layout.rect.height);
      for(const b of buttons.slice(i+1).map(button=>button.rect))test.assertFalse(a.x<b.x+b.width && b.x<a.x+a.width && a.y<b.y+b.height && b.y<a.y+a.height,'Overlapping footer '+lang);
     }
@@ -72,6 +72,30 @@ module.exports=()=>test.describe('Compare Players v3 summary',()=>{
    }
    test.assertEqual(new Set(seen).size,31);const close=display.getPlayerComparisonActionRegions().find(b=>b.action.type==='closePlayerComparison').rect;game.handleUIClick(close.x+close.width/2,close.y+close.height/2);test.assertNull(game.uiWindow);
   }}finally{pdg.res.setLanguage(old);}
+ });
+ test.it('renders complete compact names, headers and every statistic with stable player pages in all languages',()=>{
+  const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(lang);const {game,display,star}=fixture();display.reloadUIStrings();game.port.getDrawingArea=()=>new pdg.Rect(320,340);game.players[2].name='Captain 星 '+('W'.repeat(22));const home=star(2,'Real enemy homeworld',987,987654321);home.shipBuilding.benefit=34567;home.research.benefit=12345;game.uiWindow='comparison';game.config.totalPlayers=30;
+   const first=display.getPlayerComparisonLayout();test.assertEqual(first.columns.length,12);test.assertEqual(first.metrics.length,11);test.assertEqual(first.metrics.map(c=>c.key).join(','),'stars,population,production,minimumTech,maxTech,averageTech,ships,power,minimumShipTech,maximumShipTech,averageShipTech');
+   const pages=first.pages,size=first.pageSize;game.playerComparisonPage=1;
+   for(let metric=0;metric<11;metric++){
+    test.assertTrue(game.executeUIAction({type:'playerComparisonColumn',page:metric}));const layout=display.getPlayerComparisonLayout();test.assertEqual(layout.pages,pages);test.assertEqual(layout.pageSize,size);test.assertEqual(layout.page,1);
+    for(const record of layout.visibleRecords){test.assertEqual(record.nameLines.join(''),record.row.name);for(const line of record.nameLines)test.assertTrue(game.port.getTextWidth(line,11)<=layout.nameWidth-22);}
+    for(const column of layout.metrics)test.assertEqual(column.labelLines.join(''),column.label.replace(/\|/g,''));
+    const enemy=layout.visibleRecords.find(r=>r.row.playerNum===2);if(enemy && metric===1)test.assertEqual(enemy.values[metric].join(''),I18n.formatInteger(enemy.row.population));
+   }
+   game.handleKeyPress(pdg.key_RightArrow);test.assertEqual(game.playerComparisonColumnPage,10);game.handleKeyPress(pdg.key_LeftArrow);test.assertEqual(game.playerComparisonColumnPage,9);test.assertFalse(game.executeUIAction({type:'playerComparisonColumn',page:-1}));test.assertFalse(game.executeUIAction({type:'playerComparisonColumn',page:11}));
+   test.assertTrue(require('../src/js/hover-help.js').describe({type:'playerComparisonColumn'}).includes(I18n.getString(879)));test.assertTrue(I18n.getString(1247).length>0);test.assertTrue(I18n.getString(1248).length>0);game.uiWindow=null;test.assertFalse(game.executeUIAction({type:'playerComparisonColumn',page:0}));
+  }}finally{pdg.res.setLanguage(old);}
+ });
+ test.it('scrolls exceptionally tall defeated names without moving the fixed compact commands',()=>{
+  const old=pdg.res.getLanguage();let overflow=0;try{for(const lang of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(lang);const {game,display}=fixture();game.port.getTextWidth=(text,size)=>Array.from(String(text)).reduce((n,c)=>n+size*(c==='W'?1:.8),0);display.reloadUIStrings();game.port.getDrawingArea=()=>new pdg.Rect(320,340);game.players[2].name='W'.repeat(32);game.uiWindow='comparison';let layout=display.getPlayerComparisonLayout();game.playerComparisonPage=Math.floor(2/layout.pageSize);layout=display.getPlayerComparisonLayout();
+   test.assertTrue(layout.rect.y+layout.rect.height<=330);const fixed=JSON.stringify(layout.footer);for(const button of layout.footer)test.assertTrue(button.rect.y+button.rect.height<=layout.rect.y+layout.rect.height);
+   const enemy=layout.visibleRecords.find(r=>r.row.playerNum===2);test.assertEqual(enemy.nameLines.join(''),game.getPlayerComparisonRows().find(r=>r.playerNum===2).name);
+   if(layout.scrollLimit){overflow++;game.handleKeyPress(pdg.key_PageDown);layout=display.getPlayerComparisonLayout();test.assertEqual(layout.bodyScroll,Math.min(80,layout.scrollLimit));test.assertEqual(JSON.stringify(layout.footer),fixed);game.scrollPlayerComparison(999);test.assertEqual(display.getPlayerComparisonLayout().bodyScroll,layout.scrollLimit);game.handleKeyPress(pdg.key_PageUp);test.assertTrue(display.getPlayerComparisonLayout().bodyScroll<layout.scrollLimit);}
+   game.playerComparisonPage=0;test.assertEqual(display.getPlayerComparisonLayout().bodyScroll,0);
+  }}finally{pdg.res.setLanguage(old);}test.assertTrue(overflow>0,'Tall-name fixture never exercised scrolling');
  });
  test.it('routes close/paging and consumes map clicks, function keys, Tab and Enter behind the comparison',()=>{
   const {game,display}=fixture();game.uiWindow='comparison';let advance=0;game.attention.next=()=>advance++;const shown=game.showShips,turn=game.turn;

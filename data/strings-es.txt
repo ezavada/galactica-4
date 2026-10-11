@@ -949,3 +949,5 @@
 1244	{0} día|{0} días
 1245	Música
 1246	Reproduce la música de la introducción y los créditos sin cambiar los efectos. Sonido debe estar activo; su control cambia ambos a la vez.
+1247	Estadísticas anteriores
+1248	Estadísticas siguientes

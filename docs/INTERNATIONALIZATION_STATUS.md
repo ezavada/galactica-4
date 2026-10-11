@@ -466,3 +466,19 @@ before/after workflows pass. Reviewed first/middle/last views in all languages.
 Evidence: `/private/tmp/galactica-compare-footer/`; ordinary/short views remain
 pixel-identical. The narrow table's truncated headings/names/values remain open
 for the next viewport item; this does not close broad localization completeness.
+
+
+### Complete compact comparison text (2026-10-11)
+
+IDs 1247–1248 add Previous/Next statistics in en/de/es/fr/ja/ru. Arrow controls
+use universal arrow key hints and registered delayed help with existing ID 879.
+Complete literal player names, localized defeated suffixes, full grouped
+technology headings, formatted values and best/worst legend remain readable
+through wrapping/statistic paging. Full native suites pass 1,790 tests each.
+Sixty before/after browser workflows and twelve final delayed-help workflows pass
+across all six languages. Reviewed names, values/headings, conservative overflow
+and exact translated tooltips in all six. Wider-font coverage simulates measured
+widths consistently on screen/offscreen ports; actual OS-font audits remain open.
+Evidence: `/private/tmp/galactica-compare-columns`,
+`galactica-compare-columns-defeated`, `galactica-compare-columns-wide-font`.
+This completes compact comparison readability, not the broader localization audit.

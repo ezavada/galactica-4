@@ -64,6 +64,7 @@ const helpIds=Object.freeze({
   "gameSessionPage": 879,
   "mapSelectionPage": 879,
   "playerComparisonPage": 879,
+  "playerComparisonColumn": 879,
   "systemComparisonPage": 879,
   "systemShipPage": 879,
   "outcomePage": 879,

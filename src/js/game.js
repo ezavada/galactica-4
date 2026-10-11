@@ -1452,6 +1452,8 @@ class Game {
         if(key===pdg.key_Home && this.uiWindow==='menu')return this.executeUIAction({type:'selectHomeStar'});
         if(this.uiWindow==='comparison') {
             if(key===pdg.key_Escape || lower==='v')this.uiWindow=null;
+            else if([pdg.key_PageUp,pdg.key_PageDown].includes(key))this.scrollPlayerComparison(key===pdg.key_PageUp?-80:80);
+            else if(this.display && this.display.getPlayerComparisonLayout().compact && [pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))this.executeUIAction({type:'playerComparisonColumn',page:(this.playerComparisonColumnPage || 0)+(key===pdg.key_LeftArrow?-1:1)});
             return true;
         }
         if(this.uiWindow==='systemComparison') {
@@ -2245,6 +2247,11 @@ class Game {
             case 'cancelColonyDefaults':
                 return this.cancelColonyDefaults();
             case 'closePlayerComparison':this.uiWindow=null;return true;
+            case 'playerComparisonColumn':{
+                if(this.uiWindow!=='comparison' || !this.display || !Number.isInteger(action.page))return false;
+                const layout=this.display.getPlayerComparisonLayout();if(!layout.compact || action.page<0 || action.page>=layout.metrics.length)return false;
+                this.playerComparisonColumnPage=action.page;return true;
+            }
             case 'playerComparisonPage':
                 if(this.uiWindow!=='comparison' || !Number.isInteger(action.page) || action.page<0)return false;
                 this.playerComparisonPage=action.page;return true;
@@ -2640,6 +2647,12 @@ class Game {
 
     getMapShipCount() {
         return this.remoteComparisons?this.remoteComparisons.reduce((total,row)=>total+row.ships+row.shipsBuilding,0):this.allShips.length;
+    }
+
+    scrollPlayerComparison(delta) {
+        if(this.uiWindow!=='comparison' || !this.display || !Number.isFinite(delta))return false;
+        const layout=this.display.getPlayerComparisonLayout();if(!layout.compact || !layout.scrollLimit)return false;
+        this.playerComparisonBodyScroll=Math.max(0,Math.min(layout.scrollLimit,layout.bodyScroll+delta));return true;
     }
 
     getPlayerComparisonRows() {

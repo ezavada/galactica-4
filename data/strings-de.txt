@@ -949,3 +949,5 @@
 1244	{0} Tag|{0} Tage
 1245	Musik
 1246	Musik im Intro und Abspann abspielen, ohne Soundeffekte zu ändern. Ton muss eingeschaltet sein; sein Schalter schaltet beides gemeinsam.
+1247	Vorherige Kennzahlen
+1248	Nächste Kennzahlen

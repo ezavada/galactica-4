@@ -1327,6 +1327,7 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
         return true;
     }
     if (event && event.eventType === pdg.eventType_ScrollWheel) {
+        if(game.uiWindow==='comparison'){game.scrollPlayerComparison(event.vertDelta || 0);return true;}
         if(require('./src/js/window-behavior.js').isSystem(game.uiWindow) || game.uiWindow==='mapPick' || game.overlay && ['outcome','report'].includes(game.overlay.type))return true;
         const delta = event.vertDelta || 0;
         if (delta < 0) {

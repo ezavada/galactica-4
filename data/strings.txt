@@ -949,3 +949,5 @@
 1244	{0} day|{0} days
 1245	Music
 1246	Play introduction and credits music without changing sound effects. Sound must be on; its control toggles both together.
+1247	Previous statistics
+1248	Next statistics
