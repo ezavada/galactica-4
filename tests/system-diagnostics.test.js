@@ -23,6 +23,24 @@ module.exports=function() {
             game.uiWindow='production';star.growth.desired=70;star.shipBuilding.desired=10;game.handleKeyPress(61);test.assertEqual(star.growth.desired,40);test.assertEqual(display.camera.zoom,zoom);
             game.uiWindow=null;game.handleKeyPress(43);test.assertTrue(display.camera.zoom>zoom);
         });
+        test.it('fits translated production labels without moving values or locks and uses the painted track for input',()=>{
+            const {game,star,display}=fixture(),language=pdg.res.getLanguage();star.growth.value=20;star.growth.desired=35;
+            const labels=[],bars=[],buttons=[],markers=[];
+            display.drawRightTextLine=(text,x,y,color,size)=>labels.push({text,x,size});display.drawTextLine=()=>{};
+            display.drawBar=(x,y,width,height,value)=>bars.push({x,width,value});display.drawUIButton=rect=>buttons.push(rect);
+            display.port.drawLine=point=>markers.push(point.x);
+            try{for(const lang of ['en','de','es','fr','ja','ru']){
+                pdg.res.setLanguage(lang);display.reloadUIStrings();const layout=display.getStarDetailsLayout(star),rects=display.getAllocationSliderRects(layout.x,layout.sliderStartY,layout.sliderWidth);
+                for(const label of [display.STR.growth,display.STR.ships.replace(/:$/,''),display.STR.research])test.assertTrue(rects.label.width>=display.port.getTextWidth(label+':',11));
+                test.assertEqual(rects.track.x+rects.track.width,layout.x+64+8+150);test.assertTrue(rects.track.width>100);
+                const region=display.getStarAllocationSliderRegions(star)[0];test.assertEqual(region.trackRect.x,rects.track.x);test.assertEqual(region.trackRect.width,rects.track.width);
+                labels.length=bars.length=buttons.length=markers.length=0;display.drawAllocationSlider(display.STR.research,star.growth,layout.x,layout.sliderStartY,layout.sliderWidth,'green');
+                test.assertTrue(labels[0].x-display.port.getTextWidth(labels[0].text,11)>=layout.x);test.assertEqual(bars[0].width,region.trackRect.width);test.assertEqual(bars[0].value,.2);
+                test.assertEqual(markers[0],region.trackRect.x+Math.round(region.trackRect.width*.35));test.assertEqual(buttons[0].x,display.getAllocationLockRegions([region])[0].rect.x);
+                star.growth.desired=35;test.assertTrue(game.beginUISliderDrag(region.trackRect.x,region.trackRect.y+4));game.endUISliderDrag();test.assertEqual(star.growth.desired,0);test.assertEqual(star.growth.value,20);star.growth.desired=35;
+                game.uiWindow='production';const modal=display.getProductionWindowSliderRegions()[0];test.assertEqual(modal.trackRect.x+modal.trackRect.width,display.getProductionWindowRect().x+14+64+8+185);game.uiWindow=null;
+            }}finally{pdg.res.setLanguage(language);display.reloadUIStrings();}
+        });
         test.it('fits Set/Clear after long Unicode destination text in every language without crossing the panel',()=>{
             const {game,star,display}=fixture(),previous=pdg.res.getLanguage(),target=game.factory.createStar(0,0,'京都 '+ '航'.repeat(80));target.owner=1;star.setDefaultDestination(target);
             try{for(const lang of ['en','de','es','fr','ja','ru']){

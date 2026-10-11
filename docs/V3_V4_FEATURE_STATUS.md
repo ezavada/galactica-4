@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1678 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1679 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4195,5 +4195,44 @@ Evidence: `/private/tmp/galactica-system-contents/{before,after}/<language>`,
 `/private/tmp/galactica-system-contents-{public,devel}-unit.log`. This closes the
 identified local/client system table discrepancy. A pre-existing Russian Research
 label extends into the system panel's left inset in both baseline and updated
-captures; its measured allocation layout remains an actionable UI audit item.
+captures; its measured allocation layout is corrected by the audit below.
 The broader drawing, event and contextual-window audits remain active.
+
+
+### Measured production labels in all languages (2026-10-11)
+
+The system-contents screenshot audit exposed the Russian Research label crossing
+the panel's left content inset. Allocation drawing and hit regions reserved 64
+pixels for every caption, even when a translation was wider. The supported
+Spanish label also exceeds the fixed reservation. This is a v4 localization
+layout correction, preserving the v3 slider semantics (`CGalacticSlider.cpp:236–250`:
+current setting fills the track and desired setting supplies the target).
+
+The shared allocation rectangle helper now measures the longest of the three
+localized labels at the unchanged 11px font. Extra label width comes from track
+length, keeping percentage values, locks and Equalize at their existing positions.
+Painting, target markers, hit regions and dragging use the same actual track.
+Owned/read-only system panels and the production window share this layout. Minimal
+ports retain the same text measurement fallback used by button layout. No new
+strings, abbreviations or smaller text are introduced.
+
+The added six-language regression checks caption bounds, stable track right edges,
+painted track/marker geometry, lock alignment, actual-versus-target values, zero
+endpoint input and production-window layout. Both full native suites pass
+**1,679 tests**, with sound muted.
+
+`tools/test-web-client-state.cjs` modes `before-allocation-label` and
+`allocation-label` pass in en/de/es/fr/ja/ru. Actual mouse input at each owned
+slider's measured left edge sets a zero target while current output stays
+unchanged. Shipbuilding, Speed/Class fleet selection, Details-visible enemy system
+contents and Compare Players still work. Owned/read-only production layouts were
+reviewed in all six languages; Spanish/Russian before/after captures show full
+labels inside the content inset with values and icons unchanged. English, German,
+French and Japanese retain byte-identical layouts. Of 42 screenshot pairs, 32
+remain byte-identical; only the Spanish/Russian system layouts and related
+translucent captures change. All browser audio stays muted.
+
+Evidence: `/private/tmp/galactica-allocation-label/{before,after}/<language>`,
+`/private/tmp/galactica-allocation-label-{before,after}-<language>.log` and
+`/private/tmp/galactica-allocation-label-{public,devel}-unit.log`. This closes the
+observed production label clipping; the broader parity audit remains active.

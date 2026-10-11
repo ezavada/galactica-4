@@ -2930,15 +2930,19 @@ class Display {
     }
 
     getAllocationSliderRects(x, y, width) {
-        const labelWidth = 64;
+        const measure=text=>typeof this.port.getTextWidth==='function' ? this.port.getTextWidth(text,11)
+            : Array.from(text).length*11*.62;
+        const labelWidth = Math.max(64,...[this.STR.growth,this.STR.ships.replace(/:$/,''),this.STR.research]
+            .map(label=>Math.ceil(measure(`${label}:`))));
+        const trackWidth = Math.max(32,width-(labelWidth-64));
         const gap = 8;
         const percentWidth = 36;
         const trackX = x + labelWidth + gap;
         return {
-            control: { x, y: y - 14, width: labelWidth + gap + width + gap + percentWidth, height: 22 },
+            control: { x, y: y - 14, width: labelWidth + gap + trackWidth + gap + percentWidth, height: 22 },
             label: { x, y: y - 14, width: labelWidth, height: 22 },
-            track: { x: trackX, y: y - 8, width, height: 8 },
-            percent: { x: trackX + width + gap, y: y - 14, width: percentWidth, height: 22 }
+            track: { x: trackX, y: y - 8, width: trackWidth, height: 8 },
+            percent: { x: trackX + trackWidth + gap, y: y - 14, width: percentWidth, height: 22 }
         };
     }
 
@@ -2953,11 +2957,11 @@ class Display {
         this.drawBar(rects.track.x, rects.track.y, rects.track.width, rects.track.height, current / 100.0, color);
         this.drawTextLine(options.unknown ? '?' : `${I18n.formatPercentage(desired)}%`, rects.percent.x, y, valueColor, 11);
 
-        if (options.interactive !== false) this.drawUIButton({ x: rects.track.x + width + 48, y: y - 15, width: 26, height: 18 },
+        if (options.interactive !== false) this.drawUIButton({ x: rects.track.x + rects.track.width + 48, y: y - 15, width: 26, height: 18 },
             allocation.locked ? I18n.getString(675, 'Unlock') : I18n.getString(674, 'Lock'), null,
             { size: 9, bare:true, icon: allocation.locked ? 'lock' : 'unlock', iconOnly: true, active: allocation.locked });
 
-        const targetMarkerX = rects.track.x + this.clamp(Math.round(width * desired / 100.0), 0, width);
+        const targetMarkerX = rects.track.x + this.clamp(Math.round(rects.track.width * desired / 100.0), 0, rects.track.width);
         this.port.drawLine(new pdg.Point(targetMarkerX, y - 11), new pdg.Point(targetMarkerX, y + 1), this.getLineAttributes(valueColor));
     }
 
