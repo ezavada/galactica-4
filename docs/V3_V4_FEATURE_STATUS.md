@@ -182,7 +182,7 @@ The largest blockers to a complete game are:
 | Form fleet by meeting ships | Friendly ship targeting another friendly ship automatically forms a fleet. | ✅ Implemented | ➖ N/A | `handleFleetFormation()` and ship/fleet arrival paths cover the runtime rule. |
 | Join/merge fleets | Ship joins friendly fleet; two fleets can merge. | ✅ Implemented | ✅ Implemented | Arrivals join the destination fleet while preserving an arriving fleet as a nested group; explicit `mergeFleets()` combines fleets. The shared-container exchange window lets players select a destination fleet, move selected ships or intact groups into it, return contents to the enclosing system/fleet, or form a new fleet. Nested groups retain identity; self/ancestor cycles are refused. |
 | Exchange/remove ships | Fleet/group panels move selected ships between fleets or out of a fleet. | ✅ Implemented | ✅ Implemented | Exchange ships opens a v3-style main/sub-list window at a system or fleet. Selecting a main-list fleet keeps it active as the destination while selecting other members. Exchange moves a main member into that destination, or a sub-list member back to the enclosing container. With no active destination it creates a new top-level/nested fleet; New fleet clears the destination while preserving a main selection. Paging, sorting, inspection, parent navigation, patrol/scrap and modal close work in all six languages. Live membership, ownership, completed/alive state, location, patrol and cycles are checked before mutation; stale destination/source references cannot create replacement fleets. Knowledge-safe row diagnostics preserve enemy privacy. Full suites: 877 passed on release/current native PDG; final browser flows and inspected before/after views in all six languages. Evidence: `/private/tmp/galactica-parity/exchange-{before,after}`. |
-| Fleet contents panel | Lists ships/groups and health; enemy information respects knowledge. | ✅ Implemented | ✅ Implemented | Paged direct-member rows show measured names, technology/speed/power and live health. Group rows open their own contents, with Parent fleet navigation through multiple levels. Group/Transfer/Remove preserve hierarchy and reject containment cycles. Recursive stats, movement, repair, defense, combat, technology delivery and cleanup account for nested members without duplicate processing; contained groups leave AI decisions to their parent. Knowledge gates apply separately to group/member names and health; contained groups have no independent map marker. Owner gradients/borders and translated controls fit below the status bar. Full suites: 866 passed; native browser flows and inspected before/after captures in all six languages. Evidence: `/private/tmp/galactica-parity/groups-{before,after}`. |
+| Fleet contents panel | Lists ships/groups and health; enemy information respects knowledge. | ✅ Implemented | ✅ Implemented | Selected fleet map markers now show aggregate health at normal zoom or closer, gated by Class knowledge as in v3. Paged direct-member rows show measured names, technology/speed/power and live health. Group rows open their own contents, with Parent fleet navigation through multiple levels. Group/Transfer/Remove preserve hierarchy and reject containment cycles. Recursive stats, movement, repair, defense, combat, technology delivery and cleanup account for nested members without duplicate processing; contained groups leave AI decisions to their parent. Knowledge gates apply separately to group/member names and health; contained groups have no independent map marker. Owner gradients/borders and translated controls fit below the status bar. Full suites: 866 passed; native browser flows and inspected before/after captures in all six languages. Evidence: `/private/tmp/galactica-parity/groups-{before,after}`. |
 | Fleet navigation | Fleet course panel and the same course tools as ships. | ✅ Implemented | ✅ Implemented | The shared ship/fleet course model and editor provide waypoint add/edit/delete, looping, memory, clear, Call in and Hunt controls, with current leg progress and visibility-safe course drawing. Their implemented rules and validation are tracked in Section 4. Overlap targeting now preserves the pending command and chosen reference for fleets as for ships. |
 | Named fleets | Human-created fleets prompt for a name; rename is available. | ✅ Implemented | ✅ Implemented | Fleets have localized default names and can be renamed through the simple rename window. The v3 computer-move source has a TODO for unique computer fleet names, so AI-generated fleet naming is not counted as shipped parity. |
 | Rendezvous points | Place/name/move/delete a point in open space, on a system, or on another ship. | ✅ Implemented | ✅ Implemented | `rendezvous.js` adds first-class owned rendezvous markers. Map and context buttons create/place them; selected rendezvous can be renamed, moved, deleted, centered, and inspected. |
@@ -4002,3 +4002,37 @@ Evidence: `/private/tmp/galactica-fleet-owner/{before,after}/<language>`,
 `/private/tmp/galactica-fleet-owner-{before,after}-<language>.log` and
 `/private/tmp/galactica-fleet-owner-{public,devel}-unit.log`. This closes the
 identified map-allegiance discrepancy, not the entire fog/drawing parity audit.
+
+### Selected fleet map health (2026-10-11)
+
+`Classes/CFleet.h:22` inherits the shared `CShip::DrawSelf` path. At
+`CShip.cpp:1476–1482`, a selected allied or Class-visible mobile object displays
+a forty-pixel health bar when zoom is at least 1.0. `CFleet::CalcFleetInfo` sums
+member power and damage, including nested fleet totals. V4 had ported selected
+ship bars but omitted this fleet rendering step.
+
+Selected fleets now show the existing green/gray bar using their aggregate
+integer damage percentage, clamped to 0–100% health. The bar sits above the
+hexagon's actual radius so larger known fleets cannot overlap it. Unselected
+fleets, zoom below 1.0 and enemies below Class knowledge receive no bar. Allied
+and all-visible fleets retain complete health access. Member rows and private
+orders keep their independent visibility rules. No new user-facing strings or
+resources are introduced.
+
+The drawing regression covers damaged aggregate health, Class versus Speed,
+selected/unselected, normal/distant zoom, allied/all-visible access and marker
+clearance. Both full native suites pass **1,671 tests**.
+`tools/test-web-client-state.cjs` modes `before-fleet-health` and `fleet-health`
+pass in English, German, Spanish, French, Japanese and Russian. The native
+model is projected to an actual client with 25% fleet damage; real mouse selection
+at Class produces a 75% rendered bar. Every before/after Class screenshot was
+inspected. Speed, owned-system and production screenshots remain byte-identical
+(**18 unchanged pairs**); Class screenshots change as expected, and the comparison
+window captures also retain that changed map beneath their translucent surface.
+All automated audio remains muted.
+
+Evidence: `/private/tmp/galactica-fleet-health/{before,after}/<language>`,
+`/private/tmp/galactica-fleet-health-{before,after}-<language>.log` and
+`/private/tmp/galactica-fleet-health-{public,devel}-unit.log`. This closes the
+selected-fleet map health omission; the broader drawing and contextual-window
+parity audit remains active.

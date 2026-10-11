@@ -1012,6 +1012,11 @@ class Display {
             this.port.drawText(fleetSize.toString(), new pdg.Point(x, y + 2), textAttrs);
         }
         
+        if(selected && this.camera.zoom>=1 && knowledge.contents) {
+            const health=Math.max(0,Math.min(100,100-fleet.getDamagePercent()));
+            this.drawBar(x-20,y-hexRadius-10,40,4,health/100,'green');
+        }
+
         this.drawMobileMapName(fleet,x,y,hexRadius,!!fleetAtStar);
         // Draw destination line (convert destination to screen coordinates)
         this.drawCourseLines(fleet,x,y,this.styles.fleetDestinationLine);

@@ -53,6 +53,20 @@ module.exports=()=>test.describe('V3 fleet information visibility',()=>{
         fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);test.assertTrue(display.getMapMarker(fleet).radius>initial);
         display.drawFleet(fleet);test.assertTrue(text.includes('17'));test.assertTrue(attributes[1].fillColor===display.ownerColors[2]);
     });
+    test.it('shows selected fleet health only at normal zoom with sufficient knowledge',()=>{
+        const {display,fleet,game}=fixture();const bars=[];
+        fleet.ships[0].damage=fleet.ships[0].power*25;fleet.ships[1].damage=fleet.ships[1].power*50;fleet.calculateFleetStats();
+        display.port.drawPolygon=()=>{};display.port.drawCircle=()=>{};display.port.drawText=()=>{};
+        display.drawMobileMapName=()=>{};display.drawCourseLines=()=>{};display.drawBar=(...args)=>bars.push(args);
+        display.selectedObject=fleet;display.camera.zoom=1;display.drawFleet(fleet);test.assertEqual(bars.length,0);
+        fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);display.drawFleet(fleet);test.assertEqual(bars.length,1);
+        test.assertEqual(bars[0][4],(100-fleet.getDamagePercent())/100);test.assertEqual(bars[0][2],40);test.assertEqual(bars[0][3],4);
+        const marker=display.getMapMarker(fleet);test.assertTrue(bars[0][1]+4<marker.y-marker.radius);
+        bars.length=0;display.camera.zoom=.75;display.drawFleet(fleet);test.assertEqual(bars.length,0);
+        display.camera.zoom=1;display.selectedObject=null;display.drawFleet(fleet);test.assertEqual(bars.length,0);
+        display.selectedObject=fleet;fleet.setVisibilityTo(1,Common.VisibilityLevel.SPEED);game.config.omniscient=true;display.drawFleet(fleet);test.assertEqual(bars.length,1);
+        game.config.omniscient=false;fleet.owner=1;display.drawFleet(fleet);test.assertEqual(bars.length,2);
+    });
     test.it('shows complete allied and omniscient information but leaves enemy controls unavailable',()=>{
         const {display,fleet,game}=fixture(1);let layout=display.getFleetDetailsLayout(fleet);
         test.assertTrue(layout.knowledge.full);test.assertTrue(layout.memberStartOffset>140);
