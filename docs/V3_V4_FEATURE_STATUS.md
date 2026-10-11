@@ -143,7 +143,7 @@ The largest blockers to a complete game are:
 | Rename colony/system | Edit menu rename dialog; new colony requests naming/production through attention. | ✅ Implemented | ✅ Implemented | Neutral human colonization creates the v3-style private instruction report and one attention request. Tab/manual selection or report Go to centers/selects the colony and displays the instruction above existing Rename/N and production controls. Unicode Save/Cancel remain available; allocations preserve defaults until edited. Recaptured/removed colonies cannot expose the private request. The v3 report has no modal naming window: `Evnt`128/event22 has zero PPob/autoShow and STR#500/45 requests naming and production. |
 | System comparison window | Sortable “Your Star Systems” table. | ✅ Implemented | ✅ Implemented | Command-menu window lists the current human player’s systems with all nine v3 columns: name, tech, population in thousands, production, build class, completion, total defense, satellites and mobile ships. Every column sorts both ways with stable ties; paging keeps the window within the viewport. Single-click highlights; double-click or Enter selects and centers the system. Data refreshes live and stale ownership cannot be opened. Title-bar movement and corner height resizing retain pointer capture, resize-aware paging and in-session page retention. Position/height and sort restore from native/browser preferences after a fresh app reload. Viewport clamping preserves saved bounds; Escape ends a gesture first, and map input cannot pass through the modal. All six language layouts and real browser flows are verified; full suites: 909 passed on release/current native PDG. |
 
-## 4. Ships and navigation (Functionality 100%, UI 94%)
+## 4. Ships and navigation (Functionality 100%, UI 97%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -163,7 +163,7 @@ The largest blockers to a complete game are:
 | Scrap ship/fleet | Mark for scrapping and recover part of build value. | ✅ Implemented | ✅ Implemented | Reversible localized Scrap/Cancel controls appear on eligible ship/fleet panels and system-list rows. Owner/container checks match v3’s ship-in-system/fleet controls; satellites and individual fleet members are supported. Turn processing scraps before movement, refunds one quarter of each hull’s own-tech build cost to its enclosing star, cleans containment/spatial/rendezvous references and removes empty fleets. Fleets propagate orders to members; adding an unmarked ship, assigning courses, using course memory or enabling Patrol cancels the appropriate scrap orders. Marking handles attention. Paused systems retain refunds until construction resumes. Private scrap reports keep the saved location. |
 | Movement by drive speed | Ships advance once per turn; scout faster, colony slower, satellite stationary. | ✅ Implemented | ➖ N/A | `ship.js:44-83` and `rules.js:125-145`. |
 | Pursuit movement ordering | A moving target/top container can complete its turn before its pursuer when eligible. | ✅ Implemented | ➖ N/A | Confirmed in `CShip.cpp:670–745` and `AGalacticThingy::GetTopContainer`. The end-turn scheduler marks actors before recursion, moves an eligible destination or its highest container first, recalculates pursuit after departure, prevents duplicate/cyclic movement and skips removed actors and independently moving fleet members. |
-| Colonize neutral system | Colony ship survives; system takes owner and ship tech. | ✅ Implemented | 🟡 Partial | Arrival and `Game.colonizeStar()` retain the colony ship, update owner/tech/scanner, apply v3 new-colony defaults, and record a colonization event. The private v3 naming/production attention report is implemented with usable inspector controls. Broader recipient-specific colonization/arrival narratives remain Section 8 work. |
+| Colonize neutral system | Colony ship survives; system takes owner and ship tech. | ✅ Implemented | ✅ Implemented | Source-verified actual colony arrival retains the ship, adds one population unit, updates owner/tech/scanner and applies human production defaults or computer satellite construction. Six-language browser coverage verifies private naming/production attention, actual rename and target-slider input, owner/observer narratives, detection and enemy-event gates, source no-dialog cues, Events replay and saved snapshots. See the neutral-colonization audit below; other arrival outcomes remain their separate row. |
 | Courier technology pickup/transfer | Courier updates its library from higher-tech systems and upgrades lower-tech colonies. | ✅ Implemented | ✅ Implemented | Departure/arrival and docked standalone refresh match v3 pickup/delivery, including the restriction on scouts inside fleets. Allied arrival reselects the existing hull price at current star technology while preserving paid effort, paused production and other hull credits. Technology, completion, scanner and ETA displays refresh through ordinary inspectors. Audited v3 `CShip.cpp:204–213,466–489` logs transfers only to debug output and emits no dedicated transfer report, so a separate popup is not a parity requirement. |
 | Battleship technology delivery | Battleships can upgrade colonies but cannot update their own library. | ✅ Implemented | ➖ N/A | `applyTechnologyTransferToStar()` lets battleships/fleets raise lower allied star tech while only scouts can pick up higher star tech. |
 | Docking and repair | Damaged mobile ships repair at friendly systems using a tech-level repair budget. | ✅ Implemented | ✅ Implemented | `Star.update()` repairs docked, non-patrolling, non-moving mobile ships and member ships inside docked fleets using `35 * techLevel`, excluding satellites. The ship panel shows docking/fleet state, current damage percentage and a live health bar that updates after repairs. v3 `CShip::RepairDamage` refreshes the object without a separate player-facing repair summary. |
@@ -5579,3 +5579,40 @@ The updated independent web package is
 
 This fixes a confirmed localization issue, but does not close the broader
 internationalization row or the remaining parity/Map Generation requirements.
+
+
+### Neutral colonization: source and six-language browser audit
+
+V3 `Classes/CShip.cpp:436–479` assigns the neutral star to the arriving
+colony's owner, adds one population unit, copies human new-colony spending
+and build defaults (computer colonies build satellites), emits NewColony
+and the private RenameColony attention request, and transfers higher
+technology and scanner range without consuming the colony ship. Evnt 14
+has no dialog or destruction animation: owner cue 1011, observer cue 1014.
+The existing v4 behavior matches these requirements.
+
+`tools/test-web-neutral-colonization.cjs` exercises actual colony movement
+and real keyboard/mouse input in English, German, Spanish, French, Japanese
+and Russian. It checks retained ships, population/technology/scanner changes,
+human and computer defaults, private human setup attention, Tab handling,
+rename acceptance, and clicking a production target without changing the
+actual level or advancing the turn. Slider expectations use the actual
+native mouse pixel because localized tracks can begin at fractional
+coordinates. Observer cases explicitly test undetected denial, detected
+manual access with enemy events disabled, and detected automatic notices
+with them enabled. Real sound starts remain delegated, with Chrome output
+muted. Manual Events reports retain literal Unicode and `$&` names after
+rename; ownership, ships and report snapshots survive save/restore.
+
+All six browser runs pass, with ten expected captures per language under
+`/private/tmp/galactica-neutral-colonization-final/<language>` and logs at
+`/private/tmp/galactica-neutral-colonization-final-<language>.log`. Setup,
+renamed-production and observer narrative screens were visually inspected
+in all six languages; text fits the existing panels and controls. Both full
+muted native suites pass 1726 tests, zero failures, recorded in
+`/private/tmp/galactica-neutral-colonization-public-unit.log` and
+`/private/tmp/galactica-neutral-colonization-devel-unit.log`. No product
+source or translated strings changed in this audit, so before/after product
+comparisons are not needed. The neutral-colonization UI row is complete;
+Section 4's remaining arrival-outcome row and the wider parity and Map
+Generation requirements remain open.
