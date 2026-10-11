@@ -59,7 +59,7 @@ module.exports=()=>test.describe('Complete fleet member inspector',()=>{
         test.assertTrue(bars.every(v=>v===1));
     });
     test.it('shares fleet-context member health with exchange tables without changing independent scanner knowledge',()=>{
-        const {game,display,fleet}=fixture(1),ship=fleet.ships[0];fleet.owner=2;ship.owner=2;fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);ship.setVisibilityTo(1,Common.VisibilityLevel.NONE);ship.damage=ship.power*35;
+        const {game,display,fleet,star}=fixture(1),ship=fleet.ships[0];star.owner=2;star.setVisibilityTo(1,0);fleet.owner=2;ship.owner=2;fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);ship.setVisibilityTo(1,Common.VisibilityLevel.NONE);ship.damage=ship.power*35;
         let standalone=display.getShipDiagnostics(ship);test.assertEqual(standalone.health,'?');test.assertEqual(standalone.tech,'?');
         const member=display.getFleetMemberDiagnostics(fleet,ship);test.assertEqual(member.health,'65%');test.assertEqual(member.healthRatio,.65);test.assertEqual(member.tech,'8');test.assertEqual(member.power,'8');test.assertFalse(member.title.includes('Member'));
         test.assertTrue(game.showFleetExchange(fleet));const row=display.getFleetExchangeLayout().lists[0].rows[0];test.assertTrue(row.object===ship);test.assertEqual(row.data.health,'65%');test.assertEqual(row.data.tech,'8');

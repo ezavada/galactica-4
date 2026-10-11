@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1676 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1678 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4151,3 +4151,49 @@ Evidence: `/private/tmp/galactica-fleet-label/{before,after}/<language>`,
 `/private/tmp/galactica-fleet-label-{before,after}-<language>.log` and
 `/private/tmp/galactica-fleet-label-{public,devel}-unit.log`. The wider source,
 contextual-window, event presentation and drawing audits remain active.
+
+
+### Details-visible system contents in projected clients (2026-10-11)
+
+`Classes/GalacticaPanels.cp:1503–1555` installs the full contents table for an
+allied or Details-visible system. An unowned system also permits inspection with
+an allied ship present. Its explicit TODO confirms the shipped implementation
+does not gate table statistics by individual ship visibility. Fleet-table numbers
+are unconditional, while descriptors retain independent knowledge. V4 had the
+local system access gate, but its public projection omitted independently hidden
+docked ships/fleets and the exchange table masked their statistics. Local system
+list names also read raw private names.
+
+A shared docked-member query now selects live completed top-level ships/fleets.
+Accessible system projections include those members and nested groups at Class
+table access, retaining their independent visibility, omitting unknown names,
+private courses and scanners. The system's public membership references restore
+valid containment on clients. Inherited fleet table access can reach an inspectable
+system through registered, reciprocal groups. Table metrics inherit that context;
+standalone inspectors and map visibility do not. Local list names now use safe
+diagnostics instead of raw names. Departing and unfinished hulls remain excluded.
+
+Added regressions cover the local name gate and damaged table/standalone health,
+Class versus Details projection, departure exclusion, coordinate-based docking,
+neutral-system access with completed allied presence, nested client restoration,
+private field omission, enemy command denial and revoked system access. Earlier
+fleet-only revocation tests now place their fixtures at an inaccessible system,
+so they genuinely remove every inherited access path. Both full native suites pass **1,678 tests**. The final browser checks use
+`tools/test-web-client-state.cjs` modes `before-system-contents` and
+`system-contents` in all six languages. Actual Details-visible system selection
+opens Exchange ships and activates its hidden docked fleet; its 60% member health
+is visible while independent knowledge/control remain absent. Escape and the
+subsequent Compare Players command work. All six before/after system-content
+captures and updated system command layouts were inspected; existing translations
+fit the added commands and table. No new strings are required. Of 42 screenshot
+pairs, 24 remain byte-identical (owned system/production and Speed/Class fleet);
+only enemy-system contexts and their translucent comparison captures change.
+Audio remains muted in native and browser automation.
+
+Evidence: `/private/tmp/galactica-system-contents/{before,after}/<language>`,
+`/private/tmp/galactica-system-contents-{before,after}-<language>.log` and
+`/private/tmp/galactica-system-contents-{public,devel}-unit.log`. This closes the
+identified local/client system table discrepancy. A pre-existing Russian Research
+label extends into the system panel's left inset in both baseline and updated
+captures; its measured allocation layout remains an actionable UI audit item.
+The broader drawing, event and contextual-window audits remain active.

@@ -42,7 +42,7 @@ module.exports=()=>test.describe('Shared-container fleet exchange',()=>{
   test.assertTrue(click('fleetExchangeParent'));test.assertTrue(game.fleetExchange.container===star);
  });
  test.it('opens independently hidden subgroups through Class-visible fleet tables and revokes inherited access',()=>{
-  const {game,display,fleet,ships,select,click}=fixture();
+  const {game,display,fleet,ships,star,select,click}=fixture();star.owner=2;star.setVisibilityTo(1,0);
   const child=game.factory.createFleet(fleet.x,fleet.y,2,'Secret subgroup');child.addShip(ships[0]);fleet.addShip(child);
   const inner=game.factory.createFleet(fleet.x,fleet.y,2,'Secret inner');inner.addShip(ships[0]);child.addShip(inner);
   fleet.owner=2;fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);

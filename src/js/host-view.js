@@ -41,6 +41,17 @@ function project(game,viewer,administrator=false){
   known.set(member,visibility);
   if(kinds.get(member)==='fleet' && visibility>=V.CLASS)members(member,visibility);
  }}
+ // V3 Details-visible system tables expose docked members and group contents
+ // even without their independent scanner visibility. Promote table statistics
+ // only to Class; names still use level(e), and private orders remain full-only.
+ const systemMembers=new Map();
+ for(const star of game.stars) {
+  const accessible=full(star) || level(star)>=V.DETAILS || !star.owner && game.allShips.some(ship=>
+   ship.star===star && full(ship) && !ship.underConstruction());
+  if(!accessible)continue;
+  const contents=game.getDockedSystemMembers(star);systemMembers.set(star,contents);
+  for(const member of contents)known.set(member,Math.max(known.get(member)||0,V.CLASS));
+ }
  for(const fleet of game.allFleets)if((known.get(fleet)||0)>=V.CLASS)members(fleet,known.get(fleet));
  const ref=e=>known.has(e)?{kind:kinds.get(e),id:e.id}:null;
  const point=p=>p?{x:p.x,y:p.y,target:ref(p.target || p)}:null;
@@ -59,6 +70,7 @@ function project(game,viewer,administrator=false){
     row.currentShip=e.currentShip?pick(e.currentShip,all?['type','techLevel','cost','progress']:['type']):null;
     for(const key of ['growth','shipBuilding','research'])row[key]=pick(e[key],all?['value','desired','rate','benefit','locked']:['value']);
    }
+   if(!all && systemMembers.has(e))row.ships=systemMembers.get(e).map(ref).filter(Boolean);
    if(all){Object.assign(row,pick(e,['paidTowardShipBuilding','unassignedShipCredit','paidTowardResearch','damage','scannerRange']));
     row.buildCredits=pick(e.buildCredits,Object.keys(e.buildCredits));row.defaultDestination=point(e.defaultDestination);
     row.ships=e.ships.map(ref).filter(Boolean);row.defenseSatellites=e.defenseSatellites.map(ref).filter(Boolean);}

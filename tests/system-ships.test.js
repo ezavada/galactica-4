@@ -36,6 +36,17 @@ module.exports = function() {
             star.setVisibilityTo(1,Common.VisibilityLevel.DETAILS);
             test.assertTrue(game.canViewSystemShips(star)); test.assertEqual(game.getSystemShipRows().length,1);
         });
+        test.it('keeps private names out of Details-visible local system tables while exposing member statistics',()=>{
+            const {game,star}=fixture();star.owner=2;star.setVisibilityTo(1,Common.VisibilityLevel.DETAILS);
+            star.techLevel=8;const ship=shipAt(game,star,'battleship','Private ship');ship.owner=2;ship.setVisibilityTo(1,0);ship.damage=ship.power*25;
+            game.port={getDrawingArea:()=>new pdg.Rect(800,600)};const display=new Display(game);game.display=display;
+            const row=game.getSystemShipRows(star)[0];test.assertFalse(row.name.includes('Private ship'));
+            test.assertEqual(display.getFleetMemberDiagnostics(star,ship).health,'75%');test.assertEqual(display.getShipDiagnostics(ship).health,'?');
+            const fleet=game.factory.createFleet(star.x,star.y,2,'Private fleet');fleet.addShip(ship);fleet.star=null;fleet.setVisibilityTo(1,0);
+            test.assertTrue(game.showFleetExchange(star));test.assertTrue(game.selectFleetExchangeMember('main',fleet));test.assertTrue(game.fleetExchange.active===fleet);
+            test.assertEqual(display.getFleetMemberDiagnostics(fleet,ship).health,'75%');
+            star.setVisibilityTo(1,Common.VisibilityLevel.CLASS);test.assertEqual(game.getSystemShipRows(star).length,0);test.assertEqual(display.getFleetMemberDiagnostics(star,ship).health,'?');
+        });
         test.it('shows neutral system contents when a completed friendly ship is present', () => {
             const {game,star}=fixture(); star.owner=0;
             const ship=game.factory.createShip(star.x,star.y,'scout',star); ship.owner=1;

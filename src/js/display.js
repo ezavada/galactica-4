@@ -3212,9 +3212,9 @@ class Display {
     getFleetMemberDiagnostics(container,member) {
         const data=this.getShipDiagnostics(member);
         if(this.factory.isFleet(member))data.title=this.getFleetTableTitle(member);
-        // V3's Class-visible fleet table exposes member statistics while the
+        // V3's inspectable system/fleet table exposes member statistics while the
         // member's own visibility still controls its name and standalone panel.
-        if(!container || !this.factory.isFleet(container) || !this.game.canViewFleetExchange(container))return data;
+        if(!container || !this.game.canViewFleetExchange(container))return data;
         const health=Math.max(0,Math.min(100,100-member.getDamagePercent()));
         return {...data,tech:String(Math.trunc(member.techLevel)),
             speed:member.speed?I18n.formatDecimal(member.speed/16380):'-',

@@ -1729,15 +1729,23 @@ class Game {
         return true;
     }
 
+    getDockedSystemMembers(star) {
+        const isDocked=object=>object.star===star || (!object.destination &&
+            Math.round(object.x)===Math.round(star.x) && Math.round(object.y)===Math.round(star.y));
+        return this.allShips.filter(ship=>!ship.fleet && !ship.isDead() && !ship.underConstruction() && isDocked(ship))
+            .concat(this.allFleets.filter(fleet=>!fleet.fleet && !fleet.isDead() && !fleet.isEmpty() && isDocked(fleet)));
+    }
+
     getSystemShipRows(star = this.systemShipWindowStar) {
         if (!this.canViewSystemShips(star)) return [];
-        const isDocked = object => object.star === star || (!object.destination &&
-            Math.round(object.x) === Math.round(star.x) && Math.round(object.y) === Math.round(star.y));
-        const ships = this.allShips.filter(ship => !ship.fleet && !ship.underConstruction() && isDocked(ship));
-        const fleets = this.allFleets.filter(fleet => !fleet.fleet && !fleet.isEmpty() && isDocked(fleet));
+        const members=this.getDockedSystemMembers(star);
         const makeRow = (object, member = false) => {
             const fleet = this.factory.isFleet(object);
-            return { object, member, name: this.getObjectDisplayName(object), tech: object.techLevel || 0,
+            const viewer=this.getCurrentHumanPlayer() || 1;
+            const name=this.display ? this.display.getFleetMemberDiagnostics(star,object).title
+                : this.config.omniscient || this.isOwnerAlliedWith(viewer,object.owner) || object.getVisibilityTo(viewer)>=Common.VisibilityLevel.CLASS
+                    ? this.getObjectDisplayName(object) : '?';
+            return { object, member, name, tech: object.techLevel || 0,
                 speed: (fleet ? object.totalSpeed : object.speed) / 16380,
                 power: fleet ? object.totalPower : this.rules.getShipPower(object),
                 damage: (fleet ? object.totalDamage : object.damage) || 0 };
@@ -1748,7 +1756,7 @@ class Game {
             return (sort.ascending ? comparison : -comparison) || a.object.id-b.object.id;
         };
         const rows = [];
-        ships.concat(fleets).map(object => makeRow(object)).sort(compare).forEach(row => {
+        members.map(object => makeRow(object)).sort(compare).forEach(row => {
             rows.push(row);
             if (this.factory.isFleet(row.object)) row.object.ships.filter(ship => !ship.underConstruction())
                 .map(ship => makeRow(ship,true)).sort(compare).forEach(member => rows.push(member));
@@ -1767,7 +1775,13 @@ class Game {
             seen.add(container);
             if(this.display && this.display.getFleetKnowledge(container).contents)return true;
             const parent=container.fleet;
-            if(!parent || !parent.ships.includes(container))return false;
+            if(!parent) {
+                const star=container.star || this.stars.find(candidate=>!container.destination &&
+                    Math.round(container.x)===Math.round(candidate.x) && Math.round(container.y)===Math.round(candidate.y));
+                return !!star && this.stars.includes(star) && this.canViewSystemShips(star) &&
+                    this.getDockedSystemMembers(star).includes(container);
+            }
+            if(!parent.ships.includes(container))return false;
             container=parent;
         }
         return false;

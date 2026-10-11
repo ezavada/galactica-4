@@ -54,6 +54,28 @@ module.exports=()=>test.describe('Authenticated player-state transport',()=>{
   test.assertEqual(model.display.getFleetMemberDiagnostics(copy,member).health,'100%');
   test.assertEqual(model.display.getShipDiagnostics(member).health,'?');
  }));
+ test.it('projects Details-visible system tables without promoting standalone names or orders',()=>fixture(({game,enemy,fleet,ship})=>{
+  fleet.star=enemy;fleet.x=enemy.x;fleet.y=enemy.y;fleet.syncShipPositions();
+  const child=game.factory.createFleet(enemy.x,enemy.y,2,'Private group');child.addShip(ship);fleet.addShip(child);child.setVisibilityTo(1,0);
+  const departing=game.factory.createShip(enemy.x+500,enemy.y,'scout',enemy,true);departing.star=null;departing.setVisibilityTo(1,0);
+  enemy.setVisibilityTo(1,3);let view=View.snapshot(game,1);test.assertFalse(!!entity(view,'fleet',fleet));test.assertFalse('ships' in entity(view,'star',enemy));
+  enemy.setVisibilityTo(1,4);view=View.snapshot(game,1);const system=entity(view,'star',enemy);
+  test.assertTrue(system.ships.some(r=>r.id===fleet.id));test.assertFalse(!!entity(view,'ship',departing));
+  for(const [kind,object] of [['fleet',fleet],['fleet',child],['ship',ship]]){
+   const row=entity(view,kind,object);test.assertEqual(row.visibility,0);test.assertFalse('name' in row);test.assertFalse('course' in row);test.assertFalse('scannerRange' in row);test.assertTrue('power' in row);
+  }
+  const model=require('../src/js/client-state.js').restore({...view,gameId:'a'.repeat(64)});
+  model.port={getDrawingArea:()=>new pdg.Rect(800,600),getTextWidth:(s,size=11)=>String(s).length*size/2};model.display=new (require('../src/js/display.js'))(model);
+  const copy=model.stars.find(e=>e.id===enemy.id),group=model.allFleets.find(e=>e.id===child.id),member=model.allShips.find(e=>e.id===ship.id);
+  test.assertTrue(model.showFleetExchange(copy));test.assertTrue(model.getFleetExchangeState().main.some(e=>e.id===fleet.id));
+  test.assertTrue(model.showFleetExchange(group));test.assertEqual(model.display.getFleetMemberDiagnostics(group,member).health,'100%');test.assertEqual(model.display.getShipDiagnostics(member).health,'?');test.assertFalse(model.canHumanControl(member));
+  copy.setVisibilityTo(1,3);test.assertFalse(model.canViewFleetExchange(group));test.assertNull(model.getFleetExchangeState());
+  enemy.owner=0;enemy.setVisibilityTo(1,0);
+  const ally=game.factory.createShip(enemy.x,enemy.y,'colony',enemy);ally.owner=1;
+  view=View.snapshot(game,1);test.assertFalse(!!entity(view,'fleet',fleet));
+  ally.complete();view=View.snapshot(game,1);test.assertTrue(entity(view,'star',enemy).ships.some(r=>r.id===fleet.id));test.assertTrue(!!entity(view,'ship',ship));
+  ally.star=null;ally.x+=500;view=View.snapshot(game,1);test.assertFalse(!!entity(view,'fleet',fleet));
+ }));
  test.it('keeps the existing ship faction marker at Speed while gating inspector fields and enemy courses',()=>fixture(({game,ship,fleet})=>{
   fleet.removeShip(ship);ship.course.replace({x:1234,y:5678,name:'Secret order'});
   for(let level=1;level<=4;level++){ship.setVisibilityTo(1,level);const row=entity(View.snapshot(game,1),'ship',ship);
