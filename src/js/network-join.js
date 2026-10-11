@@ -29,11 +29,11 @@ class JoinWindow {
  }
  stopDiscovery(){++this.sequence;if(this.discoveryScan){this.discoveryScan.close();this.discoveryScan=null;}}
  openLan(){
-  if(!this.discovery || !this.active || this.busy)return false;this.stopDiscovery();if(this.owned && this.client)this.client.disconnect({keepView:true});this.client=null;this.owned=false;this.clearPasswordIdentity();this.admissionCode.text='';this.clearInfo();this.stage='lan';this.lanRows=[];this.lanSelection=null;this.focus='lan';this.message=I18n.getString(1193);const sequence=this.sequence;
+  if(!this.discovery || !this.active || this.busy)return false;this.stopDiscovery();if(this.owned && this.client)this.client.disconnect({keepView:true});this.client=null;this.owned=false;this.clearPasswordIdentity();this.admissionCode.text='';this.clearInfo();this.bodyScroll=0;this.revealFocus=true;this.stage='lan';this.lanRows=[];this.lanSelection=null;this.focus='lan';this.message=I18n.getString(1193);const sequence=this.sequence;
   if(!this.discovery.supported()){this.message=I18n.getString(1195);return true;}
   const valid=()=>this.active && this.stage==='lan' && this.sequence===sequence;
   const failed=()=>{if(valid())this.message=I18n.getString(1196);};
-  try{this.discoveryScan=this.discovery.browse({onChange:rows=>{if(!valid())return;this.lanRows=rows;this.page=Math.min(this.page,Math.max(0,Math.ceil(rows.length/4)-1));if(!rows.some(row=>require('./network-discovery.js').identity(row)===this.lanSelection))this.lanSelection=rows[this.page*4]?require('./network-discovery.js').identity(rows[this.page*4]):null;const selected=rows.findIndex(row=>require('./network-discovery.js').identity(row)===this.lanSelection);if(selected>=0)this.page=Math.floor(selected/4);this.message='';},onError:failed});Promise.resolve(this.discoveryScan.ready).then(()=>{if(valid() && this.message===I18n.getString(1193))this.message='';},failed);}catch(error){failed();}return true;
+  try{this.discoveryScan=this.discovery.browse({onChange:rows=>{if(!valid())return;const previousSelection=this.lanSelection;this.lanRows=rows;this.page=Math.min(this.page,Math.max(0,Math.ceil(rows.length/4)-1));if(!rows.some(row=>require('./network-discovery.js').identity(row)===this.lanSelection))this.lanSelection=rows[this.page*4]?require('./network-discovery.js').identity(rows[this.page*4]):null;const selected=rows.findIndex(row=>require('./network-discovery.js').identity(row)===this.lanSelection);if(selected>=0)this.page=Math.floor(selected/4);if(previousSelection!==this.lanSelection)this.revealFocus=true;this.message='';},onError:failed});Promise.resolve(this.discoveryScan.ready).then(()=>{if(valid() && this.message===I18n.getString(1193))this.message='';},failed);}catch(error){failed();}return true;
  }
  async chooseLan(){
   if(this.stage!=='lan' || this.busy)return false;const row=this.lanRows.find(row=>require('./network-discovery.js').identity(row)===this.lanSelection);if(!row)return false;
@@ -113,7 +113,7 @@ class JoinWindow {
   if(action==='gameInformation'){if(!this.info)return false;this.stage='information';this.informationPage=0;return true;}
   if(this.stage==='information'){if(action==='backInformation'){this.stage='form';return true;}if(action==='inspect'){this.informationPage=0;return this.refreshInfo();}if(action==='previous' || action==='next'){this.informationPage=Math.max(0,(this.informationPage || 0)+(action==='next'?1:-1));return true;}return false;}
   if(action==='lan' || action==='refreshLan')return this.openLan();if(action==='savedHosts')return this.openSavedHosts();
-  if(this.stage==='lan'){if(action==='chooseLan')return this.chooseLan();if(action==='directAddress'){this.stopDiscovery();this.stage='form';this.clearInfo();this.focus='address';this.message='';return true;}const keyFor=require('./network-discovery.js').identity;if(action==='selectLan'){if(!this.lanRows.some(r=>keyFor(r)===value))return false;this.lanSelection=value;return true;}if(action==='previous' || action==='next'){this.page=Math.max(0,Math.min(Math.ceil(this.lanRows.length/4)-1,this.page+(action==='next'?1:-1)));this.lanSelection=this.lanRows[this.page*4]?keyFor(this.lanRows[this.page*4]):null;return true;}return false;}
+  if(this.stage==='lan'){if(action==='chooseLan')return this.chooseLan();if(action==='directAddress'){this.stopDiscovery();this.stage='form';this.bodyScroll=0;this.revealFocus=true;this.clearInfo();this.focus='address';this.message='';return true;}const keyFor=require('./network-discovery.js').identity;if(action==='selectLan'){if(!this.lanRows.some(r=>keyFor(r)===value))return false;this.lanSelection=value;this.revealFocus=true;return true;}if(action==='previous' || action==='next'){this.page=Math.max(0,Math.min(Math.ceil(this.lanRows.length/4)-1,this.page+(action==='next'?1:-1)));this.lanSelection=this.lanRows[this.page*4]?keyFor(this.lanRows[this.page*4]):null;this.revealFocus=true;return true;}return false;}
 if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();if(action==='removeSavedHost')return this.removeSavedHost();if(action==='chooseSavedHost')return this.chooseSavedHost();if(action==='directAddress'){this.stage='form';this.clearInfo();this.focus='address';this.message='';return true;}if(action==='selectSavedHost'){if(!this.savedHosts.some(r=>require('./network-host-preferences.js').identity(r)===value))return false;this.savedSelection=value;this.focus='savedHosts';this.revealFocus=true;return true;}if(action==='previous' || action==='next'){this.page=Math.max(0,Math.min(Math.ceil(this.savedHosts.length/4)-1,this.page+(action==='next'?1:-1)));this.savedSelection=this.savedHosts[this.page*4]?require('./network-host-preferences.js').identity(this.savedHosts[this.page*4]):null;this.focus='savedHosts';this.revealFocus=true;return true;}return false;}
   if(action==='rememberPassword'){if(!this.passwordPreferences)return false;this.rememberPassword=!this.rememberPassword;return true;}if(action==='inspect')return this.inspect();if(action==='connect')return this.connect();
   if(['join','rejoin','administrator'].includes(action)){this.bodyScroll=0;this.revealFocus=true;if((this.mode==='administrator')!==(action==='administrator')){if(this.owned && this.client)this.client.disconnect({keepView:true});this.client=null;this.owned=false;this.info=null;this.clearPasswordIdentity();}this.mode=action;if(action!=='join'){this.admissionCode.text='';if(action==='administrator' || this.focus==='admissionCode')this.focus='password';}this.loadSavedPassword();this.message='';return true;}
@@ -122,9 +122,9 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
  }
  key(key,pdgRef=globalThis.pdg){
   if(key===pdgRef.key_Escape)return this.stage==='information' && !this.busy?this.action('backInformation'):this.cancel();if(this.busy)return true;
-  if(['form','hosts'].includes(this.stage) && (key===pdgRef.key_PageUp || key===pdgRef.key_PageDown)){this.scroll(key===pdgRef.key_PageUp?-120:120);return true;}
+  if(['form','hosts','lan'].includes(this.stage) && (key===pdgRef.key_PageUp || key===pdgRef.key_PageDown)){this.scroll(key===pdgRef.key_PageUp?-120:120);return true;}
   if(this.stage==='information'){if(key===82 || key===114)this.action('inspect');return true;}
-  if(this.stage==='lan'){if([13,10,3].includes(key)){this.chooseLan();return true;}if(key===82 || key===114){this.openLan();return true;}if(key===pdgRef.key_UpArrow || key===pdgRef.key_DownArrow){const keyFor=require('./network-discovery.js').identity,index=Math.max(0,Math.min(this.lanRows.length-1,this.lanRows.findIndex(r=>keyFor(r)===this.lanSelection)+(key===pdgRef.key_UpArrow?-1:1)));this.lanSelection=this.lanRows[index]?keyFor(this.lanRows[index]):null;this.page=Math.floor(index/4);}return true;}
+  if(this.stage==='lan'){if([13,10,3].includes(key)){this.chooseLan();return true;}if(key===82 || key===114){this.openLan();return true;}if(key===pdgRef.key_UpArrow || key===pdgRef.key_DownArrow){const keyFor=require('./network-discovery.js').identity,index=Math.max(0,Math.min(this.lanRows.length-1,this.lanRows.findIndex(r=>keyFor(r)===this.lanSelection)+(key===pdgRef.key_UpArrow?-1:1)));this.lanSelection=this.lanRows[index]?keyFor(this.lanRows[index]):null;this.page=Math.floor(index/4);this.revealFocus=true;}return true;}
   if(this.stage==='hosts'){if(key===pdgRef.key_Tab){this.focus=this.focus==='address'?'savedHosts':'address';this.revealFocus=true;return true;}if(key===pdgRef.key_UpArrow || key===pdgRef.key_DownArrow){const keyFor=require('./network-host-preferences.js').identity,index=Math.max(0,Math.min(this.savedHosts.length-1,this.savedHosts.findIndex(r=>keyFor(r)===this.savedSelection)+(key===pdgRef.key_UpArrow?-1:1)));this.savedSelection=this.savedHosts[index]?keyFor(this.savedHosts[index]):null;this.page=Math.floor(index/4);this.focus='savedHosts';this.revealFocus=true;return true;}if([13,10,3].includes(key)){this.focus==='address'?this.addSavedHost():this.chooseSavedHost();return true;}if(this.focus==='address')Names.edit(this.address,key,pdgRef);return true;}
   if(key===pdgRef.key_Tab){const fields=[...(this.mode==='administrator'?['address','password']:['address','name','password',...(this.mode==='join'?['admissionCode']:[])]),...(this.passwordPreferences?['rememberPassword']:[])];this.revealFocus=true;this.focus=fields[(fields.indexOf(this.focus)+1)%fields.length];if(this.focus!=='rememberPassword')this[this.focus].selected=true;return true;}
   if(this.focus==='rememberPassword'){if(key===32)this.action('rememberPassword');else if([13,10,3].includes(key))this.connect();return true;}
@@ -133,6 +133,7 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
   if(this[this.focus].text!==before){this.message='';if(this.focus==='address'){this.clearInfo();this.clearPasswordIdentity();}else if(this.focus==='name'){this.clearPasswordIdentity();this.loadSavedPassword();}else if(this.focus==='password')this.savedPasswordLoaded=false;}return true;
  }
  layout(width,height,measure=(text,size)=>Array.from(String(text)).length*size/2){
+  if(this.active && this.stage==='lan' && width<400)return this.compactLanLayout(width,height,measure);
   if(this.active && this.stage==='hosts' && width<400)return this.compactSavedHostsLayout(width,height,measure);
   if(this.active && this.stage==='form' && width<400)return this.compactLayout(width,height,measure);
   const layout=this.baseLayout(width,height,measure);if(!layout)return null;
@@ -152,7 +153,7 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
   layout.statusLines=lines.map((text,index)=>({text,size,point:{x:rect.x+24,y:first+index*pitch}}));return layout;
  }
  scroll(delta){
-  if(!['form','hosts'].includes(this.stage) || !this.scrollLimit)return false;
+  if(!['form','hosts','lan'].includes(this.stage) || !this.scrollLimit)return false;
   this.revealFocus=false;this.bodyScroll=Math.max(0,Math.min(this.scrollLimit,(this.bodyScroll || 0)+delta));return true;
  }
  compactLayout(width,height,measure){
@@ -235,6 +236,37 @@ if(this.stage==='hosts'){if(action==='addSavedHost')return this.addSavedHost();i
   const scrollThumb=scrollTrack?{...scrollTrack,height:Math.max(4,scrollTrack.height*bodyClip.height/(bodyClip.height+this.scrollLimit))}:null;
   if(scrollThumb)scrollThumb.y+=(scrollTrack.height-scrollThumb.height)*this.bodyScroll/this.scrollLimit;
   return {rect,scale,compact:true,titleHeight:40,title:I18n.getString(1183),scrollTrack,scrollThumb,bodyClip,fields,choices,labels,slots:[],checks:[],buttons:[...bodyButtons,...footer,...scrollButtons],statusLines:status.map((text,index)=>({text,size:12,point:{x:left,y:statusTop+12+index*14}}))};
+ }
+ compactLanLayout(width,height,measure){
+  const wrap=require('./text-wrapping.js'),identity=require('./network-discovery.js').identity;
+  const rect={x:12,y:12,width:width-24,height:height-24},scale=rect.height/548;
+  const left=rect.x+24,inner=rect.width-48,bodyWidth=inner-22;
+  const button=(action,id,key=null,disabled=false)=>({action,label:I18n.getString(id),key,disabled});
+  const pack=buttons=>buttonRows(buttons,left,bodyWidth,measure);
+  const footer=[button('cancel',683,'Esc'),button('directAddress',1189),button('chooseLan',1186,'Enter',!this.lanSelection)];
+  const footerRows=buttonRows(footer,left,inner,measure),footerTop=rect.y+rect.height-12-footerRows.length*30+6;
+  footerRows.forEach((row,index)=>row.forEach(b=>b.rect.y=footerTop+index*30));
+  const status=wrap(this.message || '',inner,text=>measure(text,12)),statusTop=footerTop-(status.length?status.length*14+8:0);
+  const bodyClip={x:left,y:rect.y+44,width:inner,height:Math.max(40,statusTop-(rect.y+44)-8)};
+  let y=bodyClip.y;const fields=[],bodyButtons=[],choices=[],labels=[];
+  const addRows=buttons=>{for(const row of pack(buttons)){for(const b of row){b.rect.y=y;bodyButtons.push(b);}y+=30;}};
+  addRows([button('refreshLan',1197,'R'),...(this.hostPreferences?[button('savedHosts',1183)]:[])]);
+  for(const row of this.lanRows.slice(this.page*4,this.page*4+4)){
+   choices.push({action:'selectLan',value:identity(row),active:identity(row)===this.lanSelection,label:row.title || row.address,details:[row.address,I18n.formatString(1198,'',row.turn,row.open,row.humans)],baselines:[17,36,53],rect:{x:left,y,width:bodyWidth,height:64}});y+=70;
+  }
+  if(!this.lanRows.length && !this.message){for(const text of wrap(I18n.getString(1194),bodyWidth,t=>measure(t,12))){labels.push({text,size:12,baseline:13,rect:{x:left,y,width:bodyWidth,height:16}});y+=16;}y+=8;}
+  if(this.lanRows.length>4)addRows([button('previous',1033,null,this.page===0),button('next',1034,null,(this.page+1)*4>=this.lanRows.length)]);
+  this.scrollStep=Math.min(64,bodyClip.height/2);this.scrollLimit=Math.max(0,y-bodyClip.y-bodyClip.height);this.bodyScroll=Math.max(0,Math.min(this.scrollLimit,this.bodyScroll || 0));
+  if(this.revealFocus){const target=choices.find(c=>c.value===this.lanSelection);
+   if(target){if(target.rect.y-this.bodyScroll<bodyClip.y)this.bodyScroll=target.rect.y-bodyClip.y;else if(target.rect.y+target.rect.height-this.bodyScroll>bodyClip.y+bodyClip.height)this.bodyScroll=target.rect.y+target.rect.height-bodyClip.y-bodyClip.height;}
+   this.revealFocus=false;
+  }
+  for(const item of [...fields,...choices,...labels,...bodyButtons]){item.body=true;item.rect.y-=this.bodyScroll;if(item.labelPoint)item.labelPoint.y-=this.bodyScroll;}
+  const scrollButtons=this.scrollLimit?[{action:'scrollUp',label:'↑',disabled:this.bodyScroll===0,rect:{x:left+bodyWidth+2,y:bodyClip.y,width:20,height:24}},{action:'scrollDown',label:'↓',disabled:this.bodyScroll===this.scrollLimit,rect:{x:left+bodyWidth+2,y:bodyClip.y+bodyClip.height-24,width:20,height:24}}]:[];
+  const scrollTrack=this.scrollLimit?{x:left+bodyWidth+10,y:bodyClip.y+28,width:4,height:Math.max(4,bodyClip.height-56)}:null;
+  const scrollThumb=scrollTrack?{...scrollTrack,height:Math.max(4,scrollTrack.height*bodyClip.height/(bodyClip.height+this.scrollLimit))}:null;
+  if(scrollThumb)scrollThumb.y+=(scrollTrack.height-scrollThumb.height)*this.bodyScroll/this.scrollLimit;
+  return {rect,scale,compact:true,titleHeight:40,title:I18n.getString(1192),scrollTrack,scrollThumb,bodyClip,fields,choices,labels,slots:[],checks:[],buttons:[...bodyButtons,...footer,...scrollButtons],statusLines:status.map((text,index)=>({text,size:12,point:{x:left,y:statusTop+12+index*14}}))};
  }
  baseLayout(width,height,measure){
   if(!this.active)return null;const rect={width:Math.min(560,width-24),height:Math.min(548,height-24)};

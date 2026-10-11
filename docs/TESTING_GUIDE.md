@@ -1076,3 +1076,25 @@ suites pass 1,766 tests. Evidence:
 `galactica-saved-hosts-comparison.json`, and
 `galactica-saved-hosts-{pdg,pdg-devel}-unit.log`.
 LAN/information bars and other hosting/busy/error audits remain separate.
+
+
+### Compact LAN discovery window
+
+Run `node tools/test-web-lan-layout.cjs BUILD_DIR SCREENSHOT_DIR LANGUAGE
+before|after WIDTH HEIGHT` against the 0af65ea baseline and current web build.
+Use en/de/es/fr/ja/ru at 800×600, 640×340 and 320×340. The fixture's native
+hosts and Chrome are muted. Its adapter bridges actual loopback UDP discovery
+into the browser; ordinary browser multicast remains unavailable.
+
+Actual-input checks cover five hosts, paging, refresh, selection, persisted
+constrained dragging, modal outside clicks, direct-address fallback, real HTTP
+inspection/admission, empty discovery and the localized browser fallback.
+Narrow after runs also check wheel delivery/movement, PageDown/PageUp, keyboard
+paging and caption/hint fit. All 36 workflows pass. Of 144 matched screenshots,
+42 are identical (including 18 admitted maps), 60 ordinary/short differences
+stay within connection-address regions, and 42 narrow pairs change layout.
+Both native suites pass 1,767 tests. Evidence:
+`/private/tmp/galactica-lan-layout/verified`,
+`galactica-lan-layout-comparison.json`, and
+`galactica-lan-layout-{pdg,pdg-devel}-unit.log`.
+Physical LAN and other hosting/error variants remain separate audits.

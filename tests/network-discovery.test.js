@@ -25,6 +25,17 @@ module.exports=()=>test.describe('Native LAN discovery',()=>{
  test.it('updates paged selection as hosts arrive, change and disappear',()=>{
   const f=fixture(),w=f.window;f.send(Array.from({length:6},(_,i)=>row(i)));test.assertEqual(w.lanSelection,LAN.identity(row(0)));w.action('next');test.assertEqual(w.page,1);test.assertEqual(w.lanSelection,LAN.identity(row(4)));w.key(pdg.key_DownArrow);test.assertEqual(w.lanSelection,LAN.identity(row(5)));f.send([row(0)]);test.assertEqual(w.page,0);test.assertEqual(w.lanSelection,LAN.identity(row(0)));f.send([]);test.assertNull(w.lanSelection);test.assertTrue(w.layout(800,600).buttons.find(b=>b.action==='chooseLan').disabled);w.cancel();test.assertEqual(f.closed(),1);
  });
+ test.it('keeps narrow discovery commands fixed and keyboard-selected rows visible through scrolling and host disappearance',()=>{
+  const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){
+   pdg.res.setLanguage(lang);const f=fixture(),w=f.window;f.send(Array.from({length:6},(_,i)=>row(i)));
+   const initial=w.layout(320,340),footer=initial.buttons.filter(b=>!b.body && !b.action.startsWith('scroll'));test.assertTrue(initial.compact);test.assertEqual(initial.choices.length,4);test.assertTrue(w.scrollLimit>0);
+   w.key(pdg.key_PageDown);test.assertTrue(w.bodyScroll>0);const scrolled=w.layout(320,340);test.assertDeepEqual(scrolled.buttons.filter(b=>!b.body && !b.action.startsWith('scroll')),footer);
+   for(let i=0;i<4;i++)w.key(pdg.key_DownArrow);test.assertEqual(w.page,1);const last=w.layout(320,340),selected=last.choices.find(c=>c.active);test.assertEqual(selected.value,LAN.identity(row(4)));test.assertTrue(selected.rect.y>=last.bodyClip.y && selected.rect.y+selected.rect.height<=last.bodyClip.y+last.bodyClip.height+.01);
+   f.send([row(0)]);const recovered=w.layout(320,340);test.assertEqual(w.page,0);test.assertEqual(recovered.choices[0].value,LAN.identity(row(0)));test.assertTrue(recovered.choices[0].rect.y>=recovered.bodyClip.y);
+   f.fail();const error=w.layout(320,340);test.assertEqual(error.statusLines.map(l=>l.text).join(''),pdg.res.getString(1196));test.assertTrue(error.statusLines[0].point.y-12>=error.bodyClip.y+error.bodyClip.height);
+   w.action('directAddress');test.assertEqual(w.stage,'form');test.assertEqual(w.bodyScroll,0);test.assertEqual(f.closed(),1);w.cancel();
+  }}finally{pdg.res.setLanguage(old);}
+ });
  test.it('cancels discovery without letting late callbacks reopen or mutate a dialog',()=>{
   const f=fixture(),w=f.window;f.send([row(0)]);w.action('directAddress');test.assertEqual(w.stage,'form');test.assertEqual(f.closed(),1);const message=w.message;f.fail();f.send([row(1)]);test.assertEqual(w.message,message);test.assertEqual(w.stage,'form');w.cancel();
  });

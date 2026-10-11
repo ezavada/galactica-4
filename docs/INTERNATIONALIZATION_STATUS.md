@@ -284,3 +284,17 @@ matched native-backed UI workflows pass across three sizes; both native
 suites pass 1,766 tests. Evidence:
 `/private/tmp/galactica-saved-hosts/verified`. This completes compact saved
 hosts; LAN/information bars and broader hosting/error/gameplay audits remain.
+
+
+### Compact LAN discovery window
+
+LAN refresh, saved hosts, paging, Cancel/Esc, direct entry, Open/Enter and
+feedback retain their existing six-language resources. Measured button rows
+fit their complete captions/hints at 320×340; list content scrolls while footer
+commands and wrapped feedback remain fixed. No new strings were introduced.
+All six narrow initial lists, last pages, browser fallback messages and
+scrolled lists were visually inspected. All 36 native-backed before/after
+browser workflows pass across three sizes; both full native suites pass
+1,767 tests. Evidence: `/private/tmp/galactica-lan-layout/verified`.
+This completes compact LAN controls, with information bars and broader
+hosting/error/gameplay and physical-network audits still open.

@@ -7222,3 +7222,49 @@ This closes compact saved-host controls. LAN discovery and information
 control bars, other host/network busy/error variants and the compact
 gameplay audit remain open. No PDG checkout changed. Any engine fixes remain
 private until the deferred v1.2.1 integration.
+
+
+### Compact LAN discovery controls (completed)
+
+The 320×340 baseline had all three footer captions/hints wider than their
+77px buttons in every supported language. LAN discovery now shares measured
+button packing with Join and saved hosts. Complete feedback and footer commands
+stay fixed; the four-row list, refresh/saved-host commands and paging controls
+occupy a clipped scrollable body. Wheel, arrows and PageUp/PageDown scroll it.
+Keyboard selection reveals its row, including across pages; changing discovery
+metadata preserves manual scrolling unless the selected host changes. Returning
+to direct entry resets the body scroll and closes discovery.
+
+V3 `Classes/GalacticaClient.cpp:1540–1575` starts OpenPlay enumeration and
+`:2010–2046` updates the known-games list on host arrival/removal. This item
+preserves v4's existing native UDP discovery and HTTP joining, improving narrow
+presentation without changing its protocol. Browser builds still show the
+localized desktop-only fallback. All strings use existing en/de/es/fr/ja/ru
+resources; no translations were added or replaced.
+
+Both full native suites pass **1,767 tests, zero failures**. The new
+six-language regression covers fixed footer placement, scrolling, keyboard
+paging/selection, host disappearance, complete error feedback and direct-entry
+cleanup. `tools/test-web-lan-layout.cjs` exercises actual browser input through
+a test adapter to real native loopback UDP scans and five real HTTP hosts.
+It verifies paging, refresh, selection, constrained persisted dragging,
+outside-click clunk, direct fallback, inspection/admission, an empty scan and
+the ordinary-browser unsupported fallback. Narrow runs additionally assert
+actual wheel delivery/movement, PageDown/PageUp, keyboard paging and measured
+caption/hint fit. Loopback verification does not prove physical LAN discovery.
+
+All **36** before/after workflows pass across six languages at 800×600,
+640×340 and 320×340. Of **144** paired screenshots, **42** match exactly,
+including all **18** admitted-game maps at the same animation time. **60**
+ordinary/short differences are confined to connection-address regions;
+**42** narrow pairs show the intended layout changes. Six-language narrow
+before/after initial lists, last pages and browser fallback messages, plus
+scrolled lists, were visually inspected.
+
+Evidence: `/private/tmp/galactica-lan-layout/verified`,
+`galactica-lan-layout-<width>-<height>-<before|after>-<language>.log`,
+`galactica-lan-layout-{pdg,pdg-devel}-unit.log`, and
+`galactica-lan-layout-comparison.json`. This closes compact LAN controls.
+Information bars, remaining hosting/network busy/error variants, compact
+gameplay and the separate physical-network audit remain open. No PDG checkout
+changed; engine fixes stay private pending v1.2.1.
