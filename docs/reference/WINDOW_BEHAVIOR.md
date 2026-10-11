@@ -169,3 +169,25 @@ corrected recipient-edge action. English before/after and the six-language short
 recipient/composer layouts were visually inspected. These checks establish the
 listed 640px-wide chat interactions; narrower gameplay layout and remaining
 network/host/join/turn-notice and busy/error variants remain in the chrome audit.
+
+
+Join's title drag area ends at 40 scaled pixels, above its address field at 46.
+The previous fixed 52px region intercepted the top of the full-height field and
+the whole field at short heights. Native geometry checks cover Join/Rejoin/Admin
+fields and LAN/saved-host controls at 800×600, 640×480 and 640×340. The regression
+fails against the old code; both full native suites pass 1,753 tests afterward.
+
+Actual-input browser checks in all six languages at 800×600 and 640×340 open
+startup Join, focus the address field at its top edge, inspect a real native
+host, enter credentials, drag/persist the bounded title, reject outside clicks
+with a clunk and join with Enter. Baselines recover focus through Tab because
+the short address field cannot be clicked. The asynchronous admission lifecycle
+suite passes cancellation/reopen/rejection cases.
+
+Of 60 before/after pairs, 24 are identical, 12 show the corrected address-focus
+action, and the other 24 differ only inside the actual localhost address field
+because each fixture host uses a fresh port. Difference bounds were verified.
+English before/after and all six full/short Join layouts were visually inspected.
+This review also found pre-existing field-label clipping in Spanish, French and
+Japanese; the fixed label column needs its own measured-width layout correction.
+This is not a completed audit of all Join modes, errors or discovery surfaces.

@@ -144,6 +144,21 @@ module.exports=()=>test.describe('System window modality and title dragging',()=
    test.assertTrue(moved.x>=10 && moved.y>=10 && moved.x+moved.width<=screen.width-10 && moved.y+moved.height<=screen.height-10);
   }
  });
+ test.it('keeps Join fields and discovery controls outside the scaled title drag area',()=>{
+  const {JoinWindow}=require('../src/js/network-join.js'),{prefs}=preferences(),join=new JoinWindow();join.open();
+  for(const size of [[800,600],[640,480],[640,340]]){
+   const screen={width:size[0],height:size[1]};
+   for(const mode of ['join','rejoin','administrator']){
+    join.stage='form';join.mode=mode;const layout=join.layout(...size),placement=new Placement(prefs);
+    for(const field of layout.fields)test.assertFalse(placement.begin('networkJoin',layout.rect,field.rect.x+5,field.rect.y+1,screen));
+    test.assertTrue(placement.begin('networkJoin',layout.rect,layout.rect.x+20,layout.rect.y+14*layout.scale,screen));placement.end();
+   }
+   for(const stage of ['lan','hosts']){
+    join.stage=stage;join.lanRows=[];join.savedHosts=[];const layout=join.layout(...size),placement=new Placement(prefs);
+    for(const item of [...layout.fields,...layout.buttons])test.assertFalse(placement.begin('networkJoin',layout.rect,item.rect.x+5,item.rect.y+1,screen));
+   }
+  }
+ });
  test.it('persists native positions, rejects malformed config, and keeps controls aligned in application dialogs',()=>{
   const values=new Map(),prefs=Preferences.createPreferences({pdg:{cfg:{useConfig:()=>{},getConfigString:k=>values.get(k),setConfigString:(k,v)=>values.set(k,v)}}});
   prefs.writeWindowPosition('startup',{x:25,y:45});test.assertEqual(prefs.readWindowPosition('startup').y,45);
