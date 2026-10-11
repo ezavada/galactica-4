@@ -396,3 +396,20 @@ layout/focus checks also cover 320×600. Reviewed all narrow original/dragged,
 masked draft and failure pairs. Both native suites pass 1,781 tests. Evidence:
 `/private/tmp/galactica-admin-password/`. Other compact administration dialogs
 and the broader localization completion audit remain open.
+
+
+### Compact player administration (2026-10-11)
+
+Roster names, current-player labels, role/assignment/life/online status, command
+captions and name-editor validation now remain complete and readable below 400px
+wide. An off-page selection includes the player's identity using existing ID
+1131; the ordinary layout also benefits. Player names are rendered literally,
+including a `<Enter>` suffix, rather than parsed as shortcut captions. Existing
+six-language resources are retained without new IDs. All six languages pass 36
+local ordinary/short/narrow and twelve authenticated remote narrow before/after
+workflows; four additional literal-name workflows pass. Reviewed roster/paging,
+name-error/new-computer and remote-dragged views in all languages plus literal
+names at both sizes. Both native suites pass 1,783 tests. Evidence prefixes:
+`/private/tmp/galactica-host-players`, `galactica-remote-players`,
+`galactica-player-literal`. Other compact administration dialogs and the broader
+localization completion audit remain open.

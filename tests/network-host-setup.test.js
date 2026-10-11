@@ -97,6 +97,24 @@ module.exports=()=>test.describe('Multiplayer Host setup controls',()=>{
   const w=form();let discarded=null;w.backend.discardConversion=token=>{discarded=token;};w.stage='conversion';w.conversion={token:'snapshot'};w.busy=true;test.assertFalse(w.cancel());test.assertEqual(discarded,null);w.busy=false;test.assertTrue(w.cancel());test.assertEqual(discarded,'snapshot');test.assertEqual(w.conversion,null);test.assertFalse(w.active);
  });
 
+ test.it('keeps compact player names complete and commands scrollable with a fixed Close across six languages',()=>{
+  const language=pdg.res.getLanguage(),Caption=require('../src/js/button-caption.js'),measure=(text,size=12)=>Array.from(text).length*size*.65;
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const w=form();w.stage='players';w.playerSelection=1;w.page=0;w.playersComplete=false;w.playerList=Array.from({length:7},(_,i)=>({player:i+1,name:i===0?'Commander 星 <Enter>':'Commander 星 '+('Ω'.repeat(20)),isComputer:i>=2,isAlive:true,assigned:true,online:i<2}));
+   const l=w.layout(320,340,measure);test.assertTrue(l.compact);test.assertTrue(w.scrollLimit>0);test.assertEqual(l.buttons.filter(b=>!b.body).map(b=>b.action).join(','),'cancel');test.assertEqual(l.choices.map(c=>c.value).join(','),'1,2,3,4');
+   for(const c of l.choices){test.assertEqual(c.labelLines.join(''),c.label);test.assertTrue(c.rect.height>=c.labelLines.length*16+8);for(const line of c.labelLines)test.assertTrue(measure(line,12)<=c.rect.width-16+.001);}
+   for(const b of l.buttons)test.assertTrue(Caption.width(b.label,b.key,measure,{size:b.size})+16<=b.rect.width+.001);
+   test.assertTrue(l.buttons.find(b=>b.action==='player:human').disabled);test.assertFalse(l.buttons.find(b=>b.action==='player:rename').disabled);test.assertFalse(l.buttons.find(b=>b.action==='player:eject').disabled);
+   w.key(pdg.key_PageDown);test.assertTrue(w.bodyScroll>0);w.page=1;const page=w.layout(320,340,measure);test.assertEqual(page.choices.map(c=>c.value).join(','),'5,6,7');test.assertTrue(page.choices[0].rect.y>=page.bodyClip.y);test.assertTrue(page.labels.map(x=>x.text).join('').includes(w.playerList[0].name));
+   w.key(pdg.key_DownArrow);const keyboard=w.layout(320,340,measure),selected=keyboard.choices.find(c=>c.value===w.playerSelection);test.assertTrue(selected.rect.y>=keyboard.bodyClip.y);test.assertTrue(selected.rect.y+selected.rect.height<=keyboard.bodyClip.y+keyboard.bodyClip.height);
+  }}finally{pdg.res.setLanguage(language);}
+ });
+ test.it('keeps compact player-name drafts and full current-player labels separate from feedback and Save/Cancel',()=>{
+  const language=pdg.res.getLanguage(),measure=(text,size=12)=>Array.from(text).length*size*.65;
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const w=form();w.stage='players';w.playerList=[{player:1,name:'Commander 星 '+('Ω'.repeat(20)),assigned:true,isComputer:false}];w.playerSelection=1;w.playerAction('rename');w.message=pdg.res.getString(1030);const l=w.layout(320,340,measure);
+   test.assertTrue(l.compact);test.assertEqual(l.rect.height,300);test.assertEqual(l.fields[0].name,'playerName');test.assertTrue(l.labels.map(x=>x.text).join('').includes(w.playerList[0].name));test.assertEqual(l.statusLines.map(x=>x.text).join(''),w.message);test.assertTrue(l.buttons.every(b=>!b.body));
+   w.key(pdg.key_Tab);const focused=w.layout(320,340,measure);test.assertTrue(focused.fields[0].rect.y>=focused.bodyClip.y);test.assertTrue(focused.fields[0].rect.y+26<=focused.bodyClip.y+focused.bodyClip.height);w.cancel();test.assertEqual(w.stage,'players');test.assertEqual(w.playerList[0].name,'Commander 星 '+('Ω'.repeat(20)));
+  }}finally{pdg.res.setLanguage(language);}
+ });
  test.it('keeps compact active Host Settings readable, scrollable and transactional in all languages',()=>{
   const original=pdg.res.getLanguage(),Caption=require('../src/js/button-caption.js'),measure=(text,size=12)=>Array.from(text).length*size*.65;
   try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const w=form(),info={address:'http://localhost',info:{title:'Host 星',humans:2,computers:1,sectorSize:5,density:10},administration:{complete:false,settingsRevision:4,settings:{compSkill:3,compAdvantage:0,fastGame:true,omniscient:false,maxTimePerTurn:17,endEarly:false}}};

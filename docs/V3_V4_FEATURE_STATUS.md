@@ -7606,3 +7606,52 @@ omitting the unrelated in-progress artwork generator's mutation; its files are
 excluded from this commit. Existing translations are reused without new IDs.
 No PDG checkout changed. Other nested administration surfaces, broader window
 chrome/localization and Map Generation audits remain open.
+
+
+### Compact player administration and name editing (completed)
+
+Audited shipped v3 `Classes/CChangePlayerAttach.cpp:65–94` and `115–143`: Cancel
+suppresses administration, role/assigned/alive state controls eligibility,
+unassigned-human conversion asks for a computer name, and renaming leaves the
+name preference alone. Existing v4 administration/service semantics are retained.
+Below 400px wide, player rows wrap their complete names at readable size and
+commands/paging scroll within the clipped body; Continue remains fixed. Page
+changes reveal the roster, and arrow selection reveals the selected row without
+forcing manual scrolling back. Off-page command targets now include their name
+in the status line, also at ordinary sizes. Roster names are drawn literally:
+a name ending in `<Enter>` no longer becomes a false keyboard hint. The player
+name editor has a full-width field, wrapped current-player label, complete fixed
+feedback and Save/Cancel. Modal placement, outside clunk and persisted dragging
+continue through the shared window implementation.
+
+Both full native suites pass **1,783 tests, zero failures**. Two new six-language
+regressions cover geometry, eligibility, paging/keyboard reveal, complete names,
+feedback, focus and canceled drafts. All 36 native-backed local before/after
+browser workflows pass in en/de/es/fr/ja/ru at 800×600, 640×340 and 320×340.
+Actual canvas/key input exercises paging/selection, modal dragging/isolation,
+rename cancellation, injected durable-save failure and retry, password rejoin
+after rename, preserved player IDs across role changes, concurrent stale-draft
+rejection, freeing a human slot, named unassigned-computer conversion, elimination
+and durable host stop. Twelve authenticated narrow remote before/after workflows
+also pass: roster layout/drag/cancel plus existing Settings/admission, revocation
+and disconnect checks. These do not claim remote coverage of every roster mutation.
+
+Local comparison: 270 pairs, 120 exact, 48 ordinary hosting pairs differing only
+in connection/file/clock metadata (zero outside those regions), 12 ordinary
+next-page pairs changed by the explicit off-page target name, and 90 narrow
+layout changes. Remote comparison: 108 pairs, 70 exact; all six administrator
+and disconnected map pairs are identical. Four additional actual literal-name
+workflows pass before/after at ordinary and narrow sizes; drawText traces prove
+the full name is rendered after the fix. Reviewed six-language selected, paged,
+defeated, open-slot, name-editor/failure/new-computer and remote-dragged comparisons,
+plus both literal-name sizes. Final next-page screenshots were reviewed again
+after adding off-page target identification.
+
+Evidence: `/private/tmp/galactica-host-players/`,
+`/private/tmp/galactica-remote-players/`, `/private/tmp/galactica-player-literal/`,
+their comparison/layout files, and `galactica-host-players-{devel,public}-unit.log`.
+No new resource IDs or engine edits. Concurrent artwork changes are excluded.
+Window/dialog chrome remains Partial: compact Admission, Initial State/Value and
+End Turn, remaining busy/error variants and the separate gameplay minimum-viewport
+audit remain open. Physical LAN/native packaged GUI, overall parity, broad
+localization completion and Map Generation completion are not established here.

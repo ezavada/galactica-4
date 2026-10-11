@@ -9,17 +9,17 @@ function pack(items,left,width,measure){
  }return rows;
 }
 function layout(host,width,height,source,measure,message=host.message){
- const rect={x:12,y:12,width:width-24,height:Math.min(host.stage==='adminPassword'?source.rect.height:568,height-24)},left=rect.x+14,inner=rect.width-28,bodyWidth=inner-10;
- const footer=source.info?source.buttons.filter(button=>['cancel','stop'].includes(button.action)):source.buttons;
+ const rect={x:12,y:12,width:width-24,height:Math.min(['adminPassword','playerName','players'].includes(host.stage)?source.rect.height:568,height-24)},left=rect.x+14,inner=rect.width-28,bodyWidth=inner-10;
+ const footer=(source.info || host.stage==='players')?source.buttons.filter(button=>['cancel','stop'].includes(button.action)):source.buttons;
  const buttons=pack(footer,left,inner,measure),footerTop=rect.y+rect.height-12-buttons.length*30;
  const status=wrap(message || '',inner,t=>measure(t,12)),statusTop=footerTop-8-status.length*16;
  const bodyClip={x:left,y:rect.y+44,width:bodyWidth,height:Math.max(32,statusTop-rect.y-52)};
  const fields=[],labels=[],checks=[],choices=[],bodyButtons=[],entries=[],longTitle=source.info && measure(source.title,12)>rect.width-48;
  if(source.info){const info=source.info,lines=[...(longTitle?[source.title]:[]),info.address || I18n.getString(1081),I18n.formatString(1071,'',info.info.humans,info.info.computers,info.info.turn),...(!info.remoteAdministrator?[I18n.formatString(1072,'',info.port),info.file]:[])].filter(Boolean);
   lines.forEach((text,index)=>entries.push({y:source.rect.y+(54+index*38)*source.scale,kind:'label',item:{text}}));
-  const rows=new Map();for(const button of source.buttons.filter(button=>!footer.includes(button))){if(!rows.has(button.rect.y))rows.set(button.rect.y,[]);rows.get(button.rect.y).push(button);}
-  for(const items of rows.values())entries.push({y:items[0].rect.y,kind:'buttons',items});
  }
+ const rows=new Map();for(const button of source.buttons.filter(button=>!footer.includes(button))){if(!rows.has(button.rect.y))rows.set(button.rect.y,[]);rows.get(button.rect.y).push(button);}
+ for(const items of rows.values())entries.push({y:items[0].rect.y,kind:'buttons',items});
  source.fields.forEach(item=>entries.push({y:item.rect.y,kind:'field',item}));
  source.labels.forEach(item=>entries.push({y:item.rect.y,kind:'label',item}));
  source.checks.forEach(item=>entries.push({y:item.rect.y,kind:'check',item}));
@@ -31,14 +31,19 @@ function layout(host,width,height,source,measure,message=host.message){
   if(entry.kind==='field'){const item=entry.item,focusTop=y;label(item.label);fields.push({...item,focusRect:{x:left,y:focusTop,width:bodyWidth,height:y+26-focusTop},labelRect:{x:left,y,width:0,height:0},rect:{x:left,y,width:bodyWidth,height:26},body:true});y+=34;}
   else if(entry.kind==='label'){label(entry.item.text);y+=4;}
   else if(entry.kind==='check'){const item=entry.item,labelLines=wrap(item.label,bodyWidth-40,t=>measure(t,12)),h=Math.max(26,labelLines.length*16+10);checks.push({...item,labelLines,rect:{x:left,y,width:bodyWidth,height:h},body:true});y+=h+8;}
+  else if(entry.kind==='choices' && entry.items[0].action==='selectPlayer'){for(const item of entry.items){const labelLines=wrap(item.label,bodyWidth-16,t=>measure(t,12)),h=Math.max(24,labelLines.length*16+8);choices.push({...item,labelLines,size:12,rect:{x:left,y,width:bodyWidth,height:h},body:true});y+=h+6;}y+=4;}
   else {for(const row of pack(entry.items,left,bodyWidth,measure)){for(const item of row)(entry.kind==='buttons'?bodyButtons:choices).push({...item,rect:{...item.rect,y},body:true});y+=30;}y+=4;}
  }
  const limit=Math.max(0,y-bodyClip.y-bodyClip.height);host.scrollLimit=limit;
- if(host.compactStage!==host.stage){host.bodyScroll=0;host.compactFocus=null;host.compactStage=host.stage;}
+ if(host.compactStage!==host.stage){host.bodyScroll=0;host.compactFocus=null;host.compactPlayer=null;host.compactPage=null;host.compactStage=host.stage;}
  let scroll=clamp(host.bodyScroll || 0,limit);
  if(host.revealFocus || host.compactFocus!==host.focus || host.compactBodyHeight!==bodyClip.height){const field=fields.find(field=>field.name===host.focus);
   if(field){const focus=field.focusRect;if(focus.y<bodyClip.y+scroll)scroll=clamp(focus.y-bodyClip.y,limit);else if(focus.y+focus.height>bodyClip.y+scroll+bodyClip.height)scroll=clamp(focus.y+focus.height-bodyClip.y-bodyClip.height,limit);}
   host.revealFocus=false;host.compactFocus=host.focus;host.compactBodyHeight=bodyClip.height;
+ }
+ if(host.stage==='players' && host.compactPage!==host.page){scroll=0;host.compactPlayer=null;host.compactPage=host.page;}
+ if(host.stage==='players' && host.compactPlayer!==host.playerSelection){const selected=choices.find(choice=>choice.value===host.playerSelection);
+  if(selected){const r=selected.rect;if(r.y<bodyClip.y+scroll)scroll=clamp(r.y-bodyClip.y,limit);else if(r.y+r.height>bodyClip.y+scroll+bodyClip.height)scroll=clamp(r.y+r.height-bodyClip.y-bodyClip.height,limit);}host.compactPlayer=host.playerSelection;
  }
  host.bodyScroll=scroll;for(const item of [...fields,...labels,...checks,...choices,...bodyButtons]){item.rect.y-=scroll;if(item.labelRect)item.labelRect.y-=scroll;if(item.focusRect)item.focusRect.y-=scroll;}
  const scrollTrack={x:left+bodyWidth+4,y:bodyClip.y,width:5,height:bodyClip.height},thumbHeight=Math.max(16,bodyClip.height*bodyClip.height/(bodyClip.height+limit));

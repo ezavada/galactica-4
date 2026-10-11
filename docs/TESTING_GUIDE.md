@@ -1268,3 +1268,30 @@ ordinary hosting pairs with zero differences outside connection/file/clock
 regions. All six narrow original/dragged, masked-cancel and save-error pairs were
 visually reviewed. These localhost checks do not establish physical LAN or
 packaged native GUI behavior. Other compact administration dialogs remain open.
+
+
+### Compact player roster and name-editor browser checks
+
+Append `players` to the Host status helper:
+`node tools/test-web-host-status-compact.cjs BUILD OUTPUT LANG before|after WIDTH HEIGHT players`.
+The native-backed lane creates seven slots, claims two human players, then uses
+actual canvas/keyboard input for paging, keyboard reveal, modal drag/isolation,
+rename cancel/save failure/retry/password rejoin, role changes, stale mutation
+rejection, slot freeing, named computer conversion, elimination and host stop.
+Optional `GALACTICA_TEST_PLAYER_NAME` supplies a literal name; `<Enter>` suffix
+coverage also records actual drawText output to detect accidental shortcut parsing.
+Native fixtures and Chrome remain muted.
+
+Both full native suites pass 1,783 tests. All 36 six-language ordinary/short/narrow
+local before/after runs, twelve authenticated remote narrow runs and four
+additional literal-name runs pass. Remote coverage is roster layout/drag/cancel
+plus the existing Settings/admission/revocation/disconnect lane. Evidence prefixes:
+`/private/tmp/galactica-host-players`, `galactica-remote-players` and
+`galactica-player-literal`. Local comparison contains 270 pairs: 120 exact, 48
+ordinary hosting metadata-only, 12 ordinary off-page-target-name changes and 90
+narrow changes. Remote comparison contains 108 pairs, 70 exact; administrator and
+disconnected maps stay identical in all six languages. Reviewed the roster,
+paging, name-edit/failure/conversion and remote dragged views in all languages,
+and literal names at both sizes. Other compact administration and gameplay
+viewport checks remain open; localhost evidence does not prove physical LAN or
+packaged native GUI behavior.
