@@ -227,8 +227,13 @@ class Star {
     
     completeShip() {
         if (!this.currentShip) return null;
-        const ship = this.game.factory.createShip(this.x, this.y, this.currentShip.type, this, true);
-        this.currentShip = null;
+        return this.buildCompletedShip(this.currentShip.type, true);
+    }
+
+    // Editor-created ships use the same completion side effects but retain paid construction.
+    buildCompletedShip(type, consumeHull = false) {
+        const ship = this.game.factory.createShip(this.x, this.y, type, this, true);
+        if (consumeHull) this.currentShip = null;
         this.ships.push(ship);
         
         // Update player info for new ship type and tech level
@@ -282,7 +287,7 @@ class Star {
         }
         
         // If ship has a destination, move it immediately
-        if (ship.destination && ship.type !== 'defense') {
+        if (consumeHull && ship.destination && ship.type !== 'defense') {
             ship.move();
         }
         

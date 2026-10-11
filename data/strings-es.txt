@@ -868,3 +868,17 @@
 
 1167	Las vistas del administrador son de solo lectura. Vuelva a unirse para reconectar con el anfitrión.
 1168	Administración del anfitrión
+
+1169	Editar estado inicial
+1170	Fijar población
+1171	Fijar tecnología
+1172	Fijar propietario
+1173	Crear nave
+1174	Introduce un entero dentro del rango permitido o elige un tipo de nave.
+1175	El estado inicial cambió. Abre de nuevo el editor para ver los valores actuales.
+1176	Solo se puede editar el estado en el primer turno.
+1177	Población: {0} ×1000 · Tecnología: {1} · Propietario: {2}
+1178	Población en miles: 0–4294967295.
+1179	Número de propietario: 0–{0}. Cero significa sin propietario.
+1180	Nivel tecnológico: 0–65535.
+1181	Edita población, tecnología y propietario de los sistemas o crea naves terminadas en el primer turno.

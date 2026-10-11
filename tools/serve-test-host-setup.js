@@ -24,6 +24,7 @@ const server=http.createServer((req,res)=>{
    if(path.basename(input.file)!==input.file)throw Error('Fixture filename must be a basename');
    result=service.describe(await service.open(path.join(directory,input.file),input.listen));
   }else if(req.url==='/turn-control' && record)result=service.describe(await service.turnControl(record,input.action,input.turn));
+  else if(req.url==='/initial-state' && record)result=service.describe(await service.editInitialState(record,input.change,input.revision,input.turn));
   else if(req.url==='/player' && record)result=service.describe(await service.changePlayer(record,input.change,input.revision,input.turn));
   else if(req.url==='/admin-sessions' && record)result={count:record.host.admin.sessions.size};
   else if(req.url==='/admin-password' && record){await service.setAdminPassword(record,input.password,input.revision===undefined?record.host.admin.revision():input.revision);result=service.describe(record);}

@@ -89,6 +89,10 @@ class NetworkHost {
         if(!ready && (this.game.config.numHumans===0 || !this.clock.expired()))return false;
         this.transact(game=>game.endTurn());return true;
     }
+    editInitialState(value,revision,turn){
+        const Edit=require('./initial-state-edit.js');if(!Number.isSafeInteger(revision) || revision!==Edit.revision(this.game) || turn!==this.game.turn)throw failure('stale_initial_state');
+        this.transact(game=>Edit.apply(game,value));
+    }
     changePlayer(value,revision,turn){
         const Players=require('./host-players.js'),current=Players.revision(this.game);
         if(!Number.isSafeInteger(revision) || revision!==current || current===Number.MAX_SAFE_INTEGER || turn!==this.game.turn)throw failure('stale_host_player');

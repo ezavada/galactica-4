@@ -31,7 +31,7 @@ class HostWindow {
   finally{this.busy=false;}
  }
  dismiss(){if(this.busy)return false;while(this.active)this.cancel();return true;}
- cancel(){if(!this.active || this.busy)return false;if(this.stage==='adminPassword'){this.adminPassword.text='';this.stage='hosting';this.message='';return true;}if(this.stage==='playerName'){this.stage='players';this.message='';return true;}if(this.stage==='admission'){this.stage='hosting';this.admission=null;this.admissionCode.text='';this.message='';return true;}if(this.stage==='players'){this.stage='hosting';this.message='';return true;}if(this.stage==='settings'){this.config=this.previousConfig;this.stage='hosting';this.message='';return true;}if(this.stage==='endTurn'){this.stage='hosting';this.confirmation=null;this.message='';return true;}if(this.conversion && this.backend.discardConversion)this.backend.discardConversion(this.conversion.token);this.conversion=null;this.active=false;return true;}
+ cancel(){if(!this.active || this.busy)return false;if(this.stage==='initialValue'){this.stage='initialState';this.message='';return true;}if(this.stage==='initialState'){if(this.record.localInitialEditor)this.active=false;this.stage='hosting';this.initialRows=null;this.message='';return true;}if(this.stage==='adminPassword'){this.adminPassword.text='';this.stage='hosting';this.message='';return true;}if(this.stage==='playerName'){this.stage='players';this.message='';return true;}if(this.stage==='admission'){this.stage='hosting';this.admission=null;this.admissionCode.text='';this.message='';return true;}if(this.stage==='players'){this.stage='hosting';this.message='';return true;}if(this.stage==='settings'){this.config=this.previousConfig;this.stage='hosting';this.message='';return true;}if(this.stage==='endTurn'){this.stage='hosting';this.confirmation=null;this.message='';return true;}if(this.conversion && this.backend.discardConversion)this.backend.discardConversion(this.conversion.token);this.conversion=null;this.active=false;return true;}
  options(){
   const numHumans=whole(this.humans.text,1,99),numComputers=whole(this.computers.text,0,98),port=whole(this.port.text,0,65535),time=this.timed?whole(this.time.text,1,Math.min(99999999,Math.floor(Number.MAX_SAFE_INTEGER/(1000*units[this.unit].multiplier)))):0;
   if(numHumans===null || numComputers===null || numHumans+numComputers>99 || port===null || time===null || !Name.validName(this.title.text,Setup.maximumTitleLength) || !Name.validName(this.file.text,1024))return null;
@@ -51,6 +51,31 @@ class HostWindow {
   try{await this.backend.stop(this.record);this.record=null;this.active=false;return true;}catch(error){this.message=I18n.getString(1073);return false;}finally{this.busy=false;}
  }
  async retry(){if(this.busy || !this.record)return false;this.busy=true;this.message=I18n.getString(1061);try{const port=whole(this.port.text,0,65535);if(port===null)throw {code:'invalid_host_port'};await this.backend.retry(this.record,port);this.port=Name.createEditor(String(this.backend.describe(this.record).port),5);this.message='';return true;}catch(error){this.message=errorText(error);return false;}finally{this.busy=false;}}
+ editInitialState(){
+  if(this.busy || !this.record || !this.backend.editInitialState)return false;
+  const info=this.backend.describe(this.record),a=info.administration;
+  if(!info.address || info.info.turn!==1 || a.complete || !Array.isArray(a.initialState) || !a.initialState.length || a.connected===false)return false;
+  this.initialRows=a.initialState.map(s=>({...s}));this.initialRevision=a.initialStateRevision;this.initialTurn=info.info.turn;this.initialPlayers=info.info.totalPlayers || info.info.humans+info.info.computers;
+  this.initialSelection=this.initialRows[0].id;this.page=0;this.stage='initialState';this.message='';return true;
+ }
+ initialAction(action,value){
+  if(this.stage!=='initialState')return false;
+  if(action==='initialSelect'){if(!this.initialRows.some(s=>s.id===value))return false;this.initialSelection=value;this.page=Math.floor(this.initialRows.findIndex(s=>s.id===value)/4);return true;}
+  if(action==='previous' || action==='next'){this.page=Math.max(0,Math.min(Math.ceil(this.initialRows.length/4)-1,this.page+(action==='next'?1:-1)));return true;}
+  const kind=action.slice(8);if(!action.startsWith('initial:') || !['population','technology','owner','ship'].includes(kind))return false;
+  const star=this.initialRows.find(s=>s.id===this.initialSelection);if(!star)return false;
+  this.initialKind=kind;this.initialValue=Name.createEditor(kind==='ship'?'':String(star[kind]),10);this.initialShip=star.shipType;this.focus='initialValue';this.stage='initialValue';this.message='';return true;
+ }
+ async saveInitialState(){
+  if(this.busy || this.stage!=='initialValue')return false;
+  const max=this.initialKind==='population'?4294967295:this.initialKind==='technology'?65535:this.initialPlayers,value=this.initialKind==='ship'?this.initialShip:whole(this.initialValue.text,0,max);
+  if(value===null || this.initialKind==='ship' && !require('./initial-state-edit.js').types.includes(value)){this.message=I18n.getString(1174);return false;}
+  this.busy=true;this.message=I18n.getString(1138);
+  try{await this.backend.editInitialState(this.record,{action:this.initialKind,star:this.initialSelection,value},this.initialRevision,this.initialTurn);const selected=this.initialSelection;this.editInitialStateAfterSave(selected);return true;}
+  catch(error){if(['stale_initial_state','initial_state_closed','game_complete','not_logged_in'].includes(error.code)){this.stage='hosting';this.initialRows=null;}this.message=I18n.getString(error.code==='stale_initial_state'?1175:error.code==='initial_state_closed'?1176:error.code==='game_complete'?1043:error.code==='not_logged_in'?1031:error.code==='invalid_initial_state'?1174:1030);return false;}
+  finally{this.busy=false;}
+ }
+ editInitialStateAfterSave(selected){const a=this.backend.describe(this.record).administration;this.initialRows=a.initialState.map(s=>({...s}));this.initialRevision=a.initialStateRevision;this.initialSelection=selected;this.page=Math.floor(this.initialRows.findIndex(s=>s.id===selected)/4);this.stage='initialState';this.message='';}
  editAdminPassword(){
   if(this.busy || !this.record || !this.backend.setAdminPassword)return false;const info=this.backend.describe(this.record);if(!info.address)return false;
   this.adminRevision=info.administration.adminRevision;this.adminEnabled=info.administration.adminEnabled;this.adminPassword=Name.createEditor('',64);this.focus='adminPassword';this.stage='adminPassword';this.message='';return true;
@@ -130,7 +155,7 @@ class HostWindow {
   finally{this.busy=false;}
  }
  action(action,value){
-  if(action==='cancel')return this.cancel();if(this.busy)return false;if(this.record && this.record.remoteAdministrator && ['create','another','openSaved','convert','resume','retry','join','adminPassword'].includes(action))return false;if(action==='adminPassword')return this.editAdminPassword();if(action==='saveAdminPassword')return this.saveAdminPassword();if(action==='admission')return this.editAdmission();if(action==='saveAdmission')return this.saveAdmission();if(this.stage==='admission')return this.admissionAction(action,value);if(action==='players')return this.editPlayers();if(action==='selectPlayer')return this.selectPlayer(value);if(action==='savePlayer')return this.savePlayer();if(action.startsWith('player:'))return this.playerAction(action.slice(7));if(action==='settings')return this.editSettings();if(action==='saveSettings')return this.saveSettings();
+  if(action==='cancel')return this.cancel();if(this.busy)return false;if(this.record && this.record.remoteAdministrator && ['create','another','openSaved','convert','resume','retry','join','adminPassword'].includes(action))return false;if(action==='initialState')return this.editInitialState();if(action==='saveInitialState')return this.saveInitialState();if(this.stage==='initialValue' && action==='initialShip'){if(!require('./initial-state-edit.js').types.includes(value))return false;this.initialShip=value;return true;}if(this.stage==='initialState')return this.initialAction(action,value);if(action==='adminPassword')return this.editAdminPassword();if(action==='saveAdminPassword')return this.saveAdminPassword();if(action==='admission')return this.editAdmission();if(action==='saveAdmission')return this.saveAdmission();if(this.stage==='admission')return this.admissionAction(action,value);if(action==='players')return this.editPlayers();if(action==='selectPlayer')return this.selectPlayer(value);if(action==='savePlayer')return this.savePlayer();if(action.startsWith('player:'))return this.playerAction(action.slice(7));if(action==='settings')return this.editSettings();if(action==='saveSettings')return this.saveSettings();
   if(this.stage==='settings' && ['size','density','another','openSaved','create'].includes(action))return false;
   if(action==='pause' || action==='resumeClock')return this.control(action==='pause'?'pause':'resume');if(action==='endNow')return this.requestEnd();if(action==='confirmEnd')return this.confirmation?this.control('end',this.confirmation.turn):false;if((action==='previous' || action==='next') && this.stage==='players'){this.page=Math.max(0,Math.min(Math.ceil(this.playerList.length/4)-1,this.page+(action==='next'?1:-1)));return true;}if((action==='previous' || action==='next') && this.confirmation){this.page=Math.max(0,Math.min(Math.ceil(this.confirmation.pending.length/4)-1,this.page+(action==='next'?1:-1)));return true;}
   if(action==='convert')return this.convert();if(action==='resume')return this.resume();if(action==='openSaved'){this.active=false;return this.openSaved(this.config);}if(action==='create')return this.create();if(action==='stop')return this.stop();if(action==='retry')return this.retry();
@@ -149,7 +174,7 @@ class HostWindow {
  }
  key(key,pdgRef=globalThis.pdg){
   if(key===pdgRef.key_Escape)return this.cancel();if(this.busy)return true;
-  if(this.stage==='adminPassword'){if([13,10,3].includes(key))this.saveAdminPassword();else Name.edit(this.adminPassword,key,pdgRef);return true;}
+  if(this.stage==='initialState')return true;if(this.stage==='initialValue'){if([13,10,3].includes(key))this.saveInitialState();else if(this.initialKind!=='ship')Name.edit(this.initialValue,key,pdgRef);return true;}if(this.stage==='adminPassword'){if([13,10,3].includes(key))this.saveAdminPassword();else Name.edit(this.adminPassword,key,pdgRef);return true;}
   if(this.stage==='admission'){if([13,10,3].includes(key))this.admissionAction('admissionAdd');else Name.edit(this.admissionCode,key,pdgRef);return true;}
   if(this.stage==='players'){if(key===pdgRef.key_UpArrow || key===pdgRef.key_DownArrow){const current=this.playerList.findIndex(p=>p.player===this.playerSelection),index=Math.max(0,Math.min(this.playerList.length-1,current+(key===pdgRef.key_UpArrow?-1:1)));this.playerSelection=this.playerList[index].player;this.page=Math.floor(index/4);}return true;}
   if(this.stage==='endTurn'){if([13,10,3].includes(key))this.action('confirmEnd');return true;}
@@ -162,8 +187,16 @@ class HostWindow {
   this.message='';return true;
  }
  layout(width,height){
-  if(!this.active)return null;const baseHeight=this.stage==='hosting' && this.record.remoteAdministrator?440:['players','admission'].includes(this.stage)?480:['playerName','adminPassword'].includes(this.stage)?300:this.stage==='endTurn'?360:this.stage==='conversion'?380:this.stage==='open'?300:568,rect={width:Math.min(600,width-24),height:Math.min(baseHeight,height-24)};rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;
+  if(!this.active)return null;const baseHeight=this.stage==='hosting' && this.record.remoteAdministrator?440:['players','admission','initialState'].includes(this.stage)?480:['playerName','adminPassword','initialValue'].includes(this.stage)?300:this.stage==='endTurn'?360:this.stage==='conversion'?380:this.stage==='open'?300:568,rect={width:Math.min(600,width-24),height:Math.min(baseHeight,height-24)};rect.x=(width-rect.width)/2;rect.y=(height-rect.height)/2;
   const scale=rect.height/baseHeight,at=(x,y,w,h=26)=>({x:rect.x+x,y:rect.y+y*scale,width:w,height:h*scale});
+  if(this.stage==='initialState'){
+   const inner=rect.width-48,star=this.initialRows.find(s=>s.id===this.initialSelection),buttons=[...(this.initialRows.length>4?[{action:'previous',id:1033,disabled:this.page===0,rect:at(24,200,inner/2-4)},{action:'next',id:1034,disabled:(this.page+1)*4>=this.initialRows.length,rect:at(28+inner/2,200,inner/2-4)}]:[]),...['population','technology','owner','ship'].map((kind,i)=>({action:'initial:'+kind,id:1170+i,rect:at(i%2?28+inner/2:24,290+Math.floor(i/2)*38,inner/2-4)})),{action:'cancel',id:834,key:'Esc',rect:at(24,430,inner)}];
+   return {rect,scale,title:I18n.getString(1169),messageY:396,fields:[],checks:[],choices:this.initialRows.slice(this.page*4,this.page*4+4).map((s,i)=>({action:'initialSelect',value:s.id,label:s.name,active:s.id===this.initialSelection,rect:at(24,60+i*32,inner)})),labels:[{text:I18n.formatString(1177,'',star.population,star.technology,star.owner),rect:at(24,248,inner)}],buttons:buttons.map(b=>({...b,label:I18n.getString(b.id)}))};
+  }
+  if(this.stage==='initialValue'){
+   const inner=rect.width-48,ship=this.initialKind==='ship',star=this.initialRows.find(s=>s.id===this.initialSelection);
+   return {rect,scale,title:I18n.getString(1170+['population','technology','owner','ship'].indexOf(this.initialKind)),messageY:206,checks:[],labels:[{text:star.name,rect:at(24,60,inner)},...(!ship?[{text:this.initialKind==='population'?I18n.getString(1178):this.initialKind==='owner'?I18n.formatString(1179,'',this.initialPlayers):I18n.getString(1180),rect:at(24,150,inner)}]:[])],fields:ship?[]:[{name:'initialValue',label:'',labelRect:at(24,106,0),rect:at(24,106,inner)}],choices:ship?require('./initial-state-edit.js').types.map((type,i)=>({action:'initialShip',value:type,label:I18n.getShipTypeName(type,{capitalized:true}),active:this.initialShip===type,rect:at(i%2?28+inner/2:24,100+Math.floor(i/2)*38,inner/2-4)})):[],buttons:[{action:'cancel',id:683,key:'Esc',rect:at(24,240,inner/2-4)},{action:'saveInitialState',id:ship?1173:682,key:'Enter',disabled:ship && !this.initialShip,rect:at(28+inner/2,240,inner/2-4)}].map(b=>({...b,label:I18n.getString(b.id)}))};
+  }
   if(this.stage==='adminPassword'){
    const inner=rect.width-48;return {rect,scale,title:I18n.getString(1158),messageY:192,fields:[{name:'adminPassword',masked:true,label:I18n.getString(1159),rect:at(180,100,rect.width-204),labelRect:at(24,100,140)}],choices:[],checks:[],labels:[{text:I18n.getString(1160),rect:at(24,144,inner)}],buttons:[{action:'cancel',id:683,key:'Esc',rect:at(24,240,inner/2-4)},{action:'saveAdminPassword',id:682,key:'Enter',rect:at(28+inner/2,240,inner/2-4)}].map(b=>({...b,label:I18n.getString(b.id)}))};
   }
@@ -202,10 +235,10 @@ class HostWindow {
     ...(info.address && this.backend.setAdminPassword?[{action:'adminPassword',id:1158,rect:at(28+inner/2,380,inner/2-4)}]:[]),
     {action:info.address?'settings':'retry',id:info.address?1118:1075,disabled:info.address && info.administration.complete,rect:at(24,418,info.address?inner/2-4:inner)},
     ...(info.address?[{action:'players',id:1125,disabled:info.administration.complete && !info.administration.players.some(p=>!p.isComputer && p.online),rect:at(28+inner/2,418,inner/2-4)}]:[]),
-    {action:'another',id:1065,rect:at(24,456,info.address?inner/2-4:inner)},
-    ...(info.address?[{action:'admission',id:1143,rect:at(28+inner/2,456,inner/2-4)}]:[]),
+    {action:'another',id:1065,rect:at(24,456,info.address?inner/3-6:inner)},
+    ...(info.address?[{action:'admission',id:1143,rect:at(28+inner/3,456,inner/3-6)},{action:'initialState',id:1169,disabled:info.info.turn!==1 || info.administration.complete || !info.administration.initialState || !this.backend.editInitialState,rect:at(32+2*inner/3,456,inner/3-8)}]:[]),
     {action:'stop',id:1064,rect:at(24,494,inner/2-4)},
-    {action:'cancel',id:834,key:'Esc',rect:at(28+inner/2,494,inner/2-4)}].filter(b=>!info.remoteAdministrator || !['join','another','retry'].includes(b.action)).map(b=>({...b,rect:info.remoteAdministrator?at(b.action==='admission'?24:b.rect.x-rect.x,['pause','resumeClock','endNow'].includes(b.action)?200:['settings','players'].includes(b.action)?244:b.action==='admission'?288:376,b.action==='admission'?inner:b.rect.width):b.rect,id:info.remoteAdministrator && b.action==='stop'?1165:b.id,disabled:b.disabled || info.remoteAdministrator && !info.administration.connected && !['cancel','stop'].includes(b.action),label:I18n.getString(info.remoteAdministrator && b.action==='stop'?1165:b.id)}))};
+    {action:'cancel',id:834,key:'Esc',rect:at(28+inner/2,494,inner/2-4)}].filter(b=>!info.remoteAdministrator || !['join','another','retry'].includes(b.action)).map(b=>({...b,rect:info.remoteAdministrator?at(b.action==='admission'?24:b.action==='initialState'?28+inner/2:b.rect.x-rect.x,['pause','resumeClock','endNow'].includes(b.action)?200:['settings','players'].includes(b.action)?244:['admission','initialState'].includes(b.action)?288:376,['admission','initialState'].includes(b.action)?inner/2-4:b.rect.width):b.rect,id:info.remoteAdministrator && b.action==='stop'?1165:b.id,disabled:b.disabled || info.remoteAdministrator && !info.administration.connected && !['cancel','stop'].includes(b.action),label:I18n.getString(info.remoteAdministrator && b.action==='stop'?1165:b.id)}))};
   }
   const inner=rect.width-48,labelWidth=140,fieldX=180,fieldWidth=rect.width-fieldX-24;
   const field=(name,id,x,y,w,labelX=24)=>({name,label:I18n.getString(id),rect:at(x,y,w),labelRect:at(labelX,y,Math.max(0,x-labelX-8))});

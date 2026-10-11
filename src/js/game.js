@@ -1898,6 +1898,7 @@ class Game {
         }
 
         switch (action.type) {
+            case 'editInitialState':return !!(this.initialStateCommands && this.initialStateCommands.available() && this.initialStateCommands.open(action.star));
             case 'startTutorial':return this.canStartTutorial() && !!this.tutorialCommands.start();
             case 'openManual':
                 if(!this.manualCommands)return false;

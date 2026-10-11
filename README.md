@@ -112,7 +112,7 @@ host to announce the next turn.
 Desktop **Host** (H), on startup or in File, creates a durable hosted game.
 Choose human/AI counts, map options, a host filename, port (0 selects an
 available port), and an optional minutes/hours/days/weeks turn limit. The status
-window offers Join, Pause/Resume game, End turn now, Host settings, Change player, Admission, Stop hosting, and Host
+window offers Join, Pause/Resume game, End turn now, Host settings, Change player, Admission, Edit initial state, Stop hosting, and Host
 another game. Pausing holds both the timer and automatic turn advancement and
 survives reopening. End turn now warns about assigned living humans who have
 not posted; Keep waiting cancels, and a confirmation for an already-advanced
@@ -228,7 +228,16 @@ pause/resume, confirmed force turn, settings, player changes/ejection and admiss
 Disconnect preserves the view for password rejoin; Close logs out and returns
 to the previous document. Administrator views cannot be saved as local games.
 
-Multiplayer remains incomplete: administrator state editing, discovery, chat,
+During turn one, **Edit initial state** changes system population (in thousands),
+technology and owner, or creates a completed ship without spending construction
+credits. Desktop owners use the host-status dialog; remote administrators use
+that dialog or a selected system’s map menu. Local games also offer the editor
+in Settings and the selected-system menu. Zero denotes an unowned system.
+Host ownership changes seed empty population/technology to one, as in v3; local
+ownership changes preserve zeros. Editing closes after turn one. Host writes
+are atomic, and failed writes keep the draft available for retry.
+
+Multiplayer remains incomplete: discovery, chat,
 optional saved passwords and network-game saving are still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
@@ -238,7 +247,7 @@ optional saved passwords and network-game saving are still being ported. See [th
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1568 passed, 0 failed.
+Current expected result: 1581 passed, 0 failed.
 
 AI-only parity observer:
 

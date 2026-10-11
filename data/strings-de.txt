@@ -868,3 +868,17 @@
 
 1167	Administratoransichten sind schreibgeschützt. Treten Sie erneut bei, um die Verbindung wiederherzustellen.
 1168	Host-Verwaltung
+
+1169	Anfangszustand bearbeiten
+1170	Bevölkerung setzen
+1171	Technologie setzen
+1172	Besitzer setzen
+1173	Schiff erstellen
+1174	Ganze Zahl im erlaubten Bereich eingeben oder Schiffstyp wählen.
+1175	Der Anfangszustand wurde geändert. Editor für aktuelle Werte erneut öffnen.
+1176	Bearbeiten ist nur in Runde eins möglich.
+1177	Bevölkerung: {0} ×1000 · Technologie: {1} · Besitzer: {2}
+1178	Bevölkerung in Tausend: 0–4294967295.
+1179	Besitzernummer: 0–{0}. Null bedeutet unbesetzt.
+1180	Technologiestufe: 0–65535.
+1181	In Runde eins Bevölkerung, Technologie und Besitz von Systemen ändern oder fertige Schiffe erstellen.

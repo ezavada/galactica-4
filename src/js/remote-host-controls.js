@@ -9,6 +9,7 @@ function createService(client,changed=()=>{}){
  async function act(r,value){check(r);await client.act(value);changed(client.model);return record;}
  return {supported:true,records:[record],latest:()=>record,describe,
   turnControl:(r,action,turn)=>act(r,{action,...(action==='end'?{turn}: {})}),
+  editInitialState:(r,change,revision,turn)=>act(r,{action:'initialState',change,revision,turn}),
   updateSettings:(r,settings,revision)=>act(r,{action:'settings',settings,revision}),
   changePlayer:(r,change,revision,turn)=>act(r,{action:'player',change,revision,turn}),
   updateAdmission:(r,policy,revision)=>act(r,{action:'admission',policy,revision}),

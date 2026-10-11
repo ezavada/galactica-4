@@ -93,7 +93,7 @@ function project(game,viewer,administrator=false){
  });
  return {format:administrator?'Galactica-4-admin-state':'Galactica-4-player-state',version:1,viewer,turn:game.turn,
   map:{width:1024*1024*game.config.sectorSize,height:1024*1024*game.config.sectorSize},
-  playerRevision:game.config.networkHost.playerStateRevision || 0,
+  playerRevision:game.config.networkHost.playerStateRevision || 0,initialStateRevision:game.config.networkHost.initialStateRevision || 0,
   config:{...(game.config.humanPlayerSlots===undefined?{}:{humanPlayerSlots:[...game.config.humanPlayerSlots]}),...pick(game.config,['humanPlayerSlots','gameTitle','numHumans','numComputers','totalPlayers','sectorSize','density','fastGame','omniscient','compSkill','compAdvantage','maxTimePerTurn','endEarly'])},
   ...(administrator?{role:'administrator'}:{}),isGameOver:game.isGameOver,privatePlayer,comparisons,entities,events};
 }

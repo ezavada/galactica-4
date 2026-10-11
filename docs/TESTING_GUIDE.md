@@ -682,3 +682,33 @@ retry, pending-player and stale force confirmations, settings, rename/ejection,
 admission, observer refresh, disconnect/rejoin and actual logout on Close.
 Before/after Join screenshots and all localized remote control layouts should
 be inspected. Full current unit count: 1,568 passed on both PDG runtimes.
+
+### First-turn system state editing
+
+Run actual local, host-owner and remote-administrator editing against native
+listeners on both PDG runtimes:
+
+```sh
+./gad4 tools/test-initial-state-edit.js
+PDG_EXECUTABLE=/path/to/public/pdg ./gad4 tools/test-initial-state-edit.js
+```
+
+The runner covers all six languages with muted output. It checks local zero-value
+ownership and saved restoration, all four host operations, actual authenticated
+editor adapters, read-only player isolation, same-turn projection refresh,
+construction/credit retention, failed-save rollback/retry, stale and late
+requests, privacy and durable host reopening.
+
+Capture and exercise the real application dialogs:
+
+```sh
+node tools/test-web-host-setup.cjs BEFORE_BUILD_DIR BEFORE_SCREENSHOTS en before-initial-state
+node tools/test-web-host-setup.cjs BUILD_DIR AFTER_SCREENSHOTS en initial-state
+```
+
+Repeat for de/es/fr/ja/ru. The muted browser drives system paging, cancellation,
+failed-save retry, population/technology/owner/ship dialogs, local selected-star
+editing, administrator login and map editing, observer refresh and rejection
+when the turn advances with a draft open. Inspect before/after host status,
+translated system lists and numeric/hull dialogs. Full current suite:
+**1,581 passed on both PDG runtimes**.

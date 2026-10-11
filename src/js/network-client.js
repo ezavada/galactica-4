@@ -58,6 +58,7 @@ class NetworkClient {
   if(old && old.clientGameId===fresh.clientGameId && old.clientPlayerNum===fresh.clientPlayerNum){
    if(fresh.turn<old.turn)throw fail('stale_server_state');
    if(fresh.turn===old.turn && fresh.clientTurnPosted===old.clientTurnPosted && fresh.isGameOver===old.isGameOver && !discardOrders){
+    if(old.clientInitialStateRevision!==fresh.clientInitialStateRevision){preservePresentation(old,fresh);this.model=fresh;return fresh;}
     const changed=old.clientPlayerRevision!==fresh.clientPlayerRevision || JSON.stringify(old.config.getHumanPlayerSlots())!==JSON.stringify(fresh.config.getHumanPlayerSlots()) || require('./host-settings.js').fields.some(k=>old.config[k]!==fresh.config[k]);
     if(changed){if(!old.clientTurnPosted)require('./client-settings-refresh.js').preserveOrders(old,fresh);preservePresentation(old,fresh);this.model=fresh;return fresh;}
     old.clientClock=fresh.clientClock;

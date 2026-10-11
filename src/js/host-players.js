@@ -6,6 +6,7 @@ function describe(game){const slots=game.config.getHumanPlayerSlots();return gam
 function apply(game,value){
  if(!value || typeof value!=='object' || Array.isArray(value) || Object.keys(value).some(k=>!['action','player','name'].includes(k)) || !['human','computer','remove','rename','kill','eject'].includes(value.action) || !Number.isInteger(value.player) || value.player<1 || value.player>game.config.totalPlayers)failure('invalid_host_player');
  const p=game.players[value.player],c=game.config,h=c.networkHost,slots=c.getHumanPlayerSlots(),index=slots.indexOf(value.player),claim=index>=0?h.players[index]:null;
+ if(value.action!=='eject' && (h.playerStateRevision || 0)===Number.MAX_SAFE_INTEGER)failure('invalid_host_player');
  const role=value.action==='human' || value.action==='computer',named=value.action==='rename' || value.action==='computer';
  if(!named && Object.hasOwn(value,'name'))failure('invalid_host_player');
  if(named && (!Names.validName(value.name) || game.players.slice(1).some(other=>other!==p && other.name===value.name && (other.isComputer || h.players[slots.indexOf(other.playerNum)]))))failure('invalid_host_player');
@@ -24,7 +25,7 @@ function apply(game,value){
   for(const list of [game.stars,game.allShips,game.allFleets,game.allRendezvous])for(const e of list)if(e.owner===p.playerNum)e.owner=0;
  }
  if(role || value.action==='remove')if(h.posts)delete h.posts[value.player];
- h.playersRevision=revision(game)+1;if(value.action!=='eject'){h.playerStateRevision=h.playersRevision;game.visibilityCalculator.updateAllVisibility();}
+ h.playersRevision=revision(game)+1;if(value.action!=='eject'){h.playerStateRevision=(h.playerStateRevision || 0)+1;game.visibilityCalculator.updateAllVisibility();}
  return value.action==='eject' || role || value.action==='remove' || value.action==='rename' && !!claim;
 }
 module.exports={revision,describe,apply,failure};

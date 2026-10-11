@@ -868,3 +868,17 @@
 
 1167	Administrator views are read-only. Rejoin to reconnect to the host.
 1168	Host administration
+
+1169	Edit initial state
+1170	Set population
+1171	Set technology
+1172	Set owner
+1173	Create ship
+1174	Enter a whole number within the allowed range, or select a ship type.
+1175	The initial state changed. Reopen the editor to use the latest values.
+1176	State editing is available only on turn one.
+1177	Population: {0} ×1000 · Technology: {1} · Owner: {2}
+1178	Population in thousands: 0–4294967295.
+1179	Owner number: 0–{0}. Zero means unowned.
+1180	Technology level: 0–65535.
+1181	Edit system population, technology, ownership or create completed ships during turn one.

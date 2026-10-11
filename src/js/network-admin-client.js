@@ -10,10 +10,15 @@ function validateStatus(input){
  const total=info.humans+info.computers,humanIds=info.slots.map(p=>p.player);
  if(!Array.isArray(data.players) || data.players.length!==total || !Array.isArray(data.pending) || data.pending.length>info.humans)throw fail('network_bad_response');
  const players=data.players.map((p,i)=>{if(!p || p.player!==i+1 || typeof p.name!=='string' || p.name.length>4096 || ['isComputer','isAlive','assigned','online'].some(k=>typeof p[k]!=='boolean') || p.isComputer===humanIds.includes(p.player) || p.isComputer && (!p.assigned || p.online))throw fail('network_bad_response');return {player:p.player,name:p.name,isComputer:p.isComputer,isAlive:p.isAlive,assigned:p.assigned,online:p.online};});
+ let initialState;
+ if(data.initialState!==undefined){
+  if(!Array.isArray(data.initialState) || !Number.isSafeInteger(data.initialStateRevision) || data.initialStateRevision<0)throw fail('network_bad_response');
+  const ids=new Set();initialState=data.initialState.map(s=>{if(!s || !Number.isSafeInteger(s.id) || s.id<1 || ids.has(s.id) || typeof s.name!=='string' || s.name.length>4096 || !Number.isSafeInteger(s.owner) || s.owner<0 || s.owner>total || !Number.isFinite(s.population) || s.population<0 || !Number.isSafeInteger(s.technology) || s.technology<0 || s.shipType!==null && !require('./initial-state-edit.js').types.includes(s.shipType))throw fail('network_bad_response');ids.add(s.id);return {id:s.id,name:s.name,owner:s.owner,population:s.population,technology:s.technology,shipType:s.shipType};});
+ }
  const seen=new Set(),pending=data.pending.map(p=>{const source=p && players[p.player-1];if(!source || source.isComputer || !source.assigned || !source.isAlive || p.name!==source.name || seen.has(p.player))throw fail('network_bad_response');seen.add(p.player);return {player:p.player,name:p.name};});
  try{require('./client-clock.js').receive(input.info.clock,{config:settings,turn:info.turn,isGameOver:data.complete});}catch(e){throw fail('network_bad_response');}
  info.clock={};for(const key of ['turn','paused','running','secondsRemaining','limitSeconds'])if(input.info.clock[key]!==undefined)info.clock[key]=input.info.clock[key];
- return {protocol,role:'administrator',gameId:input.gameId,info,administration:{complete:data.complete,settings,settingsRevision:data.settingsRevision,admission,admissionRevision:data.admissionRevision,players,playersRevision:data.playersRevision,pending}};
+ return {protocol,role:'administrator',gameId:input.gameId,info,administration:{...(initialState===undefined?{}:{initialState,initialStateRevision:data.initialStateRevision}),complete:data.complete,settings,settingsRevision:data.settingsRevision,admission,admissionRevision:data.admissionRevision,players,playersRevision:data.playersRevision,pending}};
 }
 class NetworkAdminClient extends Network.NetworkClient {
  constructor(address,options){super(address,options);this.role='administrator';this.administration=null;this.actionPromise=null;}

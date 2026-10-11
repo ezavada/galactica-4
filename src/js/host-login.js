@@ -15,7 +15,8 @@ class HostLogin {
         if(host)Admission.validateSaved(host);
         if(!host || typeof host.id!=='string' || !/^[0-9a-f]{64}$/.test(host.id) || !Array.isArray(host.players) || host.players.length!==c.numHumans)throw failure('invalid_host_players');
         if(host.playersRevision!==undefined && (!Number.isSafeInteger(host.playersRevision) || host.playersRevision<0))throw failure('invalid_host_players');
-        if(host.playerStateRevision!==undefined && (!Number.isSafeInteger(host.playerStateRevision) || host.playerStateRevision<0 || host.playerStateRevision>(host.playersRevision || 0)))throw failure('invalid_host_players');
+        if(host.initialStateRevision!==undefined && (!Number.isSafeInteger(host.initialStateRevision) || host.initialStateRevision<0))throw failure('invalid_host_players');
+        if(host.playerStateRevision!==undefined && (!Number.isSafeInteger(host.playerStateRevision) || host.playerStateRevision<0 || host.playerStateRevision>(host.playersRevision || 0)+(host.initialStateRevision || 0)))throw failure('invalid_host_players');
         for(const p of game.players.slice(1))if(typeof p.isComputer!=='boolean' || typeof p.isHuman!=='boolean' || p.isComputer===c.isHumanPlayer(p.playerNum) || p.isHuman!==c.isHumanPlayer(p.playerNum))throw failure('invalid_host_players');
         const names=new Set();
         for(const player of host.players){

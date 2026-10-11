@@ -1534,6 +1534,7 @@ class Display {
     getContextActions(object) {
         const objectType = this.game.getObjectType(object);
         const actions = [];
+        if(objectType===Common.ObjectType.STAR && this.game.initialStateCommands && this.game.initialStateCommands.available())actions.push({label:I18n.getString(1169),action:{type:'editInitialState',star:object}});
 
         if (objectType === Common.ObjectType.STAR && this.game.canHumanControl(object)) {
             actions.push({ key: 'N', label: this.STR.rename, action: { type: 'beginRename' } });
@@ -2191,6 +2192,7 @@ class Display {
             ...(this.game.presentation?[{label:I18n.getString(973,'Show introduction at startup'),active:this.game.presentation.showSplash,action:{type:'toggleSplash'}},{label:I18n.getString(969,'About Galactica'),action:{type:'openAbout'}}]:[]),
             ...(this.game.newGameDefaultsPreferences?[{label:I18n.getString(965,'New game defaults'),action:{type:'openNewGameDefaults'}}]:[]),
             ...(this.game.colonyDefaultsPreferences?[{label:I18n.getString(693,'New colony defaults'),action:{type:'beginColonyDefaults'}}]:[]),
+            ...(this.game.initialStateCommands && this.game.initialStateCommands.available()?[{label:I18n.getString(1169),action:{type:'editInitialState'}}]:[]),
             ...(this.game.canStartTutorial()?[{label:I18n.getString(960,'Tutorial'),key:'T',action:{type:'startTutorial'}}]:[])]);
         const failureHeight=this.getSettingsFullscreenFailureLines().length*15;
         const capacity=Math.max(1,Math.floor((rect.height-112-failureHeight)/28)),pages=Math.ceil(rows.length/capacity);

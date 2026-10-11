@@ -108,6 +108,13 @@ function openNetworkHosting(saved=false){
     const record=identity?hostedGames.records.find(r=>hostedGames.describe(r).id===identity.gameId) || hostedGames.latest():hostedGames.latest();
     if(!(saved?networkHosting.openSaved(pendingConfig):networkHosting.open(pendingConfig,record)))return false;documents.dialog=null;return true;
 }
+function openInitialState(model,star){
+    if(model!==game || model.turn!==1 || model.isGameOver || tutorialSession || quitDocuments.state!=='idle' || networkJoin.active || networkHosting.active || model.clientPlayerNum)return false;
+    if(model.clientAdministrator){if(!openNetworkHosting())return false;}
+    else{clearSessionInput();startupHelp.clear();model.uiWindow=null;networkHosting.backend=require('./src/js/local-state-controls.js').createService(model);if(!networkHosting.open())return false;}
+    if(!networkHosting.editInitialState()){networkHosting.dismiss();return false;}
+    if(star)networkHosting.action('initialSelect',star.id);return true;
+}
 function requestApplicationQuit(){if(networkHosting.busy)return false;networkHosting.dismiss();return quitDocuments.request();}
 
 function openNetworkJoin(){
@@ -410,7 +417,7 @@ function drawNetworkHosting(){
     const message=networkHosting.message;if(message){let size=fit(message,r.width-48,11);startupStyles.hintText.textSize(size);const display=game && game.display;
         const text=display?display.fitShipDiagnosticText(message,r.width-48,size):PlayerName.visibleText({...PlayerName.createEditor(message,1024),caret:0},r.width-48,t=>port.getTextWidth(t,size)).text;
         port.drawText(text,new pdg.Point(r.x+24,r.y+(layout.messageY || 520)*scale),startupStyles.hintText);}
-    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,buttonStyle);const disabled=button.disabled || networkHosting.busy,attrs=disabled?(startupStyles.hostDisabledText || (startupStyles.hostDisabledText=createStartupAttributes({fillColor:new pdg.Color(.35,.35,.35,.65)}))):startupStyles.advantageText;drawStartupButtonCaption(button.rect,button.label,attrs,12,disabled?null:button.key);}
+    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,6,buttonStyle);const disabled=button.disabled || networkHosting.busy,attrs=disabled?(startupStyles.hostDisabledText || (startupStyles.hostDisabledText=createStartupAttributes({fillColor:new pdg.Color(.35,.35,.35,.65)}))):startupStyles.advantageText;drawStartupButtonCaption(button.rect,button.label,attrs,fit(button.label,button.rect.width-24),disabled?null:button.key);}
 }
 
 function drawNetworkJoin(){
@@ -844,6 +851,7 @@ function attachGameServices(nextGame) {
     if(!nextGame.restoredFromSave)nextGame.showCourierCourses = drawingPreferences.readCourierCourses();
     if(!nextGame.restoredFromSave)nextGame.showMapNames = drawingPreferences.readMapNames();
     nextGame.port = port;
+    nextGame.initialStateCommands={available:()=>nextGame.turn===1 && !nextGame.isGameOver && !nextGame.clientPlayerNum && !tutorialSession,open:star=>openInitialState(nextGame,star)};
     nextGame.manualCommands=userManual;
     nextGame.tutorialCommands={available:()=>!tutorialSession,start:()=>{if(nextGame.uiWindow==='menu')nextGame.uiWindow=null;return beginTutorial();}};
     if(nextGame.clientPlayerNum)nextGame.networkCommands={post:()=>{

@@ -868,3 +868,17 @@
 
 1167	Les vues administrateur sont en lecture seule. Rejoignez la partie pour vous reconnecter à l’hôte.
 1168	Administration de l’hôte
+
+1169	Modifier l’état initial
+1170	Définir la population
+1171	Définir la technologie
+1172	Définir le propriétaire
+1173	Créer un vaisseau
+1174	Saisissez un entier dans la plage autorisée ou choisissez un type de vaisseau.
+1175	L’état initial a changé. Rouvrez l’éditeur pour obtenir les valeurs actuelles.
+1176	L’état ne peut être modifié qu’au premier tour.
+1177	Population : {0} ×1000 · Technologie : {1} · Propriétaire : {2}
+1178	Population en milliers : 0–4294967295.
+1179	Numéro du propriétaire : 0–{0}. Zéro signifie sans propriétaire.
+1180	Niveau technologique : 0–65535.
+1181	Au premier tour, modifiez la population, la technologie et le propriétaire des systèmes ou créez des vaisseaux achevés.
