@@ -45,11 +45,13 @@ runtime strings or recreated graphics are supplied by this import.
   visual references; the latter was visually inspected during this audit.
 - Tutorial command handling (2178–2214) closes startup/About first, then routes
   to Welcome or existing-game recovery according to the underlying window.
-  This needs actual UI integration, not only the existing controller model.
+  This requires actual UI integration; the implemented tutorial entry and
+  recovery paths and their evidence are recorded below.
 - Both windows use the original looping music with a five-second fade on close.
-  The missing movie composition metadata is the separately documented music
-  blocker. It does not block implementing presentation, preference storage,
-  dismissal, About entry, or tutorial recovery.
+  The composition has since been recovered and rendered into the packaged
+  startup track; see `data/sounds/startup-manifest.json`. Exact original
+  QuickTime acoustic equivalence remains unverified. Presentation, preference
+  storage, dismissal, About entry and tutorial recovery are implemented.
 
 ## Implemented and remaining verification
 
@@ -62,9 +64,11 @@ Existing installations and later launches do not repeat automatic onboarding.
 See `docs/V3_V4_FEATURE_STATUS.md` for the test and screenshot evidence.
 
 About now identifies the actual development application build independently of
-the PDG dependency. Available configured startup commands are implemented below; inherited/window command coverage remains unfinished. Original music still needs intact composition metadata. These source
-references remain requirements for the remaining port; resource extraction alone
-is not runtime completion evidence.
+the PDG dependency. Available configured startup commands are implemented below; inherited/window command coverage remains unfinished. The recovered startup
+composition now has a cached looping runtime handle and a timer-driven five-second
+fade in `src/js/sound.js`; exact original QuickTime timbre remains an evidence gap.
+These source references remain requirements for the remaining port; resource
+extraction alone is not runtime completion evidence.
 
 ## Configured startup command dispatch
 
@@ -90,7 +94,7 @@ The application lifecycle dispatches once after introduction/onboarding,
 including when the introduction is disabled or the tutorial was requested
 explicitly. Closing About cannot replay it.
 
-Available application handlers are About, New, Open, Save, Save As, Revert,
+Available application handlers are About, New, Open, Close, Save, Save As, Revert,
 Quit, Host, Open as Host, Join, Fullscreen, Sound, Preferences, Flyby Help, Help and Tutorial. Document commands depend on an active
 document; a normal launch has none. Browser Open/Help/Fullscreen wait for the
 first trusted pointer/key gesture if startup lacks activation, consume that

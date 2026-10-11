@@ -71,7 +71,7 @@ Run all tests with:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 344 passed, 0 failed.
+See [the Testing Guide](TESTING_GUIDE.md) for the latest verified full-suite result and native runtime selection.
 
 The AI tests verify the current integrated behavior. The broader parity source of truth is `docs/V3_V4_FEATURE_STATUS.md`.
 

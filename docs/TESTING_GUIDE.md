@@ -1,6 +1,6 @@
 # Testing Guide for Galactica-4
 
-Last reviewed: 2026-10-10
+Last reviewed: 2026-10-11
 
 ## Running the suite
 
@@ -13,11 +13,11 @@ cd /Users/edz/Documents/Personal/galactica-4
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result:
+Latest verified result with the current public/development native executables:
 
 ```text
-Total: 1692
-Passed: 1692 ✓
+Total: 1794
+Passed: 1794 ✓
 Failed: 0 ✗
 ```
 

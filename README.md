@@ -268,8 +268,9 @@ The modal window remembers its position and stays within the viewport. Read
 acknowledgments persist, and a full unread inbox refuses additional messages
 rather than dropping them. Menu → Hold game reports pauses automatic reports without marking them read; Show game reports plays the pending batch while preserving Hold. Manual Events replay remains available, and each save retains its Hold choice and pending reports.
 
-Multiplayer remains incomplete: Internet matchmaking needs an available service,
-and network-game saving is still being ported. See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
+Durable host files and turn posting are implemented. Sending unposted client
+edits before End Turn and an available Internet matchmaker remain unfinished.
+See [the parity checklist](docs/V3_V4_FEATURE_STATUS.md).
 
 ## Testing
 
@@ -278,7 +279,7 @@ and network-game saving is still being ported. See [the parity checklist](docs/V
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1606 passed, 0 failed.
+See [the Testing Guide](docs/TESTING_GUIDE.md) for the latest verified full-suite result and native runtime selection.
 
 AI-only parity observer:
 

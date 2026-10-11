@@ -6,7 +6,7 @@ Run the full suite from the project root with the PDG runtime:
 ./gad4 tests/run-tests.js
 ```
 
-Current expected result: 1679 passed, 0 failed.
+See [the Testing Guide](../docs/TESTING_GUIDE.md) for the latest verified full-suite result and native runtime selection.
 
 The launcher downloads the checksum-pinned public PDG release on first use;
 no sibling `pdg` or `pdg-devel` checkout is required.

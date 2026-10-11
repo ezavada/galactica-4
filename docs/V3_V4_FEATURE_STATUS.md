@@ -1,6 +1,7 @@
 # Galactica v3 to v4 Feature and UI Port Status
 
-Audit date: 2026-08-25
+Initial audit: 2026-08-25
+Current inventory reconciled: 2026-10-11
 
 ## Purpose and method
 
@@ -36,15 +37,51 @@ Section completion percentages are rough parity estimates based on the table row
 
 ## Executive summary
 
-Galactica-4 currently has a credible simulation foundation, not feature parity with v3. Its strongest areas are procedural map generation, the coordinate/camera system, the basic turn loop, star growth/research/ship construction, multi-waypoint ship/fleet navigation, fleet/rendezvous assembly, technology transfer, localization resources, runtime combat/capture, Section 6 fog/combat rules, and Section 7 computer-player runtime rules.
+The row-by-row inventory now records implemented runtime paths for the main
+simulation, economy, combat/occupation, AI, navigation, attention, recipient
+narratives, illustrated presentations, manual, interactive tutorial, local
+persistence and desktop hosting/joining/administration. The original summary
+predated that work. Those features should not be treated as future implementation
+tasks solely because an older audit entry describes their former gaps.
 
-The largest blockers to a complete game are:
+Full parity is still unproven. The current open work is:
 
-1. **Combat runtime rules are now at v3 parity for Section 6, but presentation is still thin.** Enemy ship/star/fleet arrivals invoke `CombatSystem`, remove destroyed ships, use v3-style ship/star combat formulas, run ground combat, let surviving colony ships capture stars, repair docked mobile ships/fleets, recalculate fog each turn, and record localized battle summaries. Missing v3 pieces are UI/presentation: remaining observer/other recipient-relative reports, sound and remaining illustrated event coverage. Participant combat, defeated-resistance and capture messages now have automatic windows and replay. A distinct last-seen ghost rendering mode was not found in the shipped v3 drawing paths.
-2. **The v3 command UI now has a first clickable runtime path, but not full parity.** v4 has a startup setup dialog, charcoal rounded windows, bottom-right permanent map buttons, a top-center turn/game header, clickable popup action buttons, directly clickable production sliders, retained event list, player comparison window, a paged sortable fleet/ship roster, fleet/rendezvous panels, and anchored selection panels. Missing v3 pieces remain: remaining attention-event coverage, map replay, help, sound, and the remaining drawing/sound/game preferences.
-3. **Navigation now supports v3 waypoint editing and looping.** Broader attention-event coverage and full arrival presentation remain incomplete; ship/fleet scrapping is implemented.
-4. **Local file persistence, direct multiplayer joining and untimed turn posting are implemented; multiplayer setup/supporting features remain incomplete.** Versioned Save/Save As, Open and confirmed Revert preserve the game graph, visibility, courses, events, selection and camera. Direct hostname/IP inspection and authenticated joining/rejoining now have localized application dialogs and retained sessions. Desktop/dedicated host setup and password-gated remote administrator controls are implemented. Saved host lists now support remembered connection identities and manual address bookmarks. Native LAN discovery and player/admin chat are now implemented; Internet matchmaking and network saves remain unfinished. Physical LAN validation remains blocked as documented below. Client End Turn now posts decision records and the host resolves an untimed turn once every assigned living human has posted.
-5. **Several systems are present but incomplete or incorrectly wired.** Examples include fog-of-war presentation, remaining attention-event coverage, event depth, setup/default-settings UI, and richer list/command UI polish.
+1. **Unposted client writeback.** V3 sends owned changed objects when selection
+   changes, on Close/Quit and after creation acknowledgments. V4 currently sends
+   owned decisions through End Turn posting; document Save refuses a joined
+   partial map and disconnect does not flush unposted edits. This source-backed
+   synchronization/preservation gap needs implementation, not a service blocker.
+2. **Remaining window and localization audits.** Finish the listed compact
+   gameplay tables/lists/inspectors, toolbar states and hosting/join/network
+   busy/error variants. Compare Players, Course, target prompts, map instruction
+   separation and constrained Command Menus now have their own completed
+   six-language input/screenshot evidence below. A complete dialog/help/manual
+   localization audit remains open.
+3. **Preferences and startup-command coverage.** Explicit shipped startup
+   commands, drawing/language/sound/music and new-game/colony defaults have
+   runtime hooks. Audit remaining preference behavior and inherited/window
+   commands against available source; do not guess absent PowerPlant behavior.
+4. **Art, sound and native application evidence.** Review the documented PICT
+   decoding/native-rendering gaps and original QuickTime acoustic comparison.
+   Connected macOS/Windows fullscreen/focus/audio/Quit validation and replacement
+   of the pinned native runtime remain unverified. Respect the user's deferred
+   public PDG integration for 1.2.1; this goal does not authorize new public-repo
+   engine fixes now.
+5. **External discovery/support services.** Local UDP discovery and HTTP joining
+   have implemented paths and localhost tests. Recorded physical-LAN restrictions
+   and unavailable matchmaker/community/update destinations need owner review
+   and revalidation, rather than invented replacement service policies.
+6. **The final Map Generation checklist.** Its core implementation and several
+   source differences are covered, but the full numeric/configuration/source-edge
+   audit remains to be completed after the parity items above are implemented or
+   explicitly documented as blocked.
+
+The latest full-suite evidence is 1,794 passing tests on each current public and
+development native executable. This supports the tested paths; it does not prove
+all UI, external service, original-renderer or packaged-platform requirements.
+The partial table rows and later item-specific evidence remain the completion
+checklist. Dormant starlanes/danger and unshipped combat-odds/sorting enhancements
+are explicitly excluded from shipped-v3 parity.
 
 ## Easy wins applied on 2026-08-25
 
@@ -265,7 +302,7 @@ The largest blockers to a complete game are:
 - Functional sorting for Compare Players, unless another shipped v3 path is found; the audited `SortCompareWindowByColumn()` body is empty.
 - Additional dashboard/scoring views beyond the v3 summary columns.
 
-## 9. Save/load, multiplayer, and host administration (Functionality 93%, UI 93%)
+## 9. Save/load, multiplayer, and host administration (Functionality 90%, UI 90%)
 
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
@@ -280,6 +317,7 @@ The largest blockers to a complete game are:
 | Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | ✅ Implemented | ✅ Implemented | Startup Join/J and File → Join open a localized modal address/name/masked-password form with public game/slot information and paged player selection. Native HTTP/browser CORS admission installs the authenticated client as a retained game document; same-player rejoin reuses that document. Automatic refresh preserves same-turn orders and updates authoritative turns. Title dragging stays in the port and remembers its position. Six-language actual-control browser tests pass. Saved games now stores manual hostname/IP bookmarks and successful game/player/admin identities in device preferences, with add/remove, paging, keyboard selection and public inspection before authenticated joining. Reload retains the list; passwords remain in the separate opt-in store. Removing an entry preserves sessions, claims and credentials. Wrong-game, failed/cancelled admission and preference-write retry are verified. Discovery remains separately Partial; untimed order submission and authoritative turn resolution are wired. Details now opens complete localized public game information: sector/density, AI skill/advantage, fog/speed, End Early, configured/current turn limits and countdown, open/full state and admission-code requirement. Read-only periodic inspection preserves credentials/focus; Back returns to the draft and malformed responses preserve the last valid metadata. All six languages pass actual input at ordinary, short and narrow sizes, with real native changes and admission; both full suites pass 1,759 tests. |
 | Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | ✅ Implemented | ✅ Implemented | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit rules now restrict new slots with host-issued codes, allow/ban lists and code-free admission; password rejoining remains unaffected. The optional Remember password on this device checkbox now persists successfully authenticated credentials in device preferences, scoped to endpoint/game/player/role. Masked restoration works after application reload; unchecked successful login forgets that identity. Failed/cancelled attempts preserve prior preferences, role switches never reuse another role’s password, and public descriptors/game/host saves exclude remembered credentials. Eight focused units, actual six-language native admission on both runtimes, awaited cancellation checks and all-six-language browser before/after/reload paths are verified below. Saved host lists/discovery remain a separate row. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ✅ Implemented | ✅ Implemented | Client End Turn submits owned decision records through authenticated HTTP, shows localized Posting/Posted/Retry states and locks posted orders. The host stages and validates production targets/build choices, destinations/courses/memory, names, fleet membership, private rendezvous and player defaults; it derives simulation values and permanent IDs. Untimed turns resolve once every assigned living human posts. Durable receipts make retries idempotent after lost replies/reopening. Authoritative next-turn refresh unlocks client orders. Both full suites pass 1,459 tests; posting controls are verified in all six languages, with an English browser rerun after the host-clock addition. Timed scheduling, visible countdowns, desktop setup and remote host administration are implemented. Background turn Warning cues are verified below. The shipped foreground Begin New Turn notice is now implemented: a localized, caption-only modal lasts 1.5 seconds, blocks commands, supports constrained persistent dragging and defers report playback and attention navigation until dismissal. Actual six-language network arrivals and both full 1,648-test suites are verified below. Native OS activation detection remains the separate Sound integration requirement. |
+| Unposted client writeback / close preservation | Sends owned writable changes on selection changes, Close/Quit and creation acknowledgments without declaring the turn posted. | 🟡 Partial | 🟡 Partial | v3 `GalacticaClient.cpp:1454–1491, 2699–2761` sends changed owned objects independently of End Turn. V4 retains edits across same-turn refresh and submits decisions through `NetworkClient.post()`, but has no pre-post writeback path; `Documents.beginSave()` refuses joined partial maps and accepted session closure only disconnects. Host files already persist atomically. Source-supported pre-post synchronization and close/quit preservation remain implementation work; local partial-map export should not be mistaken for host synchronization. |
 | Timed turns | Host clock, time remaining, pause/resume, automatic completion. | ✅ Implemented | ✅ Implemented | Native host listener runs a monotonic countdown after untimed turn 1, resolves expired turns even with unposted/offline humans, and preserves remaining time while stopped/reopened. Local host-service pause/resume and public/authenticated countdown records are implemented. Joined games display validated countdowns in the map header, including localized paused and awaiting-next-turn states; the countdown remains visible after posting and never resolves a turn locally. Nine unit regressions and awaited real scheduler/socket checks cover expiration, endEarly, persistence, save rollback/retry and shutdown. Desktop Host now configures the time limit and endEarly option. Desktop Host status now offers durable Pause/Resume with current countdown text; pausing holds expiry, ready-post resolution and AI-only advancement. Joined clients receive paused/resumed clock state. Saved/reopened pause and failed-write rollback are verified. |
 | Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | ✅ Implemented | ✅ Implemented | Desktop host status offers durable Pause/Resume and End turn now. A paged confirmation lists assigned living humans who have not posted; cancellation preserves the turn. Captured-turn checks prevent a stale confirmation from skipping a newer turn; failed saves roll back and retain retry. Active host settings now edit AI skill/advantage, fast mode, fog and turn timing with fixed title/roster/map, save rollback/retry and stale-draft protection. Positive-to-positive timer changes preserve the current deadline through reopening and apply the budget next turn; enable/disable retains pause. Joined clients receive settings/visibility changes while preserving unposted decisions. Change player now provides rename, human/AI conversion, free human slot and elimination with stable IDs/ownership, durable save rollback, stale-action guards and affected-session revocation. Eject player disconnects an online human after a successful save, preserving credentials, territory and posted orders; the client receives a localized reason and may rejoin. Private admission now has durable allow/ban-code lists, a shared desktop editor and dedicated pre-listen configuration. Separate password-gated administrator login, full-map observation and remote shared controls are implemented, with local credential configuration, authenticated revisions, disconnect/rejoin and read-only document handling. First-turn system population, technology, ownership and completed ship creation now share localized owner/admin dialogs with paged system selection. Local games expose the same editor in Settings and selected-system menus, preserving v3’s distinct local ownership behavior. Captured-turn/revision checks, atomic host save rollback/retry, scanner/visibility refresh and same-turn authoritative client updates are verified below. |
 | Multiplayer chat | Player-to-player/all/admin messages. | ✅ Implemented | ✅ Implemented | Menu → Chat provides a localized modal recipient picker, live online/offline status, full Unicode history paging and Enter/Return composition. Private conversations exclude unrelated players/admins, broadcast audiences snapshot connected participants, and the host authenticates senders. Offline private messages become saved reports, including unclaimed human slots; read acknowledgments persist. Replacing a player claim does not expose its earlier conversations. Retry receipts suppress duplicate sends, failed saves roll back, an unread inbox at capacity rejects new messages without losing queued reports, and uncertain drafts remain fixed for an unchanged retry. Window dragging clamps/persists. Both 1,627-test native suites and actual six-language native HTTP/browser flows are recorded below. |
@@ -290,25 +328,32 @@ The largest blockers to a complete game are:
 
 ## Documentation status
 
-The project documentation was refreshed on 2026-08-25 so the docs now agree on current runtime status rather than mixing old plans with newer implementation summaries.
+The current inventory and front-page guidance were reconciled on 2026-10-11.
+Dated implementation entries preserve their original test counts and limitations;
+they are historical evidence, not independent current claims that later-completed
+work is still missing. The resource inventory and test guide now state the current
+verified counts. The Map Generation document still needs its final checklist and
+configuration-consumer audit; its core implemented features are not a new port plan.
 
-- `MAP_GENERATION_PORT_STATUS.md` records current map-generation status instead of listing already-completed work as future tasks.
-- `AI_INTEGRATION_STATUS.md` and `AI_INTEGRATION_TODO.md` describe AI as active: AI turns run, stars can start v3-weighted builds, ships and fleets can set destinations, and key v3 skill/advantage hooks are active. Speculative AI upgrades are separated from C++-confirmed v3 parity gaps.
-- `README.md` now links only to files that exist and no longer describes the port as a complete 4X game.
-- `INTERNATIONALIZATION_STATUS.md` now serves as the current i18n reference and records that current runtime UI/event strings are localized with parity tests across supported languages.
-- `TESTING_GUIDE.md` and `tests/README.md` now match `tests/run-tests.js`, including the current runner command. The main suite currently reports 344 tests.
+## Recommended remaining parity sequence
 
-This file remains the main parity source of truth. More focused docs may describe implementation details for an area, but their status claims should stay consistent with the tables above.
-
-## Recommended parity sequence
-
-1. **Exercise the now-playable core:** use the 250-turn autoplay observer to diagnose stalls and tune balance only where the v3 source/manual supports it. Richer combat/result presentation should be treated as UI work, and deeper attack-pressure or combat-odds work remains a future enhancement unless further v3 evidence appears.
-2. **Finish essential player control:** complete the build selector/progress workflow, default-new-colony settings UI, production lock/equalize behavior, ships-in-system, damage state, patrol, repairs, and clear destination controls.
-3. **Restore v3 navigation:** waypoint lists, add/edit/delete/clear, looping, course memory, call-in, attention queue, and event history.
-4. **Finish remaining command/list polish:** sortable system/fleet tables, full course editor integration, richer fleet combat reporting, fleet visibility presentation, and less minimal fleet exchange/list workflows.
-5. **Add game setup and persistence:** setup screen for all supported options, then full save/open/revert.
-6. **Add comparison and polish:** remaining comparison/list polish, display modes/toggles, remaining renaming prompts, sound, manual link, and shipped preference/help flows. The interactive tutorial is implemented; see its consolidated audit below. Treat Compare Players sorting/scoring and final v4 art direction as future enhancements unless further v3 evidence appears.
-7. **Port multiplayer last:** host/join/rejoin, synchronization, turn posting/timers, chat, discovery, and administration rely on the preceding state model being stable and serializable.
+1. Implement source-supported unposted client writeback and close/quit preservation.
+   Keep synchronization distinct from End Turn posting and partial-map export.
+2. Finish the remaining concrete window/toolbar/table/list/inspector and busy/error
+   audits, one item at a time, with relevant/full tests and actual visual input
+   comparisons in all six languages.
+3. Audit remaining shipped preferences and startup/window commands. Implement
+   source-supported gaps; explicitly record commands needing unavailable inherited
+   framework source instead of guessing their behavior.
+4. Complete dialog/help/manual localization coverage, including dynamic text,
+   feedback, literal names and full viewport access. Equal resource ID sets alone
+   do not prove the rendered workflows are complete.
+5. Revalidate the art/audio/native-platform and external-service evidence gaps.
+   Skip only items requiring unavailable help and leave concrete owner-review
+   notes. Keep private PDG fixes separate from the user-deferred public release.
+6. After parity work is implemented or explicitly blocked, complete every Map
+   Generation maintenance/checklist item against the original source and actual
+   runtime consumers. Passing a general suite does not replace that source audit.
 
 ## Parity implementation log
 
@@ -2244,10 +2289,11 @@ Evidence: `/private/tmp/galactica-callin-{tests,public-tests,<language>,before}.
 `/private/tmp/galactica-parity/callin`, and
 `/private/tmp/galactica-callin-{before-after,languages}-review.png`.
 
-## Remaining audit scope
+## Event narrative audit scope
 
-Other recipient variants and multiplayer messages still need individual source
-and runtime coverage. NewTechLevel (13), FleetFormed (16) and PlayerSurrenders
+Individual source-reachable recipient variants and multiplayer narratives have
+since been completed; see `docs/reference/EVENT_NARRATIVE_COVERAGE.md` and the
+later event-family completion entries. NewTechLevel (13), FleetFormed (16) and PlayerSurrenders
 (19) currently occur only in their enum declarations across this checkout's
 C/C++ sources; no emitter was found. Their resource text establishes definitions,
 not observable normal-turn behavior. A complete event-matrix audit must preserve
@@ -8020,3 +8066,39 @@ contrast was corrected after visual review. This closes the compressed menu item
 noted in map-help verification. Other compact toolbar states, tables/lists/
 inspectors, busy/error variants and broader parity/localization/native GUI/Map
 Generation audits remain open. No PDG or unrelated artwork changes are included.
+
+
+### Current inventory and remaining sequence reconciliation (2026-10-11)
+
+The executive summary and recommended sequence still described several completed
+runtime paths as future work. They now distinguish the implemented simulation,
+attention/narrative/tutorial/persistence/hosting paths from the specific remaining
+UI, preference, localization, original-renderer/native-platform and external-
+service audits. Historical entries retain their dated evidence, and the final
+Map Generation checklist remains open after parity. No row is promoted to complete
+by this reconciliation and no missing requirement is removed.
+
+Checked current runtime hooks in `main.js`/`startup-actions.js`, private attention
+handling, atomic host persistence in `network-host.js`, the event narrative matrix,
+and cached startup audio in `sound.js` plus its packaged composition manifest.
+Startup command Close and recovered music were missing from the front reference
+status. Direct resource inventory proves 777 unique IDs per language, identical
+sets and no duplicates; ID 800 actually contains translated class display names.
+The corresponding display labels and numeric Stardock artwork resolution were
+checked before correcting the old English-only claim. The testing guide now gives
+the current executable-specific result instead of its stale 1,692 count; README,
+test and AI guidance link to that single result rather than duplicating old counts.
+
+Both full native suites pass **1,794 tests, zero failures**, with fresh logs under
+`/private/tmp/galactica-inventory-reconciliation-{public,devel}-unit.log`.
+This item changes engineering documentation only; no new UI behavior or screenshots
+are claimed. Other working-tree artwork edits remain excluded. The parity and
+Map Generation objectives remain active.
+
+The same source reconciliation identifies unposted client writeback as a remaining
+functional requirement: `GalacticaClient.cpp:1454–1491` and 2699–2761 versus current
+`NetworkClient.post()`/`disconnect()`, `Documents.beginSave()` and `main.js` session
+closure. A separate partial row now distinguishes it from completed turn posting
+and durable host-file persistence. Section 9's row-based estimate is 90% after
+including that requirement. It has available source and is next implementation
+work, not an unavailable-help blocker.

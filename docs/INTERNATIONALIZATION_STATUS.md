@@ -1,6 +1,6 @@
 # Internationalization Status
 
-Last reviewed: 2026-10-09
+Last reviewed: 2026-10-11
 
 Galactica-4 uses the PDG `ResourceManager` for localized string resources. Current user-visible runtime strings are routed through resources and covered by tests for required IDs, localized file parity, and formatted placeholder compatibility.
 
@@ -20,10 +20,14 @@ data/
 
 Current resource counts:
 
-- `strings.txt`: 494 IDs
-- localized files: 494 IDs each
+- `strings.txt`: 777 unique IDs
+- localized files: 777 unique IDs each
 
-Every supported localized file currently has the same string ID set as the default English resource, including ID `800`, the battleship class/art-name list. ID `800` intentionally keeps the English class/art names in localized files for now so it continues to line up with existing ship artwork.
+Direct file inventory confirms all six files have identical ID sets with no
+duplicates, including ID `800`, the localized battleship class display-name list.
+The display uses those translated names for labels. Stardock artwork resolves
+hull/class indices independently through `src/js/stardock-art.js`; display names
+do not need to remain English for that lookup.
 
 ## Runtime loading
 
