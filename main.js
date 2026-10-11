@@ -1222,6 +1222,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
         isDragging=false;isLeftClickDragging=false;hasDragged=false;
         if(game.abortAutomaticNotices())return true;
         if(event.buttonNumber===0 && !game.beginUIWindowDrag(event.mousePos.x,event.mousePos.y))game.handleUIClick(event.mousePos.x,event.mousePos.y);
+        else if(event.buttonNumber!==0 &&game.display){const action=game.display.getUIActionAt(event.mousePos.x,event.mousePos.y);if(action &&action.blocked)game.executeUIAction(action);}
         return true;
     }
     // Check if this is a mouse down event

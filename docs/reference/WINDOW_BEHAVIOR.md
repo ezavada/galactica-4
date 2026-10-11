@@ -37,5 +37,31 @@ lesson is displayed. They reuse the bright neutral gradient and gold edging,
 wrap localized text and consume pointer/wheel events inside their surface.
 Their title is draggable, constrained to the port and remembered in application
 configuration. Action-only lessons do not offer a forward button. File and
-manual-error dialogs retain foreground priority. The public tutorial launch
-entry and full guided walkthrough remain unfinished.
+manual-error dialogs retain foreground priority. Tutorial launch and full guided walkthrough verification are recorded in
+[TUTORIAL_CONTROLLER.md](TUTORIAL_CONTROLLER.md) and the main parity checklist.
+
+
+Modal report narratives and outcome dialogs now use the same neutral system
+surface as Settings and Compare Players: nearly white at the top, light gray
+at the bottom, black text/buttons, and gold reflective edging. Victory/defeat
+art keeps its recovered image and placement, with a 55% white overlay for black
+text legibility. Lab/Stardock illustrated presentations keep their separate
+source artwork composition. Events remains non-modal and retains its existing
+darker surface.
+
+Clicks outside report/outcome windows clunk for left, right and middle buttons
+and do not select, order, drag the map or dismiss the dialog. Blank space inside
+is inert. Automatic no-dialog playback keeps its interruption behavior. Title
+dragging constrains reports and outcomes to the viewport and remembers their
+positions in configuration. Continue buttons show Esc in the existing small
+shortcut style; sizing includes both label and hint in every supported language.
+
+Both full native suites pass 1,725 tests. Muted real-browser before/after checks
+pass for all six languages, covering three-button outside clicks, actual title
+drags, bounds, position persistence, manual outcomes, victory/defeat artwork,
+compact narrative paging and non-modal Events isolation. Of 84 paired screenshots,
+24 automatic/Events scenes are pixel-identical and 60 modal scenes show the
+intended style changes. English before/after narratives, full and compact outcome
+art, and the six-language report/compact layouts were visually inspected. The
+Russian Continue label/hint spacing was corrected after this inspection exposed
+an overlap; final browser runs and both native suites passed afterward.

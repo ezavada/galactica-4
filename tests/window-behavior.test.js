@@ -29,6 +29,22 @@ module.exports=()=>test.describe('System window modality and title dragging',()=
   game.uiWindow='view';const button=display.getViewActionRegions().find(b=>b.action.type==='zoomIn'),zoom=display.camera.zoom;
   game.handleUIClick(button.rect.x+5,button.rect.y+5);test.assertTrue(display.camera.zoom>zoom);
  });
+ test.it('blocks outside report/outcome clicks with a clunk and keeps inside blank space inert',()=>{
+  const {game,display}=fixture();game.port.getTextWidth=(text,size=11)=>Array.from(String(text)).length*size/2;const cues=[];game.sound={play:id=>cues.push(id)};game.uiWindow=null;
+  for(const type of ['report','outcome']){
+   game.overlay={type,eventId:null,kind:'defeat',playerNum:1,name:'Player',turn:1};
+   const rect=(type==='report'?display.getReportLayout(game.overlay):display.getOutcomeLayout(game.overlay)).rect;
+   test.assertTrue(game.handleUIClick(1,1));test.assertEqual(cues.pop(),1012);test.assertEqual(game.overlay.type,type);
+   game.handleUIClick(rect.x+5,rect.y+40);test.assertEqual(cues.length,0);
+  }
+ });
+ test.it('clamps dragged outcomes to the viewport and persists their system-window position',()=>{
+  const {prefs}=preferences(),{game,display}=fixture(prefs);game.port.getTextWidth=(text,size=11)=>Array.from(String(text)).length*size/2;game.overlay={type:'outcome',kind:'defeat',playerNum:1,name:'Player',turn:1};
+  const rect=display.getOutcomeLayout(game.overlay).rect;test.assertTrue(game.beginUIWindowDrag(rect.x+20,rect.y+14));game.endUIWindowDrag(-900,900);
+  const moved=display.getOutcomeLayout(game.overlay).rect;test.assertEqual(moved.x,10);test.assertEqual(moved.y+moved.height,590);
+  const fresh=fixture(prefs);fresh.game.port.getTextWidth=game.port.getTextWidth;fresh.game.overlay={...game.overlay};const restored=fresh.display.getOutcomeLayout(fresh.game.overlay).rect;
+  test.assertEqual(restored.x,moved.x);test.assertEqual(restored.y,moved.y);
+ });
  test.it('drags the foreground report even when a modal system table is behind it',()=>{
   const {game,display}=fixture();game.uiWindow='fleets';game.overlay={type:'report',eventId:null};const rect=display.getReportLayout(game.overlay).rect;
   test.assertTrue(game.beginUIWindowDrag(rect.x+20,rect.y+14));test.assertEqual(game.uiWindowDrag.positionName,'report');

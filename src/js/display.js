@@ -2857,7 +2857,7 @@ class Display {
             if(this.game.overlay.animationOnly || this.getDestructionEffect(this.game.overlay))return {type:'consume'};
             const layout=this.game.overlay.type==='report'?this.getReportLayout(this.game.overlay):this.getOutcomeLayout(this.game.overlay);
             const control=layout.buttons.find(button=>this.containsPoint(button.rect,x,y));
-            return control?control.action:{type:'consume'};
+            return control?control.action:{type:'consume',blocked:!this.containsPoint(layout.rect,x,y)};
         }
 
         if(WindowBehavior.isSystem(this.game.uiWindow))return this.getActiveWindowActionAt(x,y) || {type:'consume',blocked:true};
@@ -4036,12 +4036,12 @@ class Display {
         const summaryLines=this.wrapEventMessage(summary,width-40,14),bodyY=rect.y+58+summaryLines.length*20+18;
         const lines=body?this.wrapEventMessage(body,width-40,13):[];
         const compact=width<400;
-        const footer=compact?this.layoutButtonRow([834,690,691].map(id=>({label:I18n.getString(id)})),{x:rect.x+20,y:0,width:width-40,height:28,size:11,gap:8,minWidth:90}):{rows:1};
+        const footer=compact?this.layoutButtonRow([834,690,691].map(id=>({label:I18n.getString(id),key:id===834?'Esc':null})),{x:rect.x+20,y:0,width:width-40,height:28,size:11,gap:8,minWidth:90}):{rows:1};
         const footerY=rect.y+height-20-(footer.rows*36-8);
         const hintY=compact?footerY-22:rect.y+height-70;
         const capacity=Math.max(1,Math.floor(((compact?footerY-36:rect.y+height-100)-bodyY)/18));
         const pages=Math.max(1,Math.ceil(lines.length/capacity)),page=this.clamp(overlay.page || 0,0,pages-1);
-        let buttons=[{rect:{x:rect.x+width-174,y:rect.y+height-46,width:154,height:28},label:I18n.getString(834,'Continue'),action:{type:'dismissOutcome'}}];
+        let buttons=[{rect:{x:rect.x+width-174,y:rect.y+height-46,width:154,height:28},label:I18n.getString(834,'Continue'),key:'Esc',action:{type:'dismissOutcome'}}];
         if(page>0)buttons.push({rect:{x:rect.x+20,y:rect.y+height-46,width:90,height:28},label:I18n.getString(690,'Previous'),action:{type:'outcomePage',page:page-1}});
         if(page<pages-1)buttons.push({rect:{x:rect.x+116,y:rect.y+height-46,width:90,height:28},label:I18n.getString(691,'Next'),action:{type:'outcomePage',page:page+1}});
         if(compact)buttons=this.layoutButtonRow(buttons,{x:rect.x+20,y:footerY,width:width-40,height:28,size:11,gap:8,minWidth:90}).regions;
@@ -4056,26 +4056,29 @@ class Display {
 
     drawOutcome(overlay) {
         const layout=this.getOutcomeLayout(overlay),r=layout.rect;
-        this.drawWindowPanel(r,layout.title);
-        if(layout.illustration) {
-            const art=this.getImageCached(layout.illustration.path,layout.illustration.path);
-            if(art) {
-                const area=this.toPDGRect(layout.illustration.rect);
-                this.port.drawImage(art,area,this.styles.image);
-                if(!this.outcomeArtShade)this.outcomeArtShade=this.createAttributes({fillColor:new pdg.Color('black'),fillOpacity:.55,lineStyle:pdg.lineStyle_None});
-                this.port.drawRect(area,this.outcomeArtShade);
+        const previous=this.drawingSystemReport;this.drawingSystemReport=true;
+        try {
+            this.drawWindowPanel(r,layout.title);
+            if(layout.illustration) {
+                const art=this.getImageCached(layout.illustration.path,layout.illustration.path);
+                if(art) {
+                    const area=this.toPDGRect(layout.illustration.rect);
+                    this.port.drawImage(art,area,this.styles.image);
+                    if(!this.outcomeArtShade)this.outcomeArtShade=this.createAttributes({fillColor:new pdg.Color('white'),fillOpacity:.55,lineStyle:pdg.lineStyle_None});
+                    this.port.drawRect(area,this.outcomeArtShade);
+                }
             }
-        }
-        layout.summaryLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,r.y+58+index*20,'lightgray',14));
-        layout.visibleLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,layout.bodyY+index*18,'lightgray',13));
-        this.drawTextLine(I18n.getString(572,'Enter, Space or Esc to continue'),r.x+20,layout.hintY,'labelgray',11);
-        layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,null));
+            layout.summaryLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,r.y+58+index*20,'lightgray',14));
+            layout.visibleLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,layout.bodyY+index*18,'lightgray',13));
+            this.drawTextLine(I18n.getString(572,'Enter, Space or Esc to continue'),r.x+20,layout.hintY,'labelgray',11);
+            layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,button.key || null));
+        } finally {this.drawingSystemReport=previous;}
     }
 
     getReportLayout(overlay) {
         const screen=this.getScreenSize(),width=Math.min(600,screen.width-40);
         const event=this.game.eventLog.find(e=>e.id===overlay.eventId && this.game.isEventAccessible(e));
-        const controls=[{label:I18n.getString(834,'Continue'),action:{type:'dismissReport'}}];
+        const controls=[{label:I18n.getString(834,'Continue'),key:'Esc',action:{type:'dismissReport'}}];
         if(event && this.game.getEventFocus(event))controls.push({label:I18n.getString(749,'Go to'),action:{type:'reportGoTo'}});
         const previous={label:I18n.getString(690,'Previous'),action:{type:'reportPage',page:0}};
         const next={label:I18n.getString(691,'Next'),action:{type:'reportPage',page:0}};
@@ -4094,11 +4097,11 @@ class Display {
 
     drawReport(overlay) {
         const layout=this.getReportLayout(overlay),r=layout.rect;
-        const previous=this.drawingSystemReport;this.drawingSystemReport=!!(layout.event && layout.event.playerMessage);
+        const previous=this.drawingSystemReport;this.drawingSystemReport=true;
         try{
             this.drawWindowPanel(r,layout.title);
             layout.visibleLines.forEach((line,index)=>this.drawTextLine(line,r.x+20,layout.bodyY+index*18,'lightgray',13));
-            layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,this.drawingSystemReport && button.action.type==='dismissReport'?'Esc':null,{size:11}));
+            layout.buttons.forEach(button=>this.drawUIButton(button.rect,button.label,button.key || null,{size:11}));
         }finally{this.drawingSystemReport=previous;}
     }
 

@@ -242,7 +242,7 @@ The largest blockers to a complete game are:
 | v3 function | v3 behavior/UI | Functionality status | UI status | Evidence and remaining work |
 |---|---|---|---|---|
 | Main information/navigation panels | Context-sensitive system, ship, fleet, rendezvous, and list panels with command buttons. | 🟡 Partial | 🟡 Partial | v4 draws anchored context panels for systems, ships, fleets, and rendezvous points plus simple menu/event/comparison/fleet-roster windows. Permanent map buttons and popup arc buttons are clickable. The full v3 contextual button architecture, sortable fleet tables, and richer command workflows remain incomplete. The sortable system comparison is implemented. |
-| Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | v4 uses neutral gray rounded panels with subtle gradients/outlines, slightly owner-tinted inspector borders, brighter buttons and hover states, known-owner system tint, familiar map icons with localized hints, brief whole-panel transitions, a top-center game/turn header and pointer triangles. Remaining parity is concrete window/menu/list coverage, not an open-ended final visual redesign. |
+| Window/dialog chrome | v3 uses styled windows, separators, fixed command areas, and map controls. | ✅ Implemented | 🟡 Partial | Owned inspectors use dark translucent gradients and slightly owner-tinted borders. System/game-wide windows, including all modal report narratives and victory/defeat outcomes, use a nearly-white/light-gray surface, black text/buttons and reflective gold edging. Outside report/outcome clicks clunk for left/right/middle buttons; title drags stay in the viewport and persist their positions. Continue buttons measure their Esc hints alongside localized text. Events stays non-modal with its existing darker surface. Map icons, localized hints, panel transitions, game/turn header and inspector pointers remain. Remaining parity is concrete window/menu/list coverage, not an open-ended final visual redesign. |
 | Keyboard shortcuts and hover help | Buttons advertise shortcuts; balloon/flyby help describes controls. | ✅ Implemented | ✅ Implemented | Current controls advertise their working v4 shortcuts. Delayed explanatory help uses the same hit targets as clicks across inspectors, allocation sliders, command/list/course/report windows, startup options and local file dialogs. Text wraps by measured Unicode glyph width and stays within the viewport; covered controls behind modal windows, active drags, destination placement and illustrated overlays cannot show help. Clicks/keys clear it without intercepting input. Settings → Control help persists through native/browser preferences, reload and open-game switching. Eleven regressions and actual six-language browser comparisons cover timing, privacy/input isolation, allocation semantics, current action coverage, persistence, complete text and viewport bounds. New commands introduced with the remaining unported dialogs will need their own help alongside those implementations. |
 | Events from last turn | Dedicated show/hide event window with selectable event list and narrative text. | 🟡 Partial | 🟡 Partial | `[E]`/Events shows recipient-visible reports from the last completed turn in chronological order. Paged rows select and center live subjects, preserve locations for lost subjects and show reviewed state; complete Unicode narratives have separate paging. Combat, outcome, repair-completion and rendezvous fleet-creation rows offer View report/Enter replay; ordinary rows offer Go to/Enter navigation without advancing time. Supplemental combat summaries open private modal windows; source no-dialog capture, resistance and colonization events automatically present sound/map cues, retaining manual narrative replay. Busy turns retain every report, and smaller windows reduce row count. Broader v3 event generation, narrative variants and illustrated replay remain incomplete. |
 | Attention queue | New ships, idle ships, colonies, messages, and other important events select themselves in sequence. | 🟡 Partial | 🟡 Partial | A per-turn subject queue covers human mobile ship/fleet call-ins, course completions, idle requests, completed mobile/satellite builds, complete ship/fleet repair notices, rendezvous fleet-creation notices and newly colonized/captured stars. Tab, menu and map Next item visit/center subjects; manual selection or report review handles linked requests. Colony reports focus the star while the colony ship remains available. UI End Turn confirms before discarding pending requests or presentations. Other v3 message types, enemy moves and notable event subjects remain to port. |
@@ -5206,3 +5206,28 @@ unchanged. English before/after restoration and attention scenes and the six
 localized restored-system scenes were inspected visually. The full English
 existing-game tutorial and unchanged original document recovery also pass after
 this change. The broader emitted-event inventory audit remains open.
+
+
+### Shared system-window style for modal reports and outcomes
+
+The source-emitter review reconfirmed the eighteen implemented runtime event
+codes in `docs/reference/EVENT_REPORTS.md`; FleetDamaged remains resource-defined
+but unreachable through the shipped nonpositive loss-count helper. This turn
+repairs a concrete modern UI requirement from the user's instructions: ordinary
+report narratives and outcomes still used the old gray modal chrome, whereas
+player-message reports already used the shared bright system style.
+
+All report and outcome text windows now use the existing neutral system palette
+and gold accents. The scoped drawing flag resets even on failure, preserving
+other panels and Events. Original victory/defeat assets are unchanged; their
+display overlay is lightened for black text. Outcomes join the system-window
+position/persistence rules. Outside clicks clunk without dismissing, including
+non-left clicks routed through the actual modal mouse handler. Automatic notices
+and Lab/Stardock presentations retain their existing distinct playback paths.
+
+Validation and the explicit user-requested styling deviation from v3 are recorded
+in [WINDOW_BEHAVIOR.md](reference/WINDOW_BEHAVIOR.md): 1,725 full tests pass on each
+native runtime, both browser helpers pass before/after in all six languages, and
+84 paired screenshots were compared and localized layouts inspected. The full
+checklist still requires its remaining gameplay/UI and Map Generation audits;
+this change does not establish overall completion.
