@@ -13,11 +13,20 @@ module.exports=()=>test.describe('Shipped sound playback and preferences',()=>{
  });
  test.it('caches public PDG sound objects, starts controllable instances and stops them on mute',()=>{
   const f=fixture();test.assertTrue(f.audio.play(1001));test.assertTrue(f.audio.play(1001));test.assertEqual(f.calls.filter(c=>c[0]==='load').length,1);test.assertEqual(f.calls.filter(c=>c[0]==='loop')[0][2],false);
-  f.audio.setEnabled(false);test.assertEqual(f.calls[f.calls.length-1][0],'stop');const count=f.calls.length;test.assertFalse(f.audio.play(1000));test.assertEqual(f.calls.length,count);test.assertEqual(f.stored[0],false);f.audio.setEnabled(true);test.assertTrue(f.audio.play(1000));test.assertEqual(f.stored[1],true);test.assertFalse(f.audio.play(1004));
+  f.audio.setEnabled(false);test.assertEqual(f.calls[f.calls.length-1][0],'stop');const count=f.calls.length;test.assertFalse(f.audio.play(1000));test.assertEqual(f.calls.length,count);test.assertEqual(f.stored[0],false);f.audio.setEnabled(true);test.assertTrue(f.audio.play(1000));test.assertEqual(f.stored[1],true);test.assertFalse(f.audio.play(9999));
  });
  test.it('selects source recipient cues and leaves source-silent reports silent',()=>{
   const cases=[[{colonization:{},observer:false},1011],[{colonization:{},observer:true},1014],[{occupation:{kind:'capture',side:'attacker'}},1009],[{occupation:{kind:'capture',side:'defender'}},1010],[{occupation:{kind:'capture',side:'observer'}},1014],[{occupation:{kind:'defendersLost',side:'attacker'}},1007],[{occupation:{kind:'defendersLost',side:'defender'}},1008],[{destruction:{side:'winner'}},1007],[{destruction:{side:'loser'}},1008],[{repair:{}},1001],[{type:Common.EventType.NEW_SHIP_CLASS},1011],[{type:Common.EventType.NEW_TECH_DISCOVERY},1013],[{type:Common.EventType.SHIP_BUILT},1001],[{type:'callIn'},1001],[{type:Common.EventType.RENAME_COLONY},1001],[{rendezvousFormation:{}},null],[{systemDefense:{}},null],[{outcome:{}},null],[{combat:{result:'inconclusive'}},null]];
   for(const [event,cue] of cases)test.assertEqual(Sound.eventCue(event),cue);
+ });
+ test.it('uses recovered private victory/defeat and observer-defeat cues without adding a draw or observer-win cue',()=>{
+  for(const [kind,player,viewer,cue] of [['win',1,1,1005],['win',2,1,null],['defeat',1,1,1004],['defeat',2,1,1006],['draw',0,1,null]]){
+   const event={id:1,outcome:{kind,playerNum:player}},game={...visible([event]),getCurrentHumanPlayer:()=>viewer},f=fixture(),overlay={type:'outcome',eventId:1};
+   test.assertEqual(Sound.eventCue(event,viewer),cue);f.audio.present(game,overlay,false);f.audio.present(game,overlay,false);
+   test.assertEqual(f.starts().join(','),cue?'sounds/'+cue+'.wav':'');
+   f.audio.present(game,{...overlay,manual:true},false);test.assertEqual(f.starts().length,cue?2:0);
+   f.audio.setEnabled(false);f.audio.present(game,{...overlay},false);test.assertEqual(f.starts().length,cue?2:0);
+  }
  });
  test.it('plays one explosion then one recipient cue per presentation and restarts manual replays',()=>{
   clock=0;const f=fixture(),event={id:1,destruction:{side:'loser'}},game=visible([event]),overlay={type:'report',eventId:1};

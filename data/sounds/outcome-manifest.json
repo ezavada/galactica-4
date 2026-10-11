@@ -1,0 +1,43 @@
+{
+  "archiveSha256": "2685c3879a75d938cf3add766c36c54d61e3e478918ebcc3cbec32bdf3329771",
+  "forkSha256": "ed3cb29bcb65041633a356b9d6a21d66d238b452e97f436fc8d92b1dbab3905a",
+  "decoder": "ffmpeg version 8.0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+  "sounds": [
+    {
+      "id": 1004,
+      "file": "1004.wav",
+      "codec": "MACE 6:1",
+      "sampleWidth": 2,
+      "frames": 648192,
+      "rate": 22255,
+      "source_fixed_rate": 1458473887,
+      "source_sha256": "3d0fdfc64a61f496382749de74f176f64f51c1c619f56441d83b926b5c3a2997",
+      "pcm_sha256": "364a8dd4f9749e96095fd71fa2bbaac23e0e5e36f4df425a4ce91d1eca47a7c6",
+      "wav_sha256": "2a4e11dad70c28c540ef8218f8f2bd28e1f0011f85909735e0ab9126f8dd59e3"
+    },
+    {
+      "id": 1005,
+      "file": "1005.wav",
+      "codec": "unsigned 8-bit PCM",
+      "sampleWidth": 1,
+      "frames": 221901,
+      "rate": 11127,
+      "source_fixed_rate": 729236944,
+      "source_sha256": "8c6547afdc62b5781ef672df33ecb2ccf49974c19d001023b2d4bdbe55911143",
+      "pcm_sha256": "15737715051401fa28e348c978462d6c1b59babf2781592209abd0e3193da554",
+      "wav_sha256": "6706557a61f5238b9289572e28c28361016517c977049c2a60b671957134374e"
+    },
+    {
+      "id": 1006,
+      "file": "1006.wav",
+      "codec": "MACE 6:1",
+      "sampleWidth": 2,
+      "frames": 434172,
+      "rate": 22255,
+      "source_fixed_rate": 1458473887,
+      "source_sha256": "991d4f2209750cb34a31070fd8bd955ce704aebb53b7c4b432e791a01eff2e34",
+      "pcm_sha256": "89c6bb3ef50389a6780f412d87fe13fb908d4613fa3e47b58569bc1336aff98c",
+      "wav_sha256": "a064dc037e00b62e664c0616e9e4af4875386236f26ee09e9683ea2a5fedbe5b"
+    }
+  ]
+}

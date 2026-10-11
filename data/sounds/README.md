@@ -26,9 +26,26 @@ and names are also present in v3 `Resources/gal-sounds.r`.
 The event table references outcome sounds 1004–1006. They are stored in the
 separate Galactica Music resource fork, recovered from AppleDouble entries
 in all six release ZIPs. `docs/reference/v3-music-resources.json` records their
-source hashes. Cue 1005 is standard PCM; 1004/1006 have compressed sound
-headers and still need conversion before they can be added to this WAV set.
+source hashes. All three cues are now installed: 1004 for the affected player's
+defeat, 1005 for the winner, and 1006 for observers of a defeat. Observer wins
+and draws have no source cue. Cue 1005 preserves its original unsigned 8-bit
+PCM; MACE 6:1 cues 1004/1006 use the decoder's full signed 16-bit PCM output.
+`outcome-manifest.json` records their source/resource/PCM/WAV hashes, sample
+counts, widths and decoder version separately from the application-bundle set.
 Their absence from the application bundle is not an unavailable-asset blocker.
+
+Regenerate these three cues from an original release ZIP with an FFmpeg build
+that supports AIFF-C/MACE6 decoding and PCM WAV output:
+
+```sh
+python3 tools/import-v3-outcome-sounds.py /path/to/gad-3.0.2-cdrom.zip data/sounds --ffmpeg /path/to/ffmpeg
+```
+
+The compressed cue importer validates the shipped buffer/codec header and
+packet count before wrapping the unchanged compressed bytes in AIFF-C.
+FFmpeg decodes those bytes; canonical WAV output preserves all decoded samples.
+The standard victory cue is copied byte-for-byte. This does not yet convert
+the separate note-based startup/About music track.
 
 Regenerate with:
 

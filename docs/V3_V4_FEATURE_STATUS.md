@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1703 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1705 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -252,7 +252,7 @@ The largest blockers to a complete game are:
 | Compare players | Player summary table with best values blue and worst red; the audited v3 sort handler is empty. | ✅ Implemented | ✅ Implemented | Menu/V opens all eleven v3 numeric fields: systems, population in thousands, production, system min/max/average technology, completed ships, raw ship power and ship min/max/average technology. Unowned systems have an italic neutral row and no ship fields; unassigned names are italic Unknown; defeated rows show a localized suffix and dashes. Living category-specific extrema exclude neutral/dead rows; blue takes precedence for tied best values. Production comparisons retain hundredths before formatting. Names retain true enemy homeworld/faction identity under fog, with full hover text when needed. Viewport paging reaches every player; Close/V/Escape and modal map input are verified in all six languages. Full suites: 919 passed on release/current native PDG. Functional sorting and aggregate score columns were not confirmed in v3 C++. |
 | Send player messages; show/hold game reports | Connected multiplayer chat to one/all/admin; separate Show/Hold commands govern automatic game-report playback. | ✅ Implemented | ✅ Implemented | Authenticated chat and durable offline messages are implemented. Menu → Hold game reports pauses automatic report, Lab, Stardock and outcome playback without marking reports read. Show game reports plays the pending batch while retaining Hold; turning Hold off resumes automatically. Manual Events replay remains available. Each complete save retains Hold and pending report identities, and client refresh remaps retained subjects to the new model. Localized controls/help and all six manuals are updated; native and browser evidence is recorded below. Existing report-window chrome remains separately tracked. |
 | Rename ship/fleet/colony/rendezvous | Edit menu rename workflow. | ✅ Implemented | ✅ Implemented | Owned ships, systems, fleets and rendezvous points have localized Unicode Rename/Save/Cancel controls. New human neutral colonies create the private v3 naming/production instruction and attention navigation, rather than a forced naming modal. Requests disappear for recaptured/removed colonies and do not target computer or captured enemy systems. |
-| Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | 🟡 Partial | 🟡 Partial | The localized persistent Sound setting now controls cached PDG audio across open/restored games. Presented colony, battle, destruction, repair, lab and stardock reports and attention navigation select recipient cues from the shipped samples; explosions precede the later cue by the source animation cadence plus 20 ticks. Hidden reports and quiet autoplay are silent, and mute stops owned playback. Native suites and actual browser controls/playback are verified below. Empty Tab/Next item now plays the shipped No more cue without changing selection or the turn. Chat and offline-message reports now play the cached Message cue; background network turns now play the cached Warning sample once behind another open game or on browser focus loss; the foreground new-turn notice is implemented below, native application focus now uses the new PDG query on rebuilt runtimes, with packaged-runtime and connected-macOS validation still pending. Tutorial entry cues are implemented; Left Arrow at a top-level object also plays No more. Startup/About music is blocked by missing source movie metadata, documented below. |
+| Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | 🟡 Partial | 🟡 Partial | The localized persistent Sound setting now controls cached PDG audio across open/restored games. Presented colony, battle, destruction, repair, lab and stardock reports and attention navigation select recipient cues from the shipped samples; explosions precede the later cue by the source animation cadence plus 20 ticks. Hidden reports and quiet autoplay are silent, and mute stops owned playback. Native suites and actual browser controls/playback are verified below. Empty Tab/Next item now plays the shipped No more cue without changing selection or the turn. Chat and offline-message reports now play the cached Message cue; background network turns now play the cached Warning sample once behind another open game or on browser focus loss; the foreground new-turn notice is implemented below, native application focus now uses the new PDG query on rebuilt runtimes, with packaged-runtime and connected-macOS validation still pending. Tutorial entry cues are implemented; Left Arrow at a top-level object also plays No more. Recovered outcome cues now play local defeat/victory and observer defeat through the real backend. Startup/About movie metadata has been recovered; note-based synthesis and fade/loop behavior still need implementation, documented below. |
 | Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen choices now persist across launch: native restoration is immediate, while browsers defer until the first user gesture and remember external exits. Startup Settings and Menu → Settings → New game defaults now select numeric values directly and saves map size, density, AI skill/advantage, fast game and fog of war separately from ordinary setup and current games. Startup and New Game apply these defaults; tutorial setup is isolated. Colony hull and coupled production defaults now persist independently and are available from startup/in-game Settings and the game menu. Save applies them to the local human and future games; opening saves reapplies application colony defaults as in v3, while existing systems and computer defaults stay unchanged. Fixed tutorial practice is isolated. Startup now offers a persistent introduction and independent About presentation with original artwork, localized narrative/credits, paging, modal dragging and tutorial entry. First-install automatic tutorial is implemented. Stored numeric startup actions now dispatch available About/New/Open/Save/Revert/Quit/Host/Open as Host/Join/Fullscreen/Sound/Preferences/Flyby Help/Help/Tutorial handlers once after introduction/onboarding. Browser commands requiring activation wait for trusted input. Arbitrary inherited/window commands remain unfinished, alongside other preference coverage and the pinned native runtime update. |
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
 | Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | ✅ Implemented | ✅ Implemented | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; Open and Revert retain active instruction bindings and production safeguards, with independent documents preserved. The optional wrong-course retry is verified through actual controls in all six languages. Existing-game recovery (100) is verified through actual Hide/Close controls, full completion and Open Games restoration in all six languages. Modal recovery (101) is verified through actual startup/in-game Settings entry, retry, Cancel and original restoration in all six languages; hosting recovery (103) is verified through actual Host, Cancel/Escape, local practice continuation, instruction cancellation and native-backed host creation in all six languages. The floating recovery panel stays visible and interactive above the Host modal; original documents and setup are preserved. See docs/reference/TUTORIAL_CONTROLLER.md. |
@@ -664,8 +664,8 @@ ordinary audio-file loader does not establish playback. Conversion/synthesis
 and the source loop/five-second fade behavior remain implementation work,
 not a request for an unavailable file. Cue1005 parses as 221901 standard PCM
 frames at rounded 11127 Hz; cues1004/1006 have compressed headers unsupported
-by the current standard-PCM importer. Their conversion and actual event
-playback still need implementation and verification.
+by the current standard-PCM importer. They are now converted and verified by the separate outcome-cue importer and
+runtime regression documented below; the note-based intro remains pending.
 
 Four recovery regressions pass, covering the canonical inventory/container,
 all six archive identities, damaged media ranges/atoms and cue encodings.
@@ -4854,3 +4854,45 @@ Existing outcome layout, privacy and six-language screenshot evidence remains
 above. This closes the previously unverified outcome source-image comparison;
 PICT2208 decoding, unusual fallback payload/native rendering comparisons and
 the broader Original art use checklist remain separate work.
+
+
+### Original outcome audio cues restored
+
+Evnt128 code17 assigns snd1004 to the affected defeated player and snd1006 to
+other recipients; code18 assigns snd1005 only to the winning player. These
+resources are in the recovered Galactica Music fork, not the application
+bundle. All three WAVs are now packaged and available to cached PDG playback.
+Outcome cue selection uses the current viewer: local defeat/victory plays
+1004/1005, observed defeat plays1006, and observed victory/draw remains silent.
+Presentations play once, explicit replay restarts once, and the existing
+persistent mute/stop behavior remains in effect.
+
+The standard cue1005 retains all 221901 original unsigned 8-bit PCM samples.
+Cues1004/1006 have MACE 6:1 headers; strict validation precedes AIFF-C wrapping
+and decoding through the primary
+[FFmpeg MACE decoder](https://github.com/FFmpeg/FFmpeg/blob/n8.0.1/libavcodec/mace.c).
+Their expanded signed 16-bit PCM contains 648192/434172 samples respectively,
+with no extra quantization or resampling. The original fractional sample rates
+are rounded for WAV as with the existing source cues. Source/archive/fork,
+compressed resource, decoded PCM and canonical WAV hashes are retained in
+`data/sounds/outcome-manifest.json`. The converter uses external FFmpeg;
+its temporary local build is not bundled with the game or repository.
+No claim of a separate original-QuickTime acoustic comparison is made.
+
+Three source regressions verify exact standard PCM, unchanged compressed
+packets, malformed header/length rejection and byte-identical regeneration
+of all three WAVs. Both full native suites pass 1705 tests; new tests load,
+start and stop each real public PDG sound while the output bus stays muted,
+and verify local/observer/silent mappings, repeated presentation, manual replay
+and mute behavior. Real browser outcome generation, observer dismissal,
+Events replay, local defeat fixture and compact paging pass in all six
+languages. Instrumented real Sound.start calls reach all three new files;
+headless Chrome remains muted. All 42 before/after screenshot pairs are
+byte-identical. English before/after and localized final outcome screens were
+visually inspected. No localization strings change.
+
+Evidence is under `/private/tmp/galactica-outcome-sound`, including comparison
+metadata; source/native/browser logs use the matching prefix. This closes the
+previous outcome cue asset/playback gap. The separate startup/About `musi`
+track still requires faithful note-data synthesis and source loop/fade behavior;
+the broad Sound and attention cues row stays partial.

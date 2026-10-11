@@ -1,9 +1,13 @@
 // Shipped v3 event sounds. Audio state belongs to the application, not saves.
 const Common=require('./common.js');
 const Destruction=require('./destruction-effect.js');
-const available=new Set([1000,1001,1002,1003,1007,1008,1009,1010,1011,1012,1013,1014,7000]);
-function eventCue(event) {
+const available=new Set([1000,1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,1011,1012,1013,1014,7000]);
+function eventCue(event,viewer=event && event.recipient) {
     if(!event)return null;
+    if(event.outcome && Number.isInteger(event.outcome.playerNum) && event.outcome.playerNum>0) {
+        if(event.outcome.kind==='defeat')return event.outcome.playerNum===viewer?1004:1006;
+        if(event.outcome.kind==='win')return event.outcome.playerNum===viewer?1005:null;
+    }
     if(event.playerMessage)return 1003;
     if(event.colonization)return event.observer?1014:1011;
     if(event.occupation) {
@@ -18,7 +22,7 @@ function eventCue(event) {
     if(event.type===Common.EventType.NEW_TECH_DISCOVERY)return event.observer?1014:1013;
     if(event.type===Common.EventType.SHIP_BUILT)return event.observer?1014:1001;
     if(event.type===Common.EventType.RENAME_COLONY || event.type==='callIn')return 1001;
-    // Fleet formation, tech levels and outcomes have no shipped audible sample.
+    // Fleet formation, tech levels and draw notices have no shipped audible sample.
     return null;
 }
 function createSound(resourceManager,preferences) {
@@ -45,7 +49,7 @@ function createSound(resourceManager,preferences) {
         },
         attention(game,event){
             if(!game.shouldShowEventWindows() || event && !game.isEventAccessible(event))return false;
-            return play(event?eventCue(event):1001);
+            return play(event?eventCue(event,game.getCurrentHumanPlayer?game.getCurrentHumanPlayer():event.recipient):1001);
         },
         present(game,overlay,exploding){
             if(!overlay || !game.shouldShowEventWindows())return false;
@@ -60,7 +64,7 @@ function createSound(resourceManager,preferences) {
             }
             if(exploding || now<state.due || state.cue)return false;
             state.cue=true;
-            return play(overlay.type==='lab'?1013:overlay.type==='stardock'?1011:eventCue(event));
+            return play(overlay.type==='lab'?1013:overlay.type==='stardock'?1011:eventCue(event,game.getCurrentHumanPlayer?game.getCurrentHumanPlayer():event && event.recipient));
         }
     };
 }

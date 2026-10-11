@@ -16,6 +16,11 @@ module.exports=()=>test.describe('Converted v3 sound samples',()=>{
   finally{pdg.res.closeResourceFile(ref);}
  });
 
+ test.it('loads recovered outcome PCM with source provenance, complete sample counts and hashes',()=>{
+  const m=JSON.parse(fs.readFileSync(path.join(root,'outcome-manifest.json'),'utf8')),reference=JSON.parse(fs.readFileSync(path.join(__dirname,'../docs/reference/v3-music-resources.json'),'utf8'));
+  test.assertEqual(m.archiveSha256,reference.archiveSha256);test.assertEqual(m.forkSha256,reference.forkSha256);test.assertDeepEqual(m.sounds.map(s=>s.id),[1004,1005,1006]);
+  for(const entry of m.sounds){const b=fs.readFileSync(path.join(root,entry.file));test.assertEqual(entry.source_sha256,reference.resources.find(r=>r.type==='snd ' && r.id===entry.id).sha256);test.assertEqual(b.readUInt16LE(34),entry.sampleWidth*8);test.assertEqual(b.readUInt32LE(40),entry.frames*entry.sampleWidth);test.assertEqual(b.length,44+entry.frames*entry.sampleWidth);test.assertEqual(crypto.createHash('sha256').update(b).digest('hex'),entry.wav_sha256);test.assertEqual(crypto.createHash('sha256').update(b.subarray(44)).digest('hex'),entry.pcm_sha256);test.assertTrue(entry.frames/entry.rate>19 && entry.frames/entry.rate<30);const sound=pdg.res.getSound('sounds/'+entry.file);test.assertNotNull(sound);test.assertFalse(sound===false);sound.setLooping(false);sound.start();sound.stop();}
+ });
  test.it('preserves the shipped sample inventory, PCM bytes and portable WAV header',()=>{
   test.assertEqual(manifest.sounds.map(s=>s.id).join(','),'1000,1001,1002,1003,1007,1008,1009,1010,1011,1012,1013,1014');
   for(const sound of manifest.sounds) {
