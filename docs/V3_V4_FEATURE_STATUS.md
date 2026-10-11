@@ -250,7 +250,7 @@ The largest blockers to a complete game are:
 | New hull/class Stardock presentation | Illustrated first-built satellite, scout/courier, colony or higher battleship class event. | ✅ Implemented | ✅ Implemented | Owner-only Stardock overlays use matching hull/class art and translated titles. Reports retain role explanations and focus the building system even after default-order departure. First-build flags, highest built class and queued presentation identities survive saves; repeated hulls and older classes are suppressed. Source-confirmed observer broadcasts now retain faction/class/technology/origin snapshots, follow current detection and Show enemy events, and replay as ordinary reports. Illustrated Stardock art stays owner-only. Space/Esc continues, while End Turn confirms before discarding unreviewed presentations. |
 | Colonization/capture/battle event text | 22 event codes select 45 player-relative text templates. | 🟡 Partial | 🟡 Partial | Participant battle outcomes, system capture, defeated resistance and individual ship/fleet destruction now have private winner/loser narratives, retained battle-time names, remembered-location navigation and replay. Commissioning, discovery and neutral colony naming/production reports are also present. Neutral colonization now has separate owner and observer narratives, automatic eligible playback, Events replay and retained colony-time names. Capture observer narratives are also available through Events with fog gating; resistance and destruction remain direct-participant notices. First-class construction now broadcasts owner/observer copies: detected observers receive automatic/plain reports and manual replay, while owner Stardock art remains private. Discovery now also broadcasts separate owner/observer copies with private Lab art, current detection checks and replay. Other observer variants, multiplayer messages and remaining event types are still incomplete. |
 | Compare players | Player summary table with best values blue and worst red; the audited v3 sort handler is empty. | ✅ Implemented | ✅ Implemented | Menu/V opens all eleven v3 numeric fields: systems, population in thousands, production, system min/max/average technology, completed ships, raw ship power and ship min/max/average technology. Unowned systems have an italic neutral row and no ship fields; unassigned names are italic Unknown; defeated rows show a localized suffix and dashes. Living category-specific extrema exclude neutral/dead rows; blue takes precedence for tied best values. Production comparisons retain hundredths before formatting. Names retain true enemy homeworld/faction identity under fog, with full hover text when needed. Viewport paging reaches every player; Close/V/Escape and modal map input are verified in all six languages. Full suites: 919 passed on release/current native PDG. Functional sorting and aggregate score columns were not confirmed in v3 C++. |
-| Send/show/hold player messages | Multiplayer chat to one/all/admin, with message history and repeat settings. | ❌ Missing | ❌ Missing | No chat or message model. |
+| Send player messages; show/hold game reports | Connected multiplayer chat to one/all/admin; separate Show/Hold commands govern automatic game-report playback. | ❌ Missing | ❌ Missing | Chat transport/UI and offline private-message events remain missing. Shipped GalacticaDoc Show/Hold commands affect game reports, not chat; their distinct manual-playback/hold requirements remain to implement. Existing report windows and Events replay are tracked separately. |
 | Rename ship/fleet/colony/rendezvous | Edit menu rename workflow. | ✅ Implemented | ✅ Implemented | Owned ships, systems, fleets and rendezvous points have localized Unicode Rename/Save/Cancel controls. New human neutral colonies create the private v3 naming/production instruction and attention navigation, rather than a forced naming modal. Requests disappear for recaptured/removed colonies and do not target computer or captured enemy systems. |
 | Sound and attention cues | Sound toggle, attention sound, combat/build feedback. | 🟡 Partial | 🟡 Partial | The localized persistent Sound setting now controls cached PDG audio across open/restored games. Presented colony, battle, destruction, repair, lab and stardock reports and attention navigation select recipient cues from the shipped samples; explosions precede the later cue by the source animation cadence plus 20 ticks. Hidden reports and quiet autoplay are silent, and mute stops owned playback. Native suites and actual browser controls/playback are verified below. Empty Tab/Next item now plays the shipped No more cue without changing selection or the turn. Chat, background network-turn and tutorial cues remain tied to their unported features; Left Arrow at a top-level object also plays No more. Startup/About music is blocked by missing source movie metadata, documented below. |
 | Preferences | Persistent drawing, sound, language, and game preferences. | 🟡 Partial | 🟡 Partial | Default player name, language, grid, map-name, ship, course, scanner and nebula choices persist through native PDG configuration or browser localStorage. Fleet roster sort and position/height persist and restore after a fresh app reload, with safe fallback for invalid/unavailable storage and visible viewport clamping. System comparison sort column/direction also persist independently; numeric and hull columns start highest first, with hull class/technology ordering across languages. System comparison position/height also persist with title/corner dragging, viewport bounds and resize-aware paging; the page is retained during the session. Show enemy events defaults on, persists for new games and retains independent saved-game choices. Sound now persists independently of saved games and controls playback across open sessions. Fullscreen choices now persist across launch: native restoration is immediate, while browsers defer until the first user gesture and remember external exits. Startup Settings and Menu → Settings → New game defaults now select numeric values directly and saves map size, density, AI skill/advantage, fast game and fog of war separately from ordinary setup and current games. Startup and New Game apply these defaults; tutorial setup is isolated. Colony hull and coupled production defaults now persist independently and are available from startup/in-game Settings and the game menu. Save applies them to the local human and future games; opening saves reapplies application colony defaults as in v3, while existing systems and computer defaults stay unchanged. Fixed tutorial practice is isolated. Startup now offers a persistent introduction and independent About presentation with original artwork, localized narrative/credits, paging, modal dragging and tutorial entry. First-install automatic tutorial is implemented. Stored numeric startup actions now dispatch available About/New/Open/Save/Revert/Quit/Fullscreen/Sound/Preferences/Flyby Help/Help/Tutorial handlers once after introduction/onboarding. Browser commands requiring activation wait for trusted input. Arbitrary inherited/window commands and multiplayer startup actions remain unfinished, alongside other preference coverage and the pinned native runtime update. |
@@ -3511,3 +3511,44 @@ Concrete owner-review blockers (the discovery row remains Partial):
 Section 9 estimates use implemented=1, partial=0.5, missing=0 (12/14, rounded
 86%). Chat, remaining network-document behavior, other parity items and Map
 Generation remain required. This item does not establish overall completion.
+
+
+### Shipped chat and Show/Hold requirements audit — 2026-10-10
+
+The next multiplayer item remains Missing; this audit is not an implementation.
+Primary source establishes these requirements:
+
+- `Classes/GalacticaClient.cpp:913–991`: recipient picker offers all players,
+  administrator and individual players, disables computers, marks self/unknown
+  names and refreshes connection/name status. `1080–1110`: Enter/Return sends,
+  appends a local echo and clears the editor. `GalacticaConsts.h:58` defines
+  the legacy packet text limit as 256 bytes (the editor uses LStr255).
+- Client `1017–1045` formats sender/history and all-player context and plays
+  Message sound while the chat window exists. `1438–1449` preserves an existing
+  private recipient when the general chat command brings an already-open window
+  forward. `2221–2230` brings incoming broadcasts/private chat forward and
+  selects the incoming private sender. `1330–1359` disables sending when the
+  host is disconnected and otherwise allows connected players and admins.
+- `Classes/GalacticaHost.cpp:2033–2058`: the host replaces the packet sender
+  with the authenticated endpoint's player, preventing impersonation. Broadcasts
+  go to currently connected peers except the sender, including an online
+  administrator. Private messages go only to the specified recipient, not a
+  general administrator copy. Sender echo must not duplicate network delivery.
+- Host `2059–2082`: a private message addressed to an offline player becomes a
+  saved `event_Message` with recipient and sender identity. This durable event
+  path must survive host reopening and appear only for its recipient. A transient
+  chat-history ring alone would not satisfy shipped v3 behavior. Online chat
+  delivery and offline report delivery need separate verification.
+- `Classes/GalacticaDoc.cp:672–687,998–1020`: Show messages temporarily enables
+  automatic report playback while preserving the saved Hold state; Hold toggles
+  `mWantGameMessages`. These commands govern queued game events, independently of
+  the chat window. They are also present in single-player games, where Send
+  message is disabled. The earlier combined checklist description incorrectly
+  called Hold a chat preference; the row above now preserves the distinction.
+
+Implementation gates: real authenticated player/admin and broadcast/private
+routing, sender spoof rejection, no duplicate echo on retry, disconnected-send
+feedback, offline durable private events, window close/reopen/history and
+recipient changes, live player status, actual six-language UI/input checks,
+Message sound with muted automation, and both complete native unit suites.
+No unavailable-help blocker has been identified for this item.
