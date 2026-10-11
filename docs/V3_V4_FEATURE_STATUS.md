@@ -19,7 +19,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1685 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1687 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -4428,3 +4428,31 @@ narrative images are byte-identical; the 12 automatic images show the intended
 return to the map. Updated automatic views and translated narratives were
 visually reviewed. The broader event presentation row remains partial pending the other resource
 roles, recipient perspectives, Layr and packaged runtime checks.
+
+
+### Recipient-specific first-class and discovery presentation (2026-10-11)
+
+Evnt128 codes 11/12 assign PPob4002/4003 only to the owner (“winner” column).
+Their observer columns assign sound1014, narrative STR#500/19 or /21 and no
+PPob. V4 now completes automatic observer presentations with sound and map
+focus rather than pausing in a text dialog. Owner Stardock/Lab artwork remains
+private and illustrated, and explicit Events → View report retains translated
+observer narratives. Detection/alliance, Show enemy events, quiet autoplay,
+end-turn visibility refresh and recipient privacy still gate presentation.
+
+Both rebuilt native PDG runtimes pass **1,687 tests**. New regressions drive
+actual enemy construction and research milestones, verify a single sound1014
+cue without a dimmed map or narrative, and exercise explicit manual replay.
+Existing tests retain owner-art, privacy, visibility-refresh and save checks.
+`tools/test-web-class-observer-cues.cjs` uses deterministic report fixtures and
+actual Events/row/View report controls, then checks private owner artwork.
+Before/after browser evidence is under `/private/tmp/galactica-class-observer`;
+logs are `/private/tmp/galactica-class-observer-{before,after}-<language>.log`.
+No new strings were needed; existing six-language narratives and art captions
+remain in use. Other event-resource roles and Layr equivalence remain active.
+
+All six before/after browser runs pass. Of 48 screenshot pairs, 36 owner-art,
+Events-list and manual-narrative views are byte-identical; only the 12 automatic
+observer views change, returning to the map. Updated map views and translated
+narratives were visually reviewed in all supported languages, with owner Lab/
+Stardock art also inspected. The broader event-presentation row remains partial.

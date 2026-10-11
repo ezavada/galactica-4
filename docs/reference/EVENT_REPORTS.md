@@ -212,6 +212,13 @@ presentation equivalence, complete translated narrative coverage, or Layr
 animation equivalence. In particular, Evnt references to sounds 1004–1006
 must be distinguished from whether samples are present in the shipped bundle.
 
+First-class commissioning and discovery now also honor the observer columns'
+zero PPob entries. Detected observers receive sound1014 and map focus without
+an automatic text dialog; explicit View report retains the complete narrative.
+The owner's separate Stardock/Lab paths retain the illustrated windows assigned
+by PPob4002/4003. Native construction/research regressions confirm the cue and
+automatic draw completion; the full suites now pass 1,687 tests.
+
 Validation: five resource-import checks pass, including actual-source equality;
 both rebuilt public and development native runtimes pass all 1,683 game tests
 with audio muted. No runtime UI changed, so this item requires no new visual

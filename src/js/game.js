@@ -1086,8 +1086,10 @@ class Game {
     }
 
     // Evnt128 assigns no dialog to destruction, defense losses, occupation or colonization.
+    // First-class/discovery observer columns also have no dialog; owner art is queued separately.
     // Explicit replay passes animationOnly=false to retain the full narrative.
-    queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense || event.occupation || event.colonization)), manual = false) {
+    queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense || event.occupation || event.colonization ||
+            event.observer && (event.commissioning || event.discovery))), manual = false) {
         if (!this.hasReplayableReport(event) || !this.isEventAccessible(event)) return false;
         return this.queueEventOverlay({type:'report',eventId:event.id,page:0,animationOnly,manual,automaticObserver:!!event.observer && !manual});
     }

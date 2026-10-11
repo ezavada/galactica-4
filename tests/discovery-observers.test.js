@@ -7,6 +7,15 @@ function fixture(owner=2) {
  return {game,display,star,homes,build:type=>{star.startBuildingShip(type);return star.completeShip();},reports:()=>game.eventLog.filter(e=>e.discovery),discover:()=>{star.techLevel=4;star.paidTowardResearch=990;game.rules.getStarResearchAmount=s=>s===star?20:0;star.update();}};
 }
 module.exports=()=>test.describe('V3 drive discovery broadcasts',()=>{
+ test.it('automatically plays the observer cue without dimming or a dialog and retains manual narrative review',()=>{
+  const f=fixture();f.star.setVisibilityTo(1,Common.VisibilityLevel.CLASS);f.discover();const event=f.reports().find(e=>e.recipient===1);
+  test.assertTrue(f.game.overlay.animationOnly);test.assertTrue(f.game.overlay.automaticObserver);
+  const played=[];f.game.sound=Sound.createSound({getSound:name=>({setLooping:()=>{},stop:()=>{},start:()=>played.push(name)})},{readSound:()=>true,writeSound:()=>{}});
+  let narratives=0,dims=0;f.display.drawDestructionEffect=()=>false;f.display.drawReport=()=>narratives++;f.display.port.drawRect=()=>dims++;
+  f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);test.assertEqual(narratives,0);test.assertEqual(dims,0);test.assertEqual(played.join(','),'sounds/1014.wav');test.assertTrue(event.handled);test.assertTrue(f.game.selectedObject===f.star);
+  f.game.turn=2;test.assertTrue(f.game.replayReport(event));test.assertTrue(f.game.overlay.manual);test.assertFalse(f.game.overlay.animationOnly);test.assertFalse(f.game.overlay.automaticObserver);
+  f.display.drawOverlay(f.game.overlay);test.assertEqual(narratives,1);test.assertEqual(dims,1);test.assertEqual(f.game.turn,2);
+ });
  test.it('broadcasts an actual research milestone with private owner Lab artwork and acknowledgment',()=>{
   const f=fixture(1);f.discover();test.assertEqual(f.reports().length,3);const event=f.reports().find(e=>!e.observer);test.assertEqual(event.discovery.techLevel,5);test.assertEqual(f.game.overlay.type,'lab');test.assertEqual(f.game.overlay.classIndex,1);test.assertEqual(f.game.overlay.eventId,event.id);f.game.dismissEventPresentation();test.assertTrue(event.handled);test.assertTrue(f.game.selectedObject===f.star);test.assertEqual(f.game.attention.pending().length,0);f.discover();test.assertEqual(f.reports().length,3);
  });
