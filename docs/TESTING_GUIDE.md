@@ -1295,3 +1295,24 @@ paging, name-edit/failure/conversion and remote dragged views in all languages,
 and literal names at both sizes. Other compact administration and gameplay
 viewport checks remain open; localhost evidence does not prove physical LAN or
 packaged native GUI behavior.
+
+
+### Compact Admission browser checks
+
+Append `admission` to the Host status helper:
+`node tools/test-web-host-status-compact.cjs BUILD OUTPUT LANG before|after WIDTH HEIGHT admission`.
+The native fixture seeds long Unicode/literal codes; actual canvas/key input
+checks list selection/paging, drag/isolation, removal/cancel, duplicate rejection,
+adding, durable-save failure/retry, stale policy and stop. Native clients check
+allow/reject and password rejoin after code removal. The fixture supplies the
+current policy revision and waits for native metadata refresh after concurrency.
+Chrome/native fixtures stay muted.
+
+Both native suites pass 1,784 tests. All 36 six-language local runs at ordinary,
+short and narrow sizes and twelve authenticated remote narrow runs pass. Evidence:
+`/private/tmp/galactica-admission/` and `galactica-remote-admission/`. Comparison
+JSON records 234 local pairs (36 exact; 60 ordinary hosting metadata-only with
+zero outside changes; 60 ordinary literal-code changes; 78 narrow changes) and
+108 remote pairs (48 exact). Reviewed all six selected/paged/blocked-code/error
+and remote-dragged/draft pairs. Other compact admin/gameplay viewport checks and
+physical LAN/packaged GUI validation remain separate work.

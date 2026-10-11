@@ -7655,3 +7655,50 @@ Window/dialog chrome remains Partial: compact Admission, Initial State/Value and
 End Turn, remaining busy/error variants and the separate gameplay minimum-viewport
 audit remain open. Physical LAN/native packaged GUI, overall parity, broad
 localization completion and Map Generation completion are not established here.
+
+
+### Compact Admission editor (completed)
+
+Audited shipped v3 `Classes/Galactica.cpp:1506–1520` hostconfig admit-unregistered/
+allow/ban entries, `GalacticaGlobals.h:162–218` allow-list precedence and ban
+lookup, and `GalacticaHost.cpp:1685–1714` new-slot admission checks. V4's existing
+host-issued-code replacement for discontinued registration and password rejoin
+semantics remain unchanged. Below 400px wide, Admission now wraps complete code
+rows, measures list choices/commands, supplies a full-width input and complete
+fixed feedback, and keeps Save/Cancel fixed while the body scrolls. Page/list
+changes reveal the list; selection reveals its row, Tab selects/reveals the code
+field, and an off-page selection is identified before the removal controls.
+Admission codes are drawn literally at every size, so `<Enter>`/`<Esc>` endings
+do not become false shortcut hints. Enter still adds a draft code rather than
+saving the policy. No new resources or engine changes.
+
+Both full native suites pass **1,784 tests, zero failures**. A new six-language
+regression checks full Unicode rows, command/footer separation, complete feedback,
+paging context, list switching and focus reveal. All 36 local actual-input
+before/after workflows pass in en/de/es/fr/ja/ru at 800×600, 640×340 and 320×340.
+A native fixture seeds seven allowed codes and a blocked code; actual canvas/key
+input then exercises paging/list selection, modal dragging/outside clunk, code
+removal, canceled drafts, duplicate rejection, adding, injected durable-save
+failure/retry, stale-policy rejection and host stop. Actual native clients prove
+a listed code joins, an unlisted blocked code is rejected, and an existing player
+can password-rejoin after their allowed code is removed. Twelve authenticated
+remote narrow before/after workflows also pass, including Admission drag/cancel
+and durable saving, Settings, revocation and disconnect.
+
+Local comparison: 234 pairs, 36 exact, 60 ordinary hosting pairs differ only in
+connection/file/clock metadata with zero pixels changed outside those regions,
+60 ordinary Admission pairs intentionally change literal code rendering, and 78
+narrow pairs change layout/scrolling or host metadata. Remote comparison: 108
+pairs, 48 exact. Reviewed all six narrow selected, next-page, blocked-code,
+duplicate-error, save-failure, remote-dragged and remote-draft comparisons.
+Evidence: `/private/tmp/galactica-admission/`,
+`/private/tmp/galactica-remote-admission/`, their comparison/layout files and
+`galactica-admission-{pdg,pdg-devel}-final-unit.log`. Initial fixture attempts
+omitted a required policy revision, then checked refreshed metadata too early;
+those logs are retained separately. The corrected 48-run batch completed with
+zero failures. Concurrent artwork changes are excluded.
+
+Window/dialog chrome remains Partial for Initial State/Value, End Turn, remaining
+busy/error variants and the separate gameplay minimum-viewport audit. Overall
+parity, broad localization and Map Generation completion remain open; localhost
+checks do not establish physical LAN or packaged native GUI behavior.

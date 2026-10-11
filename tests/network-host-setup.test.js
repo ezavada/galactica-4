@@ -97,6 +97,17 @@ module.exports=()=>test.describe('Multiplayer Host setup controls',()=>{
   const w=form();let discarded=null;w.backend.discardConversion=token=>{discarded=token;};w.stage='conversion';w.conversion={token:'snapshot'};w.busy=true;test.assertFalse(w.cancel());test.assertEqual(discarded,null);w.busy=false;test.assertTrue(w.cancel());test.assertEqual(discarded,'snapshot');test.assertEqual(w.conversion,null);test.assertFalse(w.active);
  });
 
+ test.it('keeps compact admission codes literal, complete, scrollable and separate from fixed Save/Cancel in six languages',()=>{
+  const language=pdg.res.getLanguage(),measure=(text,size=12)=>Array.from(text).length*size*.65,Name=require('../src/js/player-name.js');
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const w=form();w.stage='admission';w.focus='admissionCode';w.page=0;w.admissionList='allowed';w.admissionSelection=null;w.admissionCode=Name.createEditor('',64);w.admission={allowWithoutCode:false,allowed:Array.from({length:7},(_,i)=>'CODE-'+i+'-'+('Ω'.repeat(40))+' <Enter>'),banned:['BAN 星 <Esc>']};w.message=pdg.res.getString(1152);
+   const l=w.layout(320,340,measure);test.assertTrue(l.compact);test.assertEqual(l.buttons.filter(b=>!b.body).map(b=>b.action).join(','),'cancel,saveAdmission');test.assertEqual(l.statusLines.map(x=>x.text).join(''),w.message);test.assertTrue(l.buttons.find(b=>b.action==='admissionRemove').disabled);
+   for(const c of l.choices.filter(c=>c.action==='admissionSelect')){test.assertEqual(c.labelLines.join(''),c.label);for(const line of c.labelLines)test.assertTrue(measure(line,12)<=c.rect.width-16+.001);}
+   w.admissionAction('admissionSelect',0);w.admissionAction('next');const page=w.layout(320,340,measure);test.assertEqual(page.choices.find(c=>c.action==='admissionSelect').value,4);test.assertTrue(page.labels.map(x=>x.text).join('').includes(w.admission.allowed[0]));
+   w.key(pdg.key_Tab);const focused=w.layout(320,340,measure),f=focused.fields[0];test.assertTrue(w.admissionCode.selected);test.assertTrue(f.rect.y>=focused.bodyClip.y);test.assertTrue(f.rect.y+f.rect.height<=focused.bodyClip.y+focused.bodyClip.height);
+   w.admissionAction('admissionList','banned');const banned=w.layout(320,340,measure);test.assertEqual(banned.choices.find(c=>c.action==='admissionSelect').label,'BAN 星 <Esc>');test.assertTrue(banned.choices[0].rect.y>=banned.bodyClip.y);
+  }}finally{pdg.res.setLanguage(language);}
+ });
+
  test.it('keeps compact player names complete and commands scrollable with a fixed Close across six languages',()=>{
   const language=pdg.res.getLanguage(),Caption=require('../src/js/button-caption.js'),measure=(text,size=12)=>Array.from(text).length*size*.65;
   try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);const w=form();w.stage='players';w.playerSelection=1;w.page=0;w.playersComplete=false;w.playerList=Array.from({length:7},(_,i)=>({player:i+1,name:i===0?'Commander 星 <Enter>':'Commander 星 '+('Ω'.repeat(20)),isComputer:i>=2,isAlive:true,assigned:true,online:i<2}));

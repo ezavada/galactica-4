@@ -1,6 +1,6 @@
 // Actual Host title capture and actual native-host controls against a native HTTP host.
 // Fullscreen is disabled in this fixture to keep screenshot comparisons stable.
-// Usage: node tools/test-web-host-status-compact.cjs BUILD_DIR SCREENSHOT_DIR [LANGUAGE] [before|after] [WIDTH HEIGHT] [admin-password|players]
+// Usage: node tools/test-web-host-status-compact.cjs BUILD_DIR SCREENSHOT_DIR [LANGUAGE] [before|after] [WIDTH HEIGHT] [admin-password|players|admission]
 // Chrome output is muted without disabling application sound logic.
 // GALACTICA_CHROME overrides Chrome. The host and browser profiles are temporary.
 const fs=require('fs'),http=require('http'),path=require('path'),os=require('os'),{spawn}=require('child_process');
@@ -80,7 +80,7 @@ const visible=async expression=>{
  }throw Error('Control not visible '+expression);
 };
 const field=async name=>{
- if(mode==='before' && viewWidth<400 && await evaluate('hostAudit.host.stage!=="hosting"')){for(let i=0;i<10 && await evaluate('hostAudit.host.focus!=='+JSON.stringify(name));i++)await key('Tab');return;}
+ if(mode==='before' && viewWidth<400 && await evaluate('hostAudit.host.stage!=="hosting" && hostAudit.host.stage!=="admission"')){for(let i=0;i<10 && await evaluate('hostAudit.host.focus!=='+JSON.stringify(name));i++)await key('Tab');return;}
  const expression=layout+'.fields.find(f=>f.name==='+JSON.stringify(name)+').rect';await visible(expression);await click(expression);
 };
 const action=async name=>{const item=layout+'.buttons.find(b=>b.action==='+JSON.stringify(name)+')';if(await evaluate(item+'.body'))await visible(item+'.rect');await click(item+'.rect');};
@@ -98,6 +98,26 @@ await capture('hosting-top');await inspect('hosting');
 if(mode!=='before' && viewWidth<400){
  await check(`(()=>{const l=${layout};return (l.title+l.labels.map(label=>label.text).join('')).includes(liveTitle)})()`,'Long live title missing');
  await check(`${layout}.buttons.filter(b=>!b.body).map(b=>b.action).join(',')==='stop,cancel'`,'Stop/Close not fixed');
+}
+if(process.argv[8]==='admission'){
+ const fixture=async(endpoint,data)=>{if(endpoint==='/admission' && data.revision===undefined)data.revision=await evaluate('hostAudit.host.record.administration.admissionRevision');const r=await fetch(broker+endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await r.json();if(!r.ok)throw Error('Fixture '+endpoint+' '+JSON.stringify(result));return result;};
+ const choice=async(action,value)=>{const item=layout+'.choices.find(c=>c.action==='+JSON.stringify(action)+' && c.value==='+JSON.stringify(value)+')';await visible(item+'.rect');await click(item+'.rect');};
+ const code='Permit 星 '+('Ω'.repeat(35))+' <Enter>',seed={allowWithoutCode:false,allowed:[code,'CODE-2','CODE-3','CODE-4','CODE-5','CODE-6','CODE-7'],banned:['BAN 星 <Esc>']};
+ await fixture('/admission',{id:await evaluate('hostAudit.host.record.id'),policy:seed});await wait('hostAudit.host.record.administration.admission.allowed.length===7','Seed admission not reflected');
+ await action('admission');await inspect('admission');await choice('admissionSelect',0);await capture('admission-selected');
+ await action('next');await check(layout+'.choices.find(c=>c.action==="admissionSelect").value===4','Admission page skipped codes');await capture('admission-next-page');await action('previous');
+ await choice('admissionList','banned');await choice('admissionSelect',0);await capture('admission-banned');await action('admissionRemove');await check('hostAudit.host.admission.banned.length===0','Ban removal failed');
+ await field('admissionCode');await type('Canceled '+lang);await key('Enter');await key('Escape');await check('hostAudit.host.record.administration.admission.banned[0]==="BAN 星 <Esc>"','Canceled admission changed native policy');
+ await action('admission');await field('admissionCode');await type('CODE-2');await key('Enter');await check('!!hostAudit.host.message && hostAudit.host.admission.allowed.length===7','Duplicate was accepted');await capture('admission-duplicate');
+ await field('admissionCode');await type('NEW-'+lang);await key('Enter');await check('hostAudit.host.admission.allowed.includes("NEW-'+lang+'")','Added draft missing');await capture('admission-added');
+ await fixture('/fail-stop',{id:await evaluate('hostAudit.host.record.id')});await action('saveAdmission');await wait('!hostAudit.host.busy','Admission failed save unfinished');await check('hostAudit.host.stage==="admission" && !!hostAudit.host.message && !hostAudit.host.record.administration.admission.allowed.includes("NEW-'+lang+'")','Save failure lost draft or mutated policy');await capture('admission-save-error');
+ await action('saveAdmission');await wait('!hostAudit.host.busy','Admission retry unfinished');await check('hostAudit.host.stage==="hosting" && hostAudit.host.record.administration.admission.allowed.includes("NEW-'+lang+'")','Admission retry did not persist');await capture('admission-saved');
+ await evaluate('(async()=>{window.admittedClient=hostAudit.makeClient(hostAudit.host.record.address);await admittedClient.connect({name:"Admitted 星",password:"same",admissionCode:'+JSON.stringify(code)+'});return null;})()');
+ await evaluate('(async()=>{const rejected=hostAudit.makeClient(hostAudit.host.record.address);try{await rejected.connect({name:"Rejected 星",admissionCode:"BAN 星 <Esc>"});return false;}catch(e){return true;}})()').then(ok=>{if(!ok)throw Error('Unlisted code admitted');});
+ await action('admission');await choice('admissionSelect',0);await action('admissionRemove');await action('saveAdmission');await wait('!hostAudit.host.busy','Allow removal save unfinished');await evaluate('(async()=>{const rejoin=hostAudit.makeClient(hostAudit.host.record.address);await rejoin.connect({name:"Admitted 星",password:"same",mode:"rejoin"});return null;})()');
+ await action('admission');await field('admissionCode');await type('Stale '+lang);await key('Enter');await fixture('/admission',{id:await evaluate('hostAudit.host.record.id'),policy:{allowWithoutCode:true,allowed:[],banned:['BAN 星 <Esc>']}});await action('saveAdmission');await wait('!hostAudit.host.busy','Stale admission save unfinished');await wait('hostAudit.host.record.administration.admission.allowed.length===0','Concurrent native policy not refreshed');await check('hostAudit.host.stage==="hosting" && !!hostAudit.host.message && hostAudit.host.record.administration.admission.allowed.length===0','Stale draft overwrote newer policy');await capture('admission-stale');
+ await action('stop');await wait('!hostAudit.host.busy && !hostAudit.host.active','Admission host did not stop');await check('hostAudit.backend.records.length===0','Admission host remained registered');
+ console.log('PASS admission actual paging/lists, full literal codes, cancel, duplicate rejection, durable save failure/retry, new-player allow/reject, password rejoin, stale guard and stop '+lang+' '+viewWidth+'x'+viewHeight+' '+mode);return;
 }
 if(process.argv[8]==='players'){
  const select=async player=>{const item=layout+'.choices.find(c=>c.action==="selectPlayer" && c.value==='+player+')';await visible(item+'.rect');await click(item+'.rect');};

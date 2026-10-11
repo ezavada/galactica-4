@@ -413,3 +413,16 @@ names at both sizes. Both native suites pass 1,783 tests. Evidence prefixes:
 `/private/tmp/galactica-host-players`, `galactica-remote-players`,
 `galactica-player-literal`. Other compact administration dialogs and the broader
 localization completion audit remain open.
+
+
+### Compact Admission (2026-10-11)
+
+Existing Admission labels, list choices, commands, help and validation now reflow
+below 400px wide with readable code rows and a full-width input. Complete feedback
+and Save/Cancel stay fixed. Literal Unicode codes, including `<Enter>`/`<Esc>`
+endings, display as entered; off-page selection context uses existing ID 1147.
+No new IDs. All six languages pass 36 local and twelve authenticated remote
+before/after workflows; reviewed selected/paged/blocked-code/duplicate/failure
+and remote-dragged/draft comparisons. Both full native suites pass 1,784 tests.
+Evidence: `/private/tmp/galactica-admission/` and `galactica-remote-admission/`.
+Other compact admin dialogs and broad localization completion remain open.
