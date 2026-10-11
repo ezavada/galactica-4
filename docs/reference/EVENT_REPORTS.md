@@ -77,15 +77,74 @@ Evidence: `/private/tmp/galactica-built-report-{tests,public-tests,<language>,be
 `/private/tmp/galactica-parity/built`, and
 `/private/tmp/galactica-built-report-{before-after,languages}.png`.
 
-## Remaining audit scope
+## Complete source-emitter inventory (2026-10-11)
 
-Other recipient variants and multiplayer messages still need individual source
-and runtime coverage. NewTechLevel (13), FleetFormed (16) and PlayerSurrenders
-(19) currently occur only in their enum declarations across this checkout's
-C/C++ sources; no emitter was found. Their resource text establishes definitions,
-not observable normal-turn behavior. A complete event-matrix audit must preserve
-this distinction and must not invent broadcasts from unused resource entries.
-The broader parity and Map Generation objectives remain active.
+This inventory checks every nonzero `EEventCode` against C/C++ source rather
+than inferring gameplay from STR#500. V3 paths are relative to `Classes/`.
+V4 `game` methods are in `src/js/game.js`; other module names are relative to
+`src/js/`. Suite names below identify `tests/<name>.test.js`.
+
+| Code | Event | V3 emitter | V4 implementation | Regression suites |
+|---|---|---|---|---|
+| 1 | ColonyCaptured | CShip.cpp:435; broadcasts | game.recordOccupationReports (capture) | occupation-reports |
+| 2 | DefendersLost | CShip.cpp:427; direct opponents | game.recordOccupationReports (resistance) | occupation-reports |
+| 3 | ShipLost | AGalacticThingy.cpp:805; class destruction code | game.recordDestructionReports / removeDestroyedShip | destruction-reports |
+| 4 | FleetLost | AGalacticThingy.cpp:805; fleet destruction code | game.recordDestructionReports / removeDestroyedFleet | destruction-reports |
+| 5 | FleetDamaged | CShip.cpp:402,412; built loss helper cannot satisfy gates | Dormant; actual v4 casualty summaries remain | destruction-reports |
+| 6 | PlanetDamaged | CShip.cpp:392; failed attacker and positive system defense losses | game.recordSystemDefenseLosses | system-defense-reports |
+| 7 | Message | GalacticaHost.cpp:2067; offline recipient | host-chat.js durable private report; network-chat.js connected messages | host-chat / network-chat / network-chat-window |
+| 8 | ShipCallin | CShip.cpp:824–834; dynamic call-in code | attention.js request | callin-reports |
+| 9 | FleetCallin | CShip.cpp:824–834; dynamic fleet call-in code | attention.js request | callin-reports |
+| 10 | BuiltShip | CStar.cpp:931; ordinary mobile hull, no auto delivery | game.recordBuiltShipReport | built-ship-reports |
+| 11 | BuiltNewClass | CStar.cpp:920; milestone broadcast, owner Stardock | game.recordCommissioningReports | ship-commissioning / commissioning-observers |
+| 12 | InventNewClass | CStar.cpp:651; milestone broadcast, owner Lab | game.recordDiscoveryReports | discovery-observers / research-progress |
+| 13 | NewTechLevel | Enum only; no C/C++ emitter | No additional source-backed trigger | Source audit |
+| 14 | NewColony | CShip.cpp:460; neutral colonization broadcast | game.recordColonizationReports | neutral-colony-reports |
+| 15 | NewFleet | CShip.cpp:537; first rendezvous arrival creates fleet | game.recordRendezvousFleetFormation | rendezvous-formation-reports |
+| 16 | FleetFormed | Enum only; no C/C++ emitter | Distinct from v4 FLEET_FORMED, which carries v3 NewFleet | Source audit |
+| 17 | PlayerDied | GalacticaHost.cpp:1087; GalacticaSingleDoc.cp:1191 | game.updatePlayerPieceCounts / queueOutcome | outcome-reports |
+| 18 | PlayerWins | GalacticaHost.cpp:1118; GalacticaSingleDoc.cp:1221 | game.updateVictoryState / markGameWon / queueOutcome | outcome-reports / game-rules |
+| 19 | PlayerSurrenders | Enum only; no C/C++ emitter | No invented surrender trigger | Source audit |
+| 20 | ShipDamageFixed | CStar.cpp:617; positive repair completes ship | game.recordRepairCompletion | repair-reports |
+| 21 | FleetDamageFixed | CStar.cpp:615; complete top-level fleet repair | game.recordRepairCompletion | repair-reports |
+| 22 | RenameColony | CShip.cpp:462; neutral colony naming/production instruction | game.requestColonySetup | colony-setup-reports |
+
+There are eighteen codes with source-backed runtime emitters, three enum-only
+codes and the separately audited dormant FleetDamaged branch. The enum-only
+references are `GalacticaConsts.h:832,835,838`; searches of all C/C++ source
+find no independent emitters. V4 type names are not numeric v3 code mappings:
+its `FLEET_FORMED` carries the real NewFleet (15) creation report, and its
+ordinary tech-up notice does not prove a NewTechLevel (13) v3 emitter.
+
+The current complete 1,656-test suites passed on both rebuilt PDG runtimes and
+include the suites above. Their meaningful coverage includes gameplay transitions,
+recipient privacy, observer detection, suppression, literal snapshots, replay,
+manual/automatic behavior, complete saves and six-language layouts. Examples:
+`destruction-reports` checks actual open-space arrival and suppression at a
+friendly system; `system-defense-reports` checks failed real attacks and mixed
+owners; `discovery-observers` checks actual research and delayed visibility;
+`rendezvous-formation-reports` checks actual first-ship arrival without repeating
+creation on later arrivals. This inventory is an implementation/coverage map,
+not execution of an archived v3 binary or proof of every presentation resource.
+
+Owner/opponent destruction notices remain private. Capture, surviving-system
+defense losses, neutral colonization, commissioning and discovery have tested
+observer copies. Repairs and call-ins are owner-only. Rendezvous creation is
+manual-only. Victory/defeat have viewer-relative modal narratives in addition
+to their shorter event-list summaries; STR#500/30–33 distinguishes the affected
+player from observers. Those perspectives are exercised by `outcome-reports`.
+
+## Remaining presentation and application scope
+
+Every source-backed code now has a mapped implementation and regression lane.
+Unspecified additional event types are not a concrete missing-feature list.
+The separate presentation, attention, artwork and sound requirements still
+need checking against Evnt/PPob, Layr and sound resources, alongside runtime
+packaging and platform validation. Passing the covered tests does not establish
+blanket equivalence of all 45 text templates. Introduction music remains an
+independently recorded missing-asset issue. Window/preference requirements and
+the Map Generation checklist remain active. Different release-source evidence
+can reopen any dormant classification.
 
 
 ## FleetDamaged: defined, but not an ordinary shipped-source emitter
