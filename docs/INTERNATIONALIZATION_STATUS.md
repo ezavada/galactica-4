@@ -660,3 +660,16 @@ Both native suites pass 1,825/1,825. Evidence:
 `/private/tmp/galactica-posted-edit-ui/final-comparisons.json` and six
 `*-final-review.png` sheets. Broader compact-window/help/manual localization
 requirements remain open.
+
+
+### Compact system ship list
+
+Existing en/de/es/fr/ja/ru title, name/statistics, sorting, Scrap/Cancel and
+Previous/Next/Close labels now have measured wrapping in constrained system
+lists. Literal Unicode object names remain complete. No new runtime strings or
+resource IDs. All six languages pass actual-input checks at wide, short and
+narrow ports, including wheel scrolling, sorting, scrap reversal, paging,
+Close/Esc and selected-row identity. Inspected before/after sheets are under
+`/private/tmp/galactica-system-ships-ui`; six wide-table frames are pixel-identical.
+Both full native suites pass 1,827/1,827. Other compact inspectors/lists,
+short-height startup text entry and the complete help/manual audit remain open.

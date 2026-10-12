@@ -1446,6 +1446,10 @@ class Game {
             else if(key===pdg.key_RightArrow)this.gameSessionPage=(this.gameSessionPage || 0)+1;
             return true;
         }
+        if(this.uiWindow==='systemShips' && this.display?.getSystemShipWindowLayout().compact && [pdg.key_PageUp,pdg.key_PageDown,pdg.key_LeftArrow,pdg.key_RightArrow].includes(key)){
+            if([pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))return this.executeUIAction({type:'systemShipPage',page:Math.max(0,this.systemShipPage+(key===pdg.key_LeftArrow?-1:1))});
+            this.scrollSystemShips(key===pdg.key_PageUp?-80:80);return true;
+        }
         if(this.uiWindow==='menu' && [pdg.key_PageUp,pdg.key_PageDown].includes(key)){this.scrollCommandMenu(key===pdg.key_PageUp?-80:80);return true;}
         if(this.uiWindow==='menu' && lower==='q')return this.executeUIAction({type:'quit'});
         if(this.uiWindow==='menu' && lower==='h')return this.executeUIAction({type:'openManual'});
@@ -2221,7 +2225,7 @@ class Game {
             case 'nextAttention':
                 this.attention.next();return true;
             case 'closeWindow':
-                if(!['menu','settings','view','mapDisplay','production','endTurnConfirm'].includes(action.window) || this.uiWindow!==action.window)return false;
+                if(!['menu','settings','view','mapDisplay','production','endTurnConfirm','systemShips'].includes(action.window) || this.uiWindow!==action.window)return false;
                 this.endUIWindowDrag();this.uiWindow=null;return true;
             case 'closeCourse':
                 if(this.uiWindow!=='course')return false;
@@ -2360,17 +2364,17 @@ class Game {
             case 'showSystemShips':
                 if (!this.canViewSystemShips(action.star)) return false;
                 this.systemShipWindowStar = action.star;
-                this.systemShipPage = 0;
+                this.systemShipPage = 0;this.systemShipBodyScroll=0;
                 this.uiWindow = 'systemShips';
                 return true;
             case 'systemShipPage':
-                this.systemShipPage = Math.max(0, action.page);
+                this.systemShipPage = Math.max(0, action.page);this.systemShipBodyScroll=0;
                 return true;
             case 'sortSystemShips':
                 if (!['name','tech','speed','power','damage'].includes(action.key)) return false;
                 this.systemShipSort = { key: action.key, ascending: this.systemShipSort.key === action.key ?
                     !this.systemShipSort.ascending : true };
-                this.systemShipPage = 0;
+                this.systemShipPage = 0;this.systemShipBodyScroll=0;
                 return true;
             case 'beginOrders':
                 return this.beginMapOrder(action.object);
@@ -2671,6 +2675,12 @@ class Game {
         if(this.uiWindow!=='menu' || !this.display || !Number.isFinite(delta))return false;
         const layout=this.display.getCommandMenuLayout();if(!layout.compact || !layout.scrollLimit)return false;
         this.commandMenuScroll=Math.max(0,Math.min(layout.scrollLimit,layout.bodyScroll+delta));return true;
+    }
+
+    scrollSystemShips(delta) {
+        if(this.uiWindow!=='systemShips' || !this.display || !Number.isFinite(delta))return false;
+        const layout=this.display.getSystemShipWindowLayout();if(!layout.compact)return false;
+        this.systemShipBodyScroll=Math.max(0,Math.min(layout.scrollLimit,layout.bodyScroll+delta));return true;
     }
 
     scrollCourse(delta) {
@@ -3020,6 +3030,7 @@ class Game {
             this.dismissEventPresentation();
             return true;
         }
+        if(this.uiWindow==='systemShips' && this.display?.getSystemShipWindowLayout().compact && [pdg.key_PageUp,pdg.key_PageDown,pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))return this.handleCommandWindowKey(key,this.getKeyChar(key));
         if(key===pdg.key_LeftArrow && (!this.uiWindow || this.uiWindow==='systemShips')){
             this.selectContainingObject();return true;
         }

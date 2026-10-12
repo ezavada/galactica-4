@@ -1696,3 +1696,20 @@ input delivery so validation requires a subsequent draw without increasing the
 timeout. Evidence: `/private/tmp/galactica-posted-edit-ui/final-comparisons.json`
 and `*-final-review.png`; native logs use `/private/tmp/galactica-posted-edit-`.
 Historical posted-read-only expectations are superseded by the source audit.
+
+
+### Compact system ship list
+
+Run `node tools/test-web-system-ships-compact.cjs BUILD_DIR OUTPUT_DIR LANGUAGE`
+with `GALACTICA_SYSTEM_SHIPS_WIDTH` / `GALACTICA_SYSTEM_SHIPS_HEIGHT` set before
+startup. The default 800×600 lane preserves the original wide table; 800×240 and
+320×240 exercise complete wrapped controls, wheel scroll without zoom, sorting,
+PageDown, Scrap/Cancel, paging/reset, actual Close and exact-row inspection.
+An optional final `before` argument records the previous compact layout. Startup
+name entry uses Enter because its separate short-height submit layout remains
+open work. Chrome is muted. The game fixture opens the list through the real
+Game command; subsequent actions use actual PDG input and wait for a draw after
+input delivery. Six languages pass, and all final narrow/short comparison sheets
+were inspected. Six wide frames are pixel-identical. Full suites pass 1,827/1,827
+on both native runtimes. Evidence: `/private/tmp/galactica-system-ships-ui` and
+`/private/tmp/galactica-system-ships-{devel,public}-unit-` logs.

@@ -2,7 +2,7 @@
 const families={star:'stars',ship:'allShips',fleet:'allFleets',rendezvous:'allRendezvous'};
 const fields=['uiWindow','clientEventSequence','settingsPage','eventSelection','eventPage','eventDetailPage','courseWindowObject','courseSelection','coursePage','courseBodyScroll','compactCoursePage','compactCourseObject',
  'fleetMemberPage','fleetRosterPage','fleetRosterSort','fleetRosterLastClick','fleetRosterGeometry','fleetExchange',
- 'systemShipWindowStar','systemShipPage','systemShipSort','playerComparisonPage','systemComparisonPage','systemComparisonSort','systemComparisonSelection','systemComparisonLastClick','systemComparisonGeometry',
+ 'systemShipWindowStar','systemShipPage','systemShipSort','systemShipBodyScroll','compactSystemShipPage','compactSystemShipStar','playerComparisonPage','systemComparisonPage','systemComparisonSort','systemComparisonSelection','systemComparisonLastClick','systemComparisonGeometry',
  'commandMenuScroll','playerComparisonColumnPage','playerComparisonBodyScroll','compactComparisonBodyPage','windowPositions','uiWindowDrag','uiMapScrollDrag','uiSliderDrag',
  'pendingMapOrderObject','pendingCourseEdit','pendingRendezvousPlacement','mapSelectionPicker','renameTarget','renameText','renameEditor',
  'colonyDefaultsDraft','colonyDefaultsReturn','newGameDefaultsDraft','newGameDefaultsChoice','newGameDefaultsChoiceIndex'];

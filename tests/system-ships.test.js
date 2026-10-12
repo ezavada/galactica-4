@@ -17,6 +17,23 @@ function shipAt(game,star,type='scout',name='Scout') {
 }
 module.exports = function() {
     test.describe('Ships in system', () => {
+        test.it('keeps all compact localized controls/content accessible with fixed complete footers',()=>{
+            const prior=pdg.res.getLanguage();try{for(const language of ['en','de','es','fr','ja','ru'])for(const [width,height] of [[320,240],[800,240],[320,600]]){
+                pdg.res.setLanguage(language);const {game,star}=fixture();star.name='Long system name for layout';for(let i=0;i<6;i++){const ship=shipAt(game,star,'scout','Long ship name '+i+' 星');ship.power=123456789;}
+                game.port={getDrawingArea:()=>new pdg.Rect(width,height),getTextWidth:(text,size=11)=>Array.from(text).length*size/2};const display=new Display(game);game.uiWindow='systemShips';let layout=display.getSystemShipWindowLayout();
+                test.assertTrue(layout.compact);test.assertTrue(layout.rect.x>=10 && layout.rect.y>=10 && layout.rect.x+layout.rect.width<=width-10 && layout.rect.y+layout.rect.height<=height-10);test.assertTrue(layout.pages>1);test.assertTrue(layout.bodyClip.y+layout.bodyClip.height<layout.footerTop);
+                for(const button of layout.footer){test.assertTrue(button.rect.x>=layout.rect.x && button.rect.x+button.rect.width<=layout.rect.x+layout.rect.width);test.assertTrue(button.rect.y>=layout.footerTop && button.rect.y+button.rect.height<=layout.rect.y+layout.rect.height);test.assertTrue(button.rect.width>=display.getButtonWidth(button.label,button.key,{size:10}));}
+                test.assertEqual(layout.sorts.length,5);test.assertEqual(layout.records[0].lines.length,4);test.assertTrue(layout.records[0].nameLines.join(' ').includes('Long ship name'));test.assertNotNull(layout.records[0].scrap);
+                game.scrollSystemShips(10000);layout=display.getSystemShipWindowLayout();test.assertEqual(layout.bodyScroll,layout.scrollLimit);const scrap=display.getSystemShipActionRegions().find(r=>r.action.type==='toggleScrap');test.assertNotNull(scrap);test.assertEqual(display.getUIActionAt(scrap.rect.x+scrap.rect.width/2,scrap.rect.y+scrap.rect.height/2).type,'toggleScrap');game.executeUIAction(scrap.action);test.assertTrue(scrap.action.object.isToBeScrapped());
+                game.executeUIAction({type:'systemShipPage',page:1});layout=display.getSystemShipWindowLayout();test.assertEqual(layout.page,1);test.assertEqual(layout.bodyScroll,0);game.handleKeyPress(pdg.key_PageDown);test.assertEqual(game.systemShipBodyScroll,Math.min(80,layout.scrollLimit));game.handleKeyPress(pdg.key_LeftArrow);test.assertEqual(game.systemShipPage,0);
+                const close=display.getSystemShipActionRegions().find(r=>r.action.type==='closeWindow');test.assertTrue(game.executeUIAction(close.action));test.assertNull(game.uiWindow);
+            }}finally{pdg.res.setLanguage(prior);}
+        });
+        test.it('retains compact grouped fleet/member identities and inspection/visibility rules',()=>{
+            const {game,star}=fixture(),member=shipAt(game,star),fleet=game.factory.createFleet(star.x,star.y,1,'Group');fleet.star=star;fleet.addShip(member);game.port={getDrawingArea:()=>new pdg.Rect(320,240),getTextWidth:(text,size=11)=>Array.from(text).length*size/2};const display=new Display(game);game.uiWindow='systemShips';const layout=display.getSystemShipWindowLayout();test.assertTrue(layout.records[0].row.object===fleet);test.assertTrue(layout.records[1].row.member);test.assertTrue(layout.records[1].row.object===member);
+            const name=layout.records[0].name;game.executeUIAction(name.action);test.assertTrue(game.selectedObject===fleet);test.assertNull(game.uiWindow);star.owner=2;member.owner=2;fleet.owner=2;star.setVisibilityTo(1,Common.VisibilityLevel.CLASS);game.uiWindow='systemShips';test.assertEqual(display.getSystemShipWindowLayout().records.length,0);
+        });
+
         test.it('lists completed docked ships and excludes unfinished and departing hulls', () => {
             const {game,star}=fixture(); const completed=shipAt(game,star);
             game.factory.createShip(star.x,star.y,'colony',star);

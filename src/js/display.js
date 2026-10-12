@@ -2516,6 +2516,7 @@ class Display {
 
     getSystemShipWindowLayout() {
         const screen = this.getScreenSize();
+        if(screen.width<600 || screen.height<360)return require('./system-ships-compact.js').layout(this,screen);
         const width = Math.min(720, screen.width - 40);
         const pageSize = Math.max(1, Math.min(12, Math.floor((screen.height - 230) / 26)));
         const rows = this.game.getSystemShipRows();
@@ -2540,6 +2541,7 @@ class Display {
     getSystemShipActionRegions() {
         if (this.game.uiWindow !== 'systemShips') return [];
         const layout = this.getSystemShipWindowLayout(), rect = layout.rect;
+        if(layout.compact)return require('./system-ships-compact.js').regions(layout);
         const regions = layout.columns.map(column => ({
             rect: { x: rect.x+column.offset, y: rect.y+38, width: column.width, height: 24 },
             action: { type: 'sortSystemShips', key: column.key } }));
@@ -3716,6 +3718,7 @@ class Display {
 
     drawSystemShipWindow() {
         const layout = this.getSystemShipWindowLayout(), rect = layout.rect;
+        if(layout.compact)return require('./system-ships-compact.js').draw(this,layout);
         const star = this.game.systemShipWindowStar;
         this.drawWindowPanel(rect,I18n.formatString(687,'Ships at {0}',star ? this.getStarDiagnostics(star).title : this.STR.none));
         const sort = this.game.systemShipSort;

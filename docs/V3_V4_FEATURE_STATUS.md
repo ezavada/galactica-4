@@ -72,7 +72,7 @@ Full parity is still unproven. The current open work is:
    audit remains to be completed after the parity items above are implemented or
    explicitly documented as blocked.
 
-The latest full-suite evidence is **1,810 passing tests, zero failures** on each
+The latest full-suite evidence is **1,827 passing tests, zero failures** on each
 current public and development native executable. Artwork tests now validate the
 selected replacements and archived provenance; the previous two failures are
 resolved. This supports the tested paths and does not certify all UI, external
@@ -174,7 +174,7 @@ are explicitly excluded from shipped-v3 parity.
 | Ship build progress/ETA | Panel displays percent complete and v3 can estimate turns. | ✅ Implemented | ✅ Implemented | The system panel shows construction percentage truncated as in v3, alongside localized ETA using desired allocation, fast-game, computer advantage and inclusive completion rounding. Pending construction is system data, excluded from map selection, ship IDs/counts, scanners, docked lists and defenses. Hull cost is cached when selected; the real ship is created with current system owner/technology at commissioning. |
 | Default new-ship destination | System “Send to” automatically dispatches new ships. | ✅ Implemented | ✅ Implemented | The owned-system panel shows its target and localized Set/Clear controls. Set arms a map click on an object or coordinate; Escape cancels without changing the existing target. Completed mobile hulls dispatch automatically; defense satellites remain at home. Right-click targeting remains available, including rendezvous/fleet targets. |
 | Default new-colony settings | Newly colonized neutral systems use player defaults; computer colonies start satellites. | ✅ Implemented | ✅ Implemented | The command menu opens a localized modal editor for coupled growth/ships/research defaults and all four hulls. Save commits the human player’s defaults on v3’s 0–1000 scale; Cancel/Escape discard edits. Future neutral colonies inherit them through `Game.applyNewColonyDefaults()`, while existing systems and AI defaults remain intact. Cross-session preference persistence remains in Section 9. |
-| Ships in system | Dedicated list/panel for inspecting and selecting docked ships/fleets. | ✅ Implemented | ✅ Implemented | A localized system window lists completed docked ships and fleets, with indented fleet members, tech/power/damage/speed columns, sorting and pagination. Clicking a row selects and centers its ship/fleet. Visibility follows the v3 system-panel rules, including friendly ships at neutral systems; unfinished hulls are excluded. Scrap/Cancel controls are available in the list; expanded fleet management remains its separate checklist item. |
+| Ships in system | Dedicated list/panel for inspecting and selecting docked ships/fleets. | ✅ Implemented | ✅ Implemented | A localized system window lists completed docked ships and fleets, with indented fleet members, tech/power/damage/speed columns, sorting and pagination. Clicking a row selects and centers its ship/fleet. Visibility follows the v3 system-panel rules, including friendly ships at neutral systems; unfinished hulls are excluded. Scrap/Cancel controls are available in the list. Compact ports now use complete wrapped names/statistics, measured sort controls, a clipped scrollable body and fixed Previous/Next/Close controls; all six languages have actual-input and inspected before/after evidence at 320×240 and 800×240. The ordinary 800×600 table is pixel-identical in every language. Expanded fleet management remains its separate checklist item. |
 | Rename colony/system | Edit menu rename dialog; new colony requests naming/production through attention. | ✅ Implemented | ✅ Implemented | Neutral human colonization creates the v3-style private instruction report and one attention request. Tab/manual selection or report Go to centers/selects the colony and displays the instruction above existing Rename/N and production controls. Unicode Save/Cancel remain available; allocations preserve defaults until edited. Recaptured/removed colonies cannot expose the private request. The v3 report has no modal naming window: `Evnt`128/event22 has zero PPob/autoShow and STR#500/45 requests naming and production. |
 | System comparison window | Sortable “Your Star Systems” table. | ✅ Implemented | ✅ Implemented | Command-menu window lists the current human player’s systems with all nine v3 columns: name, tech, population in thousands, production, build class, completion, total defense, satellites and mobile ships. Every column sorts both ways with stable ties; paging keeps the window within the viewport. Single-click highlights; double-click or Enter selects and centers the system. Data refreshes live and stale ownership cannot be opened. Title-bar movement and corner height resizing retain pointer capture, resize-aware paging and in-session page retention. Position/height and sort restore from native/browser preferences after a fresh app reload. Viewport clamping preserves saved bounds; Escape ends a gesture first, and map input cannot pass through the modal. All six language layouts and real browser flows are verified; full suites: 909 passed on release/current native PDG. |
 
@@ -8539,3 +8539,34 @@ The remaining window/localization, preference/inherited-command, native/audio/
 service and final Map Generation audits remain active. Historical entries
 asserting posted read-only behavior describe the former implementation and are
 superseded by this source audit.
+
+
+### Compact system ship list audit
+
+V3 `Classes/GalacticaPanels.cp:1499–1570` installs the contained ship/fleet
+list under ally/details visibility and enables its scrollers. V4's existing
+wide columns and fixed-width paging overlapped or clipped in constrained ports.
+Below 600px wide or 360px high, the list now measures and wraps all sort controls,
+complete names and four statistics. Two entries per page occupy a clipped body
+with wheel/PageUp/PageDown scrolling and a visible scroll indicator. Previous,
+Next and Close/Esc remain fixed outside the body; Left/Right change pages.
+Sort/page changes reset scrolling. Ship/fleet/member identities, knowledge
+restrictions, Scrap/Cancel, inspection, ownership and normal wide-table behavior
+remain covered by existing and two new regressions. Local scroll/page identity
+survives same-turn network presentation refresh.
+
+Both native full suites pass **1,827/1,827**. The muted actual-input browser
+fixture `tools/test-web-system-ships-compact.cjs` passes before/after in all six
+languages at 800×600, 800×240 and 320×240; compact wheel input scrolls the list
+without changing map zoom. All six narrow comparison sheets and the six-language
+short comparison sheet were inspected. Thirty common frames include six exact
+wide-table frames; the other 24 show the intended compact layout/page changes.
+Evidence: `/private/tmp/galactica-system-ships-ui/comparison-metadata.json`,
+`*-review.png`, and `/private/tmp/galactica-system-ships-{devel,public}-unit-` logs.
+No new resource IDs, artwork changes or engine changes.
+
+This completes the compact system-list item, not the remaining window/dialog
+chrome audit. At 320×240, the startup name dialog's stacked submit button lies
+outside the port; the fixture accepts the name with its actual Enter shortcut.
+That text-entry layout needs its own correction and six-language input review,
+alongside remaining gameplay inspectors/lists and hosting/network feedback.
