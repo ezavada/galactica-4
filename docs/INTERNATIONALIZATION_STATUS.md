@@ -715,3 +715,16 @@ short before/after sheets pass; six ordinary inspectors are pixel-identical.
 Both full native suites pass 1,833/1,833. Evidence:
 `/private/tmp/galactica-compact-fleet-inspector-ui`. Compact ship/system/rendezvous
 inspectors and broader help/manual/localization audits remain open.
+
+
+### Compact ship and unfinished-hull inspectors
+
+Existing en/de/es/fr/ja/ru ship fields, drive classes, health/scanner/status/
+destination, hull progress/ETA and command labels now use complete measured
+compact wrapping and scrolling. Health/progress bars have separate space from
+following text. Literal names remain verbatim. Foreign build progress/orders
+remain private. No new resource IDs/runtime strings. Six-language actual-input
+and inspected before/after narrow/short views pass; all 12 ordinary ship/hull
+views are pixel-identical. Both full native suites pass 1,835/1,835. Evidence:
+`/private/tmp/galactica-compact-ship-ui`. System/rendezvous inspectors and broader
+help/manual/localization requirements remain open.

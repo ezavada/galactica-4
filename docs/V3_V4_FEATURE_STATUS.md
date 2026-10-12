@@ -72,7 +72,7 @@ Full parity is still unproven. The current open work is:
    audit remains to be completed after the parity items above are implemented or
    explicitly documented as blocked.
 
-The latest full-suite evidence is **1,833 passing tests, zero failures** on each
+The latest full-suite evidence is **1,835 passing tests, zero failures** on each
 current public and development native executable. Artwork tests now validate the
 selected replacements and archived provenance; the previous two failures are
 resolved. This supports the tested paths and does not certify all UI, external
@@ -8680,7 +8680,43 @@ inspectors and 12 intended compact changes. Evidence:
 `/private/tmp/galactica-compact-fleet-inspector-{pdg,pdg-devel}-unit-complete.log`.
 No new resource IDs, artwork or engine changes.
 
-The separate compact ship inspector reached through member selection still
-needs its own layout audit. System/rendezvous inspectors, remaining compact
+The separate compact ship inspector reached through member selection is
+resolved by the subsequent ship-inspector audit below. System/rendezvous inspectors, remaining compact
 lists/tables and network feedback, help/manual localization, preference/source
 edges and final Map Generation checks remain open.
+
+
+### Compact ship and unfinished-hull inspector audit
+
+V3 `Classes/GalacticaPanels.cp:755–812` confines orders to allies and gates tech,
+power, speed and damage by their respective visibility tiers. The compact v4
+ship panel now uses the existing diagnostics helper for all eleven fields,
+complete measured titles/values, live health and its eligible context commands.
+Below 600px wide or 360px high, its owner-styled panel has a clipped scrollable
+body with measured command rows instead of an overflowing external arc. Normal
+ports retain their retained-text inspector and radial arc unchanged.
+
+Owned unfinished hulls retain owner/tech, localized construction progress/bar,
+ETA and eligible commands. Foreign hull build progress/ETA are not exposed by
+the compact panel. Foreign completed-ship thresholds and private orders remain
+unchanged. Covered map buttons cannot intercept compact inspector clicks.
+Wheel/PageUp/PageDown scroll the body; targeting, modal windows and reports do
+not scroll hidden information. Events remains non-modal, and its foreground
+area takes priority over the exposed inspector. Local scroll/identity fields
+participate in same-turn presentation preservation.
+
+Two new regressions and existing retained-text/diagnostics tests pass in both
+full native suites: **1,835/1,835**. The muted actual-input fixture
+`tools/test-web-ship-inspector-compact.cjs` passes before/after in all six
+languages at 800×600, 800×240 and 320×240. It covers complete diagnostics,
+wheel without zoom, Orders/cancel, Scrap/cancel, Patrol, Rename/cancel,
+Course/return, unfinished-hull progress/ETA and foreign privacy. All six narrow
+before/after sheets and the short six-language sheet were inspected. Thirty-six
+common frames include 12 exact normal ship/hull views and 24 intended compact
+changes. Evidence: `/private/tmp/galactica-compact-ship-ui/comparison-metadata.json`,
+`*-review.png` and `/private/tmp/galactica-compact-ship-{pdg,pdg-devel}-unit-final.log`.
+No new resource IDs, artwork or engine changes.
+
+Compact system/rendezvous inspectors, remaining gameplay lists/tables and
+network feedback, help/manual localization, preference/source edges and the
+final Map Generation checklist remain open.

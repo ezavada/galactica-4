@@ -14,6 +14,21 @@ function fixture(type='battleship') {
 }
 module.exports=function() {
     test.describe('V3 ship diagnostics',()=>{
+        test.it('keeps complete compact ship and hull diagnostics and commands accessible in six languages',()=>{
+            const old=pdg.res.getLanguage();try{for(const language of ['en','de','es','fr','ja','ru'])for(const [width,height] of [[320,240],[800,240],[320,600]]){
+                pdg.res.setLanguage(language);const {game,star,ship}=fixture();game.port={getDrawingArea:()=>new pdg.Rect(width,height),getTextWidth:(text,size=11)=>Array.from(String(text)).length*size/2};const display=new Display(game);game.display=display;game.clearEventPresentations();game.setSelectedObject(ship);ship.name='Long name 星 '.repeat(3);ship.damage=149;
+                let l=display.getShipDetailsLayout(ship);test.assertTrue(l.rect.compact);test.assertEqual(l.rows.length,11);test.assertTrue(l.titleLines.join(' ').includes('Long name'));test.assertEqual(l.rows[7].ratio,.71);test.assertTrue(l.rect.x>=10 && l.rect.y>=10 && l.rect.x+l.rect.width<=width-10 && l.rect.y+l.rect.height<=height-10);test.assertTrue(l.commands.some(b=>b.action.type==='beginOrders'));
+                game.handleKeyPress(pdg.key_PageDown);test.assertEqual(game.shipInspectorScroll,Math.min(80,l.scrollLimit));game.scrollShipInspector(100000);l=display.getShipDetailsLayout(ship);test.assertEqual(l.bodyScroll,l.scrollLimit);for(const b of display.getContextButtonRegions(ship))test.assertTrue(b.rect.x>=l.rect.x && b.rect.x+b.rect.width<=l.rect.x+l.rect.width && b.rect.y>=l.bodyClip.y && b.rect.y+b.rect.height<=l.bodyClip.y+l.bodyClip.height);
+                test.assertEqual(display.getUIActionAt(l.rect.x+2,l.rect.y+l.rect.height/2).type,'consume');test.assertTrue(game.beginMapOrder(ship));test.assertFalse(game.scrollShipInspector(80));game.handleKeyPress(pdg.key_Escape);game.uiWindow='events';test.assertTrue(game.scrollShipInspector(-80));game.uiWindow='settings';test.assertFalse(game.scrollShipInspector(80));game.uiWindow=null;
+                const hull=game.factory.createShip(star.x,star.y,'colony',star);hull.progress=75;game.setSelectedObject(hull);l=display.getShipDetailsLayout(hull);test.assertTrue(l.construction);test.assertEqual(l.rows.length,4);test.assertEqual(l.rows[2].ratio,.75);test.assertEqual(l.bodyScroll,0);
+            }}finally{pdg.res.setLanguage(old);}
+        });
+        test.it('uses compact ship visibility thresholds and never exposes foreign hull progress or orders',()=>{
+            const {game,star,ship}=fixture();game.port={getDrawingArea:()=>new pdg.Rect(320,240),getTextWidth:(text,size=11)=>Array.from(String(text)).length*size/2};const display=new Display(game);game.display=display;game.setSelectedObject(ship);ship.owner=2;ship.name='Secret';ship.destination={name:'Secret destination',x:30000,y:40000};ship.setVisibilityTo(1,Common.VisibilityLevel.SPEED);
+            let l=display.getShipDetailsLayout(ship);test.assertFalse(l.titleLines.join(' ').includes('Secret'));test.assertEqual(l.data.destination,'?');test.assertTrue(l.rows.every(r=>r.ratio===null));test.assertFalse(l.commands.some(b=>['beginOrders','beginRename','toggleScrap','togglePatrol'].includes(b.action.type)));
+            ship.setVisibilityTo(1,Common.VisibilityLevel.CLASS);l=display.getShipDetailsLayout(ship);test.assertEqual(l.data.destination,'?');test.assertNotNull(l.rows[7].ratio);
+            const hull=game.factory.createShip(star.x,star.y,'colony',star);hull.owner=2;hull.progress=73;hull.setVisibilityTo(1,Common.VisibilityLevel.SPEED);game.setSelectedObject(hull);l=display.getShipDetailsLayout(hull);test.assertFalse(l.full);test.assertFalse(l.rows.some(r=>r.lines.join(' ').includes('73%')));test.assertTrue(l.rows.every(r=>r.ratio===null));
+        });
         test.it('shows the real name and named drive class with integer tech and power',()=>{
             const {ship,display}=fixture();const data=display.getShipDiagnostics(ship);
             test.assertTrue(data.title.includes(' · '));test.assertTrue(data.title.startsWith(data.driveClass));

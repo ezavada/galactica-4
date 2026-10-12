@@ -1764,3 +1764,19 @@ Evidence: `/private/tmp/galactica-compact-fleet-inspector-ui` and
 `/private/tmp/galactica-compact-fleet-inspector-{pdg,pdg-devel}-unit-complete.log`.
 The ship inspector opened through member selection is a separate remaining UI
 item; the fixture checks its selected identity rather than certifying its layout.
+
+
+### Compact ship and hull inspectors
+
+Run `node tools/test-web-ship-inspector-compact.cjs BUILD_DIR OUTPUT_DIR LANGUAGE
+[before]` with `GALACTICA_SHIP_INSPECTOR_WIDTH` / `GALACTICA_SHIP_INSPECTOR_HEIGHT`
+fixed before startup. The muted six-language matrix uses 800×600, 800×240 and
+320×240. Actual input verifies diagnostics, wheel without map zoom,
+Orders/Scrap cancellation, Patrol, Rename cancellation, Course/return,
+unfinished-hull progress/ETA and foreign command/order privacy. All six narrow
+and the short comparison sheets were inspected; all 12 normal ship/hull views
+are pixel-identical. Both full native suites pass 1,835/1,835. Evidence:
+`/private/tmp/galactica-compact-ship-ui` and
+`/private/tmp/galactica-compact-ship-{pdg,pdg-devel}-unit-final.log`.
+The compact ship layout issue documented by the earlier member-inspector
+fixture is now resolved; system/rendezvous inspectors remain separate work.

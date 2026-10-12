@@ -1347,6 +1347,7 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
         return true;
     }
     if (event && event.eventType === pdg.eventType_ScrollWheel) {
+        if((!game.uiWindow || game.uiWindow==='events') && !game.overlay && !game.isAwaitingMapTarget() && game.factory.isShip(game.selectedObject)){const rect=game.display.getShipDetailsRect(game.selectedObject),p=event.mousePos || pdg.gfx.getMouse(),foreground=game.uiWindow?game.display.getActiveWindowRect():null;if(rect.compact && game.display.containsPoint(rect,p.x,p.y) && !game.display.containsPoint(foreground,p.x,p.y)){game.scrollShipInspector(event.vertDelta || 0);return true;}}
         if((!game.uiWindow || game.uiWindow==='events') && !game.overlay && !game.isAwaitingMapTarget() && game.getSelectedFleet()){const l=game.display.getFleetDetailsLayout(game.getSelectedFleet()),p=event.mousePos || pdg.gfx.getMouse(),foreground=game.uiWindow?game.display.getActiveWindowRect():null;if(l.compact && game.display.containsPoint(l.rect,p.x,p.y) && !game.display.containsPoint(foreground,p.x,p.y)){game.scrollFleetInspector(event.vertDelta || 0);return true;}}
         if(game.uiWindow==='menu'){game.scrollCommandMenu(event.vertDelta || 0);return true;}
         if(game.uiWindow==='fleets' && game.display.getFleetRosterLayout().compact){game.scrollFleetRoster(event.vertDelta || 0);return true;}

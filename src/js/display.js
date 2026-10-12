@@ -1615,6 +1615,7 @@ class Display {
 
     getContextButtonArc(object, panelRect) {
         if(this.game.isAwaitingMapTarget())return [];
+        const shipScreen=this.getScreenSize();if(this.factory.isShip(object) && (shipScreen.width<600 || shipScreen.height<360))return require('./ship-inspector-compact.js').commands(this.getShipDetailsLayout(object));
         const compactScreen=this.getScreenSize();if(this.factory.isFleet(object) && (compactScreen.width<600 || compactScreen.height<360))return require('./fleet-inspector-compact.js').commands(this.getFleetDetailsLayout(object));
         const actions = this.getContextActions(object);
         const position = this.getObjectScreenPosition(object);
@@ -2948,6 +2949,7 @@ class Display {
             return fleetListAction.action;
         }
 
+        const selectedShip=this.game.selectedObject;if(this.factory.isShip(selectedShip)){const rect=this.getShipDetailsRect(selectedShip);if(rect.compact && this.containsPoint(rect,x,y))return {type:'consume'};}
         const selectedFleet=this.game.getSelectedFleet?this.game.getSelectedFleet():null;
         if(selectedFleet){const l=this.getFleetDetailsLayout(selectedFleet);if(l.compact && this.containsPoint(l.rect,x,y))return {type:'consume'};}
         const mapButton = this.getMapButtonRegions().find(button => this.containsPoint(button.rect, x, y));
@@ -3226,9 +3228,12 @@ class Display {
     }
 
     getShipDetailsRect(ship) {
+        const screen=this.getScreenSize();if(screen.width<600 || screen.height<360)return this.getShipDetailsLayout(ship).rect;
         return ship.underConstruction() ? this.getAnchoredPanelRect(ship, 240, 138)
             : this.getAnchoredPanelRect(ship, 350, 274);
     }
+
+    getShipDetailsLayout(ship) {return require('./ship-inspector-compact.js').layout(this,ship,this.getScreenSize());}
 
     getShipDiagnostics(ship) {
         const viewer = this.game.getCurrentHumanPlayer() || 1;
@@ -3308,6 +3313,7 @@ class Display {
     drawShipDetails(ship) {
         const construction = ship.underConstruction();
         const rect = this.getShipDetailsRect(ship);
+        if(rect.compact)return require('./ship-inspector-compact.js').draw(this,ship,this.getShipDetailsLayout(ship));
         let panel = this.shipPanels.get(construction);
         if (!panel) {
             panel = new RetainedPanel(this, rect.width);
