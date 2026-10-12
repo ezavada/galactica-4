@@ -728,3 +728,16 @@ and inspected before/after narrow/short views pass; all 12 ordinary ship/hull
 views are pixel-identical. Both full native suites pass 1,835/1,835. Evidence:
 `/private/tmp/galactica-compact-ship-ui`. System/rendezvous inspectors and broader
 help/manual/localization requirements remain open.
+
+
+### Compact system inspector
+
+Existing en/de/es/fr/ja/ru system statistics, production/allocation labels,
+destination text and command captions now have complete compact wrapping.
+Actual fills/target markers, bare lock icons and `=` remain unchanged in meaning;
+Set/Clear captions preserve full destination text and visibility rules.
+No new resource IDs or runtime strings. Six-language actual-input and inspected
+narrow/short before/after checks pass; six ordinary views are pixel-identical.
+Both full native suites pass 1,837/1,837. Evidence:
+`/private/tmp/galactica-compact-system-ui`. Rendezvous inspectors and broader
+window/help/manual localization audits remain open.

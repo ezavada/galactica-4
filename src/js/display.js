@@ -1615,6 +1615,7 @@ class Display {
 
     getContextButtonArc(object, panelRect) {
         if(this.game.isAwaitingMapTarget())return [];
+        const starScreen=this.getScreenSize();if(this.factory.isStar(object) && (starScreen.width<600 || starScreen.height<360))return require('./star-inspector-compact.js').commands(this.getStarDetailsLayout(object));
         const shipScreen=this.getScreenSize();if(this.factory.isShip(object) && (shipScreen.width<600 || shipScreen.height<360))return require('./ship-inspector-compact.js').commands(this.getShipDetailsLayout(object));
         const compactScreen=this.getScreenSize();if(this.factory.isFleet(object) && (compactScreen.width<600 || compactScreen.height<360))return require('./fleet-inspector-compact.js').commands(this.getFleetDetailsLayout(object));
         const actions = this.getContextActions(object);
@@ -2693,9 +2694,9 @@ class Display {
         const star = this.game.getSelectedStar();
         if (!star || !this.game.canHumanControl(star)) return [];
         const layout=this.getStarDetailsLayout(star),sliders=this.getStarAllocationSliderRegions(star);
-        const locks=this.getAllocationLockRegions(sliders),middle=sliders[1].rect;
-        const regions=[{rect:{x:locks[1].rect.x+locks[1].rect.width+4,y:middle.y+middle.height/2-11,width:24,height:22},
-            action:{type:'equalizeAllocations',star},key:'=',inWindow:false}];
+        let regions;
+        if(layout.compact)regions=layout.equalize?require('./star-inspector-compact.js').clipped(layout,[layout.equalize]):[];
+        else{const locks=this.getAllocationLockRegions(sliders),middle=sliders[1].rect;regions=[{rect:{x:locks[1].rect.x+locks[1].rect.width+4,y:middle.y+middle.height/2-11,width:24,height:22},action:{type:'equalizeAllocations',star},key:'=',inWindow:false}];}
         if(this.game.uiWindow==='production'){
             const windowSliders=this.getProductionWindowSliderRegions(),windowLocks=this.getAllocationLockRegions(windowSliders),row=windowSliders[1].rect;
             regions.unshift({rect:{x:windowLocks[1].rect.x+windowLocks[1].rect.width+4,y:row.y+row.height/2-11,width:24,height:22},
@@ -2712,6 +2713,7 @@ class Display {
     }
 
     getDefaultDestinationLayout(star,layout=this.getStarDetailsLayout(star)) {
+        if(layout.compact)return require('./star-inspector-compact.js').destination(layout);
         const data=this.getStarDiagnostics(star),owned=this.game.canHumanControl(star),gap=4;
         const buttons=owned?[{label:I18n.getString(962,'Set'),action:{type:'beginOrders',object:star}}]:[];
         if(owned && star.getDefaultDestination())buttons.push({label:I18n.getString(963,'Clear'),action:{type:'clearDefaultDestination',object:star}});
@@ -2734,8 +2736,8 @@ class Display {
     }
 
     getAllocationLockRegions(sliders = this.getAllocationSliderRegions()) {
-        return sliders.map(slider => ({
-            rect: { x: slider.trackRect.x + slider.trackRect.width + 48, y: slider.rect.y - 1, width: 26, height: 18 },
+        return sliders.filter(slider=>!slider.compact || slider.compactLockRect).map(slider => ({
+            rect: slider.compact?slider.compactLockRect:{ x: slider.trackRect.x + slider.trackRect.width + 48, y: slider.rect.y - 1, width: 26, height: 18 },
             action: { type: 'toggleAllocationLock', star: slider.star, allocationKey: slider.key }
         }));
     }
@@ -2949,6 +2951,7 @@ class Display {
             return fleetListAction.action;
         }
 
+        const selectedStar=this.game.getSelectedStar();if(selectedStar){const l=this.getStarDetailsLayout(selectedStar);if(l.compact && this.containsPoint(l.rect,x,y))return {type:'consume'};}
         const selectedShip=this.game.selectedObject;if(this.factory.isShip(selectedShip)){const rect=this.getShipDetailsRect(selectedShip);if(rect.compact && this.containsPoint(rect,x,y))return {type:'consume'};}
         const selectedFleet=this.game.getSelectedFleet?this.game.getSelectedFleet():null;
         if(selectedFleet){const l=this.getFleetDetailsLayout(selectedFleet);if(l.compact && this.containsPoint(l.rect,x,y))return {type:'consume'};}
@@ -3099,6 +3102,7 @@ class Display {
     }
 
     getStarDetailsLayout(star) {
+        const screen=this.getScreenSize();if(screen.width<600 || screen.height<360)return require('./star-inspector-compact.js').layout(this,star,screen);
         const data = this.getStarDiagnostics(star);
         const rect = this.getAnchoredPanelRect(star, 360, this.getStarDetailsPanelHeight(star));
         const x = rect.x + 12;
@@ -3116,6 +3120,7 @@ class Display {
             return [];
         }
         const layout = this.getStarDetailsLayout(star);
+        if(layout.compact)return require('./star-inspector-compact.js').sliders(layout);
         const entries = this.game.getStarAllocationEntries(star);
         return entries.map((entry, index) => {
             const y = layout.sliderStartY + index * 18;
@@ -3180,6 +3185,7 @@ class Display {
     drawStarDetails(star) {
         const owned = this.game.canHumanControl(star), data = this.getStarDiagnostics(star);
         const layout = this.getStarDetailsLayout(star), rect = layout.rect, x = layout.x;
+        if(layout.compact)return require('./star-inspector-compact.js').draw(this,star,layout);
         this.drawAnchoredPanel(star, rect, this.fitShipDiagnosticText(data.title,rect.width-32,14));
         layout.hintLines.forEach((line,index)=>this.drawTextLine(line,x,this.getPanelContentStartY(rect)+index*15,'lightgray',11));
         let y = layout.basicStartY;

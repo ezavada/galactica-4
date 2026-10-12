@@ -16,6 +16,22 @@ function fixture() {
 }
 module.exports=function() {
     test.describe('System diagnostics and v3 visibility',()=>{
+        test.it('keeps compact system diagnostics, destinations and editable sliders accessible in six languages',()=>{
+            const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru'])for(const [width,height] of [[320,240],[800,240],[320,600]]){
+                pdg.res.setLanguage(lang);const {game,star,display}=fixture();game.port.getDrawingArea=()=>new pdg.Rect(width,height);display.reloadUIStrings();game.clearEventPresentations();star.name='Long system 星 '.repeat(2);star.growth.value=20;star.growth.desired=70;star.shipBuilding.desired=20;star.research.desired=10;
+                let l=display.getStarDetailsLayout(star);test.assertTrue(l.compact);test.assertTrue(l.titleLines.join(' ').includes('Long system'));test.assertTrue(l.rect.x>=10 && l.rect.y>=10 && l.rect.x+l.rect.width<=width-10 && l.rect.y+l.rect.height<=height-10);test.assertEqual(l.sliders.length,3);test.assertTrue(l.destination.lines.length>0);
+                game.starInspectorScroll=l.sliders[0].trackRect.y-l.bodyClip.y-20;l=display.getStarDetailsLayout(star);const first=display.getStarAllocationSliderRegions(star)[0],px=first.trackRect.x+first.trackRect.width/2,py=first.trackRect.y+4;
+                test.assertTrue(game.handleUIClick(px,py));test.assertEqual(star.growth.desired,50);test.assertEqual(star.growth.value,20);test.assertTrue(game.beginUISliderDrag(px,py));test.assertFalse(game.scrollStarInspector(80));game.updateUISliderDrag(first.trackRect.x+first.trackRect.width*.8,py);game.endUISliderDrag();test.assertEqual(star.growth.desired,80);
+                const lock=display.getAllocationLockRegions().find(r=>r.action.allocationKey==='growth');test.assertNotNull(lock);test.assertTrue(game.handleUIClick(lock.rect.x+lock.rect.width/2,lock.rect.y+lock.rect.height/2));test.assertTrue(star.growth.locked);game.handleUIClick(lock.rect.x+lock.rect.width/2,lock.rect.y+lock.rect.height/2);test.assertFalse(star.growth.locked);
+                const equal=display.getAllocationEqualizeRegions().find(r=>!r.inWindow);test.assertNotNull(equal);test.assertTrue(game.handleUIClick(equal.rect.x+equal.rect.width/2,equal.rect.y+equal.rect.height/2));test.assertEqual(star.growth.value,20);test.assertTrue(Math.abs(star.growth.desired+star.shipBuilding.desired+star.research.desired-100)<.001);
+                game.scrollStarInspector(100000);l=display.getStarDetailsLayout(star);test.assertEqual(l.bodyScroll,l.scrollLimit);for(const b of display.getContextButtonRegions(star))test.assertTrue(b.rect.x>=l.rect.x && b.rect.x+b.rect.width<=l.rect.x+l.rect.width && b.rect.y>=l.bodyClip.y && b.rect.y+b.rect.height<=l.bodyClip.y+l.bodyClip.height);
+                test.assertEqual(display.getUIActionAt(l.rect.x+2,l.rect.y+l.rect.height/2).type,'consume');test.assertTrue(game.beginMapOrder(star));test.assertFalse(game.scrollStarInspector(80));game.handleKeyPress(pdg.key_Escape);
+            }}finally{pdg.res.setLanguage(old);}
+        });
+        test.it('keeps compact enemy production private and removes all editing controls',()=>{
+            const {game,star,display}=fixture();game.port.getDrawingArea=()=>new pdg.Rect(320,240);star.owner=2;star.setVisibilityTo(1,Common.VisibilityLevel.DETAILS);const l=display.getStarDetailsLayout(star);
+            test.assertFalse(l.owned);test.assertNull(l.data.completion);test.assertNull(l.data.eta);test.assertNull(l.destination);test.assertTrue(l.sliders.every(s=>s.allocation.value===0 && s.allocation.desired===0));test.assertEqual(display.getStarAllocationSliderRegions(star).length,0);test.assertEqual(display.getAllocationEqualizeRegions().length,0);test.assertEqual(display.getDefaultDestinationRegions().length,0);test.assertFalse(l.commands.some(b=>['beginOrders','buildShip','beginRename'].includes(b.action.type)));
+        });
         test.it('equalizes targets with = without changing actual production or camera zoom, including locked shares',()=>{
             const {game,star,display}=fixture();star.growth.value=15;star.research.setLocked(true);star.research.desired=20;
             star.growth.desired=65;star.shipBuilding.desired=15;const zoom=display.camera.zoom;

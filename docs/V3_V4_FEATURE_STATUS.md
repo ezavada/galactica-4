@@ -72,7 +72,7 @@ Full parity is still unproven. The current open work is:
    audit remains to be completed after the parity items above are implemented or
    explicitly documented as blocked.
 
-The latest full-suite evidence is **1,835 passing tests, zero failures** on each
+The latest full-suite evidence is **1,837 passing tests, zero failures** on each
 current public and development native executable. Artwork tests now validate the
 selected replacements and archived provenance; the previous two failures are
 resolved. This supports the tested paths and does not certify all UI, external
@@ -8720,3 +8720,41 @@ No new resource IDs, artwork or engine changes.
 Compact system/rendezvous inspectors, remaining gameplay lists/tables and
 network feedback, help/manual localization, preference/source edges and the
 final Map Generation checklist remain open.
+
+
+### Compact system inspector audit
+
+V3 `Classes/GalacticaPanels.cp:1038–1138` enables settings only for owned systems,
+attaches allied settings, masks enemy budgets, confines new-ship destinations
+to allies and gates population/technology by visibility. The new compact view
+uses v4's existing diagnostics and command guards for those rules.
+
+Below 600px wide or 360px high, the owner-styled inspector now has complete
+wrapped title/diagnostic/destination text and a clipped scrollable body.
+Production sliders place labels above their tracks, fill actual output and mark
+targets separately. Bare lock/unlock icons keep their two-pixel raised alignment;
+`=` remains beside the middle slider. Click/drag changes targets while preserving
+actual output and locked budget rules. Destination Set/Clear stays beside the
+last complete text line; Clear disappears when no destination is set. Compact
+context commands use measured rows inside the body; ordinary ports retain the
+existing layout and radial arc. Covered map controls cannot intercept inspector
+clicks. Hidden targeting/modal/report states and captured slider drags do not
+scroll it; exposed areas remain available while non-modal Events is open.
+
+Two new regressions plus existing diagnostics/allocation/slider tests pass in
+both full native suites: **1,837/1,837**. The muted actual-input fixture
+`tools/test-web-system-inspector-compact.cjs` passes before/after at 800×600,
+800×240 and 320×240 in en/de/es/fr/ja/ru. It covers wheel without map zoom,
+continuous slider capture, lock/unlock, equalize, Set/cancel/Clear, build switch,
+Rename/cancel, system contents and enemy privacy. Command checks require the
+complete control to be visible. All six narrow before/after sheets and the
+short six-language sheet were inspected. Eighteen common frames include six
+exact ordinary views and 12 intended compact changes. Evidence:
+`/private/tmp/galactica-compact-system-ui/comparison-metadata.json`, `*-review.png`,
+`/private/tmp/galactica-compact-system-devel-unit.log` and
+`/private/tmp/galactica-compact-system-public-unit.log`.
+No new resource IDs, artwork or engine changes.
+
+The compact rendezvous inspector, remaining gameplay lists/tables and network
+feedback, complete help/manual localization, preference/source edges and final
+Map Generation checklist remain open.

@@ -1780,3 +1780,19 @@ are pixel-identical. Both full native suites pass 1,835/1,835. Evidence:
 `/private/tmp/galactica-compact-ship-{pdg,pdg-devel}-unit-final.log`.
 The compact ship layout issue documented by the earlier member-inspector
 fixture is now resolved; system/rendezvous inspectors remain separate work.
+
+
+### Compact system inspector
+
+Run `node tools/test-web-system-inspector-compact.cjs BUILD_DIR OUTPUT_DIR LANGUAGE
+[before]` with `GALACTICA_SYSTEM_INSPECTOR_WIDTH` / `GALACTICA_SYSTEM_INSPECTOR_HEIGHT`
+fixed before startup. The muted six-language matrix covers 800×600, 800×240 and
+320×240: wheel without zoom, target-only captured slider drag, bare lock/unlock,
+equalize, Set/cancel/Clear, build switching, Rename/cancel, system contents and
+foreign privacy. Command checks require full visible button height. All six
+narrow and the short-height sheets were inspected; all six wide frames are
+pixel-identical. Both complete native suites pass 1,837/1,837. Evidence:
+`/private/tmp/galactica-compact-system-ui`,
+`/private/tmp/galactica-compact-system-devel-unit.log` and
+`/private/tmp/galactica-compact-system-public-unit.log`.
+Rendezvous inspectors and other remaining windows are separate checklist items.
