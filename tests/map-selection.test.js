@@ -20,6 +20,13 @@ module.exports=()=>test.describe('Map selection and overlap chooser',()=>{
         game.handleKeyPress(pdg.key_Escape);test.assertEqual(calls.length,3);test.assertTrue(calls[2][0]===ship);test.assertNull(calls[2][1]);
     });
 
+    test.it('schedules a complete owned rendezvous without a previous selection and excludes foreign/local creation',()=>{
+        const {game,home}=fixture(),created=[];game.networkCommands={created:object=>created.push(object)};
+        game.createRendezvousAt(home.x+10,home.y+20,1,'Local');test.assertEqual(created.length,0);
+        game.clientPlayerNum=1;const marker=game.createRendezvousAt(home.x+30,home.y+40,1,'New point');
+        test.assertEqual(created.length,1);test.assertTrue(created[0]===marker && game.allRendezvous.includes(marker));test.assertNull(game.selectedObject);test.assertEqual(marker.name,'New point');
+        game.createRendezvousAt(home.x,home.y,2,'Foreign');test.assertEqual(created.length,1);
+    });
     test.it('uses the same scaled docking offset and extent as drawing at every visible zoom',()=>{
         const {game,display,ship,second}=fixture();game.entityRemoved(second);
         for(const zoom of [.2,.3,.5,1,4]) {

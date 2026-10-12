@@ -59,6 +59,17 @@ await evaluate('visual.getDisplay().camera.setZoom(1.2);visual.getDisplay().came
 await point('({x:visual.getDisplay().toScreenX(home.x),y:visual.getDisplay().toScreenY(home.y)})');
 await click('visual.getDisplay().getContextButtonRegions().find(r=>r.action.type==="buildShip" && r.action.shipType==="colony").rect');await capture('joined-production');
 
+if(process.env.GALACTICA_TEST_CREATION==='1'){
+ const baseline=process.argv[5]==='before';await point('({x:20,y:250})');await check('!visual.getGame().selectedObject','Creation fixture retained selection');
+ await click('visual.getDisplay().getMapButtonRegions().find(r=>r.action.type==="beginRendezvousPlacement").rect');await capture('creation-crosshair');
+ await point('({x:220,y:280})');await check('visual.getGame().allRendezvous.length===1 && visual.getGame().selectedObject===visual.getGame().allRendezvous[0]','Map creation failed');
+ if(!baseline)await wait('!visual.getNetwork().flushPromise && !visual.getNetwork().hasUnsavedChanges()','Created point was not saved automatically');
+ else await check('visual.getNetwork().hasUnsavedChanges() && !visual.getNetwork().flushPromise','Baseline unexpectedly saved creation');
+ await capture('created-point');await click('visual.getDisplay().getContextButtonRegions().find(r=>r.action.type==="beginRename").rect');await capture('created-point-rename');await key('Escape');await capture('created-point-cancel-name');
+ await check('visual.getGame().allRendezvous.length===1 && !visual.getGame().clientTurnPosted && visual.getGame().turn===1','Creation acknowledgment lost point or posted turn');
+ if(!baseline){const saved=await evaluate('(async()=>{const c=visual.getNetwork(),state=await c.send("/state",{token:c.session.token});return state.entities.filter(e=>e.kind==="rendezvous").length;})()');if(saved!==1)throw Error('Created point missing on host');}
+ console.log('PASS automatic point creation '+lang+' '+(baseline?'before':'after'));return;
+}
 if(process.env.GALACTICA_TEST_WRITEBACK==='1'){
  const baseline=process.argv[5]==='before';
  await click('visual.getDisplay().getStarAllocationSliderRegions(home).find(s=>s.key==="growth").rect');await capture('draft-production');

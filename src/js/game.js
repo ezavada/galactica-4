@@ -739,6 +739,11 @@ class Game {
         return true;
     }
 
+    notifyClientCreation(object) {
+        if(!this.clientPlayerNum || !object || object.owner!==this.clientPlayerNum || !this.networkCommands || !this.networkCommands.created)return false;
+        return this.networkCommands.created(object);
+    }
+
     createRendezvousAt(x, y, owner = this.getCurrentHumanPlayer(), name = null, anchor = null) {
         if(this.clientAdministrator)return null;
         if(this.clientPlayerNum && (this.clientTurnPosted || this.clientPosting))return null;
@@ -751,6 +756,7 @@ class Game {
             I18n.formatString(660, '{0} placed at ({1}, {2})', this.getObjectDisplayName(rendezvous), Math.round(x / 1024), Math.round(y / 1024)),
             { type: Common.EventType.RENDEZVOUS_UPDATED }
         );
+        this.notifyClientCreation(rendezvous);
         return rendezvous;
     }
 
@@ -1908,6 +1914,7 @@ class Game {
             this.fleetExchange.active=fleet;
             this.recordEvent(I18n.getString(566,'Fleets'),I18n.formatString(669,'{0} formed at {1}',
                 this.getObjectDisplayName(fleet),this.getObjectDisplayName(state.container)),{type:Common.EventType.FLEET_FORMED});
+            this.notifyClientCreation(fleet);
             moved=true;
         }
         if(moved)this.fleetExchange.selection=null;
@@ -4048,6 +4055,7 @@ class Game {
         this.setSelectedObject(group);
         this.recordEvent(I18n.getString(566,'Fleets'),I18n.formatString(669,'{0} formed at {1}',
             this.getObjectDisplayName(group),this.getObjectDisplayName(fleet)),{type:Common.EventType.FLEET_FORMED});
+        this.notifyClientCreation(group);
         return group;
     }
 
@@ -4199,6 +4207,7 @@ class Game {
                     I18n.formatString(669, '{0} formed at {1}', this.getObjectDisplayName(fleet), I18n.formatString(656, '({0}, {1})', Math.round(fleet.x / 1024), Math.round(fleet.y / 1024))),
                     { type: Common.EventType.FLEET_FORMED }
                 );
+                this.notifyClientCreation(fleet);
                 return fleet;
             }
         }

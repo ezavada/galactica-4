@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Latest verified result with the current public/development native executables:
 
 ```text
-Total: 1802
-Passed: 1800 ✓
+Total: 1804
+Passed: 1802 ✓
 Failed: 2 ✗
 ```
 
@@ -1535,3 +1535,17 @@ previous build to verify its Save refusal. Add
 Screenshot evidence and pixel comparison metadata live under
 `/private/tmp/galactica-client-documents-ui`, with failed-Close captures under
 `/private/tmp/galactica-client-documents-errors`.
+
+
+## Automatic client creation
+
+`./gad4 tools/test-client-creation.js` verifies actual Exchange and nested-group
+creation through a live host. `tools/test-client-writeback.js` also covers
+no-selection point creation. Both pass on public and development native runtimes.
+Full suites: 1,802/1,804, with the same two artwork expectations pending adjustment
+to the user-selected replacements.
+
+Use `GALACTICA_TEST_CREATION=1` with `tools/test-web-network-orders.cjs` for
+placement, explicit Rename and cancellation; pass `before` for the prior-build
+unsaved baseline. Six-language before/after evidence and comparison metadata
+are under `/private/tmp/galactica-creation-ui`; logs share that prefix.

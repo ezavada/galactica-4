@@ -13,6 +13,13 @@ function fixture(){
  return {game,display,star,fleet,ships,click,select};
 }
 module.exports=()=>test.describe('Shared-container fleet exchange',()=>{
+ test.it('notifies client creation only after a new fleet has its member and parent',()=>{
+  const {game,star,ships,select,click}=fixture(),created=[];game.clientPlayerNum=1;
+  game.networkCommands={available:()=>true,created:object=>created.push(object)};
+  game.showFleetExchange(star);select('main',ships[2]);test.assertTrue(click('exchangeFleetMember'));
+  test.assertEqual(created.length,1);test.assertTrue(created[0].star===star && created[0].ships.includes(ships[2]) && ships[2].fleet===created[0]);
+ });
+
  test.it('retains the selected destination while selecting a main ship and moves it into that fleet',()=>{
   const {game,star,fleet,ships,select,click}=fixture();test.assertTrue(game.showFleetExchange(star));
   test.assertTrue(select('main',fleet));test.assertTrue(select('main',ships[2]));test.assertTrue(game.fleetExchange.active===fleet);

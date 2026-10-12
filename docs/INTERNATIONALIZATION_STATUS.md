@@ -577,3 +577,13 @@ cannot export a partial joined map and Save sends changes to the host. The nativ
 document lane checks that feedback in all six languages and proves delayed Quit
 waits for real host persistence. Full suites: 1,800/1,802, with the two previously
 known artwork failures. Newly created-object scheduling remains separate work.
+
+
+### Automatic creation writeback
+
+No strings change. Real rendezvous placement, explicit Rename and cancellation
+pass in all six languages; all six final screenshots were visually reviewed.
+The creation and naming scenes are pixel-identical to the previous build, while
+new points now persist automatically without posting. Native creation/document
+lanes pass on both runtimes; full suites retain two artwork expectations to be
+updated for the user-selected replacement assets (1,802/1,804).

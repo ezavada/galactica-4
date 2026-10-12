@@ -7,7 +7,13 @@ const directory=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-client-writeback
  host=NetworkHost.create({numHumans:2,numComputers:0,sectorSize:1,density:1},path.join(directory,'host.json'));
  const home=host.game.stars.find(s=>s.owner===1),ship=host.game.factory.createShip(home.x,home.y,'scout',home,true);home.ships.push(ship);host.persist();
  const address=await host.listen({discovery:false}),url='http://127.0.0.1:'+address.port,a=new NetworkClient(url),b=new NetworkClient(url);clients.push(a,b);await a.connect({name:'First'});await b.connect({name:'Second'});
- assert(!a.hasUnsavedChanges());const own=a.model.stars.find(s=>s.owner===1);own.name='Saved 星';assert(a.hasUnsavedChanges());
+ assert(!a.hasUnsavedChanges());let automatic;
+ a.model.networkCommands={created:()=>{automatic=a.flush();return true;}};
+ const spawned=a.model.createRendezvousAt(a.model.stars.find(s=>s.owner===1).x+80,a.model.stars.find(s=>s.owner===1).y+80,1,'Automatic point');
+ assert(automatic);await automatic;assert(!a.hasUnsavedChanges());assert(a.model.allRendezvous.includes(spawned));assert.equal(host.game.allRendezvous.length,1);assert(!a.model.clientTurnPosted);
+ // Continue the existing scenarios with a fresh host-consistent empty marker set.
+ a.model.allRendezvous.splice(a.model.allRendezvous.indexOf(spawned),1);await a.flush();assert.equal(host.game.allRendezvous.length,0);
+ const own=a.model.stars.find(s=>s.owner===1);own.name='Saved 星';assert(a.hasUnsavedChanges());
  await a.save();assert(!a.hasUnsavedChanges());assert.equal(host.game.stars.find(s=>s.id===home.id).name,'Saved 星');assert(!a.model.clientTurnPosted);assert.equal(host.game.turn,1);
  const courier=a.model.allShips.find(s=>s.id===ship.id),fleet=a.model.factory.createFleet(own.x,own.y,1,'First fleet');fleet.star=own;fleet.addShip(courier);
  const marker=a.model.createRendezvousAt(own.x+20,own.y+30,1,'First point');fleet.course.replace(marker);own.defaultDestination=marker;

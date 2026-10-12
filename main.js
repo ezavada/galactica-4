@@ -942,6 +942,7 @@ function attachGameServices(nextGame) {
         const session=sessions.sessions.find(s=>s.game===nextGame);if(!session || !session.network || session.network.postPromise || nextGame.clientTurnPosted)return false;
         session.network.post().then(model=>{if(sessions.sessions.includes(session)){replaceNetworkModel(session,model);session.networkError=null;}},error=>{if(sessions.sessions.includes(session))session.networkError=require('./src/js/network-join.js').errorText(error);});return true;
     },status:()=>{const session=sessions.sessions.find(s=>s.game===nextGame),client=session && session.network;return nextGame.clientTurnPosted?1038:client && client.postPromise?1037:client && client.pendingPost?1039:null;}};
+    if(nextGame.networkCommands)nextGame.networkCommands.created=object=>nextGame.networkCommands.selectionChanged(object);
     nextGame.fileCommands={quit:()=>requestApplicationQuit(),menu:()=>{clearSessionInput();return documents.menu();}};
     nextGame.sessionCommands={begin:beginNewGame,rows:()=>sessions.rows(),select:switchGameSession};
 }
