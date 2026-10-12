@@ -21,6 +21,7 @@ function rebase(current,fresh,saved){
   fresh[families[kind]]=fresh[families[kind]].filter(e=>e.owner!==viewer || !baseline.has(kind+':'+e.id) || rows.has(kind+':'+e.id));
   if(hasTerritory)for(const e of current[families[kind]])if(e.owner===viewer && !current.clientOrderBase[kind].includes(e.id)){fresh[families[kind]].push(e);e.game=fresh;}
  }
+ const originals=new Map();for(const [kind,list] of Object.entries(families))for(const e of current[list])originals.set(kind+':'+e.id,e);
  const entities=new Map();for(const [kind,list] of Object.entries(families))for(const e of fresh[list])entities.set(kind+':'+e.id,e);
  const ref=value=>value?entities.get(value.kind+':'+value.id) || null:null;
  const destination=p=>p?(ref(p.target) || {x:p.x,y:p.y}):null;
@@ -40,7 +41,7 @@ function rebase(current,fresh,saved){
    for(const field of ['x','y'])if(changed(field))e[field]=row[field];if(changed('anchor'))e.anchor=ref(row.anchor);
   }else{
    if(changed('parent')){const parent=ref(row.parent);e.fleet=row.parent?.kind==='fleet'?parent:null;e.star=row.parent?.kind==='star'?parent:null;}
-   if(changed('course')){const memory=e.course.memory;e.course=route(row.course,e);e.course.memory=memory;}
+   if(changed('course')){const memory=e.course.memory,revision=originals.get(key(row))?.course.revision || 0;e.course=route(row.course,e);e.course.memory=memory;e.course.revision=revision;}
    if(changed('memory'))e.course.memory=route(row.memory);
    for(const field of ['onPatrol','toBeScrapped','userCallIn'])if(changed(field))e[field]=row[field];
   }

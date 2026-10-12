@@ -41,6 +41,7 @@ function validateLogin(data,info,name){
  return {token:data.token,name,player:data.player,gameId:data.gameId};
 }
 function preservePresentation(old,fresh){
+ require('./client-ui-refresh.js').preserve(old,fresh);
  for(const key of ['showGrid','showNebula','showShips','showAllCourses','showCourierCourses','showScannerRanges','showMapNames','showEnemyEvents','mapDisplayMode'])fresh[key]=old[key];
  fresh.holdGameReports=old.holdGameReports===true;
  const held=old.heldReports || [];

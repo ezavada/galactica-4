@@ -3,6 +3,27 @@ const id='a'.repeat(64),token='b'.repeat(64);
 function info(){return {protocol:1,gameId:id,title:'Host 星',turn:1,humans:2,computers:1,slots:[{player:1,status:'open'},{player:2,status:'occupied',name:'航行者',online:true}]};}
 function rejects(fn,code){let actual;try{fn();}catch(error){actual=error.code;}test.assertEqual(actual,code);}
 module.exports=()=>test.describe('Live network client protocol boundaries',()=>{
+ function interactive(owner=1,revision=4,turn=1){
+  const star={id:1,owner},ship={id:2,owner:1,type:'scout',isDead:()=>false,underConstruction:()=>false,
+   course:{revision,current:0,previous:-1,loop:false,hunt:false,hasOrigin:false,waypoints:[{x:10,y:20,target:null}]}};
+  return {clientGameId:id,clientPlayerNum:1,turn,stars:[star],allShips:[ship],allFleets:[],allRendezvous:[],players:[null,{isAlive:true}],config:{omniscient:false},uiWindow:null,renameTarget:null,pendingMapOrderObject:null,eventLog:[],attention:{queue:[]}};
+ }
+ test.it('retains same-turn rename text/caret and local logs with current entity references',()=>{
+  const old=interactive(),fresh=interactive();old.uiWindow='rename';old.renameTarget=old.stars[0];old.renameText='Draft 星';old.renameEditor={text:old.renameText,caret:3,selected:false};old.clientEventSequence=2;
+  old.eventLog=[{id:-2,subject:old.allShips[0],handled:true}];Client.preservePresentation(old,fresh);
+  test.assertEqual(fresh.uiWindow,'rename');test.assertTrue(fresh.renameTarget===fresh.stars[0]);test.assertEqual(fresh.renameText,'Draft 星');test.assertEqual(fresh.renameEditor.caret,3);test.assertFalse(fresh.renameEditor===old.renameEditor);test.assertTrue(fresh.eventLog[0].subject===fresh.allShips[0]);test.assertEqual(fresh.clientEventSequence,2);
+ });
+ test.it('rebinds active course edits and shared slider draft references without accepting changed routes',()=>{
+  const old=interactive(),fresh=interactive(1,5);old.pendingMapOrderObject=old.allShips[0];old.pendingCourseEdit={object:old.allShips[0],revision:4,index:0,replace:true};old.colonyDefaultsDraft={defaultGrowth:500};old.uiSliderDrag={draft:old.colonyDefaultsDraft};old.courseBodyScroll=25;old.playerComparisonColumnPage=3;
+  Client.preservePresentation(old,fresh);test.assertTrue(fresh.pendingMapOrderObject===fresh.allShips[0]);test.assertEqual(fresh.pendingCourseEdit.revision,5);test.assertTrue(fresh.uiSliderDrag.draft===fresh.colonyDefaultsDraft);test.assertEqual(fresh.courseBodyScroll,25);test.assertEqual(fresh.playerComparisonColumnPage,3);
+  const changed=interactive();changed.allShips[0].course.waypoints[0].x=99;Client.preservePresentation(old,changed);test.assertNull(changed.pendingMapOrderObject);test.assertNull(changed.pendingCourseEdit);
+ });
+ test.it('cancels ownership-lost or posted interactions and never carries editors into another turn',()=>{
+  const old=interactive();old.uiWindow='rename';old.renameTarget=old.stars[0];old.renameText='Draft';old.pendingMapOrderObject=old.stars[0];old.uiSliderDrag={star:old.stars[0]};
+  for(const fresh of [interactive(2),Object.assign(interactive(),{clientTurnPosted:true}),Object.assign(interactive(),{clientPosting:true})]){Client.preservePresentation(old,fresh);test.assertNull(fresh.renameTarget);test.assertNull(fresh.pendingMapOrderObject);test.assertNull(fresh.uiSliderDrag);test.assertNull(fresh.uiWindow);}
+  const next=interactive(1,4,2);Client.preservePresentation(old,next);test.assertNull(next.renameTarget);test.assertNull(next.uiWindow);test.assertNull(next.pendingMapOrderObject);
+ });
+
  test.it('accepts hostname, IPv4, IPv6 and HTTPS origins without embedding credentials or arbitrary request paths',()=>{
   for(const [address,result] of [['localhost:7777','http://localhost:7777'],['127.0.0.1:7777','http://127.0.0.1:7777'],['[::1]:7777','http://[::1]:7777'],['https://example.org/','https://example.org'],[' localhost:80 ','http://localhost']])test.assertEqual(Client.normalizeAddress(address),result);
   for(const address of ['',null,'file:///private/game','http://name:secret@localhost','http://localhost/info','http://localhost?token=secret','http://localhost#secret','local host'])rejects(()=>Client.normalizeAddress(address),'invalid_host_address');

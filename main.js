@@ -149,8 +149,9 @@ function replaceNetworkModel(session,model){
     networkTurnAttention.receive(session,model,{front:sessions.active===session && !sessions.starting && !sessions.transient && !networkHosting.active && !networkJoin.active && !startupSettings.active && !documents.dialog && !networkChat.active && !userManual.error() && quitDocuments.state==='idle',
         focused:require('./src/js/network-turn-attention.js').applicationFocused()});
     if(session.game===model)return;
-    attachGameServices(model);const previous=session.display,nextDisplay=new Display(model);session.game=model;session.display=nextDisplay;
-    if(sessions.active===session && !sessions.transient){if(!sessions.starting)clearSessionInput(true);game=model;display=nextDisplay;autoplayController=null;}
+    const sameTurn=session.game.turn===model.turn && session.game.clientGameId===model.clientGameId && session.game.clientPlayerNum===model.clientPlayerNum;
+    attachGameServices(model,{preserveInteraction:sameTurn});const previous=session.display,nextDisplay=new Display(model);if(sameTurn)nextDisplay.hoverPoint=previous.hoverPoint;session.game=model;session.display=nextDisplay;
+    if(sessions.active===session && !sessions.transient){if(!sessions.starting && !sameTurn)clearSessionInput(true);game=model;display=nextDisplay;autoplayController=null;}
     previous.dispose();
 }
 function refreshNetworkSessions(){
@@ -902,7 +903,7 @@ function closeActiveGame(session) {
     return true;
 }
 
-function attachGameServices(nextGame) {
+function attachGameServices(nextGame,{preserveInteraction=false}={}) {
     nextGame.languagePreferences = languagePreferences;
     nextGame.drawingPreferences = drawingPreferences;
     nextGame.newGameDefaultsPreferences=newGameDefaultsPreferences;
@@ -911,11 +912,11 @@ function attachGameServices(nextGame) {
     nextGame.sound=sound;
     nextGame.showControlHelp=drawingPreferences.readControlHelp();
     nextGame.systemComparisonPreferences = systemComparisonPreferences;
-    nextGame.systemComparisonSort = systemComparisonPreferences.read();
-    nextGame.systemComparisonGeometry = systemComparisonPreferences.readGeometry();
+    if(!preserveInteraction){nextGame.systemComparisonSort = systemComparisonPreferences.read();
+        nextGame.systemComparisonGeometry = systemComparisonPreferences.readGeometry();}
     nextGame.rosterPreferences = rosterPreferences;
-    nextGame.fleetRosterSort = rosterPreferences.read();
-    nextGame.fleetRosterGeometry = rosterPreferences.readGeometry();
+    if(!preserveInteraction){nextGame.fleetRosterSort = rosterPreferences.read();
+        nextGame.fleetRosterGeometry = rosterPreferences.readGeometry();}
     nextGame.fullscreen = fullscreen;
     nextGame.presentation=presentation;nextGame.openAbout=openAbout;
     if(!nextGame.restoredFromSave)nextGame.showEnemyEvents=drawingPreferences.readEnemyEvents();

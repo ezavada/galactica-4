@@ -607,3 +607,14 @@ after inspector screenshots were reviewed; literal entered names remain literal
 and authoritative numbers use the existing localized formatting. Native context
 and existing client lanes pass on both runtimes, and both full suites pass
 1,806/1,806. Open editor/targeting ACK continuity is still a separate requirement.
+
+
+### Writeback interaction continuity
+
+No runtime strings change. Actual delayed-ACK rename and Orders flows pass in
+en/de/es/fr/ja/ru, preserving literal entered text, the existing localized
+controls, crosshair/preview and destination input. All-six-language before/after
+rename/target sheets and final target-click sheets were visually reviewed.
+Native interaction and existing client lanes pass on both runtimes; both full
+suites pass 1,810/1,810. Manual report and turn-boundary recovery remain separate
+requirements rather than being certified by these editor checks.

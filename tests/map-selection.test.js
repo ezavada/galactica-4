@@ -12,6 +12,12 @@ function fixture() {
     return {game,display,home,ship,second};
 }
 module.exports=()=>test.describe('Map selection and overlap chooser',()=>{
+    test.it('initializes docked marker hit coordinates before the first draw of a restored display',()=>{
+        const {game,display,ship}=fixture();game.restoredFromSave=true;game.savedCamera={zoom:1.2,panX:display.camera.panX,panY:display.camera.panY};
+        const restored=new Display(game),marker=restored.getMapMarker(ship);
+        test.assertTrue(Number.isFinite(marker.x) && Number.isFinite(marker.y));test.assertTrue(restored.scaledStarRadius>0);test.assertTrue(game.findObjectsAtPosition(marker.x,marker.y).includes(ship));
+    });
+
     test.it('notifies writeback only when selection changes and includes Escape deselection',()=>{
         const {game,home,ship}=fixture(),calls=[];
         game.networkCommands={selectionChanged:(previous,next)=>calls.push([previous,next])};

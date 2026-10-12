@@ -16,13 +16,13 @@ cd /Users/edz/Documents/Personal/galactica-4
 Latest verified result with the current public/development native executables:
 
 ```text
-Total: 1806
-Passed: 1806 ✓
+Total: 1810
+Passed: 1810 ✓
 Failed: 0 ✗
 ```
 
 The artwork checks now validate the selected replacement assets and original
-provenance in its archive location. Both native executables pass all 1,806 tests.
+provenance in its archive location. Both native executables pass all 1,810 tests.
 The previous two failures are resolved; dated writeback logs retain their actual
 results rather than being presented as green runs.
 
@@ -1595,3 +1595,27 @@ The former build reproduces draft loss with the `before` argument. Six-language
 captures/comparison metadata are under `/private/tmp/galactica-context-ui`.
 Open editor/targeting continuity during an acknowledgment remains separate
 unfinished application work.
+
+
+## Interaction continuity during writeback
+
+`./gad4 tools/test-client-interaction.js` checks unfinished rename text/caret,
+unsubmitted editor text, current source/drag references, Course/target state,
+ownership revocation and next-turn cancellation against a real host. It passes
+on both native runtimes. Existing context/writeback/document/creation/posting
+lanes also pass on both. Full suites: **1,810/1,810**, four added regressions
+covering presentation/reference/authority and pre-draw marker hit coordinates.
+
+Set `GALACTICA_TEST_INTERACTION=1` with `tools/test-web-network-orders.cjs`.
+It delays real server acknowledgments while actual controls edit a name or arm
+Orders, then checks continuation, table state and a real destination click.
+The `before` argument against the former build reproduces interruption. All
+six languages pass. Captures/comparison metadata live under
+`/private/tmp/galactica-interaction-ui`; native logs use
+`/private/tmp/galactica-client-interaction-`.
+
+Of 48 common pairs, 24 are exact, twelve show intended rename/target retention,
+six target-before frames reflect the earlier accepted rename, and six Join
+frames contain different localhost ports. Before/after rename/target and final
+destination-click sheets were reviewed in all six languages. Manual report
+overlay continuity and late-turn decision recovery remain separate open work.

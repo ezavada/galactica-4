@@ -92,6 +92,7 @@ class Display {
             this.setSelectedObject(game.selectedObject);
         }
         this.reloadUIStrings();
+        this.updateMapRenderingCalculations();
     }
 
     reloadUIStrings() {

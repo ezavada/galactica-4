@@ -140,7 +140,8 @@ module.exports=function(){
     test.it('allows targeting through the hidden inspector and consumes the picker hint',()=>{
         const {game,ship,display}=fixture();game.showCourse(ship);const panel=display.getSelectedObjectPanelRect(ship);
         game.beginCourseEdit();test.assertEqual(display.getSelectedObjectPanelRect(ship),null);
-        test.assertEqual(display.getUIActionAt(panel.x+20,panel.y+100),null);
+        test.assertTrue(Number.isFinite(panel.x) && Number.isFinite(panel.y));
+        test.assertEqual(display.getUIActionAt(panel.x+20,panel.y+180),null);
         test.assertEqual(display.getUIActionAt(100,95).type,'consume');
         game.handleKeyPress(pdg.key_Escape);test.assertNotNull(display.getSelectedObjectPanelRect(ship));
     });
