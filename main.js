@@ -77,6 +77,7 @@ let tutorialSession=null;
 let tutorialPanel=null;
 let tutorialPointerCapture=false;
 const documents=new (require('./src/js/documents.js'))(require('./src/js/document-files.js').createFiles(),()=>sessions.active,installSavedGame,revertSavedGame,closeActiveGame);
+documents.syncNetwork=replaceNetworkModel;
 
 documents.measure=(text,size)=>port.getTextWidth(text,size);
 
@@ -933,6 +934,10 @@ function attachGameServices(nextGame) {
     if(nextGame.clientPlayerNum)nextGame.networkCommands={available:()=>{
         const session=sessions.sessions.find(s=>s.game===nextGame),client=session && session.network;
         return !!(client && client.session && !client.postPromise && !nextGame.clientTurnPosted);
+    },selectionChanged:previous=>{
+        const session=sessions.sessions.find(s=>s.game===nextGame),client=session && session.network;
+        if(!previous || previous.owner!==nextGame.clientPlayerNum || !client || !client.session || client.postPromise || nextGame.clientTurnPosted || !client.hasUnsavedChanges() && !client.pendingChanges)return false;
+        client.flush().then(model=>{if(sessions.sessions.includes(session)){replaceNetworkModel(session,model);session.networkError=null;}},error=>{if(sessions.sessions.includes(session))session.networkError=require('./src/js/network-join.js').errorText(error);});return true;
     },post:()=>{
         const session=sessions.sessions.find(s=>s.game===nextGame);if(!session || !session.network || session.network.postPromise || nextGame.clientTurnPosted)return false;
         session.network.post().then(model=>{if(sessions.sessions.includes(session)){replaceNetworkModel(session,model);session.networkError=null;}},error=>{if(sessions.sessions.includes(session))session.networkError=require('./src/js/network-join.js').errorText(error);});return true;
@@ -1302,8 +1307,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
             // Left mouse button released - stop left click drag scrolling
             if (isLeftClickDragging && !hasDragged) {
                 // Clicked and released without dragging - clear selection
-                game.selectedObject = null;
-                game.display.setSelectedObject(null);
+                game.setSelectedObject(null);
             }
             isLeftClickDragging = false;
         } else if (event.buttonNumber === 2) {

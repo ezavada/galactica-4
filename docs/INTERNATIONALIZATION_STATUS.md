@@ -565,3 +565,15 @@ The six-language Save/Close/Quit and automatic-save failure/retry workflows rema
 unimplemented and must be verified when application scheduling is connected.
 Both native transport lanes pass; full suites reproduce the two existing artwork
 failures (1,799/1,801), as documented in Testing Guide.
+
+
+### Client selection and document writeback
+
+Owned-selection saving and File Save/Close now have actual-input normal and
+failed-Close/retry browser checks in en/de/es/fr/ja/ru. Their translated status
+dialogs were visually reviewed. Save uses the existing localized busy text and
+host/network errors. Resource 1035 now explains in all six languages that Save As
+cannot export a partial joined map and Save sends changes to the host. The native
+document lane checks that feedback in all six languages and proves delayed Quit
+waits for real host persistence. Full suites: 1,800/1,802, with the two previously
+known artwork failures. Newly created-object scheduling remains separate work.

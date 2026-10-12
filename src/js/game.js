@@ -1645,6 +1645,7 @@ class Game {
     }
 
     setSelectedObject(object,options={}) {
+        const previous=this.selectedObject;
         if (this.selectedObject !== object) this.fleetMemberPage = 0;
         this.selectedObject = object;
         const colonyRequest=this.attention.pending().find(entry=>entry.object===object && entry.event && entry.event.type===Common.EventType.RENAME_COLONY);
@@ -1653,6 +1654,7 @@ class Game {
         if (this.display) {
             this.display.setSelectedObject(object);
         }
+        if(previous!==object && this.networkCommands && this.networkCommands.selectionChanged)this.networkCommands.selectionChanged(previous,object);
     }
 
     beginColonyDefaults() {
@@ -3017,8 +3019,7 @@ class Game {
             this.requestEndTurn();return true;
         }
         if (key === pdg.key_Escape) {
-            this.selectedObject = null;
-            this.display.setSelectedObject(null);
+            this.setSelectedObject(null);
         } else if (key===61 && !this.uiWindow && this.canHumanControl(this.getSelectedStar())) {
             return this.resetSelectedStarAllocations();
         } else if (key === 61 || key === 43) { // + zooms; = also zooms when no owned system is selected

@@ -12,6 +12,14 @@ function fixture() {
     return {game,display,home,ship,second};
 }
 module.exports=()=>test.describe('Map selection and overlap chooser',()=>{
+    test.it('notifies writeback only when selection changes and includes Escape deselection',()=>{
+        const {game,home,ship}=fixture(),calls=[];
+        game.networkCommands={selectionChanged:(previous,next)=>calls.push([previous,next])};
+        game.setSelectedObject(home);game.setSelectedObject(home);game.setSelectedObject(ship);
+        test.assertEqual(calls.length,2);test.assertTrue(calls[1][0]===home && calls[1][1]===ship);
+        game.handleKeyPress(pdg.key_Escape);test.assertEqual(calls.length,3);test.assertTrue(calls[2][0]===ship);test.assertNull(calls[2][1]);
+    });
+
     test.it('uses the same scaled docking offset and extent as drawing at every visible zoom',()=>{
         const {game,display,ship,second}=fixture();game.entityRemoved(second);
         for(const zoom of [.2,.3,.5,1,4]) {

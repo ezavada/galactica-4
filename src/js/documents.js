@@ -1,13 +1,14 @@
 const wrap=require('./text-wrapping.js');
 const Save=require('./game-save.js'),Files=require('./document-files.js'),Name=require('./player-name.js'),I18n=require('./i18n.js');
 class Documents {
-    constructor(files,active,install,replace,close=()=>false) {this.files=files;this.active=active;this.install=install;this.replace=replace;this.close=close;this.pendingClose=null;this.dialog=null;this.sequence=0;this.onClosed=()=>{};this.onCanceled=()=>{};this.quitPending=false;}
+    constructor(files,active,install,replace,close=()=>false) {this.files=files;this.active=active;this.install=install;this.replace=replace;this.close=close;this.pendingClose=null;this.dialog=null;this.sequence=0;this.onClosed=()=>{};this.onCanceled=()=>{};this.quitPending=false;this.syncNetwork=(session,model)=>{session.game=model;};}
     menu(){this.dialog={kind:'menu'};return true;}
     cancel(){if(this.dialog && this.dialog.kind==='busy' && ['save','hostStop'].includes(this.dialog.operation))return false;this.pendingClose=null;this.sequence++;this.files.cancelPick();this.dialog=null;this.onCanceled();return true;}
     status(id,...values){this.dialog={kind:'status',message:I18n.formatString(id,'',...values)};return true;}
     beginClose() {
         const session=this.active();if(!session || this.dialog && this.dialog.kind==='busy')return false;
         if(session.game.clientAdministrator)return this.finishClose(session);
+        if(session.game.clientPlayerNum && session.network){this.pendingClose=session;return this.saveClient(session,true);}
         if(session.file && session.savedContent===Save.contentSignature(session.game))return this.finishClose(session);
         this.pendingClose=session;this.dialog={kind:'close'};return true;
     }
@@ -19,10 +20,25 @@ class Documents {
     beginSave(saveAs=false) {
         const session=this.active();if(!session)return false;
         if(session.game.clientAdministrator)return this.status(1167);
-        if(session.game.clientPlayerNum)return this.status(1035);
+        if(session.game.clientPlayerNum)return saveAs || !session.network?this.status(1035):this.saveClient(session,false);
         if(!saveAs && session.file)return this.save(session.file.name,false);
         const name=session.file?session.file.name:Files.suggestedName(session.game.config.gameTitle);
         this.dialog={kind:'editor',operation:'save',editor:Name.createEditor(name,1024),saveAs:true,error:false};return true;
+    }
+    async saveClient(session,closing) {
+        const token=++this.sequence;this.dialog={kind:'busy',operation:'save',message:I18n.getString(850)};
+        try {
+            const model=await session.network.flush();
+            if(token!==this.sequence)return false;
+            if(this.active()!==session){this.pendingClose=null;this.dialog=null;this.onCanceled();return false;}
+            this.syncNetwork(session,model);
+            if(closing)return this.finishClose(session);
+            this.dialog=null;return true;
+        }catch(error){
+            if(token===this.sequence){if(this.active()===session)this.dialog={kind:'status',message:require('./network-join.js').errorText(error)};
+                else{this.pendingClose=null;this.dialog=null;this.onCanceled();}}
+            return false;
+        }
     }
     beginOpen() {
         if(this.files.browser)return this.open();
@@ -42,7 +58,7 @@ class Documents {
         return this.save(name,dialog.saveAs);
     }
     async save(name,saveAs) {
-        const session=this.active(),token=++this.sequence;if(!session)return false;if(session.game.clientAdministrator)return this.status(1167);this.dialog={kind:'busy',operation:'save',message:I18n.getString(850)};
+        const session=this.active(),token=++this.sequence;if(!session)return false;if(session.game.clientAdministrator)return this.status(1167);if(session.game.clientPlayerNum)return saveAs || !session.network?this.status(1035):this.saveClient(session,this.pendingClose===session);this.dialog={kind:'busy',operation:'save',message:I18n.getString(850)};
         try {
             const text=Save.serialize(session.game),content=Save.contentSignature(session.game),reference=await this.files.save(text,name,session.file,saveAs);
             if(token!==this.sequence)return false;

@@ -16,8 +16,8 @@ cd /Users/edz/Documents/Personal/galactica-4
 Latest verified result with the current public/development native executables:
 
 ```text
-Total: 1801
-Passed: 1799 ✓
+Total: 1802
+Passed: 1800 ✓
 Failed: 2 ✗
 ```
 
@@ -1517,3 +1517,21 @@ Existing `test-network-writeback.js` and `test-network-orders.js` pass on both.
 Logs use `/private/tmp/galactica-client-writeback-{public,devel}` with `.log`,
 `-host.log`, `-orders.log` and `-unit.log` suffixes. Application scheduling and
 Save/Close/Quit integration remain separate unfinished work.
+
+
+## Application client Save/Close/Quit
+
+`./gad4 tools/test-client-documents.js` checks actual host persistence, failure
+retention, retry, delayed Quit, readiness isolation and localized partial-map
+Save As rejection. It passes on both native executables. Existing
+`tests/documents-close-async.js` and `tests/quit-documents-async.js` also pass on
+both. Current full suites report 1,800/1,802 with the two existing artwork failures.
+Native evidence uses `/private/tmp/galactica-client-documents-` log prefixes.
+
+Set `GALACTICA_TEST_WRITEBACK=1` when running `tools/test-web-network-orders.cjs`
+for the six-language selection/Save/Close workflow; pass `before` against the
+previous build to verify its Save refusal. Add
+`GALACTICA_TEST_WRITEBACK_ERROR=1` for controlled failed-Close feedback and retry.
+Screenshot evidence and pixel comparison metadata live under
+`/private/tmp/galactica-client-documents-ui`, with failed-Close captures under
+`/private/tmp/galactica-client-documents-errors`.

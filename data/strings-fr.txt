@@ -714,7 +714,7 @@
 1032	Hôte injoignable. Vérifiez son adresse et la connexion.
 1033	Précédent
 1034	Suivant
-1035	L’enregistrement des parties en réseau n’est pas encore disponible.
+1035	Enregistrer sous ne peut pas exporter la carte partielle d’une partie rejointe. Utilisez Enregistrer pour envoyer les modifications à l’hôte.
 1036	Ouvrez Fichier → Rejoindre pour vous reconnecter.
 
 # Multiplayer turn posting

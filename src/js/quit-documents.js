@@ -66,7 +66,7 @@ class QuitDocuments {
         if (this.documents.dialog && this.documents.dialog.kind === 'busy' && this.documents.dialog.operation === 'save') return true;
         const sessions = [...this.sessions.sessions];
         if (this.sessions.active && !sessions.includes(this.sessions.active)) sessions.push(this.sessions.active);
-        try { return sessions.some(session => !session.game.clientAdministrator && (!session.file || session.savedContent !== Save.contentSignature(session.game))); }
+        try { return sessions.some(session => !session.game.clientAdministrator && (session.game.clientPlayerNum && session.network ? !!session.network.pendingChanges || !!session.network.savePromise || session.network.hasUnsavedChanges() : !session.file || session.savedContent !== Save.contentSignature(session.game))); }
         catch (error) { return true; }
     }
 }

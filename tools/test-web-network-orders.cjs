@@ -33,7 +33,7 @@ let readyHost=false;for(let i=0;i<120;i++){if(fs.existsSync(infoFile)){readyHost
 const {url,gameId}=JSON.parse(fs.readFileSync(infoFile,'utf8'));
 const names={en:'Voyager',de:'Jäger',es:'Exploración',fr:'Éclaireur',ja:'航行者',ru:'Разведчик'},name=names[lang],password='秘密 Д';
 
-const wait=async(expression,label)=>{for(let i=0;i<160;i++){if(await evaluate(expression))return;await delay(100);}await check(expression,label);};
+const wait=async(expression,label)=>{for(let i=0;i<160;i++){if(await evaluate(expression))return;await delay(100);}await check(expression,label+' '+JSON.stringify(await evaluate('(()=>{const c=visual.getNetwork();return {networkError:visual.getSessions().active?.networkError,status:c?.status,revision:c?.model?.clientOrderRevision,dirty:c?.hasUnsavedChanges(),saving:!!c?.savePromise,flushing:!!c?.flushPromise,pending:!!c?.pendingChanges,selected:visual.getGame()?.selectedObject?.id}})()')));};
 const type=async text=>{for(const c of Array.from(text))await key(c);};
 const joinButton=action=>click('visual.getJoin().layout(800,600).buttons.find(b=>b.action==="'+action+'").rect');
 const field=async(name,text)=>{await click('visual.getJoin().layout(800,600).fields.find(f=>f.name==="'+name+'").rect');await type(text);};
@@ -59,6 +59,24 @@ await evaluate('visual.getDisplay().camera.setZoom(1.2);visual.getDisplay().came
 await point('({x:visual.getDisplay().toScreenX(home.x),y:visual.getDisplay().toScreenY(home.y)})');
 await click('visual.getDisplay().getContextButtonRegions().find(r=>r.action.type==="buildShip" && r.action.shipType==="colony").rect');await capture('joined-production');
 
+if(process.env.GALACTICA_TEST_WRITEBACK==='1'){
+ const baseline=process.argv[5]==='before';
+ await click('visual.getDisplay().getStarAllocationSliderRegions(home).find(s=>s.key==="growth").rect');await capture('draft-production');
+ await point('({x:20,y:250})');
+ if(!baseline){await wait('!visual.getNetwork().flushPromise && !visual.getNetwork().hasUnsavedChanges()', 'Selection writeback did not finish');await check('!visual.getGame().clientTurnPosted && visual.getGame().turn===1 && visual.getGame().clientOrderRevision>0','Selection save posted or lost revision');}
+ await capture('selection-save');await fileMenu();await decision('save');
+ if(baseline){await check('visual.getDocuments().dialog.kind==="status"','Baseline unexpectedly saved');await capture('document-save');await key('Escape');}
+ else{await wait('!visual.getDocuments().dialog','Document Save did not finish');await capture('document-save');
+ await evaluate('window.home=visual.getGame().stars.find(s=>s.owner===2);visual.getGame().setSelectedObject(home);void 0');
+ await click('visual.getDisplay().getStarAllocationSliderRegions(home).find(s=>s.key==="research").rect');await capture('before-close');
+ if(process.env.GALACTICA_TEST_WRITEBACK_ERROR==='1'){
+ await fileMenu();await evaluate('visual.getSessions().active.nextRefresh=Date.now()+60000;visual.getGame().stars.find(s=>s.owner===2).name+=" saved draft";window.realSend=nc.send.bind(nc);window.failDraft=true;nc.send=(endpoint,options)=>endpoint==="/changes" && failDraft?(failDraft=false,Promise.reject(Object.assign(new Error("fixture disk failure"),{code:"host_save_failed"}))):realSend(endpoint,options);void 0');
+ await decision('close');await wait('visual.getDocuments().dialog?.kind==="status"','Failed Close did not report error');await check('visual.getSessions().active.network===nc && visual.getGame().stars.find(s=>s.owner===2).name.endsWith(" saved draft") && !visual.getGame().clientTurnPosted','Failed Close discarded the document');await capture('close-failure');await key('Escape');
+ }
+ await fileMenu();await decision('close');
+ await wait('visual.getSessions().active===localSession','Close did not restore retained local game');await capture('after-close');await check('nc.model===null && !nc.session','Close did not disconnect');}
+ console.log('PASS application draft Save/selection/Close '+lang+' '+(baseline?'before':'after'));return;
+}
 await capture('before-turn-posting');
 // Set the target through the actual slider, then post through the actual map button.
 await click('visual.getDisplay().getStarAllocationSliderRegions(home).find(s=>s.key==="growth").rect');

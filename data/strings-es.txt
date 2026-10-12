@@ -714,7 +714,7 @@
 1032	No se pudo contactar al host. Revisa dirección y conexión.
 1033	Anterior
 1034	Siguiente
-1035	Aún no se pueden guardar partidas de red.
+1035	Guardar como no puede exportar el mapa parcial de una partida conectada. Usa Guardar para enviar los cambios al anfitrión.
 1036	Abre Archivo → Unirse para reconectar.
 
 # Multiplayer turn posting

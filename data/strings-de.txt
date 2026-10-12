@@ -714,7 +714,7 @@
 1032	Host nicht erreichbar. Adresse und Verbindung prüfen.
 1033	Zurück
 1034	Weiter
-1035	Netzwerkspiele können noch nicht gespeichert werden.
+1035	Speichern unter kann keine Teilkarte eines beigetretenen Spiels exportieren. Mit Speichern werden Änderungen an den Host gesendet.
 1036	Zum Wiederverbinden Datei → Beitreten öffnen.
 
 # Multiplayer turn posting

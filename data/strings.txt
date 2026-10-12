@@ -714,7 +714,7 @@
 1032	Could not reach the host. Check its address and connection.
 1033	Previous
 1034	Next
-1035	Saving joined network games is not yet available.
+1035	Save As cannot export a joined game’s partial map. Use Save to send changes to the host.
 1036	Open File → Join to reconnect.
 
 # Multiplayer turn posting
