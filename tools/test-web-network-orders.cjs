@@ -59,6 +59,26 @@ await evaluate('visual.getDisplay().camera.setZoom(1.2);visual.getDisplay().came
 await point('({x:visual.getDisplay().toScreenX(home.x),y:visual.getDisplay().toScreenY(home.y)})');
 await click('visual.getDisplay().getContextButtonRegions().find(r=>r.action.type==="buildShip" && r.action.shipType==="colony").rect');await capture('joined-production');
 
+
+if(process.env.GALACTICA_TEST_REPORTS==='1'){
+ const baseline=process.argv[5]==='before';await evaluate('visual.getSessions().active.nextRefresh=Date.now()+60000;window.cues=0;window.originalPresent=visual.getSound().present.bind(visual.getSound());visual.getSound().present=(...args)=>{const result=originalPresent(...args);if(result)cues++;return result;};void 0');
+ const blank=async()=>point('(()=>{const d=visual.getDisplay(),g=visual.getGame(),p=[{x:20,y:250},{x:750,y:220},{x:20,y:120}].find(p=>!d.getUIActionAt(p.x,p.y) && !g.findObjectAtPosition(p.x,p.y));if(!p)throw Error("No clear map point");return p;})()');
+ for(const [index,kind] of ['repair','commissioning','discovery','outcome'].entries()){
+  await point('visual.getDisplay().getMapMarker(visual.getGame().stars.find(s=>s.owner===2))');
+  await point('(()=>{const r=visual.getDisplay().getStarAllocationSliderRegions(visual.getGame().stars.find(s=>s.owner===2)).find(s=>s.key==="growth").rect;return {x:r.x+r.width*'+(.2+index*.15)+',y:r.y+r.height/2};})()');
+  await evaluate('window.ackReady=false;window.realSend=nc.send.bind(nc);window.ackGate=new Promise(r=>window.releaseAck=r);nc.send=async(endpoint,options)=>{const reply=await realSend(endpoint,options);if(endpoint==="/changes"){ackReady=true;await ackGate;}return reply;};void 0');await blank();await wait('ackReady','Save did not reach report gate');
+  await click('visual.getDisplay().getMapButtonRegions().find(r=>r.action.window==="events").rect');
+  await click('visual.getDisplay().getEventActionRegions().find(r=>r.action.type==="selectEvent" && r.action.event.'+kind+').rect');
+  await click('visual.getDisplay().getEventActionRegions().find(r=>r.action.type==="'+(kind==='outcome'?'replayOutcome':'replayReport')+'").rect');
+  await check('visual.getGame().overlay?.manual','Manual report did not open');
+  if(kind==='repair')await click('visual.getDisplay().getReportLayout(visual.getGame().overlay).buttons.find(r=>r.action.type==="reportPage" && r.action.page===1).rect');
+  await capture(kind+'-before-ack');await evaluate('window.review=visual.getGame().overlay;window.reviewPage=review.page;window.priorCues=cues;void 0');await evaluate('releaseAck();void 0');await wait('!nc.flushPromise','Report save did not finish');await evaluate('nc.send=realSend;void 0');await advanceClock(1000);
+  await check('!!visual.getGame().overlay==='+(!baseline),'Manual report refresh behavior wrong');
+  if(!baseline){await check('visual.getGame().overlay===review && review.page===reviewPage && cues===priorCues','Report restarted, changed page or replayed cue');await check('visual.getDisplay().get'+(kind==='outcome'?'Outcome':'Report')+'Layout(review).'+(kind==='outcome'?'title':'event.subject.game===visual.getGame()'),'Report reference missing');}
+  await capture(kind+'-after-ack');if(!baseline)await key('Escape');await check('!visual.getGame().overlay','Report dismissal failed');
+ }
+ console.log('PASS manual report acknowledgment continuity '+lang+' '+(baseline?'before':'after'));return;
+}
 if(process.env.GALACTICA_TEST_INTERACTION==='1'){
  const blank=async()=>point('(()=>{const d=visual.getDisplay(),g=visual.getGame(),p=[{x:20,y:250},{x:750,y:220},{x:20,y:120}].find(p=>!d.getUIActionAt(p.x,p.y) && !g.findObjectAtPosition(p.x,p.y));if(!p)throw Error("No clear map point");return p;})()');
  const baseline=process.argv[5]==='before';await evaluate('visual.getSessions().active.nextRefresh=Date.now()+60000;void 0');

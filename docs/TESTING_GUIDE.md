@@ -1619,3 +1619,28 @@ six target-before frames reflect the earlier accepted rename, and six Join
 frames contain different localhost ports. Before/after rename/target and final
 destination-click sheets were reviewed in all six languages. Manual report
 overlay continuity and late-turn decision recovery remain separate open work.
+
+
+## Manual report review during writeback
+
+`./gad4 tools/test-client-reports.js` delays actual HTTP receipts while reviewing
+reports, outcomes, owner Lab/Stardock presentations, then verifies page and live
+entity identity and a single cue. It also checks authoritative population
+refresh and cancellation when the host no longer supplies the report. Both
+native runtimes pass; complete suites pass **1,816/1,816** with six added report
+continuity cases, including older explicitly shown held reports and no restarted
+explosion after Display replacement. Automated audio remains muted.
+
+Use `GALACTICA_TEST_REPORTS=1 node tools/test-web-network-orders.cjs BUILD_DIR
+SCREENSHOT_DIR LANGUAGE [before]` for actual Events controls, paging and delayed
+save acknowledgments against the native fixture host. The `before` argument
+checks the original disappearance. Fixture reports/artwork are opt-in and do
+not affect normal hosting tests. Late-turn draft recovery remains separate.
+
+All six browser languages pass before/after. The 72 common pairs include 42
+exact frames, 24 intended report-retention changes and six localhost-port
+changes. All six four-family before/after sheets were reviewed. Art references
+use the selected replacement assets. Evidence: `/private/tmp/galactica-report-ui`
+(including comparisons.json and `*-final-review.png`). A transient Japanese
+localhost failure is archived separately; the affected final lane was rerun
+successfully without changing the connection timeout.

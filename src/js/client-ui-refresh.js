@@ -48,4 +48,28 @@ function preserve(old,fresh){
  for(const event of old.eventLog){if(event.id<0)ordered.push({...event,subject:clone(event.subject)});else if(reports.has(event.id)){ordered.push(reports.get(event.id));reports.delete(event.id);}}
  fresh.eventLog=ordered.concat([...reports.values()]);
 }
-module.exports={preserve};
+// Retain live presentation identity: Sound's WeakMap uses it to prevent a
+// second cue. Rebinding references does not reopen/focus or restart the report.
+function preserveManualReports(old,fresh){
+ if(!old.overlay?.manual && !(old.overlayQueue || []).some(row=>row.manual))return;
+ if(!old.clientGameId || old.clientGameId!==fresh.clientGameId || old.clientPlayerNum!==fresh.clientPlayerNum || old.turn!==fresh.turn || !fresh.shouldShowEventWindows())return;
+ // An explicitly shown held report may be older than the Events list window.
+ const rows=new Map(fresh.eventLog.filter(event=>fresh.isEventAccessible(event)).map(event=>[event.id,event]));
+ const valid=overlay=>{
+  if(!overlay?.manual)return false;
+  const event=rows.get(overlay.eventId);if(!event)return false;
+  return overlay.type==='report'?fresh.hasReplayableReport(event):overlay.type==='outcome'?!!event.outcome:
+   overlay.type==='lab'?!!event.discovery && !event.observer:overlay.type==='stardock'?!!event.commissioning && !event.observer:false;
+ };
+ const active=valid(old.overlay)?old.overlay:null,queued=(old.overlayQueue || []).filter(valid);
+ if(!active && !queued.length)return;
+ const retained=[active,...queued].filter(Boolean),same=(a,b)=>a.eventId===b.eventId && a.type===b.type;
+ for(const overlay of retained)for(const field of ['ship','origin'])if(overlay[field]){
+  const list=Object.values(families).find(list=>old[list].includes(overlay[field]));
+  overlay[field]=list?fresh[list].find(entity=>entity.id===overlay[field].id) || null:null;
+ }
+ const incoming=[fresh.overlay,...fresh.overlayQueue].filter(overlay=>overlay && !retained.some(row=>same(row,overlay)));
+ if(active){fresh.overlay=active;fresh.overlayQueue=queued.concat(incoming);}
+ else {fresh.overlay=incoming.shift() || null;fresh.overlayQueue=queued.concat(incoming);if(!fresh.overlay)fresh.showEventOverlay(fresh.overlayQueue.shift());}
+}
+module.exports={preserve,preserveManualReports};

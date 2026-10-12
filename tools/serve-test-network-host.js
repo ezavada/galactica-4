@@ -5,7 +5,13 @@ const {NetworkHost}=require('../src/js/network-host.js');let host,malformedInfo=
 (async()=>{
  host=NetworkHost.create({numHumans:2,numComputers:0,sectorSize:1,density:1,...(process.env.GALACTICA_TEST_TIMED?{maxTimePerTurn:172800,endEarly:false}:{})},process.env.GALACTICA_TEST_HOST_FILE);
  host.login.login({protocol:1,mode:'join',name:'First'});if(process.env.GALACTICA_TEST_REQUIRE_CODE)host.updateAdmission({allowWithoutCode:false,allowed:['ALLOW'],banned:[]},host.game.config.networkHost.admissionRevision || 0);const home=host.game.stars.find(s=>s.owner===2),ship=host.game.factory.createShip(home.x,home.y,'scout',home,true);ship.name='Voyager';home.ships.push(ship);
- host.game.eventLog=[];host.game.overlay=null;host.game.overlayQueue=[];host.game.attention.queue=[];if(process.env.GALACTICA_TEST_TIMED){host.game.turn=2;host.clock.reset(host.game,false);host.clock.remainingMs=315000;host.clock.pause();}host.persist();
+ host.game.eventLog=[];host.game.overlay=null;host.game.overlayQueue=[];host.game.attention.queue=[];if(process.env.GALACTICA_TEST_TIMED){host.game.turn=2;host.clock.reset(host.game,false);host.clock.remainingMs=315000;host.clock.pause();}if(process.env.GALACTICA_TEST_REPORTS==='1'){
+  host.game.recordCommissioningReports(ship,1);host.game.recordDiscoveryReports(home,1);
+  const report=host.game.recordEvent(pdg.res.getString(602),Array(45).fill(pdg.res.getString(572)).join('\n'),{subject:home,recipient:2});report.repair={name:ship.name,fleet:false};
+  const outcome=host.game.recordEvent(pdg.res.getString(614),'',{recipient:2});host.game.queueOutcome(outcome,'win',2);
+  for(const event of host.game.eventLog)event.handled=true;host.game.clearEventPresentations();
+ }
+ host.persist();
  let dropOrdersResponse=false;const normal=host.handle.bind(host);host.handle=(req,res)=>{
   if(req.url==='/test/context-update' && process.env.GALACTICA_TEST_CONTEXT==='1'){
    const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'};

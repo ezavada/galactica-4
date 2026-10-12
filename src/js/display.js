@@ -4253,6 +4253,11 @@ class Display {
         }
     }
 
+    continueManualReport(previous) {
+        if(this.game.overlay?.manual && this.game.overlay===previous.game.overlay)
+            this.destructionStarts=previous.destructionStarts;
+    }
+
     automaticNoticeWaiting(overlay) {
         if(!overlay.animationOnly || overlay.manual)return false;
         const now=this.game.getCurrentMilliseconds();

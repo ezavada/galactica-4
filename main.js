@@ -150,7 +150,7 @@ function replaceNetworkModel(session,model){
         focused:require('./src/js/network-turn-attention.js').applicationFocused()});
     if(session.game===model)return;
     const sameTurn=session.game.turn===model.turn && session.game.clientGameId===model.clientGameId && session.game.clientPlayerNum===model.clientPlayerNum;
-    attachGameServices(model,{preserveInteraction:sameTurn});const previous=session.display,nextDisplay=new Display(model);if(sameTurn)nextDisplay.hoverPoint=previous.hoverPoint;session.game=model;session.display=nextDisplay;
+    attachGameServices(model,{preserveInteraction:sameTurn});const previous=session.display,nextDisplay=new Display(model);if(sameTurn){nextDisplay.hoverPoint=previous.hoverPoint;nextDisplay.continueManualReport(previous);}session.game=model;session.display=nextDisplay;
     if(sessions.active===session && !sessions.transient){if(!sessions.starting && !sameTurn)clearSessionInput(true);game=model;display=nextDisplay;autoplayController=null;}
     previous.dispose();
 }

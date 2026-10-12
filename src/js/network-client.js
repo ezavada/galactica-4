@@ -59,6 +59,7 @@ function preservePresentation(old,fresh){
  for(const event of fresh.eventLog)if(handled.has(event.id))event.handled=true;
  for(const entry of fresh.attention.queue)if(entry.event && entry.event.handled)entry.handled=true;
  if(fresh.holdGameReports){const overlays=[fresh.overlay,...fresh.overlayQueue].filter(Boolean);fresh.overlay=null;fresh.overlayQueue=[];for(const row of overlays){const event=fresh.eventLog.find(event=>event.id===row.eventId);if(!event?.handled)fresh.queueEventOverlay(row);}}
+ require('./client-ui-refresh.js').preserveManualReports(old,fresh);
 }
 class NetworkClient {
  constructor(address,{timeout=8000,request=HTTP.request}={}){

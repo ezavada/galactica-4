@@ -16,6 +16,51 @@ function fixture(fn){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-c
 const get=(client,kind,e)=>client[kind].find(row=>row.id===e.id);
 function rejects(fn){let caught=false;try{fn();}catch(error){caught=error.message==='invalid_player_state';}test.assertTrue(caught);}
 module.exports=()=>test.describe('Visibility-limited multiplayer client model',()=>{
+ test.it('continues manual reports on their page and plays the cue only once across projection replacement',()=>fixture(({game,own,state})=>{
+  const event=game.recordEvent('Report','Body',{subject:own,recipient:2});event.repair={name:own.name,fleet:false};
+  const old=Client.restore(state());test.assertTrue(old.replayReport(old.eventLog.find(e=>e.id===event.id)));old.overlay.page=3;const overlay=old.overlay,started=overlay.createdAt;
+  let cues=0;const sound=require('../src/js/sound.js').createSound({getSound:()=>({setLooping(){},setVolume(){},start(){cues++;},stop(){}})},{readSound:()=>true,writeSound(){}},()=>0);
+  sound.present(old,overlay,false);test.assertEqual(cues,1);
+  const fresh=Client.restore(state());require('../src/js/network-client.js').preservePresentation(old,fresh);
+  test.assertTrue(fresh.overlay===overlay);test.assertEqual(fresh.overlay.page,3);test.assertEqual(fresh.overlay.createdAt,started);test.assertTrue(fresh.eventLog.find(e=>e.id===event.id).subject===get(fresh,'stars',own));
+  sound.present(fresh,fresh.overlay,false);test.assertEqual(cues,1);
+ }));
+ test.it('continues manual owner art and queued reports with fresh references and no duplicate incoming copy',()=>fixture(({game,own,ship,state})=>{
+  const event=game.recordEvent('Class','Commissioned',{subject:ship,recipient:2});event.commissioning={owner:2,classIndex:1,shipType:'scout'};
+  const message=game.recordEvent('Message','Hello',{recipient:2});message.playerMessage={sender:1,name:'First',text:'Hello'};
+  const old=Client.restore(state());old.clearEventPresentations();old.showEventOverlay({type:'stardock',manual:true,eventId:event.id,ship:get(old,'allShips',ship),origin:get(old,'stars',own),classIndex:1});old.queueReport(old.eventLog.find(e=>e.id===message.id),false,true);
+  const active=old.overlay;const fresh=Client.restore(state());require('../src/js/network-client.js').preservePresentation(old,fresh);
+  test.assertTrue(fresh.overlay===active);test.assertTrue(active.ship===get(fresh,'allShips',ship));test.assertTrue(active.origin===get(fresh,'stars',own));test.assertEqual(fresh.overlayQueue.length,1);test.assertEqual(fresh.overlayQueue[0].eventId,message.id);test.assertTrue(fresh.overlayQueue[0].manual);
+  fresh.dismissEventPresentation();test.assertTrue(fresh.overlay.manual);test.assertEqual(fresh.overlay.eventId,message.id);
+ }));
+ test.it('drops missing or newly hidden manual reports and does not carry them across game, viewer or turn changes',()=>fixture(({game,enemy,state})=>{
+  enemy.setVisibilityTo(2,4);const event=game.recordEvent('Enemy','Observed',{subject:enemy,recipient:2});event.observer=true;event.repair={name:enemy.name,fleet:false};
+  const old=Client.restore(state());test.assertTrue(old.replayReport(old.eventLog.find(e=>e.id===event.id)));
+  enemy.setVisibilityTo(2,0);let fresh=Client.restore(state());require('../src/js/network-client.js').preservePresentation(old,fresh);test.assertNull(fresh.overlay);
+  enemy.setVisibilityTo(2,4);game.eventLog=[];fresh=Client.restore(state());require('../src/js/network-client.js').preservePresentation(old,fresh);test.assertNull(fresh.overlay);
+  game.eventLog=[event];for(const change of [m=>m.clientGameId='other',m=>m.clientPlayerNum=1,m=>m.turn++]){fresh=Client.restore(state());change(fresh);require('../src/js/client-ui-refresh.js').preserveManualReports(old,fresh);test.assertNull(fresh.overlay);}
+ }));
+ test.it('continues manual outcomes and Lab review but leaves automatic playback separate',()=>fixture(({game,own,state})=>{
+  const event=game.recordEvent('Outcome','Win',{recipient:2});event.outcome={kind:'win',playerNum:2,name:'Second',turn:1};
+  const old=Client.restore(state());test.assertTrue(old.replayOutcome(old.eventLog.find(e=>e.id===event.id)));old.overlay.page=1;
+  let fresh=Client.restore(state());require('../src/js/network-client.js').preservePresentation(old,fresh);test.assertTrue(fresh.overlay===old.overlay);test.assertEqual(fresh.overlay.page,1);
+  const lab=game.recordEvent('Lab','Discovery',{subject:own,recipient:2});lab.discovery={owner:2,classIndex:2};old.eventLog=Client.restore(state()).eventLog;old.showEventOverlay({type:'lab',manual:true,eventId:lab.id,origin:get(old,'stars',own)});
+  fresh=Client.restore(state());require('../src/js/network-client.js').preservePresentation(old,fresh);test.assertEqual(fresh.overlay.type,'lab');test.assertTrue(fresh.overlay.origin===get(fresh,'stars',own));
+  old.overlay.manual=false;fresh=Client.restore(state());require('../src/js/network-client.js').preservePresentation(old,fresh);test.assertNull(fresh.overlay);
+ }));
+ test.it('continues explicitly shown older held reports and starts a retained queued manual report when needed',()=>fixture(({game,own,state})=>{
+  const first=game.recordEvent('Held','First',{subject:own,recipient:2});first.repair={name:own.name,fleet:false};
+  const second=game.recordEvent('Held','Second',{subject:own,recipient:2});second.repair={name:own.name,fleet:false};game.turn=4;
+  const old=Client.restore(state());old.toggleHoldGameReports();for(const event of old.eventLog.filter(e=>e.repair))old.queueReport(event);test.assertTrue(old.showPendingGameReports());const active=old.overlay;
+  let fresh=Client.restore(state());require('../src/js/network-client.js').preservePresentation(old,fresh);test.assertTrue(fresh.overlay===active);test.assertEqual(fresh.overlayQueue.length,1);test.assertTrue(fresh.holdGameReports);fresh.dismissEventPresentation();test.assertEqual(fresh.overlay.eventId,second.id);
+  old.overlay.manual=false;fresh=Client.restore(state());require('../src/js/network-client.js').preservePresentation(old,fresh);test.assertEqual(fresh.overlay.eventId,second.id);test.assertTrue(fresh.overlay.manual);test.assertEqual(fresh.overlayQueue.length,0);
+ }));
+ test.it('does not restart a manual destruction animation when its display is replaced',()=>fixture(({game,own,state,display})=>{
+  const event=game.recordEvent('Destruction','Lost',{subject:own,recipient:2});event.destruction={side:'loser'};
+  const old=Client.restore(state()),before=display(old);old.replayReport(old.eventLog.find(e=>e.id===event.id));before.visualTime=1000;test.assertNotNull(before.getDestructionEffect(old.overlay,true));before.visualTime=2000;test.assertNull(before.getDestructionEffect(old.overlay,true));
+  const fresh=Client.restore(state());require('../src/js/network-client.js').preservePresentation(old,fresh);const after=display(fresh);after.continueManualReport(before);after.visualTime=2000;test.assertNull(after.getDestructionEffect(fresh.overlay,true));
+ }));
+
  test.it('keeps local client reports distinct from future authoritative host report IDs',()=>fixture(({state})=>{
   const client=Client.restore(state()),nextId=client.nextEventId+1,local=client.recordEvent('Orders','Local edit');local.handled=true;
   test.assertTrue(local.id<0);test.assertEqual(client.nextEventId,nextId-1);

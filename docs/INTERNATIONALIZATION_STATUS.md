@@ -618,3 +618,18 @@ rename/target sheets and final target-click sheets were visually reviewed.
 Native interaction and existing client lanes pass on both runtimes; both full
 suites pass 1,810/1,810. Manual report and turn-boundary recovery remain separate
 requirements rather than being certified by these editor checks.
+
+
+### Manual report refresh continuity
+
+No runtime strings or resource IDs change. Manual report, outcome and owner
+class-art review uses the existing translations and selected replacement art.
+The browser fixture builds its paged test narrative from existing localized
+strings. Native report receipt/refresh checks pass on both runtimes; full suites
+pass 1,816/1,816. These checks do not certify the remaining window audits or
+turn-boundary draft recovery.
+
+Actual Events controls, paging and saved-receipt continuity pass in all six
+languages. All-six-language paged narrative, Stardock/Lab and outcome
+before/after sheets were reviewed with the selected artwork; translated
+controls and wrapping fit. Evidence: `/private/tmp/galactica-report-ui`.
