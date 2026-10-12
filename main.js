@@ -283,11 +283,11 @@ function foregroundApplicationWindow(){
     if(networkHosting.active){const layout=networkHosting.layout(width,height);return {name:'networkHosting',rect:layout.rect,titleHeight:layout.titleHeight};}
     if(networkJoin.active){const layout=networkJoin.layout(width,height);return {name:'networkJoin',rect:layout.rect,titleHeight:layout.titleHeight};}
     if(userManual.error())return {name:'manualError',rect:userManual.layout(width,height,(text,size=13)=>port.getTextWidth(text,size)).rect};
-    if(documents.dialog)return {name:documents.dialog.kind==='editor'?'textEntry':'documents',rect:documents.dialog.kind==='editor'?PlayerName.layout(width,height).rect:documents.layout(width,height).rect};
+    if(documents.dialog)return {name:documents.dialog.kind==='editor'?'textEntry':'documents',rect:documents.layout(width,height).rect};
     if(startupSettings.active)return null;
     if(sessions.starting || !game){
         if(startupAISkill)return {name:'startupSkill',rect:StartupSetup.skillMenu(width,height,pendingConfig).rect};
-        if(startupComputerCount || startupGameTitle || startupPlayerName)return {name:'textEntry',rect:PlayerName.layout(width,height).rect};
+        if(startupComputerCount || startupGameTitle || startupPlayerName)return {name:'textEntry',rect:startupTextLayout().rect};
         return {name:'startup',rect:StartupSetup.panelRect(width,height)};
     }
     return null;
@@ -402,20 +402,36 @@ function submitGameTitle() {
     startupGameTitle=null;
 }
 
+function startupTextLabels() {
+    if(startupComputerCount)return {title:I18n.getString(829,'Computer opponents'),prompt:I18n.formatString(830,'Enter the number of opponents (0–{0}).',99-pendingConfig.numHumans),error:I18n.formatString(831,'Enter a whole number from 0 to {0}.',99-pendingConfig.numHumans),submit:I18n.getString(682,'Save')};
+    if(startupGameTitle)return {title:I18n.getString(825,'Game title'),prompt:I18n.getString(826,'Enter a game title.'),error:I18n.getString(827,'Enter a title before saving.'),submit:I18n.getString(682,'Save')};
+    if(startupPlayerName)return {title:I18n.getString(822,'Player name'),prompt:I18n.getString(823,'Enter your player name.'),error:I18n.getString(824,'Enter a name before starting.'),submit:I18n.getString(528,'<Enter> Start')};
+}
+function startupTextLayout() {
+    const area=port.getDrawingArea();return PlayerName.layout(area.width(),area.height(),startupTextLabels().submit,(text,size)=>port.getTextWidth(text,size));
+}
+
 function drawStartupTextDialog(editor,labels) {
-    const area=port.getDrawingArea(),layout=PlayerName.layout(area.width(),area.height(),labels.submit),{rect,field}=layout;
+    const area=port.getDrawingArea(),layout=PlayerName.layout(area.width(),area.height(),labels.submit,(text,size)=>port.getTextWidth(text,size)),{rect,field}=layout;
     port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),labels.dim?startupStyles.dim:startupStyles.background);
     PanelAppearance.applySystemSurface(startupStyles.panel,rect);drawStartupRoundedRect(rect,14,startupStyles.panel);
     startupStyles.subtitleText.textSize(16);startupStyles.lineText.textSize(14);startupStyles.hintText.textSize(12);startupStyles.advantageText.textSize(13);
-    port.drawText(labels.title,new pdg.Point(rect.x+rect.width/2,rect.y+40),startupStyles.subtitleText);
-    port.drawText(labels.prompt,new pdg.Point(rect.x+24,rect.y+78),startupStyles.lineText);
+    if(layout.compact){
+        const wrap=require('./src/js/text-wrapping.js');startupStyles.subtitleText.textSize(14);startupStyles.lineText.textSize(12);startupStyles.hintText.textSize(10);
+        wrap(labels.title,rect.width-48,text=>port.getTextWidth(text,14)).forEach((line,i)=>port.drawText(line,new pdg.Point(rect.x+rect.width/2,rect.y+24+i*16),startupStyles.subtitleText));
+        wrap(labels.prompt,rect.width-48,text=>port.getTextWidth(text,12)).forEach((line,i)=>port.drawText(line,new pdg.Point(rect.x+24,rect.y+52+i*14),startupStyles.lineText));
+    }else{
+        port.drawText(labels.title,new pdg.Point(rect.x+rect.width/2,rect.y+40),startupStyles.subtitleText);
+        port.drawText(labels.prompt,new pdg.Point(rect.x+24,rect.y+78),startupStyles.lineText);
+    }
     drawStartupRoundedRect(field,6,startupStyles.advantageButton);
     const visible=PlayerName.visibleText(editor,field.width-24,text=>port.getTextWidth(text,14));
     if(editor.selected)drawStartupRoundedRect({x:field.x+9,y:field.y+5,width:Math.min(field.width-18,port.getTextWidth(visible.text,14)+6),height:26},3,startupStyles.advantageButtonActive);
-    port.drawText(visible.text,new pdg.Point(field.x+12,field.y+24),startupStyles.lineText);
+    startupStyles.lineText.textSize(14);port.drawText(visible.text,new pdg.Point(field.x+12,field.y+24),startupStyles.lineText);
     if(!editor.selected)port.drawLine(new pdg.Point(field.x+12+visible.caret,field.y+7),new pdg.Point(field.x+12+visible.caret,field.y+28),startupStyles.divider);
-    port.drawText(editor.error?labels.error:'',new pdg.Point(rect.x+24,rect.y+178),startupStyles.hintText);
-    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,13,button.key);}
+    if(layout.compact)require('./src/js/text-wrapping.js')(editor.error?labels.error:'',rect.width-48,text=>port.getTextWidth(text,10)).forEach((line,i)=>port.drawText(line,new pdg.Point(rect.x+24,field.y+field.height+16+i*12),startupStyles.hintText));
+    else port.drawText(editor.error?labels.error:'',new pdg.Point(rect.x+24,rect.y+178),startupStyles.hintText);
+    for(const button of layout.buttons){drawStartupRoundedRect(button.rect,7,startupStyles.advantageButton);drawStartupButtonCaption(button.rect,button.label,startupStyles.advantageText,layout.buttonSize || 13,button.key);}
 }
 
 function drawNetworkTurnNotice(){
@@ -547,9 +563,7 @@ function drawStartupSkillMenu() {
 
 function drawStartupDialog() {
     if(startupAISkill){drawStartupSkillMenu();return;}
-    if(startupComputerCount){drawStartupTextDialog(startupComputerCount,{title:I18n.getString(829,'Computer opponents'),prompt:I18n.formatString(830,'Enter the number of opponents (0–{0}).',99-pendingConfig.numHumans),error:I18n.formatString(831,'Enter a whole number from 0 to {0}.',99-pendingConfig.numHumans),submit:I18n.getString(682,'Save')});return;}
-    if(startupGameTitle){drawStartupTextDialog(startupGameTitle,{title:I18n.getString(825,'Game title'),prompt:I18n.getString(826,'Enter a game title.'),error:I18n.getString(827,'Enter a title before saving.'),submit:I18n.getString(682,'Save')});return;}
-    if(startupPlayerName){drawStartupTextDialog(startupPlayerName,{title:I18n.getString(822,'Player name'),prompt:I18n.getString(823,'Enter your player name.'),error:I18n.getString(824,'Enter a name before starting.'),submit:I18n.getString(528,'<Enter> Start')});return;}
+    if(startupComputerCount || startupGameTitle || startupPlayerName){drawStartupTextDialog(startupComputerCount || startupGameTitle || startupPlayerName,startupTextLabels());return;}
 
     const drawingArea = port.getDrawingArea();
     const screenWidth = drawingArea.width();
@@ -652,7 +666,7 @@ function drawStartupControlHelp() {
         regions.push({rect:layout.cancel,action:{type:'cancel'}});
     } else if (startupComputerCount || startupGameTitle || startupPlayerName) {
         scope=startupComputerCount?'count':startupGameTitle?'title':'name';
-        const layout=PlayerName.layout(screen.width,screen.height,I18n.getString(682,'Save'));
+        const layout=startupTextLayout();
         regions=layout.buttons.map(b=>({rect:b.rect,action:{type:b.action==='cancel'?'cancel':'submit'}}));
         regions.push({rect:layout.field,action:{type:startupComputerCount?'startupCount':startupGameTitle?'startupTitle':'startupName'}});
     } else regions=StartupSetup.helpRegions(screen.width,screen.height,pendingConfig,!!sessions.active).filter(r=>r.action.type!=='startTutorial' || !tutorialSession);
@@ -983,7 +997,7 @@ function drawManualFailure() {
 function drawDocumentDialog() {
     const dialog=documents.dialog;if(!dialog)return;
     if(dialog.kind==='editor') {
-        drawStartupTextDialog(dialog.editor,{title:I18n.getString(dialog.operation==='save'?840:841),prompt:I18n.getString(documents.files.browser?844:843),error:dialog.error?I18n.getString(dialog.operation==='save'?845:846):'',submit:I18n.getString(dialog.operation==='save'?839:841),dim:!!game});return;
+        drawStartupTextDialog(dialog.editor,{...documents.editorLabels(),dim:!!game});return;
     }
     const area=port.getDrawingArea(),layout=documents.layout(area.width(),area.height()),r=layout.rect;
     port.drawRect(new pdg.Rect(0,0,area.width(),area.height()),startupStyles.dim);
@@ -1196,7 +1210,7 @@ const mouseHandler = new pdg.IEventHandler(function(event) {
             }
             if(startupComputerCount || startupGameTitle || startupPlayerName) {
                 const count=!!startupComputerCount,title=!!startupGameTitle,editor=startupComputerCount || startupGameTitle || startupPlayerName;
-                const layout=PlayerName.layout(area.width(),area.height()),x=event.mousePos.x,y=event.mousePos.y;
+                const layout=startupTextLayout(),x=event.mousePos.x,y=event.mousePos.y;
                 const contains=r=>x>=r.x && x<=r.x+r.width && y>=r.y && y<=r.y+r.height;
                 const button=layout.buttons.find(button=>contains(button.rect));
                 if(button && button.action==='submit'){if(count)submitComputerCount();else if(title)submitGameTitle();else submitPlayerName();}

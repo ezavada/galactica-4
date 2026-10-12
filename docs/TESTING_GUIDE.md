@@ -1713,3 +1713,20 @@ input delivery. Six languages pass, and all final narrow/short comparison sheets
 were inspected. Six wide frames are pixel-identical. Full suites pass 1,827/1,827
 on both native runtimes. Evidence: `/private/tmp/galactica-system-ships-ui` and
 `/private/tmp/galactica-system-ships-{devel,public}-unit-` logs.
+
+
+### Short-height shared text entry
+
+Use `node tools/test-web-short-entry.cjs BUILD_DIR OUTPUT_DIR LANGUAGE [before]`
+with `GALACTICA_ENTRY_WIDTH` and `GALACTICA_ENTRY_HEIGHT` fixed before startup.
+The six-language matrix covers 800×600, 800×240 and 320×240: actual count/title/
+player-name entry, invalid values and mouse submission/cancellation, then blank
+Save As validation/Cancel and unchanged map. Baseline compact acceptance uses
+Enter because its submit button is outside the port. Set `GALACTICA_ENTRY_DRAG=1`
+to additionally verify bounded persisted title dragging and outside-click clunk.
+Chrome remains muted; queued input must be followed by an application draw.
+Both full native suites pass 1,828/1,828. All six narrow before/after sheets and
+the short-height sheet were reviewed; all 42 ordinary-height and 12 compact
+final-map comparisons are exact. Evidence: `/private/tmp/galactica-short-entry-ui`
+and `/private/tmp/galactica-short-entry-` logs. The historical short-height name
+workaround in the system-list fixture is no longer required by current code.

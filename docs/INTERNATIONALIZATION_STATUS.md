@@ -673,3 +673,17 @@ Close/Esc and selected-row identity. Inspected before/after sheets are under
 `/private/tmp/galactica-system-ships-ui`; six wide-table frames are pixel-identical.
 Both full native suites pass 1,827/1,827. Other compact inspectors/lists,
 short-height startup text entry and the complete help/manual audit remain open.
+
+
+### Short-height shared text entry
+
+Existing en/de/es/fr/ja/ru count, game-title, player-name and filename labels,
+validation messages and Cancel/Esc/Submit/Enter captions are measured and wrapped
+in compact editors. No new resource IDs or runtime strings. Six-language real
+input covers valid count/title/name saves, invalid count/name/file feedback,
+mouse acceptance and cancellation, at ordinary, short and narrow sizes. All six
+narrow and short screenshot sheets were inspected. All 42 ordinary frames and
+12 compact final-map frames are exact. Both complete native suites pass
+1,828/1,828. Evidence: `/private/tmp/galactica-short-entry-ui`. This resolves the
+previous short-height startup text-entry gap; broader gameplay window and
+help/manual localization audits remain open.

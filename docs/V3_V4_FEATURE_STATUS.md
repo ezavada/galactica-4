@@ -72,7 +72,7 @@ Full parity is still unproven. The current open work is:
    audit remains to be completed after the parity items above are implemented or
    explicitly documented as blocked.
 
-The latest full-suite evidence is **1,827 passing tests, zero failures** on each
+The latest full-suite evidence is **1,828 passing tests, zero failures** on each
 current public and development native executable. Artwork tests now validate the
 selected replacements and archived provenance; the previous two failures are
 resolved. This supports the tested paths and does not certify all UI, external
@@ -8570,3 +8570,37 @@ chrome audit. At 320×240, the startup name dialog's stacked submit button lies
 outside the port; the fixture accepts the name with its actual Enter shortcut.
 That text-entry layout needs its own correction and six-language input review,
 alongside remaining gameplay inspectors/lists and hosting/network feedback.
+
+
+### Short-height shared text-entry audit
+
+The preceding 320×240 startup-name blocker is resolved. The shared editor now
+uses a bounded short-height surface, 32px input and complete measured command
+rows, stacking when needed. Titles, prompts and validation text wrap at compact
+sizes; Cancel/Esc and Submit/Enter stay visible and clickable. Startup player
+name, game title and opponent-count controls use one label/layout source for
+rendering, help, title dragging and clicks. Document Save As/native Open editors
+also share their labels and actual text measurement with their hit regions.
+Ordinary-height layout remains unchanged.
+
+The v3 name limit remains 32 (`Classes/GalacticaConsts.h:59`), with the existing
+editable field/name validation and configuration behavior retained; v3's
+`GalacticaClient.cpp:50–54` likewise bounds copied player names. No new game rules,
+resource IDs, art or engine changes. This fixes v4's constrained dialog controls,
+not a new v3 gameplay feature.
+
+Both complete native suites pass **1,828/1,828**. The muted actual-input fixture
+`tools/test-web-short-entry.cjs` passes before/after at 800×600, 800×240 and
+320×240 in en/de/es/fr/ja/ru: invalid count/name/file feedback, valid count/title/
+name submission, actual mouse Save/Start and Cancel, and return to the unchanged
+map. Six narrow before/after sheets and the six-language short sheet were
+inspected. Of 126 common frames, 54 are exact: all 42 ordinary-height dialog/map
+frames and all 12 compact final-map frames. The remaining 72 are intended compact
+editor changes. A separate actual-input English lane verifies bounded persisted
+title dragging and outside-click clunk/blocking. Evidence:
+`/private/tmp/galactica-short-entry-ui/comparison-metadata.json`, `*-review.png`,
+`en-drag/name-dragged.png` and `/private/tmp/galactica-short-entry-` logs.
+
+The broader compact gameplay tables/inspectors, remaining hosting/network
+feedback, complete help/manual localization, preference/source-edge and final
+Map Generation audits remain open.

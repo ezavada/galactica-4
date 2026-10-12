@@ -112,9 +112,13 @@ class Documents {
         if(key===13 || key===3){if(dialog.kind==='close')this.beginSave();else if(dialog.kind==='revert')this.revert();else if(dialog.kind==='overwrite')this.save(dialog.name,true);else if(dialog.kind==='status')this.cancel();}
         return true;
     }
+    editorLabels() {
+        const dialog=this.dialog;
+        return {title:I18n.getString(dialog.operation==='save'?840:841),prompt:I18n.getString(this.files.browser?844:843),error:dialog.error?I18n.getString(dialog.operation==='save'?845:846):'',submit:I18n.getString(dialog.operation==='save'?839:841)};
+    }
     layout(width,height,measure=this.measure || ((text,size)=>Array.from(String(text)).length*size/2)) {
         const dialog=this.dialog;if(!dialog)return null;
-        if(dialog.kind==='editor')return Name.layout(width,height,dialog.operation==='save'?I18n.getString(839):I18n.getString(841));
+        if(dialog.kind==='editor')return Name.layout(width,height,this.editorLabels().submit,measure);
         const dialogHeight=dialog.kind==='menu'?Math.min(384,height-20):300,rect={x:(width-Math.min(480,width-40))/2,y:(height-dialogHeight)/2,width:Math.min(480,width-40),height:dialogHeight};
         let title=I18n.getString(838),message=dialog.message || '',buttons=[];
         if(dialog.kind==='menu'){

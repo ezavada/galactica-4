@@ -55,6 +55,15 @@ module.exports=()=>test.describe('New game player name',()=>{
    }
   }}finally{pdg.res.setLanguage(old);}
  });
+ test.it('keeps short-height entry fields and complete measured action hints inside the port',()=>{
+  const Caption=require('../src/js/button-caption.js'),old=pdg.res.getLanguage(),measure=(text,size)=>pdg.gfx.getMainPort()?pdg.gfx.getMainPort().getTextWidth(text,size):Array.from(String(text)).length*size/2;
+  try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);for(const width of [320,480,800])for(const id of [528,682,839,841]){
+   const l=Name.layout(width,240,I18n.getString(id),measure);test.assertTrue(l.compact);
+   for(const r of [l.rect,l.field,...l.buttons.map(b=>b.rect)])test.assertTrue(r.x>=0 && r.y>=0 && r.x+r.width<=width && r.y+r.height<=240);
+   test.assertTrue(l.field.y+l.field.height<l.footerTop);for(const b of l.buttons)test.assertTrue(b.rect.width>=Caption.width(b.label,b.key,measure,{size:l.buttonSize})+12);
+   const [a,b]=l.buttons.map(b=>b.rect);test.assertTrue(a.x+a.width<=b.x || a.y+a.height<=b.y);
+  }}}finally{pdg.res.setLanguage(old);}
+ });
  test.it('loads translated labels and keeps input/buttons on screen in every language',()=>{
   const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);
    for(let id=822;id<=824;id++)test.assertTrue(I18n.getString(id).length>0);
