@@ -21,7 +21,7 @@ function snapshot(game,postId){
   const row={kind,id:e.id,created:!base[kind].has(e.id),name:e.name};
   if(kind==='star'){row.allocations=allocations.map(k=>({desired:Math.round(e[k].desired*10),locked:e[k].locked}));row.buildType=e.currentShip?e.currentShip.type:null;row.destination=e.defaultDestination?point(e.defaultDestination):null;}
   else if(kind==='rendezvous'){Object.assign(row,{x:e.x,y:e.y,anchor:ref(e.anchor)});}
-  else{Object.assign(row,{parent:ref(e.fleet || e.star),course:route(e.course),memory:e.course.memory?{...route(e.course.memory),patrol:e.course.memory.patrol}:null,onPatrol:e.onPatrol,toBeScrapped:e.toBeScrapped,userCallIn:e.userCallIn});}
+  else{Object.assign(row,{parent:ref(e.fleet || e.star),course:route(e.course),memory:e.course.memory?{...route(e.course.memory),patrol:e.course.memory.patrol}:null,onPatrol:e.type==='defense'?false:e.onPatrol,toBeScrapped:e.toBeScrapped,userCallIn:e.type==='defense'?false:e.userCallIn});}
   rows.push(row);
  }
  const player=game.players[viewer];return {protocol,gameId:game.clientGameId,turn:game.turn,postId,defaults:{defaultBuildType:player.defaultBuildType,defaultGrowth:player.defaultGrowth,defaultShips:player.defaultShips,defaultTech:player.defaultTech},entities:rows};
@@ -126,7 +126,7 @@ function apply(game,viewer,request){
   }else{
    if(row.onPatrol && !e.star)bad();
    Object.assign(e.course,e._orderCourse);e.course.memory=e._orderMemory;e.course.revision++;
-   e.onPatrol=row.onPatrol;e.toBeScrapped=row.toBeScrapped;e.userCallIn=row.userCallIn;delete e._orderCourse;delete e._orderMemory;
+   if(e.type!=='defense')e.onPatrol=row.onPatrol;e.toBeScrapped=row.toBeScrapped;e.userCallIn=row.userCallIn;delete e._orderCourse;delete e._orderMemory;
    if(e.calculateFleetStats)e.calculateFleetStats();if(e.calculateMovement)e.calculateMovement();
   }
  }

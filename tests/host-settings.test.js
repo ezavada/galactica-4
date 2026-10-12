@@ -5,6 +5,16 @@ function change(host,values={}){host.updateSettings({...Settings.snapshot(host.g
 function later(host){host.game.turn=2;host.clock.reset(host.game,false);host.persist();host.server={};host.clock.start();}
 function rejects(fn,expected){let code;try{fn();}catch(e){code=e.code || e.message;}test.assertEqual(code,expected);}
 module.exports=()=>test.describe('Durable active host settings',()=>{
+ test.it('adopts initial-state simulation changes and added defenders without dropping unrelated player decisions',()=>fixture(host=>{
+  const State=require('../src/js/client-state.js'),Client=require('../src/js/network-client.js').NetworkClient;
+  const client=new Client('localhost:7777'),old=client.install(State.restore(host.playerState(1))),home=old.stars.find(s=>s.owner===1);home.name='Draft 星';home.growth.desired=60;home.shipBuilding.desired=30;home.research.desired=10;
+  const marker=old.createRendezvousAt(home.x+10,home.y+20,1,'Draft point',home);home.defaultDestination=marker;old.selectedObject=home;
+  host.editInitialState({action:'population',star:home.id,value:12345},0,1);host.editInitialState({action:'ship',star:home.id,value:'defense'},1,1);
+  const fresh=client.install(State.restore(host.playerState(1))),updated=fresh.stars.find(s=>s.id===home.id);
+  test.assertEqual(updated.population,12345);test.assertEqual(updated.name,'Draft 星');test.assertEqual(updated.growth.desired,60);test.assertEqual(updated.defenseSatellites.length,1);test.assertTrue(updated.defaultDestination===marker && marker.anchor===updated);test.assertTrue(fresh.selectedObject===updated);test.assertTrue(client.hasUnsavedChanges());
+  host.saveOrders(1,{revision:fresh.clientOrderRevision,playerRevision:fresh.clientPlayerRevision,initialStateRevision:fresh.clientInitialStateRevision,orders:require('../src/js/player-orders.js').snapshot(fresh,'e'.repeat(32))});test.assertEqual(host.game.stars.find(s=>s.id===home.id).population,12345);test.assertEqual(host.game.stars.find(s=>s.id===home.id).name,'Draft 星');
+ }));
+
  test.it('rejects fixed galaxy/roster fields and malformed settings before modifying the host',()=>fixture(host=>{
   const before=Save.serialize(host.game),valid=Settings.snapshot(host.game);
   for(const value of [null,[],{}, {...valid,gameTitle:'Changed'},{...valid,numHumans:1},{...valid,sectorSize:2},{...valid,density:3},{...valid,compSkill:0},{...valid,compAdvantage:4},{...valid,fastGame:1},{...valid,omniscient:'yes'},{...valid,endEarly:null},{...valid,maxTimePerTurn:0.5},{...valid,maxTimePerTurn:Math.floor(Number.MAX_SAFE_INTEGER/1000)+1}])rejects(()=>host.updateSettings(value,0),'invalid_host_settings');

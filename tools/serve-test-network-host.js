@@ -7,6 +7,12 @@ const {NetworkHost}=require('../src/js/network-host.js');let host,malformedInfo=
  host.login.login({protocol:1,mode:'join',name:'First'});if(process.env.GALACTICA_TEST_REQUIRE_CODE)host.updateAdmission({allowWithoutCode:false,allowed:['ALLOW'],banned:[]},host.game.config.networkHost.admissionRevision || 0);const home=host.game.stars.find(s=>s.owner===2),ship=host.game.factory.createShip(home.x,home.y,'scout',home,true);ship.name='Voyager';home.ships.push(ship);
  host.game.eventLog=[];host.game.overlay=null;host.game.overlayQueue=[];host.game.attention.queue=[];if(process.env.GALACTICA_TEST_TIMED){host.game.turn=2;host.clock.reset(host.game,false);host.clock.remainingMs=315000;host.clock.pause();}host.persist();
  let dropOrdersResponse=false;const normal=host.handle.bind(host);host.handle=(req,res)=>{
+  if(req.url==='/test/context-update' && process.env.GALACTICA_TEST_CONTEXT==='1'){
+   const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'};
+   if(req.method==='OPTIONS'){res.writeHead(204,headers);res.end();return;}
+   if(req.method!=='POST'){res.writeHead(405,headers);res.end('{}');return;}
+   let body='';req.setEncoding('utf8');req.on('data',chunk=>body+=chunk);req.on('end',()=>{try{const value=JSON.parse(body),star=host.game.stars.find(s=>s.id===value.star && s.owner===2);if(!star || value.population!==12345)throw Error('Invalid context fixture');host.editInitialState({action:'population',star:star.id,value:12345},host.game.config.networkHost.initialStateRevision || 0,1);host.editInitialState({action:'ship',star:star.id,value:'defense'},host.game.config.networkHost.initialStateRevision,1);res.writeHead(200,headers);res.end('{}');}catch(error){res.writeHead(400,headers);res.end('{}');}});return;
+  }
   if(req.url==='/test/malformed-info' && process.env.GALACTICA_TEST_TIMED){if(req.method==='POST')malformedInfo=true;res.writeHead(200,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS'});res.end('{}');return;}
   if(req.url==='/info' && malformedInfo){malformedInfo=false;res.writeHead(200,{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'});res.end(JSON.stringify({...host.info(),clock:{secondsRemaining:-1,paused:false,running:true}}));return;}
   if(req.url==='/test/drop-orders-response' && req.method==='POST'){dropOrdersResponse=true;res.writeHead(200,{'Access-Control-Allow-Origin':'*'});res.end('{}');return;}

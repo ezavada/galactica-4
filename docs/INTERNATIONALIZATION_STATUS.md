@@ -597,3 +597,13 @@ compact outcome paging. All-six-language Victory/Defeat/compact Defeat and
 Lab/class-12/class-20 sheets were visually reviewed. Native suites now pass
 1,804/1,804 on both runtimes after reconciling artwork expectations and archived
 provenance. This does not close the broader localization completion audit.
+
+
+### Same-turn host update draft recovery
+
+No new strings. Actual slider and name edits survive a live host population/
+defense update and remain saveable in en/de/es/fr/ja/ru. All-six-language before/
+after inspector screenshots were reviewed; literal entered names remain literal
+and authoritative numbers use the existing localized formatting. Native context
+and existing client lanes pass on both runtimes, and both full suites pass
+1,806/1,806. Open editor/targeting ACK continuity is still a separate requirement.

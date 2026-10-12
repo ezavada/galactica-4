@@ -1,12 +1,12 @@
 // Reproject a same-turn settings change without dropping the player's draft orders.
 const Common=require('./common.js'),Spatial=require('./spatial-partition.js').SpatialPartition;
 const families={star:'stars',ship:'allShips',fleet:'allFleets',rendezvous:'allRendezvous'};
-function preserveOrders(old,fresh){
+function preserveOrders(old,fresh,newOwned=new Set()){
  const viewer=old.clientPlayerNum,hasTerritory=[...fresh.stars,...fresh.allShips].some(e=>e.owner===old.clientPlayerNum),keys=new Map(),authoritative=new Map();
  for(const [kind,list] of Object.entries(families)){
   for(const e of old[list])keys.set(e,kind+':'+e.id);
   for(const e of fresh[list]){keys.set(e,kind+':'+e.id);authoritative.set(kind+':'+e.id,e);}
-  fresh[list]=fresh[list].filter(e=>e.owner!==viewer).concat(old[list].filter(e=>e.owner===viewer && (authoritative.get(kind+':'+e.id)?.owner===viewer || hasTerritory && !old.clientOrderBase[kind].includes(e.id))));
+  fresh[list]=fresh[list].filter(e=>e.owner!==viewer || newOwned.has(e)).concat(old[list].filter(e=>e.owner===viewer && (authoritative.get(kind+':'+e.id)?.owner===viewer || hasTerritory && !old.clientOrderBase[kind].includes(e.id))));
  }
  const entities=new Map();for(const [kind,list] of Object.entries(families))for(const e of fresh[list])entities.set(kind+':'+e.id,e);
  const reference=e=>e && keys.has(e)?entities.get(keys.get(e)) || null:null;

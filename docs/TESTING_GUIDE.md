@@ -16,13 +16,13 @@ cd /Users/edz/Documents/Personal/galactica-4
 Latest verified result with the current public/development native executables:
 
 ```text
-Total: 1804
-Passed: 1804 ✓
+Total: 1806
+Passed: 1806 ✓
 Failed: 0 ✗
 ```
 
 The artwork checks now validate the selected replacement assets and original
-provenance in its archive location. Both native executables pass all 1,804 tests.
+provenance in its archive location. Both native executables pass all 1,806 tests.
 The previous two failures are resolved; dated writeback logs retain their actual
 results rather than being presented as green runs.
 
@@ -1571,3 +1571,27 @@ and `/private/tmp/galactica-selected-class-art`; native logs use
 `/private/tmp/galactica-selected-art-` with `-unit-final.log` and `-images.log`
 suffixes. These are current-art rendering checks; this change modifies tests and
 documentation only, so no before/after renderer change is claimed.
+
+
+## Draft preservation across host updates
+
+`./gad4 tools/test-client-context.js` tests same-turn initial-state refresh and
+late acknowledgment context changes through a real host. It covers authoritative
+population/new satellites, edited names/allocations, routes and containment,
+local deletions, temporary-ID collisions (including an unsent creation during
+ACK), revoked ownership and subsequent saving without posting. The ACK fixture
+combines a committed receipt with live host state after an intervening edit,
+matching the response shape of an idempotent retry after an authority update.
+It passes on both native runtimes. Existing client writeback, document, creation
+and turn-posting lanes pass on both after the changes.
+
+Both full suites pass **1,806/1,806**, with two new regressions for initial-state
+draft retention and fixed defense patrol state. Final logs use
+`/private/tmp/galactica-client-context-` with native executable/lane suffixes.
+
+Set `GALACTICA_TEST_CONTEXT=1` with `tools/test-web-network-orders.cjs` for actual
+slider/rename edits followed by a live host population/satellite update and Save.
+The former build reproduces draft loss with the `before` argument. Six-language
+captures/comparison metadata are under `/private/tmp/galactica-context-ui`.
+Open editor/targeting continuity during an acknowledgment remains separate
+unfinished application work.

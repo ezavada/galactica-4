@@ -12,13 +12,14 @@ function validate(pending,fresh,ids){
 }
 function reconcile(pending,current,fresh,ids){
  const before=Orders.snapshot(current,'0'.repeat(32)),rows=new Map(before.entities.map(row=>[key(row),row])),base=fresh.clientOrderBase;
+ const newOwned=new Set();for(const [kind,list] of Object.entries(families))for(const e of fresh[list])if(e.owner===current.clientPlayerNum && !current.clientOrderBase[kind].includes(e.id) && !ids.some(row=>row.kind===kind && row.id===e.id))newOwned.add(e);
  const received=signature(fresh),remaps=ids.map(row=>({row,entity:pending.refs.get(row.kind+':'+row.tempId)}));
  // New in-flight objects may use an ID that the host assigned to a submitted
  // object. Move those temporary objects first; object references remain intact.
  for(const kind of ['fleet','rendezvous']){
-  const assigned=new Set(remaps.filter(entry=>entry.row.kind===kind).map(entry=>entry.row.id)),submitted=new Set(remaps.filter(entry=>entry.row.kind===kind).map(entry=>entry.entity));
+  const assigned=new Set(fresh[families[kind]].map(e=>e.id)),submitted=new Set(remaps.filter(entry=>entry.row.kind===kind).map(entry=>entry.entity));
   const used=new Set([...current[families[kind]],...fresh[families[kind]]].map(e=>e.id));let next=Math.max(types[kind].nextId,1);for(const id of used)next=Math.max(next,id+1);
-  for(const e of current[families[kind]])if(e.owner===current.clientPlayerNum && !submitted.has(e) && assigned.has(e.id)){if(!Number.isSafeInteger(next))throw Error('network_bad_response');e.id=next++;}
+  for(const e of current[families[kind]])if(e.owner===current.clientPlayerNum && !submitted.has(e) && !current.clientOrderBase[kind].includes(e.id) && assigned.has(e.id)){if(!Number.isSafeInteger(next))throw Error('network_bad_response');e.id=next++;}
   types[kind].nextId=Math.max(types[kind].nextId,next);
  }
  for(const {row,entity} of remaps)if(entity)entity.id=row.id;
@@ -46,7 +47,7 @@ function reconcile(pending,current,fresh,ids){
   }
  }
  if(equal(before.defaults,pending.orders.defaults))Object.assign(current.players[current.clientPlayerNum],Orders.snapshot(fresh,'0'.repeat(32)).defaults);
- require('./client-settings-refresh.js').preserveOrders(current,fresh);fresh.clientOrderBase=base;for(const star of fresh.stars)if(star.currentShip){star.currentShip.game=fresh;star.currentShip.star=star;}
+ require('./client-settings-refresh.js').preserveOrders(current,fresh,newOwned);fresh.clientOrderBase=base;for(const star of fresh.stars)if(star.currentShip){star.currentShip.game=fresh;star.currentShip.star=star;}
  // Rebuild owned containment from the latest child parent references.
  for(const container of [...fresh.stars,...fresh.allFleets]){container.ships=(container.ships || []).filter(e=>e.owner!==fresh.clientPlayerNum);if(container.defenseSatellites)container.defenseSatellites=container.defenseSatellites.filter(e=>e.owner!==fresh.clientPlayerNum);}
  for(const e of [...fresh.allShips,...fresh.allFleets].filter(e=>e.owner===fresh.clientPlayerNum)){const parent=e.fleet || e.star;if(parent){const list=e.type==='defense'?parent.defenseSatellites:parent.ships;if(list && !list.includes(e))list.push(e);}}

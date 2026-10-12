@@ -9,6 +9,13 @@ function fixture(fn){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-o
  }finally{fs.rmSync(dir,{recursive:true,force:true});}}
 function rejects(fn,code){let actual;try{fn();}catch(e){actual=e.code;}test.assertEqual(actual,code);}
 module.exports=()=>test.describe('Authoritative multiplayer orders',()=>{
+ test.it('does not transmit fixed defense patrol state as a mobile order or alter it during writeback',()=>fixture(({host,home})=>{
+  const defense=home.buildCompletedShip('defense');test.assertTrue(defense.onPatrol);
+  const client=State.restore(host.playerState(1)),body=Orders.snapshot(client,'f'.repeat(32)),row=body.entities.find(e=>e.kind==='ship' && e.id===defense.id);
+  test.assertFalse(row.onPatrol);test.assertFalse(row.userCallIn);
+  host.saveOrders(1,{revision:0,orders:body});test.assertTrue(host.game.allShips.find(s=>s.id===defense.id).onPatrol);test.assertEqual(host.game.turn,1);test.assertEqual(host.game.players[1].lastTurnPosted,0);
+ }));
+
  test.it('posts only decision fields, applies production targets/names/defaults, and freezes the submitted turn',()=>fixture(({host,home,client,snapshot})=>{
   const own=client.stars.find(s=>s.id===home.id);own.name='新しい星';own.growth.desired=60;own.shipBuilding.desired=30;own.research.desired=10;own.growth.locked=true;own.startBuildingShip('colony');
   const body=snapshot(),text=JSON.stringify(body);for(const secret of ['population','techLevel','power','damage','paidToward','visibilityTo','password','hash','salt'])test.assertFalse(text.includes(secret));
