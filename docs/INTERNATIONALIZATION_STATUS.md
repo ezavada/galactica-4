@@ -587,3 +587,13 @@ The creation and naming scenes are pixel-identical to the previous build, while
 new points now persist automatically without posting. Native creation/document
 lanes pass on both runtimes; full suites retain two artwork expectations to be
 updated for the user-selected replacement assets (1,802/1,804).
+
+
+### Selected artwork verification
+
+No runtime strings change. Outcome and Lab/Stardock actual-input checks pass
+in en/de/es/fr/ja/ru with the selected artwork, including recipient privacy and
+compact outcome paging. All-six-language Victory/Defeat/compact Defeat and
+Lab/class-12/class-20 sheets were visually reviewed. Native suites now pass
+1,804/1,804 on both runtimes after reconciling artwork expectations and archived
+provenance. This does not close the broader localization completion audit.

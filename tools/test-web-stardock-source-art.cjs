@@ -58,5 +58,5 @@ for(const [hull,index,resource] of [['defense',0,300],['scout',0,301],['colony',
  await capture('owner-stardock-'+hull+'-'+index);await key('Escape');
  await check('!g.overlay && g.turn===2','Stardock dismissal advanced game');
 }
-console.log('PASS original Stardock class art and actual commissioning controls '+lang+' '+(before?'before':'after'));
+console.log('PASS selected Stardock artwork with shipped class lookup and actual commissioning controls '+lang+' '+(before?'before':'after'));
 })().catch(async e=>{console.error(e);console.error('Failed scene '+currentScene);process.exitCode=1;}).finally(()=>{chrome.kill();server.close();setTimeout(()=>{fs.rmSync(profile,{recursive:true,force:true});process.exit(process.exitCode||0);},500);});

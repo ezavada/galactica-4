@@ -91,13 +91,21 @@ module.exports=()=>test.describe('Shipped high-class presentation artwork',()=>{
   }
   for(const value of [undefined,NaN,Infinity,-1])test.assertEqual(art.resolve(value).resource,400);
  });
- test.it('packages every recovered fallback picture with decoded dimensions and provenance hashes',()=>{
+ test.it('packages all selected class layers and preserves archived fallback provenance',()=>{
   const crypto=require('crypto'),metadata=require('../src/js/shipped-art-layers.js');
-  const provenance=JSON.parse(fs.readFileSync(path.join(__dirname,'../data/events/layers/provenance.json'),'utf8'));
+  const provenance=JSON.parse(fs.readFileSync(path.join(__dirname,'../old-art/original-default/events/layers/provenance.json'),'utf8'));
+  const replacements=new Map(require('../data/artwork.json').assets.map(asset=>[asset.path,asset]));
+  const paths=new Set(Object.values(metadata).flat().map(row=>row.path));
   test.assertEqual(Object.keys(metadata).length,147);
-  for(const rows of Object.values(metadata))for(const row of rows)test.assertTrue(fs.existsSync(path.join(__dirname,'../data',row.path)),row.path);
+  for(const source of paths){
+   const bytes=fs.readFileSync(path.join(__dirname,'../data',source)),replacement=replacements.get(source);
+   test.assertEqual(bytes.subarray(0,8).toString('hex'),'89504e470d0a1a0a');test.assertTrue(bytes.readUInt32BE(16)>0 && bytes.readUInt32BE(20)>0);
+   if(source.startsWith('tech/blue-')){test.assertEqual(bytes.readUInt32BE(16),408);test.assertEqual(bytes.readUInt32BE(20),240);continue;}
+   const expected=replacement?replacement.sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'../old-art/original-default',source))).digest('hex');
+   test.assertEqual(crypto.createHash('sha256').update(bytes).digest('hex'),expected,source);
+  }
   for(const [number,row] of Object.entries(provenance.pictures)){
-   const bytes=fs.readFileSync(path.join(__dirname,'../data/events/layers/pict-'+number+'.png'));
+   const bytes=fs.readFileSync(path.join(__dirname,'../old-art/original-default/events/layers/pict-'+number+'.png'));
    test.assertEqual(crypto.createHash('sha256').update(bytes).digest('hex'),row.pngSha256);
    test.assertEqual(bytes.readUInt32BE(16),row.pngWidth);test.assertEqual(bytes.readUInt32BE(20),row.pngHeight);
   }

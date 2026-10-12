@@ -62,8 +62,9 @@ Full parity is still unproven. The current open work is:
    commands, drawing/language/sound/music and new-game/colony defaults have
    runtime hooks. Audit remaining preference behavior and inherited/window
    commands against available source; do not guess absent PowerPlant behavior.
-4. **Art, sound and native application evidence.** Review the documented PICT
-   decoding/native-rendering gaps and original QuickTime acoustic comparison.
+4. **Sound and native application evidence.** Selected replacement artwork is
+   now validated; the user has superseded original-PICT pixel equivalence. The
+   original QuickTime acoustic comparison remains separate sound work.
    Connected macOS/Windows fullscreen/focus/audio/Quit validation and replacement
    of the pinned native runtime remain unverified. Respect the user's deferred
    public PDG integration for 1.2.1; this goal does not authorize new public-repo
@@ -77,10 +78,11 @@ Full parity is still unproven. The current open work is:
    audit remains to be completed after the parity items above are implemented or
    explicitly documented as blocked.
 
-The latest full-suite evidence is 1,802 passing tests and two artwork failures on
-each current public and development native executable; the prior 1,801/0 result
-predates the latest artwork replacement. This supports the tested paths; it does not prove
-all UI, external service, original-renderer or packaged-platform requirements.
+The latest full-suite evidence is **1,804 passing tests, zero failures** on each
+current public and development native executable. Artwork tests now validate the
+selected replacements and archived provenance; the previous two failures are
+resolved. This supports the tested paths and does not certify all UI, external
+service, connected-hardware or packaged-platform requirements.
 The partial table rows and later item-specific evidence remain the completion
 checklist. Dormant starlanes/danger and unshipped combat-odds/sorting enhancements
 are explicitly excluded from shipped-v3 parity.
@@ -296,7 +298,7 @@ are explicitly excluded from shipped-v3 parity.
 | User's Manual | In-app menu opens the manual. | ✅ Implemented | ✅ Implemented | Startup and command-menu buttons plus the Help key open a bundled offline manual in the selected language, using a separate browser tab or the native system browser. All six complete pages cover current gameplay, strategy and shortcuts, with native-script language navigation, local contents links, responsive layout and print styling. Missing files and browser-launch failures show localized modal feedback without changing the game or turn. Browser packaging, actual six-language startup/game opening and navigation, narrow layouts and native macOS launch are verified. Unported networking and interactive tutorial are explicitly identified in the manual and remain separate checklist requirements. |
 | Interactive tutorial | Guided scripted game teaches map, production, ships, fleets, events, and comparison. | ✅ Implemented | ✅ Implemented | The shipped 42-system galaxy, production safeguards, sixty-lesson progression model, removable action bindings and temporary session owner are implemented. Actual setup/name actions install the fixture without replacing ordinary documents; cancellation restores the prior game/file/renderer/configuration/autoplay. Tutorial AI and combat use a private seed-101 stream; graph saves retain its state without changing normal PDG RNG behavior. Runtime tests exercise production, orders, naming, placement, events, attention, comparison and fleet contents. The floating instruction panel renders complete six-language texts and buttons, follows language changes without resetting progress, and preserves action-only waits; its attention cue is packaged. The complete normal guided route is verified through real UI input in all six languages. Tutorial launches from the start screen and in-game menu, with cancellation preserving existing documents. All source picture references have localized modern control illustrations. Source audit confirms v3 saves practice games without persisting instruction progress; Open and Revert retain active instruction bindings and production safeguards, with independent documents preserved. The optional wrong-course retry is verified through actual controls in all six languages. Existing-game recovery (100) is verified through actual Hide/Close controls, full completion and Open Games restoration in all six languages. Modal recovery (101) is verified through actual startup/in-game Settings entry, retry, Cancel and original restoration in all six languages; hosting recovery (103) is verified through actual Host, Cancel/Escape, local practice continuation, instruction cancellation and native-backed host creation in all six languages. The floating recovery panel stays visible and interactive above the Host modal; original documents and setup are preserved. See docs/reference/TUTORIAL_CONTROLLER.md. |
 | Internationalization | v3 language plug-ins; menu can switch languages. | ✅ Implemented | 🟡 Partial | v4 has English, German, Spanish, French, Japanese, and Russian resources and accepts runtime language with `./gad4 -- --lang=es`. Current user-visible runtime strings are resource-driven/tested; Menu → Settings → Language switches cached UI labels and numeric formatting immediately, remembers the selection and always lists native-script language names. Defense-loss reports now use singular/plural forms and Russian singular/few/many forms while preserving Japanese counters, literal names and locale-formatted numbers; actual six-language comparisons and numeric edge regressions pass. The remaining dialog/help/localization completion audit is still open. |
-| Original art use | Ship/event/background artwork reinforces game state. | 🟡 Partial | 🟡 Partial | v4 uses background, lab/stardock/ship assets, original outcome illustrations and fixed-size explosion frames, while most UI buttons, panels, animations, and states are styled primitives/text. The Lab now preserves source proportions, additive blueprint blending and the full shipped layer lookup/fallback, with source-generated metadata and supplemental pictures. Stardock now follows its own source class requests and decimal fallback, independently of the detail-view image cap. Remaining parity should be tied to specific shipped v3 event/help/window imagery. |
+| Selected artwork use | Ship/event/background artwork reinforces game state; the user has selected replacement artwork. | ✅ Implemented | ✅ Implemented | The active anime manifest and alpha roles are validated, all 147 class lookups resolve to 43 present PNG paths, and retained blueprints/propulsion/background resources remain available. Outcomes use the selected 1500×1296 images with verified bounds/aspect ratio and recipient privacy. Native image decoding/cache/alpha checks pass on both runtimes. Six-language actual outcome, Lab and Stardock workflows pass, including source class fallback and high-class presentations. The selected screenshots were reviewed; no missing asset was found in these surfaces. Original-pixel equivalence is superseded by the user’s replacement-art direction. Connected-native/platform checks remain their separate rows. |
 
 ### Possible UI enhancements beyond v3, not counted in Section 8
 
@@ -8245,3 +8247,34 @@ pixel/acoustic-art comparisons must not cause those replacements to be reverted;
 remaining visual audits should use the selected assets and identify concrete
 missing game-state coverage. Artwork tests still require reconciliation with
 the replacement set.
+
+
+### Selected-art expectations and rendering verification
+
+The user confirmed the replacement artwork is the art to use. The old outcome
+fixture assumed the former 500×432 images even though the selected manifest
+correctly records 1500×1296. It now verifies hashes/dimensions against that
+manifest and verifies the displayed aspect ratio and viewport/private-owner
+bounds. The old fallback fixture read provenance from the active data directory,
+but the artwork promotion moved it to `old-art/original-default/events/layers`.
+It now validates all archived decoded pictures there, plus all active lookup
+paths: selected-layer hashes, retained-event byte identity and valid retained
+blueprint dimensions. No asset, renderer or generated binding is modified.
+
+Both final full suites pass **1,804 tests / zero failures**, terminal exit 0.
+`tools/test-art-resources.cjs` validates active/archive checksums and alpha roles.
+Native `tools/test-art-style-images.js` passes on both runtimes for decoding,
+transparency/cache, retained additive effects and archived surface checks.
+The first updated fixture assumed blueprints were also archived; that assumption
+was corrected against the archive README (events/ships only) before the final run.
+
+Actual outcome and class-art browser lanes pass in all six languages. Reviewed
+all-six-language Victory, Defeat, compact Defeat, Lab discovery, class-12 and
+class-20 Stardock sheets. Selected hulls/foregrounds render with native alpha;
+source class reuse remains intact. There is no missing-art request for these
+verified paths. Evidence: `/private/tmp/galactica-selected-art-`,
+`/private/tmp/galactica-selected-art-ui`, `/private/tmp/galactica-selected-class-art`.
+Current-art checks replace the former original-pixel requirement; historical
+PICT notes remain historical evidence, not a request to restore the old assets.
+The broader window/localization, sound/native-platform, external-service, client
+context and Map Generation audits remain open.

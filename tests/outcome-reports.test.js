@@ -13,12 +13,12 @@ module.exports=()=>test.describe('Victory and defeat reports',()=>{
    }
   }}finally{pdg.res.setLanguage(old);}
  });
- test.it('packages original final outcome art and confines it to affected-player views at every tested size',()=>{
+ test.it('packages selected final outcome art and confines it to affected-player views at every tested size',()=>{
   const fs=require('fs'),path=require('path'),crypto=require('crypto'),manifest=require('../data/events/outcome-art.json');
-  for(const kind of ['victory','defeat']){const asset=fs.readFileSync(path.join(__dirname,'../data/events/'+kind+'.png'));test.assertEqual(crypto.createHash('sha256').update(asset).digest('hex'),manifest[kind].sha256);test.assertEqual(asset.readUInt32BE(16),500);test.assertEqual(asset.readUInt32BE(20),432);}
+  for(const kind of ['victory','defeat']){const asset=fs.readFileSync(path.join(__dirname,'../data/events/'+kind+'.png'));test.assertEqual(crypto.createHash('sha256').update(asset).digest('hex'),manifest[kind].sha256);test.assertEqual(asset.readUInt32BE(16),manifest[kind].width);test.assertEqual(asset.readUInt32BE(20),manifest[kind].height);test.assertTrue(manifest[kind].width>0 && manifest[kind].height>0);}
   for(const [width,height] of [[800,600],[480,400],[320,340]]){const {game,display}=fixture({},width,height);
    for(const kind of ['win','defeat']){const local=display.getOutcomeLayout({kind,playerNum:1,name:'Captain',turn:1}),art=local.illustration;
-    test.assertDefined(art);test.assertTrue(Array.isArray(local.buttons));for(const button of local.buttons)test.assertTrue(button.rect.y+button.rect.height<=local.rect.y+local.rect.height);test.assertContains(art.path,kind==='win'?'victory':'defeat');test.assertTrue(art.rect.x>=local.rect.x&&art.rect.x+art.rect.width<=local.rect.x+local.rect.width);test.assertTrue(art.rect.y>=local.rect.y+44&&art.rect.y+art.rect.height<=local.rect.y+local.rect.height-90);test.assertTrue(Math.abs(art.rect.width/art.rect.height-500/432)<.00001);
+    test.assertDefined(art);test.assertTrue(Array.isArray(local.buttons));for(const button of local.buttons)test.assertTrue(button.rect.y+button.rect.height<=local.rect.y+local.rect.height);test.assertContains(art.path,kind==='win'?'victory':'defeat');test.assertTrue(art.rect.x>=local.rect.x&&art.rect.x+art.rect.width<=local.rect.x+local.rect.width);test.assertTrue(art.rect.y>=local.rect.y+44&&art.rect.y+art.rect.height<=local.rect.y+local.rect.height-90);const selected=manifest[kind==='win'?'victory':'defeat'];test.assertTrue(Math.abs(art.rect.width/art.rect.height-selected.width/selected.height)<.00001);
     test.assertNull(display.getOutcomeLayout({kind,playerNum:2,name:'Enemy',turn:1}).illustration);
    }
    test.assertNull(display.getOutcomeLayout({kind:'draw',playerNum:0,turn:1}).illustration);

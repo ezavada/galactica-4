@@ -1,4 +1,4 @@
-// Actual-input original outcome artwork regression. Requires a packaged web build and Chrome.
+// Actual-input selected outcome artwork regression. Requires a packaged web build and Chrome.
 // Usage: node tools/test-web-outcome-art.cjs BUILD_DIR SCREENSHOT_DIR [LANGUAGE] [before]
 // Chrome output is muted without disabling application sound logic.
 // GALACTICA_CHROME overrides the Chrome executable. No file dialogs are opened.
@@ -62,5 +62,5 @@ await evaluate('g.port.getDrawingArea=()=>new pdg.Rect(320,340);visual.getDispla
 await check('visual.getDisplay().getOutcomeLayout(g.overlay).rect.width<=320 && visual.getDisplay().getOutcomeLayout(g.overlay).pages>1','Compact drawing-area fixture did not exercise paging');const pages=await evaluate('visual.getDisplay().getOutcomeLayout(g.overlay).pages');
 for(let page=1;!before && page<pages;page++){await click('visual.getDisplay().getOutcomeLayout(g.overlay).buttons.find(b=>b.action.type==="outcomePage" && b.action.page>'+ (page-1) +').rect');await check('g.overlay && g.overlay.page==='+page,'Next closed the report or failed to advance its page');await capture('compact-defeat-page-'+page);}
 await check('g.turn===7','Artwork review advanced the game');
-console.log('PASS original outcome artwork, recipient privacy, actual manual review and compact paging '+lang+' '+(before?'before':'after'));
+console.log('PASS selected outcome artwork, recipient privacy, actual manual review and compact paging '+lang+' '+(before?'before':'after'));
 })().catch(async e=>{console.error(e);console.error('Failed scene '+currentScene);process.exitCode=1;}).finally(()=>{chrome.kill();server.close();setTimeout(()=>{fs.rmSync(profile,{recursive:true,force:true});process.exit(process.exitCode||0);},500);});

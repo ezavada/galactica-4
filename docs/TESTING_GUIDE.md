@@ -17,15 +17,14 @@ Latest verified result with the current public/development native executables:
 
 ```text
 Total: 1804
-Passed: 1802 ✓
-Failed: 2 ✗
+Passed: 1804 ✓
+Failed: 0 ✗
 ```
 
-The latest client-writeback verification reproduced two artwork failures already
-present before that transport change: outcome artwork now measures 1500 pixels
-where the original-art fixture expects 500, and `data/events/layers/provenance.json`
-is absent after the artwork replacement. These remain unresolved; the full suite
-is not green. Both native executables report the same failures.
+The artwork checks now validate the selected replacement assets and original
+provenance in its archive location. Both native executables pass all 1,804 tests.
+The previous two failures are resolved; dated writeback logs retain their actual
+results rather than being presented as green runs.
 
 The output is intentionally verbose because several game systems still log turn, combat, movement, and construction diagnostics.
 
@@ -1549,3 +1548,26 @@ Use `GALACTICA_TEST_CREATION=1` with `tools/test-web-network-orders.cjs` for
 placement, explicit Rename and cancellation; pass `before` for the prior-build
 unsaved baseline. Six-language before/after evidence and comparison metadata
 are under `/private/tmp/galactica-creation-ui`; logs share that prefix.
+
+
+## Selected artwork verification
+
+`node tools/test-art-resources.cjs` checks the active manifest, source checksums,
+alpha roles and byte-preserved former-default archive.
+`./gad4 tools/test-art-style-images.js` passes on both native runtimes for image
+decoding, alpha-safe caching, lab foreground transparency and retained additive
+propulsion fields. Full suites pass **1,804/1,804** on both.
+
+The class-layer unit check covers 147 lookups and all 43 unique PNG paths.
+Selected layers match their active checksums; retained event layers match their
+archived files; the eleven retained blueprints keep valid 408×240 dimensions.
+All thirty archived decoded pictures retain their provenance checksums/dimensions.
+Outcome images match the selected manifest dimensions and aspect ratio while
+remaining bounded and private to the affected player.
+
+Actual `test-web-outcome-art.cjs` and `test-web-stardock-source-art.cjs` flows pass
+in all six languages. Captures are under `/private/tmp/galactica-selected-art-ui`
+and `/private/tmp/galactica-selected-class-art`; native logs use
+`/private/tmp/galactica-selected-art-` with `-unit-final.log` and `-images.log`
+suffixes. These are current-art rendering checks; this change modifies tests and
+documentation only, so no before/after renderer change is claimed.
