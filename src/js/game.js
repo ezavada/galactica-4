@@ -378,15 +378,20 @@ class Game {
         return Common.ObjectType.UNKNOWN;
     }
     
-    // Check if a human player can control this entity
-    // Returns true if the entity is owned by a configured human player
+    // Posting locks input briefly; a posted player can keep editing while waiting.
+    canEditClientDecisions() {
+        return !this.clientAdministrator && !this.clientPosting &&
+            (!this.isGameOver || this.canContinue) && this.players[this.clientPlayerNum]?.isAlive!==false;
+    }
+
+    // Local humans control their objects; network clients control their own.
     canHumanControl(entity) {
         if(this.clientAdministrator)return false;
         if (!entity || entity.owner === undefined) {
             return false; // Unowned or invalid entity
         }
         
-        if(this.clientPlayerNum)return entity.owner===this.clientPlayerNum && !this.clientTurnPosted && !this.clientPosting;
+        if(this.clientPlayerNum)return entity.owner===this.clientPlayerNum && this.canEditClientDecisions();
         return this.config.isHumanPlayer(entity.owner);
     }
     
@@ -711,7 +716,7 @@ class Game {
     }
 
     beginRendezvousPlacement(rendezvous = null) {
-        if(this.clientPlayerNum && (this.clientTurnPosted || this.clientPosting))return false;
+        if(this.clientPlayerNum && !this.canEditClientDecisions())return false;
         const owner = this.getCurrentHumanPlayer();
         if (!owner) {
             return false;
@@ -746,7 +751,7 @@ class Game {
 
     createRendezvousAt(x, y, owner = this.getCurrentHumanPlayer(), name = null, anchor = null) {
         if(this.clientAdministrator)return null;
-        if(this.clientPlayerNum && (this.clientTurnPosted || this.clientPosting))return null;
+        if(this.clientPlayerNum && !this.canEditClientDecisions())return null;
         if (!owner) {
             return null;
         }
@@ -1702,7 +1707,7 @@ class Game {
     }
 
     saveColonyDefaults() {
-        if(this.clientPlayerNum && (this.clientTurnPosted || this.clientPosting))return false;
+        if(this.clientPlayerNum && !this.canEditClientDecisions())return false;
         const draft = this.colonyDefaultsDraft;
         const player = draft && this.players[draft.playerNum];
         if (!player || !player.isHuman) return false;

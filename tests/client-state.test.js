@@ -142,8 +142,23 @@ module.exports=()=>test.describe('Visibility-limited multiplayer client model',(
   const turn=client.turn;client.aiManager.processAITurns=()=>{throw Error('Client simulated AI');};test.assertFalse(client.endTurn());test.assertEqual(client.turn,turn);
   let invalidSave=false;try{Save.serialize(client);}catch(error){invalidSave=true;}test.assertTrue(invalidSave);
  }));
- test.it('makes a rejoined already-posted turn read-only while retaining its current player identity',()=>fixture(({game,own,state})=>{
-  game.players[2].lastTurnPosted=game.turn;const client=Client.restore(state());test.assertTrue(client.clientTurnPosted);test.assertEqual(client.getCurrentHumanPlayer(),2);test.assertFalse(client.canHumanControl(get(client,'stars',own)));
+ test.it('keeps owned decisions editable after rejoining a posted turn while retaining its identity',()=>fixture(({game,own,state})=>{
+  game.players[2].lastTurnPosted=game.turn;const client=Client.restore(state());test.assertTrue(client.clientTurnPosted);test.assertEqual(client.getCurrentHumanPlayer(),2);test.assertTrue(client.canHumanControl(get(client,'stars',own)));client.networkCommands={available:()=>true};test.assertFalse(client.canRequestEndTurn());
+ }));
+ test.it('allows posted owner actions while keeping posting, terminal, dead and administrator views protected',()=>fixture(({game,own,enemy,ship,state})=>{
+  game.players[2].lastTurnPosted=game.turn;const client=Client.restore(state()),home=get(client,'stars',own),courier=get(client,'allShips',ship);client.networkCommands={available:()=>true};
+  test.assertTrue(client.canHumanControl(home));test.assertFalse(client.canHumanControl(get(client,'stars',enemy)));test.assertFalse(client.canRequestEndTurn());test.assertTrue(client.beginRendezvousPlacement());client.handleKeyPress(pdg.key_Escape);test.assertNotNull(client.createRendezvousAt(home.x+10,home.y+20,2,'Posted point'));test.assertTrue(client.beginRenameObject(home));client.handleRenameKey(pdg.key_Escape,'');test.assertTrue(client.showCourse(courier));client.uiWindow=null;
+  for(const flags of [{clientPosting:true},{isGameOver:true,canContinue:false},{clientAdministrator:true}]){Object.assign(client,flags);test.assertFalse(client.canHumanControl(home));test.assertFalse(client.beginRendezvousPlacement());test.assertNull(client.createRendezvousAt(home.x,home.y,2,'Blocked'));Object.assign(client,{clientPosting:false,isGameOver:false,clientAdministrator:false});}
+  client.players[2].isAlive=false;test.assertFalse(client.canHumanControl(home));test.assertFalse(client.beginRendezvousPlacement());
+ }));
+ test.it('removes departing fleets from their systems so subsequent saves and reopen remain valid',()=>fixture(({game,own,ship})=>{
+  const fleet=game.factory.createFleet(own.x,own.y,2,'Departing fleet');fleet.star=own;fleet.addShip(ship);own.ships.push(fleet);fleet.course.replace({x:own.x+50000,y:own.y+50000});fleet.move();test.assertNull(fleet.star);test.assertFalse(own.ships.includes(fleet));const restored=Save.restore(Save.serialize(game));test.assertNotNull(restored.allFleets.find(e=>e.id===fleet.id));
+  fleet.x=own.x;fleet.y=own.y;fleet.syncShipPositions();fleet.star=own;own.ships.push(fleet);fleet.setDestination({x:own.x+70000,y:own.y+70000});test.assertNull(fleet.star);test.assertFalse(own.ships.includes(fleet));test.assertNotNull(Save.restore(Save.serialize(game)).allFleets.find(e=>e.id===fleet.id));
+ }));
+ test.it('keeps unsaved posted decisions across same-turn context updates and the next authoritative turn',()=>fixture(({game,own,state})=>{
+  game.players[2].lastTurnPosted=game.turn;const client=new (require('../src/js/network-client.js').NetworkClient)('localhost');client.model=Client.restore(state());client.savedOrders=require('../src/js/client-writeback.js').signature(client.model);get(client.model,'stars',own).name='Waiting draft';test.assertTrue(client.hasUnsavedChanges());
+  game.config.networkHost.initialStateRevision=1;own.population=12345;client.install(Client.restore(state()));test.assertTrue(client.model.clientTurnPosted);test.assertEqual(get(client.model,'stars',own).name,'Waiting draft');test.assertEqual(get(client.model,'stars',own).population,12345);
+  game.turn++;client.install(Client.restore(state()));test.assertFalse(client.model.clientTurnPosted);test.assertEqual(get(client.model,'stars',own).name,'Waiting draft');test.assertTrue(client.hasUnsavedChanges());
  }));
  test.it('uses complete host comparison totals and native-language labels despite the partial map',()=>fixture(({game,state})=>{
   const client=Client.restore(state()),language=pdg.res.getLanguage();test.assertTrue(client.allShips.length<game.allShips.length);test.assertEqual(client.getMapShipCount(),game.allShips.length);

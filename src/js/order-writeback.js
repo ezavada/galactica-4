@@ -29,7 +29,7 @@ function save(host,player,request){
  if(previous && previous.postId===orders.postId){if(previous.digest!==digest)fail('bad_orders');return response(previous);}
  if(orders.gameId!==metadata.id)fail('wrong_game');if(orders.turn!==game.turn)fail('wrong_turn');
  if(!game.players[player] || game.players[player].isComputer)fail('bad_orders');
- if(game.players[player].lastTurnPosted===game.turn)fail('already_posted');if(!game.canAdvanceTurns())fail('game_complete');
+ if(!game.canAdvanceTurns())fail('game_complete');
  const current=revision(game,player);if(request.revision!==current || current===Number.MAX_SAFE_INTEGER || playerRevision!==(metadata.playerStateRevision || 0) || initialStateRevision!==(metadata.initialStateRevision || 0))fail('stale_orders');
  host.transact(staged=>{
   const ids=Orders.apply(staged,player,orders);

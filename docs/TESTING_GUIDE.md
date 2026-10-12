@@ -1670,3 +1670,29 @@ selected replacement set. Evidence: `/private/tmp/galactica-turn-refresh-ui`,
 `/private/tmp/galactica-turn-refresh-`. A failed Japanese baseline host read was
 retained separately and rerun successfully without increasing timeouts.
 Final posted-turn control/source parity remains a separate audit.
+
+
+## Editing decisions while a posted player waits
+
+`./gad4 tools/test-client-posted-edit.js` checks automatic marker/group creation,
+production/course/name changes after posting, unchanged readiness/turn/clock,
+original-post idempotency, unfinished editor retention, disk failure, lost receipt
+and rejoin, authoritative context updates and unsent next-turn decisions. Both
+runtimes pass. Full suites pass **1,825/1,825**, including three new posted
+control/context/departure regressions. Departing fleets now leave their system's
+ship list, allowing the next atomic save and reopen to validate containment.
+Existing turn/writeback/context/document/creation/host-writeback lanes also pass.
+
+Use `GALACTICA_TEST_POSTED_EDIT=1` with `tools/test-web-network-orders.cjs`
+for six-language actual posted Rename, Orders, allocation/File Save, unchanged
+host readiness, duplicate Posted click and the next turn. `before` reproduces
+owned read-only controls. All six final before/after map sheets were reviewed.
+Of 60 common pairs, 35 are exact, 18 show intended controls/decisions/simulation,
+six contain different localhost ports and one is a differing End Turn menu frame.
+The fixture navigates paged menus, advances the fixed visual clock through
+menu appearance, closes the underlying menu before map clicks and waits for
+the next-turn notice before comparing map views. It records the frame count at
+input delivery so validation requires a subsequent draw without increasing the
+timeout. Evidence: `/private/tmp/galactica-posted-edit-ui/final-comparisons.json`
+and `*-final-review.png`; native logs use `/private/tmp/galactica-posted-edit-`.
+Historical posted-read-only expectations are superseded by the source audit.

@@ -19,7 +19,7 @@ function preserve(old,fresh){
   const copy={};memo.set(value,copy);for(const [field,item] of Object.entries(value))copy[field]=clone(item);return copy;
  };
  for(const field of fields)if(old[field]!==undefined)fresh[field]=clone(old[field]);
- const editing=fresh.clientPlayerNum>0 && !fresh.clientTurnPosted && !fresh.clientPosting && (!fresh.isGameOver || fresh.canContinue) && fresh.players[fresh.clientPlayerNum]?.isAlive!==false;
+ const editing=fresh.clientPlayerNum>0 && !fresh.clientPosting && (!fresh.isGameOver || fresh.canContinue) && fresh.players[fresh.clientPlayerNum]?.isAlive!==false;
  const owned=e=>editing && e && e.owner===fresh.clientPlayerNum && entities.get(keys.get(e))===e;
  const editable=e=>owned(e) && e.course && (e.type==='fleet'?e.ships.length>0:!e.fleet && e.type!=='defense' && !e.isDead() && !e.underConstruction());
  const courseKey=course=>course && JSON.stringify({current:course.current,previous:course.previous,loop:course.loop,hunt:course.hunt,hasOrigin:course.hasOrigin,

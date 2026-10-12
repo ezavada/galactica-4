@@ -99,12 +99,12 @@ module.exports=()=>test.describe('Authoritative multiplayer orders',()=>{
   const request={revision:0,orders:snapshot()};host.saveOrders(1,request);host.forceEndTurn(1);
   const restored=NetworkHost.open(host.file),before=Save.serialize(restored.game);test.assertEqual(restored.saveOrders(1,request).turn,1);test.assertEqual(restored.game.turn,2);test.assertEqual(Save.serialize(restored.game),before);
  }));
- test.it('rejects malformed, forged, stale and already-posted writebacks atomically',()=>fixture(({host,snapshot})=>{
+ test.it('rejects malformed, forged and stale writebacks atomically while permitting posted decisions',()=>fixture(({host,snapshot})=>{
   for(const request of [{revision:-1,orders:snapshot()},{revision:0,orders:snapshot(),extra:true},{revision:0,orders:{...snapshot(),entities:[]}},{revision:0,orders:{...snapshot(),turn:2}},{revision:0,orders:{...snapshot(),gameId:'f'.repeat(64)}}]){
    const before=Save.serialize(host.game);let error;try{host.saveOrders(1,request);}catch(e){error=e;}test.assertTrue(!!error.code);test.assertEqual(Save.serialize(host.game),before);
   }
   const original={revision:0,orders:snapshot()};host.saveOrders(1,original);const changed=JSON.parse(JSON.stringify(original));changed.orders.entities[0].name='Altered retry';rejects(()=>host.saveOrders(1,changed),'bad_orders');
-  const fresh=State.restore(host.playerState(1)),posted=Orders.snapshot(fresh,'b'.repeat(32));host.postOrders(1,posted);rejects(()=>host.saveOrders(1,{revision:1,orders:Orders.snapshot(fresh,'c'.repeat(32))}),'already_posted');
+  const fresh=State.restore(host.playerState(1)),posted=Orders.snapshot(fresh,'b'.repeat(32));host.postOrders(1,posted);const clock=host.clock.snapshot();fresh.stars.find(s=>s.owner===1).name='Changed after posting';const receipt=host.saveOrders(1,{revision:1,orders:Orders.snapshot(fresh,'c'.repeat(32))});test.assertEqual(receipt.revision,2);test.assertEqual(host.game.turn,fresh.turn);test.assertEqual(host.game.players[1].lastTurnPosted,fresh.turn);test.assertFalse(host.ready(host.game));test.assertDeepEqual(host.clock.snapshot(),clock);test.assertEqual(host.game.stars.find(s=>s.owner===1).name,'Changed after posting');host.postOrders(1,posted);test.assertEqual(host.game.stars.find(s=>s.owner===1).name,'Changed after posting');
  }));
  test.it('rolls back writeback edits, receipts and allocated identifiers on failed durable save',()=>fixture(({host,home,client,snapshot})=>{
   client.createRendezvousAt(home.x,home.y,1,'Pending point');const before=Save.serialize(host.game),old=host.game,counter=require('../src/js/rendezvous.js').nextId,persist=host.persist.bind(host);

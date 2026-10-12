@@ -18,9 +18,10 @@ module.exports=()=>test.describe('Live network client protocol boundaries',()=>{
   Client.preservePresentation(old,fresh);test.assertTrue(fresh.pendingMapOrderObject===fresh.allShips[0]);test.assertEqual(fresh.pendingCourseEdit.revision,5);test.assertTrue(fresh.uiSliderDrag.draft===fresh.colonyDefaultsDraft);test.assertEqual(fresh.courseBodyScroll,25);test.assertEqual(fresh.playerComparisonColumnPage,3);
   const changed=interactive();changed.allShips[0].course.waypoints[0].x=99;Client.preservePresentation(old,changed);test.assertNull(changed.pendingMapOrderObject);test.assertNull(changed.pendingCourseEdit);
  });
- test.it('cancels ownership-lost or posted interactions and never carries editors into another turn',()=>{
+ test.it('cancels ownership-lost or actively posting interactions and never carries editors into another turn',()=>{
   const old=interactive();old.uiWindow='rename';old.renameTarget=old.stars[0];old.renameText='Draft';old.pendingMapOrderObject=old.stars[0];old.uiSliderDrag={star:old.stars[0]};
-  for(const fresh of [interactive(2),Object.assign(interactive(),{clientTurnPosted:true}),Object.assign(interactive(),{clientPosting:true})]){Client.preservePresentation(old,fresh);test.assertNull(fresh.renameTarget);test.assertNull(fresh.pendingMapOrderObject);test.assertNull(fresh.uiSliderDrag);test.assertNull(fresh.uiWindow);}
+  for(const fresh of [interactive(2),Object.assign(interactive(),{clientPosting:true})]){Client.preservePresentation(old,fresh);test.assertNull(fresh.renameTarget);test.assertNull(fresh.pendingMapOrderObject);test.assertNull(fresh.uiSliderDrag);test.assertNull(fresh.uiWindow);}
+  const posted=Object.assign(interactive(),{clientTurnPosted:true});Client.preservePresentation(old,posted);test.assertTrue(posted.renameTarget===posted.stars[0]);test.assertEqual(posted.renameText,'Draft');
   const next=interactive(1,4,2);Client.preservePresentation(old,next);test.assertNull(next.renameTarget);test.assertNull(next.uiWindow);test.assertNull(next.pendingMapOrderObject);
  });
 

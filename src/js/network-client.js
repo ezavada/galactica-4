@@ -76,7 +76,7 @@ class NetworkClient {
  install(fresh,{discardOrders=false}={}){
   const old=this.model;
   if(old && old.clientGameId===fresh.clientGameId && old.clientPlayerNum===fresh.clientPlayerNum && fresh.turn<old.turn)throw fail('stale_server_state');
-  if(old && old.clientGameId===fresh.clientGameId && old.clientPlayerNum===fresh.clientPlayerNum && fresh.turn>old.turn && !discardOrders && !this.pendingPost && !old.clientTurnPosted && !fresh.clientTurnPosted && fresh.canContinue && fresh.players[fresh.clientPlayerNum]?.isAlive!==false && this.hasUnsavedChanges()){
+  if(old && old.clientGameId===fresh.clientGameId && old.clientPlayerNum===fresh.clientPlayerNum && fresh.turn>old.turn && !discardOrders && !this.pendingPost && !fresh.clientTurnPosted && fresh.canContinue && fresh.players[fresh.clientPlayerNum]?.isAlive!==false && this.hasUnsavedChanges()){
    const merged=require('./client-draft-refresh.js').rebase(old,fresh,this.savedOrders,{advanceTurn:true});preservePresentation(old,merged.model);this.savedOrders=merged.received;this.pendingChanges=null;this.model=merged.model;return this.model;
   }
   if(!old || old.clientGameId!==fresh.clientGameId || old.clientPlayerNum!==fresh.clientPlayerNum || old.turn!==fresh.turn || discardOrders){this.savedOrders=Writeback.signature(fresh);if(discardOrders || old?.turn!==fresh.turn)this.pendingChanges=null;}
@@ -86,7 +86,7 @@ class NetworkClient {
    if(fresh.turn===old.turn && fresh.clientTurnPosted===old.clientTurnPosted && fresh.isGameOver===old.isGameOver && !discardOrders){
     if(old.clientInitialStateRevision!==fresh.clientInitialStateRevision){const merged=require('./client-draft-refresh.js').rebase(old,fresh,this.savedOrders);preservePresentation(old,merged.model);this.savedOrders=merged.received;this.pendingChanges=null;this.model=merged.model;return this.model;}
     const changed=old.clientPlayerRevision!==fresh.clientPlayerRevision || JSON.stringify(old.config.getHumanPlayerSlots())!==JSON.stringify(fresh.config.getHumanPlayerSlots()) || require('./host-settings.js').fields.some(k=>old.config[k]!==fresh.config[k]);
-    if(changed){if(!old.clientTurnPosted)require('./client-settings-refresh.js').preserveOrders(old,fresh);preservePresentation(old,fresh);this.model=fresh;return fresh;}
+    if(changed){require('./client-settings-refresh.js').preserveOrders(old,fresh);preservePresentation(old,fresh);this.model=fresh;return fresh;}
     if(fresh.clientOrderRevision!==old.clientOrderRevision && !this.hasUnsavedChanges() && !this.pendingChanges){preservePresentation(old,fresh);this.savedOrders=Writeback.signature(fresh);this.model=fresh;return fresh;}
     const previousEvents=new Map(old.eventLog.map(event=>[event.id,event]));
     const subjectLists=['stars','allShips','allFleets','allRendezvous'];
@@ -129,10 +129,10 @@ class NetworkClient {
    if(generation===this.generation)this.status='connection_lost';throw error;
   }finally{if(generation===this.generation)this.connecting=false;}
  }
- hasUnsavedChanges(){return !!this.model && !this.model.clientTurnPosted && Writeback.signature(this.model)!==this.savedOrders;}
+ hasUnsavedChanges(){return !!this.model && Writeback.signature(this.model)!==this.savedOrders;}
  save(){if(this.postPromise)return Promise.reject(fail('network_busy'));return this.writeChanges();}
  writeChanges(){
-  if(this.savePromise)return this.savePromise;if(!this.session || !this.model)return Promise.reject(fail('not_logged_in'));if(this.model.clientTurnPosted)return Promise.reject(fail('already_posted'));
+  if(this.savePromise)return this.savePromise;if(!this.session || !this.model)return Promise.reject(fail('not_logged_in'));
   const generation=this.generation,session=this.session;
   const operation=(async()=>{
    try{
@@ -147,7 +147,7 @@ class NetworkClient {
     if(fresh.turn>pending.orders.turn){
      const base=Writeback.acknowledge(pending,this.model,fresh,data.orderIds);this.pendingChanges=null;this.savedOrders=base;this.status='connected';return this.install(fresh);
     }
-    if(fresh.turn!==pending.orders.turn || fresh.clientTurnPosted){this.pendingChanges=null;this.install(fresh,{discardOrders:true});throw fail(fresh.turn!==pending.orders.turn?'wrong_turn':'already_posted');}
+    if(fresh.turn!==pending.orders.turn){this.pendingChanges=null;this.install(fresh,{discardOrders:true});throw fail('wrong_turn');}
     const changedContext=fresh.clientInitialStateRevision!==pending.initialStateRevision || fresh.clientPlayerRevision!==pending.playerRevision,authoritative=changedContext?this.state(data,session):null;
     let result=Writeback.reconcile(pending,this.model,fresh,data.orderIds);if(changedContext)result=require('./client-draft-refresh.js').rebase(result.model,authoritative,result.received);preservePresentation(this.model,result.model);this.pendingChanges=null;this.model=result.model;this.savedOrders=result.received;this.status='connected';return this.model;
    }catch(error){if(generation===this.generation && session===this.session){

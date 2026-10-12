@@ -937,7 +937,7 @@ function attachGameServices(nextGame,{preserveInteraction=false}={}) {
         return !!(client && client.session && !client.postPromise && !nextGame.clientTurnPosted);
     },selectionChanged:previous=>{
         const session=sessions.sessions.find(s=>s.game===nextGame),client=session && session.network;
-        if(!previous || previous.owner!==nextGame.clientPlayerNum || !client || !client.session || client.postPromise || nextGame.clientTurnPosted || !client.hasUnsavedChanges() && !client.pendingChanges)return false;
+        if(!previous || previous.owner!==nextGame.clientPlayerNum || !client || !client.session || client.postPromise || !client.hasUnsavedChanges() && !client.pendingChanges)return false;
         client.flush().then(model=>{if(sessions.sessions.includes(session)){replaceNetworkModel(session,model);session.networkError=null;}},error=>{if(sessions.sessions.includes(session))session.networkError=require('./src/js/network-join.js').errorText(error);});return true;
     },post:()=>{
         const session=sessions.sessions.find(s=>s.game===nextGame);if(!session || !session.network || session.network.postPromise || nextGame.clientTurnPosted)return false;

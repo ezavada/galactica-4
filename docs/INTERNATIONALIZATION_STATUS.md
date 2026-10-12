@@ -646,3 +646,17 @@ report remains available after same-turn polling. Full native suites pass
 Evidence: `/private/tmp/galactica-turn-refresh-ui` and its verified comparison
 metadata/sheets. Posted-turn control/source parity and the broader compact
 window/localization audits remain separate requirements.
+
+
+### Posted-turn owned controls and saves
+
+No runtime strings or resource IDs change. Existing owned Rename, course,
+production and File Save controls remain usable after posting, using their
+existing en/de/es/fr/ja/ru translations. Posted status and disabled repeat End
+Turn remain localized; literal test-entered names are retained verbatim. Actual
+input/host validation passes in all six languages and final before/after map
+sheets were reviewed using the selected art, including following-turn results.
+Both native suites pass 1,825/1,825. Evidence:
+`/private/tmp/galactica-posted-edit-ui/final-comparisons.json` and six
+`*-final-review.png` sheets. Broader compact-window/help/manual localization
+requirements remain open.

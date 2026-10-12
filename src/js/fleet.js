@@ -291,6 +291,7 @@ class Fleet {
         this.destination = destination;
         this.progress = 0;
         if (destination) {
+            if(this.star)this.star.shipDeparted?.(this);
             this.star = null;
             this.setPatrol(false);
         }
@@ -344,7 +345,7 @@ class Fleet {
             parent.removeShip(this);
             if(parent.isEmpty() && this.game && this.game.entityRemoved)this.game.entityRemoved(parent);
         }
-        if(this.destination && this.totalSpeed>0)this.star=null;
+        if(this.destination && this.totalSpeed>0){if(this.star)this.star.shipDeparted?.(this);this.star=null;}
         if(this.destination && this.game && this.game.movePursuedTargetFirst)this.game.movePursuedTargetFirst(this);
         if(this.game && this.game.movementTurn && (!this.game.allFleets.includes(this) || this.isEmpty()))return false;
         if (this.destination) this.calculateMovement();
