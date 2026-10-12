@@ -1479,6 +1479,10 @@ class Game {
             else if(key===13 || key===3)this.openSystemComparisonSelection();
             return true;
         }
+        if(this.uiWindow==='fleets' && this.display?.getFleetRosterLayout().compact){
+            if([pdg.key_PageUp,pdg.key_PageDown].includes(key)){this.scrollFleetRoster(key===pdg.key_PageUp?-80:80);return true;}
+            if([pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))return this.executeUIAction({type:'fleetRosterPage',page:Math.max(0,this.fleetRosterPage+(key===pdg.key_LeftArrow?-1:1))});
+        }
         if(this.uiWindow==='fleetExchange' || this.uiWindow==='fleets') {
             if(this.uiWindow==='fleetExchange' && key===pdg.key_LeftArrow){
                 const state=this.getFleetExchangeState();if(state)this.selectContainingObject(state.container);return true;
@@ -2311,12 +2315,12 @@ class Game {
             case 'fleetRosterSelect':return this.selectFleetRosterObject(action.object);
             case 'fleetRosterPage':
                 if(this.uiWindow!=='fleets')return false;
-                this.fleetRosterPage=Math.max(0,Math.trunc(action.page));this.fleetRosterLastClick=null;return true;
+                this.fleetRosterBodyScroll=0;this.fleetRosterPage=Math.max(0,Math.trunc(action.page));this.fleetRosterLastClick=null;return true;
             case 'sortFleetRoster': {
                 if(this.uiWindow!=='fleets' || !RosterPreferences.keys.includes(action.key))return false;
                 this.fleetRosterSort={key:action.key,ascending:this.fleetRosterSort.key===action.key?
                     !this.fleetRosterSort.ascending:['name','destination'].includes(action.key)};
-                this.fleetRosterPage=0;this.fleetRosterLastClick=null;
+                this.fleetRosterPage=0;this.fleetRosterBodyScroll=0;this.fleetRosterLastClick=null;
                 if(this.rosterPreferences)this.rosterPreferences.write(this.fleetRosterSort);
                 return true;
             }
@@ -2554,7 +2558,7 @@ class Game {
     getTableWindowState() {
         if(!this.display)return null;
         if(this.uiWindow==='fleets')return {geometry:'fleetRosterGeometry',preferences:this.rosterPreferences,
-            minimumHeight:158,lastClick:'fleetRosterLastClick',rect:this.display.getFleetWindowRect()};
+            minimumHeight:this.display.getFleetRosterLayout().compact?220:158,lastClick:'fleetRosterLastClick',rect:this.display.getFleetWindowRect()};
         if(this.uiWindow==='systemComparison')return {geometry:'systemComparisonGeometry',preferences:this.systemComparisonPreferences,
             minimumHeight:176,lastClick:'systemComparisonLastClick',rect:this.display.getSystemComparisonLayout().rect};
         return null;
@@ -2675,6 +2679,12 @@ class Game {
         if(this.uiWindow!=='menu' || !this.display || !Number.isFinite(delta))return false;
         const layout=this.display.getCommandMenuLayout();if(!layout.compact || !layout.scrollLimit)return false;
         this.commandMenuScroll=Math.max(0,Math.min(layout.scrollLimit,layout.bodyScroll+delta));return true;
+    }
+
+    scrollFleetRoster(delta) {
+        if(this.uiWindow!=='fleets' || !this.display || !Number.isFinite(delta))return false;
+        const l=this.display.getFleetRosterLayout();if(!l.compact)return false;
+        this.fleetRosterBodyScroll=Math.max(0,Math.min(l.scrollLimit,l.bodyScroll+delta));return true;
     }
 
     scrollSystemShips(delta) {

@@ -1730,3 +1730,19 @@ the short-height sheet were reviewed; all 42 ordinary-height and 12 compact
 final-map comparisons are exact. Evidence: `/private/tmp/galactica-short-entry-ui`
 and `/private/tmp/galactica-short-entry-` logs. The historical short-height name
 workaround in the system-list fixture is no longer required by current code.
+
+
+### Compact fleet roster
+
+Run `node tools/test-web-roster-compact.cjs BUILD_DIR OUTPUT_DIR LANGUAGE [before]`
+with `GALACTICA_ROSTER_WIDTH` / `GALACTICA_ROSTER_HEIGHT` set before startup.
+The muted six-language matrix covers 800×600, 800×240 and 320×240: eight sort
+controls/complete fields, wheel without map zoom, colony ranking/reset,
+PageDown, actual paging, Enter/Tab isolation, exact selection/double-click and
+Close with geometry saving. All six narrow and the short-height comparison
+sheets were inspected; all six ordinary-table frames are pixel-identical.
+Both full native suites pass 1,830/1,830. Evidence:
+`/private/tmp/galactica-compact-roster-ui` and
+`/private/tmp/galactica-compact-roster-{pdg,pdg-devel}-unit-final.log`.
+The following selected fleet inspector still has its own compact overlap issue;
+this fixture validates roster row identity, not inspector layout completion.

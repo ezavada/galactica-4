@@ -1348,6 +1348,7 @@ const mouseWheelHandler = new pdg.IEventHandler(function(event) {
     }
     if (event && event.eventType === pdg.eventType_ScrollWheel) {
         if(game.uiWindow==='menu'){game.scrollCommandMenu(event.vertDelta || 0);return true;}
+        if(game.uiWindow==='fleets' && game.display.getFleetRosterLayout().compact){game.scrollFleetRoster(event.vertDelta || 0);return true;}
         if(game.uiWindow==='systemShips'){
             const layout=game.display.getSystemShipWindowLayout(),point=event.mousePos || pdg.gfx.getMouse();
             if(layout.compact && game.display.containsPoint(layout.rect,point.x,point.y)){game.scrollSystemShips(event.vertDelta || 0);return true;}

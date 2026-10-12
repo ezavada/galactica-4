@@ -11,6 +11,21 @@ function fixture(width=800,height=600){
  return {game,display,star,ship,fleet,click};
 }
 module.exports=()=>test.describe('V3 fleet comparison roster',()=>{
+ test.it('keeps complete compact localized fields, sorts and fixed controls accessible',()=>{
+  const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru'])for(const [width,height] of [[320,240],[800,240],[320,600]]){
+   pdg.res.setLanguage(lang);const {game,display,ship}=fixture(width,height);display.reloadUIStrings();for(let i=0;i<8;i++){const unit=ship('scout','Long name '+i+' 星');unit.setDestination({x:65536,y:131072});}
+   let l=display.getFleetRosterLayout();test.assertTrue(l.compact);test.assertEqual(l.sorts.length,8);test.assertTrue(l.rect.x>=10 && l.rect.y>=10 && l.rect.x+l.rect.width<=width-10 && l.rect.y+l.rect.height<=height-10);test.assertTrue(l.bodyClip.y+l.bodyClip.height<l.footerTop);
+   const grip=display.getFleetRosterDragRegions().find(r=>r.mode==='resize').rect;
+   for(const b of l.footer){test.assertTrue(b.rect.width>=display.getButtonWidth(b.label,b.key,{size:10}));test.assertTrue(b.rect.x>=l.rect.x && b.rect.x+b.rect.width<=l.rect.x+l.rect.width);test.assertTrue(b.rect.y+b.rect.height<=l.rect.y+l.rect.height);test.assertFalse(display.containsPoint(b.rect,grip.x+grip.width/2,grip.y+grip.height/2));}
+   const ids=[];for(let page=0;page<l.pages;page++){game.executeUIAction({type:'fleetRosterPage',page});l=display.getFleetRosterLayout();ids.push(...l.visibleRows.map(r=>r.object.id));for(const r of l.records)test.assertTrue(r.lines.length>=7);}
+   test.assertEqual(ids.length,game.getFleetListRows().length);test.assertEqual(new Set(ids).size,ids.length);game.scrollFleetRoster(10000);l=display.getFleetRosterLayout();test.assertEqual(l.bodyScroll,l.scrollLimit);
+   game.executeUIAction({type:'sortFleetRoster',key:'power'});l=display.getFleetRosterLayout();test.assertEqual(l.page,0);test.assertEqual(l.bodyScroll,0);test.assertFalse(game.fleetRosterSort.ascending);game.handleKeyPress(pdg.key_PageDown);test.assertEqual(game.fleetRosterBodyScroll,Math.min(80,l.scrollLimit));game.handleKeyPress(pdg.key_RightArrow);l=display.getFleetRosterLayout();test.assertEqual(l.page,1);test.assertEqual(l.bodyScroll,0);game.handleKeyPress(pdg.key_LeftArrow);test.assertEqual(game.fleetRosterPage,0);
+  }}finally{pdg.res.setLanguage(old);}
+ });
+ test.it('preserves compact modal selection, exact double-click inspection and geometry saving',()=>{
+  const {game,display}=fixture(320,240);game.getCurrentMilliseconds=()=>100;game.scrollFleetRoster(120);let region=display.getFleetListActionRegions().find(r=>r.action.type==='fleetRosterSelect');test.assertNotNull(region);const unit=region.action.object;
+  test.assertTrue(game.executeUIAction(region.action));test.assertTrue(game.selectedObject===unit);test.assertEqual(game.uiWindow,'fleets');const turn=game.turn;game.handleKeyPress(13);game.handleKeyPress(pdg.key_Tab);test.assertEqual(game.turn,turn);test.assertEqual(game.uiWindow,'fleets');test.assertTrue(game.executeUIAction(region.action));test.assertNull(game.uiWindow);test.assertNotNull(game.fleetRosterGeometry);
+ });
  test.it('lists top-level owned fleets and ships but excludes contained groups dead enemies and docked satellites',()=>{
   const {game,fleet,ship}=fixture();const solo=ship('scout','Solo'),hull=ship('battleship','Hull',false),satellite=ship('defense','Satellite');
   const spaceSatellite=ship('defense','Space satellite');spaceSatellite.star=null;

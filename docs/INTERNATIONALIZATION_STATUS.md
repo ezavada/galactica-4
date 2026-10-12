@@ -687,3 +687,16 @@ narrow and short screenshot sheets were inspected. All 42 ordinary frames and
 1,828/1,828. Evidence: `/private/tmp/galactica-short-entry-ui`. This resolves the
 previous short-height startup text-entry gap; broader gameplay window and
 help/manual localization audits remain open.
+
+
+### Compact fleet roster
+
+The eight existing en/de/es/fr/ja/ru sort labels and all entry fields now have
+measured compact controls and full wrapped values. Complete names, destination
+text, colony Yes/No, numeric separators/units, Double-click instruction and
+Previous/Next/Close/Esc remain accessible through body scrolling and fixed
+footer controls. No new strings/resource IDs. Six-language actual-input and
+inspected narrow/short before/after screenshots pass; six ordinary tables are
+pixel-identical. Both full native suites pass 1,830/1,830. Evidence:
+`/private/tmp/galactica-compact-roster-ui`. Compact selected-object inspectors
+and other window/help/manual localization checks remain open.

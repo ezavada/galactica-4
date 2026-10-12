@@ -72,7 +72,7 @@ Full parity is still unproven. The current open work is:
    audit remains to be completed after the parity items above are implemented or
    explicitly documented as blocked.
 
-The latest full-suite evidence is **1,828 passing tests, zero failures** on each
+The latest full-suite evidence is **1,830 passing tests, zero failures** on each
 current public and development native executable. Artwork tests now validate the
 selected replacements and archived provenance; the previous two failures are
 resolved. This supports the tested paths and does not certify all UI, external
@@ -8604,3 +8604,41 @@ title dragging and outside-click clunk/blocking. Evidence:
 The broader compact gameplay tables/inspectors, remaining hosting/network
 feedback, complete help/manual localization, preference/source-edge and final
 Map Generation audits remain open.
+
+
+### Compact fleet roster audit
+
+V3 `Classes/GalacticaDoc.cp:2373–2433` builds the owned standalone ship/fleet
+roster, disables ordinary command keys, retains its scroll position and restores
+window bounds. `CFleetInfoLine.cpp:64` onward supplies its shipped fields and row
+inspection. V4's ordinary roster already implements those contents/sorts and
+geometry, but its eight minimum-width columns and fixed footer overlapped or
+left the viewport at 320px width.
+
+Below 600px wide or 360px high, the roster now uses all eight complete measured
+sort controls and complete wrapped names plus seven labeled values per entry.
+A clipped body scrolls with wheel/PageUp/PageDown; Previous/Next/Close/Esc stay
+fixed, and Left/Right page. Numeric units/locale separators, colony ranking,
+exact ship/fleet/rendezvous identities, selection/centering and double-click
+inspection remain intact. Sort/page changes reset scrolling; same-turn network
+presentation refresh retains its local scroll/page identity. Compact window
+height has a 220px minimum within the viewport, with the existing saved title/
+corner geometry workflow; footer controls reserve space for the resize grip.
+The ordinary 800×600 table is unchanged.
+
+Two new regressions plus existing roster/geometry tests pass within both full
+native suites: **1,830/1,830**. The muted actual-input browser fixture
+`tools/test-web-roster-compact.cjs` passes before/after at 800×600, 800×240 and
+320×240 in en/de/es/fr/ja/ru, including wheel scrolling without map zoom,
+colony sorting/reset, paging, modal Enter/Tab, exact selection/double-click and
+Close with geometry saving. All six narrow before/after sheets and the short
+six-language sheet were inspected. Eighteen common frames include six exact
+ordinary tables and 12 intended compact changes. Evidence:
+`/private/tmp/galactica-compact-roster-ui/comparison-metadata.json`, `*-review.png`
+and `/private/tmp/galactica-compact-roster-{pdg,pdg-devel}-unit-final.log`.
+No new resource IDs, artwork or engine changes.
+
+Compact post-inspection fleet panels still visibly overlap nearby controls at
+320×240; that inspector work remains open. Other compact gameplay lists/tables,
+remaining network variants, help/manual localization, preference/source-edge
+and final Map Generation audits are not completed by this roster item.

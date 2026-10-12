@@ -1936,6 +1936,7 @@ class Display {
     }
 
     getFleetRosterLayout() {
+        const compactScreen=this.getScreenSize();if(compactScreen.width<600 || compactScreen.height<360)return require('./fleet-roster-compact.js').layout(this,compactScreen);
         const rows=this.game.getFleetListRows(),screen=this.getScreenSize(),width=Math.min(840,screen.width-32);
         const preferred=this.game.fleetRosterGeometry;
         const defaultPageSize=Math.max(1,Math.min(14,Math.floor((screen.height-235)/28)));
@@ -2810,6 +2811,7 @@ class Display {
 
     getFleetListActionRegions() {
         if(this.game.uiWindow!=='fleets')return [];
+        const compact=this.getFleetRosterLayout();if(compact.compact)return require('./fleet-roster-compact.js').regions(compact);
         const {rect,columns,visibleRows,page,pages}=this.getFleetRosterLayout();
         const regions=columns.map(column=>({rect:{x:rect.x+column.offset,y:rect.y+38,width:column.width-4,height:24},
             action:{type:'sortFleetRoster',key:column.key}}));
@@ -3579,6 +3581,7 @@ class Display {
     }
 
     drawFleetWindow() {
+        const compact=this.getFleetRosterLayout();if(compact.compact)return require('./fleet-roster-compact.js').draw(this,compact);
         const layout=this.getFleetRosterLayout(),{rect,columns,visibleRows}=layout;
         this.drawWindowPanel(rect,this.STR.fleetRoster);
         const sort=this.game.fleetRosterSort;
