@@ -13,6 +13,11 @@ const {NetworkHost}=require('../src/js/network-host.js');let host,malformedInfo=
  }
  host.persist();
  let dropOrdersResponse=false;const normal=host.handle.bind(host);host.handle=(req,res)=>{
+  if(req.url==='/test/advance-turn' && process.env.GALACTICA_TEST_TURN_REFRESH==='1'){
+   const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'};
+   if(req.method==='OPTIONS'){res.writeHead(204,headers);res.end();return;}if(req.method!=='POST'){res.writeHead(405,headers);res.end('{}');return;}
+   let body='';req.setEncoding('utf8');req.on('data',chunk=>body+=chunk);req.on('end',()=>{try{const value=JSON.parse(body);if(!Number.isSafeInteger(value.turn))throw Error('Invalid turn fixture');host.forceEndTurn(value.turn);res.writeHead(200,headers);res.end(JSON.stringify(host.info()));}catch(error){res.writeHead(400,headers);res.end('{}');}});return;
+  }
   if(req.url==='/test/context-update' && process.env.GALACTICA_TEST_CONTEXT==='1'){
    const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'};
    if(req.method==='OPTIONS'){res.writeHead(204,headers);res.end();return;}

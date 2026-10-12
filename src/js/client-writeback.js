@@ -6,9 +6,9 @@ function signature(game){const value=Orders.snapshot(game,'0'.repeat(32));value.
 function capture(game,id){const orders=Orders.snapshot(game,id),refs=new Map();for(const [kind,list] of Object.entries(families))for(const e of game[list])if(e.owner===game.clientPlayerNum)refs.set(kind+':'+e.id,e);return {model:game,orders,refs};}
 function validate(pending,fresh,ids){
  const created=pending.orders.entities.filter(row=>row.created);
- if(!Array.isArray(ids) || ids.length!==created.length || fresh.clientOrderRevision!==pending.revision+1)throw Error('network_bad_response');
+ if(fresh.turn<pending.orders.turn || !Array.isArray(ids) || ids.length!==created.length || fresh.clientOrderRevision!==pending.revision+1)throw Error('network_bad_response');
  const seen=new Set(),assigned=new Set();
- for(const row of ids){if(!row || typeof row!=='object' || Array.isArray(row) || Object.keys(row).some(k=>!['kind','tempId','id'].includes(k)) || !created.some(e=>e.kind===row.kind && e.id===row.tempId) || !Number.isSafeInteger(row.id) || row.id<1 || pending.orders.entities.some(e=>!e.created && e.kind===row.kind && e.id===row.id) || seen.has(row.kind+':'+row.tempId) || assigned.has(row.kind+':'+row.id) || !fresh[families[row.kind]].some(e=>e.id===row.id && e.owner===fresh.clientPlayerNum))throw Error('network_bad_response');seen.add(row.kind+':'+row.tempId);assigned.add(row.kind+':'+row.id);}
+ for(const row of ids){if(!row || typeof row!=='object' || Array.isArray(row) || Object.keys(row).some(k=>!['kind','tempId','id'].includes(k)) || !created.some(e=>e.kind===row.kind && e.id===row.tempId) || !Number.isSafeInteger(row.id) || row.id<1 || pending.orders.entities.some(e=>!e.created && e.kind===row.kind && e.id===row.id) || seen.has(row.kind+':'+row.tempId) || assigned.has(row.kind+':'+row.id) || fresh.turn===pending.orders.turn && !fresh[families[row.kind]].some(e=>e.id===row.id && e.owner===fresh.clientPlayerNum))throw Error('network_bad_response');seen.add(row.kind+':'+row.tempId);assigned.add(row.kind+':'+row.id);}
 }
 function reconcile(pending,current,fresh,ids){
  const before=Orders.snapshot(current,'0'.repeat(32)),rows=new Map(before.entities.map(row=>[key(row),row])),base=fresh.clientOrderBase;
@@ -54,4 +54,20 @@ function reconcile(pending,current,fresh,ids){
  for(const fleet of fresh.allFleets)if(fleet.owner===fresh.clientPlayerNum)fleet.calculateFleetStats();
  return {model:fresh,received};
 }
-module.exports={signature,capture,validate,reconcile};
+// An old-turn receipt still assigns submitted IDs even if the host has since
+// destroyed/captured the object. Mark the accepted snapshot as the delta base.
+function acknowledge(pending,current,fresh,ids){
+ const mappings=new Map(ids.map(row=>[row.kind+':'+row.tempId,row.id]));
+ for(const kind of ['fleet','rendezvous']){
+  const submitted=new Set(ids.filter(row=>row.kind===kind).map(row=>pending.refs.get(kind+':'+row.tempId)));
+  const used=new Set([...fresh[families[kind]].map(e=>e.id),...ids.filter(row=>row.kind===kind).map(row=>row.id)]);let next=Math.max(1,types[kind].nextId);
+  for(const e of [...current[families[kind]],...fresh[families[kind]]])next=Math.max(next,e.id+1);
+  for(const e of current[families[kind]])if(e.owner===current.clientPlayerNum && !current.clientOrderBase[kind].includes(e.id) && !submitted.has(e) && used.has(e.id)){if(!Number.isSafeInteger(next))throw Error('network_bad_response');e.id=next++;}
+  types[kind].nextId=Math.max(types[kind].nextId,next);
+ }
+ for(const row of ids){const entity=pending.refs.get(row.kind+':'+row.tempId);if(entity)entity.id=row.id;current.clientOrderBase[row.kind].push(row.id);}
+ const remap=value=>{if(!value || typeof value!=='object')return value;if(Array.isArray(value))return value.map(remap);const copy={};for(const [key,item] of Object.entries(value))copy[key]=remap(item);
+  const id=mappings.get(value.kind+':'+value.id);if(value.created && id!==undefined){copy.id=id;copy.created=false;}return copy;};
+ const base=remap(pending.orders);base.postId='0'.repeat(32);return JSON.stringify(base);
+}
+module.exports={signature,capture,validate,reconcile,acknowledge};

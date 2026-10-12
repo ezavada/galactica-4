@@ -3,8 +3,9 @@ const Orders=require('./player-orders.js'),Course=require('./course.js'),Common=
 const families={star:'stars',ship:'allShips',fleet:'allFleets',rendezvous:'allRendezvous'};
 const types={fleet:require('./fleet.js'),rendezvous:require('./rendezvous.js')};
 const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b),key=row=>row.kind+':'+row.id;
-function rebase(current,fresh,saved){
+function rebase(current,fresh,saved,{advanceTurn=false}={}){
  const base=JSON.parse(saved),received=require('./client-writeback.js').signature(fresh);
+ const authority=new Map();for(const [kind,list] of Object.entries(families))for(const e of fresh[list])authority.set(kind+':'+e.id,{entity:e,fleet:e.fleet,star:e.star,course:e.course});
  const baseline=new Map(base.entities.map(row=>[key(row),row])),viewer=fresh.clientPlayerNum;
  // A host-side creation can occupy a temporary ID used by a local draft.
  for(const kind of ['fleet','rendezvous']){
@@ -41,7 +42,10 @@ function rebase(current,fresh,saved){
    for(const field of ['x','y'])if(changed(field))e[field]=row[field];if(changed('anchor'))e.anchor=ref(row.anchor);
   }else{
    if(changed('parent')){const parent=ref(row.parent);e.fleet=row.parent?.kind==='fleet'?parent:null;e.star=row.parent?.kind==='star'?parent:null;}
-   if(changed('course')){const memory=e.course.memory,revision=originals.get(key(row))?.course.revision || 0;e.course=route(row.course,e);e.course.memory=memory;e.course.revision=revision;}
+   if(changed('course')){const memory=e.course.memory,revision=originals.get(key(row))?.course.revision || 0;let data=row.course;
+    if(advanceTurn){let original=old?.course,host=e.course;if(row.created && row.kind==='fleet'){const leader=current.allFleets.find(f=>f.id===row.id)?.ships[0];const kind=leader?.type==='fleet'?'fleet':'ship';original=baseline.get(kind+':'+leader?.id)?.course;host=authority.get(kind+':'+leader?.id)?.course || host;}
+     data=require('./client-turn-refresh.js').course(data,original,host,e);}
+    e.course=route(data,e);e.course.memory=memory;e.course.revision=revision;}
    if(changed('memory'))e.course.memory=route(row.memory);
    for(const field of ['onPatrol','toBeScrapped','userCallIn'])if(changed(field))e[field]=row[field];
   }
@@ -56,11 +60,12 @@ function rebase(current,fresh,saved){
   for(const field of ['star','fleet','anchor','defaultDestination'])if(e[field])e[field]=link(e[field]);
   if(e.course)linkCourse(e.course);
  }
+ if(advanceTurn)require('./client-turn-refresh.js').containment(fresh,authority);
  for(const container of [...fresh.stars,...fresh.allFleets]){container.ships=(container.ships || []).filter(e=>e.owner!==viewer);if(container.defenseSatellites)container.defenseSatellites=container.defenseSatellites.filter(e=>e.owner!==viewer);}
  for(const e of [...fresh.allShips,...fresh.allFleets].filter(e=>e.owner===viewer)){const parent=e.fleet || e.star;if(parent){const list=e.type==='defense'?parent.defenseSatellites:parent.ships;if(list && !list.includes(e))list.push(e);}}
  for(const e of fresh.allFleets)if(e.owner===viewer)e.calculateFleetStats();
  fresh.spatialPartition=new (require('./spatial-partition.js').SpatialPartition)();
  for(const [kind,list] of Object.entries(families))for(const e of fresh[list]){e.game=fresh;e._spatialLocation=null;fresh.spatialPartition.addEntity(e,Common.SpatialConstants[kind==='ship' && e.type==='defense'?'ENTITY_TYPE_DEFENSE':'ENTITY_TYPE_'+kind.toUpperCase()]);}
- fresh.clientPosting=current.clientPosting;return {model:fresh,received};
+ fresh.clientPosting=advanceTurn?false:current.clientPosting;return {model:fresh,received};
 }
 module.exports={rebase};

@@ -61,6 +61,56 @@ module.exports=()=>test.describe('Visibility-limited multiplayer client model',(
   const fresh=Client.restore(state());require('../src/js/network-client.js').preservePresentation(old,fresh);const after=display(fresh);after.continueManualReport(before);after.visualTime=2000;test.assertNull(after.getDestructionEffect(fresh.overlay,true));
  }));
 
+ test.it('keeps existing and newly arrived attention reports accessible after same-turn polling',()=>fixture(({game,own,ship,state})=>{
+  const rename=game.recordEvent('Rename','Colony',{subject:own,recipient:2,type:require('../src/js/common.js').EventType.RENAME_COLONY});
+  const built=game.recordEvent('Built','Ship',{subject:ship,recipient:2,type:require('../src/js/common.js').EventType.SHIP_BUILT});built.automatic=false;
+  const client=new (require('../src/js/network-client.js').NetworkClient)('localhost');client.model=Client.restore(state());client.savedOrders=require('../src/js/client-writeback.js').signature(client.model);const model=client.model;
+  test.assertEqual(model.attention.manualPending().length,2);const incoming=game.recordEvent('More','Ship',{subject:ship,recipient:2,type:'callIn'});incoming.automatic=false;
+  client.install(Client.restore(state()));test.assertTrue(client.model===model);test.assertEqual(model.attention.manualPending().length,3);for(const entry of model.attention.queue){test.assertTrue(model.eventLog.includes(entry.event));test.assertTrue(entry.object===get(model,entry.event.id===rename.id?'stars':'allShips',entry.event.id===rename.id?own:ship));}
+  model.setSelectedObject(get(model,'stars',own));test.assertEqual(model.attention.manualPending().length,2);client.install(Client.restore(state()));test.assertEqual(model.attention.manualPending().length,2);test.assertTrue(model.eventLog.find(e=>e.id===rename.id).handled);
+  game.eventLog=game.eventLog.filter(e=>e.id!==built.id);client.install(Client.restore(state()));test.assertFalse(model.attention.queue.some(e=>e.event.id===built.id));test.assertEqual(model.attention.manualPending().length,1);
+ }));
+ test.it('carries only unsaved decisions across a new turn while adopting host positions and route progress',()=>fixture(({game,own,ship,state})=>{
+  ship.course.replace({x:own.x+100,y:own.y+100});ship.course.insert({x:own.x+10000,y:own.y+10000});
+  const client=new (require('../src/js/network-client.js').NetworkClient)('localhost');client.model=Client.restore(state());client.savedOrders=require('../src/js/client-writeback.js').signature(client.model);
+  const local=get(client.model,'allShips',ship);local.name='Newer name';get(client.model,'stars',own).name='Newer system';client.model.uiWindow='course';client.model.courseWindowObject=local;
+  ship.x+=100;ship.y+=100;ship.course.current=1;ship.course.previous=0;ship.star=null;own.ships=own.ships.filter(s=>s!==ship);game.turn++;
+  const model=client.install(Client.restore(state()));test.assertEqual(model.turn,2);test.assertEqual(get(model,'stars',own).name,'Newer system');test.assertEqual(get(model,'allShips',ship).name,'Newer name');test.assertEqual(get(model,'allShips',ship).x,ship.x);test.assertEqual(get(model,'allShips',ship).course.current,1);test.assertNull(get(model,'allShips',ship).star);test.assertNull(model.uiWindow);test.assertTrue(client.hasUnsavedChanges());
+ }));
+ test.it('keeps changed production, defaults, destinations and markers without reverting simulated values',()=>fixture(({game,own,state})=>{
+  const removed=game.factory.createRendezvous(own.x,own.y,2,'Old point'),moved=game.factory.createRendezvous(own.x+20,own.y+30,2,'Moved point');
+  const client=new (require('../src/js/network-client.js').NetworkClient)('localhost');client.model=Client.restore(state());client.savedOrders=require('../src/js/client-writeback.js').signature(client.model);const home=get(client.model,'stars',own);
+  home.growth.desired=60;home.growth.locked=true;home.shipBuilding.desired=20;home.research.desired=20;home.startBuildingShip('scout');home.defaultDestination={x:own.x+5000,y:own.y+6000};Object.assign(client.model.players[2],{defaultGrowth:700,defaultShips:200,defaultTech:100});
+  client.model.entityRemoved(get(client.model,'allRendezvous',removed));get(client.model,'allRendezvous',moved).x=own.x+1000;client.model.createRendezvousAt(own.x+70,own.y+80,2,'New point');
+  own.growth.value=27;own.growth.rate=4;own.growth.benefit=8;own.population+=100;game.turn++;const population=own.population,model=client.install(Client.restore(state())),fresh=get(model,'stars',own);
+  test.assertEqual(fresh.growth.desired,60);test.assertTrue(fresh.growth.locked);test.assertEqual(fresh.growth.value,27);test.assertEqual(fresh.growth.rate,4);test.assertEqual(fresh.growth.benefit,8);test.assertEqual(fresh.population,population);test.assertEqual(fresh.currentShip.type,'scout');test.assertEqual(fresh.defaultDestination.x,own.x+5000);test.assertEqual(model.players[2].defaultGrowth,700);test.assertFalse(model.allRendezvous.some(e=>e.id===removed.id));test.assertEqual(get(model,'allRendezvous',moved).x,own.x+1000);test.assertTrue(model.allRendezvous.some(e=>e.name==='New point'));
+  test.assertEqual(require('../src/js/player-orders.js').apply(Save.restore(Save.serialize(game)),2,require('../src/js/player-orders.js').snapshot(model,'0'.repeat(32))).length,1);
+ }));
+ test.it('keeps newly appended legs after a completed host course and updates a replaced course origin',()=>fixture(({game,own,ship,state})=>{
+  ship.course.replace({x:own.x+100,y:own.y+100});const saved=Client.restore(state()),baseline=require('../src/js/client-writeback.js').signature(saved);get(saved,'allShips',ship).course.insert({x:own.x+10000,y:own.y+10000});
+  ship.x+=100;ship.y+=100;ship.course.clear();ship.star=null;own.ships=own.ships.filter(s=>s!==ship);game.turn++;
+  let result=require('../src/js/client-draft-refresh.js').rebase(saved,Client.restore(state()),baseline,{advanceTurn:true}).model;test.assertEqual(get(result,'allShips',ship).course.current,1);test.assertEqual(get(result,'allShips',ship).course.waypoints.length,2);
+  ship.x-=50;const stopped=require('../src/js/client-draft-refresh.js').rebase(saved,Client.restore(state()),baseline,{advanceTurn:true}).model;test.assertEqual(get(stopped,'allShips',ship).course.current,0);ship.x+=50;
+  const draft=get(saved,'allShips',ship).course;draft.waypoints=[{x:own.x,y:own.y,target:{x:own.x,y:own.y}},{x:own.x+5000,y:own.y+5000,target:{x:own.x+5000,y:own.y+5000}}];draft.hasOrigin=true;draft.current=1;
+  result=require('../src/js/client-draft-refresh.js').rebase(saved,Client.restore(state()),baseline,{advanceTurn:true}).model;test.assertEqual(get(result,'allShips',ship).course.waypoints[0].x,ship.x);test.assertEqual(get(result,'allShips',ship).course.current,1);
+  draft.loop=true;result=require('../src/js/client-draft-refresh.js').rebase(saved,Client.restore(state()),baseline,{advanceTurn:true}).model;test.assertEqual(get(result,'allShips',ship).course.waypoints[0].x,own.x);
+  const owner=get(result,'allShips',ship),loopBase={waypoints:[{x:own.x,y:own.y,target:null},{x:ship.x,y:ship.y,target:null}],current:1,previous:0,loop:true,hunt:false,hasOrigin:true},wrapped={waypoints:loopBase.waypoints.map(p=>({...p,target:{x:p.x,y:p.y}})),current:0,previous:1};
+  const disabled=require('../src/js/client-turn-refresh.js').course({...loopBase,loop:false},loopBase,wrapped,owner);test.assertEqual(disabled.current,2);test.assertEqual(disabled.previous,1);
+ }));
+ test.it('places unsaved new fleets at the moved members and cancels grouping when the members separated',()=>fixture(({game,own,ship,state})=>{
+  const other=game.factory.createShip(own.x,own.y,'scout',own,true);own.ships.push(other);
+  const draft=Client.restore(state()),baseline=require('../src/js/client-writeback.js').signature(draft),fleet=draft.factory.createFleet(own.x,own.y,2,'New fleet');fleet.star=get(draft,'stars',own);fleet.addShip(get(draft,'allShips',ship));fleet.addShip(get(draft,'allShips',other));
+  for(const member of [ship,other]){member.x+=1000;member.y+=1000;member.star=null;}own.ships=own.ships.filter(s=>s!==ship && s!==other);game.turn++;
+  let result=require('../src/js/client-draft-refresh.js').rebase(draft,Client.restore(state()),baseline,{advanceTurn:true}).model;const group=result.allFleets.find(f=>f.name==='New fleet');test.assertNotNull(group);test.assertEqual(group.x,ship.x);test.assertNull(group.star);test.assertEqual(group.ships.length,2);
+  const apply=model=>require('../src/js/player-orders.js').apply(Save.restore(Save.serialize(game)),2,require('../src/js/player-orders.js').snapshot(model,'0'.repeat(32)));test.assertEqual(apply(result).length,1);
+  other.x+=100;result=require('../src/js/client-draft-refresh.js').rebase(draft,Client.restore(state()),baseline,{advanceTurn:true}).model;test.assertFalse(result.allFleets.some(f=>f.name==='New fleet'));test.assertNull(get(result,'allShips',ship).fleet);test.assertNull(get(result,'allShips',other).fleet);test.assertEqual(apply(result).length,0);
+ }));
+ test.it('does not carry decisions for captured objects or into a finished or explicitly discarded game',()=>fixture(({game,own,ship,state})=>{
+  const client=new (require('../src/js/network-client.js').NetworkClient)('localhost');client.model=Client.restore(state());client.savedOrders=require('../src/js/client-writeback.js').signature(client.model);get(client.model,'allShips',ship).name='Lost ownership draft';get(client.model,'stars',own).name='Still owned draft';
+  ship.owner=1;ship.setVisibilityTo(2,4);game.turn++;let fresh=Client.restore(state()),model=client.install(fresh);test.assertFalse(get(model,'allShips',ship).name==='Lost ownership draft');test.assertEqual(get(model,'stars',own).name,'Still owned draft');
+  get(model,'stars',own).name='Another draft';game.turn++;fresh=Client.restore(state());fresh.canContinue=false;client.install(fresh);test.assertFalse(get(client.model,'stars',own).name==='Another draft');test.assertFalse(client.hasUnsavedChanges());
+  get(client.model,'stars',own).name='Discard this';game.turn++;fresh=Client.restore(state());client.install(fresh,{discardOrders:true});test.assertFalse(get(client.model,'stars',own).name==='Discard this');test.assertFalse(client.hasUnsavedChanges());
+ }));
  test.it('keeps local client reports distinct from future authoritative host report IDs',()=>fixture(({state})=>{
   const client=Client.restore(state()),nextId=client.nextEventId+1,local=client.recordEvent('Orders','Local edit');local.handled=true;
   test.assertTrue(local.id<0);test.assertEqual(client.nextEventId,nextId-1);

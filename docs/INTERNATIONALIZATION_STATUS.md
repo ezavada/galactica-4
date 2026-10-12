@@ -633,3 +633,16 @@ Actual Events controls, paging and saved-receipt continuity pass in all six
 languages. All-six-language paged narrative, Stardock/Lab and outcome
 before/after sheets were reviewed with the selected artwork; translated
 controls and wrapping fit. Evidence: `/private/tmp/galactica-report-ui`.
+
+
+### Turn-boundary draft and report recovery
+
+No runtime strings or resource IDs change. Actual delayed-save/newer-name/
+forced-turn flows pass in en/de/es/fr/ja/ru and preserve literal entered names,
+existing localized controls and new authoritative numbers. All six final
+before/after sheets were reviewed using the selected artwork. The Next item
+report remains available after same-turn polling. Full native suites pass
+1,822/1,822 on both runtimes, with actual forced-turn/deadline/receipt checks.
+Evidence: `/private/tmp/galactica-turn-refresh-ui` and its verified comparison
+metadata/sheets. Posted-turn control/source parity and the broader compact
+window/localization audits remain separate requirements.

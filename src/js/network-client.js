@@ -76,6 +76,9 @@ class NetworkClient {
  install(fresh,{discardOrders=false}={}){
   const old=this.model;
   if(old && old.clientGameId===fresh.clientGameId && old.clientPlayerNum===fresh.clientPlayerNum && fresh.turn<old.turn)throw fail('stale_server_state');
+  if(old && old.clientGameId===fresh.clientGameId && old.clientPlayerNum===fresh.clientPlayerNum && fresh.turn>old.turn && !discardOrders && !this.pendingPost && !old.clientTurnPosted && !fresh.clientTurnPosted && fresh.canContinue && fresh.players[fresh.clientPlayerNum]?.isAlive!==false && this.hasUnsavedChanges()){
+   const merged=require('./client-draft-refresh.js').rebase(old,fresh,this.savedOrders,{advanceTurn:true});preservePresentation(old,merged.model);this.savedOrders=merged.received;this.pendingChanges=null;this.model=merged.model;return this.model;
+  }
   if(!old || old.clientGameId!==fresh.clientGameId || old.clientPlayerNum!==fresh.clientPlayerNum || old.turn!==fresh.turn || discardOrders){this.savedOrders=Writeback.signature(fresh);if(discardOrders || old?.turn!==fresh.turn)this.pendingChanges=null;}
   if(this.pendingPost && (fresh.turn!==this.pendingPost.turn || fresh.clientTurnPosted)){this.pendingPost=null;fresh.clientPosting=false;}
   if(old && old.clientGameId===fresh.clientGameId && old.clientPlayerNum===fresh.clientPlayerNum){
@@ -86,7 +89,10 @@ class NetworkClient {
     if(changed){if(!old.clientTurnPosted)require('./client-settings-refresh.js').preserveOrders(old,fresh);preservePresentation(old,fresh);this.model=fresh;return fresh;}
     if(fresh.clientOrderRevision!==old.clientOrderRevision && !this.hasUnsavedChanges() && !this.pendingChanges){preservePresentation(old,fresh);this.savedOrders=Writeback.signature(fresh);this.model=fresh;return fresh;}
     const previousEvents=new Map(old.eventLog.map(event=>[event.id,event]));
-    old.eventLog=fresh.eventLog.map(event=>{if(previousEvents.get(event.id)?.handled)event.handled=true;return event;}).concat(old.eventLog.filter(event=>event.id<0 || old.heldReports.some(row=>row.eventId===event.id) && !fresh.eventLog.some(row=>row.id===event.id)));
+    const subjectLists=['stars','allShips','allFleets','allRendezvous'];
+    old.eventLog=fresh.eventLog.map(event=>{if(previousEvents.get(event.id)?.handled)event.handled=true;const list=subjectLists.find(list=>fresh[list].includes(event.subject));event.subject=list?old[list].find(e=>e.id===event.subject.id) || null:null;return event;}).concat(old.eventLog.filter(event=>event.id<0 || old.heldReports.some(row=>row.eventId===event.id) && !fresh.eventLog.some(row=>row.id===event.id)));
+    const events=new Map(old.eventLog.map(event=>[event.id,event]));
+    old.attention.queue=old.attention.queue.filter(entry=>{if(!entry.event)return true;const event=events.get(entry.event.id);if(!event)return false;entry.event=event;entry.object=event.subject;if(event.handled)entry.handled=true;return true;});
     for(const event of old.eventLog)if(!previousEvents.has(event.id) && !event.handled){old.attention.requestEvent(event);if(event.playerMessage)old.queueReport(event);}
     old.clientClock=fresh.clientClock;
     for(const key of ['canContinue','postGame','winningPlayerNum','victoryTurn'])old[key]=fresh[key];
@@ -114,6 +120,9 @@ class NetworkClient {
    const info=await this.inspect();current();if(gameId!==undefined && gameId!==info.gameId)throw fail('wrong_game');
    accepted=validateLogin(await this.send('/login',{method:'POST',body:{protocol,name,password,mode,gameId:info.gameId,...(admissionCode?{admissionCode}:{})}}),info,name);current();this.identity={name,player:accepted.player,gameId:accepted.gameId};
    const fresh=this.state(await this.send('/state',{token:accepted.token}),accepted);current();
+   if(this.pendingChanges && this.model && fresh.turn>this.model.turn){
+    this.session=accepted;this.status='connected';if(this.savePromise)try{await this.savePromise;}catch(ignored){}current();return await this.writeChanges();
+   }
    const model=this.install(fresh);this.session=accepted;this.identity={name,player:accepted.player,gameId:accepted.gameId};this.status='connected';return model;
   }catch(error){
    if(accepted && (!this.session || this.session.token!==accepted.token))try{await this.send('/logout',{method:'POST',token:accepted.token,timeout:1000});}catch(ignored){}
@@ -135,10 +144,18 @@ class NetworkClient {
     const pending=this.pendingChanges,data=await this.send('/changes',{method:'POST',token:session.token,body:{revision:pending.revision,playerRevision:pending.playerRevision,initialStateRevision:pending.initialStateRevision,orders:pending.orders}});
     if(generation!==this.generation || session!==this.session)throw fail('network_cancelled');
     let fresh;try{fresh=this.state(data,session);Writeback.validate(pending,fresh,data.orderIds);}catch(error){throw fail('network_bad_response');}
-    if(fresh.turn!==pending.orders.turn || fresh.clientTurnPosted){this.pendingChanges=null;this.install(fresh,{discardOrders:true});throw fail(fresh.turn!==pending.orders.turn?'wrong_turn':fresh.clientTurnPosted?'already_posted':'stale_orders');}
+    if(fresh.turn>pending.orders.turn){
+     const base=Writeback.acknowledge(pending,this.model,fresh,data.orderIds);this.pendingChanges=null;this.savedOrders=base;this.status='connected';return this.install(fresh);
+    }
+    if(fresh.turn!==pending.orders.turn || fresh.clientTurnPosted){this.pendingChanges=null;this.install(fresh,{discardOrders:true});throw fail(fresh.turn!==pending.orders.turn?'wrong_turn':'already_posted');}
     const changedContext=fresh.clientInitialStateRevision!==pending.initialStateRevision || fresh.clientPlayerRevision!==pending.playerRevision,authoritative=changedContext?this.state(data,session):null;
     let result=Writeback.reconcile(pending,this.model,fresh,data.orderIds);if(changedContext)result=require('./client-draft-refresh.js').rebase(result.model,authoritative,result.received);preservePresentation(this.model,result.model);this.pendingChanges=null;this.model=result.model;this.savedOrders=result.received;this.status='connected';return this.model;
    }catch(error){if(generation===this.generation && session===this.session){
+    if(error.code==='wrong_turn'){
+     this.pendingChanges=null;let fresh;try{fresh=this.state(await this.send('/state',{token:session.token}),session);}catch(recovery){if(generation===this.generation && session===this.session){this.status='connection_lost';if(['not_logged_in','admin_ejected'].includes(recovery.code))this.session=null;}throw recovery;}
+     if(generation!==this.generation || session!==this.session)throw fail('network_cancelled');
+     if(fresh.turn>this.model.turn){const model=this.install(fresh);this.status='connected';return model;}
+    }
     if(['bad_orders','orders_too_large','wrong_game','wrong_turn','already_posted','game_complete','stale_orders','not_found'].includes(error.code)){this.pendingChanges=null;this.status='connected';}
     else{this.status='connection_lost';if(['not_logged_in','admin_ejected'].includes(error.code))this.session=null;}
    }throw error;}
@@ -152,13 +169,14 @@ class NetworkClient {
  post(){
   if(this.postPromise)return this.postPromise;if(!this.session || !this.model)return Promise.reject(fail('not_logged_in'));
   if(this.model.clientTurnPosted)return Promise.reject(fail('already_posted'));
-  const generation=this.generation,session=this.session,flushing=this.flushPromise;this.model.clientPosting=true;
+  const generation=this.generation,session=this.session,flushing=this.flushPromise,requestedTurn=this.model.turn;this.model.clientPosting=true;
   const operation=(async()=>{
    try{
     if(flushing)await flushing;
     if(this.savePromise)await this.savePromise;else if(this.pendingChanges)await this.writeChanges();
     if(this.refreshPromise)await this.refreshPromise;
     if(generation!==this.generation || session!==this.session)throw fail('network_cancelled');
+    if(this.model.turn!==requestedTurn)throw fail('wrong_turn');
     if(!this.pendingPost){
      let id;if(typeof window!=='undefined'){const bytes=new Uint8Array(16);window.crypto.getRandomValues(bytes);id=Array.from(bytes,n=>n.toString(16).padStart(2,'0')).join('');}else id=require('crypto').randomBytes(16).toString('hex');
      this.pendingPost=require('./player-orders.js').snapshot(this.model,id);

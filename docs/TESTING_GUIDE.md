@@ -1644,3 +1644,29 @@ use the selected replacement assets. Evidence: `/private/tmp/galactica-report-ui
 (including comparisons.json and `*-final-review.png`). A transient Japanese
 localhost failure is archived separately; the affected final lane was rerun
 successfully without changing the connection timeout.
+
+
+## Draft recovery across host turn changes
+
+`./gad4 tools/test-client-turn-refresh.js` verifies actual forced turns and
+running scheduler expiry while saves are pending; old rejected requests, lost
+accepted receipts/rejoin and assigned-ID collisions; canceled state recovery;
+and no accidental next-turn posting/replay after lost End Turn replies. It
+passes on both runtimes, as do existing writeback/context/manual-report lanes.
+Full final native suites pass **1,822/1,822**. New unit cases include production/
+defaults/marker deltas, movement/progress separation, completed versus interrupted
+routes, fixed courier origins, host-valid grouping and same-turn canonical
+attention records. Audio remains muted.
+
+Use `GALACTICA_TEST_TURN_REFRESH=1` with `tools/test-web-network-orders.cjs`
+for actual delayed Save, newer Rename and forced-turn input in all six
+languages. `before` verifies original draft loss; final runs also check the
+pending attention report and absence of next-turn readiness. An optional
+`GALACTICA_TEST_ATTENTION_AUDIT=1` prints event/queue identity diagnostics.
+All six before/after sheets were reviewed. Of 36 common pairs, 24 are exact,
+six show the retained newer name and six differ by localhost port. Art is the
+selected replacement set. Evidence: `/private/tmp/galactica-turn-refresh-ui`,
+`verified-comparisons.json`, `*-verified-review.png`; native logs use
+`/private/tmp/galactica-turn-refresh-`. A failed Japanese baseline host read was
+retained separately and rerun successfully without increasing timeouts.
+Final posted-turn control/source parity remains a separate audit.

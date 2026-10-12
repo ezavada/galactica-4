@@ -53,9 +53,11 @@ Full parity is still unproven. The current open work is:
    writeback. Same-turn authoritative refresh/ACK context recovery now preserves
    unsaved decisions while adopting server simulation. Same-turn acknowledgments now retain open editors, targeting and
    local interaction state. Accessible manual reports now retain their page, artwork
-   references and single playback cue during same-turn ACK/refresh. Deadline/
-   new-turn decision recovery still requires implementation/audit before the whole
-   row is complete.
+   references and single playback cue during same-turn ACK/refresh. Forced-turn,
+   actual-deadline and old-receipt recovery now retain valid newer decisions
+   without replaying accepted orders or rewinding movement. Final source/UI
+   audit of v3 changes after posting versus v4 posted-turn read-only controls
+   remains before the whole writeback row is certified.
 2. **Remaining window and localization audits.** Finish the listed compact
    gameplay tables/lists/inspectors, toolbar states and hosting/join/network
    busy/error variants. Compare Players, Course, target prompts, map instruction
@@ -325,7 +327,7 @@ are explicitly excluded from shipped-v3 parity.
 | Join by list/IP/hostname | Inspect game information, choose a slot, join or rejoin. | ✅ Implemented | ✅ Implemented | Startup Join/J and File → Join open a localized modal address/name/masked-password form with public game/slot information and paged player selection. Native HTTP/browser CORS admission installs the authenticated client as a retained game document; same-player rejoin reuses that document. Automatic refresh preserves same-turn orders and updates authoritative turns. Title dragging stays in the port and remembers its position. Six-language actual-control browser tests pass. Saved games now stores manual hostname/IP bookmarks and successful game/player/admin identities in device preferences, with add/remove, paging, keyboard selection and public inspection before authenticated joining. Reload retains the list; passwords remain in the separate opt-in store. Removing an entry preserves sessions, claims and credentials. Wrong-game, failed/cancelled admission and preference-write retry are verified. Discovery remains separately Partial; untimed order submission and authoritative turn resolution are wired. Details now opens complete localized public game information: sector/density, AI skill/advantage, fog/speed, End Early, configured/current turn limits and countdown, open/full state and admission-code requirement. Read-only periodic inspection preserves credentials/focus; Back returns to the draft and malformed responses preserve the last valid metadata. All six languages pass actual input at ordinary, short and narrow sizes, with real native changes and admission; both full suites pass 1,759 tests. |
 | Player login/password/rejoin key | Open slots, optional saved password, reconnection, version/private/full checks. | ✅ Implemented | ✅ Implemented | Durable slot claims and optional-password rejoining enforce protocol/game identity, replace prior sessions and reject duplicate/full/incompatible requests. The live native/browser client supports refresh, cancellation, logout and rejoining after host reopening; public connection descriptors exclude passwords and temporary tokens. Player-facing admission and localized error messages are now implemented, with cancellation and same-session reconnection. Private/admit rules now restrict new slots with host-issued codes, allow/ban lists and code-free admission; password rejoining remains unaffected. The optional Remember password on this device checkbox now persists successfully authenticated credentials in device preferences, scoped to endpoint/game/player/role. Masked restoration works after application reload; unchecked successful login forgets that identity. Failed/cancelled attempts preserve prior preferences, role switches never reuse another role’s password, and public descriptors/game/host saves exclude remembered credentials. Eight focused units, actual six-language native admission on both runtimes, awaited cancellation checks and all-six-language browser before/after/reload paths are verified below. Saved host lists/discovery remain a separate row. |
 | Turn posting and synchronization | Clients send changed objects and post completion; host resolves turn. | ✅ Implemented | ✅ Implemented | Client End Turn submits owned decision records through authenticated HTTP, shows localized Posting/Posted/Retry states and locks posted orders. The host stages and validates production targets/build choices, destinations/courses/memory, names, fleet membership, private rendezvous and player defaults; it derives simulation values and permanent IDs. Untimed turns resolve once every assigned living human posts. Durable receipts make retries idempotent after lost replies/reopening. Authoritative next-turn refresh unlocks client orders. Both full suites pass 1,459 tests; posting controls are verified in all six languages, with an English browser rerun after the host-clock addition. Timed scheduling, visible countdowns, desktop setup and remote host administration are implemented. Background turn Warning cues are verified below. The shipped foreground Begin New Turn notice is now implemented: a localized, caption-only modal lasts 1.5 seconds, blocks commands, supports constrained persistent dragging and defers report playback and attention navigation until dismissal. Actual six-language network arrivals and both full 1,648-test suites are verified below. Native OS activation detection remains the separate Sound integration requirement. |
-| Unposted client writeback / close preservation | Sends owned writable changes on selection changes, Close/Quit and creation acknowledgments without declaring the turn posted. | 🟡 Partial | 🟡 Partial | Source GalacticaClient.cpp:1454–1491, 2699–2761. Durable host `/changes` and client save/flush, retry, ID reconciliation and in-flight-edit preservation are implemented. Leaving an owned selection (including empty-space click and Escape), File Save and accepted Close/Quit now flush drafts; failed persistence retains the document for retry. Six-language actual-input Save/selection/Close and failure/retry checks pass; native document/Quit and transport checks pass on both runtimes. Save As refuses partial-map export with localized guidance. Rendezvous placement without a prior selection and Exchange/group/merge fleet creation now schedule complete objects explicitly, with live-host creation/remapping checks. Same-turn authority refresh/ACK context changes now preserve unsaved decisions and authoritative simulation; same-turn editor/target/drag references, caret and table state now remain active through ACK. Manual report overlays now continue through same-turn ACK/refresh, with privacy guards, retained pages and no repeated cue/animation. Final deadline/new-turn decision recovery remains open. |
+| Unposted client writeback / close preservation | Sends owned writable changes on selection changes, Close/Quit and creation acknowledgments without declaring the turn posted. | 🟡 Partial | 🟡 Partial | Source GalacticaClient.cpp:1454–1491, 2699–2761. Durable host `/changes` and client save/flush, retry, ID reconciliation and in-flight-edit preservation are implemented. Leaving an owned selection (including empty-space click and Escape), File Save and accepted Close/Quit now flush drafts; failed persistence retains the document for retry. Six-language actual-input Save/selection/Close and failure/retry checks pass; native document/Quit and transport checks pass on both runtimes. Save As refuses partial-map export with localized guidance. Rendezvous placement without a prior selection and Exchange/group/merge fleet creation now schedule complete objects explicitly, with live-host creation/remapping checks. Same-turn authority refresh/ACK context changes now preserve unsaved decisions and authoritative simulation; same-turn editor/target/drag references, caret and table state now remain active through ACK. Manual report overlays now continue through same-turn ACK/refresh, with privacy guards, retained pages and no repeated cue/animation. Forced turns, actual deadlines and old receipts now preserve valid newer decisions and host movement; accepted End Turn orders are not replayed. Same-turn event polling now keeps attention records and subjects attached to the live model. Final posted-turn writable-control/source audit remains open. |
 | Timed turns | Host clock, time remaining, pause/resume, automatic completion. | ✅ Implemented | ✅ Implemented | Native host listener runs a monotonic countdown after untimed turn 1, resolves expired turns even with unposted/offline humans, and preserves remaining time while stopped/reopened. Local host-service pause/resume and public/authenticated countdown records are implemented. Joined games display validated countdowns in the map header, including localized paused and awaiting-next-turn states; the countdown remains visible after posting and never resolves a turn locally. Nine unit regressions and awaited real scheduler/socket checks cover expiration, endEarly, persistence, save rollback/retry and shutdown. Desktop Host now configures the time limit and endEarly option. Desktop Host status now offers durable Pause/Resume with current countdown text; pausing holds expiry, ready-post resolution and AI-only advancement. Joined clients receive paused/resumed clock state. Saved/reopened pause and failed-write rollback are verified. |
 | Host administration | Change settings/player, end turn now, pause/resume, edit state, eject users. | ✅ Implemented | ✅ Implemented | Desktop host status offers durable Pause/Resume and End turn now. A paged confirmation lists assigned living humans who have not posted; cancellation preserves the turn. Captured-turn checks prevent a stale confirmation from skipping a newer turn; failed saves roll back and retain retry. Active host settings now edit AI skill/advantage, fast mode, fog and turn timing with fixed title/roster/map, save rollback/retry and stale-draft protection. Positive-to-positive timer changes preserve the current deadline through reopening and apply the budget next turn; enable/disable retains pause. Joined clients receive settings/visibility changes while preserving unposted decisions. Change player now provides rename, human/AI conversion, free human slot and elimination with stable IDs/ownership, durable save rollback, stale-action guards and affected-session revocation. Eject player disconnects an online human after a successful save, preserving credentials, territory and posted orders; the client receives a localized reason and may rejoin. Private admission now has durable allow/ban-code lists, a shared desktop editor and dedicated pre-listen configuration. Separate password-gated administrator login, full-map observation and remote shared controls are implemented, with local credential configuration, authenticated revisions, disconnect/rejoin and read-only document handling. First-turn system population, technology, ownership and completed ship creation now share localized owner/admin dialogs with paged system selection. Local games expose the same editor in Settings and selected-system menus, preserving v3’s distinct local ownership behavior. Captured-turn/revision checks, atomic host save rollback/retry, scanner/visibility refresh and same-turn authoritative client updates are verified below. |
 | Multiplayer chat | Player-to-player/all/admin messages. | ✅ Implemented | ✅ Implemented | Menu → Chat provides a localized modal recipient picker, live online/offline status, full Unicode history paging and Enter/Return composition. Private conversations exclude unrelated players/admins, broadcast audiences snapshot connected participants, and the host authenticates senders. Offline private messages become saved reports, including unclaimed human slots; read acknowledgments persist. Replacing a player claim does not expose its earlier conversations. Retry receipts suppress duplicate sends, failed saves roll back, an unread inbox at capacity rejects new messages without losing queued reports, and uncertain drafts remain fixed for an unchanged retry. Window dragging clamps/persists. Both 1,627-test native suites and actual six-language native HTTP/browser flows are recorded below. |
@@ -8414,3 +8416,73 @@ separately, and Japanese/Russian reruns passed without increasing timeouts.
 Late-ACK/deadline/new-turn decision recovery remains the next writeback item.
 Other window/localization, native/platform, external-service and Map Generation
 audits remain open.
+
+
+### Forced-turn, deadline and old-receipt draft recovery
+
+`GalacticaClient.cpp:2485–2532`, `CShip.cpp:80–125`,
+`CStar.cpp:162–185` and `ANamedThingy.cpp:68–80` distinguish changed decisions
+from host movement/progress. V4 previously discarded drafts on a new-turn
+projection, rejected an old-turn durable receipt and could accidentally submit
+End Turn for the next turn after waiting for a save.
+
+New-turn refresh now replays only decisions changed since the authoritative
+saved baseline, for still-owned objects and a living, writable player. Names,
+production targets/locks, build choice, destinations, defaults and private
+marker creation/movement/deletion survive; population, actual production,
+positions and newly authoritative entities come from the host. Courses retain
+host progress through shared legs and a completed prefix when the ship actually
+reached that destination. Interrupted courses are not treated as completed;
+passed nonlooping synthetic origins follow the authoritative position, while
+looping courier return points stay fixed. Disabling a loop as the host wraps
+a completed lap does not start another lap. New groups follow their moved members
+only while still colocated. Impossible transfers/groups are canceled in favor
+of valid host containment; resulting orders pass host validation. Captured/
+removed objects, finished games and explicit discard do not revive old orders.
+
+A receipt retried after the host advanced assigns its accepted temporary IDs
+before computing the newer decision delta, including accepted objects already
+removed/captured. Receipt IDs remain reserved so an unsent colliding marker is
+not lost or recreated as an accepted object. Rejoin resolves such pending old
+receipts before adopting the next turn. A definitively rejected old request
+fetches the new state and retains its unaccepted decisions. Cancellation while
+awaiting that fetch cannot overwrite a disconnected/newer session's status.
+End Turn captures the requested turn and refuses to post a different turn after
+waiting for recovery. Lost accepted End Turn replies adopt the authoritative
+next turn without replaying executed courses or duplicating creations.
+
+Screenshot review exposed a separate same-turn event-poll defect: replaced
+records left attention entries pointing at event objects no longer in the live
+log. Polling now rebinds subjects to the existing model, updates attention
+entries to canonical events, retains handled state, adds new reports and drops
+removed reports. The final Next item count and accessible reports stay intact.
+
+Both final complete native suites pass **1,822 tests / zero failures**, terminal
+exit 0. Six new regression cases cover decision/simulation separation, production/
+defaults/markers, completed/interrupted/courier routes, valid/impossible grouping,
+authority/terminal/discard guards and canonical polling attention. The real
+`tools/test-client-turn-refresh.js` lane passes on both runtimes for forced
+turns, actual running scheduler expiry, request/receipt races, lost receipt and
+rejoin, removed accepted creation plus unsent-ID collision, cancellation and
+accepted End Turn safety. Existing writeback/context/manual-report lanes pass
+on both. Evidence: `/private/tmp/galactica-turn-refresh-{pdg,pdg-devel}-http-final6.log`,
+`/private/tmp/galactica-turn-refresh-{pdg,pdg-devel}-unit-final6.log` and other
+`/private/tmp/galactica-turn-refresh-` native lane logs.
+
+Actual browser save/rename/forced-turn flows pass in en/de/es/fr/ja/ru, including
+retained newer names on both client and host, no next-turn readiness, and the
+pending report after subsequent polling. All six final before/after sheets
+were reviewed using the selected artwork. Thirty-six common screenshot pairs
+contain 24 exact frames, six retained-name/turn-recovery changes and six Join
+localhost-port differences. Initial sheets had a Next item discrepancy; that
+was investigated with canonical-record probes and fixed before final runs.
+One Japanese baseline failed a final host read; its captures were retained
+separately and the affected Japanese/Russian baseline runs passed on retry.
+No timeouts were increased. Evidence: `/private/tmp/galactica-turn-refresh-ui`,
+`verified-comparisons.json` and its six `*-verified-review.png` sheets.
+No runtime strings, artwork or PDG checkout change.
+
+The writeback row stays Partial pending a final source/UI audit of v3's
+changed-after-post behavior against v4's posted-turn read-only control policy.
+The wider window/localization, platform/services and subsequent Map Generation
+requirements also remain open.

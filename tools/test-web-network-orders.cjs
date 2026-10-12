@@ -60,6 +60,24 @@ await point('({x:visual.getDisplay().toScreenX(home.x),y:visual.getDisplay().toS
 await click('visual.getDisplay().getContextButtonRegions().find(r=>r.action.type==="buildShip" && r.action.shipType==="colony").rect');await capture('joined-production');
 
 
+if(process.env.GALACTICA_TEST_TURN_REFRESH==='1'){
+ const baseline=process.argv[5]==='before',savedName='Saved '+lang,newerName='Newer '+lang;
+ const blank=async()=>point('(()=>{const d=visual.getDisplay(),g=visual.getGame(),p=[{x:20,y:250},{x:750,y:220},{x:20,y:120}].find(p=>!d.getUIActionAt(p.x,p.y) && !g.findObjectAtPosition(p.x,p.y));if(!p)throw Error("No clear map point");return p;})()');
+ await evaluate('visual.getSessions().active.nextRefresh=Date.now()+60000;void 0');
+ await click('visual.getDisplay().getContextButtonRegions().find(r=>r.action.type==="beginRename").rect');await type(savedName);await key('Enter');
+ await evaluate('window.ackReady=false;window.realSend=nc.send.bind(nc);window.ackGate=new Promise(r=>window.releaseAck=r);nc.send=async(endpoint,options)=>{const reply=await realSend(endpoint,options);if(endpoint==="/changes" && !ackReady){ackReady=true;await ackGate;}return reply;};void 0');await blank();await wait('ackReady','Turn save did not reach gate');
+ await point('visual.getDisplay().getMapMarker(visual.getGame().stars.find(s=>s.owner===2))');await click('visual.getDisplay().getContextButtonRegions().find(r=>r.action.type==="beginRename").rect');await type(newerName);await key('Enter');await capture('newer-draft-before-turn');await blank();
+ await evaluate('fetch('+JSON.stringify(url+'/test/advance-turn')+', {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({turn:1})}).then(r=>{if(!r.ok)throw Error("Forced turn fixture failed");return r.json();})');
+ await evaluate('releaseAck();void 0');await wait('!nc.flushPromise','Turn recovery did not finish');await evaluate('nc.send=realSend;nc.refresh().then(model=>visual.replaceNetworkModel(visual.getSessions().active,model))');await advanceClock(8500);
+ await check('visual.getGame().turn===2 && !visual.getGame().clientTurnPosted','Authoritative next turn missing or accidentally posted');
+ await check('visual.getGame().stars.find(s=>s.owner===2).name==='+JSON.stringify(baseline?savedName:newerName),'Turn recovery name wrong');
+ if(!baseline)await check('!nc.hasUnsavedChanges() && !nc.pendingChanges && !nc.model.clientPosting','Turn recovery did not save valid newer decisions');
+ await point('visual.getDisplay().getMapMarker(visual.getGame().stars.find(s=>s.owner===2))');await capture('newer-draft-after-turn');
+ await check('visual.getGame().attention.manualPending().length===1 && visual.getGame().attention.queue.every(entry=>!entry.event || visual.getGame().eventLog.includes(entry.event))','Turn/poll attention reports lost');
+ if(process.env.GALACTICA_TEST_ATTENTION_AUDIT==='1')console.log('TURN_ATTENTION',JSON.stringify(await evaluate('(()=>{const g=visual.getGame();return {pending:g.attention.manualPending().map(e=>e.event?.id),queue:g.attention.queue.map(e=>({id:e.event?.id,handled:e.handled,object:e.object?.id,inLog:g.eventLog.includes(e.event)})),events:g.eventLog.map(e=>({id:e.id,type:e.type,handled:e.handled,recipient:e.recipient,automatic:e.automatic,subject:e.subject?.id}))};})()')));
+ await check('nc.send("/state",{token:nc.session.token}).then(data=>data.privatePlayer.lastTurnPosted!==2)','Next turn was declared ready');
+ console.log('PASS delayed receipt and forced-turn recovery '+lang+' '+(baseline?'before':'after'));return;
+}
 if(process.env.GALACTICA_TEST_REPORTS==='1'){
  const baseline=process.argv[5]==='before';await evaluate('visual.getSessions().active.nextRefresh=Date.now()+60000;window.cues=0;window.originalPresent=visual.getSound().present.bind(visual.getSound());visual.getSound().present=(...args)=>{const result=originalPresent(...args);if(result)cues++;return result;};void 0');
  const blank=async()=>point('(()=>{const d=visual.getDisplay(),g=visual.getGame(),p=[{x:20,y:250},{x:750,y:220},{x:20,y:120}].find(p=>!d.getUIActionAt(p.x,p.y) && !g.findObjectAtPosition(p.x,p.y));if(!p)throw Error("No clear map point");return p;})()');
