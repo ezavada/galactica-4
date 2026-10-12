@@ -2,6 +2,7 @@
 // contain only the endpoint, game ID and player identity.
 const State=require('./client-state.js'),Names=require('./player-name.js');
 const HTTP=require('./network-http.js'),{protocol}=require('./network-protocol.js');
+const Writeback=require('./client-writeback.js');
 const fail=HTTP.failure,hex=value=>typeof value==='string' && /^[a-f0-9]{64}$/.test(value);
 function normalizeAddress(address){
  if(typeof address!=='string' || !address.trim() || /[\s]/.test(address.trim()))throw fail('invalid_host_address');
@@ -61,7 +62,7 @@ function preservePresentation(old,fresh){
 class NetworkClient {
  constructor(address,{timeout=8000,request=HTTP.request}={}){
   this.address=normalizeAddress(address);if(!Number.isInteger(timeout) || timeout<1 || timeout>60000)throw fail('invalid_network_timeout');
-  this.timeout=timeout;this.request=request;this.session=null;this.identity=null;this.model=null;this.status='idle';this.connecting=false;this.generation=0;this.pending=new Set();this.refreshPromise=null;this.postPromise=null;this.pendingPost=null;this.chat=new (require('./network-chat.js').NetworkChat)(this);
+  this.timeout=timeout;this.request=request;this.session=null;this.identity=null;this.model=null;this.status='idle';this.connecting=false;this.generation=0;this.pending=new Set();this.refreshPromise=null;this.postPromise=null;this.pendingPost=null;this.pendingChanges=null;this.savePromise=null;this.flushPromise=null;this.savedOrders=null;this.chat=new (require('./network-chat.js').NetworkChat)(this);
  }
  get connected(){return this.status==='connected' && !!this.session;}
  descriptor(){return this.identity?{address:this.address,...this.identity}:null;}
@@ -72,13 +73,16 @@ class NetworkClient {
  async inspect(){return validateInfo(await this.send('/info'));}
  install(fresh,{discardOrders=false}={}){
   const old=this.model;
+  if(old && old.clientGameId===fresh.clientGameId && old.clientPlayerNum===fresh.clientPlayerNum && fresh.turn<old.turn)throw fail('stale_server_state');
+  if(!old || old.clientGameId!==fresh.clientGameId || old.clientPlayerNum!==fresh.clientPlayerNum || old.turn!==fresh.turn || discardOrders){this.savedOrders=Writeback.signature(fresh);if(discardOrders || old?.turn!==fresh.turn)this.pendingChanges=null;}
   if(this.pendingPost && (fresh.turn!==this.pendingPost.turn || fresh.clientTurnPosted)){this.pendingPost=null;fresh.clientPosting=false;}
   if(old && old.clientGameId===fresh.clientGameId && old.clientPlayerNum===fresh.clientPlayerNum){
    if(fresh.turn<old.turn)throw fail('stale_server_state');
    if(fresh.turn===old.turn && fresh.clientTurnPosted===old.clientTurnPosted && fresh.isGameOver===old.isGameOver && !discardOrders){
-    if(old.clientInitialStateRevision!==fresh.clientInitialStateRevision){preservePresentation(old,fresh);this.model=fresh;return fresh;}
+    if(old.clientInitialStateRevision!==fresh.clientInitialStateRevision){preservePresentation(old,fresh);this.savedOrders=Writeback.signature(fresh);this.pendingChanges=null;this.model=fresh;return fresh;}
     const changed=old.clientPlayerRevision!==fresh.clientPlayerRevision || JSON.stringify(old.config.getHumanPlayerSlots())!==JSON.stringify(fresh.config.getHumanPlayerSlots()) || require('./host-settings.js').fields.some(k=>old.config[k]!==fresh.config[k]);
     if(changed){if(!old.clientTurnPosted)require('./client-settings-refresh.js').preserveOrders(old,fresh);preservePresentation(old,fresh);this.model=fresh;return fresh;}
+    if(fresh.clientOrderRevision!==old.clientOrderRevision && !this.hasUnsavedChanges() && !this.pendingChanges){preservePresentation(old,fresh);this.savedOrders=Writeback.signature(fresh);this.model=fresh;return fresh;}
     const previousEvents=new Map(old.eventLog.map(event=>[event.id,event]));
     old.eventLog=fresh.eventLog.map(event=>{if(previousEvents.get(event.id)?.handled)event.handled=true;return event;}).concat(old.eventLog.filter(event=>event.id<0 || old.heldReports.some(row=>row.eventId===event.id) && !fresh.eventLog.some(row=>row.id===event.id)));
     for(const event of old.eventLog)if(!previousEvents.has(event.id) && !event.handled){old.attention.requestEvent(event);if(event.playerMessage)old.queueReport(event);}
@@ -90,7 +94,7 @@ class NetworkClient {
    }
    preservePresentation(old,fresh);
   }
-  this.model=fresh;return fresh;
+  this.savedOrders=Writeback.signature(fresh);this.model=fresh;return fresh;
  }
  state(data,session){
   let model;try{model=State.restore(data);}catch(error){throw fail('invalid_player_state');}
@@ -114,12 +118,42 @@ class NetworkClient {
    if(generation===this.generation)this.status='connection_lost';throw error;
   }finally{if(generation===this.generation)this.connecting=false;}
  }
+ hasUnsavedChanges(){return !!this.model && !this.model.clientTurnPosted && Writeback.signature(this.model)!==this.savedOrders;}
+ save(){if(this.postPromise)return Promise.reject(fail('network_busy'));return this.writeChanges();}
+ writeChanges(){
+  if(this.savePromise)return this.savePromise;if(!this.session || !this.model)return Promise.reject(fail('not_logged_in'));if(this.model.clientTurnPosted)return Promise.reject(fail('already_posted'));
+  const generation=this.generation,session=this.session;
+  const operation=(async()=>{
+   try{
+    if(this.refreshPromise)await this.refreshPromise;if(generation!==this.generation || session!==this.session)throw fail('network_cancelled');
+    if(!this.pendingChanges){if(!this.hasUnsavedChanges())return this.model;
+     let id;if(typeof window!=='undefined'){const bytes=new Uint8Array(16);window.crypto.getRandomValues(bytes);id=Array.from(bytes,n=>n.toString(16).padStart(2,'0')).join('');}else id=require('crypto').randomBytes(16).toString('hex');
+     this.pendingChanges={...Writeback.capture(this.model,id),revision:this.model.clientOrderRevision,playerRevision:this.model.clientPlayerRevision,initialStateRevision:this.model.clientInitialStateRevision};
+    }
+    const pending=this.pendingChanges,data=await this.send('/changes',{method:'POST',token:session.token,body:{revision:pending.revision,playerRevision:pending.playerRevision,initialStateRevision:pending.initialStateRevision,orders:pending.orders}});
+    if(generation!==this.generation || session!==this.session)throw fail('network_cancelled');
+    let fresh;try{fresh=this.state(data,session);Writeback.validate(pending,fresh,data.orderIds);}catch(error){throw fail('network_bad_response');}
+    if(fresh.turn!==pending.orders.turn || fresh.clientTurnPosted || fresh.clientPlayerRevision!==pending.playerRevision || fresh.clientInitialStateRevision!==pending.initialStateRevision){this.pendingChanges=null;this.install(fresh,{discardOrders:true});throw fail(fresh.turn!==pending.orders.turn?'wrong_turn':fresh.clientTurnPosted?'already_posted':'stale_orders');}
+    const result=Writeback.reconcile(pending,this.model,fresh,data.orderIds);preservePresentation(this.model,result.model);this.pendingChanges=null;this.model=result.model;this.savedOrders=result.received;this.status='connected';return this.model;
+   }catch(error){if(generation===this.generation && session===this.session){
+    if(['bad_orders','orders_too_large','wrong_game','wrong_turn','already_posted','game_complete','stale_orders','not_found'].includes(error.code)){this.pendingChanges=null;this.status='connected';}
+    else{this.status='connection_lost';if(['not_logged_in','admin_ejected'].includes(error.code))this.session=null;}
+   }throw error;}
+  })();this.savePromise=operation;operation.then(()=>{if(this.savePromise===operation)this.savePromise=null;},()=>{if(this.savePromise===operation)this.savePromise=null;});return operation;
+ }
+ flush(){
+  if(this.flushPromise)return this.flushPromise;
+  const operation=(async()=>{if(this.postPromise)await this.postPromise;while(this.pendingChanges || this.hasUnsavedChanges())await this.writeChanges();return this.model;})();
+  this.flushPromise=operation;operation.then(()=>{if(this.flushPromise===operation)this.flushPromise=null;},()=>{if(this.flushPromise===operation)this.flushPromise=null;});return operation;
+ }
  post(){
   if(this.postPromise)return this.postPromise;if(!this.session || !this.model)return Promise.reject(fail('not_logged_in'));
   if(this.model.clientTurnPosted)return Promise.reject(fail('already_posted'));
-  const generation=this.generation,session=this.session;this.model.clientPosting=true;
+  const generation=this.generation,session=this.session,flushing=this.flushPromise;this.model.clientPosting=true;
   const operation=(async()=>{
    try{
+    if(flushing)await flushing;
+    if(this.savePromise)await this.savePromise;else if(this.pendingChanges)await this.writeChanges();
     if(this.refreshPromise)await this.refreshPromise;
     if(generation!==this.generation || session!==this.session)throw fail('network_cancelled');
     if(!this.pendingPost){
@@ -139,7 +173,7 @@ class NetworkClient {
    }catch(error){
     if(generation===this.generation && session===this.session){
      if(['bad_orders','orders_too_large','wrong_game'].includes(error.code)){this.pendingPost=null;this.model.clientPosting=false;}
-     else if(['wrong_turn','already_posted','game_complete'].includes(error.code)){this.pendingPost=null;this.model.clientPosting=false;}
+     else if(['wrong_turn','already_posted','game_complete','stale_orders'].includes(error.code)){this.pendingPost=null;this.model.clientPosting=false;}
      else{if(!this.pendingPost && this.model)this.model.clientPosting=false;this.status='connection_lost';if(['not_logged_in','admin_ejected'].includes(error.code))this.session=null;}
     }throw error;
    }
@@ -147,7 +181,7 @@ class NetworkClient {
   this.postPromise=operation;operation.then(()=>{if(this.postPromise===operation)this.postPromise=null;},()=>{if(this.postPromise===operation)this.postPromise=null;});return operation;
  }
  refresh(options={}){
-  if(!this.session)return Promise.reject(fail('not_logged_in'));if(this.postPromise)return this.postPromise;if(this.refreshPromise)return this.refreshPromise;
+  if(!this.session)return Promise.reject(fail('not_logged_in'));if(this.savePromise)return this.savePromise;if(this.pendingChanges)return this.writeChanges();if(this.postPromise)return this.postPromise;if(this.refreshPromise)return this.refreshPromise;
   const generation=this.generation,session=this.session;
   const operation=(async()=>{
    try{const fresh=this.state(await this.send('/state',{token:session.token}),session);
@@ -160,7 +194,7 @@ class NetworkClient {
  }
  async disconnect({keepView=false}={}){
   const session=this.session;++this.generation;this.session=null;this.status='idle';this.connecting=false;this.refreshPromise=null;
-  for(const handle of this.pending)handle.cancel();if(!keepView)this.model=null;
+  for(const handle of this.pending)handle.cancel();if(!keepView){this.model=null;this.pendingChanges=null;this.savedOrders=null;}
   if(!session)return false;try{await this.send('/logout',{method:'POST',token:session.token,timeout:1000});return true;}catch(error){return false;}
  }
  async rejoin(password=''){

@@ -76,8 +76,9 @@ Full parity is still unproven. The current open work is:
    audit remains to be completed after the parity items above are implemented or
    explicitly documented as blocked.
 
-The latest full-suite evidence is 1,801 passing tests on each current public and
-development native executable. This supports the tested paths; it does not prove
+The latest full-suite evidence is 1,799 passing tests and two artwork failures on
+each current public and development native executable; the prior 1,801/0 result
+predates the latest artwork replacement. This supports the tested paths; it does not prove
 all UI, external service, original-renderer or packaged-platform requirements.
 The partial table rows and later item-specific evidence remain the completion
 checklist. Dormant starlanes/danger and unshipped combat-odds/sorting enhancements
@@ -8141,3 +8142,29 @@ the host/API dependency only: client scheduling, ID/baseline reconciliation,
 localized failure/retry and safe Close/Quit integration remain required. The
 writeback row stays partial. No new GUI/screenshots, engine or unrelated artwork
 changes are claimed. Parity and the final Map Generation checklist remain open.
+
+
+### Client unposted-writeback transport (completed dependency)
+
+`NetworkClient.save()` now sends an unposted decision snapshot to `/changes`;
+`flush()` drains subsequent edits without marking readiness. Acknowledgment
+reconciliation validates revisions and creation mappings, remaps original live
+objects and temporary-ID collisions, adopts normalized fields only when unchanged
+since submission, and preserves newer edits and route/containment references.
+Unknown outcomes retain the exact request for idempotent retry, including rejoin.
+End Turn serializes with saves/flushes and then posts the current decisions.
+Authoritative initial-state replacement resets the saved baseline.
+
+The actual HTTP client lane in `tools/test-client-writeback.js` passes on both
+native runtimes, including in-flight edits, collisions, lost replies/rejoin,
+malformed acknowledgments, durable-save rollback, context rejection and concurrent
+flush/post. Existing host writeback and turn-posting lanes also pass on both.
+Both full unit suites ran to terminal exit 1: **1,799 passed, two failed**, exactly
+the two artwork failures reproduced before these transport changes (outcome
+dimensions and missing layered-art provenance). They remain separate open defects;
+no green full-suite result is claimed. Evidence is recorded in Testing Guide.
+
+This changes API/transport behavior only and adds no user-visible strings or
+rendering. No screenshot claim is made. Selection/creation scheduling, document
+Save and safe Close/Quit integration with localized failure/retry still need
+implementation and UI verification. The parity writeback row remains Partial.

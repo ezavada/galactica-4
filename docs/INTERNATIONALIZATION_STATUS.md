@@ -555,3 +555,13 @@ Close/Quit integration is still pending, so no new translated UI workflow or
 screenshot coverage is claimed. Both full suites pass 1,801 tests; real localhost
 writeback and posting lanes pass on both native runtimes. Localized stale/failure/
 retry handling in all six languages remains required for the complete feature.
+
+
+### Client writeback transport dependency
+
+The save/flush transport and acknowledgment reconciliation add no user-facing
+strings. Existing machine error identifiers retain resource-based UI handling.
+The six-language Save/Close/Quit and automatic-save failure/retry workflows remain
+unimplemented and must be verified when application scheduling is connected.
+Both native transport lanes pass; full suites reproduce the two existing artwork
+failures (1,799/1,801), as documented in Testing Guide.

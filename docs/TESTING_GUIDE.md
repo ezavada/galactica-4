@@ -17,9 +17,15 @@ Latest verified result with the current public/development native executables:
 
 ```text
 Total: 1801
-Passed: 1801 ✓
-Failed: 0 ✗
+Passed: 1799 ✓
+Failed: 2 ✗
 ```
+
+The latest client-writeback verification reproduced two artwork failures already
+present before that transport change: outcome artwork now measures 1500 pixels
+where the original-art fixture expects 500, and `data/events/layers/provenance.json`
+is absent after the artwork replacement. These remain unresolved; the full suite
+is not green. Both native executables report the same failures.
 
 The output is intentionally verbose because several game systems still log turn, combat, movement, and construction diagnostics.
 
@@ -1497,3 +1503,17 @@ tests. Seven native regressions also cover malformed receipts, role changes
 and old-turn acknowledgments. Evidence prefix: `/private/tmp/galactica-writeback-host-`.
 No new GUI is introduced; client reconciliation and localized close/retry flows
 remain next.
+
+
+## Client draft writeback transport
+
+Run `./gad4 tools/test-client-writeback.js` with each native executable. This
+actual localhost HTTP lane checks clean/no-op baselines, saving without posting,
+creation acknowledgments and live object references, temporary-ID collisions,
+newer edits while a reply is pending, lost-response retry across rejoin, malformed
+responses, failed durable writes, stale context, explicit draft discard and a
+concurrent flush/End Turn. The lane passes on public and development runtimes.
+Existing `test-network-writeback.js` and `test-network-orders.js` pass on both.
+Logs use `/private/tmp/galactica-client-writeback-{public,devel}` with `.log`,
+`-host.log`, `-orders.log` and `-unit.log` suffixes. Application scheduling and
+Save/Close/Quit integration remain separate unfinished work.
