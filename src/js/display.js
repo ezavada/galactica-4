@@ -1615,6 +1615,7 @@ class Display {
 
     getContextButtonArc(object, panelRect) {
         if(this.game.isAwaitingMapTarget())return [];
+        const compactScreen=this.getScreenSize();if(this.factory.isFleet(object) && (compactScreen.width<600 || compactScreen.height<360))return require('./fleet-inspector-compact.js').commands(this.getFleetDetailsLayout(object));
         const actions = this.getContextActions(object);
         const position = this.getObjectScreenPosition(object);
         const screen=this.getScreenSize();
@@ -1730,6 +1731,7 @@ class Display {
     }
 
     getFleetDetailsLayout(fleet) {
+        const compactScreen=this.getScreenSize();if(compactScreen.width<600 || compactScreen.height<360)return require('./fleet-inspector-compact.js').layout(this,fleet,compactScreen);
         const knowledge = this.getFleetKnowledge(fleet);
         const members = knowledge.contents ? fleet.ships || [] : [];
         const transferTargets = this.game.getFleetTransferTargets ? this.game.getFleetTransferTargets(fleet) : [];
@@ -1758,6 +1760,7 @@ class Display {
     }
 
     getFleetMemberPageRegions(fleet,layout=this.getFleetDetailsLayout(fleet)) {
+        if(layout.compact)return layout.footer;
         if(layout.pages<2)return [];
         const rect=layout.rect,y=rect.y+rect.height-34;
         const regions=[];
@@ -2772,6 +2775,7 @@ class Display {
         if (!fleet) return [];
 
         const layout = this.getFleetDetailsLayout(fleet);
+        if(layout.compact)return require('./fleet-inspector-compact.js').regions(layout);
         const rect = layout.rect;
         const x = rect.x + 12;
         let y = this.getPanelContentStartY(rect) + layout.memberStartOffset;
@@ -2944,6 +2948,8 @@ class Display {
             return fleetListAction.action;
         }
 
+        const selectedFleet=this.game.getSelectedFleet?this.game.getSelectedFleet():null;
+        if(selectedFleet){const l=this.getFleetDetailsLayout(selectedFleet);if(l.compact && this.containsPoint(l.rect,x,y))return {type:'consume'};}
         const mapButton = this.getMapButtonRegions().find(button => this.containsPoint(button.rect, x, y));
         if (mapButton) {
             return mapButton.disabled?{type:'consume',blocked:true}:mapButton.action;
@@ -3346,6 +3352,7 @@ class Display {
     // Draw fleet details UI
     drawFleetDetails(fleet) {
         const layout = this.getFleetDetailsLayout(fleet);
+        if(layout.compact)return require('./fleet-inspector-compact.js').draw(this,fleet,layout);
         const compositionRows = layout.compositionRows;
         const rect = layout.rect;
         const data = this.getFleetDiagnostics(fleet);

@@ -1746,3 +1746,21 @@ Both full native suites pass 1,830/1,830. Evidence:
 `/private/tmp/galactica-compact-roster-{pdg,pdg-devel}-unit-final.log`.
 The following selected fleet inspector still has its own compact overlap issue;
 this fixture validates roster row identity, not inspector layout completion.
+
+
+### Compact fleet inspector
+
+Use `node tools/test-web-fleet-inspector-compact.cjs BUILD_DIR OUTPUT_DIR LANGUAGE
+[before]` with `GALACTICA_FLEET_INSPECTOR_WIDTH` / `GALACTICA_FLEET_INSPECTOR_HEIGHT`
+fixed before startup. All six languages pass at 800×600, 800×240 and 320×240:
+complete diagnostics, wheel without map zoom, Orders/cancel, Scrap/cancel,
+transfer/remove, group/parent, fixed paging/reset and exact member inspection.
+Disabled Previous consumes its click. Set `GALACTICA_FLEET_INSPECTOR_EVENTS=1`
+for the additional exposed-inspector/non-modal Events wheel check (verified in
+English). Chrome is muted and input delivery must be followed by a draw.
+All six narrow and the short comparison sheets were inspected; all six ordinary
+inspector frames are pixel-identical. Both full native suites pass 1,833/1,833.
+Evidence: `/private/tmp/galactica-compact-fleet-inspector-ui` and
+`/private/tmp/galactica-compact-fleet-inspector-{pdg,pdg-devel}-unit-complete.log`.
+The ship inspector opened through member selection is a separate remaining UI
+item; the fixture checks its selected identity rather than certifying its layout.

@@ -13,6 +13,26 @@ function fixture(count=14) {
 }
 function click(game,region) {return game.handleUIClick(region.rect.x+region.rect.width/2,region.rect.y+region.rect.height/2);}
 module.exports=()=>test.describe('Complete fleet member inspector',()=>{
+    test.it('keeps complete compact fleet information, commands and members within scrollable bounds in six languages',()=>{
+        const old=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru'])for(const [width,height] of [[320,240],[800,240],[320,600]]){
+            pdg.res.setLanguage(lang);const {game,display,fleet}=fixture(14);game.port.getDrawingArea=()=>new pdg.Rect(width,height);display.reloadUIStrings();fleet.name='Long name 星 '.repeat(3);fleet.ships[0].name='Long member 星 '.repeat(3);fleet.ships[0].damage=fleet.ships[0].power*35;
+            let l=display.getFleetDetailsLayout(fleet);test.assertTrue(l.compact);test.assertTrue(l.rect.x>=10 && l.rect.y>=10 && l.rect.x+l.rect.width<=width-10 && l.rect.y+l.rect.height<=height-10);test.assertEqual(l.visibleShips.length,2);test.assertEqual(l.records[0].info.health,'65%');test.assertTrue(l.records[0].nameLines.join(' ').includes('Long member'));test.assertTrue(l.titleLines.join(' ').includes('Long name'));test.assertTrue(l.bodyClip.y+l.bodyClip.height<l.footerTop);const disabled=l.footer.find(b=>b.disabled);test.assertEqual(display.getUIActionAt(disabled.rect.x+disabled.rect.width/2,disabled.rect.y+disabled.rect.height/2).type,'consume');test.assertTrue(click(game,disabled));test.assertTrue(game.selectedObject===fleet);
+            for(const b of l.footer)test.assertTrue(b.rect.x>=l.rect.x && b.rect.x+b.rect.width<=l.rect.x+l.rect.width && b.rect.y+b.rect.height<=l.rect.y+l.rect.height);
+            const seen=[];for(let page=0;page<l.pages;page++){test.assertTrue(game.executeUIAction({type:'fleetMemberPage',fleet,page}));l=display.getFleetDetailsLayout(fleet);seen.push(...l.visibleShips);game.scrollFleetInspector(100000);l=display.getFleetDetailsLayout(fleet);test.assertEqual(l.bodyScroll,l.scrollLimit);for(const r of [...display.getContextButtonRegions(fleet),...display.getFleetMemberActionRegions(fleet)])test.assertTrue(r.rect.x>=l.rect.x && r.rect.x+r.rect.width<=l.rect.x+l.rect.width && r.rect.y>=l.rect.y && r.rect.y+r.rect.height<=l.rect.y+l.rect.height);}
+            test.assertEqual(new Set(seen).size,14);game.executeUIAction({type:'fleetMemberPage',fleet,page:0});l=display.getFleetDetailsLayout(fleet);test.assertEqual(l.bodyScroll,0);game.handleKeyPress(pdg.key_PageDown);test.assertEqual(game.fleetInspectorScroll,Math.min(80,l.scrollLimit));
+            const blank={x:l.rect.x+2,y:l.rect.y+l.rect.height/2};test.assertEqual(display.getUIActionAt(blank.x,blank.y).type,'consume');
+        }}finally{pdg.res.setLanguage(old);}
+    });
+    test.it('retains compact enemy member knowledge and refuses private command controls',()=>{
+        const {game,display,fleet}=fixture(4);game.port.getDrawingArea=()=>new pdg.Rect(320,240);fleet.owner=2;fleet.setVisibilityTo(1,Common.VisibilityLevel.CLASS);for(const ship of fleet.ships){ship.owner=2;ship.setVisibilityTo(1,Common.VisibilityLevel.NONE);}
+        let l=display.getFleetDetailsLayout(fleet);test.assertEqual(l.visibleShips.length,2);test.assertFalse(l.records.some(r=>r.nameLines.join(' ').includes('Member')));test.assertTrue(l.records.every(r=>r.controls.length===0));test.assertFalse(l.commands.some(b=>['beginRename','beginOrders','toggleScrap','togglePatrol'].includes(b.action.type)));test.assertEqual(fleet.ships[0].getVisibilityTo(1),Common.VisibilityLevel.NONE);
+        fleet.setVisibilityTo(1,Common.VisibilityLevel.TECH);l=display.getFleetDetailsLayout(fleet);test.assertEqual(l.records.length,0);
+    });
+    test.it('does not scroll a hidden compact inspector during map targeting or a modal report',()=>{
+        const {game,display,fleet}=fixture(4);game.port.getDrawingArea=()=>new pdg.Rect(320,240);test.assertTrue(game.scrollFleetInspector(80));const scroll=game.fleetInspectorScroll;
+        test.assertTrue(game.beginMapOrder(fleet));test.assertFalse(game.scrollFleetInspector(80));test.assertEqual(game.fleetInspectorScroll,scroll);game.handleKeyPress(pdg.key_Escape);
+        game.overlay={type:'report',manual:true};test.assertFalse(game.scrollFleetInspector(80));test.assertEqual(game.fleetInspectorScroll,scroll);game.overlay=null;test.assertTrue(game.scrollFleetInspector(80));game.uiWindow='events';test.assertTrue(game.scrollFleetInspector(80));game.uiWindow='settings';test.assertFalse(game.scrollFleetInspector(80));
+    });
     test.it('reaches every member with real paged UI hit testing',()=>{
         const {game,display,fleet}=fixture(),seen=[];
         for(let i=0;i<3;i++){

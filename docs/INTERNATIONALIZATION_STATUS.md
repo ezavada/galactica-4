@@ -700,3 +700,18 @@ inspected narrow/short before/after screenshots pass; six ordinary tables are
 pixel-identical. Both full native suites pass 1,830/1,830. Evidence:
 `/private/tmp/galactica-compact-roster-ui`. Compact selected-object inspectors
 and other window/help/manual localization checks remain open.
+
+
+### Compact fleet inspector
+
+Existing en/de/es/fr/ja/ru aggregate, composition, status/destination and member
+labels now wrap with complete literal names and values in compact inspectors.
+Measured command/member-management rows preserve all translated labels and
+shortcut hints. Health text/bars and fixed Previous/Next remain accessible.
+Knowledge restrictions use the existing fleet/member diagnostics helpers;
+foreign private names/commands remain covered by native regressions. No new
+runtime strings/resource IDs. Six-language actual input and inspected narrow/
+short before/after sheets pass; six ordinary inspectors are pixel-identical.
+Both full native suites pass 1,833/1,833. Evidence:
+`/private/tmp/galactica-compact-fleet-inspector-ui`. Compact ship/system/rendezvous
+inspectors and broader help/manual/localization audits remain open.

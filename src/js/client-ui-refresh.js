@@ -1,7 +1,7 @@
 // Keep local interaction state through a same-turn server projection replacement.
 const families={star:'stars',ship:'allShips',fleet:'allFleets',rendezvous:'allRendezvous'};
 const fields=['uiWindow','clientEventSequence','settingsPage','eventSelection','eventPage','eventDetailPage','courseWindowObject','courseSelection','coursePage','courseBodyScroll','compactCoursePage','compactCourseObject',
- 'fleetMemberPage','fleetRosterPage','fleetRosterBodyScroll','compactFleetRosterPage','fleetRosterSort','fleetRosterLastClick','fleetRosterGeometry','fleetExchange',
+ 'fleetMemberPage','fleetInspectorScroll','compactFleetInspectorObject','compactFleetInspectorPage','fleetRosterPage','fleetRosterBodyScroll','compactFleetRosterPage','fleetRosterSort','fleetRosterLastClick','fleetRosterGeometry','fleetExchange',
  'systemShipWindowStar','systemShipPage','systemShipSort','systemShipBodyScroll','compactSystemShipPage','compactSystemShipStar','playerComparisonPage','systemComparisonPage','systemComparisonSort','systemComparisonSelection','systemComparisonLastClick','systemComparisonGeometry',
  'commandMenuScroll','playerComparisonColumnPage','playerComparisonBodyScroll','compactComparisonBodyPage','windowPositions','uiWindowDrag','uiMapScrollDrag','uiSliderDrag',
  'pendingMapOrderObject','pendingCourseEdit','pendingRendezvousPlacement','mapSelectionPicker','renameTarget','renameText','renameEditor',

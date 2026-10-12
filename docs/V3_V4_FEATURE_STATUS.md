@@ -72,7 +72,7 @@ Full parity is still unproven. The current open work is:
    audit remains to be completed after the parity items above are implemented or
    explicitly documented as blocked.
 
-The latest full-suite evidence is **1,830 passing tests, zero failures** on each
+The latest full-suite evidence is **1,833 passing tests, zero failures** on each
 current public and development native executable. Artwork tests now validate the
 selected replacements and archived provenance; the previous two failures are
 resolved. This supports the tested paths and does not certify all UI, external
@@ -8638,7 +8638,49 @@ ordinary tables and 12 intended compact changes. Evidence:
 and `/private/tmp/galactica-compact-roster-{pdg,pdg-devel}-unit-final.log`.
 No new resource IDs, artwork or engine changes.
 
-Compact post-inspection fleet panels still visibly overlap nearby controls at
-320×240; that inspector work remains open. Other compact gameplay lists/tables,
+The compact post-inspection fleet overlap found here is resolved by the
+subsequent compact fleet-inspector audit below. Other compact gameplay lists/tables,
 remaining network variants, help/manual localization, preference/source-edge
 and final Map Generation audits are not completed by this roster item.
+
+
+### Compact fleet inspector audit
+
+V3 `Classes/GalacticaPanels.cp:1209–1255` dispatches member selection/inspection,
+and its `bExg` path at 1310 onward moves or creates fleet containers.
+`UpdatePanel` at 1499 onward gates contents on ally/class knowledge and enables
+scrollers. V4's existing wide inspector preserves those gameplay paths, but
+its minimum-height contents and external command arc overflowed short ports and
+collided with ordinary map controls.
+
+Below 600px wide or 360px high, the selected fleet now has a bounded, owner-styled
+inspector with a clipped scrollable body. Complete fleet/member names, aggregate
+stats, composition, status/destination, member tech/speed/power/health and health
+bars remain accessible. All context commands use measured wrapped rows inside
+the compact body, while ordinary ports retain their radial arc. Two members per
+page have complete Group/Transfer/Remove controls; fixed Previous/Next controls
+remain separate from scrolling. Page changes reset body scrolling, and same-turn
+network refresh retains its local state. Covered map buttons cannot intercept
+inspector clicks; disabled paging consumes input. Targeting hides the inspector
+and commands, and neither targeting nor modal reports/settings scroll its body.
+Events remains non-modal: exposed inspector areas still accept wheel scrolling,
+without scrolling through the Events window above them.
+
+Three new regressions plus existing member/knowledge/containment tests pass in
+both full native suites: **1,833/1,833**. Muted actual browser input passes in
+all six languages at 800×600, 800×240 and 320×240, including Orders/cancel,
+Scrap/cancel, transfer, removal, grouping/parent navigation, disabled Previous,
+page/reset, complete body scrolling and exact later-member inspection without
+advancing the turn. A separate English Events lane verifies exposed non-modal
+wheel input. All six final narrow before/after sheets and the short six-language
+sheet were inspected. Eighteen common frames include six exact ordinary
+inspectors and 12 intended compact changes. Evidence:
+`/private/tmp/galactica-compact-fleet-inspector-ui/comparison-metadata.json`,
+`*-review.png`, `en-events/narrow-events.png` and
+`/private/tmp/galactica-compact-fleet-inspector-{pdg,pdg-devel}-unit-complete.log`.
+No new resource IDs, artwork or engine changes.
+
+The separate compact ship inspector reached through member selection still
+needs its own layout audit. System/rendezvous inspectors, remaining compact
+lists/tables and network feedback, help/manual localization, preference/source
+edges and final Map Generation checks remain open.

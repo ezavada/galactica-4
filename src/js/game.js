@@ -2470,7 +2470,7 @@ class Game {
                 if (!fleet || fleet!==action.fleet || !this.display || !Number.isInteger(action.page)) return false;
                 const layout=this.display.getFleetDetailsLayout(fleet);
                 if (!layout.knowledge.contents || action.page<0 || action.page>=layout.pages) return false;
-                this.fleetMemberPage=action.page;
+                this.fleetMemberPage=action.page;this.fleetInspectorScroll=0;
                 return true;
             }
             case 'selectFleetMember': {
@@ -2679,6 +2679,12 @@ class Game {
         if(this.uiWindow!=='menu' || !this.display || !Number.isFinite(delta))return false;
         const layout=this.display.getCommandMenuLayout();if(!layout.compact || !layout.scrollLimit)return false;
         this.commandMenuScroll=Math.max(0,Math.min(layout.scrollLimit,layout.bodyScroll+delta));return true;
+    }
+
+    scrollFleetInspector(delta) {
+        const fleet=this.getSelectedFleet();if(this.uiWindow && this.uiWindow!=='events' || this.overlay || this.isAwaitingMapTarget() || !fleet || !this.display || !Number.isFinite(delta))return false;
+        const l=this.display.getFleetDetailsLayout(fleet);if(!l.compact)return false;
+        this.fleetInspectorScroll=Math.max(0,Math.min(l.scrollLimit,l.bodyScroll+delta));return true;
     }
 
     scrollFleetRoster(delta) {
@@ -3041,6 +3047,7 @@ class Game {
             return true;
         }
         if(this.uiWindow==='systemShips' && this.display?.getSystemShipWindowLayout().compact && [pdg.key_PageUp,pdg.key_PageDown,pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))return this.handleCommandWindowKey(key,this.getKeyChar(key));
+        if(!this.uiWindow && [pdg.key_PageUp,pdg.key_PageDown].includes(key) && this.scrollFleetInspector(key===pdg.key_PageUp?-80:80))return true;
         if(key===pdg.key_LeftArrow && (!this.uiWindow || this.uiWindow==='systemShips')){
             this.selectContainingObject();return true;
         }
