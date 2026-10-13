@@ -1,7 +1,7 @@
 # Galactica v3 to v4 Feature and UI Port Status
 
 Initial audit: 2026-08-25
-Current inventory reconciled: 2026-10-11
+Current inventory reconciled: 2026-10-12
 
 ## Purpose and method
 
@@ -20,7 +20,7 @@ the v4 automated suite was verified on 2026-08-25 with
 covered classes and helpers behave as tested, but do not prove that the
 playable runtime invokes every scaffolded system.
 
-Latest validated full-suite result: 1801 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
+Latest validated full-suite result: 1842 passed, 0 failed on public/development native PDG. Item-specific browser and source audits are recorded below.
 
 ### Status key
 
@@ -46,12 +46,13 @@ tasks solely because an older audit entry describes their former gaps.
 
 Full parity is still unproven. The current open work is:
 
-1. **Remaining window and localization audits.** Finish the listed compact
-   gameplay tables/lists/inspectors, toolbar states and hosting/join/network
-   busy/error variants. Compare Players, Course, target prompts, map instruction
-   separation and constrained Command Menus now have their own completed
-   six-language input/screenshot evidence below. A complete dialog/help/manual
-   localization audit remains open.
+1. **Remaining normal-window and localization audits.** Audit outstanding
+   gameplay/help/manual and hosting/join/network busy/error states at the normal
+   game size. Small or short window support is outside the requested scope:
+   the user stopped compact-view work on 2026-10-12 and directed that it never
+   resume. Existing responsive changes remain; further compact layouts are not
+   parity requirements. Completed six-language input/screenshot evidence remains
+   recorded below.
 2. **Preferences and startup-command coverage.** Explicit shipped startup
    commands, drawing/language/sound/music and new-game/colony defaults have
    runtime hooks. Audit remaining preference behavior and inherited/window
@@ -67,12 +68,14 @@ Full parity is still unproven. The current open work is:
    have implemented paths and localhost tests. Recorded physical-LAN restrictions
    and unavailable matchmaker/community/update destinations need owner review
    and revalidation, rather than invented replacement service policies.
-5. **The final Map Generation checklist.** Its core implementation and several
-   source differences are covered, but the full numeric/configuration/source-edge
-   audit remains to be completed after the parity items above are implemented or
-   explicitly documented as blocked.
+5. **Map Generation source-edge audit completed.** Count extremes, all density/
+   size ranges, coordinate lattice/bounds, first-homeworld edge boundaries,
+   finite rejection/reserve rules, retained ordinary stars, naming exhaustion and
+   initial player/homeworld state are covered. See `MAP_GENERATION_PORT_STATUS.md`
+   for source evidence and retained v4 differences. Map-generation completion
+   does not close the separate native, service or localization requirements.
 
-The latest full-suite evidence is **1,837 passing tests, zero failures** on each
+The latest full-suite evidence is **1,842 passing tests, zero failures** on each
 current public and development native executable. Artwork tests now validate the
 selected replacements and archived provenance; the previous two failures are
 resolved. This supports the tested paths and does not certify all UI, external
@@ -8758,3 +8761,30 @@ No new resource IDs, artwork or engine changes.
 The compact rendezvous inspector, remaining gameplay lists/tables and network
 feedback, complete help/manual localization, preference/source edges and final
 Map Generation checklist remain open.
+
+
+### Scope correction and Map Generation completion audit (2026-10-12)
+
+The user stopped all further compact-view work and requested actual shipped-v3
+parity instead. Existing compact code is retained. Remaining narrow/short layout
+clauses in dated entries below are historical, not authorization to resume that
+work. Future verification uses normal game windows unless a concrete functional
+regression requires another size.
+
+The final map checklist was checked against `GalacticaProcessor::FillSector`
+and `CStar::FinishInitSelf`, current configuration/runtime/player code and the
+existing density, size, maximum-player and name-exhaustion regressions. Five new
+source-edge tests check exact count extremes across 1–10 density, 1–5 sector
+sizes and 1/3/99 players; coordinate lattice/extremes; first-homeworld strict
+edge boundaries/fallback; retention of rejected candidates; and initial homes,
+99%-paid uncommissioned construction, player defaults, noncontiguous human
+slots and scanner behavior in every language with fast/fog combinations.
+
+Both complete muted native suites pass **1,842 tests, zero failures**. No
+production behavior or new strings change in this audit. The six-language
+normal-window startup/homeworld browser check supplies repeated before/after
+captures of unchanged product code; these are regression evidence, not a claim
+of a new visual improvement. Evidence and known port differences are recorded
+in `MAP_GENERATION_PORT_STATUS.md`. Preferences, normal-window/localization,
+connected-platform/audio and external-service work remain separate checklist
+items; the whole parity objective is not marked complete.

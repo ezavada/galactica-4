@@ -1,6 +1,6 @@
 # Testing Guide for Galactica-4
 
-Last reviewed: 2026-10-11
+Last reviewed: 2026-10-12
 
 ## Running the suite
 
@@ -16,13 +16,13 @@ cd /Users/edz/Documents/Personal/galactica-4
 Latest verified result with the current public/development native executables:
 
 ```text
-Total: 1810
-Passed: 1810 ✓
+Total: 1842
+Passed: 1842 ✓
 Failed: 0 ✗
 ```
 
 The artwork checks now validate the selected replacement assets and original
-provenance in its archive location. Both native executables pass all 1,810 tests.
+provenance in its archive location. Both native executables pass all 1,842 tests.
 The previous two failures are resolved; dated writeback logs retain their actual
 results rather than being presented as green runs.
 
@@ -1796,3 +1796,18 @@ pixel-identical. Both complete native suites pass 1,837/1,837. Evidence:
 `/private/tmp/galactica-compact-system-devel-unit.log` and
 `/private/tmp/galactica-compact-system-public-unit.log`.
 Rendezvous inspectors and other remaining windows are separate checklist items.
+
+
+### Final Map Generation source-edge audit
+
+Five focused regressions cover count extremes/order of scaling, coordinate
+lattice and exclusive extent, first-homeworld edge boundaries, retained rejected
+candidates, and six-language initial player/home state across fast/fog variants.
+Both full lanes pass 1,842 tests. See `MAP_GENERATION_PORT_STATUS.md` for exact
+source references and retained differences. Normal 800×600 browser startup and
+homeworld checks pass twice in each language, with paired screenshots under
+`/private/tmp/galactica-final-map-audit-ui`. Logs are
+`/private/tmp/galactica-final-map-audit-{devel,public}.log`.
+
+Further small/short-window layout work is stopped at the user's request. Existing
+compact test tools remain available, but are not the remaining parity worklist.

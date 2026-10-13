@@ -1,6 +1,6 @@
 # Map Generation Port Status
 
-Last reviewed: 2026-10-11 (homeworld candidate selection; broader checklist audit remains in progress)
+Last reviewed: 2026-10-12 (final map-generation checklist audited)
 
 This document used to be a forward-looking port plan. The core map-generation work described here has since been implemented, so this file now records the current status, remaining differences from Galactica v3, and the tests that cover the area.
 
@@ -26,7 +26,7 @@ This document used to be a forward-looking port plan. The core map-generation wo
 - The startup dialog exposes the currently playable local setup controls: AI count, AI skill, map size, density, fast-game, fog/all-visible, reset, and start.
 - Density offers the v3 numeric 1–10 range; sector size offers all five v3 dimensions, 1×1 Tiny through 5×5 Huge. Both have clickable/highlighted choices, keyboard cycling, reset and integer validation. Map extent scales linearly with sector size and star count scales by its square.
 
-## Remaining differences and caveats
+## Retained v4 differences and integration boundaries
 
 - `compAdvantage` now affects AI research and shipbuilding output, while `endEarly`, `maxTimePerTurn`, and `hosting` are stored but not active in the local turn loop.
 - `GameConfig.toMapGeneratorConfig()` intentionally passes only the map/player values needed by `MapGenerator`; other setup values are consumed by `Game`, `Rules`, AI, or multiplayer host systems.
@@ -49,7 +49,7 @@ The full suite was last verified with:
 ./gad4 tests/run-tests.js
 ```
 
-Latest verified result: 1703 passed, 0 failed on both rebuilt public/development native PDG runtimes.
+Latest verified result: 1842 passed, 0 failed on both rebuilt public/development native PDG runtimes.
 
 ## Maintenance notes
 
@@ -139,3 +139,53 @@ Helpers are `tools/test-web-homeworld-names.cjs` (large game) and
 comparison metadata and logs are under `/private/tmp/galactica-homeworld-names`
 and the matching log prefix. Automated output remains muted. This closes the
 large-game naming/display defects, not the full map-port audit.
+
+
+### Final source-edge checklist (2026-10-12)
+
+The map-generation checklist is complete for the supported game configuration.
+This closes map generation, not the separate application parity/platform/service
+checklist. No further compact-window work is included.
+
+| Requirement | Verification |
+|---|---|
+| Star-count formula, player floor, area multiplier | Exact lower/upper random outcomes for all ten densities, all five sizes and 1/3/99 players; player floor is applied before area scaling. |
+| Coordinates and sector bounds | First/last possible random coordinates, 1024-unit lattice, zero z, and exclusive outer extent at each size. Existing seeded integration checks cover actual generated maps. |
+| First homeworld edge preference | Strict quarter-sector cutoff, inclusive eighth-sector boundary, both axes/edges, zero-spare and no-suitable-star fallback; source `FillSector` uses the same predicates. |
+| Later homeworld spacing and termination | Existing minimum-distance/no-spare regressions plus retained rejected-star regression. Removed candidates leave only the eligible list, not the galaxy registry; remaining-player reserve prevents exhaustion. |
+| Names and supported player counts | Existing six-language 99-player/name exhaustion tests, shared numeral accounting, unique ordinary/homeworld names and high-owner rendering evidence. |
+| Initial player/homeworld state | Population 1,000,000, tech 1, scanner from actual rules, home reference, 99%-paid colony construction with no commissioned ship, discovery flags and 334/333/333 colony defaults. All six languages, fast/normal, fog/omniscient and noncontiguous human roles pass. |
+| Setup/configuration and runtime integration | Existing configuration tests validate density 1–10, size 1–5, player total 1–99, skill/advantage and boolean ranges. Actual localized startup checks assign all homeworlds. Host timers/readiness and AI production are consumed outside map generation. |
+
+Source references: `GalacticaProcessor.cpp` 336–523 (`FillSector`) and 556–579
+(initial player flags), `CStar.cpp` 103–109 (ordinary star naming), current
+`map-generator.js`, `player-info.js`, `game-config.js` and `Game.initializeGame`.
+Five additional regressions live in the final source-edge group of
+`tests/map-generation.test.js`. Both complete muted native lanes pass 1,842
+of 1,842 tests; logs are
+`/private/tmp/galactica-final-map-audit-{devel,public}.log`.
+
+Retained differences must not be described as exact binary/source equivalence:
+
+- V3 ordinary names are the resource prefix plus entity ID. V4 occasionally
+  allocates localized named ordinary stars and uses sequential S-numbers. Its
+  initial distinct home-name reservations and deduplicated pools are retained
+  behavior; later reuse uses localized numerals. This changes RNG consumption,
+  so the same seed does not promise an identical v3 galaxy.
+- V3 stores truncated integer/float home-spacing thresholds; v4 uses JavaScript
+  floating-point Euclidean geometry consistently with its movement model.
+  The separation rule is retained, but sub-unit threshold equality is not
+  claimed across the two runtimes.
+- Source density zero returns without generating stars for internal empty maps;
+  supported setup is 1–10. V4 uses `skipMapGeneration` for fixtures/empty models.
+  The source debug-only density-one forced tiny map is not release behavior.
+- Reserved home names and invalid/exhausted numeral fallbacks are handled more
+  safely than source unchecked resource reads. Dormant starlanes remain excluded.
+
+`tools/test-web-homeworld-selection.cjs` runs twice per locale at 800×600 with
+actual startup input and the exhausted-candidate regression, on unchanged
+production code. Paired setup/map captures and logs are in
+`/private/tmp/galactica-final-map-audit-ui`; all twelve runs pass and all twelve
+screenshot pairs have zero changed pixels (`comparison.json`). Both six-language
+review sheets were inspected as normal-window regression evidence.
+No player-facing text changed; all supported language resources remain intact.
