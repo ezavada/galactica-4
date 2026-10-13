@@ -8788,3 +8788,23 @@ of a new visual improvement. Evidence and known port differences are recorded
 in `MAP_GENERATION_PORT_STATUS.md`. Preferences, normal-window/localization,
 connected-platform/audio and external-service work remain separate checklist
 items; the whole parity objective is not marked complete.
+
+
+### Localized manual: remove obsolete pause-build advice (2026-10-12)
+
+Normal-window manual review found that the Strategy section still recommended
+pausing a hull, contradicting the requested removal of pause-build controls and
+the manual's own production section. Removed that sentence in en/de/es/fr/ja/ru.
+The existing gradual-allocation and hull-switching instructions remain. This
+closes a concrete documentation mismatch, not the whole localization audit.
+
+Both complete muted native suites pass 1,842 tests. Actual browser captures
+position the Strategy section at the top, assert its visible text and inspect
+before/after pages in all six languages at 1100×900. Reviewed both six-frame
+comparison sheets; the removed sentence and consequent vertical reflow are the
+expected changes. Final evidence is under
+`/private/tmp/galactica-manual-pause-ui` (`review-1.png`, `review-2.png` and
+`comparison.json`); full-suite logs are
+`/private/tmp/galactica-manual-pause-{devel,public}.log`. Initial command-line
+captures were blank and were replaced by frame-synchronized CDP captures;
+blank images are not validation evidence. No game behavior or PDG code changes.

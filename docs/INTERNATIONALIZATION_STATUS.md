@@ -741,3 +741,14 @@ narrow/short before/after checks pass; six ordinary views are pixel-identical.
 Both full native suites pass 1,837/1,837. Evidence:
 `/private/tmp/galactica-compact-system-ui`. Rendezvous inspectors and broader
 window/help/manual localization audits remain open.
+
+
+### Manual strategy correction (2026-10-12)
+
+Removed obsolete hull-pausing advice from the Strategy paragraph in all six
+supported manuals. Pause-build functionality was removed by user direction;
+the production and strategy sections now agree. Actual before/after browser
+pages were inspected in en/de/es/fr/ja/ru. Evidence:
+`/private/tmp/galactica-manual-pause-ui/review-1.png` and `review-2.png`.
+Both native full suites pass 1,842 tests. This targeted correction does not
+claim completion of the broader localization audit.
