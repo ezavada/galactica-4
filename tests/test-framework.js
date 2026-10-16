@@ -3,6 +3,10 @@
 
 class TestFramework {
     constructor() {
+        // Silence the native output bus while retaining sound behavior assertions.
+        if (typeof pdg !== 'undefined' && pdg.snd && typeof pdg.snd.setMute === 'function') {
+            pdg.snd.setMute(true);
+        }
         if (typeof pdg !== 'undefined' && pdg && typeof pdg.srand === 'function' && !globalThis.__galacticaTestRandomSeeded) {
             pdg.srand(42);
             globalThis.__galacticaTestRandomSeeded = true;

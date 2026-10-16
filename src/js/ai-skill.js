@@ -15,22 +15,16 @@ const AI_SKILL_NAMES = {
     [AI_SKILL_LEVELS.EXPERT]: 'Expert'
 };
 
-function randomInt(max) {
-    if (!max || max <= 0) {
-        return 0;
-    }
-    if (typeof pdg !== 'undefined' && pdg && typeof pdg.rand === 'function') {
-        return pdg.rand() % max;
-    }
-    return 0;
-}
+const Random=require('./simulation-random.js');
+function randomInt(max,game){return Random.integer(max,game);}
 
-function randomFloat() {
-    return randomInt(1000000) / 1000000;
+function randomFloat(game) {
+    return randomInt(1000000,game) / 1000000;
 }
 
 class AISkillManager {
-    constructor(skillLevel = AI_SKILL_LEVELS.AVERAGE) {
+    constructor(skillLevel = AI_SKILL_LEVELS.AVERAGE,game=null) {
+        this.game=game;
         this.skillLevel = skillLevel;
         this.skillName = AI_SKILL_NAMES[skillLevel];
     }
@@ -75,7 +69,7 @@ class AISkillManager {
     getRandomVariation(skillMultiplier) {
         // Higher skill = smaller random variation
         const maxVariation = 12 * skillMultiplier;
-        return randomInt(maxVariation * 2) - maxVariation;
+        return randomInt(maxVariation * 2,this.game) - maxVariation;
     }
 
     // Check if AI should avoid certain actions based on skill level
@@ -114,7 +108,7 @@ class AISkillManager {
         switch (action) {
             case 'formFleet':
                 // Good AI forms fleets but less aggressively
-                return randomFloat() < 0.3; // 30% chance to avoid
+                return randomFloat(this.game) < 0.3; // 30% chance to avoid
             default:
                 return false;
         }
@@ -227,18 +221,18 @@ class AISkillManager {
     }
 
     // Create a random skill level
-    static createRandomSkill() {
+    static createRandomSkill(game=null) {
         const levels = Object.values(AI_SKILL_LEVELS);
-        const randomLevel = levels[randomInt(levels.length)];
-        return new AISkillManager(randomLevel);
+        const randomLevel = levels[randomInt(levels.length,game)];
+        return new AISkillManager(randomLevel,game);
     }
 
     // Create AI skill manager from string
-    static fromString(skillName) {
+    static fromString(skillName,game=null) {
         const skillLevel = Object.keys(AI_SKILL_NAMES).find(
             level => AI_SKILL_NAMES[level].toLowerCase() === skillName.toLowerCase()
         );
-        return new AISkillManager(parseInt(skillLevel) || AI_SKILL_LEVELS.AVERAGE);
+        return new AISkillManager(parseInt(skillLevel) || AI_SKILL_LEVELS.AVERAGE,game);
     }
 }
 

@@ -40,14 +40,15 @@ class RetainedPanel {
 
     labelValue(id, label, value, y, options = {}) {
         const size = options.size || 12;
-        this.text(id + '-label', label, 117, y, 'labelgray', size, pdg.textStyle_RightJustified);
-        this.text(id, value, 122, y, options.valueColor || 'lightgray', size);
+        const labelWidth = options.labelWidth || 117;
+        this.text(id + '-label', label, labelWidth, y, 'labelgray', size, pdg.textStyle_RightJustified);
+        this.text(id, value, labelWidth + 5, y, options.valueColor || 'lightgray', size);
     }
 
-    draw(rect) {
+    draw(rect,appearance) {
         // Drawing rectangles replay as quads in PDG 1.2; keep the rounded
         // background on Port.drawRect so its corner styling is preserved.
-        this.display.drawRoundedRect(rect, 14);
+        this.display.drawPanelSurface(rect,appearance || this.display.styles.panel);
         this.display.port.drawDrawing(this.drawing, new pdg.Point(rect.x, rect.y), this.parentAttributes);
     }
 }

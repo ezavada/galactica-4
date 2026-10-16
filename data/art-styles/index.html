@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Galactica-4 · Art comparison</title>
+<link rel="stylesheet" href="gallery.css">
+<script defer src="gallery-locales.js"></script>
+<script defer src="gallery-layers.js"></script><script defer src="gallery.js"></script>
+</head>
+<body>
+<header><p class="eyebrow">GALACTICA-4</p><h1>Three ways to see the galaxy.</h1><p>Compare every hull and scene, then assemble the layers as they appear in the game.</p><nav><a href="#composites">Scene compositor</a><a href="#artwork">All artwork</a><a href="README.md">Art notes</a></nav></header>
+<main>
+<div class="toolbar"><label>Transparency <select id="surface"><option value="checker">Checkerboard</option><option value="dark">Dark</option><option value="light">Light</option></select></label><span>Click an image to inspect it at full resolution.</span><label>Language <select id="language"><option value="en">English</option><option value="de">Deutsch</option><option value="es">Español</option><option value="fr">Français</option><option value="ja">日本語</option><option value="ru">Русский</option></select></label></div>
+<div class="column-heads"><h2>Anime <small>Cel-shaded illustration</small></h2><h2>Realistic <small>Photographic materials & focus</small></h2><h2>Classic <small>Restored original styling</small></h2></div>
+<section id="composites"><h2 class="section-title">Scene compositor</h2><p class="note">Controls apply to all three columns. Realistic retains the original stardock. Space backgrounds, blueprints and propulsion effects use the original shared artwork.</p><div id="scene-list"></div><p id="status" role="status" aria-live="polite">Loading scene layers…</p></section>
+<section id="artwork"><h2 class="section-title">All artwork</h2><p class="note">Transparent hulls and foregrounds are shown against your chosen surface. Open any image for a closer look or a download.</p><div id="asset-list"></div></section>
+</main>
+<dialog id="viewer"><div class="viewer-bar"><h2 id="viewer-title"></h2><a id="download" download>Download PNG</a><button id="close-viewer" aria-label="Close image viewer">Close</button></div><div class="viewer-image"><img id="large-image" alt=""></div></dialog>
+<footer>Galactica-4 · AI-generated alternate artwork · <a href="../../ASSET_RIGHTS.md">Asset rights</a></footer>
+</body></html>

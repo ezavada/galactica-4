@@ -11,7 +11,7 @@ class MapGenerator {
         
         // Load star names from resources (string ID 100, pipe-separated list)
         const starNamesStr = I18n.getString(100, "Star");
-        this.STAR_NAMES = starNamesStr ? starNamesStr.split('|') : ["Star"];
+        this.STAR_NAMES = starNamesStr ? [...new Set(starNamesStr.split('|'))] : ["Star"];
         
         // Load roman numerals from resources (string ID 200, pipe-separated list)
         const romanNumeralsStr = I18n.getString(200, "|II|III|IV|V");
@@ -51,7 +51,7 @@ class MapGenerator {
         let numStars = this.calculateStarCount(density, sectorSize, totalPlayers);
         
         // Create stars with random positions
-        const unused = this.createRandomStars(numStars, sectorSize, createStarCallback);
+        const unused = this.createRandomStars(numStars, sectorSize, createStarCallback, playerReservedNames);
         
         // Assign player home stars
         const taken = this.assignPlayerHomeStars(unused, totalPlayers, numHumans, sectorSize, playerReservedNames);
@@ -65,21 +65,18 @@ class MapGenerator {
      */
     reservePlayerNames(totalPlayers) {
         const playerReservedNames = [];
-        const availableNames = [...this.STAR_NAMES]; // Create a copy to avoid modifying original
-        
+        const availableNames = this.STAR_NAMES.map((_, index) => index);
+        const nameUsage = new Array(this.STAR_NAMES.length).fill(0);
         for (let playerNum = 1; playerNum <= totalPlayers; playerNum++) {
-            if (availableNames.length > 0) {
-                const randomIndex = this.random(availableNames.length);
-                const reservedName = availableNames.splice(randomIndex, 1)[0]; // Remove and get the name
-                playerReservedNames[playerNum] = reservedName;
-                console.log(`MapGenerator: Reserved name "${reservedName}" for player ${playerNum}`);
-            } else {
-                // Fallback if we run out of names
-                playerReservedNames[playerNum] = `Player${playerNum}Star`;
-                console.log(`MapGenerator: Using fallback name for player ${playerNum}`);
-            }
+            // Preserve distinct initial names, then reuse the localized pool
+            // with numerals as v3 does instead of English placeholder names.
+            const index = availableNames.length
+                ? availableNames.splice(this.random(availableNames.length), 1)[0]
+                : this.random(this.STAR_NAMES.length);
+            playerReservedNames[playerNum] = this.allocateNamedStar(index, nameUsage).name;
         }
-        
+        this.playerReservedNames = playerReservedNames;
+        this.playerReservedNameUsage = nameUsage;
         return playerReservedNames;
     }
 
@@ -104,11 +101,21 @@ class MapGenerator {
     /**
      * Create stars with random positions (matches original algorithm)
      */
-    createRandomStars(numStars, sectorSize, createStarCallback) {
+    createRandomStars(numStars, sectorSize, createStarCallback, reservedNames = []) {
         const unused = [];
         const sectorSizePixels = this.PIXELS_PER_SECTOR * this.COORDINATE_SCALE * sectorSize;
         
-        const nameUsage = new Array(this.STAR_NAMES.length).fill(0);
+        // Copy the reservation counts, including numbered homeworlds, so
+        // ordinary stars cannot reuse one of their labels.
+        const nameUsage = reservedNames === this.playerReservedNames
+            ? this.playerReservedNameUsage.slice()
+            : new Array(this.STAR_NAMES.length).fill(0);
+        if (reservedNames !== this.playerReservedNames) {
+            for (const name of reservedNames) {
+                const index = this.STAR_NAMES.indexOf(name);
+                if (index >= 0) nameUsage[index]++;
+            }
+        }
         
         for (let i = 0; i < numStars; i++) {
             // Generate random coordinates (matches original: Rnd(PIXELS_PER_SECTOR * sectorSize) * 1024L)
@@ -211,38 +218,21 @@ class MapGenerator {
      * Find next star for a player with distance constraints - matches original algorithm
      */
     findNextPlayerStar(unused, taken, minHomeDist, numExtraStars, minimumStarsToKeep = 0) {
-        let attempts = 0;
-        const maxAttempts = unused.length * 2; // Prevent infinite loops
-        
-        while (attempts < maxAttempts && unused.length > 0) {
+        // Only spare candidates may be rejected. Once every remaining star
+        // is needed by a player, v3 accepts the random choice without a spacing
+        // check. Each rejected candidate shrinks this list, so the loop is bounded.
+        while (unused.length > 0) {
             const randomIndex = this.random(unused.length);
             const candidateStar = unused[randomIndex];
-            
-            // Check distance to all taken stars
-            let tooClose = false;
-            for (const takenStar of taken) {
-                const distance = this.calculateDistance(candidateStar, takenStar);
-                if (distance < minHomeDist) {
-                    tooClose = true;
-                    break;
-                }
-            }
-            
-            if (!tooClose) {
+            if (numExtraStars <= 0 || unused.length <= minimumStarsToKeep) {
                 return candidateStar;
             }
-            
-            // Remove star if too close and we have extras
-            if (numExtraStars > 0 && unused.length > minimumStarsToKeep) {
-                unused.splice(randomIndex, 1);
-                numExtraStars--;
-            }
-            
-            attempts++;
+            const tooClose = taken.some(star => this.calculateDistance(candidateStar, star) < minHomeDist);
+            if (!tooClose) return candidateStar;
+            unused.splice(randomIndex, 1);
+            numExtraStars--;
         }
-        
-        // Fallback: return any remaining star
-        return unused.length > 0 ? unused[0] : null;
+        return null;
     }
 
     /**
@@ -261,17 +251,11 @@ class MapGenerator {
         // Set scanner range
         star.scannerRange = this.game.rules.getScanRangeForTechLevel(1);
         
-        // Start with colony ship at 99% completion (matches original)
-        // Create the ship but keep it under construction
-        const colonyShip = this.game.factory.createShip(star.x, star.y, 'colony', star);
-        colonyShip.progress = 99; // 99% complete
-        star.currentShip = colonyShip;
-        star.ships.push(colonyShip);
-        
-        // Set paid amount to 99% of build cost
-        const buildCost = this.game.rules.getShipBuildCost(colonyShip, star);
-        star.paidTowardShipBuilding = buildCost * 0.99;
-        
+        // v3 stores initial construction on the system, not in the ship list.
+        star.startBuildingShip('colony');
+        star.currentShip.progress = 99;
+        star.paidTowardShipBuilding = star.currentShip.cost * 0.99;
+
         // Update PlayerInfo for this player
         const playerInfo = this.game.players[playerNum];
         if (playerInfo) {
@@ -288,7 +272,7 @@ class MapGenerator {
                 // Human player - set default name from resources
                 const youStr = I18n.getString(17, "You");
                 const playerStr = I18n.getString(18, "Player");
-                playerInfo.setName(playerNum === 1 ? youStr : `${playerStr} ${playerNum}`);
+                playerInfo.setName(this.game.config.humanPlayerNames[playerNum] || (playerNum === 1 ? youStr : `${playerStr} ${playerNum}`));
             }
         }
         
@@ -333,19 +317,27 @@ class MapGenerator {
     }
 
     /**
-     * Generate a unique star name - uses S- prefix instead of roman numerals
+     * Generate a unique named or numbered star label
      */
     generateStarName(nameUsage) {
         // 10% chance to use a random name from the STAR_NAMES array
         if (pdg.rand() % 100 > 10) {
             return { name: `S-${this.nextStarNum++}`, namedStar: false };
         }
-        const nameIndex = this.random(this.STAR_NAMES.length);
+        return this.allocateNamedStar(this.random(this.STAR_NAMES.length), nameUsage);
+    }
+
+    // Homeworlds and ordinary named stars share the same numeral accounting.
+    allocateNamedStar(nameIndex, nameUsage) {
         const baseName = this.STAR_NAMES[nameIndex];
         // add roman numeral if the name is used more than once
         nameUsage[nameIndex]++;
         if (nameUsage[nameIndex] > 1) {
-            return { name: `${baseName} ${this.ROMAN_NUMERALS[nameUsage[nameIndex]]}`, namedStar: true };
+            const numeral = this.ROMAN_NUMERALS[nameUsage[nameIndex] - 1];
+            if (!numeral || this.ROMAN_NUMERALS.indexOf(numeral) !== nameUsage[nameIndex] - 1) {
+                return { name: `S-${this.nextStarNum++}`, namedStar: false };
+            }
+            return { name: `${baseName} ${numeral}`, namedStar: true };
         }
         return { name: baseName, namedStar: true };
     }

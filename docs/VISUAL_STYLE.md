@@ -1,0 +1,192 @@
+# Visual style
+
+The map and controls use small presentation effects to add life without distracting from strategy.
+
+- One star currently inside the viewport receives a quick 320 ms glint every 1.8 seconds. A soft halo and brighter short cross brighten the existing star; deterministic selection uses visible IDs and time, independently of draw order and game RNG. Scrolling refreshes the candidate set, and sparse views still twinkle.
+- All stars gently vary their core brightness by ±10% around a 90% baseline (81–99% of full color), leaving headroom for white stars to brighten without clipping. Stable per-star hashes assign separate phases and periods of 4.8–9.6 seconds; quick glints remain independent. Labels and owner halos retain their normal colors.
+- The background moves at a constant rate opposite camera scrolling, with strength proportional to zoom above the minimum. At minimum zoom there is no parallax. Overscan and repeated image tiles keep the viewport covered during unrestricted scrolling.
+- Neutral panels use gray vertical gradients and thin gray outlines; buttons retain blue-gray fills and brighter hover states. Inspector surfaces are 92% opaque and dialog surfaces 96% opaque, allowing a little background color through while keeping text and controls clear. System and ship panels blend 6% owner color at the top, fading to the neutral panel gray at the bottom. Identified enemies, allies and no-fog views share this treatment; retained completed/construction ship panels use it too. Known-owner borders blend 20% owner color into the neutral outline, preserving its opacity. Setup, settings, comparison and other ownerless dialogs share the neutral gradient and border recipe; the top information panel uses the same treatment at its existing 86% opacity. Tint visibility follows the corresponding owner label (any observed ownership for systems, Tech visibility for enemy ships). Unknown ownership and unclaimed objects keep the neutral surface.
+- Rendezvous crosses use three-pixel filled strokes with rounded ends, cycling from the owning player’s color halfway toward pure white and back every 4.4 seconds. Markers remain visible at wide zoom and respect private ownership; reduced motion keeps them at the owner color. Map buttons and object popups arm placement so a subsequent click can create or move a point in empty space, with optional object anchoring.
+- Inspector and runtime-window entrances settle in 120 ms, moving 2 pixels and reaching their normal surface opacity. Closed windows fade out over 85 ms. Controls remain immediately usable.
+- Allocation locks use open/closed padlock icons for the current state, with localized Lock/Unlock action hints in both system and production panels. Their shackles are cubic Bézier curves.
+- Menu, Home and Fit use familiar icons with localized hover labels and their existing shortcuts. Settings and colony defaults use an eight-tooth gear. All six glyphs use substantial two-pixel strokes and are drawn once to a transparent offscreen surface at 2× resolution, then cached as independent images and scaled down when displayed. Cache variants include icon, size and color; source ports close immediately after rendering, and images are released on display disposal. Filled stroke geometry follows real PDG Bézier splines, avoiding WebGL’s one-pixel GL-line limit.
+
+Browser `prefers-reduced-motion: reduce`, sampled when the display starts, disables twinkle, continuous star brightness, rendezvous color pulsing, parallax and transitions. Native callers can set `game.config.reducedMotion` before creating the display. A settings toggle has not yet been added.
+
+`src/js/panel-appearance.js` shares neutral colors, gradient geometry and owner-border styling between startup and gameplay. `src/js/visual-effects.js` contains the deterministic presentation calculations; `src/js/ui-icons.js` owns icon rendering and caching. Rendering lives in `display.js` and `retained-panel.js`, using shared PDG attributes and two reusable offscreen surfaces for whole-panel transitions. Surfaces are released on resize or display disposal. No game RNG, simulation state, selection geometry or action routing is altered.
+
+Validation: 692 unit tests pass, including 14 presentation regressions. Real browser controls and eight settled views were checked against the previous version in all six supported languages (48 paired screenshots). Additional frames cover window entrances/exits, star twinkle, scrolling and reduced motion. Before/after seeded 250-turn audits matched: 364 ships, 35 fleets and five living players.
+
+Browser validation used the same compatible PDG WebAssembly runtime as the pre-change baseline. The current default sibling `pdg/build/wasm` output lacks `Animated.defineScript`, required by the existing selection-pulse implementation, so that stale bundle cannot start the game. Rebuild PDG with the current API before using the default web-build path.
+
+### Icon refinement (2026-10-09)
+
+All six icon types now render into transparent surfaces at twice their display resolution and reuse cached image snapshots. Strokes have a two-pixel display width. Open/closed shackles follow actual cubic Bézier splines; the gear uses broad teeth. Filled stroke geometry keeps curves, corners and line weights consistent in WebGL, where GL line width can remain one pixel. Padding prevents edge clipping, and source surfaces close immediately after the snapshots are cached.
+
+Six regressions cover supersampling/reuse, curved shackle geometry/stroke weight, state/size/color variants, disposal, failed-render cleanup and invalid inputs. Full suite: 731 passed. Actual browser lock/unlock, settings/defaults and Home/Fit actions, localized hints, stable cached image identity across frames and disposal passed in all six languages. Compared 48 before/after screenshots and inspected closed/open padlocks, settings gears, Home/Fit/Menu and translated hints. Evidence: `/private/tmp/galactica-parity/icons-{before,after}` and `/private/tmp/galactica-icons-tests.log`.
+
+Yellow-star names remain visible through fog. Undiscovered enemy homeworlds use stable chart aliases until first detection, then retain the real names even when scanners leave. These are presentation labels; actual star/faction names remain unchanged. Player comparison keeps real homeworld-derived faction names, deliberately different from undiscovered map labels. Fogged ownership/economy fields remain hidden.
+
+### Shared window surfaces (2026-10-09)
+
+Setup and all ownerless runtime panels use a neutral gray surface, a subtle +0.022 RGB lift at the top and a 0.7-pixel outline. Owned system/ship surfaces retain the 6% owner tint at the top and fade to neutral gray; their outlines now blend 20% owner color. Unknown ownership remains neutral. Existing opacity levels are preserved. Full suite: 752 passed, including neutral gradient/alpha, startup recipe and border/visibility regressions. Native browser actions and 84 before/after screenshot pairs cover all six languages; no localized resources were added. Evidence: `/private/tmp/galactica-parity/neutral-{before,after}` and `/private/tmp/galactica-neutral-tests.log`.
+
+### Visible-star twinkles (2026-10-09)
+
+Replaced the sparse 21-second, one-in-seven-star effect with a 320 ms glint every 1.8 seconds, selected only from onscreen stars. Peak glint opacity is 75%, with a soft 45% radial halo; selection uses a presentation hash and does not consume simulation randomness. Reduced motion disables it. Full suite: 754 passed. Browser checks cover pulse frames, viewport selection, scrolling and reduced motion in all six languages, with English before/after frames. Evidence: `/private/tmp/galactica-parity/twinkle-{before,after}` and `/private/tmp/galactica-twinkle-tests.log`.
+
+### Rendezvous visibility and free placement (2026-10-09)
+
+Fixed native empty-space placement: `isAwaitingMapTarget()` now includes rendezvous creation/movement, so mouse-down reaches the placement handler instead of beginning camera dragging. Star/ship popup rendezvous actions now arm placement rather than immediately anchoring at the selected object. Existing map/object placement instructions remain localized in all six languages. Thicker filled geometry avoids WebGL line-width limits; a 2.2-second owner-to-pale pulse and minimum 85% opacity improve visibility, including wide zoom. Privacy and reduced-motion behavior are retained. Full suite: 757 passed, including native-routing/inverse-camera, popup placement/cancellation, pulse/privacy and wide-zoom rendering regressions. Actual browser map-button creation, empty-space movement, star-popup placement and Escape cancellation passed in all six languages; pulse frames were compared with the previous version. Evidence: `/private/tmp/galactica-parity/rendezvous-{before,after}` and `/private/tmp/galactica-rendezvous-tests.log`.
+
+### Neutral gradient contrast (2026-10-09)
+
+The initial +0.022 RGB lift was too faint to read clearly on neutral windows. Ownerless panels, dialogs, setup and the top information bar now use +0.075 at the top, fading to their existing neutral gray base at the bottom. Owned-panel styling retains its prior color treatment. Full suite: 757 passed. Actual browser controls and neutral-window/setup layouts were checked in all six languages, with English before/after screenshots inspected. Evidence: `/private/tmp/galactica-parity/gradient-contrast-{before,after}` and `/private/tmp/galactica-gradient-contrast-tests.log`.
+
+### Content-sized buttons (2026-10-09)
+
+Map columns and object popup buttons measure localized labels plus keyboard shortcuts at their rendered font size, add padding and expand their drawing/click rectangles together. Icon-only controls retain compact minimum widths. Map controls align without overlap and switch to a single column when needed; popup connectors track their resized edges. Fleet member controls, ship-table headers and state-dependent scrap buttons reserve translated text widths. Course controls use measured widths and wrap when needed, with additional window space and adjusted pagination. Full suite: 762 passed, including measured font/shortcut/icon sizing, resized clicks/connectors, row wrapping and smaller-screen course bounds. Actual browser drawing checks found no text overflow in the covered map/system/ship/menu/settings/defaults/events/course/fleet/table views in any of the six languages. Before/after screenshots were compared and translated layouts inspected. Evidence: `/private/tmp/galactica-parity/buttons-{before,after}` and `/private/tmp/galactica-buttons-tests.log`.
+
+### Slower rendezvous pulse and independent star brightness (2026-10-09)
+
+Rendezvous pulses now take 4.4 seconds (half the previous speed) and peak at a 50% blend between owner color and pure white. Every star continuously varies its gradient brightness by ±10% around a 90% baseline, with independent 4.8–9.6-second periods and phase offsets derived from IDs. This reserves brightening headroom for white stars without changing hue, map labels, ownership or simulation RNG. Reduced motion preserves static original star colors and the owner-colored markers. Full suite: 766 passed; regressions cover range/phases/periods, actual rendered star-gradient colors, pulse timing/peak color, reduced motion and RNG isolation. Native placement/movement/cancellation and animation frames were checked in all six languages, with before/after captures inspected. Evidence: `/private/tmp/galactica-parity/star-motion-{before,after}` and `/private/tmp/galactica-star-motion-tests.log`.
+
+### Compact icon groups (2026-10-09)
+
+Menu, Home and Fit now form one right-aligned row of 44×30-pixel controls with six-pixel gaps, below the content-sized text controls. Icons and visible keyboard hints have separate space; localized hover labels and existing shortcuts remain available. The text grid retains its narrow-screen single-column fallback, and End Turn spans the final text row. Allocation lock/unlock controls form a compact aligned column of 26×18-pixel buttons beside the sliders, with drawing and hit rectangles narrowed together.
+
+Full suite: 766 passed, including compact group spacing, bounds/clicks, text wrapping and allocation-lock routing. Actual browser Menu/Home/Fit and lock/unlock clicks, localized hints and text-overflow checks passed in all six languages. Compared before/after screenshots and inspected compact controls and translated layouts. Evidence: `/private/tmp/galactica-parity/compact-icons-{before,after}` and `/private/tmp/galactica-compact-icons-tests.log`.
+
+### Zoom-scaled parallax and exterior stars (2026-10-09)
+
+Removed the saturating background offset. Equal scrolling distances now produce equal background movement at a given zoom; the rate is 1% of scrolling distance per zoom unit above the camera minimum. Full zoom out produces zero parallax, and reduced motion disables it at every zoom. Repeated backdrop tiles cover unrestricted panning without changing the drift rate.
+
+A deterministic field of small, dim blue-gray stars fills space outside the playable coordinate rectangle. Positions remain anchored while scrolling/zooming, with cached shared drawing styles. These are unnamed presentation points, never factory objects: they have no selection, detection, ownership or simulation RNG effects. No localized strings are added.
+
+Full suite: 767 passed. Regressions cover zoom scaling, zero minimum/reduced-motion drift, constant scrolling, viewport coverage, deterministic exterior-only positions, RNG isolation, dim rendered colors and style reuse. Browser zoom/scroll/reduced-motion and unchanged game-star counts were checked in all six languages, with before/after screenshots at 10%, 50%, 100% and 200% zoom. Evidence: `/private/tmp/galactica-parity/parallax-{before,after}` and `/private/tmp/galactica-parallax-tests.log`.
+
+### Allocation slider current and target levels (2026-10-09)
+
+The solid colored fill now represents actual output (`value`), and the vertical marker represents the requested target (`desired`). The adjacent percentage continues to show the editable target. Clicking or dragging the track changes the target only; actual output follows the existing per-turn adjustment rules. This shared rendering applies to both system information and production windows, including read-only allocation summaries. Locking, coupled allocation totals and localized percentage formatting are preserved.
+
+Full suite: 769 passed, including fill/marker checks in both adjustment directions and click tests confirming actual output stays unchanged. Native track clicks and before/after screenshots were checked for both allocation views in all six languages. Evidence: `/private/tmp/galactica-parity/slider-{before,after}` and `/private/tmp/galactica-slider-tests.log`.
+
+### Grid visibility preference (2026-10-09)
+
+Settings → Show grid and F3 control sector-grid visibility, with active button styling indicating the current state. The default is on, matching v3. The choice is remembered in browser localStorage or native PDG configuration and survives a new game. Storage denial leaves the drawing control usable. Game objects, decorative stars and simulation state are unaffected.
+
+Full suite: 771 passed. Browser clicks, F3 and new-game persistence passed in all six languages. Inspected translated settings and grid-on/off screenshots. Evidence: `/private/tmp/galactica-parity/grid-{before,after}` and `/private/tmp/galactica-grid-tests.log`.
+
+### Map-name visibility and mobile labels (2026-10-09)
+
+Settings → Show map names and F2 toggle star, ship, fleet and rendezvous map labels. The choice defaults on and persists independently of grid visibility in browser/native preferences. Inspectors, lists, orders and player comparison continue to show names. Fogged yellow-star aliases retain their existing behavior when map names are enabled; comparison still uses real faction names.
+
+Ship/fleet labels now follow v3 drawing rules: at least half zoom, unselected docked labels suppressed, and Class visibility required for non-allied objects unless omniscient. Existing label fading remains; fleet counts and object symbols remain visible when names are hidden. Full suite: 774 passed. Native controls and translated screenshots passed in all six languages, with map-name on/off and French settings views inspected. Evidence: `/private/tmp/galactica-parity/names-{before,after}` and `/private/tmp/galactica-names-tests.log`.
+
+### Ship visibility preference (2026-10-09)
+
+Settings → Show ships and F1 control ship/fleet map rendering. Default-on state persists independently of grid and name choices. The selected visible mobile object remains drawn with its diagnostics and course when hiding others, matching v3; fog still prevents disclosure of an invisible enemy even if selected. Patrol hiding remains in place. Hidden ships/fleets do not intercept map selection or order targets, and stars/rendezvous points are unaffected. Simulation collections and movement are unchanged.
+
+Full suite: 777 passed. Browser settings/F1, selected ship/fleet exceptions, hidden-hit checks and new-game persistence passed in all six languages; before/after translated settings and map views were inspected. Evidence: `/private/tmp/galactica-parity/ships-{before,after}` and `/private/tmp/galactica-ships-tests.log`.
+
+### Course visibility preferences (2026-10-09)
+
+Settings → Show all courses/F4 controls ordinary ship/fleet routes; Show courier courses/F5 independently controls looping scout routes, matching v3. Both default on and persist in browser/native preferences. A selected object's route remains visible when its own setting is off. Enemy routes stay private through the existing course-visibility rules. These controls only change rendering; waypoint state, movement and ship visibility are unaffected.
+
+Full suite: 780 passed. Native settings/keyboard controls, independent route counts, selected-course exceptions and new-game persistence passed in all six languages. Inspected translated settings and route-on/off screenshots. Evidence: `/private/tmp/galactica-parity/courses-{before,after}` and `/private/tmp/galactica-courses-tests.log`.
+
+### Scanner ranges and system influence (2026-10-09)
+
+Settings → Show scanner ranges/F6 controls scanner presentation, default on and persisted independently of other drawing choices. Owned systems with known scanner information contribute three low-opacity influence bands at 4×/2×/1× scanner range. Opaque offscreen masks union circles by owner and band, so overlap within one band does not compound its tint. Copied images are cached until viewport, position, range or ownership/visibility changes, and freed when hidden or replaced.
+
+Selected systems/mobile scanners retain three 1×/2×/4× rings even with F6 off. Ordinary unselected mobile scanners show only the first ring; looping couriers suppress unselected rings. System range requires allied/omniscient or Tech visibility. Mobile rings follow v3 visible-ship eligibility, including visible enemies; invisible ships and hidden unselected ships stay excluded. Tint opacity is 10%/15%/30% from outer to inner band. Rendering sits beneath the grid and objects; it does not alter scanners or visibility calculations.
+
+Full suite: 783 passed. Native F6/settings, selected exceptions, system disclosure gates, mask caching and new-game persistence passed in all six languages. Inspected before/after influence regions, selected courier rings and French settings. Evidence: `/private/tmp/galactica-parity/scanners-{before,after}` and `/private/tmp/galactica-scanners-tests.log`.
+
+### Fullscreen command
+
+The command menu adds a localized full-screen toggle with active state, available to players and observers. Browser fullscreen centers the logical 800×600 canvas at 4:3 with dark letterboxing; its actual DOM rectangle remains the input coordinate reference. Request failures use a wrapped localized message and allow retry. Before/after screenshots and native mouse clicks passed in all six languages, including a 1200×800 viewport. Evidence: `/private/tmp/galactica-parity/fullscreen-{before,after}`. The existing map, panels and simulation remain unchanged. Native monitor transition validation remains pending (zero monitors in this session).
+
+### Map display modes
+
+Command Menu → Map display offers ownership and six numeric modes. Higher known values brighten stars and their owner halos; tech/defense also shade mobile objects against the same system range, while economic modes make mobiles faint. Existing ownership visuals are unchanged. A neutral translucent legend shows the active metric and known-system range, with target-allocation percentages distinguished from actual output. Legend clicks consume input so they cannot select objects underneath. The chooser uses the same subtle neutral gradient/border and measured localized buttons as other windows. Before/after images, seven-mode native browser interactions and translated chooser/legend views passed in all six languages; a smaller CSS viewport also passed. Evidence: `/private/tmp/galactica-parity/map-display-{before,after}`.
+
+### Nebula background preference
+
+Settings offers a localized Show nebula background control with active state. The default-on art, parallax and missing-image gradient are retained; turning it off uses v3’s plain black map. System influence bands use lower tint opacity over black while keeping the cached geometry. Star twinkle and continuous brightness, map labels/grid, selection and owned-window color remain active. The settings dialog grows by one row and fits the logical 800×600 viewport; all six translated layouts and a smaller CSS viewport were inspected. Enabled-background before/after maps match exactly, and actual browser clicks/persistence passed. Evidence: `/private/tmp/galactica-parity/nebula-{before,after}`.
+
+### Camera commands
+
+Compact zoom minus/plus icons join Menu/Home/Fit in the existing 44×30 grouped row. The icons use the shared 2× offscreen cache and substantial filled strokes. Single-character shortcuts sit beside icons; longer Home stays in the localized hover hint to keep the house unobstructed. Command Menu → View presents six neutral gradient buttons for zoom, fit, home, center selection and reset. All six translated layouts and before/after map/menu screenshots were inspected. Evidence: `/private/tmp/galactica-parity/camera-{before,after}`.
+
+### Map scroll bars
+
+Twelve-pixel neutral scroll tracks sit at the bottom/right edges without moving the compact map controls. Proportional thumbs use the existing subdued button style; small geometric arrows show both directions, with translated hover hints. Thumb/track state follows the camera and disabled fitted axes remain visible. Offscreen selected objects keep their inspector but suppress map action arcs, preventing edge-clamped buttons from covering the panel. Before/after maps, panned axes, translated hints and smaller CSS viewport screenshots were inspected in all six languages. Evidence: `/private/tmp/galactica-parity/scrollbars-{before,after}`.
+
+### Overlapping map objects
+
+A neutral gradient chooser sits near the click and fits the screen. Up to six measured rows per page show cached 2× star/ship/fleet/rendezvous icons and numbered shortcuts. Full names remain available in hover hints. The current selection is highlighted; allied plotted courses use bold labels and allied scrap orders show a localized status. Unknown mobile names stay generic. Pending target hints do not cover the chooser, and Escape leaves the command ready for another target. Translated chooser, paging, scaled docked markers, rendezvous target and smaller CSS viewport screenshots were inspected. Ordinary system before/after images match exactly. Evidence: `/private/tmp/galactica-parity/selection-{before,after}`.
+
+Fleet panels now use the same owner-tinted top-to-neutral gradient and colored border as ship panels once the owner is known at Tech visibility; unknown owners keep neutral styling. Below Class, map fleets have a count-independent marker and no count text; below Tech the marker is neutral. Inspector titles/statistics/contents respect v3 visibility gates, and translated label widths are measured. Native browser before/after panels were inspected in all six languages.
+
+Fleet member inspectors use a 350-pixel panel beneath the top status bar, expanding rows vertically for technology/speed/power and live health. The member count per page follows available logical screen height; measured names stop before Remove/Transfer buttons, and translated paging stays within the panel. Unknown health stays `?` with no bar; enemy contents remain read-only. Final browser captures in all six languages were inspected against the prior name-only list.
+
+Map help is drawn beneath inspectors so tall fleet member panels and their paging controls remain readable.
+
+Multi-destination fleet transfers reuse the neutral paged object chooser, with the translated destination-fleet heading (795), cached 2× fleet glyphs, numbered buttons and existing Previous/Next/Esc help. The inspector remains visible beneath it; cancel changes no fleet membership. Before/after screenshots were inspected in all six languages; ordinary source-fleet views are pixel-identical.
+
+Nested fleet inspectors retain the 350-pixel owner-tinted panel and measured, localized Group/Transfer/Remove buttons. Selectable member-name regions stop before those buttons, so selecting a group cannot accidentally create another. Parent fleet appears among context commands only when the containing fleet’s contents are known. Contained groups do not draw independent map markers. All six translated group/control layouts and before/after root views were inspected; nested navigation, transferred/departed groups and smaller CSS views remain readable.
+
+Fleet exchange uses the shared neutral window gradient/border with two adjacent, independently paged lists. The active destination has a main-row accent and a named Fleet contents heading; selection uses the existing button highlight. Row names and knowledge-gated technology/speed/power/health are measured before truncation. Sort and action buttons use measured localized widths; the action footer wraps. The window captures outside input and Enter/Tab until closed or inspected. All six translated layouts and smaller CSS views were checked with native browser clicks.
+
+Fleet roster uses eight measured sortable columns and alternating quiet row backgrounds inside the shared neutral window. Cached 2× fleet/ship/rendezvous icons distinguish row types without adding a ninth column. Names and destinations truncate by measured width and expose complete text on hover. Viewport-aware paging keeps every unit accessible; smaller logical screens use compact header typography/padding. Existing map and inspector views are unchanged. All six translated tables, selection, paging, before/after and smaller CSS views were inspected. Saved roster movement/height resizing is now implemented as described below.
+
+Roster windows move by dragging their title and resize vertically from the lower-right grip. The grip has its own hit region; paging leaves room for it. Height changes update page capacity while preserving member identity. Saved bounds restore through native/browser preferences; smaller viewports clamp the visible frame without replacing preferred bounds. A localized hover hint explains the gestures. Final translated moved/resized/restored/recovered windows and before/after captures were inspected in all six languages. Ordinary map/inspector views remain pixel-identical.
+
+System comparison uses the same title drag, corner grip and localized movement/resize hint as the fleet roster. A localized Close button shares the footer with paging, clear of the grip. Preferred height/position persist independently, resize adjusts row capacity, and smaller viewports temporarily clamp bounds. Before/after and all six translated moved/restored/smaller layouts inspected under `/private/tmp/galactica-parity/system-geometry-{before,after}`; map rendering remains pixel-identical. Full suites: 909 passed on release/current native PDG.
+
+Compare Players now presents the eleven v3 numeric statistics with grouped system/ship technology headings, owner color dots, subtle alternating stripes and blue/red best/worst values. Neutral/unknown names use italics; defeated statistics and neutral ship fields use dashes. Measured names retain full hover text, and translated legend/close/paging controls fit all inspected languages and smaller CSS views. Before/after artifacts: `/private/tmp/galactica-parity/player-comparison-{before,after}`; ordinary map views are pixel-identical. Full suites: 919 passed on release/current native PDG.
+
+Post-setup player-name dialog uses the neutral window gradient/border, a selected editable field with a measured Unicode caret viewport, and localized Start/Cancel buttons. Setup Start now has the existing button surface and a pointer hit region. Inspected before/after setup plus all six typed/remembered/blank/comparison and smaller dialog views under `/private/tmp/galactica-parity/player-name-{before,after}`. Full suites: 928 passed on release/current native PDG.
+
+### Editable startup game title
+
+The setup title is a clickable control with T shortcut. The title editor reuses the player-name field and window style, with Save/Cancel and a 27-character Unicode limit. Header text measures its available width and reduces font size before truncation. Before/after setup, translated editors and maximum-length header screenshots were inspected under `/private/tmp/galactica-parity/game-title-{before,after}`; player-name dialog screenshots remain pixel-identical in every supported language. Full suites: 934 passed on release/current native PDG.
+
+### Editable opponent count
+
+The player-count row is a button opening a selected numeric draft through a click or C. The editor uses the existing title/name window style with localized range and validation text, Save/Cancel and unchanged neighboring setup controls. Inspected six translated editors, smaller layouts, errors, before/after setup and actual solo/twelve-opponent games under `/private/tmp/galactica-parity/opponents-{before,after}`. Full suites: 941 passed on release/current native PDG.
+
+### Shared startup AI skill
+
+The skill row opens five vertically stacked choices in the existing neutral window style, with the current skill highlighted. All translated labels and Cancel fit normal and smaller layouts. Choosing a value returns to setup; Cancel/Escape/outside-click keeps the previous skill. Inspected six translated popups and before/after setup under `/private/tmp/galactica-parity/skill-{before,after}`. Full suites: 947 passed on release/current native PDG.
+
+### Fast Game checkbox
+
+The setup options row uses a clickable Fast Game checkbox with a vector check mark, dark inset box and active fill. A gap separates it from density buttons; the translated fog description occupies the other half of the row with measured font fitting. Checked/unchecked states, six-language before/after setup and smaller layouts were inspected under `/private/tmp/galactica-parity/fast-{before,after}`. Full suites: 952 passed on release/current native PDG.
+
+### Fog of War checkbox
+
+Fast Game and Fog of War share measured checkbox rendering, equal widths and separated hit areas. Fog is checked by default; clearing it enables the all-visible map. Both use the existing 13-point setup text scale, dark inset box, vector check mark and active fill. Inspected six translated before/after setup comparisons, smaller checked/unchecked layouts and actual fog/all-visible enemy panels under `/private/tmp/galactica-parity/fog-{before,after}`. Full suites: 957 passed on release/current native PDG.
+
+## Conclusion reports
+
+Victory, defeat and stalemate use the shared neutral gradient/border panel over a dimmed map. Local victory/defeat retain v3's complete three-paragraph narratives; other-player notices show the affected name without addressing the viewer as the defeated player. Text wraps by measured font width; smaller drawing areas paginate rather than discard narrative lines. Continue, Space, Enter or Escape acknowledge without advancing a turn. The event list offers View report for retained outcomes; its heading reflects the turns represented in the list. Reports capture pointer/keyboard input and cancel active map/window/slider drags. All text and controls use the six supported resource languages.
+
+## Local game documents
+
+New Game and Open Games share the existing command menu. Opening setup retains the previous map and simulation; Cancel/Escape returns to that document, while cancelling the player-name dialog returns to setup. The neutral Open Games panel lists titles and turn numbers, highlights the active document and pages long lists. Its pointer/keyboard input stays above the map. The expanded command menu reduces row spacing in smaller drawing areas. All six languages reuse the shared styles and localized controls.
+
+File documents use the existing neutral gradient/bordered panel and dimmed modal background. Save As and native Open reuse the measured Unicode text editor; browser Open invokes a file chooser. File commands, confirmation and status/error panels use localized buttons, and modal input cannot advance a turn or move/zoom the map. Revert and Open restore camera and selection before the next drawing frame. Six-language before/after captures are recorded under `/private/tmp/galactica-parity/save-{before,after}`.
+
+A focused private new-colony report adds measured, wrapped naming/production guidance at the top of the owned-system inspector. The panel expands to fit translated lines while keeping its usual diagnostics, current/target sliders and controls aligned. Recaptured/removed systems suppress the instruction. Before/after inspectors, report panels and all translated Rename dialogs were inspected under `/private/tmp/galactica-parity/colony-setup-{before,after}`.
+
+Technology delivery refreshes the ordinary technology, scanner, construction percentage and ETA fields. Allied arrival reprices the current hull using received colony technology while keeping paid effort, so the displayed completion percentage may decrease. Before/after inspector, production and pause/resume screenshots were checked in all six languages under `/private/tmp/galactica-parity/transfer-{before,after}`.
+
+### Arrival container and group feedback (2026-10-10)
+
+The existing fleet inspector now retains incoming groups at the destination instead of showing an emptied nested target. Satellite interceptions show Docked and the containing system in the ship inspector. Enemy member interceptions produce the ordinary translated battle summary for the containing system and include its defenses. Actual browser End Turn before/after comparisons pass in en/de/es/fr/ja/ru; inspectors and translated group/report screens were inspected under `/private/tmp/galactica-parity/arrival-{before,after}`. No visual-style or resource additions were needed. Full suites: 1018 passed on release/current native PDG.
+
+### Delayed explanatory control help (2026-10-10)
+
+Controls now show a compact neutral panel after a 750 ms pointer linger. The panel includes the button label/shortcut where available and a complete translated explanation, wraps by measured glyph width, and moves above/below the target within the viewport. It shares the existing subtle neutral gradient/border. Sliders explain actual fill and target markers; map objects do not trigger automatic balloons. Modal windows, active drags and illustrated presentations prevent underlying control help. Clicks/keys dismiss it without blocking the original action. Settings adds a measured, translated Control help toggle, retained across reload and open-game switching. Startup and saved-game dialogs use the same linger/layout rules. Native browser before/after startup, allocation, lock, default destination, End Turn, settings, course and file-editor screenshots were inspected in en/de/es/fr/ja/ru, including smaller browser windows and resumed games. Evidence: `/private/tmp/galactica-parity/help-{before,after}`. Full suites: 1029 passed on release/current native PDG.

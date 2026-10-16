@@ -18,6 +18,7 @@ const EventType = {
     SHIP_INTERCEPT: 4, // Ship intercepted another ship
     SHIP_STOPPED: 5,   // Ship stopped at a star
     SHIP_DESTROYED: 6, // A ship was destroyed
+    FLEET_DESTROYED: 8, // A top-level fleet was destroyed
     SHIP_TASKED: 7,    // A ship was given a task
     // more ship events here
     TECH_LEVEL_UP: 10,  // A star reached a new tech level
@@ -30,7 +31,12 @@ const EventType = {
     FLEET_FORMED: 17,    // A fleet was created or assembled
     RENDEZVOUS_UPDATED: 18, // A rendezvous point changed
     NEW_TECH_DISCOVERY: 20, // Lab event: reached a new drive class (tech/5)
-    NEW_SHIP_CLASS: 21      // Stardock event: first battleship class built for player
+    NEW_SHIP_CLASS: 21,      // Stardock event: first hull type or higher battleship class built for player
+    SHIP_REPAIRED: 25, // A docked ship has been completely repaired
+    FLEET_REPAIRED: 26, // All ships in a docked fleet have been repaired
+    SYSTEM_DEFENSE_LOSSES: 24, // Defending ships lost at a surviving system
+    DEFENDERS_LOST: 23, // An enemy system lost its last resistance
+    RENAME_COLONY: 22 // Private request to name a new colony and set production
 }
 
 const EventWhy = {

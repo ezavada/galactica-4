@@ -1,0 +1,787 @@
+{
+  "format": 1,
+  "purpose": "Source presentation evidence, not proof of runtime parity",
+  "source": "Resources/gal-mainrsrc.r",
+  "resource": 128,
+  "sha256": "dbac16504f53c5528c018276662ac802d56f9430f325a07302f655035ec452b3",
+  "events": [
+    {
+      "code": 1,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1009,
+          "stringIndex": 1,
+          "window": 0
+        },
+        "loser": {
+          "sound": 1010,
+          "stringIndex": 2,
+          "window": 0
+        },
+        "other": {
+          "sound": 1014,
+          "stringIndex": 3,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 2,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1007,
+          "stringIndex": 4,
+          "window": 0
+        },
+        "loser": {
+          "sound": 1008,
+          "stringIndex": 5,
+          "window": 0
+        },
+        "other": {
+          "sound": 1014,
+          "stringIndex": 6,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 3,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1007,
+          "stringIndex": 7,
+          "window": 0
+        },
+        "loser": {
+          "sound": 1008,
+          "stringIndex": 8,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 9,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 4,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1007,
+          "stringIndex": 10,
+          "window": 0
+        },
+        "loser": {
+          "sound": 1008,
+          "stringIndex": 11,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 12,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 5,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 0,
+          "stringIndex": 34,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 35,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 36,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 6,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 0,
+          "stringIndex": 37,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 38,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 39,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 7,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1003,
+          "stringIndex": 13,
+          "window": 10
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 1003,
+          "stringIndex": 14,
+          "window": 10
+        }
+      }
+    },
+    {
+      "code": 8,
+      "autoShow": false,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1001,
+          "stringIndex": 15,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 9,
+      "autoShow": false,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1001,
+          "stringIndex": 16,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 10,
+      "autoShow": false,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1001,
+          "stringIndex": 17,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 1014,
+          "stringIndex": 0,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 11,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1011,
+          "stringIndex": 18,
+          "window": 4002
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 1014,
+          "stringIndex": 19,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 12,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1013,
+          "stringIndex": 20,
+          "window": 4003
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 1014,
+          "stringIndex": 21,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 13,
+      "autoShow": false,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 0,
+          "stringIndex": 22,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 23,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 14,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1011,
+          "stringIndex": 24,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 1014,
+          "stringIndex": 25,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 15,
+      "autoShow": false,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 0,
+          "stringIndex": 26,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 27,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 16,
+      "autoShow": false,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 0,
+          "stringIndex": 28,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 29,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 17,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1004,
+          "stringIndex": 30,
+          "window": 4001
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 1006,
+          "stringIndex": 31,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 18,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1005,
+          "stringIndex": 32,
+          "window": 4000
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 33,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 19,
+      "autoShow": true,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 0,
+          "stringIndex": 40,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 41,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 42,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 20,
+      "autoShow": false,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1001,
+          "stringIndex": 43,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 21,
+      "autoShow": false,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1001,
+          "stringIndex": 44,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        }
+      }
+    },
+    {
+      "code": 22,
+      "autoShow": false,
+      "stringResource": 500,
+      "textResource": 0,
+      "recipients": {
+        "winner": {
+          "sound": 1001,
+          "stringIndex": 45,
+          "window": 0
+        },
+        "loser": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        },
+        "other": {
+          "sound": 0,
+          "stringIndex": 0,
+          "window": 0
+        }
+      }
+    }
+  ],
+  "windows": {
+    "10": {
+      "resource": 10,
+      "sha256": "11521248d0a83031c284425c2165a3d0190679b00207bf61e0a3180e9eb91ae6",
+      "captions": [
+        "^0,\n",
+        "^2",
+        "^1\n"
+      ],
+      "pictures": [],
+      "source": "Resources/gal-en-shareware.r",
+      "objectClasses": [
+        "dlog",
+        "capt",
+        "capt",
+        "pbut",
+        "pbut",
+        "capt"
+      ]
+    },
+    "4000": {
+      "resource": 4000,
+      "sha256": "440b384ba0c260909aacbee4bc4fc01e6e6819b5e4e8b5cc69609e3af452863f",
+      "captions": [],
+      "pictures": [
+        {
+          "resource": 4000
+        }
+      ],
+      "source": "Resources/gal-non-module.r",
+      "objectClasses": [
+        "dlog",
+        "pbut",
+        "pict",
+        "STxt",
+        "butn"
+      ]
+    },
+    "4001": {
+      "resource": 4001,
+      "sha256": "e9d921054dcadace896e8d38ed3d1a2bcc385bbb63740bf2cf29ce75db8ab5f5",
+      "captions": [],
+      "pictures": [
+        {
+          "resource": 4001
+        }
+      ],
+      "source": "Resources/gal-non-module.r",
+      "objectClasses": [
+        "dlog",
+        "pbut",
+        "pict",
+        "STxt",
+        "butn"
+      ]
+    },
+    "4002": {
+      "resource": 4002,
+      "sha256": "3d5174031c1eb3bded6cee44ffc0d9728ab3a8b1a7f44000ba8096bfb237a735",
+      "captions": [],
+      "pictures": [],
+      "source": "Resources/gal-non-module.r",
+      "objectClasses": [
+        "dlog",
+        "pbut",
+        "lofV",
+        "STxt",
+        "butn"
+      ]
+    },
+    "4003": {
+      "resource": 4003,
+      "sha256": "0e0371be574ed4bb9d5a1c41fdba02638b1bdad113c537cca74a0a067b5c8c94",
+      "captions": [],
+      "pictures": [],
+      "source": "Resources/gal-non-module.r",
+      "objectClasses": [
+        "dlog",
+        "pbut",
+        "lofV",
+        "STxt",
+        "butn"
+      ]
+    }
+  },
+  "texts": {
+    "source": "Resources/gal-en-shareware.r",
+    "resource": 500,
+    "sha256": "ec923cd00fc1938e10feb035b9baa73f83ed484ead97734abef65c46ac82e182",
+    "entries": [
+      {
+        "index": 1,
+        "text": "You took the star system % from #!"
+      },
+      {
+        "index": 2,
+        "text": "You lost the star system % when * attacked it."
+      },
+      {
+        "index": 3,
+        "text": "* took the star system % from #."
+      },
+      {
+        "index": 4,
+        "text": "You have crushed the last resistance on the system % in a battle against #!"
+      },
+      {
+        "index": 5,
+        "text": "Your last defenders of the system % died bravely in a battle against *."
+      },
+      {
+        "index": 6,
+        "text": "* crushed the last resistance on the system % in a battle against #."
+      },
+      {
+        "index": 7,
+        "text": "You destroyed an enemy starship % belonging to # in a battle at @."
+      },
+      {
+        "index": 8,
+        "text": "You lost a starship % in battle with * at @."
+      },
+      {
+        "index": 9,
+        "text": "* destroyed a starship % that belonged to # in a battle at @."
+      },
+      {
+        "index": 10,
+        "text": "You have defeated # in a battle at @, destroying the fleet %!"
+      },
+      {
+        "index": 11,
+        "text": "You lost your fleet %, wiped out in a battle with * at @."
+      },
+      {
+        "index": 12,
+        "text": "* defeated # in a battle at @, destroying the fleet %."
+      },
+      {
+        "index": 13,
+        "text": "You have received a message from #."
+      },
+      {
+        "index": 14,
+        "text": "* received a message from #."
+      },
+      {
+        "index": 15,
+        "text": "Your starship % at @ is awaiting your orders."
+      },
+      {
+        "index": 16,
+        "text": "Your fleet % at @ is awaiting your orders."
+      },
+      {
+        "index": 17,
+        "text": "Your newly built starship % is in the system @, ready for launch."
+      },
+      {
+        "index": 18,
+        "text": "You have completed construction of a new % class starship, tech level $, at @."
+      },
+      {
+        "index": 19,
+        "text": "* just built a new % class starship, tech level $, at @."
+      },
+      {
+        "index": 20,
+        "text": "Your scientists on % have discovered a new tech level $ starship drive."
+      },
+      {
+        "index": 21,
+        "text": "Scientists on %, working for *, have discovered a new tech level $ starship drive."
+      },
+      {
+        "index": 22,
+        "text": "Your system % has achieved tech level $."
+      },
+      {
+        "index": 23,
+        "text": "* has achieved tech level $ on %."
+      },
+      {
+        "index": 24,
+        "text": "You have colonized the uninhabited star system % !"
+      },
+      {
+        "index": 25,
+        "text": "* colonized the uninhabited star system %."
+      },
+      {
+        "index": 26,
+        "text": "Your new fleet has begun to form at @. Please name it."
+      },
+      {
+        "index": 27,
+        "text": "* has begun forming a new fleet at @."
+      },
+      {
+        "index": 28,
+        "text": "Your fleet % at @ is now completely formed."
+      },
+      {
+        "index": 29,
+        "text": "* has completed formation of the fleet % at @."
+      },
+      {
+        "index": 30,
+        "text": "You have been defeated."
+      },
+      {
+        "index": 31,
+        "text": "* has been defeated."
+      },
+      {
+        "index": 32,
+        "text": "You have conquered the Galaxy!!"
+      },
+      {
+        "index": 33,
+        "text": "* has conquered the Galaxy!"
+      },
+      {
+        "index": 34,
+        "text": "While you won the battle at @, your fleet % lost $ ships."
+      },
+      {
+        "index": 35,
+        "text": "While you lost the battle at @, you destroyed $ enemy ships."
+      },
+      {
+        "index": 36,
+        "text": "* lost $ ships from their fleet % in the battle against # at @."
+      },
+      {
+        "index": 37,
+        "text": "While you won the battle at %, you lost $ ships in that system."
+      },
+      {
+        "index": 38,
+        "text": "You destroyed $ enemy ships in your attack on the star system %."
+      },
+      {
+        "index": 39,
+        "text": "* lost $ ships defending the star system % from an attack by #."
+      },
+      {
+        "index": 40,
+        "text": "The star system % surrendered."
+      },
+      {
+        "index": 41,
+        "text": "Your star system % surrendered to *."
+      },
+      {
+        "index": 42,
+        "text": "The star system %, formerly held by #, surrendered to *."
+      },
+      {
+        "index": 43,
+        "text": "Your ship % has been completely repaired."
+      },
+      {
+        "index": 44,
+        "text": "All ships in your fleet % have been completely repaired."
+      },
+      {
+        "index": 45,
+        "text": "Please name your new colony and set its production levels."
+      }
+    ]
+  }
+}

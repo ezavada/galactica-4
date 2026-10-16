@@ -2,24 +2,28 @@
 // Defines game setup options matching original C++ NewGameInfoT structure
 
 const I18n = require('./i18n.js');
+const PlayerName=require('./player-name.js');
 
 class GameConfig {
     constructor(options = {}) {
         // Game title
         this.gameTitle = options.gameTitle || I18n.getString(500, "Galactica Game");
         
+        this.humanPlayerNames = options.humanPlayerNames ? {...options.humanPlayerNames} : {};
+
         // Player configuration
         this.numHumans = options.numHumans !== undefined ? options.numHumans : 1;
         this.numComputers = options.numComputers !== undefined ? options.numComputers : 1;
         this.totalPlayers = this.numHumans + this.numComputers;
+        if(options.humanPlayerSlots!==undefined)this.humanPlayerSlots=Array.isArray(options.humanPlayerSlots)?[...options.humanPlayerSlots]:options.humanPlayerSlots;
         
         // Map configuration
-        this.density = options.density || 1;        // 1-3 typical (star density multiplier)
-        this.sectorSize = options.sectorSize || 1;  // 1-4 typical (map size multiplier)
+        this.density = options.density !== undefined ? options.density : 1; // v3 stellar density: integer 1–10
+        this.sectorSize = options.sectorSize !== undefined ? options.sectorSize : 1; // v3 sector size: integer 1–5
         
         // AI configuration
-        this.compSkill = options.compSkill || 2;         // 1=Expert, 2=Good, 3=Average, 4=Passable, 5=Novice
-        this.compAdvantage = options.compAdvantage || 0; // v3 range: -3 through +3, 20% production modifier per level
+        this.compSkill = options.compSkill !== undefined ? options.compSkill : 2;         // 1=Expert, 2=Good, 3=Average, 4=Passable, 5=Novice
+        this.compAdvantage = options.compAdvantage !== undefined ? options.compAdvantage : 0; // v3 range: -3 through +3, 20% production modifier per level
         this.aiSkillByPlayer = options.aiSkillByPlayer ? { ...options.aiSkillByPlayer } : {};
         
         // Game speed and mechanics
@@ -154,15 +158,27 @@ class GameConfig {
         });
     }
     
+    getHumanPlayerSlots() { return this.humanPlayerSlots===undefined?Array.from({length:this.numHumans},(_,i)=>i+1):this.humanPlayerSlots; }
+    isHumanPlayer(id) { return Number.isInteger(id) && id>0 && id<=this.totalPlayers && (this.humanPlayerSlots===undefined?id<=this.numHumans:Array.isArray(this.humanPlayerSlots) && this.humanPlayerSlots.includes(id)); }
+
     // Validate configuration
     validate() {
         const errors = [];
-        
-        if (this.numHumans < 0 || this.numHumans > 99) {
+        if(this.humanPlayerSlots!==undefined && (!Array.isArray(this.humanPlayerSlots) || this.humanPlayerSlots.length!==this.numHumans || this.humanPlayerSlots.some((id,i)=>!Number.isInteger(id) || id<1 || id>this.totalPlayers || i>0 && id<=this.humanPlayerSlots[i-1])))errors.push("humanPlayerSlots must list each human slot once in increasing order");
+        if(typeof this.omniscient!=='boolean')errors.push('omniscient must be a boolean');
+        if(typeof this.fastGame!=='boolean')errors.push('fastGame must be a boolean');
+        if(!PlayerName.validName(this.gameTitle,27))errors.push('gameTitle must contain 1–27 characters without control characters');
+        for(const [key,name] of Object.entries(this.humanPlayerNames)) {
+            const player=Number(key);
+            if(!Number.isInteger(player) || player<1 || !this.isHumanPlayer(player) || !PlayerName.validName(name))
+                errors.push('humanPlayerNames must contain valid names for human player slots');
+        }
+
+        if (!Number.isInteger(this.numHumans) || this.numHumans < 0 || this.numHumans > 99) {
             errors.push("numHumans must be between 0 and 99");
         }
         
-        if (this.numComputers < 0 || this.numComputers > 99) {
+        if (!Number.isInteger(this.numComputers) || this.numComputers < 0 || this.numComputers > 99) {
             errors.push("numComputers must be between 0 and 99");
         }
         
@@ -170,25 +186,29 @@ class GameConfig {
             errors.push("Cannot have more than 99 total players");
         }
         
-        if (this.totalPlayers < 2) {
-            errors.push("Must have at least 2 total players");
+        if (this.totalPlayers < 1) {
+            errors.push("Must have at least 1 total player");
         }
         
-        if (this.density < 1 || this.density > 5) {
-            errors.push("density must be between 1 and 5");
+        if (!Number.isInteger(this.density) || this.density < 1 || this.density > 10) {
+            errors.push("density must be an integer between 1 and 10");
         }
         
-        if (this.sectorSize < 1 || this.sectorSize > 5) {
-            errors.push("sectorSize must be between 1 and 5");
+        if (!Number.isInteger(this.sectorSize) || this.sectorSize < 1 || this.sectorSize > 5) {
+            errors.push("sectorSize must be an integer between 1 and 5");
         }
         
-        if (this.compSkill < 1 || this.compSkill > 5) {
+        if (!Number.isInteger(this.compSkill) || this.compSkill < 1 || this.compSkill > 5) {
             errors.push("compSkill must be between 1 (Expert) and 5 (Novice)");
+        }
+
+        if (!Number.isInteger(this.compAdvantage) || this.compAdvantage < -3 || this.compAdvantage > 3) {
+            errors.push("compAdvantage must be an integer between -3 and 3");
         }
 
         for (const playerNum of Object.keys(this.aiSkillByPlayer)) {
             const skill = this.aiSkillByPlayer[playerNum];
-            if (skill < 1 || skill > 5) {
+            if (!Number.isInteger(skill) || skill < 1 || skill > 5) {
                 errors.push(`aiSkillByPlayer[${playerNum}] must be between 1 (Expert) and 5 (Novice)`);
             }
         }
@@ -221,13 +241,8 @@ class GameConfig {
     // Get map size description
     getMapSizeDescription() {
         // Load map size descriptions from resources (IDs 350-355)
-        const sizeIds = {
-            1: 350,  // Small
-            2: 351,  // Medium
-            3: 352,  // Large
-            4: 353,  // Huge
-            5: 354   // Gigantic
-        };
+        const sizeIds = {1:350,2:351,3:352,4:353,5:354}; // Tiny, Small, Average, Large, Huge
+
         const stringId = sizeIds[this.sectorSize];
         if (stringId !== undefined) {
             return I18n.getString(stringId, "Unknown");
@@ -237,19 +252,7 @@ class GameConfig {
     
     // Get star density description
     getDensityDescription() {
-        // Load density descriptions from resources (IDs 400-405)
-        const densityIds = {
-            1: 400,  // Sparse
-            2: 401,  // Normal
-            3: 402,  // Dense
-            4: 403,  // Very Dense
-            5: 404   // Crowded
-        };
-        const stringId = densityIds[this.density];
-        if (stringId !== undefined) {
-            return I18n.getString(stringId, "Unknown");
-        }
-        return I18n.getString(405, "Unknown");  // Unknown fallback
+        return I18n.formatString(764, 'Density {0}', this.density);
     }
     
     // Convert to simple object for MapGenerator

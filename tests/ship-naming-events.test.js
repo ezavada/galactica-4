@@ -6,7 +6,7 @@ if (typeof global.pdg === 'undefined') {
         res: {
             getString: (id) => {
                 if (id === 800) {
-                    return 'Traveller|Rama|Hawk|Falcon|Riviel|Valkyrie|Wolven|Banshee|Avenger|Raven|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion';
+                    return 'Traveler|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Shark|Hellion';
                 }
                 return '';
             },
@@ -76,6 +76,41 @@ module.exports = function runShipNamingEventsTests() {
             test.assertEqual(game.overlay.classIndex, ship.classIndex);
         });
 
+        test.it('announces each noncombat hull once and preserves its origin after launch', () => {
+            for(const type of ['defense','scout','colony']) {
+                const game=createGameForTests(),star=game.factory.createStar(0,0,'Home 星');star.owner=1;
+                star.setDefaultDestination({x:1000000,y:0});star.startBuildingShip(type);const ship=star.completeShip();
+                test.assertEqual(game.overlay.type,'stardock');test.assertEqual(game.overlay.shipType,type);
+                test.assertTrue(game.overlay.origin===star);test.assertTrue(game.overlay.ship===ship);
+                const event=game.eventLog.find(e=>e.type===require('../src/js/common.js').EventType.NEW_SHIP_CLASS);
+                test.assertTrue(event.subject===star);test.assertEqual(event.recipient,1);test.assertTrue(event.message.includes('Home 星'));
+                game.overlay=null;game.overlayQueue=[];star.startBuildingShip(type);star.completeShip();test.assertEqual(game.overlay,null);
+            }
+        });
+        test.it('keeps enemy Stardock art private while broadcasting the source observer narratives',()=>{
+            const game=createGameForTests();game.config.omniscient=true;const star=game.factory.createStar(0,0,'Enemy');star.owner=2;
+            for(const type of ['defense','scout','colony','battleship']){star.startBuildingShip(type);star.completeShip();}
+            test.assertEqual(game.overlay.type,'report');test.assertTrue(game.overlay.automaticObserver);
+            test.assertFalse([game.overlay,...game.overlayQueue].some(o=>o.type==='stardock'));
+            game.turn++;const reports=game.getEventRows().filter(e=>e.type===require('../src/js/common.js').EventType.NEW_SHIP_CLASS);
+            test.assertEqual(reports.length,4);test.assertTrue(reports.every(e=>e.observer&&e.commissioning));
+        });
+        test.it('does not announce older battleship classes after commissioning a higher one',()=>{
+            const game=createGameForTests(),star=game.factory.createStar(0,0,'Home');star.owner=1;star.techLevel=15;
+            star.startBuildingShip('battleship');star.completeShip();test.assertEqual(game.overlay.classIndex,4);
+            game.overlay=null;game.overlayQueue=[];star.techLevel=5;star.startBuildingShip('battleship');star.completeShip();test.assertEqual(game.overlay,null);
+            star.techLevel=20;star.startBuildingShip('battleship');star.completeShip();test.assertEqual(game.overlay.classIndex,5);
+        });
+        test.it('retains first-hull flags, pending presentation and class milestones through saved games',()=>{
+            const Save=require('../src/js/game-save.js'),game=createGameForTests();game.rules.isFast=game.config.fastGame;
+            const star=game.factory.createStar(0,0,'Home');star.owner=1;
+            for(const type of ['defense','scout','colony','battleship']){star.startBuildingShip(type);star.completeShip();}
+            const loaded=Save.restore(Save.serialize(game)),home=loaded.stars[0];
+            test.assertEqual(loaded.overlay.shipType,'defense');test.assertTrue(loaded.overlay.origin===home);
+            test.assertEqual(loaded.overlayQueue.length,3);loaded.overlay=null;loaded.overlayQueue=[];
+            for(const type of ['defense','scout','colony','battleship']){home.startBuildingShip(type);home.completeShip();}
+            test.assertEqual(loaded.overlay,null);test.assertEqual(loaded.overlayQueue.length,0);
+        });
         test.it('emits NEW_TECH_DISCOVERY overlay on crossing new drive class', () => {
             const game = createGameForTests();
             const star = game.getFactory().createStar(0, 0, 'Alpha', game);

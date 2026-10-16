@@ -1,0 +1,19 @@
+// Awaited actual player/admin logins with isolated device preferences and muted audio.
+const pdg=require('pdg');globalThis.pdg=pdg;if(pdg.snd)pdg.snd.setMute(true);
+const fs=require('fs'),os=require('os'),path=require('path'),assert=require('assert');pdg.res.openResourceFile(path.join(__dirname,'../data'));
+const {JoinWindow}=require('../src/js/network-join.js'),Prefs=require('../src/js/network-password-preferences.js'),service=require('../src/js/host-games.js').createService();
+const dir=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-passwords-')),clients=[];
+(async()=>{
+ for(const lang of ['en','de','es','fr','ja','ru']){
+  pdg.res.setLanguage(lang);const record=await service.create({numHumans:2,numComputers:1,sectorSize:1,density:1,adminPassword:'admin 秘密'},path.join(dir,lang+'.json'),{port:0}),store=new Map(),env={window:{localStorage:{getItem:key=>store.get(key),setItem:(key,value)=>store.set(key,value)}}},prefs=Prefs.createPreferences(env),installed=[];
+  const w=new JoinWindow({passwordPreferences:prefs,install:(model,client)=>{installed.push({model,client});clients.push(client);}}),name='Voyager '+lang,id={address:record.address,gameId:record.id || service.describe(record).id,role:'player',name};
+  w.open();w.address.text=record.address;w.name.text=name;w.password.text='player 秘密';assert.equal(w.rememberPassword,false);await w.inspect();assert(await w.connect());assert.equal(prefs.read(id),null);const descriptor=installed[0].client.descriptor();assert(!JSON.stringify(descriptor).includes('秘密'));await installed[0].client.disconnect({keepView:true});
+  w.open(descriptor);assert.equal(w.password.text,'');w.password.text='player 秘密';w.action('rememberPassword');await w.inspect();assert(await w.connect());assert.equal(Prefs.createPreferences(env).read(id),'player 秘密');await installed[1].client.disconnect({keepView:true});
+  w.open(descriptor);assert.equal(w.password.text,'player 秘密');w.password.text='wrong';await w.inspect();assert.equal(await w.connect(),false);assert.equal(prefs.read(id),'player 秘密');w.cancel();assert.equal(prefs.read(id),'player 秘密');
+  w.open(descriptor);await w.inspect();assert(await w.connect());assert.equal(prefs.read(id),'player 秘密');assert.equal(installed[2].model.clientPlayerNum,1);await installed[2].client.disconnect({keepView:true});
+  w.open({address:record.address,gameId:id.gameId,role:'administrator'});assert.equal(w.password.text,'');w.password.text='admin 秘密';w.action('rememberPassword');await w.inspect();assert(await w.connect());const adminDescriptor=installed[3].client.descriptor();assert(!JSON.stringify(adminDescriptor).includes('秘密'));assert.equal(prefs.read({...id,role:'administrator'}),'admin 秘密');assert.equal(prefs.read(id),'player 秘密');await installed[3].client.disconnect({keepView:true});
+  w.open(adminDescriptor);assert.equal(w.password.text,'admin 秘密');await w.inspect();w.action('rememberPassword');assert(await w.connect());assert.equal(prefs.read({...id,role:'administrator'}),null);assert.equal(prefs.read(id),'player 秘密');await installed[4].client.disconnect({keepView:true});
+  w.open(descriptor);await w.inspect();w.action('rememberPassword');assert(await w.connect());assert.equal(prefs.read(id),null);assert(record.host.info().slots[1].status==='open');assert(!fs.readFileSync(record.file,'utf8').includes('秘密'));await installed[5].client.disconnect({keepView:true});await service.stop(record);
+ }
+ console.log('PASS remembered passwords in all six languages: default-off actual player/admin admission, opted-in rejoin, wrong-password/cancel preservation, separate role scope, forget on successful unchecked rejoin, public descriptor/host save privacy and no extra human claim');
+})().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{try{for(const client of clients)await client.disconnect();await service.closeAll();}finally{fs.rmSync(dir,{recursive:true,force:true});process.exit(process.exitCode || 0);}});

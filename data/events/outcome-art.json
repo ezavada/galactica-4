@@ -1,0 +1,16 @@
+{
+  "victory": {
+    "source": "old-art/art-styles/anime/events/victory.png",
+    "sha256": "417444b9ee85449a2d7ba4d153dad773709910e097e70573ac9f90992aa839c5",
+    "width": 1500,
+    "height": 1296,
+    "pictureResource": 4000
+  },
+  "defeat": {
+    "source": "old-art/art-styles/anime/events/defeat.png",
+    "sha256": "8469be6a8d1c79c50b7eabf83bbfa717aa589d4065b1367665c9a23f449f50fd",
+    "width": 1500,
+    "height": 1296,
+    "pictureResource": 4001
+  }
+}

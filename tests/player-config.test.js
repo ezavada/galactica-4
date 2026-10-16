@@ -183,22 +183,22 @@ function runPlayerConfigTests() {
             test.assertContains(errors[0], '99', 'Error should mention 99 player limit');
         });
 
-        test.it('rejects too few players', () => {
+        test.it('rejects an empty game', () => {
             const config = new GameConfig({
-                numHumans: 1,
+                numHumans: 0,
                 numComputers: 0
             });
 
             const errors = config.validate();
-            test.assertGreaterThan(errors.length, 0, 'Should have errors for 1 total player');
+            test.assertGreaterThan(errors.length, 0, 'Should have errors for 0 total players');
             // Find the error about minimum players (not assuming it's first)
-            const minPlayerError = errors.find(e => e.includes('2'));
-            test.assert(minPlayerError, 'Should have error mentioning 2 player minimum');
+            const minPlayerError = errors.find(e => e.includes('at least 1'));
+            test.assert(minPlayerError, 'Should have error mentioning 1 player minimum');
         });
 
         test.it('rejects invalid density', () => {
             const config = new GameConfig({
-                density: 10
+                density: 11
             });
 
             const errors = config.validate();
@@ -277,8 +277,8 @@ function runPlayerConfigTests() {
             const small = new GameConfig({ sectorSize: 1 });
             const large = new GameConfig({ sectorSize: 3 });
 
-            test.assertEqual(small.getMapSizeDescription(), 'Small', 'Size 1 should be Small');
-            test.assertEqual(large.getMapSizeDescription(), 'Large', 'Size 3 should be Large');
+            test.assertEqual(small.getMapSizeDescription(), 'Tiny', 'Size 1 should be Tiny');
+            test.assertEqual(large.getMapSizeDescription(), 'Average', 'Size 3 should be Average');
         });
 
         test.it('generates full description', () => {

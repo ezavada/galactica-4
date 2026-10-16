@@ -1,0 +1,558 @@
+# Shipped v3 event reports and call-ins
+
+The event inventory is 22 nonzero event codes, with 45 recipient-relative text
+entries in STR#500. These are different counts: the checklist previously called
+all 45 entries event types. `Classes/GalacticaConsts.h:818–843` supplies the
+codes, `Classes/CMessage.h:27–45` supplies the three recipient columns, and
+`Resources/gal-mainrsrc.r` Evnt128 selects each code's sound, string, window and
+automatic-presentation behavior. `Resources/gal-en-shareware.r` STR#500 holds
+45 text entries. Resource definitions alone do not prove an event is emitted.
+
+## Ship and fleet call-ins
+
+`Classes/CShip.cpp:824–834` emits ShipCallin (8) or FleetCallin (9) for a living
+human-owned actor that wants attention; it sends to the owner, then clears the
+transient wants-attention flag. The user call-in setting stays enabled until
+canceled. Both Evnt128 rows select owner text only (STR#500/15 or /16), sound
+1001, no PPob and autoShow=0. The messages identify the starship or fleet and its
+location while awaiting orders. Observer strings are zero and there is no
+broadcast recipient.
+
+`CMessage::MakeReportString` substitutes the subject name for percent and the
+focus description for @. `GalacticaUtils.cpp:515–587` uses a named docked system
+without extra coordinates; coordinate positions use fixed-point galactic units
+and two decimal places. V4 follows this with existing localized coordinate
+formatting. Names, location text and numeric focus coordinates are retained in
+the report snapshot. Changing an actor's name/location does not rewrite an old
+report. Go to follows a living subject; a lost subject retains remembered focus.
+The report's private recipient is the owner even when another human is viewing
+the application. Owner reports use true system names rather than the viewer's
+fog-of-war aliases, without exposing those names to other recipients.
+
+V4 keeps the existing attention controls and non-modal Events/Go to behavior;
+it does not add automatic call-in dialogs. Sound 1001 remains the existing
+attention cue. New text IDs 1002–1003 are translated in en/de/es/fr/ja/ru.
+Duplicate requests and notify=false do not create extra reports. Complete saves
+retain the snapshot, subject identity, recipient and attention handling.
+
+Six new regressions cover ship/fleet distinction, docked and space locations,
+real end-turn delivery/manual flag persistence, privacy, complete saves/lost
+focus, duplicate/silent requests and all six resources. Both full native suites
+pass 1,379 tests. `tools/test-web-callin-reports.cjs` prepares deterministic
+actors, then uses actual Course Call in, roster selection, End Turn, Events
+selection and Go to controls. All six languages pass, and inspected before/after
+screens show the separate complete narratives with unchanged controls. Chrome
+and native output remain muted during automation.
+
+Evidence: `/private/tmp/galactica-callin-{tests,public-tests,<language>,before}.log`,
+`/private/tmp/galactica-parity/callin`, and
+`/private/tmp/galactica-callin-{before-after,languages}-review.png`.
+
+## Ordinary newly built ship notices
+
+`Classes/CStar.cpp:900–931` creates BuiltShip (10) separately from the first
+new-class Stardock report. Satellites and automatic deliveries suppress the
+ordinary orders notice. Evnt128 selects owner STR#500/17, sound 1001, no PPob,
+and autoShow=0. The shipped text identifies the newly built starship and its
+origin system, ready for launch. It is sent to the owner, without a broadcast.
+
+V4 now preserves that full narrative with localized text 1004 in en/de/es/fr/ja/ru.
+The owner-private report snapshots ship name, origin name, hull and technology;
+renaming does not rewrite history. It retains ordinary attention and Events →
+Go to, without an additional modal report. First-class commissioning remains a
+separate presentation. Existing satellite/default-destination suppression stays
+in place, including deliveries that reach their destination immediately. The
+intentional v4 rule that exactly 100% paid hulls complete without another positive
+payment also remains covered.
+
+Six regressions cover all mobile hulls, suppression, real end-turn completion,
+privacy/saves, live/lost navigation and localization. Both native runtimes pass
+1,385 tests. `tools/test-web-built-ship-reports.cjs` prepares production credit,
+then uses actual Scout production, End Turn, Events selection and Go to controls.
+All six languages pass. Reviewed baseline/updated screenshots show the full
+ship/origin narrative, readable wrapping and unchanged surrounding controls.
+Automated native and browser audio output remains muted.
+
+Evidence: `/private/tmp/galactica-built-report-{tests,public-tests,<language>,before}.log`,
+`/private/tmp/galactica-parity/built`, and
+`/private/tmp/galactica-built-report-{before-after,languages}.png`.
+
+## Complete source-emitter inventory (2026-10-11)
+
+This inventory checks every nonzero `EEventCode` against C/C++ source rather
+than inferring gameplay from STR#500. V3 paths are relative to `Classes/`.
+V4 `game` methods are in `src/js/game.js`; other module names are relative to
+`src/js/`. Suite names below identify `tests/<name>.test.js`.
+
+| Code | Event | V3 emitter | V4 implementation | Regression suites |
+|---|---|---|---|---|
+| 1 | ColonyCaptured | CShip.cpp:435; broadcasts | game.recordOccupationReports (capture) | occupation-reports |
+| 2 | DefendersLost | CShip.cpp:427; direct opponents | game.recordOccupationReports (resistance) | occupation-reports |
+| 3 | ShipLost | AGalacticThingy.cpp:805; class destruction code | game.recordDestructionReports / removeDestroyedShip | destruction-reports |
+| 4 | FleetLost | AGalacticThingy.cpp:805; fleet destruction code | game.recordDestructionReports / removeDestroyedFleet | destruction-reports |
+| 5 | FleetDamaged | CShip.cpp:402,412; built loss helper cannot satisfy gates | Dormant; actual v4 casualty summaries remain | destruction-reports |
+| 6 | PlanetDamaged | CShip.cpp:392; failed attacker and positive system defense losses | game.recordSystemDefenseLosses | system-defense-reports |
+| 7 | Message | GalacticaHost.cpp:2067; offline recipient | host-chat.js durable private report; network-chat.js connected messages | host-chat / network-chat / network-chat-window |
+| 8 | ShipCallin | CShip.cpp:824–834; dynamic call-in code | attention.js request | callin-reports |
+| 9 | FleetCallin | CShip.cpp:824–834; dynamic fleet call-in code | attention.js request | callin-reports |
+| 10 | BuiltShip | CStar.cpp:931; ordinary mobile hull, no auto delivery | game.recordBuiltShipReport | built-ship-reports |
+| 11 | BuiltNewClass | CStar.cpp:920; milestone broadcast, owner Stardock | game.recordCommissioningReports | ship-commissioning / commissioning-observers |
+| 12 | InventNewClass | CStar.cpp:651; milestone broadcast, owner Lab | game.recordDiscoveryReports | discovery-observers / research-progress |
+| 13 | NewTechLevel | Enum only; no C/C++ emitter | No additional source-backed trigger | Source audit |
+| 14 | NewColony | CShip.cpp:460; neutral colonization broadcast | game.recordColonizationReports | neutral-colony-reports |
+| 15 | NewFleet | CShip.cpp:537; first rendezvous arrival creates fleet | game.recordRendezvousFleetFormation | rendezvous-formation-reports |
+| 16 | FleetFormed | Enum only; no C/C++ emitter | Distinct from v4 FLEET_FORMED, which carries v3 NewFleet | Source audit |
+| 17 | PlayerDied | GalacticaHost.cpp:1087; GalacticaSingleDoc.cp:1191 | game.updatePlayerPieceCounts / queueOutcome | outcome-reports |
+| 18 | PlayerWins | GalacticaHost.cpp:1118; GalacticaSingleDoc.cp:1221 | game.updateVictoryState / markGameWon / queueOutcome | outcome-reports / game-rules |
+| 19 | PlayerSurrenders | Enum only; no C/C++ emitter | No invented surrender trigger | Source audit |
+| 20 | ShipDamageFixed | CStar.cpp:617; positive repair completes ship | game.recordRepairCompletion | repair-reports |
+| 21 | FleetDamageFixed | CStar.cpp:615; complete top-level fleet repair | game.recordRepairCompletion | repair-reports |
+| 22 | RenameColony | CShip.cpp:462; neutral colony naming/production instruction | game.requestColonySetup | colony-setup-reports |
+
+There are eighteen codes with source-backed runtime emitters, three enum-only
+codes and the separately audited dormant FleetDamaged branch. The enum-only
+references are `GalacticaConsts.h:832,835,838`; searches of all C/C++ source
+find no independent emitters. V4 type names are not numeric v3 code mappings:
+its `FLEET_FORMED` carries the real NewFleet (15) creation report, and its
+ordinary tech-up notice does not prove a NewTechLevel (13) v3 emitter.
+
+The current complete 1,656-test suites passed on both rebuilt PDG runtimes and
+include the suites above. Their meaningful coverage includes gameplay transitions,
+recipient privacy, observer detection, suppression, literal snapshots, replay,
+manual/automatic behavior, complete saves and six-language layouts. Examples:
+`destruction-reports` checks actual open-space arrival and suppression at a
+friendly system; `system-defense-reports` checks failed real attacks and mixed
+owners; `discovery-observers` checks actual research and delayed visibility;
+`rendezvous-formation-reports` checks actual first-ship arrival without repeating
+creation on later arrivals. This inventory is an implementation/coverage map,
+not execution of an archived v3 binary or proof of every presentation resource.
+
+Owner/opponent destruction notices remain private. Capture, surviving-system
+defense losses, neutral colonization, commissioning and discovery have tested
+observer copies. Repairs and call-ins are owner-only. Rendezvous creation is
+manual-only. Victory/defeat have viewer-relative modal narratives in addition
+to their shorter event-list summaries; STR#500/30–33 distinguishes the affected
+player from observers. Those perspectives are exercised by `outcome-reports`.
+Automatic observer outcome notices now complete without a modal text window,
+matching their zero PPob entries; affected-player windows and manual review
+remain. These notices concern everyone and are therefore processed even when
+Show enemy events is disabled (`CMessage::MessageConcernsEveryone` and
+`GalacticaDoc::ShowMessages`).
+
+## Reproducible presentation-resource audit (2026-10-11)
+
+[The decoded resource inventory](v3-events.json) is generated directly from
+Evnt128 and its five referenced PPob resources. `Evnt_EventSetup` is 128 in
+`GalacticaConsts.h:294`; `CMessage::CreateEvent` loads that resource, rather than
+the alternate Evnt130. Regenerate and verify with:
+
+```sh
+python3 tools/import-v3-events.py /path/to/galactica-anno-dominari-3
+python3 tools/test-import-v3-events.py
+```
+
+The verifier checks all 22 codes, coverage of every STR#500 index 1–45,
+recipient column order, automatic flags, referenced window/art roles and
+rejection of corrupt record lengths, counts, flags and padding. With the peer
+v3 checkout present it also regenerates and compares the complete inventory.
+Resource hashes make changes to the audited payloads reviewable.
+
+Each triple below is **winner / loser / other**, the source recipient columns.
+“Winner” is a column name, not a guarantee of winning the game: PlayerDied
+uses that column for the eliminated player. Zero means no assigned resource
+or text entry. These definitions do not establish who receives an emitted
+message; the emitter inventory above remains authoritative for that.
+
+| Code | Event | Auto show | Sound IDs | STR#500 indices | PPob IDs |
+|---|---|---|---|---|---|
+| 1 | ColonyCaptured | Yes | 1009 / 1010 / 1014 | 1 / 2 / 3 | 0 / 0 / 0 |
+| 2 | DefendersLost | Yes | 1007 / 1008 / 1014 | 4 / 5 / 6 | 0 / 0 / 0 |
+| 3 | ShipLost | Yes | 1007 / 1008 / 0 | 7 / 8 / 9 | 0 / 0 / 0 |
+| 4 | FleetLost | Yes | 1007 / 1008 / 0 | 10 / 11 / 12 | 0 / 0 / 0 |
+| 5 | FleetDamaged | Yes | 0 / 0 / 0 | 34 / 35 / 36 | 0 / 0 / 0 |
+| 6 | PlanetDamaged | Yes | 0 / 0 / 0 | 37 / 38 / 39 | 0 / 0 / 0 |
+| 7 | Message | Yes | 1003 / 0 / 1003 | 13 / 0 / 14 | 10 / 0 / 10 |
+| 8 | ShipCallin | No | 1001 / 0 / 0 | 15 / 0 / 0 | 0 / 0 / 0 |
+| 9 | FleetCallin | No | 1001 / 0 / 0 | 16 / 0 / 0 | 0 / 0 / 0 |
+| 10 | BuiltShip | No | 1001 / 0 / 1014 | 17 / 0 / 0 | 0 / 0 / 0 |
+| 11 | BuiltNewClass | Yes | 1011 / 0 / 1014 | 18 / 0 / 19 | 4002 / 0 / 0 |
+| 12 | InventNewClass | Yes | 1013 / 0 / 1014 | 20 / 0 / 21 | 4003 / 0 / 0 |
+| 13 | NewTechLevel | No | 0 / 0 / 0 | 22 / 0 / 23 | 0 / 0 / 0 |
+| 14 | NewColony | Yes | 1011 / 0 / 1014 | 24 / 0 / 25 | 0 / 0 / 0 |
+| 15 | NewFleet | No | 0 / 0 / 0 | 26 / 0 / 27 | 0 / 0 / 0 |
+| 16 | FleetFormed | No | 0 / 0 / 0 | 28 / 0 / 29 | 0 / 0 / 0 |
+| 17 | PlayerDied | Yes | 1004 / 0 / 1006 | 30 / 0 / 31 | 4001 / 0 / 0 |
+| 18 | PlayerWins | Yes | 1005 / 0 / 0 | 32 / 0 / 33 | 4000 / 0 / 0 |
+| 19 | PlayerSurrenders | Yes | 0 / 0 / 0 | 40 / 41 / 42 | 0 / 0 / 0 |
+| 20 | ShipDamageFixed | No | 1001 / 0 / 0 | 43 / 0 / 0 | 0 / 0 / 0 |
+| 21 | FleetDamageFixed | No | 1001 / 0 / 0 | 44 / 0 / 0 | 0 / 0 / 0 |
+| 22 | RenameColony | No | 1001 / 0 / 0 | 45 / 0 / 0 | 0 / 0 / 0 |
+
+`GalacticaDoc::AddMessageToNeedyList` transfers autoShow to the attention-list
+flag. `ShowMessages` distinguishes automatic presentations from owner-only
+manual Go to items, and respects the game-message preference and visibility.
+`CMessage::BuildClientEvent` selects the recipient resources and marks a
+nonzero text entry as wanting attention. Crucially, `CMessage::DoMessage`
+does **not** open a dialog when PPob is zero: it plays any assigned sound.
+Thus autoShow alone does not imply a modal text window.
+
+PPob10 is the ordinary message dialog. PPob4000/4001 contain static PICT4000/
+4001 for victory/defeat. V4 now packages the retained final large outcome
+images for affected-player views, with provenance in `data/events/outcome-art.json`
+and the original copyright notice in `data/events/README.md`. The checkout Art files lack resource forks, but the original release ZIPs
+retain AppleDouble forks. The recovered PICT hashes and layer records are now
+recorded in `v3-art-resources.json`; equality of the current PNG renderings with
+those shipped PICTs still requires decoding and image comparison. PPob4002/4003 use a `lofV` ship viewer rather than a
+static picture for the newly built/discovered class. The observer columns of
+these four events have no PPob. Every Evnt128 TEXT resource is zero; Layr is
+supplied separately by emitters and is not represented by that field.
+
+V4 repair-completion notices, call-ins, ordinary commissioning, rendezvous
+fleet formation and colony naming already use manual attention rather than
+queued automatic report dialogs. The existing sound suite checks recipient
+cues and quiet reports. V4 also provides explicit manual narrative replay;
+that does not change the source automatic/manual classification. Automatic
+capture, defeated resistance and neutral-colonization presentations now honor
+their zero PPob entries: sound/map attention completes without a modal text
+window, while manual View report preserves the full narrative. Resistance
+keeps its map destruction animation. Both rebuilt runtimes pass 1,685 tests;
+before/after browser checks cover actual manual review in all six languages. This audit
+closes the missing Evnt/PPob inventory, but it does not claim exact automatic
+presentation equivalence, complete translated narrative coverage, or Layr
+rendering equivalence. In particular, Evnt references to sounds 1004–1006
+must be distinguished from whether samples are present in the shipped bundle.
+
+First-class commissioning and discovery now also honor the observer columns'
+zero PPob entries. Detected observers receive sound1014 and map focus without
+an automatic text dialog; explicit View report retains the complete narrative.
+The owner's separate Stardock/Lab paths retain the illustrated windows assigned
+by PPob4002/4003. Native construction/research regressions confirm the cue and
+automatic draw completion; the full suites now pass 1,687 tests.
+
+Validation: five resource-import checks pass, including actual-source equality;
+both rebuilt public and development native runtimes pass all 1,683 game tests
+with audio muted. No runtime UI changed, so this item requires no new visual
+comparison. Existing event-specific browser evidence remains documented above.
+
+## Remaining presentation and application scope
+
+Every source-backed code now has a mapped implementation and regression lane.
+Unspecified additional event types are not a concrete missing-feature list.
+Evnt128 and its referenced PPob roles now have reproducible source evidence.
+Runtime presentation, attention, artwork and sound equivalence still need
+checking against that inventory, Layr and the shipped sound bundle, alongside
+packaging and platform validation. Passing the covered tests does not establish
+blanket equivalence of all 45 text templates. Introduction music remains an
+independently recorded missing-asset issue. Window/preference requirements and
+the Map Generation checklist remain active. Different release-source evidence
+can reopen any dormant classification.
+
+
+## FleetDamaged: defined, but not an ordinary shipped-source emitter
+
+Source audit on 2026-10-10 found two apparent FleetDamaged (5) emitters in
+`Classes/CShip.cpp:397–414`. They test `defendersInFleetLosses > 1` after a
+failed attack on a non-system destination, or `attackersInFleetLosses > 1`
+after a surviving attack. Both numbers come from
+`Classes/UShipUtils.cpp:398–428`, `FinalizeLosses`.
+
+That implementation starts `numDead` at zero and does:
+
+```cpp
+UInt32 startingShips = infoP->numShips;
+fleet->RecordCombatResults();
+UInt32 remainingShips = infoP->numShips;
+numDead -= (startingShips - remainingShips);
+```
+
+Ordinary combat removes ships; `CFleet::RecordCombatResults:567–590` counts
+remaining live members. Thus no losses return zero and positive losses return
+a negative count, which does not pass either `> 1` test. A resource definition
+and a syntactic CreateEvent call do not establish a reachable normal-combat
+notice. Other FleetDamaged references in the C/C++ source are its enum; no
+independent emitter was found.
+
+This is the built helper, not a guess from a similarly named old file:
+`Galactica.xcodeproj/project.pbxproj:16,885` includes UShipUtils.cpp in Sources.
+The CodeWarrior XML `x-misc/Galactica.mcp.xml` also selects UShipUtils.cpp for
+Carbon Final, Carbon Beta, Carbon Debug, Carbon on Classic Debug and Profile.
+The older `Classes/UStarUtils.cp:317–350` adds starting ships then subtracts
+survivors, but those audited build manifests do not select that file. It must
+not be substituted silently to infer shipped behavior.
+
+Evnt128 still defines FleetDamaged with STR#500/34 (winner), /35 (loser), /36
+(observer), no recipient sound or PPob, and autoShow=1. It is classified as a
+dormant defined event in this source version, rather than another confirmed
+missing v4 combat broadcast. This audit does not claim execution of an archived
+v3 binary. If a release built from different source is shown to emit the
+notice, its exact helper/build must be audited and the parity requirement
+reopened. Restoring the apparent intended positive count would be a deliberate
+behavior change, requiring a separate decision.
+
+V4 retains its recipient-private battle summaries with casualty counts,
+remembered-location navigation and replay, alongside the reachable v3-backed
+system-defense loss notices. No gameplay, UI or user-visible strings changed
+for this audit; no new screenshot or translation artifact is needed.
+
+
+## Original explosion-frame presentation
+
+V4 now uses the retained PICT1000 explosion strip for the eight fixed-size
+frames selected by `CDestructionMsg::DoMessage`, instead of the previous
+procedural burst. The source dimensions, cadence, transparency and saved
+position behavior are recorded in `data/events/explosion-art.json` and the
+main parity checklist. The procedural effect remains a missing-image/backend
+fallback. Other Layr/window roles still require their own runtime audit; this
+restoration does not establish blanket event equivalence.
+
+
+### Recovered shipped art resources
+
+`tools/import-v3-art-resources.py` reads the AppleDouble resource entry inside
+`release/gad-3.0.2-cdrom.zip`, then decodes the resource map and each 32-byte
+mac68k Layr record. `docs/reference/v3-art-resources.json` records the archive,
+entry and fork hashes, all 146 Layr definitions, and the hashes and bounds of
+referenced pictures. This supersedes the earlier missing-resource-fork
+assumption for shipped artwork; the one-byte checkout files alone were
+insufficient evidence of absence. No source archive or v3 file is modified.
+
+The class presentations are static three-layer composites.
+`CLayeredOffscreenView::DrawSelf` copies each layer to the view frame using
+its saved transfer mode and colors; it has no animation scheduler. Stardock
+Layr300–314 uses background PICT2000, hull PICT3000–3012 (313/314 reuse
+3012), then foreground PICT2100. Hull and foreground use transparent mode
+36. Lab Layr400–410 uses PICT2001, blueprint PICT2202–2212, then PICT2101;
+the blueprint uses additive mode33, while the foreground uses mode36.
+All these pictures have 408×240 bounds. CStar supplies LabBase + tech/5
+and StardockBase + class index, independently of the PPob window choice.
+Missing Layr IDs fall back through decimal boundaries in SetLayrResID.
+
+V4 now fits all three Lab/Stardock layers to one centered 408:240 rectangle
+between the heading and dismissal hint, preserving the shipped proportions
+on wide, short and tall layouts. The blueprint now uses an additive textured rectangle, matching the source
+mode33 color operation; neutral black pixels remain transparent. The dedicated
+style has no outline and is reused. The available Lab milestone entries now select PICT2202 + classIndex,
+matching Layr400–410. Missing-layer lookup now uses the shipped decimal fallback and generic
+picture roles, with generated source metadata and recovered fallback PNGs. The newly
+recovered victory and defeat PICTs are 500×432; their raw hashes now allow a
+future decoded comparison against the retained PNGs. PICT1000 is absent from
+this art fork and must be checked in the application resource fork separately.
+These records prove resource availability and composition rules, not runtime
+visual equivalence or completion of the Original art checklist row.
+
+
+### Lab additive composition and decoded blueprint evidence
+
+The recovered Lab records specify mode33 (`addPin`), with maximum operation
+colors. V4 now draws its blueprint through an additive textured rectangle:
+`Attributes.texture(image).blendMode(pdg.blendMode_Additive)`, with line style
+None. The backdrop and foreground keep their normal image draws. Retaining
+transparent black is neutral for addition (black contributes zero) and allows
+the same cached asset to be reused without altering its visible colors.
+The image draw path did not apply the requested blend in browser captures;
+using PDG's textured rectangle provides the actual color addition.
+
+Ten recovered blueprint PICTs (2202–2207 and 2209–2212) decode with ImageMagick
+and match the packaged `blue-02`–`blue-07` and `blue-09`–`blue-12` PNGs exactly:
+zero changed pixels. This is reproduced by
+`tools/test-import-v3-art-resources.py` when the archive and decoder are available.
+PICT2208 is present and hashed, but ImageMagick rejects it with “insufficient
+image data”; macOS sips emits a blank white picture even for other valid PICTs,
+so its output is not accepted as evidence. Exact decoded equality for blueprint
+08 remains unverified, pending a decoder that supports this payload or an
+original-platform rendered export. No asset is replaced with that blank output.
+
+`tools/check-lab-blend-images.py` checks the deterministic six-language browser
+captures: substantial positive blueprint brightness change, unchanged right-hand
+room pixels, and seven unrelated scenes identical per language. This catches
+both an ignored blend setting and black-background overwrite. It complements
+the native tests for cache reuse, real style modes, no outline and layer roles.
+The later milestone and missing-layer work below completes the source lookup
+rules; this blend change alone did not claim to close them or full art parity.
+
+
+### Available Lab milestone picture mapping
+
+`CStar.cpp` supplies Layr400 + tech/5; the recovered Layr400–410 entries select
+blueprint PICT2202–2212. The current `blue-NN.png` images retain those picture
+numbers minus 2200. Thus the first new drive class at tech5 (Layr401) uses
+`blue-03.png`, not `blue-02.png`. V4 now follows this offset for every available
+Lab entry; game class indices and research technology values are unchanged.
+Source-driven tests cover all eleven available entries and a real tech5 owner
+discovery in each supported language. The later fallback work below supersedes the high-level clamping behavior
+and implements the original decimal lookup.
+
+
+### Complete Lab missing-layer lookup
+
+`src/js/lab-art.js` now resolves the original signed ResIDT and the decimal
+fallback of `CLayeredOffscreenView::SetLayrResID`, against all 146 recovered
+Art layers plus the application Layr0. No high-level blueprint clamp remains.
+Examples: class11 requests411 and finds410; class20 requests420 and finds400;
+class100 requests500 and falls through to0/PICT100 (the shipped No Image
+picture); class600 requests1000 and finds the generic PICT128 view. Very large
+IDs retain the native signed16-bit wrap. Invalid JS inputs safely use class0.
+
+`tools/make-v3-layer-runtime.py` generates `shipped-art-layers.js` directly
+from the archive and application resource. It decodes 30 supplemental PNGs
+under `data/events/layers`, recording original PICT and exported PNG hashes
+and bounds in provenance.json. Original Lab pictures keep their existing paths.
+PICT2999 contains a 1280×1024 decoded bitmap within a 408×240 picture frame:
+both dimensions are recorded independently. The renderer fits each recovered
+layer to the original composite aspect, as CNewGWorld uses picFrame and
+DrawPicture's destination. This does not assert an original-platform pixel
+comparison for that unusual payload. The retained blueprint08 decoder issue
+remains documented above. Ordinary Lab and class11 browser views remain
+byte-identical to the prior version; the changed captures cover true fallbacks.
+
+Mode0 keeps opaque image drawing; mode36 keys the exact resource background
+color; mode33 uses the additive texture style. The shared 408:240 composite
+frame and translated heading/hint remain. Supplemental imagery retains the
+original copyright/provenance; the generic No Image picture retains original
+static resource-file labels rather than changing the source bitmap.
+
+The new browser helper `tools/test-web-lab-fallback.cjs` presents normal,
+missing and generic layer IDs, checks the original resolution, and dismisses
+each through real keyboard input without advancing the game. Native tests
+cover explicit lookup boundaries, signed IDs, all runtime assets and decoded
+PNG integrity. Resource tests regenerate runtime metadata and check each
+export's original PICT hash. Broader art/window requirements and exact
+PICT2208 decoding remain independent of this implemented lookup requirement.
+
+
+### Stardock source class selection and missing-layer artwork
+
+The message path differs from the small detail viewer: CStar supplies
+Layr300 + completed ship class to Evnt11/PPob4002. CShip's detail-view picture
+cap is not applied here. Source classes0/1/2 mean satellite/scout/colony;
+source battleships start at3, so v4's one-based battleship index adds2.
+CStar bounds its native class by STR#401's count23, verified in all four
+English/German shareware/CD-ROM variants. V4 now resolves these requests
+against the recovered layer table with the shared signed/decimal lookup.
+
+Thus v4 battleship classes11/12 select Layr313/314 and PICT3012, but class13
+requests315 and falls back310/PICT3010; class18 requests320 and falls back300.
+The prior implementation incorrectly used the final detail-view illustration
+for every high Stardock class. The restored source pictures and transparent
+background colors now supply the actual three-layer Stardock composites.
+The generated assets were already recovered by the Lab fallback work. Class
+names, technology and event identity remain intact; the caption reads the
+actual ship name or the existing localized class list, independently of art.
+
+`drawClassArt` shares only composition between Lab and Stardock; their request
+bases and class rules remain separate. Native regressions check basic hulls,
+each available battleship picture, source fallback boundaries, malformed
+inputs and an actual tech75 Viper commissioning without changing its name or
+stats. `tools/test-web-stardock-source-art.cjs` completes first-build hull/class
+fixtures through Star.completeShip and uses actual dismissal input. Its fixtures
+reset prior first-build flags and disable carried-credit auto-commissioning so
+that the explicit completion call is the event under test. The existing
+`test-web-high-class-art.cjs` retains actual production/research and End Turn
+coverage, with current source-backed Lab/Stardock asset expectations.
+
+This closes the source Stardock composition/lookup gap, not every remaining
+art/window requirement. The decoder limits and broader checklist remain
+separately tracked above and in V3_V4_FEATURE_STATUS.md.
+
+
+## Owner commissioning technology detail audit
+
+The owner STR#500/18 narrative names the class, technology and construction
+system. Owner v4 text 925 now includes the locale-formatted technology in all
+six supported languages, alongside the existing class/origin and role help.
+Observer text 957 already included it. Commissioning snapshots stay immutable;
+old saved text is preserved. Real completion tests cover all four hull roles
+and all six languages, including literal names, wrapping and save/restore.
+Both complete native suites pass 1731 tests. Actual owner Events review and
+class/discovery browser checks pass in all six languages; 60 before/after
+captures contain 12 changed owner list/narrative views and 48 identical views.
+Evidence and scope are recorded in the owner commissioning audit in
+`docs/V3_V4_FEATURE_STATUS.md`. This fixes one verified STR#500 omission and
+does not by itself establish blanket parity of every event or artwork role.
+
+
+## Zero-PPob manual attention notices
+
+Repair events 20/21 and new-rendezvous fleet event 15 have zero PPob in
+shipped v3 Evnt 128. `CMessage::DoMessage` plays any assigned sound and
+returns without opening a dialog. V4 attention now follows this behavior:
+focus and handle the subject, play repair cue 1001, and invent no cue for
+fleet formation. Full localized narratives remain available through explicit
+Events review. Real End Turn/Tab/rename/browser review checks pass before
+and after in all six languages; both complete native suites pass 1731 tests.
+The repair and rendezvous attention audit in `docs/V3_V4_FEATURE_STATUS.md`
+records the source, screenshot comparisons, save behavior and test evidence.
+
+
+## Complete narrative coverage
+
+[EVENT_NARRATIVE_COVERAGE.md](EVENT_NARRATIVE_COVERAGE.md) accounts for all
+45 STR#500 entries, including the 31 recipient variants delivered by actual
+source emitters and the fourteen private/enum/dormant resource-only variants.
+The generated `v3-events.json` now contains every original text and its source
+resource digest, verified directly against the peer checkout. All eight import
+checks and both full 1731-test native suites pass. This completes the checklist's
+event-text row while preserving the separate attention, playback, sound, art
+and platform audits described above.
+
+
+## Owner illustration replay
+
+Manual Events review now restores owner commissioning/discovery art from the
+retained hull/class snapshot using the same source-backed Lab/Stardock resolvers
+as automatic presentation. This follows the shared v3 DoMessage/PPob/Layr path.
+The illustration sits above complete paged localized text and remains private
+to the report owner; observer reports stay text-only. Native save/layout/privacy
+regressions and all six real browser review flows pass, with both full suites
+at 1734 tests. The 72 before/after screenshot comparisons, twelve localized
+owner views and source citations are recorded in the illustrated Events replay
+audit in `docs/V3_V4_FEATURE_STATUS.md`.
+
+
+## Manual Next classification
+
+Source Next skips unread automatic messages. The seven emitted manual codes
+8/9/10/15/20/21/22 deliver eight reachable recipient templates; automatic
+commissioning, discovery, combat/colony/outcome notices use their separate
+presentation path. V4 now follows that division for Tab, map/menu Next counts
+and the deferred post-turn selection, while preserving all pending reports
+for End Turn protection and explicit Review. Review opens an unread automatic
+report if no manual goto remains. Real paid construction and retained-notice
+browser flows pass in all six languages; both full native suites pass 1736
+tests. Detailed source, privacy/order/save coverage and screenshot evidence are
+recorded in the manual Next audit in `docs/V3_V4_FEATURE_STATUS.md`.
+
+
+## End Turn count and foreign-manual filter
+
+End Turn confirmation now counts each report once across its attention entry
+and active/queued presentation, retaining independent anonymous items. Actual
+localized caption, Cancel/Review and save checks pass in all six languages;
+both full native suites pass 1738 tests. The count audit in
+`docs/V3_V4_FEATURE_STATUS.md` records the source and 72 image comparisons.
+
+The wider source counter pass also excludes foreign manual messages:
+`GalacticaDoc.cp:1568–1570` removes non-autoshow notices that are not about the
+local player, and `CMessage::MessageIsAboutMe` distinguishes winner/loser from
+observer. NewFleet's other-recipient text is emitted, but it is not a source
+manual Next requirement. V4 now excludes new and previously saved foreign
+manual queue entries. Seven owner manual templates remain: 15,16,17,26,43,44,45.
+Existing detected observer Events narratives are retained as an explicit v4
+review capability. Actual foreign arrival/Tab/Events/View/save checks pass in
+all six languages; both full native suites pass 1740 tests. All 30 before/after
+image pairs were compared (12 expected counter/selection changes, 18 unchanged
+explicit-review views), with English comparisons and six localized reports
+visually inspected. The completed source attention audit is recorded in
+`docs/V3_V4_FEATURE_STATUS.md`.
+
+
+## Held unread reports and End Turn protection
+
+Hold suppresses playback while source automatic unread counts remain active
+(`GalacticaDoc.cp:597–610,1533–1606`). V4 now counts accessible unread held
+snapshots once alongside visible/queued reports and independent manual requests.
+Explicit Review uses the existing Show path without changing Hold. Actual
+command-menu Hold, Enter warning, Cancel/Review, dismissal and save checks pass
+in all six languages; both full native suites pass 1742 tests. The source audit
+and 42 matched screenshot comparisons are recorded in
+`docs/V3_V4_FEATURE_STATUS.md`.

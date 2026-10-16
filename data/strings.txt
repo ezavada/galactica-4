@@ -12,7 +12,7 @@
 7	None
 8	Click stars to manage them
 9	Click ships to give orders
-10	TAB to end turn
+10	TAB: next item; Enter: end turn
 11	Ship Hull
 12	Ship
 13	Tech Level:
@@ -56,11 +56,11 @@
 306	Unknown
 
 # Map Size Descriptions (350-399)
-350	Small
-351	Medium
-352	Large
-353	Huge
-354	Gigantic
+350	Tiny
+351	Small
+352	Average
+353	Large
+354	Huge
 355	Unknown
 
 # Density Descriptions (400-449)
@@ -93,9 +93,9 @@
 520	New Game Setup
 521	Players: {0} {1}, {2} {3}
 522	AI skill: {0} ({1})
-523	Map: {0} / {1}
+523	Map size: {0}
 524	Options: {0}, {1}
-525	<C> cycle AI players   <1-5> AI skill
+525	<C> edit AI players   <1-5> AI skill
 526	<S> map size   <D> star density
 527	<F> fast game   <O> fog/all visible   <R> defaults
 528	<Enter> Start
@@ -117,14 +117,14 @@
 544	Selected fleet: {0} ships
 545	<V>/<Esc> Close comparison
 546	Zoom
-547	<+/-> Zoom   <0> Reset   <Shift+C> Center
-548	<Left Drag> Pan   <Middle Drag> Pan   <Mouse Wheel> Zoom
+547	<+/-> Zoom   <0> Fit   <Shift+C> Center
+548	<Drag space / Alt+drag / Middle drag> Pan   <Wheel> Zoom
 549	Production
 
 # Command button and panel labels (550-599)
 550	Menu
 551	Events
-552	Compare
+552	Compare Players
 553	Home
 554	Fit
 555	Orders
@@ -143,7 +143,7 @@
 568	Galactica-4
 570	New Drive Technology
 571	New {0} Class Commissioned
-572	Press any key to continue
+572	Enter, Space or Esc to continue
 573	Rename
 574	Delete
 575	Move
@@ -202,14 +202,14 @@
 634	New ship class commissioned: {0}
 635	Player {0} colonized {1}
 636	Player {0} captured {1}
-637	{0} has been defeated
+637	{0}: Defeat
 638	Noteworthy Event: {0} {1} {2} {3} {4} {5}
 639	target
 640	combat
 641	new destination
 642	AI Skill Autoplay
 643	AI autoplay started with seed {0} and {1} ms delay
-644	{0} wins on turn {1}
+644	{0}: Victory on turn {1}
 645	AI autoplay stopped after {0} turns with no winner
 646	Winner:
 647	all skills
@@ -227,7 +227,7 @@
 660	{0} placed at ({1}, {2})
 661	{0} moved to ({1}, {2})
 662	{0} deleted
-663	You can only manage your own fleets and rendezvous points.
+663	You can only manage your own objects.
 664	{0} renamed to {1}
 665	{0} orders cleared
 666	{0} now patrols
@@ -241,4 +241,713 @@
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
 # Order maps to class index floor(tech/5):
-800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion
+800	Traveler|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Shark|Hellion
+
+# Production allocation locks
+674	Lock
+675	Unlock
+676	Equalize
+677	Continuous
+678	Pause build
+679	ETA:
+680	{0} turn|{0} turns
+681	Paused
+682	Save
+683	Cancel
+
+# Default destination controls
+684	Send to:
+685	Set destination
+686	Clear destination
+
+# Ships in system
+687	Ships at {0}
+688	Ships in system
+689	No docked ships
+690	Previous
+691	Next
+692	Click a ship or fleet to inspect it
+
+# New colony defaults
+693	New colony defaults
+694	Applies to future colonies
+695	.
+
+# Ship diagnostics
+696	Scanner range:
+697	Class:
+698	Health:
+699	Status:
+700	Location:
+701	Hull:
+702	Docked
+703	Patrolling
+704	Travelling
+705	Idle
+706	{0} light-years
+707	In fleet
+
+# Your Star Systems comparison table
+708	Your Star Systems
+709	Name
+710	Tech
+711	Population|×1000
+712	Production
+713	Building
+714	Complete|%
+715	Defense|Total
+716	Defense|Satellites
+717	Defense|Ships
+718	Double-click a system, or select it and press Enter
+719	No owned systems
+
+# System diagnostics and integer grouping
+720	,
+721	Position:
+722	Total defense:
+723	Satellites:
+724	Ship defense:
+725	S-{0}
+
+# Waypoint course editor
+726	Course
+727	Course: {0}
+728	No waypoints
+729	Add
+730	Edit
+731	Delete
+732	Clear course
+733	Loop
+734	Click a destination; Esc cancels
+735	Turns
+736	Waypoint
+737	Leg
+738	Remaining
+739	Course updated for {0}
+
+# Course memory
+740	Memory
+
+# V3 course hunt mode
+741	Hunt
+
+# Call-in and attention
+742	Call in
+743	Next item
+744	Attention
+745	{0} requests orders
+746	{0} item still needs attention.|{0} items still need attention.
+747	End anyway
+748	Review
+
+# Event reports
+749	Go to
+750	No location
+751	Reviewed
+752	Select an event
+753	Details
+
+# Scrapping
+754	Scrap
+755	Cancel scrap
+756	Marked for scrap
+757	{0} scrapped; {1} production recovered at {2}
+758	{0} scrapped
+
+# Settings
+759	Settings
+760	Language
+
+# Computer advantage setup
+761	Computer advantage
+762	<A> cycle computer advantage
+763	Production: {0}%
+
+# Stellar density setup
+764	Density {0}
+
+# Map drawing preferences
+765	Show grid
+766	Show map names
+767	Show ships
+768	Show all courses
+769	Show courier courses
+770	Show scanner ranges
+
+# Fullscreen window command
+771	Full screen
+772	Could not change full screen. Please try again.
+
+# Map display modes and brightness legend
+773	Map display
+774	Ownership
+775	Production
+776	Technology
+777	Defense
+778	Growth allocation
+779	Shipbuilding allocation
+780	Research allocation
+781	Higher levels appear brighter.
+782	No known values
+783	Known systems: {0}–{1}
+784	Target allocation (%)
+
+# Nebula background preference
+785	Show nebula background
+
+# Camera view commands
+786	View
+787	Zoom in
+788	Zoom out
+789	Reset view
+790	Center selected item
+
+# Map scroll bars
+791	Scroll horizontally
+792	Scroll vertically
+
+# Overlapping map objects
+793	Choose an object
+794	Select an item; Esc cancels
+
+# Fleet transfer destination
+795	Choose destination fleet
+
+# Nested fleet groups
+796	Group
+797	Group {0}
+798	Parent fleet
+
+# Fleet exchange window
+801	Exchange ships
+802	Ships and fleets
+803	Fleet contents
+804	New fleet
+805	Inspect
+
+# Fleet roster
+806	No ships, fleets or rendezvous points.
+807	Yes
+808	No
+809	Double-click a row to inspect it.
+
+# Roster window geometry
+810	Drag title to move; drag lower-right corner to resize.
+
+# Player comparison
+811	Unowned systems
+812	System|Min
+813	System|Max
+814	System|Avg
+815	Ship|Min
+816	Ship|Max
+817	Ship|Avg
+818	Blue: best · Red: worst
+819	{0} (defeated)
+820	System technology
+821	Ship technology
+
+# New game player name
+822	Player name
+823	Enter your player name.
+824	Enter a name before starting.
+
+# Startup game title
+825	Game title
+826	Enter a game title.
+827	Enter a title before saving.
+828	Title: {0} <T>
+
+# Computer-opponent setup
+829	Computer opponents
+830	Enter the number of opponents (0–{0}).
+831	Enter a whole number from 0 to {0}.
+
+# Victory and defeat conclusions (v3 TEXT 4000/4001)
+832	Victory is yours!|You have conquered the entire Galaxy, defeating all who stood in your way. You relax for a while as the people celebrate your victory.|But you know that, in time, other usurpers will arise…
+833	Your ships have been destroyed, your planets conquered.|As you are taken prisoner, you realize you have no choice but to admit defeat. You have little chance now of becoming emperor.|But it is written: “Someday, {0} will return—stronger than ever…”
+834	Continue
+835	View report
+
+// Local game documents
+836	New Game…
+837	Open Games
+
+// Local saved-game documents
+838	File
+839	Save game
+840	Save As…
+841	Open Game…
+842	Revert to Saved
+843	File path
+844	File name
+845	Could not save this game.
+846	Could not open this game.
+847	This file is not a supported Galactica-4 save.
+848	Game saved: {0}
+849	Discard changes and return to the last saved turn?
+850	Saving game…
+851	Opening game…
+852	Reverting game…
+853	Choose a file to open.
+854	No saved version is available.
+855	Replace the existing file: {0}?
+856	Please name your new colony and set its production levels.
+
+# Control and setup flyby help
+857	Control help
+858	Click or drag to set the target allocation. The fill shows actual output; the marker shows the target.
+859	Lock or unlock this allocation. Locked targets stay fixed when other allocations change.
+860	Divide production equally among unlocked allocations.
+861	Choose the next hull to build. Paid effort is retained separately for each hull type.
+862	Pause construction while retaining its paid effort.
+863	Click a system, ship, fleet or point in space to add a destination. Escape cancels.
+864	Inspect and edit the ordered waypoints of this ship or fleet.
+865	Store the current course, or swap it with the remembered course.
+866	Repeat the entire course, including its origin.
+867	Patrol this system. Patrolling clears the active course and prevents docked repairs.
+868	Request attention each turn until this call-in is canceled.
+869	Toggle the course's Hunt flag. It does not automatically choose enemy targets.
+870	Mark for scrapping, or cancel the order. Scrapping takes place next turn and returns part of the hull cost.
+871	Edit the name directly on the map. Enter accepts it; Escape cancels without changing the original name.
+872	Choose a destination fleet and transfer selected ships or intact groups.
+873	Return this member to its enclosing system or fleet.
+874	Create a nested fleet group from the selected member.
+875	Choose any point in space for a rendezvous. Friendly arrivals assemble a fleet there.
+876	Delete this rendezvous marker. Its assembled ships remain.
+877	Select and inspect this object, or center it on the map.
+878	Sort the list by this column. Click again to reverse the order.
+879	Show another page without advancing the game turn.
+880	Select or revisit a report. Go to reveals its subject; reviewing it handles its attention request.
+881	Finish this turn and process production, movement and combat. Pending attention requests require confirmation.
+882	Show or hide this map information. Hidden information remains part of the game.
+883	Use this language for the interface and remember the choice. Language names use their native script.
+884	Save, open or revert local game documents through the File menu.
+885	Set up another game. Existing open games are retained.
+886	Close or cancel this editor without accepting its pending changes.
+887	Accept and save the changes in this editor.
+888	Show or hide this information window.
+889	Change the map view or zoom. Game coordinates and orders remain unchanged.
+890	Set production and hull defaults for future colonies. Existing systems are unchanged.
+891	Show explanatory help after the pointer rests over a control.
+892	Choose settings for a new galaxy. These choices do not alter existing games.
+893	Use faster production, research and movement rules for this game.
+894	Hide information outside detection range. Disabling fog reveals the galaxy.
+895	Clear the entire active course, including Loop and Hunt. Course memory is retained.
+896	Click a destination to add another waypoint. Escape cancels.
+897	Select a waypoint, then click its replacement destination. Escape cancels.
+898	Delete the selected waypoint while retaining the rest of the course.
+899	Acknowledge this report and return to the game without advancing a turn.
+900	Visit the next object or report that needs your attention.
+901	Choose the number of computer opponents, from zero to the available player limit.
+902	Choose the computer players' decision-making skill, from Novice to Expert.
+903	Adjust computer production by 20% per advantage level.
+904	Choose the galaxy's dimensions. Larger galaxies contain more systems.
+905	Choose star density from 1 to 10. Higher density creates more systems in the same area.
+906	Edit the new game's title; it also supplies the initial save-file name.
+907	Start a game with the selected galaxy and player options.
+908	Switch between full-screen and windowed display. The game and orders are retained.
+909	Restore the default map drawing options. The game state is unchanged.
+910	Switch to this open game. Other open games are retained.
+911	Clear the destination assigned to future ships built at this system. Existing ship courses remain.
+912	Choose a destination for future mobile ships built at this system. Escape cancels.
+913	Restore the last saved turn. Changes made since that save will be discarded.
+914	Replace the existing save file with this game. The previous file contents will be overwritten.
+915	Save the current game to its file, or choose a file if it has not been saved before.
+916	Save this game under a new file name. Its previous save file remains unchanged.
+917	Open a saved galaxy without generating a new map. Other open games are retained.
+918	Return to the last saved turn after confirmation. Unsaved changes will be discarded.
+919	Enter the name of the file that will hold this saved game. Cancel leaves the current save unchanged.
+920	Enter the path of a saved Galactica-4 game to open. Cancel leaves the current game unchanged.
+921	Satellite: inexpensive stationary defense. It always patrols its system and cannot travel or join a fleet. It has no scanner.
+922	Scout/Courier: fast and unarmed, with a scanner. Explore space and carry technology between allied systems; couriers learn the technology of systems they visit.
+923	Colony ship: costly and slow. It survives colonization and capture, and can establish more colonies. Escort it through hostile space.
+924	Battleship: a mobile combat ship for attacking and escorting. Higher technology increases its combat power and unlocks stronger named classes. It has no scanner.
+925	First {0} commissioned at {1}, tech level {2}.
+926	You won the battle at {0}. Your force: {1}. Your ships lost: {2}. Enemy ships destroyed: {3}.
+927	You lost the battle at {0}. Your force: {1}. Your ships lost: {2}. Enemy ships destroyed: {3}.
+928	The battle at {0} was inconclusive. Your force: {1}. Your ships lost: {2}. Enemy ships destroyed: {3}.
+929	You took the star system {0} from {1}!
+930	You lost the star system {0} when {1} attacked it.
+931	You have crushed the last resistance on the system {0} in a battle against {1}!
+932	Your last defenders of the system {0} died bravely in a battle against {1}.
+
+# Participant ship and fleet destruction notices
+933	You destroyed the enemy starship {0} belonging to {1} in a battle at {2}.
+934	You lost your starship {0} in a battle with {1} at {2}.
+935	You defeated {1} in a battle at {2}, destroying the fleet {0}!
+936	You lost your fleet {0}, wiped out in a battle with {1} at {2}.
+937	{1} took the star system {0} from {2}.
+
+# Enemy event playback
+938	Show enemy events
+939	Automatically show reports about other players when their subjects are detected, allied or visible with fog disabled. Turning this off keeps those reports in Events for manual review.
+
+# Surviving system defense losses
+940	While you won the battle at {0}, you lost {1} ship in that system.|While you won the battle at {0}, you lost {1} ships in that system.
+941	You destroyed {1} enemy ship in your attack on the star system {0}.|You destroyed {1} enemy ships in your attack on the star system {0}.
+942	{2} lost {1} ship defending the star system {0} from an attack by {3}.|{2} lost {1} ships defending the star system {0} from an attack by {3}.
+
+# Bundled manual access
+943	User’s Manual
+944	The bundled manual could not be found. Please reinstall the complete game.
+945	The manual could not be opened. Allow new tabs or choose a default web browser, then try again.
+946	Open the bundled User’s Manual in your web browser. Your game and current turn stay open.
+
+# Complete repair notices
+947	Repairs
+948	Your ship {0} has been completely repaired.
+949	All ships in your fleet {0} have been completely repaired.
+
+# Rendezvous fleet formation notices
+950	Your new fleet has begun to form at {0}. Please name it.
+951	{0} has begun forming a new fleet at {1}.
+
+# Neutral colony reports
+952	You have colonized the uninhabited star system {0}!
+953	{0} colonized the uninhabited star system {1}.
+
+# Sound preference
+954	Sound
+955	Play event and attention sounds. Turning sound off stops current playback.
+
+# Containment navigation
+956	Containing system
+
+# Observer first-class commissioning
+957	{0} commissioned a new {1} class starship, tech level {2}, at {3}.
+
+# Drive discovery broadcasts
+958	Your scientists on {0} have discovered a new tech level {1} starship drive.
+959	Scientists on {0}, working for {1}, have discovered a new tech level {2} starship drive.
+
+# Tutorial document title
+960	Tutorial
+
+# Compact system inspector controls
+961	Switch to building {0}
+962	Set
+963	Clear
+
+# Tutorial launch help
+964	Start the guided tutorial in a practice game. Your open games are kept.
+
+# New-game preference controls
+965	New game defaults
+966	Set defaults for future games. Click an option to change it; Save remembers your choices and Cancel discards these edits. Current games stay unchanged.
+
+# Direct numeric preference choices
+967	Choose a value directly. Arrow keys highlight a choice; Enter selects it. Escape returns to the defaults without changing this option.
+
+968	Save remembers the hull and production allocations for your future colonies and future games. Existing systems keep their allocations. Cancel discards edits. Fixed tutorial practice does not change these preferences.
+
+# Startup and About presentation
+969	About Galactica
+970	Galactica
+973	Show introduction at startup
+978	Close
+979	Born into a poor family, you spent countless hours of your youth enthralled by the tales your parents told of the once glorious Galactic Empire.|Though the hundred worlds are now little more than legend, and the heavens silent, you cannot shake the feeling of destiny. For you are the direct descendant of the last Emperor.|As you grew older, you proved to be a natural leader. Perhaps the people sensed you were after something beyond politics and power. Perhaps they saw your vision. Whatever the reason, they pledged their loyalty, first by the hundreds, then thousands and millions. On the day you are elected ruler of your homeworld, you reveal your great plan.|“We shall build a great starship of ancient Imperial design. It will travel through the Void, recolonizing the lost worlds of the Old Empire! It may take lifetimes, but one day our descendants will again be part of a great Human Empire. They will look back on this moment as the greatest in all human history. For today begins the New Empire!”|Volunteers flood the centers of government, begging to be part of this historic project. As the starship construction proceeds, the world’s top scientists revive the ancient study of astronomy and astrophysics—and they bring disquieting news.|Amongst the long silent hundred worlds, there are some that stir. Other rulers in faraway palaces; usurpers with their own ideas of how to reunite the Old Empire. Will they accept you as the rightful heir? They do not respond to your messages...|As the starship nears completion, your doubts grow. You hide your worries from the people, and hold the astronomers to secrecy. You dream of peace, but feel the dark clouds growing. It will be, you are certain, a very long war...
+980	Edmund R. Zavada|James Whitehouse|Art|Claudio Berni|http://www.dreamstudio.com|Special thanks|Charo Mina Rojas|Claude Errera|David Poteet|Amber Zavada|David “Dwarf” Clark|Nicolas Murphy|Yon Hardesty|Translators|Claudia Kopp|Shizuka Tanaka|Charo Mina Rojas|Edmund Zavada|Stéphan Bondier|v2.2 beta testers|Nicolas Murphy|Yon Hardisty|Mark Schultz|Daniel Henderson|Dale Henderson|Sean Callahan|Errol Owen|Tom Maughan|Andre Roane|v2.0 beta testers|Alain Antinori|Tom Berrett|Stéphan Bondier|Al Calambro|Jim Chandler|Kevin Collins|Grant Crawford|Jim Droste|Kai Engelhardt|Max Esquivel|Bruce Feist|J.D. Furlong|Russell Klegraefe|Jérôme Kraft|Tim Lewis|Fred Lotte|Nicolas Murphy|Pat Nagel|Ronald Porter|Pius Portman|Charles Ringer|Pter Rok|David Romm|Lane Rothe|Jonathan Rynd|Trevor Scott|Wade Tregaskis|Milos Udovicic|Michael Tregaskis|Michael Wardman
+981	Read the previous or next page. Manual navigation pauses automatic scrolling.
+982	Close this window and return to your setup or game.
+983	View the original Galactica artwork and credits without changing your game.
+984	Show or hide the introduction when Galactica starts.
+985	Start the guided tutorial. Your current game is preserved until you return.
+
+# Application build identity
+986	Development build {0}
+987	 (modified)
+988	Build information unavailable
+
+# Close game document
+989	Close game
+990	Save changes to “{0}” before closing?
+991	Save and close
+992	Discard
+993	Close this game. You can save or discard unsaved changes; other open games remain.
+994	Save changes, then close this game. A canceled or failed save keeps it open.
+995	Close this game without saving changes. Its existing save file remains unchanged.
+
+# Application Quit
+996	Quit
+997	Save changes to “{0}” before quitting?
+998	Galactica closed
+999	You can close this tab or start Galactica again.
+1000	Start again
+1001	Quit Galactica after checking unsaved changes in every open game. Cancel keeps the remaining games open.
+
+# Ship and fleet call-in reports
+1002	Your starship {0} at {1} is awaiting your orders.
+1003	Your fleet {0} at {1} is awaiting your orders.
+
+# Ordinary completed-ship report
+1004	Your newly built starship {0} is in the system {1}, ready for launch.
+
+# Network joining and reconnection
+1005	Join Network Game
+1006	Host address
+1007	Player name
+1008	Password
+1009	Inspect
+1010	Join
+1011	Rejoin
+1012	Contacting host…
+1013	Joining game…
+1014	{0} — Turn {1}
+1015	{0} human slots · {1} computer players
+1016	Player {0}: Open
+1017	Player {0}: {1} ({2})
+1018	Online
+1019	Offline
+1020	Enter a hostname or IP address, with an optional port.
+1021	Enter a valid player name.
+1022	Incorrect password.
+1023	That name already has a player slot. Choose Rejoin.
+1024	This game has no open player slots.
+1025	No player with that name was found.
+1026	The host is running a different game. Inspect the address again.
+1027	This host uses an incompatible network version.
+1028	The host did not respond in time.
+1029	The host returned invalid game data.
+1030	The host could not save or provide the game.
+1031	Your login expired. Choose Rejoin.
+1032	Could not reach the host. Check its address and connection.
+1033	Previous
+1034	Next
+1035	Save As cannot export a joined game’s partial map. Use Save to send changes to the host.
+1036	Open File → Join to reconnect.
+
+# Multiplayer turn posting
+1037	Posting…
+1038	Posted
+1039	Retry posting
+1040	The host rejected these orders. Review them and try again.
+1041	The host has advanced to another turn. Refresh before posting.
+1042	This turn is already posted.
+1043	This game is complete.
+1044	These orders exceed the size limit.
+
+# Multiplayer host countdown
+1045	Time remaining: {0}
+1046	Paused: {0}
+1047	Awaiting next turn…
+1048	{0} days
+1049	Paused
+
+# Desktop multiplayer hosting
+1050	Host game…
+1051	Host file
+1052	Human players
+1053	Port (0 = automatic)
+1054	Time limit per turn
+1055	End early when everyone posts
+1056	Minutes
+1057	Hours
+1058	Days
+1059	Weeks
+1060	Create host
+1061	Creating host…
+1062	Hosting: {0}
+1063	Join this game
+1064	Stop hosting
+1065	Host another game
+1066	Hosting requires the desktop application. Browsers can join games.
+1067	Enter valid player counts, title, filename, port and time limit.
+1068	That host file already exists. Choose another filename.
+1069	Host saved, but the listener could not start. Retry or use another port.
+1070	Stopping host…
+1071	{0} human slots · {1} AI · Turn {2}
+1072	Other players use this computer’s address and port {0}.
+1073	Could not save and stop hosting. Try again.
+1074	Saving hosted games…
+1075	Retry hosting
+1076	Host address
+1077	Amount
+1078	AI skill
+1079	Map size
+1080	Density
+1081	Not listening
+1082	Host
+
+# Saved host reopening and dedicated hosting
+1083	Open as host…
+1084	Open host
+1085	Opening host…
+1086	This host is running or locked by another process. Close it before retrying.
+1087	Could not open this host file. Check its path and format.
+1088	Host stopped.
+1089	Usage: ./gad4 tools/host-game.js HOST_FILE [PORT] [LANGUAGE]
+
+# Local saved-turn conversion
+1090	Convert saved turn to host
+1091	New host file
+1092	Saved turn: {0} · Turn {1} · {2} players
+1093	Create from saved turn
+1094	Creating host from saved turn…
+1095	Choose 1–{0} human players and a new host filename.
+1096	Source unchanged; open human slots; no turn time limit.
+1097	This saved turn is no longer available. Open it again.
+1098	This is a host file. Use Open as host in the desktop application.
+1099	Could not create this host file. Check the filename and write permissions.
+
+1100	Usage: ./gad4 tools/host-game.js --new FILE [OPTIONS] | --load FILE [--port N] [--language CODE]
+1101	Players: --title NAME --players 1–99 --ais 0–PLAYERS; defaults: 2 players, 0 AIs.
+1102	Map/AI: --size 1–5 --density 1–10 --skill 1–5 (1 expert, 5 novice) --advantage -3–3.
+1103	Turns: --turn-minutes N (0 unlimited) --end-early; defaults: unlimited, wait for deadline.
+1104	Speed/visibility: --slow --no-fog; defaults: fast game, fog of war. AI-only hosts advance automatically.
+1105	Network: --port 0–65535 (0 automatic) --language en/de/es/fr/ja/ru. --help shows these options.
+1106	Invalid dedicated-host options. Check the syntax and ranges below.
+
+1107	End turn now
+1108	Players who have not posted: {0}
+1109	End this turn now?
+1110	Keep waiting
+1111	Saving host changes…
+1112	Player {0}: {1}
+1113	Waiting for player turns
+1114	The turn has advanced. Review the new turn before ending it.
+1115	Turn {0}
+1116	Pause game
+1117	Resume game
+
+1118	Host settings
+1119	Positive time limit changes apply to the next turn.
+1120	Saving host settings…
+1121	Host settings changed. Open them again to review.
+1122	{0} · {1} human, {2} AI
+1123	Seconds
+1124	Map: {0}×{0} · Density: {1} (fixed)
+
+1125	Change player
+1126	Make human
+1127	Make computer
+1128	Free human slot
+1129	Eliminate player
+1130	Rename player
+1131	{0}: {1}
+1132	{0} · {1} · {2}
+1133	Assigned
+1134	Unassigned
+1135	Alive
+1136	Defeated
+1137	Player information changed. Open it again to review.
+1138	Saving player change…
+1139	Choose a valid action and a unique player name.
+1140	Player name
+
+1141	Eject player
+1142	The host administrator disconnected you. You can rejoin your slot.
+
+1143	Admission
+1144	Join without a code
+1145	Allowed codes
+1146	Blocked codes
+1147	Admission code
+1148	Add code
+1149	Remove code
+1150	The host does not admit this code. Ask the host for access.
+1151	Admission rules changed. Reopen the list before saving.
+1152	Use a unique code of 1–64 characters; each list holds 100 codes.
+1153	Applies only to new slots. An allow list takes priority.
+1154	Could not read valid admission rules. The host was not started.
+1155	Admission: --admission FILE loads JSON rules before listening (new or saved hosts).
+
+1156	Administrator access: --admin-password-file FILE reads a JSON password string before listening. Use an empty string to disable access; omission preserves saved credentials.
+1157	Cannot read administrator password. Use a JSON string of up to 64 characters without control characters.
+
+1158	Administrator access
+1159	Password
+1160	An empty password disables remote administration.
+1161	Administrator access changed. Open this dialog again.
+1162	Click stars and ships to inspect them
+
+1163	Administer
+1164	Administering: {0}
+1165	Disconnect administrator
+1166	Remote administration is disabled on this host.
+
+1167	Administrator views are read-only. Rejoin to reconnect to the host.
+1168	Host administration
+
+1169	Edit initial state
+1170	Set population
+1171	Set technology
+1172	Set owner
+1173	Create ship
+1174	Enter a whole number within the allowed range, or select a ship type.
+1175	The initial state changed. Reopen the editor to use the latest values.
+1176	State editing is available only on turn one.
+1177	Population: {0} ×1000 · Technology: {1} · Owner: {2}
+1178	Population in thousands: 0–4294967295.
+1179	Owner number: 0–{0}. Zero means unowned.
+1180	Technology level: 0–65535.
+1181	Edit system population, technology, ownership or create completed ships during turn one.
+1182	Remember password on this device
+1183	Saved games
+1184	Add address
+1185	Remove from list
+1186	Open selected
+1187	No saved games. Add an address or join a game to remember it.
+1188	Could not save the game list. Please try again.
+1189	Enter address
+1190	Administrator
+1191	Find LAN games
+1192	LAN games
+1193	Searching for LAN games…
+1194	No LAN games found. Refresh to search again.
+1195	LAN discovery requires the desktop application. Enter a host address instead.
+1196	LAN discovery failed. Refresh to try again, or enter a host address.
+1197	Refresh
+1198	Turn {0} · {1} of {2} human slots open
+1199	Advertised on the local network
+1200	LAN advertisement unavailable; direct address joining still works
+1201	Chat
+1202	Send
+1203	To: {0}
+1204	All players
+1205	Message from {0}
+1206	Chatting with {0}
+1207	Message saved for the offline recipient.
+1208	Could not send. Retry without changing the message.
+1209	Choose recipient
+1210	Message text (Enter to send)
+1211	Chat unavailable while disconnected. Rejoin the game.
+1212	{0} → {1}
+1213	Unknown player {0}
+1214	Recipient no longer available. Choose another.
+1215	Open multiplayer chat. Send private messages to a player or administrator, or broadcast to everyone online.
+1216	Choose all players, the administrator, or an individual human player. Offline private messages are saved.
+1217	Send this message to the selected recipient. Enter sends without posting your turn.
+1218	Read earlier or later chat history. Long messages wrap across pages.
+1219	The unread message inbox is full. Wait for recipients to read their messages.
+1220	Type your message here. Enter or Return sends; Escape closes chat and keeps your draft.
+1221	Refresh messages and connection status without changing game orders.
+1222	Show game reports
+1223	Hold game reports
+1224	Play pending automatic game reports once, even while Hold is on.
+1225	Pause automatic game reports without marking them read. Turn this off to resume.
+1226	New turn
+1227	Turn {0} begins for {1}.
+1228	Group
+
+# Public network game information
+1229	Game information
+1230	Details
+1231	Map: {0}×{0} · Density: {1}
+1232	AI: {0} · Advantage: {1}
+1233	Fast game: {0}
+1234	Fog of war: {0}
+1235	End early when everyone posts: {0}
+1236	Turn limit: {0}
+1237	Current turn limit: {0}
+1238	Game status: {0}
+1239	Open
+1240	Full
+1241	Admission code required: {0}
+1242	No time limit
+1243	Back
+1244	{0} day|{0} days
+1245	Music
+1246	Play introduction and credits music without changing sound effects. Sound must be on; its control toggles both together.
+1247	Previous statistics
+1248	Next statistics

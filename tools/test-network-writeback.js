@@ -1,0 +1,30 @@
+// Real authenticated unposted writeback, retry and durable reopen checks.
+const pdg=require('pdg');globalThis.pdg=pdg;if(pdg.snd)pdg.snd.setMute(true);
+const fs=require('fs'),os=require('os'),path=require('path'),assert=require('assert');pdg.res.openResourceFile(path.join(__dirname,'../data'));
+const {NetworkHost}=require('../src/js/network-host.js'),{NetworkClient}=require('../src/js/network-client.js'),HTTP=require('../src/js/network-http.js'),Orders=require('../src/js/player-orders.js'),State=require('../src/js/client-state.js'),Save=require('../src/js/game-save.js');
+const directory=fs.mkdtempSync(path.join(os.tmpdir(),'galactica-writeback-socket-')),file=path.join(directory,'host.json');let host;const clients=[];
+const reject=async(promise,code)=>{let error;try{await promise;}catch(e){error=e;}assert.equal(error?.code,code);};
+(async()=>{
+ host=NetworkHost.create({numHumans:2,numComputers:0,sectorSize:1,density:1},file);
+ const star=host.game.stars.find(s=>s.owner===1),ship=host.game.factory.createShip(star.x,star.y,'scout',star,true);star.ships.push(ship);host.persist();
+ const address=await host.listen({discovery:false}),url='http://127.0.0.1:'+address.port,a=new NetworkClient(url),b=new NetworkClient(url);clients.push(a,b);await a.connect({name:'First'});await b.connect({name:'Second'});
+ const raw=await a.send('/state',{token:a.session.token}),model=State.restore(raw),home=model.stars.find(s=>s.owner===1),courier=model.allShips.find(s=>s.owner===1);home.name='Saved 星';
+ const marker=model.createRendezvousAt(home.x+500,home.y+200,1,'Private point'),fleet=model.factory.createFleet(home.x,home.y,1,'Private fleet');fleet.star=home;fleet.addShip(courier);fleet.course.replace(marker);
+ const request={revision:raw.orderRevision,orders:Orders.snapshot(model,'a'.repeat(32))},write=(body,timeout=8000)=>HTTP.request(url,{path:'/changes',method:'POST',token:a.session.token,body,timeout}).promise;
+ const turn=host.game.turn,posted=host.game.players[1].lastTurnPosted,reply=await write(request);assert.equal(reply.orderRevision,1);assert.equal(reply.orderIds.length,2);assert(!State.restore(reply).clientTurnPosted);assert.equal(host.game.turn,turn);assert.equal(host.game.players[1].lastTurnPosted,posted);assert(!host.ready(host.game));assert(!host.tick());
+ const disk=fs.readFileSync(file,'utf8');assert.deepEqual((await write(request)).orderIds,reply.orderIds);assert.equal(fs.readFileSync(file,'utf8'),disk);assert.equal(host.game.allFleets.length,1);assert.equal(host.game.allRendezvous.length,1);
+ assert.equal((await b.send('/state',{token:b.session.token})).orderRevision,0);assert(!JSON.stringify(await b.inspect()).includes('digest'));
+ const restored=State.restore(reply);restored.stars.find(s=>s.owner===1).name='Newer 星';const next={revision:1,orders:Orders.snapshot(restored,'b'.repeat(32))};await write(next);const stable=Save.serialize(host.game);
+ await reject(write(request),'stale_orders');assert.equal(Save.serialize(host.game),stable);
+ const corrupt=JSON.parse(JSON.stringify(next));corrupt.revision=2;corrupt.orders.postId='e'.repeat(32);corrupt.orders.entities[0].population=999;await reject(write(corrupt),'bad_orders');
+ await reject(HTTP.request(url,{path:'/changes',method:'POST',body:next}).promise,'not_logged_in');assert.equal(Save.serialize(host.game),stable);
+ const normal=host.handle.bind(host);let drop=true;host.handle=(req,res)=>{if(req.url==='/changes' && drop){drop=false;res.end=()=>res.destroy();}return normal(req,res);};
+ const pending={revision:2,orders:Orders.snapshot(State.restore(await a.send('/state',{token:a.session.token})),'c'.repeat(32))};let lost=false;try{await write(pending,250);}catch(error){lost=true;}assert(lost);assert.equal(host.playerState(1).orderRevision,3);host.handle=normal;const committed=fs.readFileSync(file,'utf8');assert.equal((await write(pending)).orderRevision,3);assert.equal(fs.readFileSync(file,'utf8'),committed);
+ const persist=host.persist.bind(host);host.persist=()=>{throw Error('fixture disk failure');};const retry={revision:3,orders:Orders.snapshot(State.restore(await a.send('/state',{token:a.session.token})),'d'.repeat(32))};await reject(write(retry),'host_save_failed');assert.equal(host.playerState(1).orderRevision,3);assert.equal(fs.readFileSync(file,'utf8'),committed);host.persist=persist;await write(retry);
+ await a.disconnect();await b.disconnect();await host.close();host=NetworkHost.open(file);const reopened=await host.listen({port:address.port,discovery:false});assert.equal(reopened.port,address.port);await a.rejoin('');await b.rejoin('');assert.equal((await a.send('/state',{token:a.session.token})).orderRevision,4);assert(!a.model.clientTurnPosted);assert.equal(a.model.stars.find(s=>s.owner===1).name,'Newer 星');
+ assert.equal((await write(retry)).orderRevision,4);
+ const context=await a.send('/state',{token:a.session.token}),oldContext={revision:context.orderRevision,playerRevision:context.playerRevision,initialStateRevision:context.initialStateRevision,orders:Orders.snapshot(State.restore(context),'e'.repeat(32))};host.editInitialState({action:'population',star:star.id,value:12345},context.initialStateRevision,turn);await reject(write(oldContext),'stale_orders');
+ const current=await a.send('/state',{token:a.session.token});await write({revision:current.orderRevision,playerRevision:current.playerRevision,initialStateRevision:current.initialStateRevision,orders:Orders.snapshot(State.restore(current),'f'.repeat(32))});assert.equal(host.game.stars.find(s=>s.id===star.id).population,12345);
+ await a.post();assert.equal(host.game.turn,turn);await b.post();assert.equal(host.game.turn,turn+1);
+ console.log('PASS live unposted writeback: authenticated decisions, readiness isolation, remapping, stale/forged denial, lost-response retry, rollback, reopen and unchanged turn posting');
+})().catch(error=>{console.error(error.stack);process.exitCode=1;}).finally(async()=>{for(const client of clients)await client.disconnect();if(host)await host.close();fs.rmSync(directory,{recursive:true,force:true});process.exit(process.exitCode || 0);});

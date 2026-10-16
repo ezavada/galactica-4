@@ -1,0 +1,98 @@
+{
+  "archiveSha256": "2685c3879a75d938cf3add766c36c54d61e3e478918ebcc3cbec32bdf3329771",
+  "appleDoubleEntry": "__MACOSX/Galactica.app/Contents/MacOS/._Galactica Music",
+  "appleDoubleSha256": "739f7bcc3866eaa39cee91123601711c9ea61a4c692f2ba8cfbc3ceab63c8cc0",
+  "dataEntry": "Galactica.app/Contents/MacOS/Galactica Music",
+  "dataSha256": "444c0a33479a538324e908987ad54ceca14d4099324d80ae4c08fc9ee9259f9b",
+  "forkSha256": "ed3cb29bcb65041633a356b9d6a21d66d238b452e97f436fc8d92b1dbab3905a",
+  "movieSha256": "7526beecb1e03874e049fdead6b3704bb7ce68fc1b4ab7e6457263255fa1d7b2",
+  "movieBytes": 7055,
+  "mediaType": "musi",
+  "timeScale": 600,
+  "durationTicks": 58007,
+  "sampleBytes": 1024,
+  "chunkOffsets": [
+    8,
+    1032,
+    2056,
+    3080,
+    4104,
+    5128
+  ],
+  "sampleDurationTicks": [
+    9375,
+    8057,
+    11063,
+    4041,
+    6758,
+    18713
+  ],
+  "resources": [
+    {
+      "type": "STR#",
+      "id": 1,
+      "bytes": 53,
+      "sha256": "5ee249ce0292559d78077e3276612ba94457347bd5357264de15ac8ca47d7bf4"
+    },
+    {
+      "type": "STR#",
+      "id": 2,
+      "bytes": 13,
+      "sha256": "bc7ac8abdef579bbf93abf054e98ef7dfcacd12d352cca3d5a884bfebfbb571e"
+    },
+    {
+      "type": "TEXT",
+      "id": 1,
+      "bytes": 140,
+      "sha256": "914dfd4e8665afc8e58eae25be5f68676e548a027a5907468a0a03a8d072a9a9"
+    },
+    {
+      "type": "hfdr",
+      "id": -5696,
+      "bytes": 18,
+      "sha256": "eaba18a38ce4cb13e8db631ffd4bbdbf1c62d1995e9678b2a9d1eb00a80a7483"
+    },
+    {
+      "type": "moov",
+      "id": 128,
+      "bytes": 903,
+      "sha256": "2357973de93ce5902855f8702a7dfea1808cc26a4dbd004d925b2bf2ea97fb9c"
+    },
+    {
+      "type": "pnot",
+      "id": 0,
+      "bytes": 12,
+      "sha256": "08e3b53430bedca01f8f04443007da95d0dfc110562408568db77be68f553e98"
+    },
+    {
+      "type": "snd ",
+      "id": 1004,
+      "bytes": 108116,
+      "sha256": "3d0fdfc64a61f496382749de74f176f64f51c1c619f56441d83b926b5c3a2997"
+    },
+    {
+      "type": "snd ",
+      "id": 1005,
+      "bytes": 221943,
+      "sha256": "8c6547afdc62b5781ef672df33ecb2ccf49974c19d001023b2d4bdbe55911143"
+    },
+    {
+      "type": "snd ",
+      "id": 1006,
+      "bytes": 72446,
+      "sha256": "991d4f2209750cb34a31070fd8bd955ce704aebb53b7c4b432e791a01eff2e34"
+    },
+    {
+      "type": "vers",
+      "id": 1,
+      "bytes": 52,
+      "sha256": "b678dfd22c941d2c47bff84359a7f2febc2d7333ee36be6fb4e41dc84b3ac8e3"
+    },
+    {
+      "type": "vers",
+      "id": 2,
+      "bytes": 31,
+      "sha256": "9290f4d83b6cca0f3ee9ac83f4a8d9f35e4f6c989e499b6a204ab6f0113c9bbf"
+    }
+  ]
+}

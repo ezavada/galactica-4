@@ -1,0 +1,123 @@
+const test=require('./test-framework.js'),Game=require('../src/js/game.js'),Factory=require('../src/js/factory.js'),Rules=require('../src/js/rules.js'),Config=require('../src/js/game-config.js'),Display=require('../src/js/display.js'),Preferences=require('../src/js/drawing-preferences.js'),Save=require('../src/js/game-save.js'),Help=require('../src/js/hover-help.js'),Common=require('../src/js/common.js');
+function fixture(width=800,height=600){
+ const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true,numHumans:1,numComputers:2}));
+ const target=game.factory.createStar(0,0,'Foreign 星');target.owner=2;target.setVisibilityTo(1,Common.VisibilityLevel.SPEED);
+ game.port={getDrawingArea:()=>new pdg.Rect(width,height),getTextWidth:(text,size=11)=>Array.from(String(text)).length*size/2};const display=new Display(game);game.setDisplay(display);
+ return {game,display,target};
+}
+function capture(f){return f.game.recordOccupationReports(f.target,2,3,'capture').find(e=>e.observer);}
+module.exports=()=>test.describe('Enemy event playback preference',()=>{
+ test.it('consumes an interrupting map click, stops automatic playback and retains unread reports for explicit review',()=>{
+  const f=fixture(),first=capture(f),second=capture(f),selection=f.game.selectedObject;
+  f.game.turnAttentionPending=true;test.assertEqual(f.display.getUIActionAt(10,10).type,'consume');test.assertTrue(f.display.getUIActionAt(10,10).abortAutomaticNotices);
+  test.assertTrue(f.game.handleUIClick(10,10));test.assertNull(f.game.overlay);test.assertEqual(f.game.overlayQueue.length,0);
+  test.assertTrue(first.handled);test.assertFalse(second.handled);test.assertTrue(f.game.selectedObject===selection);
+  test.assertTrue(f.game.turnAttentionPending);test.assertFalse(f.game.holdGameReports);test.assertTrue(f.game.showEnemyEvents);
+  test.assertEqual(f.game.pendingGameReports().length,1);test.assertEqual(f.game.pendingGameReports()[0].eventId,second.id);
+  test.assertEqual(f.game.turn,1);test.assertFalse(f.game.abortAutomaticNotices());
+  f.game.turn=2;test.assertTrue(f.game.replayReport(second));test.assertTrue(f.game.overlay.manual);test.assertFalse(f.game.overlay.animationOnly);
+ });
+ test.it('lets Escape, Return and Space interrupt automatic notices while leaving manual and owner dialogs intact',()=>{
+  for(const key of [pdg.key_Escape,13,32]){
+   const f=fixture(),first=capture(f),second=capture(f);f.game.handleKeyPress(key);
+   test.assertNull(f.game.overlay);test.assertTrue(first.handled);test.assertFalse(second.handled);test.assertEqual(f.game.pendingGameReports().length,1);
+  }
+  const f=fixture(),event=capture(f);f.game.dismissEventPresentation();f.game.turn=2;f.game.replayReport(event);
+  test.assertFalse(f.game.abortAutomaticNotices());test.assertTrue(f.game.overlay.manual);f.game.handleKeyPress(pdg.key_Escape);test.assertNull(f.game.overlay);
+  f.game.queueEventOverlay({type:'lab',classIndex:1});test.assertFalse(f.game.abortAutomaticNotices());test.assertEqual(f.game.overlay.type,'lab');
+ });
+ test.it('preserves interrupted owner-art reports through saves and does not discard explicitly queued manual review',()=>{
+  const f=fixture(),first=capture(f),second=capture(f);
+  const own=f.game.recordEvent('Research','New drive',{recipient:1});own.discovery={owner:1,classIndex:2};
+  f.game.queueEventOverlay({type:'lab',classIndex:2,eventId:own.id});
+  f.game.overlayQueue.push({type:'report',eventId:first.id,manual:true,animationOnly:false});
+  test.assertTrue(f.game.abortAutomaticNotices());test.assertTrue(f.game.overlay.manual);test.assertEqual(f.game.overlay.eventId,first.id);
+  const loaded=Save.restore(Save.serialize(f.game));test.assertEqual(loaded.pendingGameReports().length,2);
+  const art=loaded.pendingGameReports().find(o=>o.type==='lab');test.assertEqual(art.classIndex,2);test.assertEqual(art.eventId,own.id);
+  loaded.dismissEventPresentation();loaded.showPendingGameReports();test.assertTrue(loaded.overlay.manual);
+  loaded.dismissEventPresentation();test.assertEqual(loaded.overlay.type,'lab');test.assertEqual(loaded.overlay.classIndex,2);
+ });
+
+ test.it('keeps each automatic no-dialog notice readable for four seconds, including the final notice',()=>{
+  const f=fixture();let now=1000;f.game.getCurrentMilliseconds=()=>now;
+  f.display.drawDestructionEffect=()=>false;
+  const first=capture(f),second=capture(f);test.assertEqual(f.game.overlay.eventId,first.id);
+  f.display.drawOverlay(f.game.overlay);now=4999;f.display.drawOverlay(f.game.overlay);
+  test.assertEqual(f.game.overlay.eventId,first.id);test.assertFalse(first.handled);
+  now=5000;f.display.drawOverlay(f.game.overlay);test.assertTrue(first.handled);test.assertEqual(f.game.overlay.eventId,second.id);
+  f.display.drawOverlay(f.game.overlay);now=8999;f.display.drawOverlay(f.game.overlay);test.assertFalse(second.handled);
+  now=9000;f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);test.assertTrue(second.handled);test.assertEqual(f.game.turn,1);
+ });
+ test.it('doubles tutorial notice pacing, preserves manual dialogs and counts explosion time within the dwell',()=>{
+  const f=fixture();let now=0;f.game.getCurrentMilliseconds=()=>now;f.game.tutorialSimulation={};
+  const event=capture(f);f.display.drawDestructionEffect=()=>now<600;
+  f.display.drawOverlay(f.game.overlay);now=7999;f.display.drawOverlay(f.game.overlay);test.assertFalse(event.handled);
+  now=8000;f.display.drawOverlay(f.game.overlay);test.assertNull(f.game.overlay);
+  test.assertTrue(f.game.replayReport(event));let narratives=0;f.game.port.drawRect=()=>{};f.display.drawReport=()=>narratives++;
+  f.display.drawOverlay(f.game.overlay);test.assertEqual(narratives,1);test.assertTrue(f.game.overlay.manual);
+ });
+ test.it('restarts a restored pending notice on the new display clock and permits explicit early dismissal',()=>{
+  const f=fixture();f.game.getCurrentMilliseconds=()=>2000000;const event=capture(f);
+  const loaded=Save.restore(Save.serialize(f.game));loaded.port=f.game.port;const display=new Display(loaded);
+  let now=10;loaded.getCurrentMilliseconds=()=>now;display.drawDestructionEffect=()=>false;
+  display.drawOverlay(loaded.overlay);now=4009;display.drawOverlay(loaded.overlay);test.assertEqual(loaded.overlay.eventId,event.id);
+  loaded.dismissEventPresentation();test.assertNull(loaded.overlay);test.assertTrue(loaded.eventLog.find(e=>e.id===event.id).handled);
+ });
+
+ test.it('defaults playback on and automatically focuses a visible foreign capture without advancing time',()=>{
+  const f=fixture(),event=capture(f);test.assertTrue(f.game.showEnemyEvents);test.assertEqual(f.game.overlay.eventId,event.id);test.assertTrue(f.game.overlay.automaticObserver);
+  test.assertTrue(f.game.selectedObject===f.target);test.assertFalse(event.handled);f.game.handleKeyPress(pdg.key_Escape);test.assertTrue(event.handled);test.assertNull(f.game.overlay);test.assertEqual(f.game.turn,1);
+ });
+ test.it('toggles playback through the actual settings hit target and retains manual replay when off',()=>{
+  const f=fixture(),data=new Map();f.game.drawingPreferences=Preferences.createPreferences({window:{localStorage:{getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)}}});
+  f.game.uiWindow='settings';let row=f.display.getSettingsActionRegions().find(r=>r.action.type==='toggleEnemyEvents');
+  for(let i=0;!row && i<10;i++){
+   const next=f.display.getSettingsActionRegions().find(r=>r.action.type==='settingsPage' && r.action.delta===1);test.assertNotNull(next);
+   f.game.handleUIClick(next.rect.x+2,next.rect.y+2);row=f.display.getSettingsActionRegions().find(r=>r.action.type==='toggleEnemyEvents');
+  }test.assertTrue(row.active);
+  f.game.handleUIClick(row.rect.x+2,row.rect.y+2);test.assertFalse(f.game.showEnemyEvents);test.assertEqual(data.get('galactica.showEnemyEvents'),'false');
+  const event=capture(f);test.assertNull(f.game.overlay);test.assertTrue(f.game.getEventRows().includes(event));test.assertTrue(f.game.replayReport(event));test.assertFalse(f.game.overlay.automaticObserver);
+  f.game.dismissEventPresentation();test.assertEqual(f.game.turn,1);
+ });
+ test.it('queues retained accessible observers once when enabled and skips disabled or hidden queued copies',()=>{
+  const f=fixture();f.game.showEnemyEvents=false;const event=capture(f);f.game.executeUIAction({type:'toggleEnemyEvents'});test.assertEqual(f.game.overlay.eventId,event.id);test.assertFalse(f.game.queueObserverReports());
+  const second=capture(f);test.assertEqual(f.game.overlayQueue.length,1);f.game.showEnemyEvents=false;f.game.dismissEventPresentation();test.assertNull(f.game.overlay);test.assertTrue(second.handled);
+  f.game.showEnemyEvents=true;test.assertFalse(f.game.queueObserverReports());test.assertTrue(f.game.replayReport(second));test.assertFalse(f.game.overlay.automaticObserver);f.game.dismissEventPresentation();
+  f.target.setVisibilityTo(1,0);const hidden=capture(f);test.assertFalse(hidden.handled);test.assertFalse(f.game.queueObserverReports());f.target.setVisibilityTo(1,1);test.assertTrue(f.game.queueObserverReports());test.assertEqual(f.game.overlay.eventId,hidden.id);
+  f.target.setVisibilityTo(1,0);f.game.dismissEventPresentation();test.assertEqual(f.game.turn,1);
+ });
+ test.it('defers current-turn observer playback until movement and visibility processing finish',()=>{
+  const f=fixture();f.game.turn=4;f.target.setVisibilityTo(1,0);f.game.movementTurn={};
+  const event=capture(f);test.assertNull(f.game.overlay);delete f.game.movementTurn;
+  f.target.setVisibilityTo(1,1);test.assertTrue(f.game.queueObserverReports());test.assertEqual(f.game.overlay.eventId,event.id);test.assertEqual(f.game.turn,4);
+  test.assertFalse(f.game.queueObserverReports());test.assertEqual(f.game.overlayQueue.length,0);
+ });
+ test.it('honors fog, private recipients and quiet autoplay even when enemy playback is on',()=>{
+  const f=fixture();f.target.setVisibilityTo(1,0);const event=capture(f);test.assertNull(f.game.overlay);test.assertFalse(f.game.queueObserverReports());
+  f.game.config.omniscient=true;f.game.config.autoplay={enabled:true,showEventWindows:false};test.assertFalse(f.game.queueObserverReports());test.assertNull(f.game.overlay);test.assertTrue(f.game.getEventRows().includes(event));
+  test.assertFalse(f.game.eventLog.filter(e=>e.recipient===2||e.recipient===3).some(e=>f.game.isEventAccessible(e)));
+ });
+ test.it('persists browser/native preferences and saves independent game choices and pending observer presentations',()=>{
+  const values=new Map(),env={window:{localStorage:{getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)}}},p=Preferences.createPreferences(env);test.assertTrue(p.readEnemyEvents());p.writeEnemyEvents(false);test.assertFalse(Preferences.createPreferences(env).readEnemyEvents());
+  const native=Preferences.createPreferences({pdg:{cfg:{useConfig:()=>{},getConfigString:k=>values.get(k),setConfigString:(k,v)=>values.set(k,v)}}});test.assertTrue(native.readEnemyEvents());native.writeEnemyEvents(false);test.assertFalse(native.readEnemyEvents());
+  const broken=Preferences.createPreferences({get window(){throw Error('denied');}});broken.writeEnemyEvents(false);test.assertTrue(broken.readEnemyEvents());
+  const f=fixture();const event=capture(f),loaded=Save.restore(Save.serialize(f.game));test.assertTrue(loaded.showEnemyEvents);test.assertTrue(loaded.overlay.automaticObserver);test.assertEqual(loaded.overlay.eventId,event.id);
+  f.game.showEnemyEvents=false;test.assertFalse(Save.restore(Save.serialize(f.game)).showEnemyEvents);
+  const legacy=JSON.parse(Save.serialize(f.game)),root=legacy.graph.nodes[legacy.graph.root.ref];root.properties=root.properties.filter(pair=>pair[0]!=='showEnemyEvents');
+  test.assertTrue(Save.restore(JSON.stringify(legacy)).showEnemyEvents);
+  root.properties.push(['showEnemyEvents','invalid']);let rejected=false;try{Save.restore(JSON.stringify(legacy));}catch(error){rejected=true;}test.assertTrue(rejected);
+ });
+ test.it('keeps every localized setting reachable within short viewports with real page controls and hover help',()=>{
+  const language=pdg.res.getLanguage();try{for(const lang of ['en','de','es','fr','ja','ru']){pdg.res.setLanguage(lang);
+   for(const size of [[800,600],[320,340]]){const f=fixture(...size);f.game.uiWindow='settings';const seen=new Set();
+    for(let page=0;page<4;page++){const rect=f.display.getSettingsWindowRect(),rows=f.display.getSettingsActionRegions();for(const row of rows){
+     seen.add(row.action.type==='setLanguage'?row.action.language:row.action.type);test.assertTrue(row.rect.x>=rect.x&&row.rect.y>=rect.y);test.assertTrue(row.rect.x+row.rect.width<=rect.x+rect.width&&row.rect.y+row.rect.height<=rect.y+rect.height-16);
+     if(row.action.type==='toggleEnemyEvents')test.assertContains(Help.describe(row.action),pdg.res.getString(939));
+    }
+    const next=rows.find(row=>row.action.type==='settingsPage'&&row.action.delta===1);if(!next)break;test.assertTrue(f.game.handleUIClick(next.rect.x+2,next.rect.y+2));
+    }test.assertTrue(seen.has('toggleEnemyEvents'));test.assertTrue(seen.has('toggleControlHelp'));for(const code of ['en','de','es','fr','ja','ru'])test.assertTrue(seen.has(code));
+    const previousPage=Math.max(0,f.game.settingsPage-1);f.game.handleKeyPress(pdg.key_LeftArrow);test.assertEqual(f.game.settingsPage,previousPage);
+   }
+  }}finally{pdg.res.setLanguage(language);}
+ });
+});

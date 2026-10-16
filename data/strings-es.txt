@@ -13,7 +13,7 @@
 7	Ninguno
 8	Haz clic en las estrellas para gestionarlas
 9	Haz clic en las naves para dar órdenes
-10	TAB para terminar turno
+10	TAB: siguiente; Enter: terminar turno
 11	Casco de Nave
 12	Nave
 13	Nivel Tecnológico:
@@ -57,11 +57,11 @@
 306	Desconocido
 
 # Map Size Descriptions (350-399)
-350	Pequeño
-351	Mediano
-352	Grande
-353	Enorme
-354	Gigantesco
+350	Diminuto
+351	Pequeño
+352	Mediano
+353	Grande
+354	Enorme
 355	Desconocido
 
 # Density Descriptions (400-449)
@@ -94,9 +94,9 @@
 520	Configuración de nueva partida
 521	Jugadores: {0} {1}, {2} {3}
 522	Habilidad de IA: {0} ({1})
-523	Mapa: {0} / {1}
+523	Tamaño del mapa: {0}
 524	Opciones: {0}, {1}
-525	<C> cambiar jugadores IA   <1-5> habilidad IA
+525	<C> editar jugadores IA   <1-5> nivel IA
 526	<S> tamaño del mapa   <D> densidad estelar
 527	<F> juego rápido   <O> niebla/todo visible   <R> valores iniciales
 528	<Enter> Iniciar
@@ -118,14 +118,14 @@
 544	Flota seleccionada: {0} naves
 545	<V>/<Esc> Cerrar comparación
 546	Zoom
-547	<+/-> Zoom   <0> Restablecer   <Shift+C> Centrar
-548	<Arrastrar izq.> Panorámica   <Arrastrar medio> Panorámica   <Rueda> Zoom
+547	<+/-> Zoom   <0> Ajustar   <Shift+C> Centrar
+548	<Arrastrar espacio / Alt / botón medio> Panorámica   <Rueda> Zoom
 549	Producción
 
 # Command button and panel labels (550-599)
 550	Menú
 551	Eventos
-552	Comparar
+552	Comparar jugadores
 553	Inicio
 554	Ajustar
 555	Órdenes
@@ -144,7 +144,7 @@
 568	Galactica-4
 570	Nueva tecnología de impulso
 571	Nueva clase {0} comisionada
-572	Pulsa cualquier tecla para continuar
+572	Enter, Espacio o Esc para continuar
 573	Renombrar
 574	Eliminar
 575	Mover
@@ -203,14 +203,14 @@
 634	Nueva clase de nave comisionada: {0}
 635	El jugador {0} colonizó {1}
 636	El jugador {0} capturó {1}
-637	{0} ha sido derrotado
+637	{0}: Derrota
 638	Evento notable: {0} {1} {2} {3} {4} {5}
 639	objetivo
 640	combate
 641	nuevo destino
 642	Autoplay de habilidades de IA
 643	Autoplay de IA iniciado con semilla {0} y retraso de {1} ms
-644	{0} gana en el turno {1}
+644	{0}: Victoria en el turno {1}
 645	Autoplay de IA detenido tras {0} turnos sin ganador
 646	Ganador:
 647	todas las habilidades
@@ -228,7 +228,7 @@
 660	{0} colocado en ({1}, {2})
 661	{0} movido a ({1}, {2})
 662	{0} eliminado
-663	Solo puedes gestionar tus propias flotas y puntos de reunión.
+663	Solo puedes gestionar tus propios objetos.
 664	{0} renombrado a {1}
 665	Órdenes de {0} limpiadas
 666	{0} ahora patrulla
@@ -241,4 +241,713 @@
 673	Renombrar {0}
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
-800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion
+800	Viajero|Rama|Halcón|Peregrino|Riviel|Cuervo|Valquiria|Wolven|Vengador|Banshee|Garra|Tempestad|Escorpión|Defensor|Cobra|Víbora|Halcón de guerra|Barracuda|Tiburón|Diablillo
+
+# Production allocation locks
+674	Bloquear
+675	Desbloquear
+676	Equilibrar
+677	Continua
+678	Pausar
+679	Plazo:
+680	{0} turno|{0} turnos
+681	En pausa
+682	Guardar
+683	Cancelar
+
+# Default destination controls
+684	Enviar a:
+685	Fijar destino
+686	Borrar destino
+
+# Ships in system
+687	Naves en {0}
+688	Naves del sistema
+689	No hay naves atracadas
+690	Anterior
+691	Siguiente
+692	Haz clic en una nave o flota para verla
+
+# New colony defaults
+693	Valores de nuevas colonias
+694	Se aplica a futuras colonias
+695	,
+
+# Ship diagnostics
+696	Alcance del escáner:
+697	Clase:
+698	Integridad:
+699	Estado:
+700	Ubicación:
+701	Tipo de nave:
+702	Atracada
+703	Patrullando
+704	En tránsito
+705	Inactiva
+706	{0} años luz
+707	En flota
+
+# Your Star Systems comparison table
+708	Tus sistemas estelares
+709	Nombre
+710	Tec.
+711	Población|×1000
+712	Producción
+713	Construcción
+714	Avance|%
+715	Defensa|Total
+716	Defensa|Satélites
+717	Defensa|Naves
+718	Haz doble clic en un sistema o selecciónalo y pulsa Intro
+719	Sin sistemas propios
+
+# System diagnostics and integer grouping
+720	.
+721	Posición:
+722	Defensa total:
+723	Satélites:
+724	Defensa naval:
+725	S-{0}
+
+# Waypoint course editor
+726	Ruta
+727	Ruta: {0}
+728	Sin puntos de ruta
+729	Añadir
+730	Editar
+731	Eliminar
+732	Borrar ruta
+733	Repetir
+734	Haz clic en un destino; Esc cancela
+735	Turnos
+736	Punto de ruta
+737	Tramo
+738	Restante
+739	Ruta actualizada para {0}
+
+# Course memory
+740	Memoria
+
+# V3 course hunt mode
+741	Caza
+
+# Call-in and attention
+742	Avisar
+743	Siguiente
+744	Atención
+745	{0} solicita órdenes
+746	{0} elemento aún requiere atención.|{0} elementos aún requieren atención.
+747	Terminar igualmente
+748	Revisar
+
+# Event reports
+749	Ir a
+750	Sin ubicación
+751	Revisado
+752	Selecciona un evento
+753	Detalles
+
+# Scrapping
+754	Desguazar
+755	Cancelar
+756	Para desguace
+757	{0} desguazada; {1} de producción recuperada en {2}
+758	{0} desguazada
+
+# Settings
+759	Configuración
+760	Idioma
+
+# Computer advantage setup
+761	Ventaja del ordenador
+762	<A> cambiar ventaja del ordenador
+763	Producción: {0}%
+
+# Stellar density setup
+764	Densidad {0}
+
+# Map drawing preferences
+765	Mostrar cuadrícula
+766	Mostrar nombres en el mapa
+767	Mostrar naves
+768	Mostrar todos los recorridos
+769	Mostrar recorridos de mensajeros
+770	Mostrar alcances de escáner
+
+# Fullscreen window command
+771	Pantalla completa
+772	No se pudo cambiar la pantalla completa. Inténtalo de nuevo.
+
+# Map display modes and brightness legend
+773	Vista del mapa
+774	Propiedad
+775	Producción
+776	Tecnología
+777	Defensa
+778	Asignación al crecimiento
+779	Asignación a naves
+780	Asignación a investigación
+781	Los valores altos se ven más brillantes.
+782	Sin valores conocidos
+783	Sistemas conocidos: {0}–{1}
+784	Asignación objetivo (%)
+
+# Nebula background preference
+785	Mostrar fondo de nebulosa
+
+# Camera view commands
+786	Vista
+787	Acercar
+788	Alejar
+789	Restablecer vista
+790	Centrar selección
+
+# Map scroll bars
+791	Desplazar horizontalmente
+792	Desplazar verticalmente
+
+# Overlapping map objects
+793	Elegir un objeto
+794	Elige un elemento; Esc cancela
+
+# Fleet transfer destination
+795	Elegir flota de destino
+
+# Nested fleet groups
+796	Agrupar
+797	Grupo {0}
+798	Flota superior
+
+# Fleet exchange window
+801	Intercambiar naves
+802	Naves y flotas
+803	Contenido de flota
+804	Nueva flota
+805	Inspeccionar
+
+# Fleet roster
+806	No hay naves, flotas ni puntos de reunión.
+807	Sí
+808	No
+809	Haz doble clic en una fila para inspeccionarla.
+
+# Roster window geometry
+810	Arrastra el título para mover; la esquina inferior derecha para cambiar el tamaño.
+
+# Player comparison
+811	Sistemas sin dueño
+812	Sistema|Mín
+813	Sistema|Máx
+814	Sistema|Media
+815	Nave|Mín
+816	Nave|Máx
+817	Nave|Media
+818	Azul: mejor · Rojo: peor
+819	{0} (derrotado)
+820	Tecnología de sistemas
+821	Tecnología de naves
+
+# New game player name
+822	Nombre del jugador
+823	Introduce tu nombre de jugador.
+824	Introduce un nombre antes de empezar.
+
+# Startup game title
+825	Título de la partida
+826	Introduce un título para la partida.
+827	Introduce un título antes de guardar.
+828	Título: {0} <T>
+
+# Computer-opponent setup
+829	Oponentes de la IA
+830	Introduce el número de oponentes (0–{0}).
+831	Introduce un número entero entre 0 y {0}.
+
+# Victory and defeat conclusions (v3 TEXT 4000/4001)
+832	¡La victoria es tuya!|Has conquistado toda la galaxia y derrotado a todos los que se interpusieron en tu camino. Descansas un tiempo mientras el pueblo celebra tu victoria.|Pero sabes que, con el tiempo, surgirán nuevos usurpadores…
+833	Tus naves han sido destruidas y tus planetas conquistados.|Al caer prisionero, comprendes que no te queda más remedio que admitir la derrota. Ahora tienes pocas posibilidades de convertirte en emperador.|Pero está escrito: «Algún día, {0} volverá, más fuerte que nunca…»
+834	Continuar
+835	Ver informe
+
+// Local game documents
+836	Nueva partida…
+837	Partidas abiertas
+
+// Local saved-game documents
+838	Archivo
+839	Guardar partida
+840	Guardar como…
+841	Abrir partida…
+842	Volver a lo guardado
+843	Ruta del archivo
+844	Nombre del archivo
+845	No se pudo guardar la partida.
+846	No se pudo abrir la partida.
+847	Este archivo no es una partida compatible de Galactica-4.
+848	Partida guardada: {0}
+849	¿Descartar los cambios y volver al último turno guardado?
+850	Guardando partida…
+851	Abriendo partida…
+852	Restaurando partida…
+853	Elige un archivo para abrir.
+854	No hay ninguna versión guardada.
+855	¿Reemplazar el archivo existente: {0}?
+856	Pon nombre a tu nueva colonia y ajusta sus niveles de producción.
+
+# Control and setup flyby help
+857	Ayuda de controles
+858	Haz clic o arrastra para fijar el objetivo. El relleno muestra la producción real; la marca muestra el objetivo.
+859	Bloquea o desbloquea esta asignación. Los objetivos bloqueados no cambian al ajustar otros.
+860	Reparte la producción por igual entre las asignaciones desbloqueadas.
+861	Elige el siguiente casco. El trabajo pagado se conserva por separado para cada tipo.
+862	Pausa la construcción y conserva el trabajo pagado.
+863	Haz clic en un sistema, nave, flota o punto del espacio para añadir un destino. Escape cancela.
+864	Consulta y edita los puntos ordenados de la ruta de esta nave o flota.
+865	Guarda la ruta actual o intercámbiala con la ruta recordada.
+866	Repite toda la ruta, incluido su punto de origen.
+867	Patrulla este sistema. La patrulla borra la ruta activa e impide las reparaciones en puerto.
+868	Solicita atención cada turno hasta cancelar este aviso.
+869	Activa o desactiva la marca de caza de la ruta. No elige objetivos enemigos automáticamente.
+870	Marca para desguace o cancela la orden. El próximo turno se recuperará parte del coste del casco.
+871	Edita el nombre directamente en el mapa. Intro lo acepta; Escape cancela sin cambiar el nombre original.
+872	Elige una flota de destino y transfiere naves seleccionadas o grupos completos.
+873	Devuelve este miembro a su sistema o flota superior.
+874	Crea un grupo de flota anidado con el miembro seleccionado.
+875	Elige cualquier punto del espacio para una reunión. Las llegadas propias forman allí una flota.
+876	Elimina este punto de reunión. Las naves reunidas permanecen.
+877	Selecciona e inspecciona este objeto, o céntralo en el mapa.
+878	Ordena la lista por esta columna. Otro clic invierte el orden.
+879	Muestra otra página sin avanzar el turno.
+880	Selecciona o revisa un informe. Ir a muestra su objeto; leerlo resuelve su solicitud de atención.
+881	Termina el turno y procesa producción, movimiento y combate. Las solicitudes pendientes requieren confirmación.
+882	Muestra u oculta esta información del mapa. Los datos ocultos siguen formando parte del juego.
+883	Usa este idioma en la interfaz y recuerda la elección. Los nombres aparecen en su escritura nativa.
+884	Guarda, abre o restaura partidas locales desde el menú Archivo.
+885	Configura otra partida. Las partidas abiertas se conservan.
+886	Cierra o cancela este editor sin aceptar los cambios pendientes.
+887	Acepta y guarda los cambios de este editor.
+888	Muestra u oculta esta ventana de información.
+889	Cambia la vista o el zoom del mapa. Las coordenadas y órdenes no cambian.
+890	Fija producción y cascos predeterminados para futuras colonias. Los sistemas actuales no cambian.
+891	Muestra explicaciones cuando el puntero se detiene sobre un control.
+892	Elige opciones para una nueva galaxia. No alteran las partidas actuales.
+893	Usa reglas más rápidas de producción, investigación y movimiento.
+894	Oculta información fuera del alcance de detección. Sin niebla se revela la galaxia.
+895	Borra toda la ruta activa, incluidos Bucle y Caza. Se conserva la memoria de ruta.
+896	Haz clic en un destino para añadir un punto de ruta. Escape cancela.
+897	Selecciona un punto de ruta y haz clic en su nuevo destino. Escape cancela.
+898	Elimina el punto seleccionado y conserva el resto de la ruta.
+899	Confirma este informe y vuelve al juego sin avanzar un turno.
+900	Visita el siguiente objeto o informe que necesita atención.
+901	Elige la cantidad de rivales informáticos, desde cero hasta el límite de jugadores disponible.
+902	Elige la habilidad de decisión de los rivales, de Novato a Experto.
+903	Ajusta la producción informática un 20% por nivel de ventaja.
+904	Elige las dimensiones de la galaxia. Las galaxias mayores contienen más sistemas.
+905	Elige una densidad de estrellas de 1 a 10. Una densidad mayor crea más sistemas en la misma zona.
+906	Edita el título de la nueva partida; también será el nombre inicial del archivo.
+907	Inicia una partida con las opciones elegidas de galaxia y jugadores.
+908	Alterna entre pantalla completa y ventana. La partida y las órdenes se conservan.
+909	Restaura las opciones predeterminadas del mapa. El estado de la partida no cambia.
+910	Cambia a esta partida abierta. Las demás partidas abiertas se conservan.
+911	Borra el destino de las futuras naves construidas en este sistema. Las rutas actuales se conservan.
+912	Elige un destino para futuras naves móviles construidas en este sistema. Escape cancela.
+913	Restaura el último turno guardado. Se descartarán los cambios posteriores.
+914	Sustituye el archivo guardado por esta partida. Su contenido anterior se sobrescribirá.
+915	Guarda la partida en su archivo o elige uno si todavía no se ha guardado.
+916	Guarda la partida con otro nombre de archivo. El archivo anterior no cambia.
+917	Abre una galaxia guardada sin generar otro mapa. Las demás partidas abiertas se conservan.
+918	Vuelve al último turno guardado tras confirmar. Los cambios sin guardar se descartarán.
+919	Introduce el nombre del archivo para esta partida. Cancelar deja intacto el archivo actual.
+920	Introduce la ruta de una partida guardada de Galactica-4. Cancelar no cambia la partida actual.
+921	Satélite: defensa fija de bajo coste. Siempre patrulla su sistema y no puede viajar ni unirse a una flota. No tiene escáner.
+922	Explorador/Mensajero: rápido y desarmado, con escáner. Explora el espacio y transporta tecnología entre sistemas aliados; los mensajeros adquieren la tecnología de los sistemas que visitan.
+923	Nave colonial: costosa y lenta. Sobrevive a la colonización y la conquista y puede fundar más colonias. Escóltala por el espacio hostil.
+924	Acorazado: nave de combate móvil para atacar y escoltar. Una tecnología superior aumenta su potencia de combate y desbloquea clases más fuertes con nombre propio. No tiene escáner.
+925	Primera unidad de tipo {0}, nivel tecnológico {2}, puesta en servicio en {1}.
+926	Ganaste la batalla en {0}. Tu fuerza: {1}. Naves propias perdidas: {2}. Naves enemigas destruidas: {3}.
+927	Perdiste la batalla en {0}. Tu fuerza: {1}. Naves propias perdidas: {2}. Naves enemigas destruidas: {3}.
+928	La batalla en {0} no tuvo un vencedor. Tu fuerza: {1}. Naves propias perdidas: {2}. Naves enemigas destruidas: {3}.
+929	¡Has conquistado el sistema estelar {0} de {1}!
+930	Has perdido el sistema estelar {0} cuando {1} lo atacó.
+931	¡Has aplastado la última resistencia en el sistema {0} en una batalla contra {1}!
+932	Tus últimos defensores del sistema {0} murieron con valentía en una batalla contra {1}.
+
+# Participant ship and fleet destruction notices
+933	Has destruido la nave enemiga {0} de {1} en una batalla en {2}.
+934	Has perdido tu nave {0} en una batalla contra {1} en {2}.
+935	¡Has derrotado a {1} en una batalla en {2}, destruyendo la flota {0}!
+936	Has perdido tu flota {0}, aniquilada en una batalla contra {1} en {2}.
+937	{1} ha tomado el sistema estelar {0} de {2}.
+
+# Enemy event playback
+938	Mostrar eventos enemigos
+939	Muestra automáticamente los informes de otros jugadores cuando sus objetivos están detectados, son aliados o son visibles sin niebla de guerra. Al desactivarlo, los informes quedan en Eventos para consultarlos.
+
+# Surviving system defense losses
+940	Ganaste la batalla en {0}, pero perdiste {1} nave en ese sistema.|Ganaste la batalla en {0}, pero perdiste {1} naves en ese sistema.
+941	Destruiste {1} nave enemiga en tu ataque al sistema estelar {0}.|Destruiste {1} naves enemigas en tu ataque al sistema estelar {0}.
+942	{2} perdió {1} nave defendiendo el sistema estelar {0} de un ataque de {3}.|{2} perdió {1} naves defendiendo el sistema estelar {0} de un ataque de {3}.
+
+# Bundled manual access
+943	Manual
+944	No se encontró el manual incluido. Reinstala el juego completo.
+945	No se pudo abrir el manual. Permite nuevas pestañas o elige un navegador predeterminado e inténtalo de nuevo.
+946	Abre el manual incluido en tu navegador. La partida y el turno actual permanecen abiertos.
+
+# Complete repair notices
+947	Reparaciones
+948	Tu nave {0} ha sido reparada por completo.
+949	Todas las naves de tu flota {0} han sido reparadas por completo.
+
+# Rendezvous fleet formation notices
+950	Tu nueva flota ha comenzado a formarse en {0}. Dale un nombre.
+951	{0} ha comenzado a formar una nueva flota en {1}.
+
+# Neutral colony reports
+952	¡Has colonizado el sistema estelar deshabitado {0}!
+953	{0} ha colonizado el sistema estelar deshabitado {1}.
+
+# Sound preference
+954	Sonido
+955	Reproducir sonidos de eventos y avisos. Al desactivar el sonido se detiene la reproducción actual.
+
+# Containment navigation
+956	Sistema contenedor
+
+# Observer first-class commissioning
+957	{0} puso en servicio una nueva nave de clase {1}, nivel tecnológico {2}, en {3}.
+
+# Drive discovery broadcasts
+958	Tus científicos en {0} han descubierto un nuevo motor de nave de nivel tecnológico {1}.
+959	Los científicos de {0}, al servicio de {1}, han descubierto un nuevo motor de nave de nivel tecnológico {2}.
+
+# Tutorial document title
+960	Tutorial
+
+# Compact system inspector controls
+961	Cambiar a construir {0}
+962	Fijar
+963	Borrar
+
+# Tutorial launch help
+964	Inicia el tutorial guiado en una partida de práctica. Tus partidas abiertas se conservan.
+
+# New-game preference controls
+965	Valores para nuevas partidas
+966	Establece los valores de futuras partidas. Pulsa una opción para cambiarla; Guardar recuerda tus elecciones y Cancelar descarta estos cambios. Las partidas actuales no cambian.
+
+# Direct numeric preference choices
+967	Elige un valor directamente. Las flechas resaltan una opción y Intro la selecciona. Escape vuelve a los valores sin cambiar esta opción.
+
+968	Guardar recuerda el tipo de nave y las asignaciones de producción para tus futuras colonias y partidas. Los sistemas existentes conservan sus asignaciones. Cancelar descarta los cambios. El tutorial fijo no modifica estas preferencias.
+
+# Startup and About presentation
+969	Acerca de Galactica
+970	Galactica
+973	Mostrar introducción al iniciar
+978	Cerrar
+979	Naciste en una familia pobre y pasaste incontables horas de tu juventud cautivado por las historias que tus padres contaban sobre el antaño glorioso Imperio Galáctico.|Aunque los cien mundos apenas son ya una leyenda y los cielos guardan silencio, no puedes librarte de la sensación de tener un destino. Porque eres descendiente directo del último Emperador.|Al crecer, demostraste ser un líder nato. Quizá la gente percibía que buscabas algo más allá de la política y el poder. Quizá compartían tu visión. Fuera cual fuera la razón, te juraron lealtad, primero por cientos, después por miles y millones. El día en que te eligen gobernante de tu mundo natal, revelas tu gran plan.|«Construiremos una gran nave estelar de antiguo diseño imperial. ¡Atravesará el Vacío y recolonizará los mundos perdidos del Viejo Imperio! Quizá lleve varias vidas, pero un día nuestros descendientes volverán a formar parte de un gran Imperio Humano. Recordarán este momento como el más grandioso de toda la historia humana. ¡Porque hoy comienza el Nuevo Imperio!»|Los voluntarios abarrotan los centros del gobierno, suplicando participar en este proyecto histórico. Mientras avanza la construcción de la nave, los mejores científicos del mundo recuperan el antiguo estudio de la astronomía y la astrofísica, y traen noticias inquietantes.|Entre los cien mundos que tanto tiempo han guardado silencio, algunos despiertan. Otros gobernantes en palacios lejanos; usurpadores con sus propias ideas sobre cómo reunificar el Viejo Imperio. ¿Te aceptarán como legítimo heredero? No responden a tus mensajes...|A medida que la nave se acerca a su finalización, aumentan tus dudas. Ocultas tus preocupaciones al pueblo y obligas a los astrónomos a guardar el secreto. Sueñas con la paz, pero sientes que crecen los nubarrones. Será, estás seguro, una guerra muy larga...
+980	Edmund R. Zavada|James Whitehouse|Arte|Claudio Berni|http://www.dreamstudio.com|Agradecimientos especiales|Charo Mina Rojas|Claude Errera|David Poteet|Amber Zavada|David “Dwarf” Clark|Nicolas Murphy|Yon Hardesty|Traductores|Claudia Kopp|Shizuka Tanaka|Charo Mina Rojas|Edmund Zavada|Stéphan Bondier|Probadores de la beta v2.2|Nicolas Murphy|Yon Hardisty|Mark Schultz|Daniel Henderson|Dale Henderson|Sean Callahan|Errol Owen|Tom Maughan|Andre Roane|Probadores de la beta v2.0|Alain Antinori|Tom Berrett|Stéphan Bondier|Al Calambro|Jim Chandler|Kevin Collins|Grant Crawford|Jim Droste|Kai Engelhardt|Max Esquivel|Bruce Feist|J.D. Furlong|Russell Klegraefe|Jérôme Kraft|Tim Lewis|Fred Lotte|Nicolas Murphy|Pat Nagel|Ronald Porter|Pius Portman|Charles Ringer|Pter Rok|David Romm|Lane Rothe|Jonathan Rynd|Trevor Scott|Wade Tregaskis|Milos Udovicic|Michael Tregaskis|Michael Wardman
+981	Lee la página anterior o siguiente. La navegación manual pausa el desplazamiento automático.
+982	Cierra esta ventana y vuelve a la configuración o a la partida.
+983	Consulta el arte original y los créditos de Galactica sin cambiar la partida.
+984	Muestra u oculta la introducción cuando se inicia Galactica.
+985	Inicia el tutorial guiado. Tu partida actual se conserva hasta que regreses.
+
+# Application build identity
+986	Versión de desarrollo {0}
+987	 (modificada)
+988	Información de compilación no disponible
+
+# Close game document
+989	Cerrar partida
+990	¿Guardar los cambios de «{0}» antes de cerrar?
+991	Guardar y cerrar
+992	Descartar
+993	Cerrar esta partida. Puedes guardar o descartar los cambios; las demás partidas siguen abiertas.
+994	Guardar los cambios y cerrar esta partida. Si se cancela o falla el guardado, permanece abierta.
+995	Cerrar esta partida sin guardar los cambios. Su archivo guardado no se modifica.
+
+# Application Quit
+996	Salir
+997	¿Guardar los cambios de «{0}» antes de salir?
+998	Galactica cerrado
+999	Puedes cerrar esta pestaña o iniciar Galactica otra vez.
+1000	Iniciar otra vez
+1001	Salir de Galactica tras revisar los cambios sin guardar de cada partida abierta. Cancelar deja abiertas las partidas restantes.
+
+# Ship and fleet call-in reports
+1002	Tu nave {0} en {1} está esperando tus órdenes.
+1003	Tu flota {0} en {1} está esperando tus órdenes.
+
+# Ordinary completed-ship report
+1004	Tu nueva nave {0} está en el sistema {1}, lista para partir.
+
+# Network joining and reconnection
+1005	Unirse a partida en red
+1006	Dirección del host
+1007	Nombre del jugador
+1008	Contraseña
+1009	Consultar
+1010	Unirse
+1011	Reconectar
+1012	Contactando al host…
+1013	Uniéndose a la partida…
+1014	{0} — Turno {1}
+1015	{0} plazas humanas · {1} jugadores de IA
+1016	Jugador {0}: Libre
+1017	Jugador {0}: {1} ({2})
+1018	En línea
+1019	Desconectado
+1020	Introduce un nombre de host o una IP, con puerto opcional.
+1021	Introduce un nombre de jugador válido.
+1022	Contraseña incorrecta.
+1023	Ese nombre ya tiene una plaza. Elige Reconectar.
+1024	Esta partida no tiene plazas libres.
+1025	No se encontró un jugador con ese nombre.
+1026	El host ejecuta otra partida. Consulta la dirección de nuevo.
+1027	Este host usa una versión de red incompatible.
+1028	El host no respondió a tiempo.
+1029	El host devolvió datos de partida no válidos.
+1030	El host no pudo guardar o proporcionar la partida.
+1031	Tu sesión ha caducado. Elige Reconectar.
+1032	No se pudo contactar al host. Revisa dirección y conexión.
+1033	Anterior
+1034	Siguiente
+1035	Guardar como no puede exportar el mapa parcial de una partida conectada. Usa Guardar para enviar los cambios al anfitrión.
+1036	Abre Archivo → Unirse para reconectar.
+
+# Multiplayer turn posting
+1037	Enviando…
+1038	Enviado
+1039	Reintentar envío
+1040	El host rechazó las órdenes. Revísalas e inténtalo de nuevo.
+1041	El host avanzó a otro turno. Actualiza antes de enviar.
+1042	Este turno ya se ha enviado.
+1043	Esta partida ha terminado.
+1044	Estas órdenes superan el límite de tamaño.
+
+# Multiplayer host countdown
+1045	Tiempo restante: {0}
+1046	En pausa: {0}
+1047	Esperando el siguiente turno…
+1048	{0} días
+1049	En pausa
+
+# Desktop multiplayer hosting
+1050	Alojar partida…
+1051	Archivo del anfitrión
+1052	Jugadores humanos
+1053	Puerto (0 = automático)
+1054	Límite de tiempo por turno
+1055	Terminar antes si todos envían
+1056	Minutos
+1057	Horas
+1058	Días
+1059	Semanas
+1060	Crear anfitrión
+1061	Creando anfitrión…
+1062	Alojando: {0}
+1063	Unirse a esta partida
+1064	Dejar de alojar
+1065	Alojar otra partida
+1066	Alojar requiere la aplicación de escritorio. El navegador puede unirse.
+1067	Introduce jugadores, título, archivo, puerto y tiempo válidos.
+1068	Ese archivo ya existe. Elige otro nombre.
+1069	Partida guardada, pero no se inició el servidor. Reintenta o cambia el puerto.
+1070	Deteniendo anfitrión…
+1071	{0} plazas humanas · {1} IA · Turno {2}
+1072	Otros jugadores usan la dirección de este equipo y el puerto {0}.
+1073	No se pudo guardar y detener el anfitrión. Inténtalo de nuevo.
+1074	Guardando partidas alojadas…
+1075	Reintentar alojamiento
+1076	Dirección del anfitrión
+1077	Cantidad
+1078	Nivel de IA
+1079	Tamaño del mapa
+1080	Densidad
+1081	Sin servidor activo
+1082	Alojar
+
+# Saved host reopening and dedicated hosting
+1083	Abrir como anfitrión…
+1084	Abrir anfitrión
+1085	Abriendo anfitrión…
+1086	Este anfitrión está activo o bloqueado por otro proceso. Ciérralo antes de reintentar.
+1087	No se pudo abrir el archivo del anfitrión. Comprueba la ruta y el formato.
+1088	Anfitrión detenido.
+1089	Uso: ./gad4 tools/host-game.js ARCHIVO_ANFITRIÓN [PUERTO] [IDIOMA]
+
+# Local saved-turn conversion
+1090	Convertir turno guardado en anfitrión
+1091	Nuevo archivo del anfitrión
+1092	Turno guardado: {0} · Turno {1} · {2} jugadores
+1093	Crear desde turno guardado
+1094	Creando anfitrión desde turno guardado…
+1095	Elige 1–{0} jugadores humanos y un nuevo nombre de archivo.
+1096	Origen intacto; plazas humanas libres; sin límite de tiempo.
+1097	Este turno guardado ya no está disponible. Ábrelo de nuevo.
+1098	Es un archivo de anfitrión. Usa Abrir como anfitrión en la aplicación de escritorio.
+1099	No se pudo crear el archivo del anfitrión. Comprueba el nombre y los permisos de escritura.
+
+1100	Uso: ./gad4 tools/host-game.js --new ARCHIVO [OPCIONES] | --load ARCHIVO [--port N] [--language CÓDIGO]
+1101	Jugadores: --title NOMBRE --players 1–99 --ais 0–JUGADORES; valores iniciales: 2 jugadores, 0 IA.
+1102	Mapa/IA: --size 1–5 --density 1–10 --skill 1–5 (1 experto, 5 novato) --advantage -3–3.
+1103	Turnos: --turn-minutes N (0 ilimitado) --end-early; valores iniciales: ilimitado, esperar el plazo.
+1104	Velocidad/visibilidad: --slow --no-fog; valores iniciales: juego rápido, niebla de guerra. Las partidas solo de IA avanzan automáticamente.
+1105	Red: --port 0–65535 (0 automático) --language en/de/es/fr/ja/ru. --help muestra estas opciones.
+1106	Opciones del anfitrión dedicado no válidas. Revisa la sintaxis y los intervalos siguientes.
+
+1107	Terminar turno ahora
+1108	Jugadores que no han enviado: {0}
+1109	¿Terminar este turno ahora?
+1110	Seguir esperando
+1111	Guardando cambios del anfitrión…
+1112	Jugador {0}: {1}
+1113	Esperando turnos de jugadores
+1114	El turno ha avanzado. Revisa el nuevo turno antes de terminarlo.
+1115	Turno {0}
+1116	Pausar partida
+1117	Reanudar partida
+
+1118	Ajustes del anfitrión
+1119	Los cambios de límite positivo se aplican al próximo turno.
+1120	Guardando ajustes del anfitrión…
+1121	Los ajustes cambiaron. Ábrelos de nuevo para revisarlos.
+1122	{0} · {1} humanos, {2} IA
+1123	Segundos
+1124	Mapa: {0}×{0} · Densidad: {1} (fijos)
+
+1125	Cambiar jugador
+1126	Convertir en humano
+1127	Convertir en ordenador
+1128	Liberar plaza humana
+1129	Eliminar jugador
+1130	Renombrar jugador
+1131	{0}: {1}
+1132	{0} · {1} · {2}
+1133	Asignado
+1134	Sin asignar
+1135	Vivo
+1136	Derrotado
+1137	Los datos cambiaron. Ábrelos de nuevo para revisarlos.
+1138	Guardando cambio de jugador…
+1139	Elige una acción válida y un nombre de jugador único.
+1140	Nombre del jugador
+
+1141	Desconectar jugador
+1142	El administrador te ha desconectado. Puedes volver a unirte a tu plaza.
+
+1143	Admisión
+1144	Unirse sin código
+1145	Códigos permitidos
+1146	Códigos bloqueados
+1147	Código de acceso
+1148	Añadir código
+1149	Quitar código
+1150	El host no admite este código. Pídele acceso al host.
+1151	Las reglas cambiaron. Reabre la lista antes de guardar.
+1152	Usa un código único de 1–64 caracteres; cada lista admite 100 códigos.
+1153	Solo para plazas nuevas. La lista permitida tiene prioridad.
+1154	No se pudieron leer reglas de acceso válidas. No se inició el host.
+1155	Admisión: --admission ARCHIVO carga reglas JSON antes de escuchar (hosts nuevos o guardados).
+
+1156	Acceso de administrador: --admin-password-file ARCHIVO lee una contraseña JSON antes de escuchar. Una cadena vacía desactiva el acceso; omitir la opción conserva las credenciales guardadas.
+1157	No se puede leer la contraseña de administrador. Use una cadena JSON de hasta 64 caracteres sin caracteres de control.
+
+1158	Acceso de administrador
+1159	Contraseña
+1160	Una contraseña vacía desactiva la administración remota.
+1161	El acceso de administrador ha cambiado. Abra este diálogo de nuevo.
+1162	Pulse estrellas y naves para inspeccionarlas
+
+1163	Administrar
+1164	Administrando: {0}
+1165	Desconectar administrador
+1166	La administración remota está desactivada en este anfitrión.
+
+1167	Las vistas del administrador son de solo lectura. Vuelva a unirse para reconectar con el anfitrión.
+1168	Administración del anfitrión
+
+1169	Editar estado inicial
+1170	Fijar población
+1171	Fijar tecnología
+1172	Fijar propietario
+1173	Crear nave
+1174	Introduce un entero dentro del rango permitido o elige un tipo de nave.
+1175	El estado inicial cambió. Abre de nuevo el editor para ver los valores actuales.
+1176	Solo se puede editar el estado en el primer turno.
+1177	Población: {0} ×1000 · Tecnología: {1} · Propietario: {2}
+1178	Población en miles: 0–4294967295.
+1179	Número de propietario: 0–{0}. Cero significa sin propietario.
+1180	Nivel tecnológico: 0–65535.
+1181	Edita población, tecnología y propietario de los sistemas o crea naves terminadas en el primer turno.
+1182	Recordar la contraseña en este dispositivo
+1183	Partidas guardadas
+1184	Añadir dirección
+1185	Quitar de la lista
+1186	Abrir selección
+1187	No hay partidas guardadas. Añade una dirección o únete a una partida.
+1188	No se pudo guardar la lista de partidas. Inténtalo de nuevo.
+1189	Introducir dirección
+1190	Administrador
+1191	Buscar en LAN
+1192	Partidas en LAN
+1193	Buscando partidas en LAN…
+1194	No se encontraron partidas en LAN. Actualiza para buscar de nuevo.
+1195	La búsqueda LAN requiere la aplicación de escritorio. Introduce la dirección del anfitrión.
+1196	Falló la búsqueda LAN. Actualiza o introduce la dirección del anfitrión.
+1197	Actualizar
+1198	Turno {0} · {1} de {2} plazas humanas libres
+1199	Anunciada en la red local
+1200	Anuncio LAN no disponible; puedes unirte mediante la dirección
+1201	Chat
+1202	Enviar
+1203	Para: {0}
+1204	Todos los jugadores
+1205	Mensaje de {0}
+1206	Conversación con {0}
+1207	Mensaje guardado para el destinatario desconectado.
+1208	No se pudo enviar. Reintenta sin cambiar el mensaje.
+1209	Elegir destinatario
+1210	Texto del mensaje (Enter para enviar)
+1211	Chat no disponible sin conexión. Vuelve a unirte.
+1212	{0} → {1}
+1213	Jugador desconocido {0}
+1214	Destinatario no disponible. Elige otro.
+1215	Abrir el chat multijugador. Envía mensajes privados a un jugador o al administrador, o a todos los conectados.
+1216	Elige a todos, al administrador o a un jugador humano. Los mensajes privados sin conexión se guardan.
+1217	Envía el mensaje al destinatario elegido. Enter envía sin terminar tu turno.
+1218	Lee el historial anterior o posterior. Los mensajes largos ocupan varias páginas.
+1219	El buzón de mensajes sin leer está lleno. Espera a que los destinatarios los lean.
+1220	Escribe aquí. Enter envía; Esc cierra el chat y conserva el borrador.
+1221	Actualiza mensajes y conexiones sin modificar las órdenes de juego.
+1222	Mostrar informes de la partida
+1223	Retener informes de la partida
+1224	Reproducir una vez los informes automáticos pendientes, incluso con Retener activado.
+1225	Pausar los informes automáticos sin marcarlos como leídos. Desactivar para continuar.
+1226	Nuevo turno
+1227	Comienza el turno {0} para {1}.
+1228	Grupo
+
+# Public network game information
+1229	Información de la partida
+1230	Detalles
+1231	Mapa: {0}×{0} · Densidad: {1}
+1232	IA: {0} · Ventaja: {1}
+1233	Partida rápida: {0}
+1234	Niebla de guerra: {0}
+1235	Terminar cuando todos envíen su turno: {0}
+1236	Límite de tiempo por turno: {0}
+1237	Límite del turno actual: {0}
+1238	Estado de la partida: {0}
+1239	Abierta
+1240	Llena
+1241	Se requiere código de acceso: {0}
+1242	Sin límite de tiempo
+1243	Volver
+1244	{0} día|{0} días
+1245	Música
+1246	Reproduce la música de la introducción y los créditos sin cambiar los efectos. Sonido debe estar activo; su control cambia ambos a la vez.
+1247	Estadísticas anteriores
+1248	Estadísticas siguientes

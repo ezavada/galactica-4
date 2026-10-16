@@ -1,0 +1,357 @@
+{
+  "tool": "built-in imagegen",
+  "edition": 3,
+  "assets": [
+    {
+      "name": "scout",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3001.png",
+      "target": "realistic/events/layers/pict-3001.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a completely NEW high-resolution photographic spacecraft hull asset for Galactica-4 from the following engineering design brief. Build its basic structure anew as coherent rigid manufactured three-dimensional geometry, then photograph it. Precision machining: mathematically circular hoops and dishes seen as consistent perspective ellipses, coaxial cylindrical shafts with aligned ends, equal-sized repeated elements, straight parallel edges, perfectly intersecting joints and attachment points, plausible taut straight tension wires; every part shares one camera projection and a believable scale. Photographed real metal assembly, clear structural form, natural specular reflections, crisp main focus, restrained surface details and wear, no random grunge. This is not an illustrated outline traced into a shiny material. No input artwork geometry is to be copied. Composition: nose facing left, stern right, horizontal longitudinal centerline approximately y=50%, entire object fills 90% of landscape width and fits within 90% of height with safe margins. Long-lens studio product photograph, single 100mm lens, nearly side-on with a small 15-degree three-quarter angle so rear transverse circles become narrow coherent ellipses; subtle elevated viewpoint only. Large soft directional white key light above-left, subdued blue rim, gently dark metal recesses, realistic camera exposure. Genuine transparent background and all openings, no studio backdrop, ground, stars, checkerboard or shadows outside the hull, no green pixels. Landscape 408:240 aspect, about 1632x960. No text, labels or extra objects. Design: Very slender straight silver horizontal boom with a forked nose at left (two fine parallel prongs and a central narrow body). A single large circular stern hoop in a plane perpendicular to longitudinal axis, hoop diameter approximately 65% of total ship length; ring seen as a narrow vertical ellipse. One aligned set of two straight parallel vertical tubular braces inside the hoop, physically joined to its opposite rims. Exactly two identical small white spherical pods beside the centerline near rear hoop hub. No wings, sail membranes, extra rings or generic fighter shape. Framing priority: pull camera back; every antenna and full outer circle/sail must be visible and wholly inside the image, with a generous transparent border on all four sides. Do not crop any part. Geometry must be a real single rigid 3D assembly, not hand drawn.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3001.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3001.png",
+      "priorVersionSha256": "87d3af31da45086a33fde8a84c111706f140e15f29642d05b66705a4dcb9ab54",
+      "sourceSha256": "eafe1f476297025e89f71f1de9db98ba1d31a2b5762f26e2a4d6103762696422",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "541a3916b4e00a082363a69b9139c94643cfd33f6629dfbbc34ae015c23e8402"
+    },
+    {
+      "name": "labback",
+      "style": "realistic",
+      "source": "old-art/original-default/events/labback.png",
+      "target": "realistic/events/labback.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": false,
+      "generationMode": "new image from architectural brief",
+      "prompt": "Use case: photorealistic-natural. Generate a NEW photographic Galactica-4 research laboratory background from scratch, a physically built aerospace hangar with correctly constructed architecture and equipment. Single camera, 35mm full-frame lens, from an elevated control-platform at 2.2 meter eye height, gentle downward 8-degree angle, horizon/vanishing point around x=55%,y=40%. All walls, floor seams, ceiling beams, console enclosures and monitor glass share this one coherent projection and plausible human scale; straight architectural lines, square manufactured panels, equal-size equipment. Broad deep blue hangar fills left two-thirds, overhead practical gantry crane suspended across upper-left/center, receding floor with a spacious completely EMPTY central-left area for a separate ship-blueprint overlay. No people, chairs or small workstation clusters in left half; keep lower-left clear too for separately composited foreground scientists. Rightmost third contains ONE sensible control station with exactly two adult science technicians, realistically scaled anatomy, uniform navy workwear, looking at a bank of precise rectangular red/green/blue screens and physical control knobs. Screens follow true monitor perspective. Warm ceiling work lamps balanced with blue hangar ambient, real brushed steel and matte paint, accurate photographic reflections, natural filmic exposure, clear right station focal detail and gentle distance focus falloff. Eye-height industrial interior photography, not painterly, miniature illustration or noisy greebles. Layout must leave upper 60% and central-left of lower portion open to see distant hangar; foreground overlay will be added independently across bottom sixth and lower-left. Entire opaque landscape image, exact 408:240 aspect, about1632x960. No extra foreground bench or scientists on the left. No readable text or watermark.",
+      "export": "Aspect-preserving resize and center crop to game frame.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/labback.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/labback.png",
+      "priorVersionSha256": "01550f48765c27c2dd7ba3db5dffddfdff6b8ac799be80eabd547131e8e58623",
+      "sourceSha256": "0a2804cac32746885ab5123af3447e0da92a11fdec408aaed295f7154dfd7e49",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "f2cb53170e4f61d6400e577f33979ba2ca7bf83c79835c99bf820eb07675a65b"
+    },
+    {
+      "style": "realistic",
+      "name": "victory",
+      "source": "old-art/original-default/events/victory.png",
+      "target": "realistic/events/victory.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Cinematic on-location portrait photograph of the same adult dark-haired regal woman, silver circlet, blue veil, silver arm bands, purple and gold costume, both hands around the blue reflective crystal orb near her face. Maintain coverage and pose. Eyes, hands, orb, fine jewelry and core clothing tack-sharp with high resolution natural skin pores, tiny imperfections, individual hair strands, authentic fabric weave, real crystal refraction and practical reflections. Remove plastic beauty-render skin and uniform artificial sharpness. Full-frame 85mm portrait lens at f/2.8: focal plane across eyes and hands, progressively softened distant parade crowds, red and blue flags and white domed futuristic city towers; authentic lens bokeh, distant atmospheric haze, preserve recognizable narrative. Natural daylight balanced exposure, gentle filmic colors, photographic contrast, no illustration or game CGI. Same aspect 500:432 and exact composition. Opaque image, no text.",
+      "transparent": false,
+      "savedPath": "old-art/art-styles/realistic-v3/events/victory.png",
+      "sha256": "dd7031a48025b926f8954fc553c502a419686e9cffe74debe85d735f46d881d6",
+      "sourceSha256": "0984fd79fb783069eded5fa24be54d89d1a8b583f061c1eda8deb66b3f466725",
+      "dimensions": [
+        1500,
+        1296
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/victory.png",
+      "editSourceSha256": "4cb102894c644f4106a030202a3048c6f9de2855bf0d5b640d568d23e1ce8058"
+    },
+    {
+      "name": "satellite",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3000.png",
+      "target": "realistic/events/layers/pict-3000.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a completely NEW high-resolution photographic spacecraft hull asset for Galactica-4 from the following engineering design brief. Build its basic structure anew as coherent rigid manufactured three-dimensional geometry, then photograph it. Precision machining: mathematically circular hoops and dishes seen as consistent perspective ellipses, coaxial cylindrical shafts with aligned ends, equal-sized repeated elements, straight parallel edges, perfectly intersecting joints and attachment points, plausible taut straight tension wires; every part shares one camera projection and a believable scale. Photographed real metal assembly, clear structural form, natural specular reflections, crisp main focus, restrained surface details and wear, no random grunge. This is not an illustrated outline traced into a shiny material. No input artwork geometry is to be copied. Composition: nose facing left, stern right, horizontal longitudinal centerline approximately y=50%, entire object fills 90% of landscape width and fits within 90% of height with safe margins. Long-lens studio product photograph, single 100mm lens, nearly side-on with a small 15-degree three-quarter angle so rear transverse circles become narrow coherent ellipses; subtle elevated viewpoint only. Large soft directional white key light above-left, subdued blue rim, gently dark metal recesses, realistic camera exposure. Genuine transparent background and all openings, no studio backdrop, ground, stars, checkerboard or shadows outside the hull, no green pixels. Landscape 408:240 aspect, about 1632x960. No text, labels or extra objects. Design: A roughly spherical bronze-dark titanium armored satellite, symmetric manufactured shell with precise latitude-like panel bands, small rows of blue optical windows, several short metallic antenna rods radiating from the shell. One recessed circular turbine in lower-left quadrant facing camera, with evenly spaced blades; a small violet emitter on upper-right side. Sphere actually round, recessed fixtures follow curved surface. Framing priority: pull camera back; every antenna and full outer circle/sail must be visible and wholly inside the image, with a generous transparent border on all four sides. Do not crop any part. Geometry must be a real single rigid 3D assembly, not hand drawn.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3000.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3000.png",
+      "priorVersionSha256": "5ed284e942ba101429c3567d3f3a6737c368c07fc4f93fe36d7f5fe06b22502b",
+      "sourceSha256": "3b44db26626dcd512a8dd7eba3006bac79cda61c746b0c5005e690733cf4dd53",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "d9713c455c21d97a65eb8ac22cc7b4f383869198e863ad051624ebb26ebe87d7"
+    },
+    {
+      "name": "rama",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3004.png",
+      "target": "realistic/events/layers/pict-3004.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a completely NEW high-resolution photographic spacecraft hull asset for Galactica-4 from the following engineering design brief. Build its basic structure anew as coherent rigid manufactured three-dimensional geometry, then photograph it. Precision machining: mathematically circular hoops and dishes seen as consistent perspective ellipses, coaxial cylindrical shafts with aligned ends, equal-sized repeated elements, straight parallel edges, perfectly intersecting joints and attachment points, plausible taut straight tension wires; every part shares one camera projection and a believable scale. Photographed real metal assembly, clear structural form, natural specular reflections, crisp main focus, restrained surface details and wear, no random grunge. This is not an illustrated outline traced into a shiny material. No input artwork geometry is to be copied. Composition: nose facing left, stern right, horizontal longitudinal centerline approximately y=50%, entire object fills 90% of landscape width and fits within 90% of height with safe margins. Long-lens studio product photograph, single 100mm lens, nearly side-on with a small 15-degree three-quarter angle so rear transverse circles become narrow coherent ellipses; subtle elevated viewpoint only. Large soft directional white key light above-left, subdued blue rim, gently dark metal recesses, realistic camera exposure. Genuine transparent background and all openings, no studio backdrop, ground, stars, checkerboard or shadows outside the hull, no green pixels. Landscape 408:240 aspect, about 1632x960. No text, labels or extra objects. Design: Rounded bronze bulbous forebody at left, a straight spine surrounded by a symmetric bundle of six parallel cylindrical tubes, terminating at a rear radial array of exactly six large white circular dish faces, evenly spaced at sixty-degree increments around the longitudinal axis, each backed by a short dark cylindrical engine housing. All six dishes equal diameter and aligned parallel to each other and perpendicular to ship axis; coherent perspective foreshortening. Taut tension cables to the forward body. Warm bronze/dark steel and white dishes. Framing priority: pull camera back; every antenna and full outer circle/sail must be visible and wholly inside the image, with a generous transparent border on all four sides. Do not crop any part. Geometry must be a real single rigid 3D assembly, not hand drawn.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3004.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3004.png",
+      "priorVersionSha256": "cb8c4a41a8cd7affa1f24466a334b2797efcdb885449827a58268b1d45ce5dd1",
+      "sourceSha256": "786281d1ffcd8aa01e2911d3b76d15a744f071d2394969e902c952f5e88467e0",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "265eeaa75524c2f2abcddf5f2e9ea8793c3560d4567bec28d03074187dea147e"
+    },
+    {
+      "name": "traveller",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3003.png",
+      "target": "realistic/events/layers/pict-3003.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a completely NEW high-resolution photographic spacecraft hull asset for Galactica-4 from the following engineering design brief. Build its basic structure anew as coherent rigid manufactured three-dimensional geometry, then photograph it. Precision machining: mathematically circular hoops and dishes seen as consistent perspective ellipses, coaxial cylindrical shafts with aligned ends, equal-sized repeated elements, straight parallel edges, perfectly intersecting joints and attachment points, plausible taut straight tension wires; every part shares one camera projection and a believable scale. Photographed real metal assembly, clear structural form, natural specular reflections, crisp main focus, restrained surface details and wear, no random grunge. This is not an illustrated outline traced into a shiny material. No input artwork geometry is to be copied. Composition: nose facing left, stern right, horizontal longitudinal centerline approximately y=50%, entire object fills 90% of landscape width and fits within 90% of height with safe margins. Long-lens studio product photograph, single 100mm lens, nearly side-on with a small 15-degree three-quarter angle so rear transverse circles become narrow coherent ellipses; subtle elevated viewpoint only. Large soft directional white key light above-left, subdued blue rim, gently dark metal recesses, realistic camera exposure. Genuine transparent background and all openings, no studio backdrop, ground, stars, checkerboard or shadows outside the hull, no green pixels. Landscape 408:240 aspect, about 1632x960. No text, labels or extra objects. Design: Two polished silver spherical modules in tandem at left, a long straight slender central shaft extending rightward through center of one very large concave circular metallic sail/dish toward a cluster of six small parallel rear cylindrical engines. Dish perpendicular to longitudinal axis, presents a narrow vertical ellipse and curved surface, accurately concave with regular radial panel sectors. Taut tension cables run from sphere/shaft assembly to rim at regular anchor points. No wings or rear hoop. Framing priority: pull camera back; every antenna and full outer circle/sail must be visible and wholly inside the image, with a generous transparent border on all four sides. Do not crop any part. Geometry must be a real single rigid 3D assembly, not hand drawn.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3003.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3003.png",
+      "priorVersionSha256": "7802e26ccff9f96eb3ff3dfa35b386f77259f833015dabf05ceb4185d43f417b",
+      "sourceSha256": "4c960a1bb207bfd6b17d73e4298a4313c5708cd03f6f8a3da21500e838f237d9",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "6735570450be5e9593a8c443d635ef3403b4f6194eb286667049f127c22b0ca1"
+    },
+    {
+      "name": "colony",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3002.png",
+      "target": "realistic/events/layers/pict-3002.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a completely NEW high-resolution photographic spacecraft hull asset for Galactica-4 from the following engineering design brief. Build its basic structure anew as coherent rigid manufactured three-dimensional geometry, then photograph it. Precision machining: mathematically circular hoops and dishes seen as consistent perspective ellipses, coaxial cylindrical shafts with aligned ends, equal-sized repeated elements, straight parallel edges, perfectly intersecting joints and attachment points, plausible taut straight tension wires; every part shares one camera projection and a believable scale. Photographed real metal assembly, clear structural form, natural specular reflections, crisp main focus, restrained surface details and wear, no random grunge. This is not an illustrated outline traced into a shiny material. No input artwork geometry is to be copied. Composition: nose facing left, stern right, horizontal longitudinal centerline approximately y=50%, entire object fills 90% of landscape width and fits within 90% of height with safe margins. Long-lens studio product photograph, single 100mm lens, nearly side-on with a small 15-degree three-quarter angle so rear transverse circles become narrow coherent ellipses; subtle elevated viewpoint only. Large soft directional white key light above-left, subdued blue rim, gently dark metal recesses, realistic camera exposure. Genuine transparent background and all openings, no studio backdrop, ground, stars, checkerboard or shadows outside the hull, no green pixels. Landscape 408:240 aspect, about 1632x960. No text, labels or extra objects. Design: Skeletal long metallic horizontal central spine with tapered compact forebody at left. Four same-sized elongated oval pressurized habitation modules in two symmetric pairs: two above and two below spine, sleek white shells and broad blue glazing on their upper-facing surfaces. One large circular rear hoop perpendicular to ship axis with sensible support spokes, seen as vertical narrow ellipse. Pods and frame aligned on longitudinal ship axis, identical manufactured pod geometry. Framing priority: pull camera back; every antenna and full outer circle/sail must be visible and wholly inside the image, with a generous transparent border on all four sides. Do not crop any part. Geometry must be a real single rigid 3D assembly, not hand drawn.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3002.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3002.png",
+      "priorVersionSha256": "43fce564e7f5a3e2dfc024576d9c7b202403ce00bfd56c04fdbf6258aacd2e24",
+      "sourceSha256": "017d737ee4fffcd2bb2ce67825097bef049281f73b32283c0f7a805437d3994e",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "73cd924b8c1209363464eb5fbdb4989b8286862c62f738b338aa1617b371d911"
+    },
+    {
+      "name": "falcon",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3005.png",
+      "target": "realistic/events/layers/pict-3005.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a completely NEW high-resolution photographic spacecraft hull asset for Galactica-4 from the following engineering design brief. Build its basic structure anew as coherent rigid manufactured three-dimensional geometry, then photograph it. Precision machining: mathematically circular hoops and dishes seen as consistent perspective ellipses, coaxial cylindrical shafts with aligned ends, equal-sized repeated elements, straight parallel edges, perfectly intersecting joints and attachment points, plausible taut straight tension wires; every part shares one camera projection and a believable scale. Photographed real metal assembly, clear structural form, natural specular reflections, crisp main focus, restrained surface details and wear, no random grunge. This is not an illustrated outline traced into a shiny material. No input artwork geometry is to be copied. Composition: nose facing left, stern right, horizontal longitudinal centerline approximately y=50%, entire object fills 90% of landscape width and fits within 90% of height with safe margins. Long-lens studio product photograph, single 100mm lens, nearly side-on with a small 15-degree three-quarter angle so rear transverse circles become narrow coherent ellipses; subtle elevated viewpoint only. Large soft directional white key light above-left, subdued blue rim, gently dark metal recesses, realistic camera exposure. Genuine transparent background and all openings, no studio backdrop, ground, stars, checkerboard or shadows outside the hull, no green pixels. Landscape 408:240 aspect, about 1632x960. No text, labels or extra objects. Design: Sharp long slender silver needle forebody at left, straight narrow shaft leading into a very large circular rear hoop in a transverse plane, ellipse in view. A regular evenly spaced circumference array of small identical white round dish modules mounted to the hoop, surrounding one larger white concave center dish. Small cylinder engine assembly behind central dish at far right. Straight radial/tension cables to nose, rigid uniform hoop cross section. Retain the needle plus dish-studded wheel identity. Framing priority: pull camera back; every antenna and full outer circle/sail must be visible and wholly inside the image, with a generous transparent border on all four sides. Do not crop any part. Geometry must be a real single rigid 3D assembly, not hand drawn.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3005.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3005.png",
+      "priorVersionSha256": "736d22231bd4d8ed960d6d27035dd51e3ae466b8eb1a32c48fe626ad24434b5c",
+      "sourceSha256": "d641273a4ce019eecafcbf35b8c0588dc084444e07e012623a4dd168c965558f",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "917c23b99ee497c7b4fabe6c496918c83e67b439d144a8416ee6b17df4a145a4"
+    },
+    {
+      "name": "raven",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3007.png",
+      "target": "realistic/events/layers/pict-3007.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a completely NEW high-resolution photographic spacecraft hull asset for Galactica-4 from the following engineering design brief. Build its basic structure anew as coherent rigid manufactured three-dimensional geometry, then photograph it. Precision machining: mathematically circular hoops and dishes seen as consistent perspective ellipses, coaxial cylindrical shafts with aligned ends, equal-sized repeated elements, straight parallel edges, perfectly intersecting joints and attachment points, plausible taut straight tension wires; every part shares one camera projection and a believable scale. Photographed real metal assembly, clear structural form, natural specular reflections, crisp main focus, restrained surface details and wear, no random grunge. This is not an illustrated outline traced into a shiny material. No input artwork geometry is to be copied. Composition: nose facing left, stern right, horizontal longitudinal centerline approximately y=50%, entire object fills 90% of landscape width and fits within 90% of height with safe margins. Long-lens studio product photograph, single 100mm lens, nearly side-on with a small 15-degree three-quarter angle so rear transverse circles become narrow coherent ellipses; subtle elevated viewpoint only. Large soft directional white key light above-left, subdued blue rim, gently dark metal recesses, realistic camera exposure. Genuine transparent background and all openings, no studio backdrop, ground, stars, checkerboard or shadows outside the hull, no green pixels. Landscape 408:240 aspect, about 1632x960. No text, labels or extra objects. Design: Blunt slim horizontal silver forebody at left with small dorsal fin, a rear assembly of two coaxial large rigid segmented transverse circular hoops at different axial distances, connected with evenly spaced longitudinal struts, plus one smaller concentric inner ring. Open framework with precise radial braces and sparse antennas. Rings share centerline and are true circles perpendicular to longitudinal axis, all project to consistent aligned tall narrow ellipses. Entire ring edges fit canvas. No sail fabric. Framing priority: pull camera back; every antenna and full outer circle/sail must be visible and wholly inside the image, with a generous transparent border on all four sides. Do not crop any part. Geometry must be a real single rigid 3D assembly, not hand drawn.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3007.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3007.png",
+      "priorVersionSha256": "f80311cb4a5ed996fcb7c7c4a7c38d706360662f9a3f3d202f72c72a2c6861c7",
+      "sourceSha256": "ee0e33c6569142a7f0eb48e6f9c82c25cfdbd141a14c4a093feaeb67dbf8766a",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "ba68cfa30151e848fda440fc629451382b0558044473ca14326751475937088c"
+    },
+    {
+      "name": "riviel",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3008.png",
+      "target": "realistic/events/layers/pict-3008.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a completely NEW high-resolution photographic spacecraft hull asset for Galactica-4 from the following engineering design brief. Build its basic structure anew as coherent rigid manufactured three-dimensional geometry, then photograph it. Precision machining: mathematically circular hoops and dishes seen as consistent perspective ellipses, coaxial cylindrical shafts with aligned ends, equal-sized repeated elements, straight parallel edges, perfectly intersecting joints and attachment points, plausible taut straight tension wires; every part shares one camera projection and a believable scale. Photographed real metal assembly, clear structural form, natural specular reflections, crisp main focus, restrained surface details and wear, no random grunge. This is not an illustrated outline traced into a shiny material. No input artwork geometry is to be copied. Composition: nose facing left, stern right, horizontal longitudinal centerline approximately y=50%, entire object fills 90% of landscape width and fits within 90% of height with safe margins. Long-lens studio product photograph, single 100mm lens, nearly side-on with a small 15-degree three-quarter angle so rear transverse circles become narrow coherent ellipses; subtle elevated viewpoint only. Large soft directional white key light above-left, subdued blue rim, gently dark metal recesses, realistic camera exposure. Genuine transparent background and all openings, no studio backdrop, ground, stars, checkerboard or shadows outside the hull, no green pixels. Landscape 408:240 aspect, about 1632x960. No text, labels or extra objects. Design: Long fine needlelike silver fuselage facing left. At rear a single large dark concave membrane sail with a broad curved triangular silhouette extending above and below ship axis, resembling a swept asymmetric dish/parabolic sail. Exactly three clean curved silver spars radiating aft from the rear hub define its curved shape, with fine parallel fabric ribs between the spars. Sail has physically consistent taut fabric and supports, deep charcoal graphite membrane; not flat decorative wings. Framing priority: pull camera back; every antenna and full outer circle/sail must be visible and wholly inside the image, with a generous transparent border on all four sides. Do not crop any part. Geometry must be a real single rigid 3D assembly, not hand drawn.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3008.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3008.png",
+      "priorVersionSha256": "7c6bacf6d69667ecf4d97efa968c1da6103a287e6f2fa008f54821ed79c4d09c",
+      "sourceSha256": "0421b05cdbaab7f983ad467d71d0a674e4cdb981ebaa5722fec43892af5f45fb",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "eb28361b371f2f2ea8b6223bcd681c848119a3e3c5c3980c3711881755b270a0"
+    },
+    {
+      "name": "hawk",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3006.png",
+      "target": "realistic/events/layers/pict-3006.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a completely NEW high-resolution photographic spacecraft hull asset for Galactica-4 from the following engineering design brief. Build its basic structure anew as coherent rigid manufactured three-dimensional geometry, then photograph it. Precision machining: mathematically circular hoops and dishes seen as consistent perspective ellipses, coaxial cylindrical shafts with aligned ends, equal-sized repeated elements, straight parallel edges, perfectly intersecting joints and attachment points, plausible taut straight tension wires; every part shares one camera projection and a believable scale. Photographed real metal assembly, clear structural form, natural specular reflections, crisp main focus, restrained surface details and wear, no random grunge. This is not an illustrated outline traced into a shiny material. No input artwork geometry is to be copied. Composition: nose facing left, stern right, horizontal longitudinal centerline approximately y=50%, entire object fills 90% of landscape width and fits within 90% of height with safe margins. Long-lens studio product photograph, single 100mm lens, nearly side-on with a small 15-degree three-quarter angle so rear transverse circles become narrow coherent ellipses; subtle elevated viewpoint only. Large soft directional white key light above-left, subdued blue rim, gently dark metal recesses, realistic camera exposure. Genuine transparent background and all openings, no studio backdrop, ground, stars, checkerboard or shadows outside the hull, no green pixels. Landscape 408:240 aspect, about 1632x960. No text, labels or extra objects. Design: Pointed silver horizontal forebody with small fins near front, long straight rear truss and exactly one huge transverse circular hoop at stern. Inside this hoop four long parallel cylindrical vertical braces in the hoop plane, joined accurately to the rim above and below and central fuselage attachment. Triangular sets of taut cables from the forebody to ring rim. Hoop remains genuinely circular in space, projected as tall narrow ellipse, no dishes or sail membranes. Framing priority: pull camera back; every antenna and full outer circle/sail must be visible and wholly inside the image, with a generous transparent border on all four sides. Do not crop any part. Geometry must be a real single rigid 3D assembly, not hand drawn.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3006.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3006.png",
+      "priorVersionSha256": "ce9669bf0ee0eb78bc649284ad6a03b0184c93432f0cc6ba80fac1f95f543ec0",
+      "sourceSha256": "3d698ffd4fd71d2b8cb342165e73d0c34606dd912b9cd0cc1d9e59ab350d678e",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "c4ad3438408943b13c1929f7cfbc0097e5963367ed636643edc39b92edce87d9"
+    },
+    {
+      "name": "avenger",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3011.png",
+      "target": "realistic/events/layers/pict-3011.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a completely NEW high-resolution photographic spacecraft hull asset for Galactica-4 from the following engineering design brief. Build its basic structure anew as coherent rigid manufactured three-dimensional geometry, then photograph it. Precision machining: mathematically circular hoops and dishes seen as consistent perspective ellipses, coaxial cylindrical shafts with aligned ends, equal-sized repeated elements, straight parallel edges, perfectly intersecting joints and attachment points, plausible taut straight tension wires; every part shares one camera projection and a believable scale. Photographed real metal assembly, clear structural form, natural specular reflections, crisp main focus, restrained surface details and wear, no random grunge. This is not an illustrated outline traced into a shiny material. No input artwork geometry is to be copied. Composition: nose facing left, stern right, horizontal longitudinal centerline approximately y=50%, entire object fills 90% of landscape width and fits within 90% of height with safe margins. Long-lens studio product photograph, single 100mm lens, nearly side-on with a small 15-degree three-quarter angle so rear transverse circles become narrow coherent ellipses; subtle elevated viewpoint only. Large soft directional white key light above-left, subdued blue rim, gently dark metal recesses, realistic camera exposure. Genuine transparent background and all openings, no studio backdrop, ground, stars, checkerboard or shadows outside the hull, no green pixels. Landscape 408:240 aspect, about 1632x960. No text, labels or extra objects. Design: Long angular silver pointed fuselage at left with one small dorsal fin. Straight shaft into an open rear polygonal cage of metal trusses: hexagonal stern perimeter, forward and rear frame linked by straight lengthwise beams, clean radial struts attach cage to fuselage. Completely open transparent gaps. Precisely connected beams, coherent projection. No sail fabric, circular hoops or dish faces. Framing priority: pull camera back; every antenna and full outer circle/sail must be visible and wholly inside the image, with a generous transparent border on all four sides. Do not crop any part. Geometry must be a real single rigid 3D assembly, not hand drawn.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3011.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3011.png",
+      "priorVersionSha256": "d194d7f356654110295e16f9256eae0c2bb2be47352566312b69cd363dcd534d",
+      "sourceSha256": "25e51ebf05ee6e06d71c2c07499d9023c6ad7f5921ea3728f3ce5cf456bab7b4",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "36c89d7d66ead54b51f2d94ea924942f429d51b96619669a9760b80978bab7e8"
+    },
+    {
+      "name": "valkyrie",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3010.png",
+      "target": "realistic/events/layers/pict-3010.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a completely NEW high-resolution photographic spacecraft hull asset for Galactica-4 from the following engineering design brief. Build its basic structure anew as coherent rigid manufactured three-dimensional geometry, then photograph it. Precision machining: mathematically circular hoops and dishes seen as consistent perspective ellipses, coaxial cylindrical shafts with aligned ends, equal-sized repeated elements, straight parallel edges, perfectly intersecting joints and attachment points, plausible taut straight tension wires; every part shares one camera projection and a believable scale. Photographed real metal assembly, clear structural form, natural specular reflections, crisp main focus, restrained surface details and wear, no random grunge. This is not an illustrated outline traced into a shiny material. No input artwork geometry is to be copied. Composition: nose facing left, stern right, horizontal longitudinal centerline approximately y=50%, entire object fills 90% of landscape width and fits within 90% of height with safe margins. Long-lens studio product photograph, single 100mm lens, nearly side-on with a small 15-degree three-quarter angle so rear transverse circles become narrow coherent ellipses; subtle elevated viewpoint only. Large soft directional white key light above-left, subdued blue rim, gently dark metal recesses, realistic camera exposure. Genuine transparent background and all openings, no studio backdrop, ground, stars, checkerboard or shadows outside the hull, no green pixels. Landscape 408:240 aspect, about 1632x960. No text, labels or extra objects. Design: Silver tapered fuselage at left with small upright dorsal fin projections, slender axial shaft into open rear polygonal truss hub. Exactly six long narrow pointed diamond/leaf-shaped dark graphite ribbed sail panels arranged at equal sixty-degree radial intervals around stern in a transverse plane, supported by slim metal frames. Same six panel shapes and sizes; consistent perspective, taut linear textile ribs, sharp controlled points. Six narrow sails distinguish it from Wolven eight broad sails. Framing priority: pull camera back; every antenna and full outer circle/sail must be visible and wholly inside the image, with a generous transparent border on all four sides. Do not crop any part. Geometry must be a real single rigid 3D assembly, not hand drawn.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3010.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3010.png",
+      "priorVersionSha256": "b58482f62c1491592d36c73bba9ed81bb0cfddb6a392526aeaa285a73f5adc01",
+      "sourceSha256": "e936dd85e1e70b8cddd67d8d040049656611a0853b26662b6983cf75f416b65b",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "1e5f179681c91994c0199a451c579f6750b3b4dec7433a01bb7666fc4b410533"
+    },
+    {
+      "name": "wolven",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3009.png",
+      "target": "realistic/events/layers/pict-3009.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a completely NEW high-resolution photographic spacecraft hull asset for Galactica-4 from the following engineering design brief. Build its basic structure anew as coherent rigid manufactured three-dimensional geometry, then photograph it. Precision machining: mathematically circular hoops and dishes seen as consistent perspective ellipses, coaxial cylindrical shafts with aligned ends, equal-sized repeated elements, straight parallel edges, perfectly intersecting joints and attachment points, plausible taut straight tension wires; every part shares one camera projection and a believable scale. Photographed real metal assembly, clear structural form, natural specular reflections, crisp main focus, restrained surface details and wear, no random grunge. This is not an illustrated outline traced into a shiny material. No input artwork geometry is to be copied. Composition: nose facing left, stern right, horizontal longitudinal centerline approximately y=50%, entire object fills 90% of landscape width and fits within 90% of height with safe margins. Long-lens studio product photograph, single 100mm lens, nearly side-on with a small 15-degree three-quarter angle so rear transverse circles become narrow coherent ellipses; subtle elevated viewpoint only. Large soft directional white key light above-left, subdued blue rim, gently dark metal recesses, realistic camera exposure. Genuine transparent background and all openings, no studio backdrop, ground, stars, checkerboard or shadows outside the hull, no green pixels. Landscape 408:240 aspect, about 1632x960. No text, labels or extra objects. Design: Silver angular slender pointed forebody with a blue luminous nose tip, upper and lower small dorsal/ventral fin struts. Straight fuselage extends aft into one axial hub supporting exactly eight broad dark polygonal leaf-shaped solar sail panels, evenly spaced at 45-degree intervals around the rear hub in a transverse plane. Each panel is the same manufactured elongated hexagonal shape with symmetric chamfered shoulders, silver rim and taut charcoal finely ribbed membrane; panels point radially outwards. Circular symmetry and coherent foreshortening of the eight panels; one behind the fuselage may be partly occluded. No round hoop. Framing priority: pull camera back; every antenna and full outer circle/sail must be visible and wholly inside the image, with a generous transparent border on all four sides. Do not crop any part. Geometry must be a real single rigid 3D assembly, not hand drawn.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3009.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3009.png",
+      "priorVersionSha256": "7fe0f4c75e4d1e96fa756501f7cd2725e435fa23a485cf90d2946c325ebf2117",
+      "sourceSha256": "52f1d73f80c26a7d94977768dec0c936822f3b1446fb1ad40ffc7f5e0aac87d9",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "48faeca4afce268a12c59923f52995a468fee50559bddaf68534f86405df8721"
+    },
+    {
+      "name": "banshee",
+      "style": "realistic",
+      "source": "old-art/original-default/events/layers/pict-3012.png",
+      "target": "realistic/events/layers/pict-3012.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "prompt": "Use case: product-mockup. Generate a NEW photographic Banshee spacecraft from an engineering design brief, not an illustration. Its unique design is an extremely thin long silver needle-shaped fuselage pointing LEFT, one small triangular dorsal fin near middle, and THREE visibly separate LONG SWEPT TAPERING METAL PRONGS at stern. The three rear prongs mount to ONE axial hub at equal 120-degree intervals in a plane perpendicular to the longitudinal needle. Each has equal true length, about a third of main fuselage length, a rigid subtly curved blade narrowing smoothly to a sharp point. All THREE prongs must be plainly visible in perspective: one projects up-right, one down-right and the third farther to the right near the horizontal centerline, with obvious empty transparent gaps separating them. Use a single 100mm photographic lens and view 35 degrees off side-on with slight elevated angle so the depthwise third prong is well exposed rather than hidden/foreshortened into a nub. No additional fins aside from the one tiny dorsal fin; no sail fabric or rings. Reconstruct real straight coaxial cylinders, precision joints and genuinely 3D blades sharing one coherent projection. Satin silver aerospace metal, fine restrained panel seams, natural soft white key light upper-left with faint blue rim, crisp photography of a manufactured object, no noisy grunge or painted details. Generous transparent border around entire ship; full prong tips uncut. The needle fuselage occupies most image width, rear trident sits right third. Exact 408:240 landscape aspect about1632x960; real transparent alpha in all background and gaps. No environment, floor, text or stars.",
+      "generationMode": "new image from engineering brief",
+      "export": "Aspect-preserving fit of subject within 90% of 1632x960 canvas; genuine alpha padding.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/layers/pict-3012.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/layers/pict-3012.png",
+      "priorVersionSha256": "9faf9c4733838af575be5141b8c5085af675d4b6563add7675d27e78ec399c95",
+      "sourceSha256": "f45157edfe814ba260a26cab049f5db81c70119733a0ba28e721579d723db853",
+      "edition": 3,
+      "toolReferences": [],
+      "sha256": "8a6faaa4383c3f16bf0465f8b4bc3d2be43f4b29ef878cb57a0a8a6c6a38d206"
+    },
+    {
+      "name": "labtop",
+      "style": "realistic",
+      "source": "old-art/original-default/events/labtop.png",
+      "target": "realistic/events/labtop.png",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "transparent": true,
+      "generationMode": "new foreground from architectural brief with new background camera reference",
+      "prompt": "Use case: compositing. Generate an entirely NEW photographic FOREGROUND OVERLAY for Galactica-4 laboratory. Input image 1 is a supporting camera/lighting reference showing the newly built background hangar; it is NOT an edit target and none of its background pixels, right-hand people, architecture or floor should appear in output. Construct new real foreground objects in the same SINGLE camera projection: 35mm lens, elevated 2.2m eye-height, slight 8-degree downward angle, horizon/vanishing point near x55%,y40%. Actual rigid rectangular screen enclosures and desk planes converge to this shared perspective; consistent human and equipment scale, no traced hand-drawn geometry. Foreground overlay contains exactly TWO seated adult technicians seen from rear/three-quarter back in navy industrial workwear, operating a compact stack of two rectangular blue monitors and desk controls ONLY in lower-left quadrant. Person heads around y62% of frame, upper bodies extend to y82%, seated scientists occupy x3%-22%, monitors x21%-33%, top of tallest monitor no higher than y62%; staff hands connect naturally to controls. A simple dark satin steel counter/console lip crosses the entire BOTTOM 15% of frame, correctly projected as one flat coherent rigid desk, with only sparse small accurate keys, switches and a single dim screen embedded flush in desk. Match the reference's plausible materials, cool blue ambient and restrained warm work lights, sharp natural photographic detail without excessive random texture. Output ENTIRE UPPER 60% and middle-right 85% area must be genuine EMPTY TRANSPARENT ALPHA; no floor, hangar, walls, right people, rails, opaque backdrop or black matte. All holes between foreground people, monitors and desk transparent. Do not render or copy the reference background. Standalone isolated foreground photographed in same viewpoint, not a small painted miniature. Exact 408:240 landscape, about1632x960. No text or watermark.",
+      "export": "Aspect-preserving resize and center crop; transparent canvas preserves alpha.",
+      "savedPath": "old-art/art-styles/realistic-v3/events/labtop.png",
+      "priorVersion": "old-art/art-styles/realistic-v2/events/labtop.png",
+      "priorVersionSha256": "1d29bba28f9e5e678a49d7ecc2e69c654dfe99aea95c39c6a5d4931ad1c07f82",
+      "sourceSha256": "d767ff8d4a7df4270888ace946456f39d3171b018fd9933be33adc56075a37e9",
+      "edition": 3,
+      "toolReferences": [
+        "old-art/art-styles/realistic/events/labback.png"
+      ],
+      "sha256": "45a8ecc3a4c9fdc552f2e7124c6189d62e3bf3284262b777bc62d0579c8f4da8"
+    },
+    {
+      "style": "realistic",
+      "name": "defeat",
+      "source": "old-art/original-default/events/defeat.png",
+      "target": "realistic/events/defeat.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Cinematic photographic combat still of the same exhausted adult soldier centered in dark gray powered armor with thin gold trim, grim face visible through visor, one gloved hand across abdomen and weapon held low. Tack-sharp face, visor edges, torso mechanical joints and glove, authentic sweaty skin pores and believable soot, precise armor seams and fasteners, restrained physical wear rather than random mottled texture. Full-frame 70mm lens f/3.2 focused on soldier: progressive optical defocus on distant fleeing troops, burning white futuristic city, red/blue flag, sky spacecraft and purple beams; distinct subject separation and smoky atmospheric depth. Real practical costume/material photography with controlled fire highlight exposure and soft restrained bloom. No painterly texture, plastic CGI or excessive global sharpening. Preserve original composition and story, no gore. Same aspect 500:432, opaque image, no text.",
+      "transparent": false,
+      "savedPath": "old-art/art-styles/realistic-v3/events/defeat.png",
+      "sha256": "2d8946debc351de512c428e38fa2c78843794e1f2d71d90828c324e3c707a89d",
+      "sourceSha256": "a9fb5dcdc3530298ab9ace7b903d7d0808a95d0fa7a6e1b9d70e1b885588398f",
+      "dimensions": [
+        1500,
+        1296
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/defeat.png",
+      "editSourceSha256": "ff07deb497f26e2c09e29c73c8ac7d53cc8e5c77842b3b054de8cbe257879a92"
+    }
+  ]
+}

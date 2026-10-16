@@ -7,15 +7,8 @@ const { AISkillManager, AI_SKILL_LEVELS } = require('./ai-skill.js');
 const { AIActions } = require('./ai-base.js');
 const Common = require('./common.js');
 
-function randomInt(max) {
-    if (!max || max <= 0) {
-        return 0;
-    }
-    if (typeof pdg !== 'undefined' && pdg && typeof pdg.rand === 'function') {
-        return pdg.rand() % max;
-    }
-    return 0;
-}
+const Random=require('./simulation-random.js');
+function randomInt(max,game){return Random.integer(max,game);}
 
 class AIManager {
     constructor(game, rules) {
@@ -118,7 +111,7 @@ class AIManager {
 
     // Create a random AI player with random skill level
     createRandomAIPlayer(playerId) {
-        const skillLevel = randomInt(3); // 0, 1, or 2
+        const skillLevel = randomInt(3,this.game); // 0, 1, or 2
         return this.initializeAIPlayer(playerId, skillLevel);
     }
 
@@ -142,7 +135,7 @@ class AIPlayer {
         this.playerId = playerId;
         this.game = game;
         this.rules = rules;
-        this.skillManager = new AISkillManager(skillLevel);
+        this.skillManager = new AISkillManager(skillLevel,game);
         this.shipAIs = new Map(); // Map of shipId -> ShipAI
         this.starAIs = new Map(); // Map of starId -> StarAI
         this.debugAI = false;
@@ -343,7 +336,7 @@ class AIFactory {
     }
 
     static createRandomAIPlayer(playerId, game, rules) {
-        const skillLevel = randomInt(3);
+        const skillLevel = randomInt(3,game);
         return new AIPlayer(playerId, game, rules, skillLevel);
     }
 }

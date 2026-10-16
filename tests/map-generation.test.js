@@ -86,6 +86,192 @@ function runMapGenerationTests() {
         });
     });
 
+    test.describe('MapGenerator - Full density range',()=>{
+        test.it('deduplicates translated name pools before reserving homeworlds',()=>{
+            const i18n=require('../src/js/i18n.js'),getString=i18n.getString;
+            i18n.getString=(id,...args)=>id===100?'Vega|Sirius|Vega':getString.call(i18n,id,...args);
+            try {
+                const generator=new MapGenerator({});test.assertEqual(generator.STAR_NAMES.join('|'),'Vega|Sirius');
+                const names=generator.reservePlayerNames(2).filter(Boolean);test.assertEqual(new Set(names).size,2);
+            } finally {i18n.getString=getString;}
+        });
+        test.it('shares numbered homeworld reservations with ordinary stars when a translated pool is exhausted',()=>{
+            const generator=new MapGenerator({});generator.STAR_NAMES=['Vega'];generator.ROMAN_NUMERALS=['','二','三'];generator.random=()=>0;
+            const reserved=generator.reservePlayerNames(4);test.assertDeepEqual(reserved.slice(1),['Vega','Vega 二','Vega 三','S-11']);
+            const oldRand=pdg.rand;pdg.rand=()=>0;
+            try{const ordinary=generator.createRandomStars(2,1,()=>({}),reserved);test.assertDeepEqual(ordinary.map(s=>s.name),['S-12','S-13']);}
+            finally{pdg.rand=oldRand;}
+        });
+        test.it('creates 99 localized homeworlds and distinct ordinary stars in every supported language',()=>{
+            const language=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']){
+                pdg.res.setLanguage(code);pdg.srand(TEST_SEED);
+                const game=new Game(new Factory(),new Rules(),new GameConfig({numHumans:1,numComputers:98,sectorSize:2,density:1}));
+                const homes=game.stars.filter(s=>s.owner>0),names=game.stars.map(s=>s.name);
+                test.assertEqual(homes.length,99);test.assertEqual(new Set(names).size,names.length);
+                test.assertFalse(names.some(n=>/^Player\d+Star$/.test(n)));
+                for(const home of homes){test.assertEqual(home.techLevel,1);test.assertEqual(home.currentShip.progress,99);test.assertEqual(game.players[home.owner].homeStarId,home.id);}
+                for(const player of game.players.filter(p=>p && p.isComputer))test.assertFalse(/Player\d+Star/.test(player.name));
+            }}finally{pdg.res.setLanguage(language);}
+        });
+        test.it('counts reserved home names before ordinary names and avoids exhausted or duplicate numerals',()=>{
+            const game=new Game(new Factory(),new Rules(),new GameConfig({skipMapGeneration:true})),generator=new MapGenerator(game);
+            generator.STAR_NAMES=['Vega'];generator.random=()=>0;
+            const oldRand=pdg.rand;pdg.rand=()=>0;
+            try {
+                const stars=[];generator.createRandomStars(1,1,()=>{const star={};stars.push(star);return star;},[undefined,'Vega']);
+                test.assertEqual(stars[0].name,'Vega II');
+                const usage=[1],names=[];for(let i=0;i<30;i++)names.push(generator.generateStarName(usage).name);
+                test.assertEqual(new Set(names).size,names.length);test.assertFalse(names.some(n=>n.includes('undefined')));
+            } finally {pdg.rand=oldRand;}
+        });
+        test.it('uses the original count formula for all ten densities with the same random sequence',()=>{
+            const game=new Game(new Factory(),new Rules(),new GameConfig({skipMapGeneration:true})),generator=new MapGenerator(game);
+            let low,second;
+            for(let density=1;density<=10;density++){
+                pdg.srand(TEST_SEED);const count=generator.calculateStarCount(density,1,2);
+                if(density===1)low=count;else if(density===2)second=count;
+                if(density>=2)test.assertEqual(count,low+(density-1)*(second-low));
+            }
+        });
+        test.it('constructs a playable maximum-density galaxy with unique names and all home systems',()=>{
+            pdg.srand(TEST_SEED);
+            const game=new Game(new Factory(),new Rules(),new GameConfig({density:10,sectorSize:5,numHumans:1,numComputers:2}));
+            test.assertTrue(game.stars.length>=2500&&game.stars.length<=7100);
+            test.assertEqual(new Set(game.stars.map(s=>s.name)).size,game.stars.length);
+            for(const owner of [1,2,3])test.assertEqual(game.stars.filter(s=>s.owner===owner).length,1);
+            for(const star of game.stars){test.assertTrue(Number.isFinite(star.x)&&Number.isFinite(star.y));test.assertInRange(star.x,0,1024*1024*5);test.assertInRange(star.y,0,1024*1024*5);}
+        });
+    });
+
+    test.describe('MapGenerator - All sector sizes',()=>{
+        test.it('scales star counts by sector area for all five sizes with fixed randomness',()=>{
+            const generator=new MapGenerator(new Game(new Factory(),new Rules(),new GameConfig({skipMapGeneration:true})));
+            pdg.srand(TEST_SEED);const base=generator.calculateStarCount(1,1,2);
+            for(let size=1;size<=5;size++){pdg.srand(TEST_SEED);test.assertEqual(generator.calculateStarCount(1,size,2),base*size*size);}
+        });
+        test.it('constructs each size with in-bounds stars and all player homeworlds',()=>{
+            for(let size=1;size<=5;size++){
+                pdg.srand(TEST_SEED);const game=new Game(new Factory(),new Rules(),new GameConfig({sectorSize:size,numHumans:1,numComputers:2}));
+                for(const owner of [1,2,3])test.assertEqual(game.stars.filter(s=>s.owner===owner).length,1);
+                for(const star of game.stars){test.assertInRange(star.x,0,1024*1024*size);test.assertInRange(star.y,0,1024*1024*size);}
+                test.assertEqual(new Set(game.stars.map(s=>s.name)).size,game.stars.length);
+            }
+        });
+    });
+
+    test.describe('MapGenerator - Shipped homeworld rejection budget',()=>{
+        test.it('accepts the random candidate immediately when there are no spare stars',()=>{
+            const generator=new MapGenerator({}),a={x:1,y:0},b={x:2,y:0},unused=[a,b];let calls=0;
+            generator.random=()=>{calls++;return 1;};
+            test.assertTrue(generator.findNextPlayerStar(unused,[{x:0,y:0}],100,0,2)===b);
+            test.assertEqual(calls,1);test.assertEqual(unused.length,2);
+        });
+        test.it('preserves the remaining-player reserve even when a later call receives the initial spare count',()=>{
+            const generator=new MapGenerator({}),unused=[{x:1,y:0},{x:2,y:0},{x:3,y:0},{x:4,y:0}];
+            generator.random=max=>max-1;
+            const first=generator.findNextPlayerStar(unused,[{x:0,y:0}],100,2,2);
+            test.assertEqual(unused.length,2);test.assertTrue(first===unused[1]);
+            unused.splice(unused.indexOf(first),1);
+            test.assertTrue(generator.findNextPlayerStar(unused,[{x:0,y:0},first],100,2,1)===unused[0]);
+            test.assertEqual(unused.length,1);
+        });
+        test.it('rejects close spare candidates and accepts a candidate at the minimum distance',()=>{
+            const generator=new MapGenerator({}),close={x:3,y:4},boundary={x:6,y:8},unused=[close,boundary];
+            generator.random=()=>0;
+            test.assertTrue(generator.findNextPlayerStar(unused,[{x:0,y:0}],10,1,1)===boundary);
+            test.assertEqual(unused.length,1);
+            test.assertTrue(generator.findNextPlayerStar([boundary],[{x:0,y:0}],10,1,0)===boundary);
+            test.assertNull(generator.findNextPlayerStar([],[],10,0,0));
+        });
+    });
+
+    test.describe('MapGenerator - Final source-edge audit', () => {
+        test.it('matches exact count extremes and applies the player minimum before area scaling', () => {
+            const generator = new MapGenerator({});
+            for (const maximum of [false, true]) {
+                generator.random = max => maximum ? max - 1 : 0;
+                for (let density = 1; density <= 10; density++) {
+                    for (let size = 1; size <= 5; size++) {
+                        for (const players of [1, 3, 99]) {
+                            const base = (maximum ? 28 : 10) * density + (maximum ? 4 : 0);
+                            test.assertEqual(generator.calculateStarCount(density, size, players), Math.max(base, players) * size * size);
+                        }
+                    }
+                }
+            }
+        });
+        test.it('places stars on the source 1024-unit lattice strictly within each sector', () => {
+            const generator = new MapGenerator({});
+            generator.generateStarName = () => ({name: 'Test', namedStar: false});
+            for (let size = 1; size <= 5; size++) {
+                for (const maximum of [false, true]) {
+                    generator.random = max => maximum ? max - 1 : 0;
+                    const positions = [];
+                    generator.createRandomStars(3, size, (x, y, z) => {
+                        const star = {x, y, z}; positions.push(star); return star;
+                    });
+                    for (const star of positions) {
+                        test.assertEqual(star.x, maximum ? (1024 * size - 1) * 1024 : 0);
+                        test.assertEqual(star.y, star.x); test.assertEqual(star.z, 0);
+                        test.assertTrue(star.x < 1024 * 1024 * size);
+                    }
+                }
+            }
+        });
+        test.it('uses strict outer-edge and inclusive inner-edge boundaries, with source first-star fallback', () => {
+            const generator = new MapGenerator({});
+            const center = {x: 512, y: 512};
+            const tooClose = {x: 127, y: 512};
+            const boundary = {x: 128, y: 512};
+            const outer = {x: 256, y: 512};
+            test.assertEqual(generator.findFirstStar([center, tooClose, outer, boundary], 256, 128, 1024, 2), 3);
+            test.assertEqual(generator.findFirstStar([center, {x: 896, y: 512}], 256, 128, 1024, 1), 1);
+            test.assertEqual(generator.findFirstStar([center, {x: 512, y: 896}], 256, 128, 1024, 1), 1);
+            test.assertEqual(generator.findFirstStar([center, boundary], 256, 128, 1024, 0), 0);
+            test.assertEqual(generator.findFirstStar([center, tooClose, outer], 256, 128, 1024, 1), 0);
+        });
+        test.it('retains rejected homeworld candidates as ordinary galaxy objects', () => {
+            const generator = new MapGenerator({});
+            const rejected = {x: 1, y: 0, owner: 0};
+            const accepted = {x: 100, y: 0, owner: 0};
+            const galaxy = [rejected, accepted], candidates = galaxy.slice();
+            generator.random = () => 0;
+            test.assertTrue(generator.findNextPlayerStar(candidates, [{x: 0, y: 0}], 10, 1, 1) === accepted);
+            test.assertDeepEqual(candidates, [accepted]);
+            test.assertTrue(galaxy.includes(rejected)); test.assertEqual(rejected.owner, 0);
+        });
+        test.it('initializes localized homes and human roles without commissioning the 99-percent hull', () => {
+            const language = pdg.res.getLanguage();
+            try {
+                for (const code of ['en', 'de', 'es', 'fr', 'ja', 'ru']) {
+                    pdg.res.setLanguage(code);
+                    for (const fastGame of [false, true]) {
+                        for (const omniscient of [false, true]) {
+                            pdg.srand(TEST_SEED);
+                            const config = new GameConfig({numHumans: 1, numComputers: 2, humanPlayerSlots: [2], humanPlayerNames: {2: 'Human'}, fastGame, omniscient});
+                            const game = new Game(new Factory(), new Rules(), config);
+                            for (const home of game.stars.filter(star => star.owner > 0)) {
+                                const player = game.players[home.owner];
+                                test.assertEqual(home.population, 1000000); test.assertEqual(home.techLevel, 1);
+                                test.assertEqual(home.scannerRange, game.rules.getScanRangeForTechLevel(1));
+                                test.assertEqual(home.currentShip.progress, 99);
+                                test.assertEqual(home.paidTowardShipBuilding, home.currentShip.cost * 0.99);
+                                test.assertEqual(player.homeStarId, home.id); test.assertEqual(player.hiStarTech, 1);
+                                test.assertEqual(player.hiShipTech, -5); test.assertFalse(player.builtColony);
+                                test.assertFalse(player.hasTechStar); test.assertEqual(player.defaultBuildType, 1);
+                                test.assertDeepEqual([player.defaultGrowth, player.defaultTech, player.defaultShips], [334, 333, 333]);
+                                test.assertEqual(player.isHuman, home.owner === 2);
+                                if (player.isHuman) test.assertEqual(player.name, 'Human');
+                                else test.assertTrue(player.name.length > 0 && player.name.length <= 32);
+                            }
+                            test.assertEqual(game.allShips.length, 0);
+                        }
+                    }
+                }
+            } finally { pdg.res.setLanguage(language); }
+        });
+    });
+
     test.describe('MapGenerator - Star Name Generation', () => {
         test.it('generates unique star names with S- prefix for duplicates', () => {
             pdg.srand(TEST_SEED);

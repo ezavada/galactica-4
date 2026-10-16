@@ -76,15 +76,14 @@ class Rules {
     }
 
     getStarResearchAmount(star) {
-        let amount = star.research.getBenefits() / (0.9 * star.techLevel);
-        if (this.isFast) {
-            amount *= 1.3333;  // 1.3333 ~= 4/3
-        }
-        return amount;
+        // v3 pays whole credits from integer 0–1000 allocation units.
+        const units = Math.round(star.research.value * 10);
+        return Math.trunc(units * star.research.getPerUnitBenefit() / (9 * star.techLevel));
     }
 
     getStarPopulationGrowth(star) {
-        let g = star.growth.value / 500.0;
+        // Runtime allocations are percentages; v3 divides its 0–1000 units by 500.
+        let g = star.growth.value / 50.0;
         let p = star.population / 1000000.0;
         let x = 0.0;
         if (p > 1.0) {
@@ -92,6 +91,7 @@ class Rules {
             x = -(x * x) + this.inverseGrowthLimitSquared;
         } else {
             x = p / 0.2 + 5.0;
+            x = 10.0 / (x * x + 20.0);
         }
         p = star.population * x * g;
         if (p < 1.0) {
@@ -104,7 +104,7 @@ class Rules {
     // --- ship specific rules ---
 
     getShipScrapValue(ship) {
-        return this.getShipBuildCost(ship.type, ship.techLevel) / 4.0;
+        return this.getShipBuildCost(ship) / 4.0;
     }
     
     getShipBuildCost(ship, star) {

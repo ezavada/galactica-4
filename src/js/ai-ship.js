@@ -11,7 +11,7 @@ class ShipAI extends AIBase {
     constructor(ship, game, rules, skillLevel = AI_SKILL_LEVELS.AVERAGE) {
         super(ship, game, rules);
         this.ship = ship;
-        this.skillManager = new AISkillManager(skillLevel);
+        this.skillManager = new AISkillManager(skillLevel,game);
         this.utils = new AIUtils(game, rules);
         this.decisionMatrix = new DecisionMatrix(this.getShipType());
     }
@@ -108,7 +108,7 @@ class ShipAI extends AIBase {
         }
 
         // Check if ship is in a fleet (fleets make decisions for their ships)
-        if (!this.isFleetEntity() && this.ship.isInFleet && this.ship.isInFleet()) {
+        if (this.ship.isInFleet && this.ship.isInFleet()) {
             this.debugLog('Ship is in fleet, fleet will make decision');
             return new AIDecision(AIActions.DO_NOTHING, null, 0, 'Ship in fleet');
         }

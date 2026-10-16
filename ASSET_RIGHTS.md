@@ -10,13 +10,41 @@ converted or copied from that collection, including an exact copy relationship
 between `data/background.png` and
 `old-art/Art/sources/coloradjusted_background-0.png`.
 
-No embedded license, source URL, artist credit, or written rights statement
-was found in the current tree or Git history. The filenames identify several
-items that need explicit verification:
+The twelve runtime WAV files under `data/sounds/` and the tutorial cue under
+`data/tutorial/sounds/` are converted from the shipped
+Galactica v3 sound resource bundle. Their source hashes and unchanged PCM
+payloads are recorded in their respective `manifest.json` files; no additional license
+is granted for those legacy recordings.
+
+The Galactica v3 repository supplies an explicit art credit and rights statement:
+its `README.md:5` says, “The art assets are copyright Claudio Berni, and must not
+be used without his permission.” The shipped English credits in
+`Resources/gal-en-shareware.r` PICT 132 identify “art”, Claudio Berni and
+`http://www.dreamstudio.com`; About dialog PPob 32 also lists him. The CD-ROM
+and German resources carry the same artist credit. These establish ownership
+and attribution. They do not record a permission grant for this repository.
+The previous audit incorrectly reported that no artist/rights record existed;
+that conclusion is superseded by this source evidence.
+
+Source evidence lives in the peer `galactica-anno-dominari-3` repository:
+[README](../galactica-anno-dominari-3/README.md) and
+[English shipped resources](../galactica-anno-dominari-3/Resources/gal-en-shareware.r).
+Do not interpret the general art statement as identifying the rights holders of
+third-party recordings, logos or every extra astronomy image below.
+
+The startup/About composition in `data/sounds/startup.wav` retains the shipped
+QuickTime music notes and instruments, rendered offline with the macOS system
+General MIDI bank. `startup-manifest.json` records source and bank provenance.
+The bank is not bundled, and no new license or clearance for the composition
+is claimed. This rendition does not establish acoustic equivalence with the
+original QuickTime player.
+
+The remaining asset-specific questions are:
 
 | Asset group | Files | Current evidence | Required action |
 |---|---:|---|---|
-| Galactica ships, event panels, and blueprints | 32 runtime PNGs plus legacy sources | Derived from the historical Galactica art archive; no artist/license record in this repository | Confirm ownership or obtain written permission, then record author and license |
+| Galactica ships, event panels, and blueprints | 32 runtime PNGs plus legacy sources | Derived from the historical Galactica art archive; v3 credits and README identify Claudio Berni and require his permission | Retain the Claudio Berni credit and record permission covering this use before unrestricted redistribution |
+| Legacy sound recordings | 13 runtime WAVs | Converted from shipped v3 snd resources; resource 1003 is labeled Message (TNG doorbell), with no recording license in this repository | Confirm recording rights before public redistribution, or replace the recordings |
 | Space background | `data/background.png` and `besthubble_keyhole_02.jpg` derivatives | Filenames suggest Hubble imagery, but the precise NASA/ESA source and transformation chain are not documented | Identify the original image and add its authoritative credit/usage statement |
 | VendorNation and STS logos | `vn-logo*`, `VN_logo*`, `PICT_135*`, `PICT_136*` | Trademark/logo files with no redistribution grant | Confirm trademark ownership and intended public use, or remove them |
 | Legacy screenshots and product/CD artwork | `old-art/screenshots/`, `old-art/Art/Galactica CD label/` | Historical product materials, including layered Adobe files and archives | Confirm all constituent art/font rights, or omit the entire legacy tree |
@@ -24,7 +52,7 @@ items that need explicit verification:
 
 Until those checks are complete, no license is granted here for the visual
 assets. The safest public-release path is to publish code and localization
-without `old-art/`, and either clear or replace every runtime image under
+without `old-art/`, and either clear or replace every runtime image and sound under
 `data/`. Merely deleting files from the current branch does not remove them
 from existing Git objects; use a coordinated history rewrite before changing
 repository visibility if any file is not redistributable.

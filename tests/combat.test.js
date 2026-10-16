@@ -217,6 +217,29 @@ function runCombatTests() {
             test.assertNotEqual(damage1, damage3);
         });
         
+        test.it('bounds ship and planet damage for the full native random range',()=>{
+            const game=createRuntimeCombatGame(),star=createOwnedStar(game,0,0,'Home',1,10,1000000),ship=game.factory.createShip(0,0,'battleship',star,true);
+            const original=pdg.rand;let rolls,calls;
+            try{
+                pdg.rand=()=>{calls++;return rolls.shift();};
+                for(const attacker of [star,ship]){
+                    attacker.getAttackStrength=()=>10000;
+                    for(const [values,expected] of [[[100,196,198],100],[[99,97,98],9900],[[2147483647,2147483647,2147483647],3133]]){
+                        rolls=values.slice();calls=0;
+                        const damage=attacker.getOneAttackAgainst(null);
+                        test.assertEqual(damage,expected);test.assertEqual(calls,3);test.assertEqual(rolls.length,0);test.assertTrue(damage<=attacker.getAttackStrength());
+                    }
+                }
+            }finally{pdg.rand=original;}
+        });
+        test.it('keeps real seeded combat damage within attack strength across repeated rolls',()=>{
+            const game=createRuntimeCombatGame(),star=createOwnedStar(game,0,0,'Home',1,10,1000000),ship=game.factory.createShip(0,0,'battleship',star,true);
+            pdg.srand(101);
+            for(const attacker of [star,ship])for(let i=0;i<100;i++){
+                const damage=attacker.getOneAttackAgainst(null);
+                test.assertTrue(damage>=0 && damage<=attacker.getAttackStrength(),'Unbounded native attack '+damage);
+            }
+        });
         test.it('should handle ship death correctly', () => {
             const mockGame = {
                 players: [],
@@ -441,10 +464,56 @@ function runCombatTests() {
             const event = game.eventLog.find(entry => entry.type === Common.EventType.BATTLE_RESOLVED);
             test.assertDefined(event, 'Combat should record a summary event');
             test.assertEqual(event.title, 'Combat');
-            test.assertContains(event.message, 'Combat at Target');
-            test.assertContains(event.message, 'attacker victory');
+            test.assertContains(event.message, 'You won the battle at Target');
+            test.assertEqual(event.recipient,1);test.assertTrue(event.subject===attacker);
+            test.assertEqual(event.combat.result,'won');
         });
 
+        test.it('records participant-relative fleet casualties without exposing battles to outsiders',()=>{
+            const config=new GameConfig({numHumans:1,numComputers:2,skipMapGeneration:true,omniscient:true});
+            const game=new Game(new Factory(),new Rules(false),config),a=createOwnedStar(game,0,0,'A',2,20),b=createOwnedStar(game,1000,0,'B',3,1);
+            const attacker=game.factory.createFleet(0,0,2,'Attack 星'),defender=game.factory.createFleet(1000,0,3,'Defend Д');
+            const ships=[createCompletedShip(game,a,'battleship',20),createCompletedShip(game,a,'battleship',20),createCompletedShip(game,b,'battleship',1)];
+            attacker.addShip(ships[0]);attacker.addShip(ships[1]);defender.addShip(ships[2]);pdg.srand(42);
+            const result=game.combatSystem.resolveCombat(attacker,defender),reports=game.eventLog.filter(e=>e.type===Common.EventType.BATTLE_RESOLVED);
+            test.assertEqual(reports.length,2);test.assertEqual(game.getEventRows().filter(e=>e.type===Common.EventType.BATTLE_RESOLVED).length,0);
+            const attack=reports.find(e=>e.recipient===2),defend=reports.find(e=>e.recipient===3);
+            test.assertTrue(attack.subject===attacker);test.assertTrue(defend.subject===defender);
+            test.assertEqual(attack.combat.enemyShipsLost,defend.combat.ownShipsLost);
+            test.assertEqual(attack.combat.ownShipsLost,defend.combat.enemyShipsLost);
+            test.assertEqual(attack.combat.result,result.attackersWon?'won':result.defendersWon?'lost':'inconclusive');
+            test.assertEqual(defend.combat.result,result.defendersWon?'won':result.attackersWon?'lost':'inconclusive');
+            const snapshot=JSON.stringify(reports.map(e=>e.combat));ships[0].name='Changed';ships[0].damage=0;attacker.name='Renamed';
+            test.assertEqual(JSON.stringify(reports.map(e=>e.combat)),snapshot);
+        });
+        test.it('reports an unresolved unarmed encounter without inventing a winner or casualties',()=>{
+            const game=createRuntimeCombatGame(),a=createOwnedStar(game,0,0,'A',1),b=createOwnedStar(game,1000,0,'B',2);
+            const attacker=createCompletedShip(game,a,'scout'),defender=createCompletedShip(game,b,'scout');
+            const result=game.combatSystem.resolveCombat(attacker,defender);test.assertFalse(result.attackersWon);test.assertFalse(result.defendersWon);
+            const reports=game.eventLog.filter(e=>e.type===Common.EventType.BATTLE_RESOLVED);test.assertEqual(reports.length,2);
+            for(const event of reports){test.assertEqual(event.combat.result,'inconclusive');test.assertEqual(event.combat.ownShipsLost,0);test.assertEqual(event.combat.enemyShipsLost,0);test.assertTrue(event.message.includes('inconclusive'));}
+        });
+        test.it('counts ships rather than the planet or surviving colony in invasion reports',()=>{
+            const game=createRuntimeCombatGame(),origin=createOwnedStar(game,0,0,'Home',1,20),target=createOwnedStar(game,1000,0,'Target',2,1,1);
+            const fleet=game.factory.createFleet(0,0,1,'Liberation'),battleship=createCompletedShip(game,origin,'battleship',20),colony=createCompletedShip(game,origin,'colony',20);
+            fleet.addShip(battleship);fleet.addShip(colony);pdg.srand(42);game.combatSystem.resolveCombat(fleet,target);
+            const event=game.eventLog.find(e=>e.type===Common.EventType.BATTLE_RESOLVED&&e.recipient===1);
+            test.assertEqual(event.combat.enemyShipsLost,0);test.assertEqual(event.combat.ownShipsLost,0);
+            test.assertTrue(game.allShips.includes(colony));test.assertEqual(target.owner,1);
+            const saved=JSON.stringify(event.combat),Save=require('../src/js/game-save.js'),loaded=Save.restore(Save.serialize(game));
+            test.assertEqual(JSON.stringify(loaded.eventLog.find(e=>e.id===event.id).combat),saved);
+        });
+        test.it('shows a human defender only their own perspective in all translated reports',()=>{
+            const lang=pdg.res.getLanguage();try{for(const code of ['en','de','es','fr','ja','ru']) {
+                pdg.res.setLanguage(code);const game=createRuntimeCombatGame(),origin=createOwnedStar(game,0,0,'Enemy',2,20),home=createOwnedStar(game,1000,0,'Home 星',1,1);
+                const attacker=createCompletedShip(game,origin,'battleship',20),defender=createCompletedShip(game,home,'battleship',1);defender.name='Guard Д';pdg.srand(42);
+                game.combatSystem.resolveCombat(attacker,defender);
+                const reports=game.getEventRows().filter(e=>e.type===Common.EventType.BATTLE_RESOLVED);test.assertEqual(reports.length,1);const event=reports[0];
+                test.assertEqual(event.recipient,1);test.assertEqual(event.combat.side,'defender');test.assertTrue(event.message.includes('Guard Д'));
+                test.assertFalse(/\{[0-9]+\}/.test(event.message));test.assertEqual(event.combat.result,'lost');
+                test.assertTrue(game.getEventFocus(event).object===null);test.assertEqual(game.getEventFocus(event).x,1000);
+            }}finally{pdg.res.setLanguage(lang);}
+        });
         test.it('resolves enemy ship interception as combat instead of fleet formation', () => {
             const game = createRuntimeCombatGame();
             const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 20, 100);
@@ -477,8 +546,8 @@ function runCombatTests() {
 
             test.assertEqual(target.owner, 1, 'Target star should be captured by the colony owner');
             test.assertGreaterThan(target.population, 0, 'Captured star should retain colonized population');
-            test.assertFalse(game.allShips.includes(colony), 'Colony ship should be converted into the colony');
-            test.assertFalse(target.ships.includes(colony), 'Converted colony ship should be removed from the star ship list');
+            test.assertTrue(game.allShips.includes(colony), 'Colony ship should survive the capture');
+            test.assertTrue(target.ships.includes(colony), 'Surviving colony ship should dock at the captured system');
         });
 
         test.it('updates defeat and victory immediately after a last-star capture', () => {
@@ -544,6 +613,59 @@ function runCombatTests() {
             test.assertContains(game.allShips, defender, 'Winning defender should remain in game ships');
             test.assertContains(target.ships, defender, 'Winning defender should remain docked at the target star');
             test.assertEqual(target.owner, 2, 'Defended target should keep its owner');
+        });
+
+        test.it('attributes a defeated arriving fleet to its space or ground opponent', () => {
+            for (const targetKind of ['fleet', 'star']) {
+                const game = createRuntimeCombatGame();
+                const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 1, 100);
+                const home = createOwnedStar(game, 1000, 0, 'Enemy', 2, 20, 100);
+                const attacker = createCompletedShip(game, origin, 'scout', 1);
+                const fleet = game.factory.createFleet(0, 0, 1, 'Lost attackers');
+                fleet.addShip(attacker); fleet.star = null;
+                attacker.getOneAttackAgainst = () => 0;
+                let target = home;
+                if (targetKind === 'fleet') {
+                    const defender = createCompletedShip(game, home, 'battleship', 20);
+                    target = game.factory.createFleet(1000, 0, 2, 'Defenders');
+                    target.addShip(defender); target.star = null;
+                    defender.getOneAttackAgainst = () => 10000;
+                } else home.getOneAttackAgainst = () => 10000;
+                const losses = [], remove = game.removeDestroyedFleet.bind(game);
+                game.removeDestroyedFleet = (object, opponent) => {
+                    if (game.allFleets.includes(object)) losses.push({ object, opponent });
+                    return remove(object, opponent);
+                };
+                fleet.setDestination(target); fleet.move();
+                test.assertFalse(game.allFleets.includes(fleet));
+                const loss = losses.find(item => item.object === fleet);
+                test.assertTrue(!!loss);
+                test.assertEqual(loss.opponent, 2);
+                test.assertEqual(target.owner, 2);
+            }
+        });
+
+        test.it('attributes a defeated defending fleet to the attacking player', () => {
+            const game = createRuntimeCombatGame();
+            const origin = createOwnedStar(game, 0, 0, 'Origin', 1, 20, 100);
+            const home = createOwnedStar(game, 1000, 0, 'Enemy', 2, 1, 100);
+            const attacker = createCompletedShip(game, origin, 'battleship', 20);
+            const defender = createCompletedShip(game, home, 'scout', 1);
+            const target = game.factory.createFleet(1000, 0, 2, 'Lost defenders');
+            target.addShip(defender); target.star = null;
+            attacker.getOneAttackAgainst = () => 10000;
+            defender.getOneAttackAgainst = () => 0;
+            const losses = [], remove = game.removeDestroyedFleet.bind(game);
+            game.removeDestroyedFleet = (object, opponent) => {
+                if (game.allFleets.includes(object)) losses.push({ object, opponent });
+                return remove(object, opponent);
+            };
+            attacker.setDestination(target); attacker.move();
+            test.assertFalse(game.allFleets.includes(target));
+            const loss = losses.find(item => item.object === target);
+            test.assertTrue(!!loss);
+            test.assertEqual(loss.opponent, 1);
+            test.assertTrue(game.allShips.includes(attacker));
         });
 
         test.it('treats same-owner ships as allies even without entity-specific ally methods', () => {

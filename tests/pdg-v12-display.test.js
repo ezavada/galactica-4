@@ -25,6 +25,47 @@ module.exports = function() {
             test.assertEqual(camera.panX, 10000); test.assertEqual(camera.zoom, 1.5);
         });
     });
+    test.describe('Camera navigation whip pans',()=>{
+        const create=()=>new Camera({getDrawingArea:()=>new pdg.Rect(800,600)},5242880,5242880);
+        test.it('moves continuously to the exact requested center within 240ms with aligned inverse transforms',()=>{
+            const camera=create(),start=camera.panX;
+            camera.whipPanTo(100000,200000,100);
+            test.assertEqual(camera.panX,start);
+            camera.update(160);const early=camera.panX;
+            camera.update(220);test.assertTrue(camera.panX<early && early<start);
+            for(const [x,y] of [[100000,200000],[2500000,3500000]]){
+                test.assertApproximately(camera.toGalacticX(camera.toScreenX(x)),x,1);
+                test.assertApproximately(camera.toGalacticY(camera.toScreenY(y)),y,1);
+            }
+            camera.update(340);test.assertApproximately(camera.toScreenX(100000),400,.01);test.assertApproximately(camera.toScreenY(200000),300,.01);test.assertNull(camera.whipPan);
+        });
+        test.it('retargets a running jump from its sampled position without a discontinuity',()=>{
+            const camera=create();camera.whipPanTo(100000,200000,100);camera.update(220);
+            const x=camera.panX,y=camera.panY;camera.whipPanTo(4000000,3000000,220);
+            test.assertEqual(camera.panX,x);test.assertEqual(camera.panY,y);
+            camera.update(460);test.assertApproximately(camera.toScreenX(4000000),400,.01);test.assertApproximately(camera.toScreenY(3000000),300,.01);
+        });
+        test.it('lets dragging, scroll positions and anchored zoom cancel pending navigation',()=>{
+            const getTime=pdg.tm.getMilliseconds;let time=100;pdg.tm.getMilliseconds=()=>time;
+            try{for(const operation of [c=>c.pan(30,-20),c=>c.setPan(12000,24000),c=>c.zoomToScreenPoint(2,250,150)]){
+                const camera=create();time=100;camera.whipPanTo(100000,200000);time=180;operation(camera);
+                const x=camera.panX,y=camera.panY;test.assertNull(camera.whipPan);camera.update(1000);test.assertEqual(camera.panX,x);test.assertEqual(camera.panY,y);
+            }}finally{pdg.tm.getMilliseconds=getTime;}
+        });
+        test.it('routes displayed navigation through whip pans while preserving initial and reduced-motion views',()=>{
+            const Display=require('../src/js/display.js'),Factory=require('../src/js/factory.js'),Game=require('../src/js/game.js'),Rules=require('../src/js/rules.js'),Config=require('../src/js/game-config.js');
+            const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true}));game.port={getDrawingArea:()=>new pdg.Rect(800,600)};const display=new Display(game);
+            display.centerOn(100000,200000);test.assertTrue(!display.camera.whipPan);
+            display.hasDrawn=true;display.centerOn(500000,700000);test.assertDefined(display.camera.whipPan);
+            display.visualEffects.reducedMotion=true;display.centerOn(300000,400000);test.assertNull(display.camera.whipPan);test.assertApproximately(display.toScreenX(300000),400,.01);
+        });
+        test.it('animates the position change when fitting content or resetting the view',()=>{
+            const Display=require('../src/js/display.js'),Factory=require('../src/js/factory.js'),Game=require('../src/js/game.js'),Rules=require('../src/js/rules.js'),Config=require('../src/js/game-config.js');
+            const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true}));game.port={getDrawingArea:()=>new pdg.Rect(800,600)};const display=new Display(game);
+            display.camera.centerOn(100000,200000);display.hasDrawn=true;display.resetView();test.assertDefined(display.camera.whipPan);display.camera.update(display.camera.whipPan.start+240);test.assertEqual(display.camera.panX,0);
+            const star=game.factory.createStar(250000,300000,'Fixture');star.owner=1;display.zoomToFit();test.assertDefined(display.camera.whipPan);display.camera.update(display.camera.whipPan.start+240);test.assertApproximately(display.toScreenX(star.x),400,.01);test.assertApproximately(display.toScreenY(star.y),300,.01);
+        });
+    });
     test.describe('Retained panel text', () => {
         function panel() {
             const attrs = new pdg.Attributes().textSize(12);

@@ -2,6 +2,7 @@
 // Contains all star-related data and logic
 
 const Common = require('./common.js');
+const CombatRoll = require('./combat-roll.js');
 const I18n = require('./i18n.js');
 
 // how much of the star's resources are allocated to a particular effort
@@ -14,7 +15,8 @@ class Allocation {
         this.locked = locked; // if true, the allocation is locked and cannot be changed
     }
     setDesired(desired) {
-        this.desired = desired;
+        if (!Number.isFinite(desired)) return;
+        this.desired = Math.max(0,Math.min(100,Math.round(desired*10)/10));
     }
     setRate(rate) {
         this.rate = rate;
@@ -49,6 +51,7 @@ class Allocation {
                 this.value = this.desired;
             }
         }
+        this.value = Math.round(this.value*10)/10;
         return changed;
     }
 }
@@ -65,13 +68,15 @@ class Star {
         this.game = game;
 
         // Resource allocation (0.0 to 100.0 for each)
-        this.growth = new Allocation(34.0, 60.0, 6.0, false);
-        this.shipBuilding = new Allocation(33.0, 60.0, 6.0, false);
-        this.research = new Allocation(33.0, 60.0, 6.0, false);
+        this.growth = new Allocation(33.4, 6.0, 6.0, false);
+        this.shipBuilding = new Allocation(33.3, 6.0, 6.0, false);
+        this.research = new Allocation(33.3, 6.0, 6.0, false);
         
         // Current production
         this.currentShip = null; // Ship currently being built
         this.paidTowardShipBuilding = 0;
+        this.buildCredits = {};
+        this.unassignedShipCredit = 0;
         this.paidTowardResearch = 0;
         
         // Ships at this star
@@ -97,49 +102,31 @@ class Star {
     }
 
     update() {
-        if (this.population <= 0) {
-            return; // do nothing with unpopulated stars
+        if (!this.owner) {
+            return; // v3 processes the economy only for owned systems.
         }
 
         this.repairDockedShips();
 
-        // Adjust all the allocations
-        this.shipBuilding.adjustValue();
-        this.growth.adjustValue();
-        this.research.adjustValue();
-
-        // Adjust shipbuilding and research benefits based on the benefit of growth
-        const benefitAdjustment = this.growth.getBenefits() / 166.5;
-        if (benefitAdjustment > 0) {
-            this.shipBuilding.setPerUnitBenefit(this.shipBuilding.getPerUnitBenefit() + benefitAdjustment);
-            this.research.setPerUnitBenefit(this.research.getPerUnitBenefit() + benefitAdjustment);
+        // v3 truncates the base payment and the computer bonus separately.
+        let amount = Math.trunc(this.game.rules.getStarResearchAmount(this));
+        if (typeof this.game.applyComputerAdvantageToProduction === 'function') {
+            amount = this.game.applyComputerAdvantageToProduction(this.owner, amount, true);
         }
-
-        // apply research
-        let amount = this.game.rules.getStarResearchAmount(this);
-        if (this.game && typeof this.game.applyComputerAdvantageToProduction === 'function') {
-            amount = this.game.applyComputerAdvantageToProduction(this.owner, amount);
-        }
-        //console.log(`Paid ${amount} toward research at ${this.name}`);
         this.paidTowardResearch += amount;
-            if (this.paidTowardResearch >= 1000) {
-            this.paidTowardResearch -= 1000;
+        const researchThreshold = this.game.rules.isFast ? 750 : 1000;
+        if (this.paidTowardResearch > researchThreshold) {
+            this.paidTowardResearch -= researchThreshold;
             const oldTechLevel = this.techLevel;
             this.techLevel++;
-            
-            // Update player's highest tech level
+
             const playerInfo = this.game.players ? this.game.players[this.owner] : null;
-            if (playerInfo && playerInfo.updateHighestStarTech(this.techLevel)) {
-                // This is a new tech milestone for this player
-                console.log(`${playerInfo.name} reached star tech level ${this.techLevel}!`);
+            const newHighestTech = playerInfo && playerInfo.updateHighestStarTech(this.techLevel);
+            this.game.noteworthyEvent(this, Common.EventType.TECH_LEVEL_UP);
+            const driveClassIndex = Math.floor(this.techLevel / 5);
+            if (newHighestTech && driveClassIndex !== Math.floor(oldTechLevel / 5)) {
+                this.game.noteworthyEvent(this, Common.EventType.NEW_TECH_DISCOVERY, driveClassIndex);
             }
-            
-                this.game.noteworthyEvent(this, Common.EventType.TECH_LEVEL_UP); // who = Star. new tech level taken from star
-                // Lab event for new drive class (every 5 levels like original)
-                const driveClassIndex = Math.floor(this.techLevel / 5);
-                if (driveClassIndex !== Math.floor(oldTechLevel / 5)) {
-                    this.game.noteworthyEvent(this, Common.EventType.NEW_TECH_DISCOVERY, driveClassIndex);
-                }
         }
 
         if (this.game && typeof this.game.refreshDockedScoutTechnologyAtStar === 'function') {
@@ -152,29 +139,27 @@ class Star {
             if (this.game && typeof this.game.applyComputerAdvantageToProduction === 'function') {
                 amount = this.game.applyComputerAdvantageToProduction(this.owner, amount);
             }
-            //console.log(`Paid ${amount} toward shipbuilding at ${this.name}`);
-            this.paidTowardShipBuilding += amount;
-            const cost = this.game.rules.getShipBuildCost(this.currentShip, this);
-            
-            // Update ship construction progress
-            const oldProgress = this.currentShip.progress;
-            this.currentShip.progress = Math.min(100, (this.paidTowardShipBuilding / cost) * 100);
-            
-            console.log(`🔨 SHIP CONSTRUCTION UPDATE: ${this.currentShip.type} at ${this.name} - Progress: ${oldProgress.toFixed(1)}% → ${this.currentShip.progress.toFixed(1)}% (Paid: ${this.paidTowardShipBuilding.toFixed(0)}/${cost.toFixed(0)})`);
-            
-            if (this.paidTowardShipBuilding >= cost) {
-                console.log(`✅ SHIP CONSTRUCTION COMPLETED: ${this.currentShip.type} at ${this.name} - Ship ID: ${this.currentShip.id}`);
-                const newShip = this.completeShip(); // unlike Galactica-3, we only allow one ship per start built each turn
-                this.paidTowardShipBuilding -= cost;
-                this.game.noteworthyEvent(newShip, Common.EventType.SHIP_BUILT, this);
-            }
+            if (amount > 0) this.paidTowardShipBuilding += amount;
+            if (this.game.tutorialSimulation) this.game.tutorialSimulation.prepareShipPayment(this,amount);
+            this.commissionPaidHulls();
         }
-        
-        // apply growth
-        this.population += this.game.rules.getStarPopulationGrowth(this);
-        if (this.population > 99900) {
-            this.population = 99900;
+
+        // Current output pays for research and construction first. v3 then
+        // adjusts allocations and grows the economy for the following turn.
+        this.shipBuilding.adjustValue();
+        this.growth.adjustValue();
+        this.research.adjustValue();
+        if (this.growth.value > 0) {
+            // v3 truncates the resulting population, not the growth delta.
+            // Its 99,900 limit belongs only to the slider economy indicator.
+            this.population = Math.trunc(this.population + this.game.rules.getStarPopulationGrowth(this));
+            const benefitAdjustment = this.growth.getBenefits() / 166.5;
+            this.shipBuilding.setPerUnitBenefit(this.shipBuilding.getPerUnitBenefit() + benefitAdjustment);
+            this.research.setPerUnitBenefit(this.research.getPerUnitBenefit() + benefitAdjustment);
         }
+        // v3 restores the minimum output of irradiated systems at turn end.
+        this.shipBuilding.setPerUnitBenefit(Math.max(6,this.shipBuilding.getPerUnitBenefit()));
+        this.research.setPerUnitBenefit(Math.max(6,this.research.getPerUnitBenefit()));
     }
 
     repairDockedShips() {
@@ -197,6 +182,9 @@ class Star {
             }
             const repaired = ship.repairDamage(repairRemaining);
             repairedTotal += repaired;
+            if (repaired > 0 && ship.damage === 0 && this.game.recordRepairCompletion) {
+                this.game.recordRepairCompletion(ship, this);
+            }
             repairRemaining -= repaired;
             if (repairRemaining <= 0) {
                 break;
@@ -222,7 +210,7 @@ class Star {
 
         if (this.game && this.game.allFleets) {
             for (const fleet of this.game.allFleets) {
-                if (!fleet || fleet.owner !== this.owner || (fleet.isEmpty && fleet.isEmpty())) {
+                if (!fleet || fleet.fleet || fleet.owner !== this.owner || (fleet.isEmpty && fleet.isEmpty())) {
                     continue;
                 }
                 if (fleet.star === this ||
@@ -238,15 +226,23 @@ class Star {
     }
     
     completeShip() {
-        const ship = this.currentShip;
-        this.currentShip.complete();
-        this.currentShip = null;
+        if (!this.currentShip) return null;
+        return this.buildCompletedShip(this.currentShip.type, true);
+    }
+
+    // Editor-created ships use the same completion side effects but retain paid construction.
+    buildCompletedShip(type, consumeHull = false) {
+        const ship = this.game.factory.createShip(this.x, this.y, type, this, true);
+        if (consumeHull) this.currentShip = null;
+        this.ships.push(ship);
         
         // Update player info for new ship type and tech level
         const playerInfo = this.game.players ? this.game.players[this.owner] : null;
+        let firstHull = false;
         if (playerInfo) {
             // Track if this is a new ship type for this player
-            if (playerInfo.markShipTypeBuilt(ship.type)) {
+            firstHull = playerInfo.markShipTypeBuilt(ship.type);
+            if (firstHull) {
                 console.log(`${playerInfo.name} built their first ${ship.type} ship!`);
             }
             
@@ -271,10 +267,11 @@ class Star {
                     this.game.noteworthyEvent(ship, Common.EventType.NEW_SHIP_CLASS, classIndex);
                 }
             } else {
-                ship.name = `${ship.type} S${this.id}T${this.game.turn}-${ship.id}`;
+                ship.name = `${I18n.getShipTypeName(ship.type, { capitalized: true })} S${this.id}T${this.game.turn}-${ship.id}`;
+                if (firstHull) this.game.noteworthyEvent(ship, Common.EventType.NEW_SHIP_CLASS);
             }
         } catch (err) {
-            ship.name = `${ship.type} S${this.id}T${this.game.turn}-${ship.id}`;
+            ship.name = `${I18n.getShipTypeName(ship.type, { capitalized: true })} S${this.id}T${this.game.turn}-${ship.id}`;
         }
 
         if (ship.type === 'defense') {
@@ -290,21 +287,97 @@ class Star {
         }
         
         // If ship has a destination, move it immediately
-        if (ship.destination && ship.type !== 'defense') {
+        if (consumeHull && ship.destination && ship.type !== 'defense') {
             ship.move();
         }
         
         return ship;
     }
     
-    startBuildingShip(shipType) {
-        if (!this.currentShip) {
-            this.currentShip = this.game.factory.createShip(this.x, this.y, shipType, this);
-            this.ships.push(this.currentShip);
-            console.log(`🚀 SHIP CONSTRUCTION STARTED: ${shipType} at ${this.name} (owner: ${this.owner}) - Ship ID: ${this.currentShip.id}, Progress: ${this.currentShip.progress}%`);
-        } else {
-            console.log(`⚠️  SHIP CONSTRUCTION ALREADY IN PROGRESS: ${this.currentShip.type} at ${this.name} - Progress: ${this.currentShip.progress}%`);
+    // Fully funded hulls are complete, even when this turn adds no effort.
+    commissionPaidHulls() {
+        while (this.currentShip) {
+            const cost = this.currentShip.cost;
+            if (!Number.isFinite(cost) || cost <= 0) break;
+            this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / cost * 100);
+            if (this.paidTowardShipBuilding < cost) break;
+            // V3 CStar::BuildNewShip only asks for orders for mobile hulls
+            // without an automatic destination. Capture before immediate move
+            // can finish a route and clear the newly built ship's destination.
+            const notify=this.currentShip.type!=='defense' && !this.getDefaultDestination();
+            const newShip = this.completeShip();
+            this.paidTowardShipBuilding -= cost;
+            this.buildCredits[newShip.type] = this.paidTowardShipBuilding;
+            if(notify)this.game.noteworthyEvent(newShip, Common.EventType.SHIP_BUILT, this);
+            let nextType = newShip.type;
+            const computer = this.game.aiManager.getAIPlayer(this.owner);
+            if (computer) {
+                let ai = computer.starAIs.get(this.id);
+                if (!ai) {
+                    const { StarAI } = require('./ai-star.js');
+                    ai = new StarAI(this, this.game, this.game.rules, computer.skillManager.getSkillLevel());
+                    computer.starAIs.set(this.id, ai);
+                }
+                nextType = this.game.tutorialSimulation ?
+                    this.game.tutorialSimulation.chooseNextComputerHull() : ai.chooseShipToBuild().type;
+            }
+            this.startBuildingShip(nextType, false);
         }
+    }
+
+    getEstimatedTurnsToNextShip() {
+        if (!this.currentShip) return null;
+        // v3 estimates using desired (projected) allocation, including fast
+        // game and computer advantage, rather than the current slider value.
+        let effort = this.shipBuilding.getProjectedBenefit() / 1665.0;
+        if (this.game.rules.isFast) effort *= 2;
+        effort = this.game.applyComputerAdvantageToProduction(this.owner, effort);
+        const remaining = this.currentShip.cost - this.paidTowardShipBuilding;
+        if (remaining <= 0) return 0;
+        if (effort <= 0) return -1;
+        return Math.ceil(remaining / effort);
+    }
+
+    pauseShipBuilding() {
+        if (!this.currentShip) return false;
+        const hull = this.currentShip;
+        this.buildCredits[hull.type] = this.paidTowardShipBuilding;
+        this.currentShip = null;
+        this.paidTowardShipBuilding = 0;
+        return true;
+    }
+
+    addScrapProduction(amount) {
+        if(this.currentShip) {
+            this.paidTowardShipBuilding+=amount;
+            this.buildCredits[this.currentShip.type]=this.paidTowardShipBuilding;
+        } else this.unassignedShipCredit=(this.unassignedShipCredit || 0)+amount;
+    }
+
+    refreshSelectedHullPrice() {
+        if(!this.currentShip)return false;
+        // CShip::Arriving reselects the star's existing hull after library transfer.
+        // Keep paid effort and the selected type; only its current-tech price changes.
+        this.currentShip.techLevel=this.techLevel;
+        this.currentShip.cost=this.game.rules.getShipBuildCost(this.currentShip,this);
+        this.currentShip.progress=Math.min(100,this.paidTowardShipBuilding/this.currentShip.cost*100);
+        return true;
+    }
+
+    startBuildingShip(shipType, commissionCredit = true) {
+        if (!['scout', 'defense', 'colony', 'battleship'].includes(shipType)) return false;
+        if (this.currentShip && this.currentShip.type === shipType) return false;
+        if (this.currentShip) this.pauseShipBuilding();
+        this.paidTowardShipBuilding = (this.buildCredits[shipType] || 0)+(this.unassignedShipCredit || 0);
+        this.unassignedShipCredit=0;
+        // Pending construction is system data, not a ship/map entity.
+        // Cache the selected hull's price; commission at the system's
+        // current technology as soon as its full cost has been paid.
+        this.currentShip = { type: shipType, techLevel: this.techLevel, progress: 0 };
+        this.currentShip.cost = this.game.rules.getShipBuildCost(this.currentShip, this);
+        this.currentShip.progress = Math.min(100, this.paidTowardShipBuilding / this.currentShip.cost * 100);
+        if (commissionCredit && !this.game.clientPlayerNum) this.commissionPaidHulls();
+        return true;
     }
 
     shipDeparted(ship) {
@@ -448,28 +521,56 @@ class Star {
     /**
      * Get defense strength of the star itself
      */
-    getDefenseStrength() {
-        // Stars have base defense strength based on tech level and population
-        return this.techLevel * 1000; // Base defense per tech level
+    // CStar::GetProduction reports hundredths, with the computer multiplier
+    // applied to the integer combined benefits (not to research payments).
+    getProduction() {
+        const advantage = this.game && this.game.getComputerAdvantageForOwner ? this.game.getComputerAdvantageForOwner(this.owner) : 0;
+        return Math.trunc(this.shipBuilding.benefit + this.research.benefit) * (100 + advantage * 20);
     }
-    
-    /**
-     * Get total defense strength including satellites
-     */
-    getTotalDefenseStrength() {
-        let totalDefense = this.getDefenseStrength();
-        for (const satellite of this.defenseSatellites) {
-            // Defense satellites should have a getDefenseStrength method
-            if (satellite.getDefenseStrength) {
-                totalDefense += satellite.getDefenseStrength();
-            } else {
-                // Fallback: assume satellites have a strength property
-                totalDefense += satellite.strength || 0;
+
+    getDefenseBreakdown({resolveCourses=true}={}) {
+        if(this.remoteDefense && this.game.clientPlayerNum && this.owner!==this.game.clientPlayerNum)return {...this.remoteDefense};
+        const allied = ship => !this.owner || ship.owner === this.owner ||
+            (typeof ship.isAllyOf === 'function' && ship.isAllyOf(this.owner));
+        const completed = ship => !ship.underConstruction || !ship.underConstruction();
+        // Remote snapshots must not resolve live navigation targets as a side effect.
+        const destination = ship => resolveCourses ? ship.destination : ship.course && ship.course.waypoints.length>0;
+        const docked = ship => ship.star === this && !destination(ship);
+        const satellites = new Set(this.defenseSatellites.filter(ship => !ship.fleet && completed(ship) &&
+            (docked(ship) && allied(ship) || !ship.owner && !ship.star && !destination(ship))));
+        const satelliteDefense = [...satellites].reduce((sum, ship) => sum +
+            (typeof ship.power === 'number' ? ship.power * 100 - (ship.damage || 0) : ship.strength || 0), 0);
+        const ships = new Set(this.ships.concat(this.game && this.game.allShips || []));
+        let shipDefense = 0;
+        for (const ship of ships) {
+            if (!ship.fleet && !satellites.has(ship) && completed(ship) && docked(ship) && allied(ship)) {
+                shipDefense += ship.getDefenseStrength();
             }
         }
-        return totalDefense;
+        for (const fleet of this.game && this.game.allFleets || []) {
+            if (!fleet.fleet && docked(fleet) && allied(fleet)) {
+                const members = (fleet.getLeafShips ? fleet.getLeafShips() : fleet.ships).filter(completed);
+                if (!members.length) continue;
+                // v3 fleets inherit CShip defense: clamp the combined power
+                // once, rather than granting minimum power to every courier.
+                const power = members.reduce((sum, ship) => sum + ship.power, 0);
+                const damage = members.reduce((sum, ship) => sum + ship.damage, 0);
+                shipDefense += Math.max(1, power) * 100 - damage;
+            }
+        }
+        // v3 satellites form one special fleet. Its table column is raw power
+        // minus damage; total defense also has CShip's one-power minimum.
+        const realSatellites = [...satellites].filter(ship => typeof ship.power === 'number');
+        const minimumSatellitePower = realSatellites.length &&
+            realSatellites.reduce((sum, ship) => sum + ship.power, 0) < 1 ? 100 : 0;
+        return { satelliteDefense, shipDefense,
+            totalDefense: this.getDefenseStrength() + satelliteDefense + minimumSatellitePower + shipDefense };
     }
-    
+
+    getTotalDefenseStrength() {
+        return this.getDefenseBreakdown().totalDefense;
+    }
+
     // Combat methods - ported from CStar.cpp
     getAttackStrength() {
         if (this.game && this.game.rules && typeof this.game.rules.getStarAttackStrength === 'function') {
@@ -491,8 +592,8 @@ class Star {
     }
     
     getOneAttackAgainst(defender) {
-        // Use PDG random function for damage variance
-        const attackDamage = Math.floor((this.getAttackStrength() * (pdg.rand() + pdg.rand() + pdg.rand() + 3)) / 300);
+        // Use the source bounded PDG rolls for damage variance
+        const attackDamage = CombatRoll.attackDamage(this.getAttackStrength(),this.game);
         return Math.max(0, attackDamage);
     }
     
@@ -578,4 +679,5 @@ class Star {
 Star.nextId = 1;
 
 // Export the class
+Star.Allocation=Allocation;
 module.exports = Star;

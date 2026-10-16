@@ -2,8 +2,16 @@
 // Contains all ship-related data and logic
 
 const Common = require('./common.js');
+const CombatRoll = require('./combat-roll.js');
+const Course = require('./course.js');
 
 class Ship {
+    get destination() { return this.course ? this.course.destination : null; }
+    set destination(target) {
+        if (!this.course) this.course=new Course(this);
+        this.course.replace(target);
+    }
+
     constructor(x, y, type, star, game, owner) {
         this.id = Ship.nextId++; // Unique ID for this ship
         this.x = x;
@@ -23,6 +31,9 @@ class Ship {
         this.name = '';
         this.classIndex = 0; // 1-based class index for battleships per 5 tech levels
         this.onPatrol = false;
+        this.toBeScrapped = false;
+        this.userCallIn = false;
+        this.lastCallInTurn = -5;
         
         // Fog of War properties
         this.scannerRange = 0;
@@ -60,11 +71,15 @@ class Ship {
                 this.star = null;
             }
             
+            if(this.game && this.game.movePursuedTargetFirst)this.game.movePursuedTargetFirst(this);
+            if(!this.destination || this.isDead() || this.fleet ||
+                this.game.movementTurn && !this.game.allShips.includes(this))return;
+
             const dx = this.destination.x - this.x;
             const dy = this.destination.y - this.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            if (distance < 5 || distance < (this.speed + 5)) {
+            if (distance <= this.speed) {
                 // Arrived at destination
                 console.log(`🎯 SHIP ARRIVED: ${this.type} (ID: ${this.id}) at destination`);
                 this.arriveAtDestination();
@@ -103,6 +118,11 @@ class Ship {
         return this.type === 'scout' ? 0 : this.techLevel;
     }
     
+    // v3 diagnostics use integer damage percent; scouts have zero power.
+    getDamagePercent() {
+        return this.power ? Math.trunc(this.damage / this.power) : 0;
+    }
+
     // Combat methods - ported from CShip.cpp
     getAttackStrength() {
         return this.power * 50;
@@ -117,8 +137,8 @@ class Ship {
     }
     
     getOneAttackAgainst(defender) {
-        // Use PDG random function for damage variance
-        const attackDamage = Math.floor((this.getAttackStrength() * (pdg.rand() + pdg.rand() + pdg.rand() + 3)) / 300);
+        // Use the source bounded PDG rolls for damage variance
+        const attackDamage = CombatRoll.attackDamage(this.getAttackStrength(),this.game);
         
         // Apply patrol bonus if docked and on patrol
         if (this.isDocked() && this.isOnPatrol()) {
@@ -175,6 +195,14 @@ class Ship {
         return this.star !== null;
     }
     
+    isToBeScrapped() { return !!this.toBeScrapped; }
+
+    setScrap(scrap) {
+        this.toBeScrapped=!!scrap;
+        // A surviving member must not leave its parent marked for deletion.
+        if(!scrap && this.fleet)this.fleet.toBeScrapped=false;
+    }
+
     isOnPatrol() {
         return !!this.onPatrol;
     }
@@ -223,10 +251,14 @@ class Ship {
     }
     
     arriveAtDestination() {
+        if (this.game && typeof this.game.handleMobileArrival === 'function') {
+            return this.game.handleMobileArrival(this);
+        }
+        // Standalone model fixtures may provide a minimal game interface.
         if (this.destination) {
             const arrivingObjectType = this.game.getObjectType(this.destination);
             const arrivingDestination = this.destination;
-            this.destination = null;
+            const revision = this.course.revision;
             this.x = arrivingDestination.x;
             this.y = arrivingDestination.y;
             
@@ -298,11 +330,15 @@ class Ship {
             } else {
                 this.game.noteworthyEvent(this, Common.EventType.SHIP_STOPPED, arrivingDestination);
             }
+            if (!this.fleet && !this.isDead() && (!this.game.allShips || this.game.allShips.includes(this))) {
+                this.course.advance(revision);
+            }
         }
     }
     
     setDestination(obj) {
         if (this.type !== 'defense') {
+            if(obj)this.setScrap(false);
             this.setPatrol(false);
             this.destination = obj;
             if (obj) {

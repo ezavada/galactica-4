@@ -45,9 +45,46 @@
     // Native browser menus interrupt the canvas mouse stream and take keyboard
     // focus away from PDG. Galactica uses right-click in-game, so keep those
     // gestures inside the canvas.
-    canvas.addEventListener('mousedown', function() {
+    // Keep mouse drag/release events on the canvas when a slider or map
+    // scroll thumb crosses its edge. The browser releases capture on mouse-up.
+    canvas.addEventListener('pointerdown', function(event) {
+        if (event.pointerType === 'mouse' && (event.button === 0 || event.button === 1) &&
+                typeof canvas.setPointerCapture === 'function') {
+            canvas.setPointerCapture(event.pointerId);
+        }
+    });
+    var heldMouseButtons = 0;
+    var lastMousePosition = {clientX:0,clientY:0};
+    function buttonMask(button) { return button === 0 ? 1 : button === 1 ? 4 : 2; }
+    function releaseMouseButton(button, event) {
+        var mask = buttonMask(button);
+        if (!(heldMouseButtons & mask)) return;
+        heldMouseButtons &= ~mask;
+        // GLFW's browser bridge accepts releases only when their target is the
+        // canvas. Forward a lost external release through its normal event path.
+        canvas.dispatchEvent(new MouseEvent('mouseup', {bubbles:true,button:button,
+            buttons:heldMouseButtons,clientX:event.clientX,clientY:event.clientY}));
+    }
+    canvas.addEventListener('mousedown', function(event) {
+        if (event.button === 0 || event.button === 1) heldMouseButtons |= buttonMask(event.button);
+        lastMousePosition = event;
         canvas.focus({ preventScroll: true });
     }, true);
+    canvas.addEventListener('mouseup', function(event) {
+        heldMouseButtons &= ~buttonMask(event.button);
+    }, true);
+    canvas.addEventListener('mousemove', function(event) {
+        lastMousePosition = event;
+        [0,1].forEach(function(button) {
+            if (!(event.buttons & buttonMask(button))) releaseMouseButton(button,event);
+        });
+    }, true);
+    window.addEventListener('mouseup', function(event) {
+        if (event.target !== canvas) releaseMouseButton(event.button,event);
+    });
+    window.addEventListener('blur', function() {
+        [0,1].forEach(function(button) { releaseMouseButton(button,lastMousePosition); });
+    });
     canvas.addEventListener('contextmenu', function(event) {
         event.preventDefault();
         canvas.focus({ preventScroll: true });
@@ -148,6 +185,9 @@
             ? [resolved]
             : [resolved + '.js', resolved.replace(/\/$/, '') + '/index.js'];
         for (var index = 0; index < candidates.length; index++) {
+            // CommonJS cached exports (including in-progress circular imports)
+            // must not depend on another successful source request.
+            if (moduleCache[candidates[index]]) return { url: candidates[index] };
             try {
                 return {
                     url: candidates[index],
@@ -213,7 +253,9 @@
         if (!Array.isArray(window.GALACTICA_ASSETS)) {
             return Promise.reject(new Error('Galactica asset manifest is missing; run tools/build-web.sh first.'));
         }
-        var assets = window.GALACTICA_ASSETS;
+        var assets = window.GALACTICA_ASSETS.filter(function(asset) {
+            return !asset.startsWith('data/art-styles/');
+        });
         setStatus('loadingAssets');
         return Promise.all(assets.map(function(asset) {
             var url = new URL(asset, appBaseUrl).href;
@@ -239,6 +281,7 @@
             if (code) throw new Error('Galactica-4 exited with status ' + code);
         };
         browserRequire('./main.js', appBaseUrl.href);
+        if (document.documentElement.getAttribute('data-status') === 'closed') return;
         document.documentElement.setAttribute('data-status', 'ready');
         if (statusNode) {
             statusNode.remove();

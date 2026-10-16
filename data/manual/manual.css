@@ -1,0 +1,19 @@
+:root { color-scheme: dark; font: 17px/1.65 system-ui, sans-serif; background: #11151c; color: #e8eaf0; }
+body { max-width: 76rem; margin: auto; padding: 1.5rem; }
+a { color: #9fcfff; text-underline-offset: .2em; }
+a:focus-visible { outline: 3px solid #9fcfff; outline-offset: 4px; }
+header, nav, section { border: 1px solid #394452; border-radius: .8rem; background: linear-gradient(#242b35, #1a2029); padding: 1.25rem; margin-bottom: 1.25rem; }
+h1, h2, h3 { line-height: 1.25; color: #f5f7fa; }
+h1 { margin-top: .2rem; }
+h2 { scroll-margin-top: 1rem; }
+p, li { max-width: 75ch; }
+nav ul { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; list-style: none; padding: 0; }
+nav a[aria-current] { color: white; font-weight: 700; }
+.contents { columns: 2 19rem; }
+.contents li { break-inside: avoid; margin-bottom: .3rem; }
+kbd { font: .9em ui-monospace, monospace; border: 1px solid #647386; border-radius: .25rem; padding: .05em .3em; background: #131923; white-space: nowrap; }
+table { width: 100%; border-collapse: collapse; text-align: start; }
+th, td { border-bottom: 1px solid #47515e; padding: .5rem; vertical-align: top; }
+.table { overflow-x: auto; }
+@media (max-width: 500px) { body { padding: .6rem; } header, nav, section { padding: 1rem; } :root { font-size: 16px; } }
+@media print { :root { color-scheme: light; color: #111; background: white; } header, nav, section { background: white; border-color: #bbb; } a, h1, h2, h3 { color: #111; } kbd { background: white; } nav { display: none; } }

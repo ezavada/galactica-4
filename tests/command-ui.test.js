@@ -85,6 +85,7 @@ function createFakePort(width = 800, height = 600) {
         drawLine: () => {},
         drawPolygon: () => {},
         drawCircle: () => {},
+        getTextWidth: (text,size=12) => Array.from(String(text)).length*size/2,
         drawText: () => {}
     };
 }
@@ -98,9 +99,8 @@ function createOwnedStar(game, owner, name = 'Alpha') {
 }
 
 function allocationTotal(game, star) {
-    return game.getAllocationDesired(star.growth) +
-        game.getAllocationDesired(star.shipBuilding) +
-        game.getAllocationDesired(star.research);
+    return [star.growth,star.shipBuilding,star.research].reduce((sum,allocation)=>
+        sum+Math.round(game.getAllocationDesired(allocation)*10),0)/10;
 }
 
 module.exports = function runCommandUITests() {
@@ -123,7 +123,7 @@ module.exports = function runCommandUITests() {
             const changed = game.adjustStarAllocation(star, 'growth', 15);
 
             test.assertTrue(changed, 'Human-owned star allocation should change');
-            test.assertEqual(game.getAllocationDesired(star.growth), 49);
+            test.assertEqual(game.getAllocationDesired(star.growth), 48.4);
             test.assertEqual(allocationTotal(game, star), 100);
 
             game.adjustStarAllocation(star, 'research', -20);
@@ -189,10 +189,10 @@ module.exports = function runCommandUITests() {
         test.it('builds comparison rows for the comparison window', () => {
             const game = createGameForTests();
             const playerStar = createOwnedStar(game, 1, 'Sol');
-            playerStar.population = 2.5;
+            playerStar.population = 2500;
             playerStar.techLevel = 4;
             const aiStar = createOwnedStar(game, 2, 'Rigel');
-            aiStar.population = 1.5;
+            aiStar.population = 1500;
             aiStar.techLevel = 2;
 
             const ship = game.getFactory().createShip(playerStar.x, playerStar.y, 'scout', playerStar);
@@ -320,7 +320,7 @@ module.exports = function runCommandUITests() {
 
             const menuButton = display.getMapButtonRegions().find(button => button.label === 'Menu');
             test.assertNotNull(menuButton, 'Menu button should exist');
-            test.assertEqual(menuButton.rect.width, 98);
+            test.assertEqual(menuButton.rect.width, 44);
             const productionButton = display.getMapButtonRegions().find(button => button.label === 'Production');
             test.assertUndefined(productionButton, 'Production should not be a permanent map button');
 
@@ -334,6 +334,9 @@ module.exports = function runCommandUITests() {
             createOwnedStar(game, 1, 'Sol');
             createOwnedStar(game, 2, 'Rigel');
             const turnBefore = game.turn;
+            game.handleUIClick(endTurnButton.rect.x + 5, endTurnButton.rect.y + 5);
+            test.assertEqual(game.turn,turnBefore,'Menu must block the map End Turn button');
+            game.uiWindow=null;
             const handledEndTurn = game.handleUIClick(endTurnButton.rect.x + 5, endTurnButton.rect.y + 5);
 
             test.assertTrue(handledEndTurn, 'End Turn button click should be consumed');
@@ -356,19 +359,28 @@ module.exports = function runCommandUITests() {
             test.assertFalse(result.isGameOver, 'Closing event windows should not force a game-over result');
         });
 
-        test.it('lets the end-turn hotkey advance while an event overlay is open', () => {
-            const game = createGameForTests();
-            createOwnedStar(game, 1, 'Sol');
-            createOwnedStar(game, 2, 'Rigel');
-            game.overlay = { type: 'stardock', classIndex: 1 };
-            game.uiWindow = 'events';
+        test.it('acknowledges lab and stardock reports before handling the end-turn shortcut', () => {
+            for(const type of ['lab','stardock'])for(const key of [13,10,32,pdg.key_Escape]) {
+                const game=createGameForTests();createOwnedStar(game,1,'Sol');createOwnedStar(game,2,'Rigel');
+                game.overlay={type,classIndex:1};game.overlayQueue=[{type:'report',eventId:-1}];game.uiWindow='events';
+                const turnBefore=game.turn;game.handleKeyPress(key);
+                test.assertEqual(game.turn,turnBefore);test.assertEqual(game.uiWindow,'events');
+                test.assertEqual(game.overlay.type,'report');test.assertEqual(game.overlayQueue.length,0);
+            }
+        });
 
-            const turnBefore = game.turn;
-            game.handleKeyPress(pdg.key_Tab);
-
-            test.assertNull(game.overlay, 'End-turn hotkey should close the overlay');
-            test.assertNull(game.uiWindow, 'End-turn hotkey should close the event list');
-            test.assertEqual(game.turn, turnBefore + 1, 'End-turn hotkey should advance instead of only dismissing the overlay');
+        test.it('blocks attention navigation during a class report and preserves the turn on ordinary-key dismissal', () => {
+            for(const type of ['lab','stardock']) {
+                const game=createGameForTests();game.overlay={type,classIndex:1};const original=game.overlay;
+                game.handleKeyPress(pdg.key_Tab);test.assertTrue(game.overlay===original);
+                // End is an ordinary non-Tab key on the legacy class surface,
+                // not the end-turn shortcut: dismissal must preserve the turn.
+                const turn=game.turn;game.handleKeyPress(pdg.key_End);test.assertNull(game.overlay);test.assertEqual(game.turn,turn);
+            }
+            for(const type of ['report','outcome']) {
+                const game=createGameForTests();game.overlay={type};const original=game.overlay;
+                game.handleKeyPress(pdg.key_End);test.assertTrue(game.overlay===original);
+            }
         });
 
         test.it('queues event presentations and advances them on dismissal', () => {
@@ -465,7 +477,7 @@ module.exports = function runCommandUITests() {
             display.setHoverPoint(button.rect.x + button.rect.width / 2, button.rect.y + button.rect.height / 2);
             display.drawUIButton(button.rect, button.label, button.key);
 
-            test.assertEqual(drawnText, `${button.label} <${button.key}>`);
+            test.assertEqual(drawnText,button.label);
             test.assertEqual(drawnColor, 'hovergray');
             test.assertTrue(roundedAttrs === display.styles.buttonFillHover, 'Hovered buttons should use the hover Attributes class');
         });
@@ -491,7 +503,7 @@ module.exports = function runCommandUITests() {
             test.assertEqual(drawnText[0].x, rects.track.x - 8);
             test.assertEqual(drawnText[0].color, 'labelgray');
             test.assertEqual(drawnText[0].style, pdg.textStyle_RightJustified);
-            test.assertEqual(drawnText[1].text, '34%');
+            test.assertEqual(drawnText[1].text, '33.4%');
             test.assertEqual(drawnText[1].x, rects.track.x + rects.track.width + 8);
             test.assertEqual(barCall.y + barCall.height, 100);
             test.assert(drawnText.every(entry => entry.text.indexOf('→') === -1), 'Slider text should not include current-to-desired arrows');
@@ -520,7 +532,7 @@ module.exports = function runCommandUITests() {
             display.drawStarDetails(star);
 
             const popLabel = drawnText.find(entry => entry.text === 'Pop:');
-            const popValue = drawnText.find(entry => entry.text === '2000');
+            const popValue = drawnText.find(entry => entry.text === '2,000');
             test.assertNotNull(popLabel, 'Pop label should be drawn separately');
             test.assertNotNull(popValue, 'Population value should be drawn separately');
             test.assertEqual(popLabel.color, 'labelgray');
@@ -570,7 +582,8 @@ module.exports = function runCommandUITests() {
             const star = createOwnedStar(game, 1, 'Build Progress');
             star.x = 500;
             star.y = 300;
-            star.currentShip = { type: 'scout', progress: 37 };
+            star.startBuildingShip('scout');
+            star.currentShip.progress = 37.9;
             const rect = display.getStarDetailsLayout(star).rect;
             const drawnText = [];
             let barCall = null;
@@ -592,7 +605,7 @@ module.exports = function runCommandUITests() {
             test.assertEqual(progressText.x, rect.x + rect.width - 25);
             test.assertEqual(progressText.style, pdg.textStyle_RightJustified);
             test.assertEqual(barCall.y + barCall.height, buildingLabel.y);
-            test.assertApproximately(barCall.ratio, 0.37, 0.001);
+            test.assertApproximately(barCall.ratio, 0.379, 0.001);
         });
 
         test.it('uses the ship Orders button to arm a left-click destination', () => {
@@ -642,7 +655,7 @@ module.exports = function runCommandUITests() {
             for (let i = 1; i < leftPanelButtons.length; i++) {
                 test.assertEqual(leftPanelButtons[i].centerY - leftPanelButtons[i - 1].centerY, 36);
             }
-            test.assertEqual(leftPanelButtons[0].rect.x - star.x, 62);
+            test.assertInRange(leftPanelButtons[0].rect.x - star.x, 50, 68, 'The arc should keep a usable gap as the action count grows');
 
             const rightPanelButtons = display.getContextButtonArc(star, { x: 540, y: 240, width: 200, height: 120 });
             test.assert(rightPanelButtons.every(button => button.centerX < star.x), 'Buttons should arc left when panel is right of object');

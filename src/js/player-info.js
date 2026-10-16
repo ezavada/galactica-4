@@ -112,7 +112,7 @@ class PlayerInfo {
         if (!classIndex || classIndex < 1) {
             return false;
         }
-        if (!this.builtFighterClasses.has(classIndex)) {
+        if (![...this.builtFighterClasses].some(built => built >= classIndex)) {
             this.builtFighterClasses.add(classIndex);
             return true;
         }

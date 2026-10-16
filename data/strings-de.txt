@@ -13,7 +13,7 @@
 7	Keine
 8	Klicken Sie auf Sterne, um sie zu verwalten
 9	Klicken Sie auf Schiffe, um Befehle zu erteilen
-10	TAB um Runde zu beenden
+10	TAB: nächstes Objekt; Enter: Runde beenden
 11	Schiffsrumpf
 12	Schiff
 13	Technologiestufe:
@@ -57,11 +57,11 @@
 306	Unbekannt
 
 # Map Size Descriptions (350-399)
-350	Klein
-351	Mittel
-352	Groß
-353	Riesig
-354	Gigantisch
+350	Winzig
+351	Klein
+352	Mittel
+353	Groß
+354	Riesig
 355	Unbekannt
 
 # Density Descriptions (400-449)
@@ -94,9 +94,9 @@
 520	Neues Spiel einrichten
 521	Spieler: {0} {1}, {2} {3}
 522	KI-Fähigkeit: {0} ({1})
-523	Karte: {0} / {1}
+523	Kartengröße: {0}
 524	Optionen: {0}, {1}
-525	<C> KI-Spieler wechseln   <1-5> KI-Fähigkeit
+525	<C> KI-Anzahl bearbeiten   <1-5> KI-Stärke
 526	<S> Kartengröße   <D> Sterndichte
 527	<F> schnelles Spiel   <O> Nebel/alles sichtbar   <R> Standardwerte
 528	<Enter> Starten
@@ -118,14 +118,14 @@
 544	Ausgewählte Flotte: {0} Schiffe
 545	<V>/<Esc> Vergleich schließen
 546	Zoom
-547	<+/-> Zoom   <0> Zurücksetzen   <Shift+C> Zentrieren
-548	<Linke Maustaste ziehen> Verschieben   <Mittlere Maustaste ziehen> Verschieben   <Mausrad> Zoom
+547	<+/-> Zoom   <0> Einpassen   <Shift+C> Zentrieren
+548	<Leerraum / Alt / Mitteltaste ziehen> Verschieben   <Mausrad> Zoom
 549	Produktion
 
 # Command button and panel labels (550-599)
 550	Menü
 551	Ereignisse
-552	Vergleich
+552	Spieler vergleichen
 553	Heimat
 554	Einpassen
 555	Befehle
@@ -144,7 +144,7 @@
 568	Galactica-4
 570	Neue Antriebstechnologie
 571	Neue Klasse {0} in Dienst gestellt
-572	Drücken Sie eine Taste zum Fortfahren
+572	Enter, Leertaste oder Esc zum Fortfahren
 573	Umbenennen
 574	Löschen
 575	Bewegen
@@ -203,14 +203,14 @@
 634	Neue Schiffsklasse in Dienst gestellt: {0}
 635	Spieler {0} kolonisierte {1}
 636	Spieler {0} eroberte {1}
-637	{0} wurde besiegt
+637	{0}: Niederlage
 638	Bemerkenswertes Ereignis: {0} {1} {2} {3} {4} {5}
 639	Ziel
 640	Kampf
 641	neues Ziel
 642	KI-Fähigkeiten-Autoplay
 643	KI-Autoplay mit Seed {0} und Verzögerung {1} ms gestartet
-644	{0} gewinnt in Runde {1}
+644	{0}: Sieg in Runde {1}
 645	KI-Autoplay nach {0} Runden ohne Sieger gestoppt
 646	Sieger:
 647	alle Fähigkeiten
@@ -228,7 +228,7 @@
 660	{0} bei ({1}, {2}) gesetzt
 661	{0} nach ({1}, {2}) bewegt
 662	{0} gelöscht
-663	Sie können nur Ihre eigenen Flotten und Rendezvouspunkte verwalten.
+663	Du kannst nur eigene Objekte verwalten.
 664	{0} in {1} umbenannt
 665	Befehle von {0} gelöscht
 666	{0} patrouilliert jetzt
@@ -241,4 +241,713 @@
 673	{0} umbenennen
 
 # Ship class names for battleships (STRx_ShipNames equivalent) (800)
-800	Traveller|Rama|Hawk|Falcon|Riviel|Raven|Valkyrie|Wolven|Avenger|Banshee|Talon|Tempest|Scorpion|Vindicator|Cobra|Viper|Warhawk|Barracuda|Wyvren|Hellion
+800	Reisender|Rama|Habicht|Falke|Riviel|Rabe|Valkyrie|Wolven|Rächer|Todesfee|Kralle|Sturm|Skorpion|Verteidiger|Kobra|Natter|Kriegesfalke|Barracuda|Hai|Bengel
+
+# Production allocation locks
+674	Sperren
+675	Entsperren
+676	Ausgleichen
+677	Fortlaufend
+678	Baupause
+679	Dauer:
+680	{0} Runde|{0} Runden
+681	Pausiert
+682	Speichern
+683	Abbrechen
+
+# Default destination controls
+684	Ziel:
+685	Ziel festlegen
+686	Ziel löschen
+
+# Ships in system
+687	Schiffe bei {0}
+688	Schiffe im System
+689	Keine angedockten Schiffe
+690	Zurück
+691	Weiter
+692	Schiff oder Flotte anklicken, um Details anzuzeigen
+
+# New colony defaults
+693	Standardwerte für neue Kolonien
+694	Gilt für zukünftige Kolonien
+695	,
+
+# Ship diagnostics
+696	Scanreichweite:
+697	Klasse:
+698	Zustand:
+699	Status:
+700	Position:
+701	Schiffstyp:
+702	Angedockt
+703	Auf Patrouille
+704	Unterwegs
+705	Untätig
+706	{0} Lichtjahre
+707	In Flotte
+
+# Your Star Systems comparison table
+708	Ihre Sternsysteme
+709	Name
+710	Tech.
+711	Bevölkerung|×1000
+712	Produktion
+713	Bauauftrag
+714	Fertig|%
+715	Abwehr|Gesamt
+716	Abwehr|Satelliten
+717	Abwehr|Schiffe
+718	System doppelt anklicken oder auswählen und Eingabetaste drücken
+719	Keine eigenen Systeme
+
+# System diagnostics and integer grouping
+720	.
+721	Position:
+722	Gesamtabwehr:
+723	Satelliten:
+724	Schiffsabwehr:
+725	S-{0}
+
+# Waypoint course editor
+726	Kurs
+727	Kurs: {0}
+728	Keine Wegpunkte
+729	Hinzufügen
+730	Bearbeiten
+731	Löschen
+732	Kurs löschen
+733	Wiederholen
+734	Ziel anklicken; Esc bricht ab
+735	Runden
+736	Wegpunkt
+737	Abschnitt
+738	Verbleibend
+739	Kurs für {0} aktualisiert
+
+# Course memory
+740	Kursspeicher
+
+# V3 course hunt mode
+741	Jagd
+
+# Call-in and attention
+742	Melden
+743	Nächstes
+744	Achtung
+745	{0} wartet auf Befehle
+746	{0} Objekt braucht noch Aufmerksamkeit.|{0} Objekte brauchen noch Aufmerksamkeit.
+747	Trotzdem beenden
+748	Prüfen
+
+# Event reports
+749	Anzeigen
+750	Kein Ort
+751	Gelesen
+752	Ereignis auswählen
+753	Details
+
+# Scrapping
+754	Verschrotten
+755	Abbrechen
+756	Zum Verschrotten
+757	{0} verschrottet; {1} Produktion bei {2} zurückgewonnen
+758	{0} verschrottet
+
+# Settings
+759	Einstellungen
+760	Sprache
+
+# Computer advantage setup
+761	Computervorteil
+762	<A> Computervorteil wechseln
+763	Produktion: {0}%
+
+# Stellar density setup
+764	Sterndichte {0}
+
+# Map drawing preferences
+765	Raster anzeigen
+766	Namen auf der Karte anzeigen
+767	Schiffe anzeigen
+768	Alle Kurse anzeigen
+769	Kurierkurse anzeigen
+770	Scannerreichweiten anzeigen
+
+# Fullscreen window command
+771	Vollbild
+772	Der Vollbildmodus konnte nicht geändert werden. Bitte erneut versuchen.
+
+# Map display modes and brightness legend
+773	Kartenanzeige
+774	Besitz
+775	Produktion
+776	Technologie
+777	Verteidigung
+778	Wachstumsanteil
+779	Schiffbauanteil
+780	Forschungsanteil
+781	Höhere Werte erscheinen heller.
+782	Keine bekannten Werte
+783	Bekannte Systeme: {0}–{1}
+784	Zielanteil (%)
+
+# Nebula background preference
+785	Nebel-Hintergrund anzeigen
+
+# Camera view commands
+786	Ansicht
+787	Vergrößern
+788	Verkleinern
+789	Ansicht zurücksetzen
+790	Auswahl zentrieren
+
+# Map scroll bars
+791	Horizontal scrollen
+792	Vertikal scrollen
+
+# Overlapping map objects
+793	Objekt auswählen
+794	Eintrag wählen; Esc bricht ab
+
+# Fleet transfer destination
+795	Zielflotte wählen
+
+# Nested fleet groups
+796	Gruppe
+797	Gruppe {0}
+798	Übergeordnete Flotte
+
+# Fleet exchange window
+801	Schiffe austauschen
+802	Schiffe und Flotten
+803	Flotteninhalt
+804	Neue Flotte
+805	Ansehen
+
+# Fleet roster
+806	Keine Schiffe, Flotten oder Sammelpunkte.
+807	Ja
+808	Nein
+809	Zeile doppelklicken, um sie anzusehen.
+
+# Roster window geometry
+810	Titelleiste zum Verschieben ziehen; untere rechte Ecke zum Ändern der Größe ziehen.
+
+# Player comparison
+811	Unbesetzte Systeme
+812	System|Min
+813	System|Max
+814	System|Ø
+815	Schiff|Min
+816	Schiff|Max
+817	Schiff|Ø
+818	Blau: bester Wert · Rot: schlechtester Wert
+819	{0} (besiegt)
+820	Systemtechnologie
+821	Schiffstechnologie
+
+# New game player name
+822	Spielername
+823	Geben Sie Ihren Spielernamen ein.
+824	Geben Sie vor dem Start einen Namen ein.
+
+# Startup game title
+825	Spieltitel
+826	Geben Sie einen Spieltitel ein.
+827	Geben Sie vor dem Speichern einen Titel ein.
+828	Titel: {0} <T>
+
+# Computer-opponent setup
+829	Computergegner
+830	Anzahl der Gegner eingeben (0–{0}).
+831	Geben Sie eine ganze Zahl von 0 bis {0} ein.
+
+# Victory and defeat conclusions (v3 TEXT 4000/4001)
+832	Der Sieg gehört Ihnen!|Sie haben die gesamte Galaxie erobert und alle besiegt, die sich Ihnen in den Weg stellten. Sie ruhen sich eine Weile aus, während das Volk Ihren Sieg feiert.|Doch Sie wissen, dass sich mit der Zeit neue Usurpatoren erheben werden…
+833	Ihre Schiffe wurden zerstört, Ihre Planeten erobert.|Als Sie gefangen genommen werden, erkennen Sie, dass Sie die Niederlage eingestehen müssen. Ihre Aussicht, Kaiser zu werden, ist nun gering.|Doch es steht geschrieben: „Eines Tages wird {0} zurückkehren – stärker als je zuvor…“
+834	Weiter
+835	Bericht anzeigen
+
+// Local game documents
+836	Neues Spiel…
+837	Offene Spiele
+
+// Local saved-game documents
+838	Datei
+839	Spiel speichern
+840	Speichern unter…
+841	Spiel öffnen…
+842	Gespeicherten Stand laden
+843	Dateipfad
+844	Dateiname
+845	Das Spiel konnte nicht gespeichert werden.
+846	Das Spiel konnte nicht geöffnet werden.
+847	Diese Datei ist kein unterstützter Galactica-4-Spielstand.
+848	Spiel gespeichert: {0}
+849	Änderungen verwerfen und zur zuletzt gespeicherten Runde zurückkehren?
+850	Spiel wird gespeichert…
+851	Spiel wird geöffnet…
+852	Spielstand wird wiederhergestellt…
+853	Wählen Sie eine Datei zum Öffnen.
+854	Es ist kein gespeicherter Spielstand verfügbar.
+855	Vorhandene Datei ersetzen: {0}?
+856	Bitte benennen Sie Ihre neue Kolonie und stellen Sie ihre Produktionsanteile ein.
+
+# Control and setup flyby help
+857	Bedienhilfe
+858	Klicken oder ziehen, um den Zielanteil festzulegen. Die Füllung zeigt die aktuelle Leistung, der Strich das Ziel.
+859	Diesen Anteil sperren oder entsperren. Gesperrte Ziele bleiben bei Änderungen anderer Anteile fest.
+860	Die Produktion gleichmäßig auf ungesperrte Anteile verteilen.
+861	Den nächsten Schiffstyp wählen. Bezahlter Baufortschritt bleibt für jeden Typ getrennt erhalten.
+862	Den Bau pausieren und den bezahlten Fortschritt behalten.
+863	Ein System, Schiff, eine Flotte oder einen Punkt im All als Ziel anklicken. Escape bricht ab.
+864	Die geordneten Wegpunkte dieses Schiffs oder dieser Flotte ansehen und bearbeiten.
+865	Den Kurs speichern oder mit dem gemerkten Kurs tauschen.
+866	Den gesamten Kurs einschließlich seines Ausgangspunkts wiederholen.
+867	Dieses System patrouillieren. Dabei wird der aktive Kurs gelöscht; Reparaturen im System entfallen.
+868	In jedem Zug Aufmerksamkeit anfordern, bis diese Meldung abgestellt wird.
+869	Die Jagdmarkierung des Kurses umschalten. Sie wählt keine Gegnerziele automatisch aus.
+870	Zur Verschrottung vormerken oder den Auftrag aufheben. Im nächsten Zug wird ein Teil der Baukosten erstattet.
+871	Den Namen direkt auf der Karte bearbeiten. Eingabe übernimmt ihn; Escape bricht ab und behält den ursprünglichen Namen.
+872	Eine Zielflotte wählen und ausgewählte Schiffe oder ganze Gruppen übertragen.
+873	Dieses Mitglied in das übergeordnete System oder die Flotte zurückbringen.
+874	Aus dem ausgewählten Mitglied eine untergeordnete Flottengruppe bilden.
+875	Einen beliebigen Punkt im All als Rendezvous wählen. Eigene Schiffe sammeln sich dort in einer Flotte.
+876	Diesen Rendezvouspunkt löschen. Die versammelten Schiffe bleiben erhalten.
+877	Dieses Objekt auswählen und ansehen oder auf der Karte zentrieren.
+878	Die Liste nach dieser Spalte sortieren. Erneutes Klicken kehrt die Reihenfolge um.
+879	Eine andere Seite anzeigen, ohne einen Zug weiterzugehen.
+880	Einen Bericht auswählen oder erneut ansehen. Gehe zu zeigt sein Objekt; Lesen erledigt seine Aufmerksamkeitsanforderung.
+881	Den Zug beenden und Produktion, Bewegung und Kämpfe ausführen. Offene Aufmerksamkeitsanforderungen erfordern Bestätigung.
+882	Diese Karteninformation ein- oder ausblenden. Ausgeblendete Informationen bleiben im Spiel erhalten.
+883	Diese Sprache für die Oberfläche verwenden und speichern. Sprachnamen stehen in ihrer eigenen Schrift.
+884	Lokale Spielstände über das Dateimenü speichern, öffnen oder zurücksetzen.
+885	Ein weiteres Spiel einrichten. Bereits geöffnete Spiele bleiben erhalten.
+886	Diesen Editor schließen oder abbrechen, ohne ausstehende Änderungen zu übernehmen.
+887	Die Änderungen in diesem Editor übernehmen und speichern.
+888	Dieses Informationsfenster ein- oder ausblenden.
+889	Kartenansicht oder Zoom ändern. Spielkoordinaten und Befehle bleiben unverändert.
+890	Produktions- und Schiffstypvorgaben für zukünftige Kolonien festlegen. Bestehende Systeme bleiben unverändert.
+891	Erläuterungen anzeigen, wenn der Zeiger über einem Bedienelement verweilt.
+892	Einstellungen für eine neue Galaxie wählen. Bestehende Spiele bleiben unverändert.
+893	Schnellere Regeln für Produktion, Forschung und Bewegung verwenden.
+894	Informationen außerhalb der Erfassungsreichweite verbergen. Ohne Kriegsnebel ist die Galaxie sichtbar.
+895	Den gesamten aktiven Kurs einschließlich Wiederholung und Jagd löschen. Der gemerkte Kurs bleibt erhalten.
+896	Ein Ziel anklicken, um einen Wegpunkt hinzuzufügen. Escape bricht ab.
+897	Einen Wegpunkt wählen und sein neues Ziel anklicken. Escape bricht ab.
+898	Den ausgewählten Wegpunkt löschen und den übrigen Kurs behalten.
+899	Diesen Bericht bestätigen und ohne Zugfortschritt zum Spiel zurückkehren.
+900	Das nächste Objekt oder den nächsten Bericht besuchen, der Aufmerksamkeit benötigt.
+901	Die Zahl der Computergegner wählen, von null bis zur verfügbaren Spielergrenze.
+902	Die Entscheidungsstärke der Computergegner von Anfänger bis Experte wählen.
+903	Die Computerproduktion je Vorteilspunkt um 20% anpassen.
+904	Die Abmessungen der Galaxie wählen. Größere Galaxien enthalten mehr Systeme.
+905	Die Sterndichte von 1 bis 10 wählen. Höhere Dichte erzeugt mehr Systeme auf derselben Fläche.
+906	Den Titel des neuen Spiels bearbeiten; er wird auch als anfänglicher Dateiname verwendet.
+907	Ein Spiel mit den gewählten Galaxie- und Spieleroptionen starten.
+908	Zwischen Vollbild und Fenster wechseln. Spiel und Befehle bleiben erhalten.
+909	Die Standardoptionen der Kartendarstellung wiederherstellen. Der Spielzustand bleibt unverändert.
+910	Zu diesem geöffneten Spiel wechseln. Andere offene Spiele bleiben erhalten.
+911	Das Ziel für künftig in diesem System gebaute Schiffe löschen. Bestehende Kurse bleiben erhalten.
+912	Ein Ziel für künftig in diesem System gebaute bewegliche Schiffe wählen. Escape bricht ab.
+913	Den zuletzt gespeicherten Zug wiederherstellen. Änderungen seit dieser Speicherung werden verworfen.
+914	Die vorhandene Datei durch dieses Spiel ersetzen. Der bisherige Dateiinhalt wird überschrieben.
+915	Das aktuelle Spiel in seiner Datei speichern oder beim ersten Speichern eine Datei wählen.
+916	Dieses Spiel unter einem neuen Dateinamen speichern. Die bisherige Datei bleibt unverändert.
+917	Eine gespeicherte Galaxie ohne neue Kartenerzeugung öffnen. Andere offene Spiele bleiben erhalten.
+918	Nach Bestätigung zum zuletzt gespeicherten Zug zurückkehren. Ungespeicherte Änderungen gehen verloren.
+919	Den Namen der Datei für diesen Spielstand eingeben. Abbrechen lässt die bisherige Speicherung unverändert.
+920	Den Pfad eines gespeicherten Galactica-4-Spiels zum Öffnen eingeben. Abbrechen lässt das aktuelle Spiel unverändert.
+921	Satellit: preiswerte stationäre Verteidigung. Er patrouilliert immer in seinem System und kann weder reisen noch einer Flotte beitreten. Er hat keinen Scanner.
+922	Späher/Kurier: schnell und unbewaffnet, mit einem Scanner. Erkunde den Weltraum und transportiere Technologie zwischen verbündeten Systemen; Kuriere übernehmen die Technologie besuchter Systeme.
+923	Kolonieschiff: teuer und langsam. Es bleibt nach Koloniegründung und Eroberung erhalten und kann weitere Kolonien gründen. Begleiten Sie es durch feindlichen Raum.
+924	Schlachtschiff: ein mobiles Kampfschiff für Angriffe und Geleitschutz. Höhere Technologie steigert seine Kampfkraft und schaltet stärkere benannte Klassen frei. Es hat keinen Scanner.
+925	Erste Einheit vom Typ {0} mit Technologiestufe {2} bei {1} in Dienst gestellt.
+926	Du hast die Schlacht bei {0} gewonnen. Deine Streitmacht: {1}. Eigene Schiffsverluste: {2}. Zerstörte feindliche Schiffe: {3}.
+927	Du hast die Schlacht bei {0} verloren. Deine Streitmacht: {1}. Eigene Schiffsverluste: {2}. Zerstörte feindliche Schiffe: {3}.
+928	Die Schlacht bei {0} blieb unentschieden. Deine Streitmacht: {1}. Eigene Schiffsverluste: {2}. Zerstörte feindliche Schiffe: {3}.
+929	Du hast das Sternsystem {0} von {1} erobert!
+930	Du hast das Sternsystem {0} verloren, als {1} es angriff.
+931	Du hast den letzten Widerstand im System {0} im Kampf gegen {1} gebrochen!
+932	Deine letzten Verteidiger des Systems {0} sind im Kampf gegen {1} tapfer gefallen.
+
+# Participant ship and fleet destruction notices
+933	Du hast das feindliche Raumschiff {0} von {1} in einer Schlacht bei {2} zerstört.
+934	Du hast dein Raumschiff {0} in einer Schlacht gegen {1} bei {2} verloren.
+935	Du hast {1} in einer Schlacht bei {2} besiegt und die Flotte {0} zerstört!
+936	Deine Flotte {0} wurde in einer Schlacht gegen {1} bei {2} vernichtet.
+937	{1} hat das Sternsystem {0} von {2} erobert.
+
+# Enemy event playback
+938	Fremde Ereignisse anzeigen
+939	Berichte über andere Spieler automatisch anzeigen, wenn ihre Ziele entdeckt, verbündet oder ohne Kriegsnebel sichtbar sind. Ausgeschaltet bleiben diese Berichte zur manuellen Ansicht in der Ereignisliste.
+
+# Surviving system defense losses
+940	Du hast die Schlacht bei {0} gewonnen, aber dabei {1} Schiff in diesem System verloren.|Du hast die Schlacht bei {0} gewonnen, aber dabei {1} Schiffe in diesem System verloren.
+941	Bei deinem Angriff auf das Sternensystem {0} hast du {1} feindliches Schiff zerstört.|Bei deinem Angriff auf das Sternensystem {0} hast du {1} feindliche Schiffe zerstört.
+942	{2} verlor {1} Schiff bei der Verteidigung des Sternensystems {0} gegen einen Angriff von {3}.|{2} verlor {1} Schiffe bei der Verteidigung des Sternensystems {0} gegen einen Angriff von {3}.
+
+# Bundled manual access
+943	Handbuch
+944	Das mitgelieferte Handbuch wurde nicht gefunden. Bitte installiere das vollständige Spiel erneut.
+945	Das Handbuch konnte nicht geöffnet werden. Erlaube neue Tabs oder wähle einen Standardbrowser und versuche es erneut.
+946	Öffne das mitgelieferte Handbuch im Webbrowser. Dein Spiel und der aktuelle Zug bleiben geöffnet.
+
+# Complete repair notices
+947	Reparaturen
+948	Ihr Schiff {0} wurde vollständig repariert.
+949	Alle Schiffe Ihrer Flotte {0} wurden vollständig repariert.
+
+# Rendezvous fleet formation notices
+950	Ihre neue Flotte beginnt sich bei {0} zu sammeln. Bitte benennen Sie sie.
+951	{0} beginnt bei {1} eine neue Flotte zu bilden.
+
+# Neutral colony reports
+952	Sie haben das unbewohnte Sternsystem {0} kolonisiert!
+953	{0} hat das unbewohnte Sternsystem {1} kolonisiert.
+
+# Sound preference
+954	Ton
+955	Ereignis- und Aufmerksamkeitssignale abspielen. Beim Ausschalten endet die laufende Wiedergabe.
+
+# Containment navigation
+956	Übergeordnetes System
+
+# Observer first-class commissioning
+957	{0} hat bei {3} ein neues Raumschiff der Klasse {1} mit Technologiestufe {2} in Dienst gestellt.
+
+# Drive discovery broadcasts
+958	Ihre Wissenschaftler auf {0} haben einen neuen Raumschiffantrieb der Technologiestufe {1} entdeckt.
+959	Wissenschaftler auf {0}, die für {1} arbeiten, haben einen neuen Raumschiffantrieb der Technologiestufe {2} entdeckt.
+
+# Tutorial document title
+960	Tutorial
+
+# Compact system inspector controls
+961	Zur Produktion von {0} wechseln
+962	Setzen
+963	Löschen
+
+# Tutorial launch help
+964	Starte die geführte Einführung in einem Übungsspiel. Deine offenen Spiele bleiben erhalten.
+
+# New-game preference controls
+965	Vorgaben für neue Spiele
+966	Lege Vorgaben für zukünftige Spiele fest. Klicke auf eine Option, um sie zu ändern. Speichern merkt sich deine Auswahl; Abbrechen verwirft diese Änderungen. Laufende Spiele bleiben unverändert.
+
+# Direct numeric preference choices
+967	Wähle einen Wert direkt aus. Pfeiltasten markieren eine Auswahl; Eingabe übernimmt sie. Escape kehrt zu den Vorgaben zurück, ohne diese Option zu ändern.
+
+968	Speichern merkt sich den Schiffstyp und die Produktionsanteile für deine zukünftigen Kolonien und Spiele. Bestehende Systeme behalten ihre Anteile. Abbrechen verwirft Änderungen. Das feste Lernspiel verändert diese Vorgaben nicht.
+
+# Startup and About presentation
+969	Über Galactica
+970	Galactica
+973	Einführung beim Start anzeigen
+978	Schließen
+979	In einer armen Familie geboren, verbrachtest du zahllose Stunden deiner Jugend gebannt von den Geschichten deiner Eltern über das einst glorreiche Galaktische Imperium.|Die hundert Welten sind heute kaum mehr als eine Legende, und der Himmel schweigt. Doch das Gefühl einer Bestimmung lässt dich nicht los. Denn du bist ein direkter Nachkomme des letzten Kaisers.|Als du älter wurdest, erwiesest du dich als geborener Anführer. Vielleicht spürten die Menschen, dass du nach mehr strebtest als Politik und Macht. Vielleicht erkannten sie deine Vision. Was auch der Grund war: Sie schworen dir Treue, erst Hunderte, dann Tausende und Millionen. An dem Tag, an dem du zum Herrscher deiner Heimatwelt gewählt wirst, offenbarst du deinen großen Plan.|„Wir werden ein großes Raumschiff nach einem alten imperialen Entwurf bauen. Es wird die Leere durchqueren und die verlorenen Welten des Alten Imperiums neu besiedeln! Es mag Menschenleben dauern, doch eines Tages werden unsere Nachkommen wieder Teil eines großen menschlichen Imperiums sein. Sie werden diesen Augenblick als den größten der gesamten Menschheitsgeschichte betrachten. Denn heute beginnt das Neue Imperium!“|Freiwillige strömen zu den Regierungszentren und bitten darum, an diesem historischen Vorhaben mitzuwirken. Während der Bau des Raumschiffs voranschreitet, beleben die führenden Wissenschaftler der Welt die alte Astronomie und Astrophysik neu — und bringen beunruhigende Nachrichten.|Unter den lange schweigenden hundert Welten regen sich einige. Andere Herrscher in fernen Palästen; Usurpatoren mit eigenen Vorstellungen davon, wie das Alte Imperium wieder vereint werden soll. Werden sie dich als rechtmäßigen Erben anerkennen? Sie antworten nicht auf deine Nachrichten ...|Während sich das Raumschiff der Fertigstellung nähert, wachsen deine Zweifel. Du verbirgst deine Sorgen vor dem Volk und verpflichtest die Astronomen zur Geheimhaltung. Du träumst vom Frieden, doch spürst die dunklen Wolken aufziehen. Es wird, dessen bist du sicher, ein sehr langer Krieg ...
+980	Edmund R. Zavada|James Whitehouse|Grafik|Claudio Berni|http://www.dreamstudio.com|Besonderer Dank|Charo Mina Rojas|Claude Errera|David Poteet|Amber Zavada|David “Dwarf” Clark|Nicolas Murphy|Yon Hardesty|Übersetzer|Claudia Kopp|Shizuka Tanaka|Charo Mina Rojas|Edmund Zavada|Stéphan Bondier|Betatester von v2.2|Nicolas Murphy|Yon Hardisty|Mark Schultz|Daniel Henderson|Dale Henderson|Sean Callahan|Errol Owen|Tom Maughan|Andre Roane|Betatester von v2.0|Alain Antinori|Tom Berrett|Stéphan Bondier|Al Calambro|Jim Chandler|Kevin Collins|Grant Crawford|Jim Droste|Kai Engelhardt|Max Esquivel|Bruce Feist|J.D. Furlong|Russell Klegraefe|Jérôme Kraft|Tim Lewis|Fred Lotte|Nicolas Murphy|Pat Nagel|Ronald Porter|Pius Portman|Charles Ringer|Pter Rok|David Romm|Lane Rothe|Jonathan Rynd|Trevor Scott|Wade Tregaskis|Milos Udovicic|Michael Tregaskis|Michael Wardman
+981	Die vorherige oder nächste Seite lesen. Manuelles Blättern hält das automatische Scrollen an.
+982	Dieses Fenster schließen und zur Einrichtung oder zum Spiel zurückkehren.
+983	Originalgrafik und Mitwirkende von Galactica ansehen, ohne das Spiel zu ändern.
+984	Die Einführung beim Start von Galactica anzeigen oder ausblenden.
+985	Das geführte Tutorial starten. Das aktuelle Spiel bleibt bis zur Rückkehr erhalten.
+
+# Application build identity
+986	Entwicklungsstand {0}
+987	 (geändert)
+988	Build-Informationen nicht verfügbar
+
+# Close game document
+989	Spiel schließen
+990	Änderungen an „{0}“ vor dem Schließen speichern?
+991	Speichern und schließen
+992	Verwerfen
+993	Dieses Spiel schließen. Ungespeicherte Änderungen können gespeichert oder verworfen werden; andere Spiele bleiben geöffnet.
+994	Änderungen speichern und dieses Spiel schließen. Bei Abbruch oder Fehler bleibt es geöffnet.
+995	Dieses Spiel ohne Speichern schließen. Die vorhandene Speicherdatei bleibt unverändert.
+
+# Application Quit
+996	Beenden
+997	Änderungen an „{0}“ vor dem Beenden speichern?
+998	Galactica beendet
+999	Du kannst diesen Tab schließen oder Galactica erneut starten.
+1000	Erneut starten
+1001	Galactica nach Prüfung ungespeicherter Änderungen in allen offenen Spielen beenden. Abbrechen lässt die verbleibenden Spiele geöffnet.
+
+# Ship and fleet call-in reports
+1002	Dein Raumschiff {0} bei {1} wartet auf deine Befehle.
+1003	Deine Flotte {0} bei {1} wartet auf deine Befehle.
+
+# Ordinary completed-ship report
+1004	Dein neu gebautes Raumschiff {0} befindet sich im System {1} und ist startbereit.
+
+# Network joining and reconnection
+1005	Netzwerkspiel beitreten
+1006	Hostadresse
+1007	Spielername
+1008	Passwort
+1009	Prüfen
+1010	Beitreten
+1011	Wieder beitreten
+1012	Host wird kontaktiert…
+1013	Spielbeitritt…
+1014	{0} — Runde {1}
+1015	{0} menschliche Plätze · {1} Computerspieler
+1016	Spieler {0}: Frei
+1017	Spieler {0}: {1} ({2})
+1018	Online
+1019	Offline
+1020	Hostname oder IP-Adresse eingeben, optional mit Port.
+1021	Bitte einen gültigen Spielernamen eingeben.
+1022	Falsches Passwort.
+1023	Dieser Name hat bereits einen Platz. Erneut beitreten wählen.
+1024	In diesem Spiel sind keine Spielerplätze frei.
+1025	Kein Spieler mit diesem Namen gefunden.
+1026	Der Host führt ein anderes Spiel aus. Adresse erneut prüfen.
+1027	Dieser Host verwendet eine inkompatible Netzwerkversion.
+1028	Der Host hat nicht rechtzeitig geantwortet.
+1029	Der Host hat ungültige Spieldaten gesendet.
+1030	Der Host konnte das Spiel nicht speichern oder bereitstellen.
+1031	Die Anmeldung ist abgelaufen. Erneut beitreten wählen.
+1032	Host nicht erreichbar. Adresse und Verbindung prüfen.
+1033	Zurück
+1034	Weiter
+1035	Speichern unter kann keine Teilkarte eines beigetretenen Spiels exportieren. Mit Speichern werden Änderungen an den Host gesendet.
+1036	Zum Wiederverbinden Datei → Beitreten öffnen.
+
+# Multiplayer turn posting
+1037	Wird übermittelt…
+1038	Übermittelt
+1039	Erneut übermitteln
+1040	Der Host hat die Befehle abgelehnt. Prüfen und erneut versuchen.
+1041	Der Host hat die nächste Runde begonnen. Vor dem Übermitteln aktualisieren.
+1042	Diese Runde wurde bereits übermittelt.
+1043	Dieses Spiel ist beendet.
+1044	Diese Befehle überschreiten die Größenbegrenzung.
+
+# Multiplayer host countdown
+1045	Verbleibende Zeit: {0}
+1046	Pausiert: {0}
+1047	Warte auf den nächsten Zug…
+1048	{0} Tage
+1049	Pausiert
+
+# Desktop multiplayer hosting
+1050	Spiel hosten…
+1051	Host-Datei
+1052	Menschliche Spieler
+1053	Port (0 = automatisch)
+1054	Zeitlimit pro Runde
+1055	Früh beenden, wenn alle fertig sind
+1056	Minuten
+1057	Stunden
+1058	Tage
+1059	Wochen
+1060	Host erstellen
+1061	Host wird erstellt…
+1062	Hosting: {0}
+1063	Diesem Spiel beitreten
+1064	Hosting beenden
+1065	Weiteres Spiel hosten
+1066	Zum Hosten ist die Desktop-App nötig. Browser können Spielen beitreten.
+1067	Gültige Spielerzahlen, Titel, Datei, Port und Zeitlimit eingeben.
+1068	Diese Host-Datei existiert bereits. Anderen Dateinamen wählen.
+1069	Host gespeichert, aber Start fehlgeschlagen. Erneut versuchen oder Port ändern.
+1070	Hosting wird beendet…
+1071	{0} menschliche Plätze · {1} KI · Runde {2}
+1072	Andere Spieler nutzen die Adresse dieses Computers und Port {0}.
+1073	Hosting konnte nicht gespeichert und beendet werden. Erneut versuchen.
+1074	Gehostete Spiele werden gespeichert…
+1075	Hosting erneut starten
+1076	Host-Adresse
+1077	Dauer
+1078	KI-Stärke
+1079	Kartengröße
+1080	Dichte
+1081	Kein Listener aktiv
+1082	Hosten
+
+# Saved host reopening and dedicated hosting
+1083	Als Host öffnen…
+1084	Host öffnen
+1085	Host wird geöffnet…
+1086	Dieser Host läuft oder ist durch einen anderen Prozess gesperrt. Schließe ihn vor einem erneuten Versuch.
+1087	Die Host-Datei konnte nicht geöffnet werden. Prüfe Pfad und Format.
+1088	Host gestoppt.
+1089	Aufruf: ./gad4 tools/host-game.js HOST_DATEI [PORT] [SPRACHE]
+
+# Local saved-turn conversion
+1090	Gespeicherten Zug zum Host machen
+1091	Neue Host-Datei
+1092	Spielstand: {0} · Runde {1} · {2} Spieler
+1093	Aus Spielstand erstellen
+1094	Host wird aus Spielstand erstellt…
+1095	Wähle 1–{0} menschliche Spieler und einen neuen Host-Dateinamen.
+1096	Quelle unverändert; freie Plätze; kein Zeitlimit.
+1097	Dieser Spielstand ist nicht mehr verfügbar. Öffne ihn erneut.
+1098	Dies ist eine Host-Datei. Nutze Als Host öffnen in der Desktop-App.
+1099	Die Host-Datei konnte nicht erstellt werden. Prüfe Namen und Schreibrechte.
+
+1100	Aufruf: ./gad4 tools/host-game.js --new DATEI [OPTIONEN] | --load DATEI [--port N] [--language CODE]
+1101	Spieler: --title NAME --players 1–99 --ais 0–SPIELER; Standard: 2 Spieler, 0 KIs.
+1102	Karte/KI: --size 1–5 --density 1–10 --skill 1–5 (1 Experte, 5 Anfänger) --advantage -3–3.
+1103	Runden: --turn-minutes N (0 unbegrenzt) --end-early; Standard: unbegrenzt, auf Frist warten.
+1104	Tempo/Sicht: --slow --no-fog; Standard: schnelles Spiel, Kriegsnebel. Reine KI-Spiele laufen automatisch.
+1105	Netzwerk: --port 0–65535 (0 automatisch) --language en/de/es/fr/ja/ru. --help zeigt diese Optionen.
+1106	Ungültige Serveroptionen. Prüfe Syntax und Wertebereiche unten.
+
+1107	Runde jetzt beenden
+1108	Spieler ohne Abgabe: {0}
+1109	Diese Runde jetzt beenden?
+1110	Weiter warten
+1111	Host-Änderungen werden gespeichert…
+1112	Spieler {0}: {1}
+1113	Warten auf Spielerzüge
+1114	Die Runde ist weitergegangen. Prüfe die neue Runde vor dem Beenden.
+1115	Runde {0}
+1116	Spiel pausieren
+1117	Spiel fortsetzen
+
+1118	Host-Einstellungen
+1119	Änderungen positiver Zeitlimits gelten ab der nächsten Runde.
+1120	Host-Einstellungen werden gespeichert…
+1121	Host-Einstellungen geändert. Zum Prüfen erneut öffnen.
+1122	{0} · {1} Menschen, {2} KI
+1123	Sekunden
+1124	Karte: {0}×{0} · Dichte: {1} (fest)
+
+1125	Spieler ändern
+1126	Zu Mensch machen
+1127	Zu Computer machen
+1128	Spielerplatz freigeben
+1129	Spieler eliminieren
+1130	Spieler umbenennen
+1131	{0}: {1}
+1132	{0} · {1} · {2}
+1133	Zugewiesen
+1134	Nicht zugewiesen
+1135	Lebend
+1136	Besiegt
+1137	Spielerdaten geändert. Zum Prüfen erneut öffnen.
+1138	Spieleränderung wird gespeichert…
+1139	Gültige Aktion und eindeutigen Spielernamen wählen.
+1140	Spielername
+
+1141	Spieler trennen
+1142	Der Host-Administrator hat Sie getrennt. Sie können Ihrem Platz erneut beitreten.
+
+1143	Zulassung
+1144	Ohne Code beitreten
+1145	Erlaubte Codes
+1146	Gesperrte Codes
+1147	Zugangscode
+1148	Code hinzufügen
+1149	Code entfernen
+1150	Der Host lässt diesen Code nicht zu. Bitten Sie den Host um Zugang.
+1151	Zugangsregeln geändert. Liste vor dem Speichern erneut öffnen.
+1152	Eindeutigen Code mit 1–64 Zeichen verwenden; jede Liste fasst 100 Codes.
+1153	Nur für neue Plätze. Eine Erlaubnisliste hat Vorrang.
+1154	Gültige Zugangsregeln konnten nicht gelesen werden. Host nicht gestartet.
+1155	Zulassung: --admission DATEI lädt JSON-Regeln vor dem Start (neue oder gespeicherte Hosts).
+
+1156	Administratorzugriff: --admin-password-file DATEI liest vor dem Start ein JSON-Passwort. Eine leere Zeichenfolge deaktiviert den Zugriff; ohne Option bleiben gespeicherte Zugangsdaten erhalten.
+1157	Administratorpasswort kann nicht gelesen werden. Verwenden Sie eine JSON-Zeichenfolge mit höchstens 64 Zeichen ohne Steuerzeichen.
+
+1158	Administratorzugriff
+1159	Passwort
+1160	Ein leeres Passwort deaktiviert die Fernverwaltung.
+1161	Der Administratorzugriff wurde geändert. Öffnen Sie diesen Dialog erneut.
+1162	Sterne und Schiffe anklicken, um sie anzusehen
+
+1163	Verwalten
+1164	Verwaltung: {0}
+1165	Administrator trennen
+1166	Die Fernverwaltung ist auf diesem Host deaktiviert.
+
+1167	Administratoransichten sind schreibgeschützt. Treten Sie erneut bei, um die Verbindung wiederherzustellen.
+1168	Host-Verwaltung
+
+1169	Anfangszustand bearbeiten
+1170	Bevölkerung setzen
+1171	Technologie setzen
+1172	Besitzer setzen
+1173	Schiff erstellen
+1174	Ganze Zahl im erlaubten Bereich eingeben oder Schiffstyp wählen.
+1175	Der Anfangszustand wurde geändert. Editor für aktuelle Werte erneut öffnen.
+1176	Bearbeiten ist nur in Runde eins möglich.
+1177	Bevölkerung: {0} ×1000 · Technologie: {1} · Besitzer: {2}
+1178	Bevölkerung in Tausend: 0–4294967295.
+1179	Besitzernummer: 0–{0}. Null bedeutet unbesetzt.
+1180	Technologiestufe: 0–65535.
+1181	In Runde eins Bevölkerung, Technologie und Besitz von Systemen ändern oder fertige Schiffe erstellen.
+1182	Passwort auf diesem Gerät speichern
+1183	Gespeicherte Spiele
+1184	Adresse hinzufügen
+1185	Aus Liste entfernen
+1186	Auswahl öffnen
+1187	Keine gespeicherten Spiele. Adresse hinzufügen oder einem Spiel beitreten.
+1188	Die Spieleliste konnte nicht gespeichert werden. Bitte erneut versuchen.
+1189	Adresse eingeben
+1190	Administrator
+1191	LAN-Spiele suchen
+1192	LAN-Spiele
+1193	LAN-Spiele werden gesucht…
+1194	Keine LAN-Spiele gefunden. Aktualisieren, um erneut zu suchen.
+1195	Die LAN-Suche erfordert die Desktop-App. Stattdessen eine Hostadresse eingeben.
+1196	LAN-Suche fehlgeschlagen. Aktualisieren oder eine Hostadresse eingeben.
+1197	Aktualisieren
+1198	Runde {0} · {1} von {2} menschlichen Plätzen frei
+1199	Im lokalen Netzwerk sichtbar
+1200	LAN-Ankündigung nicht verfügbar; Beitritt über Adresse funktioniert
+1201	Chat
+1202	Senden
+1203	An: {0}
+1204	Alle Spieler
+1205	Nachricht von {0}
+1206	Chat mit {0}
+1207	Nachricht für den nicht verbundenen Empfänger gespeichert.
+1208	Senden fehlgeschlagen. Unverändert erneut versuchen.
+1209	Empfänger wählen
+1210	Nachrichtentext (Enter zum Senden)
+1211	Chat ohne Verbindung nicht verfügbar. Erneut beitreten.
+1212	{0} → {1}
+1213	Unbekannter Spieler {0}
+1214	Empfänger nicht mehr verfügbar. Einen anderen wählen.
+1215	Mehrspieler-Chat öffnen. Privat an Spieler oder Administrator schreiben oder an alle Verbundenen senden.
+1216	Alle Spieler, den Administrator oder einen menschlichen Spieler wählen. Private Offline-Nachrichten werden gespeichert.
+1217	An den gewählten Empfänger senden. Enter sendet, ohne den Zug abzugeben.
+1218	Älteren oder neueren Chatverlauf lesen. Lange Nachrichten werden auf mehrere Seiten verteilt.
+1219	Der Posteingang ist voll. Warten, bis Empfänger ihre Nachrichten gelesen haben.
+1220	Nachricht hier eingeben. Enter sendet; Esc schließt den Chat und behält den Entwurf.
+1221	Nachrichten und Verbindungsstatus aktualisieren, ohne Spielbefehle zu ändern.
+1222	Spielberichte anzeigen
+1223	Spielberichte zurückhalten
+1224	Ausstehende automatische Spielberichte einmal abspielen, auch bei aktivem Zurückhalten.
+1225	Automatische Spielberichte anhalten, ohne sie als gelesen zu markieren. Zum Fortsetzen ausschalten.
+1226	Neue Runde
+1227	Runde {0} beginnt für {1}.
+1228	Gruppe
+
+# Public network game information
+1229	Spielinformationen
+1230	Details
+1231	Karte: {0}×{0} · Dichte: {1}
+1232	KI: {0} · Vorteil: {1}
+1233	Schnelles Spiel: {0}
+1234	Kriegsnebel: {0}
+1235	Runde beenden, sobald alle abgegeben haben: {0}
+1236	Zeitlimit pro Runde: {0}
+1237	Zeitlimit der aktuellen Runde: {0}
+1238	Spielstatus: {0}
+1239	Offen
+1240	Voll
+1241	Zugangscode erforderlich: {0}
+1242	Kein Zeitlimit
+1243	Zurück
+1244	{0} Tag|{0} Tage
+1245	Musik
+1246	Musik im Intro und Abspann abspielen, ohne Soundeffekte zu ändern. Ton muss eingeschaltet sein; sein Schalter schaltet beides gemeinsam.
+1247	Vorherige Kennzahlen
+1248	Nächste Kennzahlen

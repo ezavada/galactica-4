@@ -1,0 +1,295 @@
+{
+  "tool": "built-in imagegen",
+  "edition": 2,
+  "assets": [
+    {
+      "style": "realistic",
+      "name": "scout",
+      "source": "old-art/original-default/events/layers/pict-3001.png",
+      "target": "realistic/events/layers/pict-3001.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull scout. Design invariants: preserve narrow horizontal boom, forked left nose, one large vertical oval ring at right, vertical ring braces and paired white spherical pods.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3001.png",
+      "sha256": "87d3af31da45086a33fde8a84c111706f140e15f29642d05b66705a4dcb9ab54",
+      "sourceSha256": "eafe1f476297025e89f71f1de9db98ba1d31a2b5762f26e2a4d6103762696422",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3001.png",
+      "editSourceSha256": "db8d1f16422cd47a3d00589f20f3ce5e3f89bd8ac2f5ade570e017a348deead5"
+    },
+    {
+      "style": "realistic",
+      "name": "labback",
+      "source": "old-art/original-default/events/labback.png",
+      "target": "realistic/events/labback.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Photograph of a practical futuristic blue aerospace research hangar, suspended crane upper left, spacious hangar at left and seated scientists/control booth at right with red green blue screens. Preserve the exact layout: central-left hangar floor and airspace must remain clear for game blueprint overlays. Focus on right control station, authentic fine console switches and screen reflections, natural human skin and believable fabric; architectural lines crisp and physically built materials convincing. Full-frame 35mm f/4 lens, progressive gentle optical defocus of far hangar and overhead distance, natural reflected blue light balanced with warm overhead lamps, photographic dynamic range. No generic miniature model, illustration or smooth CGI. Same 408:240 frame, opaque, no added text.",
+      "transparent": false,
+      "savedPath": "old-art/art-styles/realistic-v2/events/labback.png",
+      "sha256": "01550f48765c27c2dd7ba3db5dffddfdff6b8ac799be80eabd547131e8e58623",
+      "sourceSha256": "0a2804cac32746885ab5123af3447e0da92a11fdec408aaed295f7154dfd7e49",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/labback.png",
+      "editSourceSha256": "8ea0539c1fd513723733fda8cc2741cbb7619c5992072f66a9db6599190cdf5f"
+    },
+    {
+      "style": "realistic",
+      "name": "victory",
+      "source": "old-art/original-default/events/victory.png",
+      "target": "realistic/events/victory.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Cinematic on-location portrait photograph of the same adult dark-haired regal woman, silver circlet, blue veil, silver arm bands, purple and gold costume, both hands around the blue reflective crystal orb near her face. Maintain coverage and pose. Eyes, hands, orb, fine jewelry and core clothing tack-sharp with high resolution natural skin pores, tiny imperfections, individual hair strands, authentic fabric weave, real crystal refraction and practical reflections. Remove plastic beauty-render skin and uniform artificial sharpness. Full-frame 85mm portrait lens at f/2.8: focal plane across eyes and hands, progressively softened distant parade crowds, red and blue flags and white domed futuristic city towers; authentic lens bokeh, distant atmospheric haze, preserve recognizable narrative. Natural daylight balanced exposure, gentle filmic colors, photographic contrast, no illustration or game CGI. Same aspect 500:432 and exact composition. Opaque image, no text.",
+      "transparent": false,
+      "savedPath": "old-art/art-styles/realistic-v2/events/victory.png",
+      "sha256": "dd7031a48025b926f8954fc553c502a419686e9cffe74debe85d735f46d881d6",
+      "sourceSha256": "0984fd79fb783069eded5fa24be54d89d1a8b583f061c1eda8deb66b3f466725",
+      "dimensions": [
+        1500,
+        1296
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/victory.png",
+      "editSourceSha256": "4cb102894c644f4106a030202a3048c6f9de2855bf0d5b640d568d23e1ce8058"
+    },
+    {
+      "style": "realistic",
+      "name": "satellite",
+      "source": "old-art/original-default/events/layers/pict-3000.png",
+      "target": "realistic/events/layers/pict-3000.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull satellite. Design invariants: preserve sphere armor, blue windows, large turbine lower left, radial antennae and purple weapon.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3000.png",
+      "sha256": "5ed284e942ba101429c3567d3f3a6737c368c07fc4f93fe36d7f5fe06b22502b",
+      "sourceSha256": "3b44db26626dcd512a8dd7eba3006bac79cda61c746b0c5005e690733cf4dd53",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3000.png",
+      "editSourceSha256": "963fd773953547a4d76ac7c18568a74dde292976c3cbf219d13bacbd0c5c2c72"
+    },
+    {
+      "style": "realistic",
+      "name": "rama",
+      "source": "old-art/original-default/events/layers/pict-3004.png",
+      "target": "realistic/events/layers/pict-3004.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull rama. Design invariants: preserve brown bulbous forward hull at left, parallel shaft tubes, rear radial array of six large white circular discs and dark engine pods, tension cables.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3004.png",
+      "sha256": "cb8c4a41a8cd7affa1f24466a334b2797efcdb885449827a58268b1d45ce5dd1",
+      "sourceSha256": "786281d1ffcd8aa01e2911d3b76d15a744f071d2394969e902c952f5e88467e0",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3004.png",
+      "editSourceSha256": "cf92ce2c9873824220949806c9ae29979b0c6e3a02334456b1b7947a4e75a097"
+    },
+    {
+      "style": "realistic",
+      "name": "traveller",
+      "source": "old-art/original-default/events/layers/pict-3003.png",
+      "target": "realistic/events/layers/pict-3003.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull traveller. Design invariants: preserve two silver spheres at left, thin long shaft, broad curved dish-like vertical sail at right, tension cables and cylindrical engine cluster at far right.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3003.png",
+      "sha256": "7802e26ccff9f96eb3ff3dfa35b386f77259f833015dabf05ceb4185d43f417b",
+      "sourceSha256": "4c960a1bb207bfd6b17d73e4298a4313c5708cd03f6f8a3da21500e838f237d9",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3003.png",
+      "editSourceSha256": "339fd3258016697fa80903475d91ffc8635e5ba5630852a37ecc8acafb06244e"
+    },
+    {
+      "style": "realistic",
+      "name": "colony",
+      "source": "old-art/original-default/events/layers/pict-3002.png",
+      "target": "realistic/events/layers/pict-3002.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull colony. Design invariants: preserve central skeletal spine with two large blue and white oval habitation pods above and below and a single rear vertical ring.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3002.png",
+      "sha256": "43fce564e7f5a3e2dfc024576d9c7b202403ce00bfd56c04fdbf6258aacd2e24",
+      "sourceSha256": "017d737ee4fffcd2bb2ce67825097bef049281f73b32283c0f7a805437d3994e",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3002.png",
+      "editSourceSha256": "8bac224a1fb7e2c8a0a9b24550386126339572ac44e64ef86925070fcd792745"
+    },
+    {
+      "style": "realistic",
+      "name": "falcon",
+      "source": "old-art/original-default/events/layers/pict-3005.png",
+      "target": "realistic/events/layers/pict-3005.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull falcon. Design invariants: preserve long silver pointed nose, central shaft, large vertical ring lined with numerous smaller white discs surrounding one large central dish, cables and rear engine.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3005.png",
+      "sha256": "736d22231bd4d8ed960d6d27035dd51e3ae466b8eb1a32c48fe626ad24434b5c",
+      "sourceSha256": "d641273a4ce019eecafcbf35b8c0588dc084444e07e012623a4dd168c965558f",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3005.png",
+      "editSourceSha256": "27632e6eb038f3b378e377dfa4344d5f4335f8134ebb81a7526994146f7f9560"
+    },
+    {
+      "style": "realistic",
+      "name": "raven",
+      "source": "old-art/original-default/events/layers/pict-3007.png",
+      "target": "realistic/events/layers/pict-3007.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull raven. Design invariants: preserve blunt silver forward fuselage, several large segmented vertical hoops of differing sizes along the rear shaft, radial struts and protruding antennas.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3007.png",
+      "sha256": "f80311cb4a5ed996fcb7c7c4a7c38d706360662f9a3f3d202f72c72a2c6861c7",
+      "sourceSha256": "ee0e33c6569142a7f0eb48e6f9c82c25cfdbd141a14c4a093feaeb67dbf8766a",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3007.png",
+      "editSourceSha256": "7c7bf4d90564ab9c38cb492e866d506da484713e03f23175b2d837508fc8abed"
+    },
+    {
+      "style": "realistic",
+      "name": "riviel",
+      "source": "old-art/original-default/events/layers/pict-3008.png",
+      "target": "realistic/events/layers/pict-3008.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull riviel. Design invariants: preserve long slender silver pointed nose, enormous curved triangular dark ribbed sail canopy above and below rear fuselage, three curved metallic spars.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3008.png",
+      "sha256": "7c6bacf6d69667ecf4d97efa968c1da6103a287e6f2fa008f54821ed79c4d09c",
+      "sourceSha256": "0421b05cdbaab7f983ad467d71d0a674e4cdb981ebaa5722fec43892af5f45fb",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3008.png",
+      "editSourceSha256": "9e7fb201bfed4509cc4bb5248c8a870f8d435334d81e31d25ddd26531bfecf06"
+    },
+    {
+      "style": "realistic",
+      "name": "hawk",
+      "source": "old-art/original-default/events/layers/pict-3006.png",
+      "target": "realistic/events/layers/pict-3006.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull hawk. Design invariants: preserve silver pointed fuselage, large vertical hoop at right containing tall straight parallel cylinder structures, triangular cable supports.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3006.png",
+      "sha256": "ce9669bf0ee0eb78bc649284ad6a03b0184c93432f0cc6ba80fac1f95f543ec0",
+      "sourceSha256": "3d698ffd4fd71d2b8cb342165e73d0c34606dd912b9cd0cc1d9e59ab350d678e",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3006.png",
+      "editSourceSha256": "7c4bbf63ce9f8d2aaf712d31533a9db7c5a7636f43848aa0eaad3a77ccb50d1a"
+    },
+    {
+      "style": "realistic",
+      "name": "avenger",
+      "source": "old-art/original-default/events/layers/pict-3011.png",
+      "target": "realistic/events/layers/pict-3011.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull avenger. Design invariants: preserve slim silver forward hull with dorsal fin, rear open polygonal truss cage supported by radial struts, no broad sail or ring.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3011.png",
+      "sha256": "d194d7f356654110295e16f9256eae0c2bb2be47352566312b69cd363dcd534d",
+      "sourceSha256": "25e51ebf05ee6e06d71c2c07499d9023c6ad7f5921ea3728f3ce5cf456bab7b4",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3011.png",
+      "editSourceSha256": "0e006a412427baecfa7223892316ee5ba2d5efb949d002ce020383bc9873e171"
+    },
+    {
+      "style": "realistic",
+      "name": "valkyrie",
+      "source": "old-art/original-default/events/layers/pict-3010.png",
+      "target": "realistic/events/layers/pict-3010.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull valkyrie. Design invariants: preserve silver forward hull with dorsal protrusions and forked rear support frame, six long narrow pointed dark ribbed leaf sails arranged radially around rear hub.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3010.png",
+      "sha256": "b58482f62c1491592d36c73bba9ed81bb0cfddb6a392526aeaa285a73f5adc01",
+      "sourceSha256": "e936dd85e1e70b8cddd67d8d040049656611a0853b26662b6983cf75f416b65b",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3010.png",
+      "editSourceSha256": "6dea44ce559dad412ecfee389e5cb45eab6b4dd6389724c2186e2549e07af793"
+    },
+    {
+      "style": "realistic",
+      "name": "wolven",
+      "source": "old-art/original-default/events/layers/pict-3009.png",
+      "target": "realistic/events/layers/pict-3009.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull wolven. Design invariants: preserve silver fuselage with blue pointed tip at left, six broad dark polygonal leaf shaped radial sail panels at rear hub, tall top leaf.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3009.png",
+      "sha256": "7fe0f4c75e4d1e96fa756501f7cd2725e435fa23a485cf90d2946c325ebf2117",
+      "sourceSha256": "52f1d73f80c26a7d94977768dec0c936822f3b1446fb1ad40ffc7f5e0aac87d9",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3009.png",
+      "editSourceSha256": "246eaca74449aeeb17477b9d252a53dbbd7808081b28ac481a44640ff76c037f"
+    },
+    {
+      "style": "realistic",
+      "name": "banshee",
+      "source": "old-art/original-default/events/layers/pict-3012.png",
+      "target": "realistic/events/layers/pict-3012.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Ship hull banshee. Design invariants: preserve exceptionally long thin needle-like silver body, tiny dorsal fin, three extremely long slender tapering swept rear prongs forming a three-point star, no ring or broad panels.  Photographed practical aerospace hardware, high-acutance lens rendering, precisely machined clean edges and clear intricate focal detail in the main fuselage and engineering assemblies: fine fasteners, purposeful panel seams, nested mechanical joints, satin titanium, brushed aluminum, realistic optical glass reflections, fine woven sail fabric if present. Reduce the current mottled random grunge and oversharpened speckle; restrained localized wear. Strong believable directional softbox key and subtle rim illumination with physically accurate surface reflections. Keep nose, cables, ring rims, sail spars and complete silhouette crisp; only very subtle optical focus falloff on physically distant rearward surfaces, never blur the identity-defining geometry. Looks like a high quality photograph of real precision equipment, no painterly shading or glossy CGI plastic. Exact landscape aspect 408:240, same subject size. True transparent alpha everywhere outside hull and inside all openings; no background or surface beneath hull, no fake checkerboard, no shadows in empty space, no green fringe, no text. Do not add or remove structural parts.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/layers/pict-3012.png",
+      "sha256": "9faf9c4733838af575be5141b8c5085af675d4b6563add7675d27e78ec399c95",
+      "sourceSha256": "f45157edfe814ba260a26cab049f5db81c70119733a0ba28e721579d723db853",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/layers/pict-3012.png",
+      "editSourceSha256": "7caab8320a14df193cbbdfaf60163d041ff5a39b417d34c729c11c4fc2a59de0"
+    },
+    {
+      "style": "realistic",
+      "name": "labtop",
+      "source": "old-art/original-default/events/labtop.png",
+      "target": "realistic/events/labtop.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Photograph of practical laboratory foreground console overlay: seated adult science officers and stacked monitors ONLY in lower-left, bench spans bottom sixth. Preserve each object exact normalized position and size. Entire upper 60 percent and middle-right remain completely empty transparent alpha for separate game blueprint overlay. Authentic fabric and natural staff skin, precise switches, glass screen reflections and visible subtle manufacturing detail, sharp core consoles and staff, very subtle lens falloff only on nearest bench lip. Cool blue practical lighting with warm highlights. Photographic real-world materials, no CGI plastic or painted illustration. Same 408:240 landscape. True transparency in every empty area and gap, no background, checkerboard, green fringe or added text.",
+      "transparent": true,
+      "savedPath": "old-art/art-styles/realistic-v2/events/labtop.png",
+      "sha256": "1d29bba28f9e5e678a49d7ecc2e69c654dfe99aea95c39c6a5d4931ad1c07f82",
+      "sourceSha256": "d767ff8d4a7df4270888ace946456f39d3171b018fd9933be33adc56075a37e9",
+      "dimensions": [
+        1632,
+        960
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/labtop.png",
+      "editSourceSha256": "5b1eac7b40565e7bbf99fa7e7925ff8cde6323c5c41c7f58b3a12ca9720af287"
+    },
+    {
+      "style": "realistic",
+      "name": "defeat",
+      "source": "old-art/original-default/events/defeat.png",
+      "target": "realistic/events/defeat.png",
+      "prompt": "Edit the referenced existing Galactica-4 artwork into a convincingly photographic second edition. Preserve exact subject identity, structural design, silhouette, attachment counts, orientation, placement, framing, colors and composition. Cinematic photographic combat still of the same exhausted adult soldier centered in dark gray powered armor with thin gold trim, grim face visible through visor, one gloved hand across abdomen and weapon held low. Tack-sharp face, visor edges, torso mechanical joints and glove, authentic sweaty skin pores and believable soot, precise armor seams and fasteners, restrained physical wear rather than random mottled texture. Full-frame 70mm lens f/3.2 focused on soldier: progressive optical defocus on distant fleeing troops, burning white futuristic city, red/blue flag, sky spacecraft and purple beams; distinct subject separation and smoky atmospheric depth. Real practical costume/material photography with controlled fire highlight exposure and soft restrained bloom. No painterly texture, plastic CGI or excessive global sharpening. Preserve original composition and story, no gore. Same aspect 500:432, opaque image, no text.",
+      "transparent": false,
+      "savedPath": "old-art/art-styles/realistic-v2/events/defeat.png",
+      "sha256": "2d8946debc351de512c428e38fa2c78843794e1f2d71d90828c324e3c707a89d",
+      "sourceSha256": "a9fb5dcdc3530298ab9ace7b903d7d0808a95d0fa7a6e1b9d70e1b885588398f",
+      "dimensions": [
+        1500,
+        1296
+      ],
+      "editSource": "old-art/art-styles/realistic-v1/events/defeat.png",
+      "editSourceSha256": "ff07deb497f26e2c09e29c73c8ac7d53cc8e5c77842b3b054de8cbe257879a92"
+    }
+  ]
+}

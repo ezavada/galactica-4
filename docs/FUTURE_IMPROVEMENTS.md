@@ -41,3 +41,9 @@ These are intentionally listed as possible Galactica-4 improvements, not missing
 
 - Optional uses of computer advantage outside production, such as AI risk tolerance or target search breadth.
 - These should be balance options rather than v3 parity requirements unless new v3 evidence is found.
+
+## Remembered Fog-of-War Snapshots Beyond v3
+
+**Priority: Low**
+
+An optional map mode could retain an object's last observed position, ownership and knowledge, show a distinct stale marker and label the last observed turn. It must retain an actual observation snapshot rather than reveal the live hidden object. The v3 source stores last-seen/scanner history but its star/ship drawing uses current visibility; a separate remembered-object rendering mode was not confirmed. This is a future enhancement, rather than missing shipped v3 UI. Private event reports already navigate to remembered event coordinates after a subject is lost.

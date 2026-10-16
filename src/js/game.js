@@ -1,15 +1,23 @@
+const WindowBehavior=require('./window-behavior.js');
 // Game class for Galactica-4
 // Contains main game logic and state management
 
+const LanguageSettings = require('./language-settings.js');
 const Common = require('./common.js');
+const MapDisplayModes = require('./map-display-modes.js');
 const MapGenerator = require('./map-generator.js');
 const GameConfig = require('./game-config.js');
+const NewGameDefaults=require('./new-game-defaults.js');
 const PlayerInfo = require('./player-info.js');
 const { AIManager } = require('./ai-manager.js');
 const { SpatialPartition } = require('./spatial-partition.js');
 const VisibilityCalculator = require('./visibility-calculator.js');
 const CombatSystem = require('./combat.js');
 const I18n = require('./i18n.js');
+const Attention = require('./attention.js');
+const RosterPreferences = require('./roster-preferences.js');
+const ChartNames = require('./chart-names.js');
+const NameEditor=require('./player-name.js');
 
 class Game {
     constructor(factory, rules, config = null) {
@@ -29,13 +37,56 @@ class Game {
         this.display = null;
         this.overlay = null; // UI overlay for lab/stardock events
         this.overlayQueue = [];
+        this.showScannerRanges = true;
+        this.showAllCourses = true;
+        this.showCourierCourses = true;
+        this.showShips = true;
+        this.showGrid = true;
+        this.showNebula = true;
+        this.mapDisplayMode = 'ownership';
+        this.showMapNames = true;
+        this.showEnemyEvents = true;
+        this.holdGameReports = false;
+        this.heldReports = [];
+        this.settingsPage = 0;
         this.uiWindow = null; // command UI window: menu, production, events, comparison
         this.eventLog = [];
+        this.nextEventId = 0;
+        this.eventSelection = null;
+        this.eventPage = 0;
+        this.eventDetailPage = 0;
+        this.attention = new Attention(this);
         this.pendingMapOrderObject = null;
+        this.pendingCourseEdit = null;
+        this.courseWindowObject = null;
+        this.courseSelection = null;
+        this.coursePage = 0;
+        this.uiSliderDrag = null;
+        this.uiMapScrollDrag = null;
+        this.mapSelectionPicker = null;
+        this.fleetMemberPage = 0;
+        this.fleetRosterPage = 0;
+        this.fleetRosterSort = {key:'name',ascending:true};
+        this.fleetRosterLastClick = null;
+        this.fleetRosterGeometry = null;
+        this.uiWindowDrag = null;
+        this.colonyDefaultsDraft = null;
+        this.systemShipWindowStar = null;
+        this.systemShipPage = 0;
+        this.systemShipSort = { key: 'name', ascending: true };
+        this.playerComparisonPage = 0;
+        this.systemComparisonPage = 0;
+        this.systemComparisonSort = { key: 'name', ascending: true };
+        this.systemComparisonSelection = null;
+        this.systemComparisonLastClick = null;
+        this.systemComparisonGeometry = null;
         this.pendingRendezvousPlacement = null;
+        this.turnAttentionPending=false;
+        this.turnPreviousSelection=null;
         this.renameTarget = null;
         this.renameText = '';
         this.isGameOver = false;
+        this.postGame = false;
         this.winningPlayerNum = null;
         this.victoryTurn = null;
         
@@ -55,8 +106,9 @@ class Game {
         this.players = [];
         this.players[0] = null; // Reserve index 0
         for (let i = 1; i <= this.config.totalPlayers; i++) {
-            const isComputer = (i > this.config.numHumans);
+            const isComputer = !this.config.isHumanPlayer(i);
             this.players[i] = new PlayerInfo(i, isComputer);
+            if(!isComputer && this.config.humanPlayerNames[i])this.players[i].setName(this.config.humanPlayerNames[i]);
             if (isComputer) {
                 this.players[i].setAISkill(this.config.getAISkillForPlayer(i), this.config.compAdvantage);
             }
@@ -274,6 +326,9 @@ class Game {
                 Common.SpatialConstants.ENTITY_TYPE_SHIP;
             this.spatialPartition.removeEntity(entity, entityType);
         } else if (objectType === Common.ObjectType.FLEET) {
+            const parent=entity.fleet;
+            if(parent)parent.removeShip(entity);
+            if(parent && parent.isEmpty())this.entityRemoved(parent);
             const index = this.allFleets.indexOf(entity);
             if (index !== -1) {
                 this.allFleets.splice(index, 1);
@@ -296,7 +351,7 @@ class Game {
         // Select the player's home star after display is set
         // Use setTimeout to ensure the display is fully constructed
         setTimeout(() => {
-            this.selectHomeStar();
+            if(!this.restoredFromSave)this.selectHomeStar();
         }, 0);
     }
     setRules(rules) {
@@ -323,24 +378,32 @@ class Game {
         return Common.ObjectType.UNKNOWN;
     }
     
-    // Check if a human player can control this entity
-    // Returns true if the entity is owned by a human player (player 1 to numHumans)
+    // Posting locks input briefly; a posted player can keep editing while waiting.
+    canEditClientDecisions() {
+        return !this.clientAdministrator && !this.clientPosting &&
+            (!this.isGameOver || this.canContinue) && this.players[this.clientPlayerNum]?.isAlive!==false;
+    }
+
+    // Local humans control their objects; network clients control their own.
     canHumanControl(entity) {
+        if(this.clientAdministrator)return false;
         if (!entity || entity.owner === undefined) {
             return false; // Unowned or invalid entity
         }
         
-        // Human players are numbered 1 to numHumans
-        return entity.owner > 0 && entity.owner <= this.config.numHumans;
+        if(this.clientPlayerNum)return entity.owner===this.clientPlayerNum && this.canEditClientDecisions();
+        return this.config.isHumanPlayer(entity.owner);
     }
     
     // Get the player number for the current human (for single player, this is 1)
     // In multiplayer, this would need to be tracked differently
     getCurrentHumanPlayer() {
+        if(this.clientAdministrator)return 0;
+        if(this.clientPlayerNum)return this.clientPlayerNum;
         if (!this.players) {
             return null;
         }
-        for (let i = 1; i <= this.config.numHumans; i++) {
+        for (const i of this.config.getHumanPlayerSlots()) {
             const player = this.players[i];
             if (player && player.isHuman) {
                 return i;
@@ -360,7 +423,7 @@ class Game {
         return this.config && typeof this.config.compAdvantage === 'number' ? this.config.compAdvantage : 0;
     }
 
-    applyComputerAdvantageToProduction(ownerId, amount) {
+    applyComputerAdvantageToProduction(ownerId, amount, integerPayment = false) {
         if (!Number.isFinite(amount) || amount <= 0) {
             return amount;
         }
@@ -370,6 +433,10 @@ class Game {
             return amount;
         }
 
+        if (integerPayment) {
+            const increase = Math.trunc(amount * (advantage * 20) / 100);
+            return Math.max(0, amount + increase);
+        }
         return Math.max(0, amount * (1 + (advantage * 0.20)));
     }
 
@@ -381,7 +448,7 @@ class Game {
 
     getLegacyAllocationPercent(value, fallback = 0) {
         const normalized = Number.isFinite(value) ? value : fallback;
-        return Math.round(Math.max(0, Math.min(1000, normalized)) / 10);
+        return Math.round(Math.max(0, Math.min(1000, normalized))) / 10;
     }
 
     applyNewColonyDefaults(star, previousOwner = 0) {
@@ -410,28 +477,6 @@ class Game {
         }
 
         return changed;
-    }
-
-    refreshCurrentShipBuildForStarTech(star) {
-        if (!star || !star.currentShip || !star.currentShip.underConstruction || !star.currentShip.underConstruction()) {
-            return false;
-        }
-
-        const ship = star.currentShip;
-        ship.techLevel = star.techLevel;
-        if (typeof ship.calculatePower === 'function') {
-            ship.power = ship.calculatePower();
-        }
-        if (this.rules && typeof this.rules.getShipInitialSpeed === 'function') {
-            ship.speed = this.rules.getShipInitialSpeed(ship);
-        }
-        if (this.rules && typeof this.rules.getShipScanRange === 'function') {
-            ship.scannerRange = this.rules.getShipScanRange(ship);
-        }
-        if (typeof ship.calculateApparentSize === 'function') {
-            ship.apparentSize = ship.calculateApparentSize();
-        }
-        return true;
     }
 
     transferScoutTechnologyFromContainer(ship, container) {
@@ -464,12 +509,12 @@ class Game {
             if (destination.star) {
                 return destination.star;
             }
-            if (destination.fleet && destination.fleet.star) {
-                return destination.fleet.star;
+            if (destination.fleet && destination.fleet.getDockedStar()) {
+                return destination.fleet.getDockedStar();
             }
         }
-        if (objectType === Common.ObjectType.FLEET && destination.star) {
-            return destination.star;
+        if (objectType === Common.ObjectType.FLEET) {
+            return destination.getDockedStar();
         }
 
         return null;
@@ -483,21 +528,20 @@ class Game {
         const carrierTechLevel = Number.isFinite(carrier.techLevel) ? carrier.techLevel : 0;
         const starTechLevel = Number.isFinite(star.techLevel) ? star.techLevel : 0;
 
+        let changed=false;
         if (carrierTechLevel > starTechLevel) {
             star.techLevel = carrierTechLevel;
             if (typeof star.setScannerRange === 'function' && this.rules && typeof this.rules.getScanRangeForTechLevel === 'function') {
                 star.setScannerRange(this.rules.getScanRangeForTechLevel(star.techLevel));
             }
-            this.refreshCurrentShipBuildForStarTech(star);
-            return true;
-        }
-
-        if (carrier.type === 'scout' && starTechLevel > carrierTechLevel) {
+            changed=true;
+        } else if (carrier.type === 'scout' && starTechLevel > carrierTechLevel) {
             carrier.techLevel = starTechLevel;
-            return true;
+            changed=true;
         }
-
-        return false;
+        // v3 reselects the current hull even when no library level changed.
+        star.refreshSelectedHullPrice();
+        return changed;
     }
 
     applyTechnologyTransferToDestination(carrier, destination) {
@@ -530,17 +574,38 @@ class Game {
         return player ? player.homeStarId : null;
     }
 
-    draw() {
+    draw({deferEvents=false}={}) {
         if (this.display) {
-            this.display.drawGame();
+            if(!deferEvents)this.presentTurnAttention();
+            this.display.drawGame({deferEvents});
         }
+    }
+
+    presentTurnAttention() {
+        if(!this.turnAttentionPending || !this.display || this.hasEventPresentation() ||
+                this.uiWindow && this.uiWindow!=='events' || this.pendingMapOrderObject ||
+                this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag || this.uiWindowDrag)return false;
+        // V3 finishes ShowMessages, then presents exactly one non-modal goto.
+        // Defer to the draw boundary so turn/report callbacks finish first.
+        this.turnAttentionPending=false;
+        const previous=this.turnPreviousSelection;this.turnPreviousSelection=null;
+        if(!this.shouldShowEventWindows() || !this.getCurrentHumanPlayer())return false;
+        if(this.attention.manualPending().length>0)return this.attention.next();
+        // ShowMessages returns to the surviving pre-turn selection when there
+        // are no non-autoshow go-to requests. Never revive a destroyed object.
+        if(previous && [this.stars,this.allShips,this.allFleets,this.allRendezvous].some(list=>list.includes(previous)) &&
+                !(previous.isDead && previous.isDead()) && !(previous.isEmpty && previous.isEmpty())) {
+            this.setSelectedObject(previous,{attend:false});
+            this.display.centerOn(previous.x,previous.y);return true;
+        }
+        return false;
     }
 
     getKeyChar(key) {
         if (typeof key !== 'number' || key < 0) {
             return '';
         }
-        return String.fromCharCode(key);
+        return key <= 0x10ffff ? String.fromCodePoint(key) : '';
     }
 
     getSelectedStar() {
@@ -564,6 +629,10 @@ class Game {
         return null;
     }
 
+    getStarDisplayName(star) {
+        return ChartNames.displayName(this,star,this.getCurrentHumanPlayer());
+    }
+
     getObjectDisplayName(object, options = {}) {
         if (!object) {
             return I18n.getString(639, 'target');
@@ -571,7 +640,7 @@ class Game {
 
         const objectType = this.getObjectType(object);
         if (objectType === Common.ObjectType.STAR) {
-            return object.name || I18n.getString(541, 'Selected object');
+            return object.namedStar||ChartNames.isHome(this,object)?this.getStarDisplayName(object):object.name || I18n.getString(541, 'Selected object');
         }
         if (objectType === Common.ObjectType.SHIP) {
             return object.name || I18n.getShipTypeName(object.type);
@@ -607,34 +676,47 @@ class Game {
     }
 
     getFleetListRows(owner = this.getCurrentHumanPlayer()) {
-        const rows = [];
-        for (const fleet of this.getPlayerFleets(owner)) {
-            rows.push({
-                kind: 'fleet',
-                object: fleet,
-                name: this.getObjectDisplayName(fleet),
-                ships: fleet.getSize ? fleet.getSize() : 0,
-                power: fleet.totalPower || 0,
-                speed: fleet.totalSpeed || 0,
-                destination: fleet.destination ? this.getObjectDisplayName(fleet.destination) : I18n.getString(7, 'None')
-            });
-        }
-        for (const rendezvous of this.getPlayerRendezvous(owner)) {
-            const fleet = rendezvous.getFleet ? rendezvous.getFleet() : rendezvous.fleet;
-            rows.push({
-                kind: 'rendezvous',
-                object: rendezvous,
-                name: this.getObjectDisplayName(rendezvous),
-                ships: fleet && fleet.getSize ? fleet.getSize() : 0,
-                power: fleet ? (fleet.totalPower || 0) : 0,
-                speed: fleet ? (fleet.totalSpeed || 0) : 0,
-                destination: I18n.formatString(656, '({0}, {1})', Math.round(rendezvous.x / 1024), Math.round(rendezvous.y / 1024))
-            });
-        }
+        if(!owner)return [];
+        const objects=this.getPlayerFleets(owner).filter(fleet=>!fleet.fleet).concat(
+            this.allShips.filter(ship=>ship.owner===owner && !ship.fleet && !ship.isDead() &&
+                !(ship.star && ship.type==='defense')),this.getPlayerRendezvous(owner));
+        const rows=objects.map(object=>{
+            const point=this.factory.isRendezvous(object),fleet=this.factory.isFleet(object);
+            const unit=point?object.getFleet():object;
+            if(unit && this.factory.isFleet(unit))unit.calculateFleetStats();
+            const patrol=!!unit && unit.isOnPatrol(),target=point?object:unit && unit.destination;
+            const coordinates=point=>I18n.formatString(656,'({0}, {1})',I18n.formatDecimal(point.x/65536,2),I18n.formatDecimal(point.y/65536,2));
+            const destination=point?coordinates(object):patrol?I18n.getString(703,'Patrolling'):target?
+                (this.getObjectType(target)?this.getObjectDisplayName(target):coordinates(target)):'—';
+            const colony=unit?(this.factory.isFleet(unit)?(unit.hasShipType('colony')?2:0):(unit.type==='colony'?1:0)):0;
+            return {object,kind:point?'rendezvous':fleet?'fleet':'ship',name:this.getObjectDisplayName(object),
+                tech:unit?Math.trunc(unit.techLevel):0,speed:unit?(unit.speed || 0):0,power:unit?(unit.power || 0):0,
+                ships:unit&&this.factory.isFleet(unit)?unit.getSize():0,
+                damage:unit?unit.getDamagePercent():0,colony,destination,destinationRank:point?1:patrol?2:target?1:0};
+        });
+        const sort=this.fleetRosterSort;
+        rows.sort((a,b)=>{
+            const comparison=sort.key==='destination'?
+                a.destinationRank-b.destinationRank || (a.destinationRank===1?a.destination.localeCompare(b.destination):0):
+                sort.key==='name'?a.name.localeCompare(b.name):a[sort.key]-b[sort.key];
+            return (sort.ascending?comparison:-comparison) || a.kind.localeCompare(b.kind) || a.object.id-b.object.id;
+        });
         return rows;
     }
 
+    selectFleetRosterObject(object) {
+        if(!this.getFleetListRows().some(row=>row.object===object))return false;
+        const now=this.getCurrentMilliseconds(),previous=this.fleetRosterLastClick;
+        this.setSelectedObject(object);
+        if(this.display)this.display.centerOn(object.x,object.y);
+        if(previous && previous.object===object && now>=previous.time && now-previous.time<=500) {
+            this.saveTableWindowGeometry();this.uiWindow=null;this.fleetRosterLastClick=null;
+        } else this.fleetRosterLastClick={object,time:now};
+        return true;
+    }
+
     beginRendezvousPlacement(rendezvous = null) {
+        if(this.clientPlayerNum && !this.canEditClientDecisions())return false;
         const owner = this.getCurrentHumanPlayer();
         if (!owner) {
             return false;
@@ -642,7 +724,7 @@ class Game {
         if (rendezvous && !this.canHumanControl(rendezvous)) {
             this.recordEvent(
                 I18n.getString(602, 'Command'),
-                I18n.getString(663, 'You can only manage your own fleets and rendezvous points.'),
+                I18n.getString(663, 'You can only manage your own objects.'),
                 { type: 'ui' }
             );
             return true;
@@ -662,7 +744,14 @@ class Game {
         return true;
     }
 
+    notifyClientCreation(object) {
+        if(!this.clientPlayerNum || !object || object.owner!==this.clientPlayerNum || !this.networkCommands || !this.networkCommands.created)return false;
+        return this.networkCommands.created(object);
+    }
+
     createRendezvousAt(x, y, owner = this.getCurrentHumanPlayer(), name = null, anchor = null) {
+        if(this.clientAdministrator)return null;
+        if(this.clientPlayerNum && !this.canEditClientDecisions())return null;
         if (!owner) {
             return null;
         }
@@ -672,6 +761,7 @@ class Game {
             I18n.formatString(660, '{0} placed at ({1}, {2})', this.getObjectDisplayName(rendezvous), Math.round(x / 1024), Math.round(y / 1024)),
             { type: Common.EventType.RENDEZVOUS_UPDATED }
         );
+        this.notifyClientCreation(rendezvous);
         return rendezvous;
     }
 
@@ -679,7 +769,7 @@ class Game {
         if (!object || !this.canHumanControl(object)) {
             this.recordEvent(
                 I18n.getString(602, 'Command'),
-                I18n.getString(663, 'You can only manage your own fleets and rendezvous points.'),
+                I18n.getString(663, 'You can only manage your own objects.'),
                 { type: 'ui' }
             );
             return true;
@@ -730,17 +820,14 @@ class Game {
                 changed = true;
             }
         }
-        for (const ship of this.allShips || []) {
-            if (ship.destination === destination) {
-                ship.destination = null;
-                changed = true;
-            }
-        }
-        for (const fleet of this.allFleets || []) {
-            if (fleet.destination === destination) {
-                fleet.setDestination(null);
-                changed = true;
-            }
+        for (const object of [...this.allShips || [],...this.allFleets || []]) {
+            if (object.course) {
+                for (let index=object.course.waypoints.length-1;index>=0;index--) {
+                    if (object.course.waypoints[index].target===destination) {
+                        object.course.delete(index);changed=true;
+                    }
+                }
+            } else if (object.destination===destination) { object.destination=null;changed=true; }
         }
         return changed;
     }
@@ -792,14 +879,14 @@ class Game {
         return changed;
     }
 
-    finishRendezvousPlacementAt(screenX, screenY) {
+    finishRendezvousPlacementAt(screenX, screenY, target) {
         if (!this.pendingRendezvousPlacement || !this.display) {
             return false;
         }
 
         const placement = this.pendingRendezvousPlacement;
         this.pendingRendezvousPlacement = null;
-        const clickedObject = this.findObjectAtPosition(screenX, screenY);
+        const clickedObject = target || this.findObjectAtPosition(screenX, screenY);
         const anchorType = clickedObject ? this.getObjectType(clickedObject) : Common.ObjectType.UNKNOWN;
         const anchor = (
             anchorType === Common.ObjectType.STAR ||
@@ -823,17 +910,21 @@ class Game {
         if (!object || !this.canHumanControl(object)) {
             this.recordEvent(
                 I18n.getString(602, 'Command'),
-                I18n.getString(663, 'You can only manage your own fleets and rendezvous points.'),
+                I18n.getString(663, 'You can only manage your own objects.'),
                 { type: 'ui' }
             );
             return true;
         }
         const objectType = this.getObjectType(object);
-        if (objectType !== Common.ObjectType.FLEET && objectType !== Common.ObjectType.RENDEZVOUS) {
+        if (![Common.ObjectType.STAR, Common.ObjectType.SHIP, Common.ObjectType.FLEET, Common.ObjectType.RENDEZVOUS].includes(objectType)) {
             return false;
         }
         this.renameTarget = object;
         this.renameText = this.getObjectDisplayName(object, { rawName: true });
+        this.renameEditor=NameEditor.createEditor(this.renameText);
+        this.pendingMapOrderObject=null;this.pendingCourseEdit=null;
+        if(this.display){const p=this.display.getObjectScreenPosition(object),screen=this.display.getScreenSize();
+            if(p.x<10 || p.y<10 || p.x>screen.width-10 || p.y>screen.height-10)this.display.centerOn(object.x,object.y);}
         this.uiWindow = 'rename';
         return true;
     }
@@ -865,27 +956,32 @@ class Game {
     }
 
     handleRenameKey(key, char) {
-        if (key === 13 || key === 3 || char === '\r' || char === '\n') {
-            return this.commitRename();
-        }
-        if (key === 8 || key === 127) {
-            this.renameText = this.renameText.substring(0, Math.max(0, this.renameText.length - 1));
-            return true;
-        }
-        if (char && char.length === 1 && char.charCodeAt(0) >= 32 && char.charCodeAt(0) <= 126 && this.renameText.length < 32) {
-            this.renameText += char;
-            return true;
-        }
+        if (key === pdg.key_Enter || key===10 || char === '\r' || char === '\n')return this.commitRename();
+        if(!this.renameEditor || this.renameEditor.text!==this.renameText){this.renameEditor=NameEditor.createEditor(this.renameText);this.renameEditor.selected=false;}
+        NameEditor.edit(this.renameEditor,key,pdg);
+        this.renameText=this.renameEditor.text;
         return true;
     }
 
     openUIWindow(windowName) {
+        this.endUIWindowDrag();
+        this.saveTableWindowGeometry();
+        if (this.mapSelectionPicker) this.cancelMapSelection();
         this.uiWindow = windowName;
+        if(windowName==='menu' && this.uiWindow==='menu')this.commandMenuScroll=0;
+        if(windowName==='fleets')this.fleetRosterLastClick=null;
+        if(windowName==='systemComparison')this.systemComparisonLastClick=null;
         return true;
     }
 
     toggleUIWindow(windowName) {
+        this.endUIWindowDrag();
+        this.saveTableWindowGeometry();
+        if (this.mapSelectionPicker) this.cancelMapSelection();
         this.uiWindow = (this.uiWindow === windowName) ? null : windowName;
+        if(windowName==='menu' && this.uiWindow==='menu')this.commandMenuScroll=0;
+        if(windowName==='fleets')this.fleetRosterLastClick=null;
+        if(windowName==='systemComparison')this.systemComparisonLastClick=null;
         return true;
     }
 
@@ -906,10 +1002,65 @@ class Game {
             return false;
         }
 
+        if(overlay.automaticObserver) {
+            const event=this.eventLog.find(event=>event.id===overlay.eventId);
+            if(!this.showEnemyEvents) {
+                // V3 processes skipped enemy autoshow messages without selecting
+                // their subjects. Keep the report available for manual replay.
+                if(event){event.handled=true;this.attention.handleEvent(event);}
+                return false;
+            }
+            if(!this.isEventAccessible(event))return false;
+        }
+        if(['outcome','report'].includes(overlay.type)){this.endUIWindowDrag();this.endMapScrollDrag();this.endUISliderDrag();if(this.uiWindow==='endTurnConfirm')this.uiWindow=null;}
         this.overlay = {
             ...overlay,
             createdAt: this.getCurrentMilliseconds()
         };
+        if(overlay.type==='report' && this.display) {
+            const event=this.eventLog.find(event=>event.id===overlay.eventId);
+            const position=this.getReportDestructionPosition(event);
+            if(position)this.display.centerOn(position.x,position.y);
+            else if(event && event.observer) {
+                const focus=this.getEventFocus(event);
+                if(focus){this.setSelectedObject(focus.object);this.display.centerOn(focus.x,focus.y);}
+            }
+        }
+        return true;
+    }
+
+    isAutomaticReport(overlay) {
+        return !!(overlay && !overlay.manual && ['report','outcome','lab','stardock'].includes(overlay.type));
+    }
+
+    pendingGameReports() {
+        return this.heldReports.filter(overlay=>{
+            const event=this.eventLog.find(event=>event.id===overlay.eventId);
+            return event && !event.handled && this.isEventAccessible(event);
+        });
+    }
+
+    showPendingGameReports() {
+        if(!this.heldReports.length)return false;
+        const pending=this.heldReports;
+        this.heldReports=[];
+        this.uiWindow=null;
+        for(const overlay of pending) {
+            const event=this.eventLog.find(event=>event.id===overlay.eventId);
+            if(event && !event.handled && this.isEventAccessible(event))this.queueEventOverlay({...overlay,manual:true});
+        }
+        return pending.length>0;
+    }
+
+    toggleHoldGameReports() {
+        this.holdGameReports=!this.holdGameReports;
+        if(this.holdGameReports) {
+            if(this.isAutomaticReport(this.overlay)){this.heldReports.push({...this.overlay});this.overlay=null;}
+            this.overlayQueue=this.overlayQueue.filter(overlay=>{
+                if(!this.isAutomaticReport(overlay))return true;
+                this.heldReports.push({...overlay});return false;
+            });
+        } else this.showPendingGameReports();
         return true;
     }
 
@@ -918,6 +1069,10 @@ class Game {
             return false;
         }
 
+        if(this.holdGameReports && this.isAutomaticReport(overlay)) {
+            if(!this.heldReports.some(row=>row.eventId===overlay.eventId))this.heldReports.push({...overlay});
+            return true;
+        }
         if (!this.overlay) {
             this.showEventOverlay(overlay);
         } else {
@@ -930,14 +1085,88 @@ class Game {
         return !!(this.overlay || (this.overlayQueue && this.overlayQueue.length > 0));
     }
 
+    queueOutcome(event,kind,playerNum=0) {
+        const player=this.players && this.players[playerNum];
+        event.outcome={kind,playerNum,name:player && player.name?player.name:`${I18n.getString(18,'Player')} ${playerNum}`,turn:event.turn};
+        // Evnt128 gives outcome dialogs only to the affected player. These notices
+        // concern everyone, so observer completion does not use Show enemy events.
+        const animationOnly=kind!=='draw' && playerNum!==this.getCurrentHumanPlayer();
+        return this.queueEventOverlay({type:'outcome',...event.outcome,eventId:event.id,page:0,animationOnly});
+    }
+
+    replayOutcome(event) {
+        if(!this.getEventRows().includes(event) || !event.outcome)return false;
+        this.uiWindow=null;
+        return this.queueEventOverlay({type:'outcome',...event.outcome,eventId:event.id,page:0,manual:true});
+    }
+
+    getReportDestructionPosition(event) {
+        if(!this.isEventAccessible(event) || !event.position)return null;
+        const hasCasualties=event.combat && (event.combat.ownShipsLost>0 || event.combat.enemyShipsLost>0);
+        const resistanceLost=event.occupation && event.occupation.kind==='defendersLost';
+        return hasCasualties || resistanceLost || event.systemDefense || event.destruction ? event.position : null;
+    }
+
+    hasReplayableReport(event) {
+        return !!(event && (event.combat || event.occupation || event.systemDefense || event.destruction || event.repair || event.rendezvousFormation || event.colonization || event.commissioning || event.discovery || event.playerMessage));
+    }
+
+    // Evnt128 assigns no dialog to destruction, defense losses, occupation or colonization.
+    // First-class/discovery observer columns also have no dialog; owner art is queued separately.
+    // Explicit replay passes animationOnly=false to retain the full narrative.
+    queueReport(event, animationOnly = !!(event && (event.destruction || event.systemDefense || event.occupation || event.colonization ||
+            event.observer && (event.commissioning || event.discovery))), manual = false) {
+        if (!this.hasReplayableReport(event) || !this.isEventAccessible(event)) return false;
+        return this.queueEventOverlay({type:'report',eventId:event.id,page:0,animationOnly,manual,automaticObserver:!!event.observer && !manual});
+    }
+
+    queueObserverReports() {
+        let queued=false;
+        const retained=new Set(this.getEventRows());
+        for(const event of this.eventLog) {
+            if(event.turn!==this.turn && !retained.has(event))continue;
+            if(!event.observer || event.automatic===false || event.handled || this.overlay && this.overlay.eventId===event.id ||
+                    this.overlayQueue.some(overlay=>overlay.eventId===event.id) || this.heldReports.some(overlay=>overlay.eventId===event.id))continue;
+            if(!this.showEnemyEvents) {
+                if(this.isEventAccessible(event)){event.handled=true;this.attention.handleEvent(event);}
+                continue;
+            }
+            queued=this.queueReport(event) || queued;
+        }
+        return queued;
+    }
+
+    replayReport(event) {
+        if (!this.getEventRows().includes(event) || !this.hasReplayableReport(event) || !this.isEventAccessible(event)) return false;
+        this.uiWindow=null;
+        return this.queueReport(event, false, true);
+    }
+
+    abortAutomaticNotices() {
+        if(!this.overlay || !this.overlay.animationOnly || !this.isAutomaticReport(this.overlay))return false;
+        // Stop this autoshow batch without losing its unread reports or changing
+        // the user's Hold/Show enemy events preferences. Explicit Show reports
+        // can later replay the original owner art and recipient presentations.
+        this.overlayQueue=this.overlayQueue.filter(overlay=>{
+            if(!this.isAutomaticReport(overlay))return true;
+            if(!this.heldReports.some(row=>row.eventId===overlay.eventId))this.heldReports.push({...overlay});
+            return false;
+        });
+        return this.dismissEventPresentation();
+    }
+
     dismissEventPresentation() {
         if (!this.hasEventPresentation()) {
             return false;
         }
 
+        if(this.overlay && ['outcome','report','stardock','lab'].includes(this.overlay.type)) {
+            const event=this.eventLog.find(event=>event.id===this.overlay.eventId);
+            if(event)this.focusEvent(event);
+        }
         this.overlay = null;
-        if (this.overlayQueue && this.overlayQueue.length > 0) {
-            this.showEventOverlay(this.overlayQueue.shift());
+        while (this.overlayQueue && this.overlayQueue.length > 0) {
+            if(this.showEventOverlay(this.overlayQueue.shift()))break;
         }
         return true;
     }
@@ -950,13 +1179,13 @@ class Game {
     }
 
     closeEventWindowsForTurnAdvance() {
-        let closedAny = false;
+        let closedAny = this.cancelMapSelection();
 
         if (this.clearEventPresentations()) {
             closedAny = true;
         }
 
-        if (this.uiWindow === 'events') {
+        if (['events','endTurnConfirm'].includes(this.uiWindow)) {
             this.uiWindow = null;
             closedAny = true;
         }
@@ -982,16 +1211,74 @@ class Game {
         if (!this.eventLog) {
             this.eventLog = [];
         }
-        this.eventLog.push({
-            turn: options.turn || this.turn,
-            title,
-            message,
-            type: options.type || 'game',
-            createdAt: (typeof pdg !== 'undefined' && pdg.tm && pdg.tm.getMilliseconds) ? pdg.tm.getMilliseconds() : Date.now()
-        });
-        if (this.eventLog.length > 80) {
-            this.eventLog.splice(0, this.eventLog.length - 80);
+        const subject=options.subject || null;
+        const source=options.position || subject;
+        const position=source && Number.isFinite(source.x) && Number.isFinite(source.y)?{x:source.x,y:source.y}:null;
+        const event={
+            id:this.clientPlayerNum?-(this.clientEventSequence=(this.clientEventSequence || 0)+1):++this.nextEventId,turn:options.turn || this.turn,title,message,
+            type:options.type || 'game',subject,position,recipient:options.recipient,
+            handled:false,
+            createdAt:(typeof pdg!=='undefined' && pdg.tm && pdg.tm.getMilliseconds)?pdg.tm.getMilliseconds():Date.now()
+        };
+        this.eventLog.push(event);
+        // Keep every current/last-turn report, even in a busy construction turn.
+        while(this.eventLog.length>80){
+            const index=this.eventLog.findIndex(event=>event.turn<Math.max(1,this.turn-1) && !(event.playerMessage && !event.handled) && !this.heldReports.some(overlay=>overlay.eventId===event.id));
+            if(index<0)break;
+            this.eventLog.splice(index,1);
         }
+        return event;
+    }
+
+    isEventAccessible(event, player=this.getCurrentHumanPlayer()) {
+        if(!event || !this.eventLog.includes(event))return false;
+        if(event.recipient!==undefined && event.recipient!==player)return false;
+        if(event.playerMessage && event.playerMessage.claim && this.config.networkHost && event.playerMessage.claim!==require('./host-chat.js').claimKey(this,player))return false;
+        if(event.type===Common.EventType.RENAME_COLONY && (!this.stars.includes(event.subject) || event.subject.owner!==player))return false;
+        const subject=event.subject;
+        // Broadcast observer copies must still satisfy fog; participant copies bypass it.
+        return !subject || (event.recipient===player && !event.observer) || this.config.omniscient ||
+            subject.owner===player || subject.isAllyOf && subject.isAllyOf(player) ||
+            subject.getVisibilityTo && subject.getVisibilityTo(player)>Common.VisibilityLevel.NONE;
+    }
+
+    getEventRows() {
+        const reportTurn=Math.max(1,this.turn-1);
+        // Terminal turns do not advance; their reports must remain available for replay.
+        return this.eventLog.filter(event=>(event.turn===reportTurn || this.heldReports.some(overlay=>overlay.eventId===event.id) || event.playerMessage && !event.handled ||
+            (event.outcome || this.isGameOver && this.hasReplayableReport(event)) && event.turn===this.turn) && this.isEventAccessible(event));
+    }
+
+    getEventFocus(event) {
+        if(!this.isEventAccessible(event))return null;
+        const player=this.getCurrentHumanPlayer(),subject=event.subject;
+        const live=subject && (this.stars.includes(subject) || this.allShips.includes(subject) && !subject.isDead() ||
+            this.allFleets.includes(subject) && !subject.isEmpty() || this.allRendezvous.includes(subject));
+        if(live && (subject.owner===player || this.config.omniscient || subject.isAllyOf && subject.isAllyOf(player) ||
+            subject.getVisibilityTo && subject.getVisibilityTo(player)>Common.VisibilityLevel.NONE))return {object:subject.fleet || subject,x:subject.x,y:subject.y};
+        // Private reports may still point to the remembered position of a lost subject.
+        if(event.position && (!subject || event.recipient===player || this.config.omniscient))return {...event.position,object:null};
+        return null;
+    }
+
+    focusEvent(event,closeWindow=false) {
+        if(!this.isEventAccessible(event))return false;
+        event.handled=true;this.attention.handleEvent(event);
+        this.heldReports=this.heldReports.filter(row=>row.eventId!==event.id);
+        if(event.type===Common.EventType.RENAME_COLONY)this.eventSelection=event.id;
+        const focus=this.getEventFocus(event);
+        if(focus) {
+            this.setSelectedObject(focus.object,{attend:false});
+            if(this.display)this.display.centerOn(focus.x,focus.y);
+        }
+        if(closeWindow)this.uiWindow=null;
+        return true;
+    }
+
+    selectEvent(event) {
+        if(!this.getEventRows().includes(event))return false;
+        this.eventSelection=event.id;this.eventDetailPage=0;
+        return this.focusEvent(event);
     }
 
     getRecentEvents(limit = 12) {
@@ -1013,7 +1300,8 @@ class Game {
     }
 
     setAllocationDesired(allocation, value) {
-        const desired = this.clampAllocationValue(Math.round(value));
+        if (!Number.isFinite(value)) return false;
+        const desired = this.clampAllocationValue(Math.round(value * 10) / 10);
         if (allocation && typeof allocation.setDesired === 'function') {
             allocation.setDesired(desired);
         } else if (allocation) {
@@ -1030,113 +1318,60 @@ class Game {
     }
 
     normalizeStarAllocations(star) {
-        const entries = this.getStarAllocationEntries(star).filter(entry => entry.allocation && !entry.allocation.locked);
-        if (entries.length === 0) {
-            return;
-        }
-
-        for (const entry of entries) {
-            this.setAllocationDesired(entry.allocation, this.getAllocationDesired(entry.allocation));
-        }
-
-        let total = entries.reduce((sum, entry) => sum + this.getAllocationDesired(entry.allocation), 0);
-        let diff = Math.round(100 - total);
-        let guard = 0;
-
-        while (diff !== 0 && guard < 300) {
-            guard++;
-            const direction = diff > 0 ? 1 : -1;
-            let changed = false;
-
-            const orderedEntries = [...entries].sort((a, b) => {
-                const aDesired = this.getAllocationDesired(a.allocation);
-                const bDesired = this.getAllocationDesired(b.allocation);
-                return direction > 0 ? aDesired - bDesired : bDesired - aDesired;
-            });
-
-            for (const entry of orderedEntries) {
-                const current = this.getAllocationDesired(entry.allocation);
-                const next = this.clampAllocationValue(current + direction);
-                if (next !== current) {
-                    this.setAllocationDesired(entry.allocation, next);
-                    diff -= direction;
-                    changed = true;
-                    break;
-                }
-            }
-
-            if (!changed) {
-                break;
-            }
+        const entries = this.getStarAllocationEntries(star);
+        const unlocked = entries.filter(entry => entry.allocation && !entry.allocation.locked);
+        unlocked.forEach(entry => this.setAllocationDesired(entry.allocation,this.getAllocationDesired(entry.allocation)));
+        // Work in v3's integer 0–1000 units, retaining the public percentage representation.
+        let remaining = 1000-entries.reduce((sum,entry)=>sum+Math.round(this.getAllocationDesired(entry.allocation)*10),0);
+        if (!Number.isFinite(remaining)) return;
+        while (remaining!==0 && unlocked.length) {
+            const direction=remaining>0?1:-1;
+            const ordered=[...unlocked].sort((a,b)=>direction*(this.getAllocationDesired(a.allocation)-this.getAllocationDesired(b.allocation)));
+            const target=ordered.find(entry=>{const units=Math.round(this.getAllocationDesired(entry.allocation)*10);return units+direction>=0&&units+direction<=1000;});
+            if (!target) break;
+            const units=Math.round(this.getAllocationDesired(target.allocation)*10);
+            this.setAllocationDesired(target.allocation,(units+direction)/10); remaining-=direction;
         }
     }
 
-    adjustStarAllocation(star, allocationKey, delta) {
-        if (!star || !this.canHumanControl(star)) {
-            return false;
-        }
-
-        const entries = this.getStarAllocationEntries(star);
-        const targetEntry = entries.find(entry => entry.key === allocationKey);
-        if (!targetEntry || targetEntry.allocation.locked) {
-            return false;
-        }
-
-        const oldDesired = this.getAllocationDesired(targetEntry.allocation);
-        const requestedDesired = this.clampAllocationValue(oldDesired + delta);
-        let appliedDelta = requestedDesired - oldDesired;
-
-        if (appliedDelta === 0) {
-            return false;
-        }
-
-        const otherEntries = entries
-            .filter(entry => entry !== targetEntry && entry.allocation && !entry.allocation.locked);
-
-        if (otherEntries.length === 0) {
-            return false;
-        }
-
-        if (appliedDelta > 0) {
-            let remaining = appliedDelta;
-            const donors = [...otherEntries].sort((a, b) =>
-                this.getAllocationDesired(b.allocation) - this.getAllocationDesired(a.allocation)
-            );
-            for (const donor of donors) {
-                if (remaining <= 0) {
-                    break;
+    adjustStarAllocation(star,allocationKey,delta,options = {}) {
+        if (!star || !this.canHumanControl(star) || !Number.isFinite(delta)) return false;
+        const entries=this.getStarAllocationEntries(star);
+        const target=entries.find(entry=>entry.key===allocationKey);
+        if (!target || target.allocation.locked) return false;
+        const others=entries.filter(entry=>entry!==target && !entry.allocation.locked);
+        if (!others.length) return false;
+        const oldUnits=Math.round(this.getAllocationDesired(target.allocation)*10);
+        const desiredUnits=Math.round(this.clampAllocationValue(oldUnits/10+delta)*10);
+        let remaining=desiredUnits-oldUnits;
+        if (!remaining) return false;
+        const direction=remaining>0?-1:1;
+        // Share the change across unlocked neighbors, spilling at an endpoint.
+        while (remaining!==0) {
+            let changed=false;
+            for (const entry of others) {
+                if (remaining===0) break;
+                const units=Math.round(this.getAllocationDesired(entry.allocation)*10);
+                const next=units+direction;
+                if (next>=0 && next<=1000) {
+                    this.setAllocationDesired(entry.allocation,next/10); remaining+=direction; changed=true;
                 }
-                const current = this.getAllocationDesired(donor.allocation);
-                const take = Math.min(current, remaining);
-                this.setAllocationDesired(donor.allocation, current - take);
-                remaining -= take;
             }
-            appliedDelta -= remaining;
-        } else {
-            let remaining = -appliedDelta;
-            const receivers = [...otherEntries].sort((a, b) =>
-                this.getAllocationDesired(a.allocation) - this.getAllocationDesired(b.allocation)
-            );
-            for (const receiver of receivers) {
-                if (remaining <= 0) {
-                    break;
-                }
-                const current = this.getAllocationDesired(receiver.allocation);
-                const room = 100 - current;
-                const add = Math.min(room, remaining);
-                this.setAllocationDesired(receiver.allocation, current + add);
-                remaining -= add;
-            }
-            appliedDelta += remaining;
+            if (!changed) break;
         }
-
-        if (appliedDelta === 0) {
-            return false;
-        }
-
-        this.setAllocationDesired(targetEntry.allocation, oldDesired + appliedDelta);
+        const applied=desiredUnits-oldUnits-remaining;
+        if (!applied) return false;
+        this.setAllocationDesired(target.allocation,(oldUnits+applied)/10);
         this.normalizeStarAllocations(star);
-        this.recordProductionChange(star);
+        if (!options.silent) this.recordProductionChange(star);
+        return true;
+    }
+
+    toggleStarAllocationLock(star, allocationKey) {
+        if (!star || !this.canHumanControl(star)) return false;
+        const entry = this.getStarAllocationEntries(star).find(item => item.key === allocationKey);
+        if (!entry || !entry.allocation) return false;
+        entry.allocation.setLocked(!entry.allocation.locked);
         return true;
     }
 
@@ -1144,7 +1379,7 @@ class Game {
         return this.adjustStarAllocation(this.getSelectedStar(), allocationKey, delta);
     }
 
-    setStarAllocation(star, allocationKey, desired) {
+    setStarAllocation(star, allocationKey, desired, options = {}) {
         const entries = this.getStarAllocationEntries(star);
         const targetEntry = entries.find(entry => entry.key === allocationKey);
         if (!targetEntry) {
@@ -1152,7 +1387,7 @@ class Game {
         }
 
         const current = this.getAllocationDesired(targetEntry.allocation);
-        return this.adjustStarAllocation(star, allocationKey, desired - current);
+        return this.adjustStarAllocation(star, allocationKey, desired - current, options);
     }
 
     resetSelectedStarAllocations() {
@@ -1160,9 +1395,14 @@ class Game {
         if (!star || !this.canHumanControl(star)) {
             return false;
         }
-        this.setAllocationDesired(star.growth, 34);
-        this.setAllocationDesired(star.shipBuilding, 33);
-        this.setAllocationDesired(star.research, 33);
+        const entries = this.getStarAllocationEntries(star);
+        const unlocked = entries.filter(entry => !entry.allocation.locked);
+        if (!unlocked.length) return false;
+        const budget = 1000 - entries.filter(entry => entry.allocation.locked)
+            .reduce((sum, entry) => sum + Math.round(this.getAllocationDesired(entry.allocation)*10), 0);
+        const share = Math.floor(budget / unlocked.length);
+        unlocked.forEach((entry, index) => this.setAllocationDesired(entry.allocation,
+            (share + (index === 0 ? budget - share * unlocked.length : 0))/10));
         this.recordProductionChange(star);
         return true;
     }
@@ -1173,17 +1413,114 @@ class Game {
         const research = this.getAllocationDesired(star.research);
         this.recordEvent(
             I18n.getString(603, 'Production'),
-            I18n.formatString(621, '{0}: Growth {1}% / Ships {2}% / Research {3}%', star.name, growth, ships, research),
+            I18n.formatString(621, '{0}: Growth {1}% / Ships {2}% / Research {3}%', star.name, I18n.formatPercentage(growth), I18n.formatPercentage(ships), I18n.formatPercentage(research)),
             { type: 'ui' }
         );
     }
 
     handleCommandWindowKey(key, char) {
+        if(this.uiWindowDrag && key===pdg.key_Escape){this.endUIWindowDrag();return true;}
+        if(this.uiWindow==='mapPick') {
+            if(key===pdg.key_Escape)return this.cancelMapSelection();
+            const index=Number(char)-1;
+            if(Number.isInteger(index) && index>=0 && index<6) {
+                const object=this.getMapSelectionRows().slice(this.mapSelectionPicker.page*6)[index];
+                if(object)return this.chooseMapSelection(object);
+            }
+            return true;
+        }
         if (!this.uiWindow) {
             return false;
         }
 
         const lower = char.toLowerCase();
+        if(this.uiWindow==='presentation'){
+            if(lower==='t')return this.executeUIAction({type:'presentationTutorial'});
+            if([pdg.key_Escape,13,3].includes(key))return this.executeUIAction({type:'closePresentation'});
+            if([pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))return this.executeUIAction({type:'presentationPage',delta:key===pdg.key_LeftArrow?-1:1});
+            return true;
+        }
+        if(this.uiWindow==='games') {
+            if(key===pdg.key_Escape)this.uiWindow=null;
+            else if(key===pdg.key_LeftArrow)this.gameSessionPage=Math.max(0,(this.gameSessionPage || 0)-1);
+            else if(key===pdg.key_RightArrow)this.gameSessionPage=(this.gameSessionPage || 0)+1;
+            return true;
+        }
+        if(this.uiWindow==='systemShips' && this.display?.getSystemShipWindowLayout().compact && [pdg.key_PageUp,pdg.key_PageDown,pdg.key_LeftArrow,pdg.key_RightArrow].includes(key)){
+            if([pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))return this.executeUIAction({type:'systemShipPage',page:Math.max(0,this.systemShipPage+(key===pdg.key_LeftArrow?-1:1))});
+            this.scrollSystemShips(key===pdg.key_PageUp?-80:80);return true;
+        }
+        if(this.uiWindow==='menu' && [pdg.key_PageUp,pdg.key_PageDown].includes(key)){this.scrollCommandMenu(key===pdg.key_PageUp?-80:80);return true;}
+        if(this.uiWindow==='menu' && lower==='q')return this.executeUIAction({type:'quit'});
+        if(this.uiWindow==='menu' && lower==='h')return this.executeUIAction({type:'openManual'});
+        if(this.uiWindow==='menu' && this.sessionCommands) {
+            if(lower==='n')return this.executeUIAction({type:'newGame'});
+            if(lower==='g')return this.executeUIAction({type:'showGames'});
+        }
+
+        if(this.uiWindow==='view') {
+            if(key===pdg.key_Escape)this.uiWindow=null;
+            else if(key===pdg.key_Home)this.executeUIAction({type:'selectHomeStar'});
+            else if(lower==='+' || lower==='=')this.executeUIAction({type:'zoomIn'});
+            else if(lower==='-')this.executeUIAction({type:'zoomOut'});
+            else if(lower==='0' || lower==='*' || lower==='f')this.executeUIAction({type:'zoomToFit'});
+            else if(char==='C')this.executeUIAction({type:'centerSelected'});
+            return true;
+        }
+        if(key===pdg.key_Home && this.uiWindow==='menu')return this.executeUIAction({type:'selectHomeStar'});
+        if(this.uiWindow==='comparison') {
+            if(key===pdg.key_Escape || lower==='v')this.uiWindow=null;
+            else if([pdg.key_PageUp,pdg.key_PageDown].includes(key))this.scrollPlayerComparison(key===pdg.key_PageUp?-80:80);
+            else if(this.display && this.display.getPlayerComparisonLayout().compact && [pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))this.executeUIAction({type:'playerComparisonColumn',page:(this.playerComparisonColumnPage || 0)+(key===pdg.key_LeftArrow?-1:1)});
+            return true;
+        }
+        if(this.uiWindow==='systemComparison') {
+            if(key===pdg.key_Escape){this.saveTableWindowGeometry();this.uiWindow=null;}
+            else if(key===13 || key===3)this.openSystemComparisonSelection();
+            return true;
+        }
+        if(this.uiWindow==='fleets' && this.display?.getFleetRosterLayout().compact){
+            if([pdg.key_PageUp,pdg.key_PageDown].includes(key)){this.scrollFleetRoster(key===pdg.key_PageUp?-80:80);return true;}
+            if([pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))return this.executeUIAction({type:'fleetRosterPage',page:Math.max(0,this.fleetRosterPage+(key===pdg.key_LeftArrow?-1:1))});
+        }
+        if(this.uiWindow==='fleetExchange' || this.uiWindow==='fleets') {
+            if(this.uiWindow==='fleetExchange' && key===pdg.key_LeftArrow){
+                const state=this.getFleetExchangeState();if(state)this.selectContainingObject(state.container);return true;
+            }
+            if(this.uiWindow==='fleetExchange' && key===pdg.key_RightArrow){
+                if(!this.hasEventPresentation() && !this.uiWindowDrag)this.executeUIAction({type:'fleetExchangeOpen'});return true;
+            }
+            if(key===pdg.key_Escape){this.saveTableWindowGeometry();this.uiWindow=null;}
+            return true;
+        }
+        if(this.uiWindow==='newGameDefaults'){
+            if(this.newGameDefaultsChoice){
+                const choices=NewGameDefaults.choices(this.newGameDefaultsChoice);
+                if(key===pdg.key_Escape)return this.executeUIAction({type:'cancelNewGameDefaultChoice'});
+                if([pdg.key_UpArrow,pdg.key_LeftArrow,pdg.key_DownArrow,pdg.key_RightArrow].includes(key)){
+                    const columns=choices.length>7?2:1;
+                    const delta=key===pdg.key_UpArrow?-columns:key===pdg.key_DownArrow?columns:key===pdg.key_LeftArrow?-1:1;this.newGameDefaultsChoiceIndex=(this.newGameDefaultsChoiceIndex+delta+choices.length)%choices.length;return true;
+                }
+                if(key===13)return this.executeUIAction({type:'setNewGameDefault',field:this.newGameDefaultsChoice,value:choices[this.newGameDefaultsChoiceIndex]});
+                return true;
+            }
+            if(key===pdg.key_Escape)return this.executeUIAction({type:'cancelNewGameDefaults'});
+            if(key===13)return this.executeUIAction({type:'saveNewGameDefaults'});
+            return true;
+        }
+        if(this.uiWindow==='settings' || this.uiWindow==='mapDisplay') {
+            if(this.uiWindow==='settings' && lower==='t')return this.executeUIAction({type:'startTutorial'});
+            if(this.uiWindow==='settings' && [pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))
+                return this.executeUIAction({type:'settingsPage',delta:key===pdg.key_RightArrow?1:-1});
+            if(key===pdg.key_Escape)this.uiWindow=null;
+            return true;
+        }
+
+        if (this.uiWindow === 'colonyDefaults') {
+            if (key === pdg.key_Escape) return this.cancelColonyDefaults();
+            if (key === 13 || key === 3) return this.saveColonyDefaults();
+            return true;
+        }
 
         if (this.uiWindow === 'rename') {
             if (key === pdg.key_Escape) {
@@ -1199,6 +1536,34 @@ class Game {
             this.uiWindow = null;
             return true;
         }
+
+        if(this.uiWindow==='endTurnConfirm') {
+            if(key===13 || key===3)this.endTurn();
+            return true;
+        }
+
+        if(this.uiWindow==='events') {
+            if(key===13 || key===3) {
+                const event=this.getEventRows().find(event=>event.id===this.eventSelection);
+                if(event && event.outcome)this.replayOutcome(event);else if(this.hasReplayableReport(event))this.replayReport(event);else if(event)this.focusEvent(event,true);else this.requestEndTurn();
+                return true;
+            }
+        }
+
+        if (this.uiWindow==='course') {
+            if([pdg.key_PageUp,pdg.key_PageDown].includes(key))this.scrollCourse(key===pdg.key_PageUp?-80:80);
+            else if (lower==='a') this.beginCourseEdit(false);
+            else if (lower==='e') this.beginCourseEdit(true);
+            else if (key===127 || key===8 || lower==='d') this.executeUIAction({type:'deleteWaypoint'});
+            else if (lower==='x') this.clearOrders(this.courseWindowObject);
+            else if (lower==='l') this.executeUIAction({type:'toggleCourseLoop'});
+            else if (lower==='m') this.executeUIAction({type:'swapCourseMemory'});
+            else if (lower==='h') this.executeUIAction({type:'toggleCourseHunt'});
+            else if (lower==='p') this.togglePatrol(this.courseWindowObject);
+            else if (lower==='c') this.toggleCallIn(this.courseWindowObject);
+            return true;
+        }
+
 
         if (this.uiWindow === 'production') {
             switch (lower) {
@@ -1220,7 +1585,7 @@ class Game {
                 case 'd':
                     this.adjustSelectedStarAllocation('research', -5);
                     return true;
-                case 'r':
+                case '=':
                     this.resetSelectedStarAllocations();
                     return true;
                 case 'p':
@@ -1245,16 +1610,16 @@ class Game {
             case 'u':
                 return this.beginRendezvousPlacement();
             case 'h':
-                this.selectHomeStar();
-                return true;
+                return this.executeUIAction({type:'toggleCourseHunt',object:this.selectedObject});
             case 'f':
                 if (this.display) {
                     this.display.zoomToFit();
                 }
                 return true;
             case '0':
+            case '*':
                 if (this.display) {
-                    this.display.resetView();
+                    this.display.zoomToFit();
                 }
                 return true;
             case '+':
@@ -1280,8 +1645,13 @@ class Game {
                 return this.toggleUIWindow('menu');
             case 'e':
                 return this.toggleUIWindow('events');
-            case 'p':
+            case 'p': {
+                const type=this.getObjectType(this.selectedObject);
+                if([Common.ObjectType.SHIP,Common.ObjectType.FLEET].includes(type)) {
+                    this.togglePatrol(this.selectedObject);return true;
+                }
                 return this.toggleProductionWindow();
+            }
             case 'v':
                 return this.toggleUIWindow('comparison');
             case 'l':
@@ -1293,31 +1663,353 @@ class Game {
         }
     }
 
-    setSelectedObject(object) {
+    setSelectedObject(object,options={}) {
+        const previous=this.selectedObject;
+        if (this.selectedObject !== object) this.fleetMemberPage = 0;
         this.selectedObject = object;
+        const colonyRequest=this.attention.pending().find(entry=>entry.object===object && entry.event && entry.event.type===Common.EventType.RENAME_COLONY);
+        if(colonyRequest)this.eventSelection=colonyRequest.event.id;
+        if(options.attend!==false)this.attention.attend(object);
         if (this.display) {
             this.display.setSelectedObject(object);
         }
+        if(previous!==object && this.networkCommands && this.networkCommands.selectionChanged)this.networkCommands.selectionChanged(previous,object);
+    }
+
+    beginColonyDefaults() {
+        const playerNum = this.getCurrentHumanPlayer();
+        const player = this.players[playerNum];
+        if (!player || !player.isHuman) return false;
+        const source=this.colonyDefaultsPreferences && !this.tutorialSimulation?this.colonyDefaultsPreferences.read():player;
+        this.colonyDefaultsReturn=this.uiWindow==='settings'?'settings':null;
+        this.colonyDefaultsDraft = { playerNum, defaultGrowth: source.defaultGrowth,
+            defaultShips: source.defaultShips, defaultTech: source.defaultTech,
+            defaultBuildType: source.defaultBuildType };
+        this.uiWindow = 'colonyDefaults';
+        return true;
+    }
+
+    setColonyDefaultAllocation(key,value) {
+        const draft = this.colonyDefaultsDraft;
+        const keys = ['defaultGrowth','defaultShips','defaultTech'];
+        if (!draft || !keys.includes(key) || !Number.isFinite(value) ||
+            keys.some(other => !Number.isInteger(draft[other]) || draft[other]<0 || draft[other]>1000) ||
+            keys.reduce((sum,other)=>sum+draft[other],0)!==1000) return false;
+        const desired = Math.max(0,Math.min(1000,Math.round(value)));
+        let remaining = desired-draft[key];
+        const direction = remaining > 0 ? -1 : 1;
+        const others = keys.filter(other => other!==key);
+        while (remaining !== 0) {
+            let changed = false;
+            for (const other of others) {
+                if (remaining===0) break;
+                const next = draft[other]+direction;
+                if (next >= 0 && next <= 1000) {
+                    draft[other] = next; remaining+=direction; changed=true;
+                }
+            }
+            if (!changed) return false;
+        }
+        draft[key] = desired;
+        return true;
+    }
+
+    saveColonyDefaults() {
+        if(this.clientPlayerNum && !this.canEditClientDecisions())return false;
+        const draft = this.colonyDefaultsDraft;
+        const player = draft && this.players[draft.playerNum];
+        if (!player || !player.isHuman) return false;
+        const values = [draft.defaultGrowth,draft.defaultShips,draft.defaultTech];
+        if (values.some(value => !Number.isInteger(value) || value<0 || value>1000) ||
+            values.reduce((sum,value)=>sum+value,0)!==1000 ||
+            !Number.isInteger(draft.defaultBuildType) || draft.defaultBuildType<1 || draft.defaultBuildType>4) return false;
+        player.setDefaultEconomics(draft.defaultGrowth,draft.defaultTech,draft.defaultShips);
+        player.setDefaultBuildType(draft.defaultBuildType);
+        if(this.colonyDefaultsPreferences && !this.tutorialSimulation)this.colonyDefaultsPreferences.write(draft);
+        this.colonyDefaultsDraft = null;
+        this.uiWindow = this.colonyDefaultsReturn || null;this.colonyDefaultsReturn=null;
+        return true;
+    }
+
+    cancelColonyDefaults() {
+        this.colonyDefaultsDraft = null;
+        this.uiWindow = this.colonyDefaultsReturn || null;this.colonyDefaultsReturn=null;
+        return true;
+    }
+
+    canViewSystemShips(star) {
+        if (!star || this.getObjectType(star) !== Common.ObjectType.STAR) return false;
+        if (this.config.omniscient || this.canHumanControl(star)) return true;
+        const player = this.getCurrentHumanPlayer();
+        if (star.isAllyOf(player)) return true;
+        if (star.getVisibilityTo(player) >= Common.VisibilityLevel.DETAILS) return true;
+        return !star.owner && this.allShips.some(ship => ship.star === star && this.canHumanControl(ship) &&
+            !ship.underConstruction());
+    }
+
+    getSystemComparisonRows() {
+        const player = this.getCurrentHumanPlayer();
+        if (!player) return [];
+        const classNames = I18n.getString(800, 'Traveller').split('|');
+        const rows = this.stars.filter(star => star.owner === player).map(star => {
+            const build = star.currentShip;
+            const buildName = !build ? I18n.getString(7, 'None') : build.type === 'battleship'
+                ? classNames[Math.min(classNames.length - 1, Math.max(0, Math.floor(star.techLevel / 5)))]
+                : I18n.getShipTypeName(build.type, { capitalized: true });
+            const defense = star.getDefenseBreakdown();
+            return { star, name: star.name, tech: Math.trunc(star.techLevel), population: Math.trunc(star.population),
+                production: Math.trunc(star.getProduction() / 100), buildName,
+                buildRank: !build ? -1 : build.type === 'battleship' ? 3 + Math.floor(star.techLevel / 5)
+                    : {defense:0,scout:1,colony:2}[build.type],
+                completion: build ? Math.trunc(build.progress) : 0,
+                totalDefense: Math.trunc(defense.totalDefense / 100),
+                satelliteDefense: Math.trunc(defense.satelliteDefense / 100),
+                shipDefense: Math.trunc(defense.shipDefense / 100) };
+        });
+        const sort = this.systemComparisonSort;
+        return rows.sort((a,b) => {
+            const key=sort.key==='buildName'?'buildRank':sort.key;
+            const order = typeof a[key] === 'string' ? a[key].localeCompare(b[key]) : a[key] - b[key];
+            return (sort.ascending ? order : -order) || a.star.id - b.star.id;
+        });
+    }
+
+    openSystemComparisonSelection() {
+        const star = this.systemComparisonSelection;
+        if (!star || !this.getSystemComparisonRows().some(row => row.star === star)) return false;
+        this.setSelectedObject(star);
+        if (this.display) this.display.centerOn(star.x, star.y);
+        this.endUIWindowDrag();
+        this.saveTableWindowGeometry();
+        this.uiWindow = null;
+        this.systemComparisonLastClick = null;
+        return true;
+    }
+
+    getDockedSystemMembers(star) {
+        // Projected clients do not receive enemy courses. Their explicit host
+        // membership is authoritative; coordinate inference is local-only.
+        const isDocked=object=>object.star===star || (this.clientPlayerNum===undefined && !object.destination &&
+            Math.round(object.x)===Math.round(star.x) && Math.round(object.y)===Math.round(star.y));
+        return this.allShips.filter(ship=>!ship.fleet && !ship.isDead() && !ship.underConstruction() && isDocked(ship))
+            .concat(this.allFleets.filter(fleet=>!fleet.fleet && !fleet.isDead() && !fleet.isEmpty() && isDocked(fleet)));
+    }
+
+    getSystemShipRows(star = this.systemShipWindowStar) {
+        if (!this.canViewSystemShips(star)) return [];
+        const members=this.getDockedSystemMembers(star);
+        const makeRow = (object, member = false) => {
+            const fleet = this.factory.isFleet(object);
+            const viewer=this.getCurrentHumanPlayer() || 1;
+            const name=this.display ? this.display.getFleetMemberDiagnostics(star,object).title
+                : this.config.omniscient || this.isOwnerAlliedWith(viewer,object.owner) || object.getVisibilityTo(viewer)>=Common.VisibilityLevel.CLASS
+                    ? this.getObjectDisplayName(object) : '?';
+            return { object, member, name, tech: object.techLevel || 0,
+                speed: (fleet ? object.totalSpeed : object.speed) / 16380,
+                power: fleet ? object.totalPower : this.rules.getShipPower(object),
+                damage: (fleet ? object.totalDamage : object.damage) || 0 };
+        };
+        const sort = this.systemShipSort;
+        const compare = (a,b) => {
+            const comparison = sort.key === 'name' ? a.name.localeCompare(b.name) : a[sort.key]-b[sort.key];
+            return (sort.ascending ? comparison : -comparison) || a.object.id-b.object.id;
+        };
+        const rows = [];
+        members.map(object => makeRow(object)).sort(compare).forEach(row => {
+            rows.push(row);
+            if (this.factory.isFleet(row.object)) row.object.ships.filter(ship => !ship.underConstruction())
+                .map(ship => makeRow(ship,true)).sort(compare).forEach(member => rows.push(member));
+        });
+        return rows;
+    }
+
+    canViewFleetExchange(container) {
+        if(this.factory.isStar(container))return this.stars.includes(container) && this.canViewSystemShips(container);
+        // V3's fleet table opens a selected subgroup without rechecking its
+        // independent scanner visibility. Inherit table access only through a
+        // live, registered and reciprocal containment chain; never alter map knowledge.
+        const seen=new Set();
+        while(this.factory.isFleet(container) && this.allFleets.includes(container) &&
+                !container.isDead() && !container.underConstruction() && !seen.has(container)) {
+            seen.add(container);
+            if(this.display && this.display.getFleetKnowledge(container).contents)return true;
+            const parent=container.fleet;
+            if(!parent) {
+                const star=container.star || this.stars.find(candidate=>!container.destination &&
+                    Math.round(container.x)===Math.round(candidate.x) && Math.round(container.y)===Math.round(candidate.y));
+                return !!star && this.stars.includes(star) && this.canViewSystemShips(star) &&
+                    this.getDockedSystemMembers(star).includes(container);
+            }
+            if(!parent.ships.includes(container))return false;
+            container=parent;
+        }
+        return false;
+    }
+
+    showFleetExchange(container) {
+        if(!this.canViewFleetExchange(container) || this.mapSelectionPicker || this.pendingMapOrderObject ||
+            this.pendingCourseEdit || this.pendingRendezvousPlacement)return false;
+        this.fleetExchange={container,active:null,selection:null,side:'main',pages:{main:0,sub:0},
+            sort:{key:'name',ascending:true}};
+        this.uiWindow='fleetExchange';return true;
+    }
+
+    selectContainingObject(object=this.selectedObject) {
+        if(!this.display || this.pendingMapOrderObject || this.pendingCourseEdit || this.pendingRendezvousPlacement ||
+                this.mapSelectionPicker || this.uiSliderDrag || this.uiMapScrollDrag || this.uiWindowDrag || this.hasEventPresentation())return false;
+        if(!object || !(this.factory.isStar(object)?this.stars:this.factory.isFleet(object)?this.allFleets:this.allShips).includes(object))return false;
+        const parent=object.fleet || object.star;
+        if(!parent){if(this.sound)this.sound.noMore(this);return false;}
+        // Use the same visibility and membership rules as the container's UI.
+        if(!this.getFleetExchangeMembers(parent).includes(object) || !this.showFleetExchange(parent))return false;
+        this.setSelectedObject(parent);
+        this.selectFleetExchangeMember('main',object);
+        const layout=this.display.getFleetExchangeLayout(),list=layout.lists.find(list=>list.side==='main');
+        const index=list.allRows.findIndex(row=>row.object===object);
+        if(index>=0)this.fleetExchange.pages.main=Math.floor(index/layout.pageSize);
+        return true;
+    }
+
+    getFleetExchangeMembers(container) {
+        if(!this.canViewFleetExchange(container))return [];
+        const members=this.factory.isFleet(container)?container.ships:
+            this.getSystemShipRows(container).filter(row=>!row.member).map(row=>row.object);
+        return members.filter(object=>(this.factory.isFleet(object)?this.allFleets:this.allShips).includes(object) &&
+            !object.isDead() && !object.underConstruction() &&
+            (!this.factory.isFleet(container) || object.fleet===container));
+    }
+
+    getFleetExchangeState() {
+        const state=this.fleetExchange;
+        if(!state || !this.canViewFleetExchange(state.container))return null;
+        const main=this.getFleetExchangeMembers(state.container);
+        if(state.active && (!main.includes(state.active) || !this.factory.isFleet(state.active) || !this.canViewFleetExchange(state.active))) {
+            state.active=null;state.selection=null;
+        }
+        const sub=state.active?this.getFleetExchangeMembers(state.active):[];
+        if(!(state.side==='sub'?sub:main).includes(state.selection))state.selection=null;
+        return {...state,main,sub};
+    }
+
+    selectFleetExchangeMember(side,object) {
+        const state=this.getFleetExchangeState();
+        if(!state || !['main','sub'].includes(side) || !state[side].includes(object))return false;
+        this.fleetExchange.selection=object;this.fleetExchange.side=side;
+        if(side==='main' && this.factory.isFleet(object) && this.canViewFleetExchange(object)) {
+            this.fleetExchange.active=object;this.fleetExchange.pages.sub=0;
+        }
+        return true;
+    }
+
+    canExchangeFleetMember() {
+        const state=this.getFleetExchangeState(),object=state && state.selection;
+        if(!object || !this.canHumanControl(object) || object.isOnPatrol() || object.type==='defense')return false;
+        if(state.side==='main')return state.active?this.canTransferShipToFleet(object,state.active):
+            (this.factory.isStar(state.container) || this.canHumanControl(state.container));
+        if(this.factory.isFleet(state.container))return this.canTransferShipToFleet(object,state.container);
+        return this.canHumanControl(state.active) && !state.active.destination &&
+            state.active.getDockedStar()===state.container;
+    }
+
+    exchangeFleetMember() {
+        if(!this.canExchangeFleetMember())return false;
+        const state=this.getFleetExchangeState(),object=state.selection;
+        let moved=false;
+        if(state.side==='sub') {
+            moved=this.factory.isFleet(state.container)?this.transferShipToFleet(object,state.container):
+                this.separateShipFromFleet(state.active,object);
+        } else if(state.active)moved=this.transferShipToFleet(object,state.active);
+        else {
+            const fleet=this.factory.createFleet(object.x,object.y,object.owner);
+            fleet.star=this.factory.isStar(state.container)?state.container:null;
+            if(!fleet.addShip(object)){this.entityRemoved(fleet);return false;}
+            if(this.factory.isFleet(state.container))state.container.addShip(fleet);
+            this.fleetExchange.active=fleet;
+            this.recordEvent(I18n.getString(566,'Fleets'),I18n.formatString(669,'{0} formed at {1}',
+                this.getObjectDisplayName(fleet),this.getObjectDisplayName(state.container)),{type:Common.EventType.FLEET_FORMED});
+            this.notifyClientCreation(fleet);
+            moved=true;
+        }
+        if(moved)this.fleetExchange.selection=null;
+        this.getFleetExchangeState();return moved;
+    }
+
+    canViewCourse(object) {
+        const type = this.getObjectType(object);
+        return !!object && [Common.ObjectType.SHIP,Common.ObjectType.FLEET].includes(type) &&
+            (this.config.omniscient || object.isAllyOf(this.getCurrentHumanPlayer()));
+    }
+
+    canEditCourse(object) {
+        return !!object && this.canHumanControl(object) && this.canViewCourse(object) &&
+            (this.factory.isFleet(object) ? this.allFleets.includes(object) && !object.isEmpty()
+                : this.allShips.includes(object) && !object.isDead() && !object.underConstruction() && !object.fleet && object.type!=='defense');
+    }
+
+    canToggleCourseHunt(object=this.courseWindowObject) {
+        const speed=this.factory.isFleet(object)?object.totalSpeed:object && object.speed;
+        return this.canEditCourse(object) && object.course.waypoints.length>0 && speed>0;
+    }
+
+    getCourseRows(object=this.courseWindowObject) {
+        if (!this.canViewCourse(object) || !object.course) return [];
+        const course=object.course, speed=this.factory.isFleet(object)?object.totalSpeed:object.speed;
+        return course.waypoints.map((waypoint,index)=>{
+            const target=course.resolve(waypoint);
+            const previous=index?course.resolve(course.waypoints[index-1]):course.loop && course.waypoints.length>1
+                ?course.resolve(course.waypoints[course.waypoints.length-1]):object;
+            const turns=(from)=>speed?Math.trunc(Math.hypot(target.x-from.x,target.y-from.y)/speed)+1:null;
+            return {index,target,current:index===course.current,origin:course.hasOrigin && index===0,
+                turns:course.hasOrigin && !course.loop && index===0?null:turns(previous),
+                remaining:index===course.current?turns(object):null};
+        });
+    }
+
+    showCourse(object=this.selectedObject) {
+        if (!this.canViewCourse(object)) return false;
+        this.courseWindowObject=object;this.courseSelection=null;this.coursePage=0;this.uiWindow='course';return true;
+    }
+
+    beginCourseEdit(replace=false) {
+        const object=this.courseWindowObject;
+        if (!this.canEditCourse(object)) return false;
+        const index=this.courseSelection;
+        if (replace && (index===null || !object.course.waypoints[index])) return false;
+        this.pendingCourseEdit={object,index,replace,revision:object.course.revision};
+        this.pendingMapOrderObject=object;this.uiWindow=null;return true;
+    }
+
+    issuePlayerWaypoint(object,target,index=null,replace=false) {
+        if (!this.canEditCourse(object) || !object.course || !target) return false;
+        const changed=replace?object.course.edit(index,target):object.course.addPlayerWaypoint(target,index);
+        if (!changed) return false;
+        object.setPatrol(false);
+        object.setScrap(false);
+        this.recordEvent(I18n.getString(604,'Orders'),I18n.formatString(739,'Course updated for {0}',this.getObjectDisplayName(object)),{type:'ui'});
+        return true;
     }
 
     isAwaitingMapTarget() {
-        return !!this.pendingMapOrderObject;
+        return !!(this.pendingMapOrderObject || this.pendingRendezvousPlacement);
     }
 
     beginMapOrder(object) {
         const objectType = this.getObjectType(object);
-        if (objectType !== Common.ObjectType.SHIP && objectType !== Common.ObjectType.FLEET) {
-            return true;
+        if (![Common.ObjectType.STAR, Common.ObjectType.SHIP, Common.ObjectType.FLEET].includes(objectType)) {
+            return false;
         }
         if (!this.canHumanControl(object)) {
             this.recordEvent(
                 I18n.getString(604, 'Orders'),
-                I18n.getString(622, 'You can only give orders to your own ships and fleets.'),
+                I18n.getString(663, 'You can only manage your own objects.'),
                 { type: 'ui' }
             );
             return true;
         }
 
+        if (objectType !== Common.ObjectType.STAR && !this.canEditCourse(object)) return false;
+
+        this.pendingCourseEdit = null;
         this.pendingMapOrderObject = object;
         this.setSelectedObject(object);
         this.recordEvent(
@@ -1328,13 +2020,153 @@ class Game {
         return true;
     }
 
+    canStartTutorial() {
+        const commands=this.tutorialCommands;
+        return !!(commands && typeof commands.start==='function' && (!commands.available || commands.available()));
+    }
+
     executeUIAction(action) {
         if (!action) {
             return false;
         }
 
         switch (action.type) {
+            case 'editInitialState':return !!(this.initialStateCommands && this.initialStateCommands.available() && this.initialStateCommands.open(action.star));
+            case 'startTutorial':return this.canStartTutorial() && !!this.tutorialCommands.start();
+            case 'openManual':
+                if(!this.manualCommands)return false;
+                this.manualCommands.open(pdg.res.getLanguage());return true;
+            case 'quit':return !!(this.fileCommands && this.fileCommands.quit && this.fileCommands.quit());
+            case 'showGameReports':return this.showPendingGameReports();
+            case 'holdGameReports':return this.toggleHoldGameReports();
+            case 'openChat':return !!(this.chatCommands && this.chatCommands.open());
+            case 'fileMenu':return !!(this.fileCommands && this.fileCommands.menu());
+            case 'newGame':return !!(this.sessionCommands && this.sessionCommands.begin());
+            case 'showGames':
+                if(!this.sessionCommands)return false;
+                this.endUIWindowDrag();this.endMapScrollDrag();this.endUISliderDrag();
+                this.gameSessionPage=0;this.uiWindow='games';return true;
+            case 'selectGame':return !!(this.uiWindow==='games' && this.sessionCommands && this.sessionCommands.select(action.id));
+            case 'gameSessionPage':this.gameSessionPage=Math.max(0,action.page);return true;
+            case 'dismissReport':return !!(this.overlay && this.overlay.type==='report' && this.dismissEventPresentation());
+            case 'replayReport':return this.replayReport(action.event);
+            case 'reportPage':
+                if(!this.overlay || this.overlay.type!=='report' || !Number.isInteger(action.page) || action.page<0)return false;
+                this.overlay.page=action.page;return true;
+            case 'reportGoTo': {
+                if(!this.overlay || this.overlay.type!=='report')return false;
+                const event=this.eventLog.find(e=>e.id===this.overlay.eventId);
+                if(!event || !this.getEventFocus(event))return false;
+                this.dismissEventPresentation();return true;
+            }
+            case 'dismissOutcome':
+                return !!(this.overlay && this.overlay.type==='outcome' && this.dismissEventPresentation());
+            case 'outcomePage':
+                if(!this.overlay || this.overlay.type!=='outcome' || !Number.isInteger(action.page) || action.page<0)return false;
+                this.overlay.page=action.page;return true;
+            case 'replayOutcome':return this.replayOutcome(action.event);
             case 'consume':
+                if(action.abortAutomaticNotices)return this.abortAutomaticNotices();
+                if(action.blocked && this.sound)this.sound.play(1012);
+                return true;
+            case 'setMapDisplayMode':
+                if(!MapDisplayModes.valid(action.mode))return false;
+                this.mapDisplayMode=action.mode;
+                return true;
+            case 'toggleFullscreen':
+                if(!this.fullscreen || !this.fullscreen.supported)return false;
+                this.fullscreen.toggle();return true;
+            case 'toggleNebula':
+                this.showNebula=!this.showNebula;
+                if(this.drawingPreferences)this.drawingPreferences.writeNebula(this.showNebula);
+                return true;
+            case 'toggleScannerRanges':
+                this.showScannerRanges=!this.showScannerRanges;
+                if(this.drawingPreferences)this.drawingPreferences.writeScannerRanges(this.showScannerRanges);
+                return true;
+            case 'toggleAllCourses':
+                this.showAllCourses=!this.showAllCourses;
+                if(this.drawingPreferences)this.drawingPreferences.writeAllCourses(this.showAllCourses);
+                return true;
+            case 'toggleCourierCourses':
+                this.showCourierCourses=!this.showCourierCourses;
+                if(this.drawingPreferences)this.drawingPreferences.writeCourierCourses(this.showCourierCourses);
+                return true;
+            case 'toggleShips':
+                this.showShips=!this.showShips;
+                if(this.drawingPreferences)this.drawingPreferences.writeShips(this.showShips);
+                return true;
+            case 'toggleMapNames':
+                this.showMapNames=!this.showMapNames;
+                if(this.drawingPreferences)this.drawingPreferences.writeMapNames(this.showMapNames);
+                return true;
+            case 'toggleGrid':
+                this.showGrid=!this.showGrid;
+                if(this.drawingPreferences)this.drawingPreferences.writeGrid(this.showGrid);
+                return true;
+            case 'openNewGameDefaults':
+                if(this.uiWindow!=='settings' || !this.newGameDefaultsPreferences)return false;
+                this.newGameDefaultsDraft=this.newGameDefaultsPreferences.read();this.newGameDefaultsChoice=null;this.uiWindow='newGameDefaults';return true;
+            case 'openNewGameDefaultChoice':{
+                const choices=NewGameDefaults.choices(action.field);
+                if(this.uiWindow!=='newGameDefaults' || !this.newGameDefaultsDraft || !choices.length)return false;
+                this.newGameDefaultsChoice=action.field;this.newGameDefaultsChoiceIndex=choices.indexOf(this.newGameDefaultsDraft[action.field]);return true;
+            }
+            case 'setNewGameDefault':
+                if(this.uiWindow!=='newGameDefaults' || this.newGameDefaultsChoice!==action.field || !NewGameDefaults.set(this.newGameDefaultsDraft,action.field,action.value))return false;
+                this.newGameDefaultsChoice=null;return true;
+            case 'cancelNewGameDefaultChoice':
+                if(this.uiWindow!=='newGameDefaults' || !this.newGameDefaultsChoice)return false;
+                this.newGameDefaultsChoice=null;return true;
+            case 'cycleNewGameDefault':
+                return this.uiWindow==='newGameDefaults' && !this.newGameDefaultsChoice && ['fastGame','omniscient'].includes(action.field) && NewGameDefaults.cycle(this.newGameDefaultsDraft,action.field);
+            case 'saveNewGameDefaults':
+                if(this.uiWindow!=='newGameDefaults' || this.newGameDefaultsChoice || !this.newGameDefaultsDraft || !this.newGameDefaultsPreferences)return false;
+                this.newGameDefaultsPreferences.write(this.newGameDefaultsDraft);
+                this.newGameDefaultsDraft=null;this.uiWindow='settings';return true;
+            case 'cancelNewGameDefaults':
+                if(this.uiWindow!=='newGameDefaults')return false;
+                this.newGameDefaultsDraft=null;this.uiWindow='settings';return true;
+            case 'settingsPage':
+                if(this.uiWindow!=='settings')return false;
+                this.settingsPage=Math.max(0,(this.settingsPage||0)+(action.delta||0));return true;
+            case 'toggleEnemyEvents':
+                this.showEnemyEvents=!this.showEnemyEvents;
+                if(this.drawingPreferences)this.drawingPreferences.writeEnemyEvents(this.showEnemyEvents);
+                if(this.showEnemyEvents)this.queueObserverReports();
+                return true;
+            case 'openAbout':
+                return this.openAbout?this.openAbout():false;
+            case 'toggleSplash':
+                if(!this.presentation)return false;this.presentation.toggleSplash();return true;
+            case 'closePresentation': {
+                if(this.uiWindow!=='presentation')return false;const kind=this.presentation.kind;
+                this.uiWindow=this.presentation.close();if(this.presentationClosed)this.presentationClosed(kind);return true;
+            }
+            case 'presentationTutorial':
+                return this.presentationTutorial?this.presentationTutorial():false;
+            case 'presentationPage': {
+                if(this.uiWindow!=='presentation')return false;const c=this.display.getPresentationContent();this.presentation.step(action.delta,c.rows,c.lines.length);return true;
+            }
+            case 'toggleSound':
+                if(!this.sound)return false;
+                this.sound.setEnabled(!this.sound.isEnabled());
+                if(this.sound.isEnabled())this.sound.play(1001);
+                return true;
+            case 'toggleMusic':
+                if(this.uiWindow!=='settings' || !this.sound || !this.sound.setMusicEnabled)return false;
+                this.sound.setMusicEnabled(!this.sound.isMusicEnabled());
+                return true;
+            case 'toggleControlHelp':
+                this.showControlHelp=this.showControlHelp===false;
+                if(this.drawingPreferences)this.drawingPreferences.writeControlHelp(this.showControlHelp);
+                if(this.display)this.display.clearControlHelp();
+                return true;
+            case 'setLanguage':
+                if(this.uiWindow!=='settings' || !LanguageSettings.supported(action.language))return false;
+                pdg.res.setLanguage(action.language);
+                if(this.display)this.display.reloadUIStrings();
+                if(this.languagePreferences)this.languagePreferences.write(action.language);
                 return true;
             case 'toggleWindow':
                 return this.toggleUIWindow(action.window);
@@ -1343,17 +2175,71 @@ class Game {
                     this.setSelectedObject(action.object);
                 }
                 return this.toggleProductionWindow();
+            case 'equalizeAllocations':
+                this.setSelectedObject(action.star);
+                return this.resetSelectedStarAllocations();
+            case 'toggleAllocationLock':
+                return this.toggleStarAllocationLock(action.star, action.allocationKey);
             case 'setAllocation':
                 if (action.star) {
                     this.setSelectedObject(action.star);
-                    this.setStarAllocation(action.star, action.allocationKey, action.desired);
+                    this.setStarAllocation(action.star, action.allocationKey, action.desired, {silent:!!action.silent});
                 }
                 return true;
+            case 'chooseMapObject':
+                return this.chooseMapSelection(action.object);
+            case 'mapSelectionPage':
+                if(!this.mapSelectionPicker)return false;
+                this.mapSelectionPicker.page=Math.max(0,Math.min(Math.ceil(this.getMapSelectionRows().length/6)-1,action.page));return true;
+            case 'mapScroll':
+                return this.applyMapScrollAction(action);
+            case 'zoomIn':
+                if(!this.display)return false;this.display.zoomIn();return true;
+            case 'zoomOut':
+                if(!this.display)return false;this.display.zoomOut();return true;
+            case 'resetView':
+                if(!this.display)return false;this.display.resetView();return true;
+            case 'centerSelected':
+                if(!this.display || !this.selectedObject)return false;
+                this.display.centerOn(this.selectedObject.x,this.selectedObject.y);return true;
             case 'selectHomeStar':
                 this.selectHomeStar();
                 return true;
+            case 'selectEvent':
+                this.selectEvent(action.event);return true;
+            case 'goToEvent':
+                if(this.getEventRows().includes(action.event))this.focusEvent(action.event,true);return true;
+            case 'eventPage':
+                if(!Number.isInteger(action.page) || action.page<0)return false;
+                this.eventPage=action.page;return true;
+            case 'eventDetailPage':
+                if(!Number.isInteger(action.page) || action.page<0)return false;
+                this.eventDetailPage=action.page;return true;
+            case 'reviewAttention':
+                this.uiWindow=null;
+                if(this.hasEventPresentation()) {
+                    if(!this.overlay)this.dismissEventPresentation();
+                    return true;
+                }
+                if(this.pendingGameReports().length)return this.showPendingGameReports();
+                if(this.attention.manualPending().length){this.attention.next();return true;}
+                const unread=this.attention.pending()[0]?.event;
+                if(unread && this.replayReport(unread))return true;
+                return this.openUIWindow('events');
+            case 'nextAttention':
+                this.attention.next();return true;
+            case 'closeWindow':
+                if(!['menu','settings','view','mapDisplay','production','endTurnConfirm','systemShips'].includes(action.window) || this.uiWindow!==action.window)return false;
+                this.endUIWindowDrag();this.uiWindow=null;return true;
+            case 'closeCourse':
+                if(this.uiWindow!=='course')return false;
+                this.endUIWindowDrag();this.uiWindow=null;return true;
+            case 'toggleCallIn':
+                return this.toggleCallIn(action.object || this.selectedObject);
+            case 'confirmEndTurn':
+                this.endTurn();return true;
             case 'endTurn':
-                this.endTurn();
+                this.requestEndTurn();
                 return true;
             case 'zoomToFit':
                 if (this.display) {
@@ -1374,15 +2260,180 @@ class Game {
                     this.display.centerOn(action.object.x, action.object.y);
                 }
                 return true;
+            case 'beginColonyDefaults':
+                return this.beginColonyDefaults();
+            case 'setColonyDefaultAllocation':
+                return this.setColonyDefaultAllocation(action.key,action.value);
+            case 'setColonyDefaultHull':
+                if (!this.colonyDefaultsDraft || !Number.isInteger(action.hull) || action.hull<1 || action.hull>4) return false;
+                this.colonyDefaultsDraft.defaultBuildType = action.hull;
+                return true;
+            case 'saveColonyDefaults':
+                return this.saveColonyDefaults();
+            case 'cancelColonyDefaults':
+                return this.cancelColonyDefaults();
+            case 'closePlayerComparison':this.uiWindow=null;return true;
+            case 'playerComparisonColumn':{
+                if(this.uiWindow!=='comparison' || !this.display || !Number.isInteger(action.page))return false;
+                const layout=this.display.getPlayerComparisonLayout();if(!layout.compact || action.page<0 || action.page>=layout.metrics.length)return false;
+                this.playerComparisonColumnPage=action.page;return true;
+            }
+            case 'playerComparisonPage':
+                if(this.uiWindow!=='comparison' || !Number.isInteger(action.page) || action.page<0)return false;
+                this.playerComparisonPage=action.page;return true;
+            case 'closeSystemComparison':this.endUIWindowDrag();this.saveTableWindowGeometry();this.uiWindow=null;this.systemComparisonLastClick=null;return true;
+            case 'showSystemComparison':
+                if (!this.getCurrentHumanPlayer()) return false;
+                this.systemComparisonSelection = null;
+                this.systemComparisonLastClick = null;
+                this.uiWindow = 'systemComparison';
+                return true;
+            case 'systemComparisonPage':
+                if (!Number.isInteger(action.page) || action.page < 0) return false;
+                this.systemComparisonPage = action.page;
+                this.systemComparisonLastClick = null;
+                return true;
+            case 'sortSystemComparison':
+                if (!['name','tech','population','production','buildName','completion',
+                    'totalDefense','satelliteDefense','shipDefense'].includes(action.key)) return false;
+                this.systemComparisonSort = { key: action.key, ascending: this.systemComparisonSort.key === action.key
+                    ? !this.systemComparisonSort.ascending : action.key === 'name' };
+                this.systemComparisonPage = 0;
+                this.systemComparisonLastClick = null;
+                if(this.systemComparisonPreferences)this.systemComparisonPreferences.write(this.systemComparisonSort);
+                return true;
+            case 'systemComparisonRow': {
+                if (!this.getSystemComparisonRows().some(row => row.star === action.star)) return false;
+                const time = this.getCurrentMilliseconds(), previous = this.systemComparisonLastClick;
+                this.systemComparisonSelection = action.star;
+                if (previous && previous.star === action.star && time >= previous.time && time - previous.time <= 500) {
+                    return this.openSystemComparisonSelection();
+                }
+                this.systemComparisonLastClick = { star: action.star, time };
+                return true;
+            }
+            case 'fleetRosterSelect':return this.selectFleetRosterObject(action.object);
+            case 'fleetRosterPage':
+                if(this.uiWindow!=='fleets')return false;
+                this.fleetRosterBodyScroll=0;this.fleetRosterPage=Math.max(0,Math.trunc(action.page));this.fleetRosterLastClick=null;return true;
+            case 'sortFleetRoster': {
+                if(this.uiWindow!=='fleets' || !RosterPreferences.keys.includes(action.key))return false;
+                this.fleetRosterSort={key:action.key,ascending:this.fleetRosterSort.key===action.key?
+                    !this.fleetRosterSort.ascending:['name','destination'].includes(action.key)};
+                this.fleetRosterPage=0;this.fleetRosterBodyScroll=0;this.fleetRosterLastClick=null;
+                if(this.rosterPreferences)this.rosterPreferences.write(this.fleetRosterSort);
+                return true;
+            }
+            case 'closeFleetRoster':this.endUIWindowDrag();this.saveTableWindowGeometry();this.uiWindow=null;this.fleetRosterLastClick=null;return true;
+            case 'showFleetExchange':return this.showFleetExchange(action.container || this.selectedObject);
+            case 'fleetExchangeSelect':return this.selectFleetExchangeMember(action.side,action.object);
+            case 'exchangeFleetMember':return this.exchangeFleetMember();
+            case 'fleetExchangeNew': {
+                if(!this.getFleetExchangeState())return false;
+                this.fleetExchange.active=null;if(this.fleetExchange.side==='sub')this.fleetExchange.selection=null;this.fleetExchange.pages.sub=0;return true;
+            }
+            case 'fleetExchangePage': {
+                if(!this.getFleetExchangeState() || !['main','sub'].includes(action.side))return false;
+                this.fleetExchange.pages[action.side]=Math.max(0,Math.trunc(action.page));return true;
+            }
+            case 'fleetExchangeSort': {
+                if(!this.getFleetExchangeState() || !['name','tech','speed','power','health'].includes(action.key))return false;
+                const sort=this.fleetExchange.sort;
+                this.fleetExchange.sort={key:action.key,ascending:sort.key===action.key?!sort.ascending:true};
+                this.fleetExchange.pages={main:0,sub:0};return true;
+            }
+            case 'fleetExchangeClose':this.uiWindow=null;return true;
+            case 'fleetExchangeScrap': {
+                const state=this.getFleetExchangeState();return !!state && !!state.selection && this.toggleScrap(state.selection);
+            }
+            case 'fleetExchangePatrol': {
+                const state=this.getFleetExchangeState();return !!state && !!state.selection && this.togglePatrol(state.selection);
+            }
+            case 'fleetExchangeOpen': {
+                const state=this.getFleetExchangeState(),object=state && state.selection;
+                if(!object)return false;
+                if(this.factory.isFleet(object)){
+                    if(!this.showFleetExchange(object))return false;
+                    this.setSelectedObject(object);
+                    const first=this.display.getFleetExchangeLayout().lists[0].rows[0];
+                    if(first)this.selectFleetExchangeMember('main',first.object);
+                    return true;
+                }
+                this.setSelectedObject(object);this.uiWindow=null;return true;
+            }
+            case 'fleetExchangeParent': {
+                const state=this.getFleetExchangeState();
+                return !!state && this.selectContainingObject(state.container);
+            }
+            case 'showSystemShips':
+                if (!this.canViewSystemShips(action.star)) return false;
+                this.systemShipWindowStar = action.star;
+                this.systemShipPage = 0;this.systemShipBodyScroll=0;
+                this.uiWindow = 'systemShips';
+                return true;
+            case 'systemShipPage':
+                this.systemShipPage = Math.max(0, action.page);this.systemShipBodyScroll=0;
+                return true;
+            case 'sortSystemShips':
+                if (!['name','tech','speed','power','damage'].includes(action.key)) return false;
+                this.systemShipSort = { key: action.key, ascending: this.systemShipSort.key === action.key ?
+                    !this.systemShipSort.ascending : true };
+                this.systemShipPage = 0;this.systemShipBodyScroll=0;
+                return true;
             case 'beginOrders':
                 return this.beginMapOrder(action.object);
+            case 'clearDefaultDestination':
+                if (!action.object || !this.canHumanControl(action.object) ||
+                    this.getObjectType(action.object) !== Common.ObjectType.STAR) return false;
+                action.object.clearDefaultDestination();
+                if (this.pendingMapOrderObject === action.object) this.pendingMapOrderObject = null;
+                return true;
+            case 'showCourse': return this.showCourse(action.object);
+            case 'selectWaypoint':
+                if (!this.getCourseRows().some(row=>row.index===action.index)) return false;
+                this.courseSelection=this.courseSelection===action.index?null:action.index;return true;
+            case 'addWaypoint': return this.beginCourseEdit(false);
+            case 'editWaypoint': return this.beginCourseEdit(true);
+            case 'deleteWaypoint':
+                if (!this.canEditCourse(this.courseWindowObject) || this.courseSelection===null) return false;
+                if (!this.courseWindowObject.course.delete(this.courseSelection)) return false;
+                this.courseSelection=null;return true;
+            case 'coursePage':
+                if (!Number.isInteger(action.page)||action.page<0)return false;
+                this.coursePage=action.page;return true;
+            case 'swapCourseMemory': {
+                const object=this.courseWindowObject;
+                if(!this.canEditCourse(object) || !object.course.swapMemory())return false;
+                object.setPatrol(false); // CbxNaPanel cancels patrol after memory use.
+                object.setScrap(false);
+                const index=object.course.current;
+                this.courseSelection=object.course.waypoints[index]?index:null;
+                this.coursePage=0;
+                if(this.courseSelection!==null && this.display && this.display.getCourseWindowLayout) {
+                    this.coursePage=Math.floor(index/this.display.getCourseWindowLayout().pageSize);
+                }
+                return true;
+            }
+            case 'toggleCourseHunt': {
+                const object=action.object || this.courseWindowObject;
+                if(!this.canToggleCourseHunt(object))return false;
+                // v3 stores the mode without changing waypoints or movement.
+                object.course.hunt=!object.course.hunt;
+                return true;
+            }
+            case 'toggleCourseLoop':
+                if (!this.canEditCourse(this.courseWindowObject)) return false;
+                this.courseWindowObject.course.loop=!this.courseWindowObject.course.loop;
+                this.courseWindowObject.course.changed();return true;
             case 'clearOrders':
                 return this.clearOrders(action.object);
+            case 'toggleScrap': return this.toggleScrap(action.object);
             case 'togglePatrol':
                 return this.togglePatrol(action.object);
             case 'toggleFleetWindow':
                 return this.toggleUIWindow('fleets');
             case 'selectObject':
+                if (action.closeWindow) this.uiWindow = null;
                 if (action.object) {
                     this.setSelectedObject(action.object);
                     if (this.display && action.center) {
@@ -1399,10 +2450,44 @@ class Game {
                 return this.beginRendezvousPlacement();
             case 'deleteRendezvous':
                 return this.deleteRendezvous(action.rendezvous || action.object);
+            case 'placeRenameCaret': {
+                if(this.uiWindow!=='rename' || !this.display || !Number.isFinite(action.x))return false;
+                const layout=this.display.getRenameTextLayout(),chars=Array.from(this.renameText);
+                if(!this.renameEditor)this.renameEditor=NameEditor.createEditor(this.renameText);
+                let caret=layout.start;
+                while(caret<layout.end && action.x-layout.rect.x-6>this.display.port.getTextWidth(chars.slice(layout.start,caret+1).join(''),layout.rect.size))caret++;
+                this.renameEditor.caret=caret;this.renameEditor.selected=false;return true;
+            }
+            case 'commitRename':
+                return this.commitRename();
+            case 'cancelRename':
+                this.renameTarget = null; this.renameText = ''; this.uiWindow = null;
+                return true;
             case 'beginRename':
                 return this.beginRenameObject(action.object);
+            case 'fleetMemberPage': {
+                const fleet=this.getSelectedFleet();
+                if (!fleet || fleet!==action.fleet || !this.display || !Number.isInteger(action.page)) return false;
+                const layout=this.display.getFleetDetailsLayout(fleet);
+                if (!layout.knowledge.contents || action.page<0 || action.page>=layout.pages) return false;
+                this.fleetMemberPage=action.page;this.fleetInspectorScroll=0;
+                return true;
+            }
+            case 'selectFleetMember': {
+                const fleet=this.getSelectedFleet();
+                if (!fleet || fleet!==action.fleet || !this.display || !this.display.getFleetDetailsLayout(fleet).visibleShips.includes(action.ship)) return false;
+                this.setSelectedObject(action.ship);
+                return true;
+            }
             case 'removeFleetShip':
                 return this.separateShipFromFleet(action.fleet, action.ship);
+            case 'createFleetGroup':return !!this.createFleetGroup(action.fleet,action.member);
+            case 'selectFleetParent': {
+                const group=this.getSelectedFleet(),parent=group && group.fleet;
+                if(!parent || !this.allFleets.includes(parent) || !this.display.getFleetKnowledge(parent).contents)return false;
+                this.setSelectedObject(parent);return true;
+            }
+            case 'beginFleetTransfer':return this.beginFleetTransfer(action.ship);
             case 'transferFleetShip':
                 return this.transferShipToFleet(action.ship, action.targetFleet);
             default:
@@ -1410,47 +2495,278 @@ class Game {
         }
     }
 
+    applyMapScrollAction(action) {
+        const {bar,part,x,y}=action;
+        if(!bar || !bar.enabled)return true;
+        const Scrollbars=require('./map-scrollbars.js'),position=bar.axis==='x'?x:y;
+        if(part==='thumb')return true;
+        const direction=part==='before'?-1:part==='after'?1:position<bar.trackStart+
+            Math.max(0,Math.min(1,bar.leading/bar.range))*bar.travel?-1:1;
+        Scrollbars.move(this.display.camera,bar,bar.leading+direction*bar.span*(part==='track'?.9:.1));
+        return true;
+    }
+
+    beginMapScrollDrag(x,y) {
+        this.uiMapScrollDrag=null;
+        const action=this.display && this.display.getUIActionAt(x,y);
+        if(!action || action.type!=='mapScroll')return false;
+        const bar=action.bar;
+        if(action.part==='thumb' && bar.enabled) {
+            const axis=bar.axis,screen=this.display.getScreenSize();
+            this.uiMapScrollDrag={bar,offset:(axis==='x'?x:y)-(axis==='x'?bar.thumb.x:bar.thumb.y),
+                zoom:this.display.camera.zoom,width:screen.width,height:screen.height,window:this.uiWindow};
+        } else {
+            this.applyMapScrollAction(action);
+            if(bar.enabled) {
+                const screen=this.display.getScreenSize();
+                this.uiMapScrollDrag={bar,part:action.part,x,y,zoom:this.display.camera.zoom,
+                    width:screen.width,height:screen.height,window:this.uiWindow,nextRepeat:pdg.tm.getMilliseconds()+350};
+            }
+        }
+        return true;
+    }
+
+    updateMapScrollDrag(x,y) {
+        const drag=this.uiMapScrollDrag;
+        if(!drag)return false;
+        const screen=this.display.getScreenSize();
+        if(this.uiWindow!==drag.window || this.display.camera.zoom!==drag.zoom ||
+            screen.width!==drag.width || screen.height!==drag.height) {this.uiMapScrollDrag=null;return true;}
+        if(drag.part) {
+            drag.x=x;drag.y=y;
+            const now=pdg.tm.getMilliseconds();
+            if(now>=drag.nextRepeat) {
+                drag.nextRepeat=now+65;
+                const action=this.display.getMapScrollActionAt(x,y);
+                if(action && action.bar.axis===drag.bar.axis && action.part===drag.part)
+                    this.applyMapScrollAction(action);
+            }
+            return true;
+        }
+        const bar=drag.bar,position=bar.axis==='x'?x:y;
+        require('./map-scrollbars.js').move(this.display.camera,bar,
+            (position-drag.offset-bar.trackStart)/bar.travel*bar.range);
+        return true;
+    }
+
+    endMapScrollDrag(x,y) {
+        if(!this.uiMapScrollDrag)return false;
+        if(Number.isFinite(x)&&Number.isFinite(y))this.updateMapScrollDrag(x,y);
+        this.uiMapScrollDrag=null;return true;
+    }
+
+    getTableWindowState() {
+        if(!this.display)return null;
+        if(this.uiWindow==='fleets')return {geometry:'fleetRosterGeometry',preferences:this.rosterPreferences,
+            minimumHeight:this.display.getFleetRosterLayout().compact?220:158,lastClick:'fleetRosterLastClick',rect:this.display.getFleetWindowRect()};
+        if(this.uiWindow==='systemComparison')return {geometry:'systemComparisonGeometry',preferences:this.systemComparisonPreferences,
+            minimumHeight:176,lastClick:'systemComparisonLastClick',rect:this.display.getSystemComparisonLayout().rect};
+        return null;
+    }
+
+    saveTableWindowGeometry() {
+        const state=this.getTableWindowState();if(!state)return;
+        if(!this[state.geometry])this[state.geometry]={x:state.rect.x,y:state.rect.y,height:state.rect.height};
+        if(state.preferences && state.preferences.writeGeometry)state.preferences.writeGeometry(this[state.geometry]);
+    }
+
+    // Retain the roster helper for callers that explicitly save that window.
+    saveFleetRosterGeometry() {if(this.uiWindow==='fleets')this.saveTableWindowGeometry();}
+
+    beginUIWindowDrag(x,y) {
+        if(this.uiWindow==='rename')return false;
+        this.endUIWindowDrag();
+        const state=this.overlay?null:this.getTableWindowState();
+        if(!Number.isFinite(x) || !Number.isFinite(y))return false;
+        if(!state){
+            const overlay=this.overlay && ['outcome','report'].includes(this.overlay.type) && !this.overlay.animationOnly?this.overlay:null;
+            const active=this.display && (overlay?(overlay.type==='report'?this.display.getReportLayout(overlay):this.display.getOutcomeLayout(overlay)).rect:this.display.getActiveWindowRect());
+            let name=overlay?overlay.type:this.uiWindow,rect=active;
+            if(!rect || !this.display.containsPoint(rect,x,y)){
+                if(overlay || WindowBehavior.isSystem(name))return false;
+                name='inspector';rect=this.selectedObject && this.display.getSelectedObjectPanelRect(this.selectedObject);
+            }
+            if(!rect || !this.display.containsPoint({...rect,height:28},x,y))return false;
+            const screen=this.display.getScreenSize();
+            this.uiWindowDrag={mode:'move',x,y,rect:{...rect},width:screen.width,height:screen.height,window:this.uiWindow,positionName:name};
+            return true;
+        }
+        const region=this.display.getTableWindowDragRegions().find(region=>this.display.containsPoint(region.rect,x,y));
+        if(!region)return false;
+        const screen=this.display.getScreenSize();
+        this.uiWindowDrag={mode:region.mode,x,y,rect:{...state.rect},width:screen.width,height:screen.height,
+            window:this.uiWindow,geometry:state.geometry,minimumHeight:state.minimumHeight};
+        this[state.lastClick]=null;return true;
+    }
+
+    updateUIWindowDrag(x,y) {
+        const drag=this.uiWindowDrag;if(!drag)return false;
+        const screen=this.display.getScreenSize();
+        if(this.uiWindow!==drag.window || screen.width!==drag.width || screen.height!==drag.height) {
+            this.endUIWindowDrag();return true;
+        }
+        if(!Number.isFinite(x) || !Number.isFinite(y))return true;
+        const rect=drag.rect;
+        if(drag.positionName){
+            const moved=WindowBehavior.constrain({...rect,x:rect.x+x-drag.x,y:rect.y+y-drag.y},screen);
+            const positions=this.windowPositions || (this.windowPositions={});positions[drag.positionName]={x:moved.x,y:moved.y};return true;
+        }
+        if(drag.mode==='move')this[drag.geometry]={
+            x:Math.max(10,Math.min(screen.width-rect.width-10,rect.x+x-drag.x)),
+            y:Math.max(10,Math.min(screen.height-rect.height-10,rect.y+y-drag.y)),height:rect.height};
+        else this[drag.geometry]={x:rect.x,y:rect.y,
+            height:Math.max(drag.minimumHeight,Math.min(screen.height-rect.y-10,rect.height+y-drag.y))};
+        return true;
+    }
+
+    endUIWindowDrag(x,y) {
+        if(!this.uiWindowDrag)return false;
+        if(Number.isFinite(x) && Number.isFinite(y))this.updateUIWindowDrag(x,y);
+        if(!this.uiWindowDrag)return true;
+        const drag=this.uiWindowDrag;this.uiWindowDrag=null;
+        if(drag.positionName && WindowBehavior.isSystem(drag.positionName) && this.drawingPreferences && this.drawingPreferences.writeWindowPosition)
+            this.drawingPreferences.writeWindowPosition(drag.positionName,this.windowPositions[drag.positionName]);
+        if(this.uiWindow===drag.window && this[drag.geometry])this.saveTableWindowGeometry();
+        return true;
+    }
+
+    beginUISliderDrag(x,y) {
+        this.endUISliderDrag();
+        const slider = this.display && this.display.getDraggableSliderAt(x,y);
+        if (!slider) return false;
+        this.uiSliderDrag = slider;
+        if (slider.star) slider.initialDesired = this.getAllocationDesired(slider.star[slider.key]);
+        this.updateUISliderDrag(x,y);
+        return true;
+    }
+
+    updateUISliderDrag(x,y) {
+        const drag = this.uiSliderDrag;
+        if (!drag) return false;
+        const valid = this.uiWindow===drag.window && (drag.star ?
+            this.selectedObject===drag.star && this.canHumanControl(drag.star) && !drag.star[drag.key].locked :
+            this.colonyDefaultsDraft===drag.draft);
+        if (!valid) { this.endUISliderDrag(); return true; }
+        const ratio = Math.max(0,Math.min(1,(x-drag.trackRect.x)/drag.trackRect.width));
+        if (drag.star) this.setStarAllocation(drag.star,drag.key,Math.round(ratio*1000)/10,{silent:true});
+        else this.setColonyDefaultAllocation(drag.key,Math.round(ratio*1000));
+        return true;
+    }
+
+    endUISliderDrag(x,y) {
+        if (!this.uiSliderDrag) return false;
+        if (Number.isFinite(x) && Number.isFinite(y)) this.updateUISliderDrag(x,y);
+        const drag = this.uiSliderDrag;
+        this.uiSliderDrag = null;
+        if (drag && drag.star && this.canHumanControl(drag.star) &&
+            this.getAllocationDesired(drag.star[drag.key])!==drag.initialDesired) this.recordProductionChange(drag.star);
+        return true;
+    }
+
     handleUIClick(x, y) {
+        if(this.display && this.display.clearControlHelp)this.display.clearControlHelp();
         if (!this.display || typeof this.display.getUIActionAt !== 'function') {
             return false;
         }
         return this.executeUIAction(this.display.getUIActionAt(x, y));
     }
 
+    getMapShipCount() {
+        return this.remoteComparisons?this.remoteComparisons.reduce((total,row)=>total+row.ships+row.shipsBuilding,0):this.allShips.length;
+    }
+
+    scrollCommandMenu(delta) {
+        if(this.uiWindow!=='menu' || !this.display || !Number.isFinite(delta))return false;
+        const layout=this.display.getCommandMenuLayout();if(!layout.compact || !layout.scrollLimit)return false;
+        this.commandMenuScroll=Math.max(0,Math.min(layout.scrollLimit,layout.bodyScroll+delta));return true;
+    }
+
+    scrollStarInspector(delta) {
+        const star=this.getSelectedStar();if(!star || this.uiWindow && this.uiWindow!=='events' || this.overlay || this.isAwaitingMapTarget() || this.uiSliderDrag || !this.display || !Number.isFinite(delta))return false;
+        const l=this.display.getStarDetailsLayout(star);if(!l.compact)return false;this.starInspectorScroll=Math.max(0,Math.min(l.scrollLimit,l.bodyScroll+delta));return true;
+    }
+
+    scrollShipInspector(delta) {
+        const ship=this.selectedObject;if(!this.factory.isShip(ship) || this.uiWindow && this.uiWindow!=='events' || this.overlay || this.isAwaitingMapTarget() || !this.display || !Number.isFinite(delta))return false;
+        const screen=this.display.getScreenSize();if(screen.width>=600 && screen.height>=360)return false;
+        const l=this.display.getShipDetailsLayout(ship);this.shipInspectorScroll=Math.max(0,Math.min(l.scrollLimit,l.bodyScroll+delta));return true;
+    }
+
+    scrollFleetInspector(delta) {
+        const fleet=this.getSelectedFleet();if(this.uiWindow && this.uiWindow!=='events' || this.overlay || this.isAwaitingMapTarget() || !fleet || !this.display || !Number.isFinite(delta))return false;
+        const l=this.display.getFleetDetailsLayout(fleet);if(!l.compact)return false;
+        this.fleetInspectorScroll=Math.max(0,Math.min(l.scrollLimit,l.bodyScroll+delta));return true;
+    }
+
+    scrollFleetRoster(delta) {
+        if(this.uiWindow!=='fleets' || !this.display || !Number.isFinite(delta))return false;
+        const l=this.display.getFleetRosterLayout();if(!l.compact)return false;
+        this.fleetRosterBodyScroll=Math.max(0,Math.min(l.scrollLimit,l.bodyScroll+delta));return true;
+    }
+
+    scrollSystemShips(delta) {
+        if(this.uiWindow!=='systemShips' || !this.display || !Number.isFinite(delta))return false;
+        const layout=this.display.getSystemShipWindowLayout();if(!layout.compact)return false;
+        this.systemShipBodyScroll=Math.max(0,Math.min(layout.scrollLimit,layout.bodyScroll+delta));return true;
+    }
+
+    scrollCourse(delta) {
+        if(this.uiWindow!=='course' || !this.display || !Number.isFinite(delta))return false;
+        const layout=this.display.getCourseWindowLayout();if(!layout.compact || !layout.scrollLimit)return false;
+        this.courseBodyScroll=Math.max(0,Math.min(layout.scrollLimit,layout.bodyScroll+delta));return true;
+    }
+
+    scrollPlayerComparison(delta) {
+        if(this.uiWindow!=='comparison' || !this.display || !Number.isFinite(delta))return false;
+        const layout=this.display.getPlayerComparisonLayout();if(!layout.compact || !layout.scrollLimit)return false;
+        this.playerComparisonBodyScroll=Math.max(0,Math.min(layout.scrollLimit,layout.bodyScroll+delta));return true;
+    }
+
     getPlayerComparisonRows() {
-        const rows = [];
-        if (!this.players || !this.config) {
-            return rows;
+        if(this.remoteComparisons)return this.remoteComparisons.map(row=>{
+            const name=row.playerNum===0?I18n.getString(811,'Unowned systems'):row.assigned?row.name:I18n.getString(306,'Unknown');
+            return {...row,name:row.playerNum>0 && row.assigned && !row.isAlive?I18n.formatString(819,'{0} (defeated)',name):name,
+                italicizeName:row.playerNum===0 || !row.assigned,type:I18n.getString(row.isComputer?504:300,row.isComputer?'AI':'Human')};
+        });
+        if(!this.players || !this.config)return [];
+        const rows=[];
+        for(let i=0;i<=this.config.totalPlayers;i++) {
+            const player=this.players[i];
+            const stars=this.stars.filter(star=>star.owner===i);
+            const ships=this.allShips.filter(ship=>ship.owner===i && !ship.isDead() && !ship.underConstruction());
+            const tech=objects=>objects.map(object=>Math.trunc(object.techLevel || 0));
+            const starTech=tech(stars),shipTech=tech(ships);
+            const average=values=>values.length?Math.trunc(values.reduce((sum,value)=>sum+value,0)/values.length):0;
+            const assigned=!!player && (player.isComputer || !!player.name);
+            const alive=stars.length>0 || ships.length>0;
+            const name=i===0?I18n.getString(811,'Unowned systems'):assigned?(player.name || `${I18n.getString(18,'Player')} ${i}`):I18n.getString(306,'Unknown');
+            const productionRaw=stars.reduce((sum,star)=>sum+star.getProduction(),0);
+            rows.push({playerNum:i,name:i>0 && assigned && !alive?I18n.formatString(819,'{0} (defeated)',name):name,
+                italicizeName:i===0 || !assigned,isAlive:alive,assigned,
+                type:player && player.isComputer?I18n.getString(504,'AI'):I18n.getString(300,'Human'),
+                stars:stars.length,ships:ships.length,
+                shipsBuilding:this.allShips.filter(ship=>ship.owner===i && !ship.isDead() && ship.underConstruction()).length,
+                population:stars.reduce((sum,star)=>sum+Math.trunc(star.population),0),
+                production:Math.trunc(productionRaw/100),productionRaw,
+                power:ships.reduce((sum,ship)=>sum+Math.trunc(ship.power),0),
+                minimumTech:starTech.length?Math.min(...starTech):0,maxTech:starTech.length?Math.max(...starTech):0,
+                averageTech:average(starTech),minimumShipTech:shipTech.length?Math.min(...shipTech):0,
+                maximumShipTech:shipTech.length?Math.max(...shipTech):0,averageShipTech:average(shipTech),
+                pieces:stars.length+ships.length});
         }
-
-        for (let i = 1; i <= this.config.totalPlayers; i++) {
-            const player = this.players[i];
-            if (!player) {
-                continue;
-            }
-            const ownedStars = this.stars.filter(star => star.owner === i);
-            const ownedShips = this.allShips.filter(ship => ship.owner === i);
-            const completedShips = ownedShips.filter(ship => !ship.underConstruction || !ship.underConstruction());
-            const population = ownedStars.reduce((sum, star) => sum + Math.floor(star.population * 1000.0), 0);
-            const techSum = ownedStars.reduce((sum, star) => sum + (star.techLevel || 0), 0);
-            const maxTech = ownedStars.reduce((max, star) => Math.max(max, star.techLevel || 0), 0);
-
-            rows.push({
-                playerNum: i,
-                name: player.name || `${I18n.getString(18, 'Player')} ${i}`,
-                type: player.isComputer ? I18n.getString(504, 'AI') : I18n.getString(300, 'Human'),
-                isAlive: player.isAlive,
-                stars: ownedStars.length,
-                ships: completedShips.length,
-                shipsBuilding: ownedShips.length - completedShips.length,
-                population,
-                averageTech: ownedStars.length > 0 ? techSum / ownedStars.length : 0,
-                maxTech,
-                pieces: ownedStars.length + ownedShips.length
-            });
-        }
-
         return rows;
+    }
+
+    getPlayerComparisonExtrema(rows=this.getPlayerComparisonRows()) {
+        const fields=['stars','population','production','minimumTech','maxTech','averageTech',
+            'ships','power','minimumShipTech','maximumShipTech','averageShipTech'];
+        const extrema={};
+        fields.forEach(key=>{
+            const shipField=['ships','power','minimumShipTech','maximumShipTech','averageShipTech'].includes(key);
+            const values=rows.filter(row=>row.playerNum>0 && row.isAlive && (shipField?row.ships:row.stars)>0).map(row=>row[key==='production'?'productionRaw':key]);
+            extrema[key]=values.length?{minimum:Math.min(...values),maximum:Math.max(...values)}:null;
+        });
+        return extrema;
     }
 
     clearOrders(object = this.selectedObject) {
@@ -1461,7 +2777,9 @@ class Game {
         if (objectType !== Common.ObjectType.SHIP && objectType !== Common.ObjectType.FLEET) {
             return false;
         }
-        if (object.setDestination) {
+        if (object.course) {
+            object.course.clear();
+        } else if (object.setDestination) {
             object.setDestination(null);
         } else {
             object.destination = null;
@@ -1474,18 +2792,51 @@ class Game {
         return true;
     }
 
+    getUnreviewedItemCount() {
+        // A presentation and its attention entry refer to the same report.
+        // Anonymous requests/presentations still represent independent items.
+        const items=new Set(this.attention.pending().map(entry=>entry.event?entry.event.id:entry));
+        for(const overlay of [this.overlay,...(this.overlayQueue || []),...this.pendingGameReports()])
+            if(overlay)items.add(overlay.eventId ?? overlay);
+        return items.size;
+    }
+
+    canRequestEndTurn() {
+        if(this.clientAdministrator)return false;
+        if(this.clientPlayerNum && (this.clientTurnPosted || !this.networkCommands ||
+            (this.networkCommands.available ? !this.networkCommands.available() : this.clientPosting)))return false;
+        return !(this.pendingMapOrderObject || this.pendingRendezvousPlacement || this.uiSliderDrag || this.uiMapScrollDrag || this.uiWindowDrag || this.mapSelectionPicker);
+    }
+
+    requestEndTurn() {
+        if(!this.canRequestEndTurn())return false;
+        if(this.getUnreviewedItemCount()>0) {this.uiWindow='endTurnConfirm';return false;}
+        this.uiWindow=null;this.endTurn();return true;
+    }
+
+    canToggleCallIn(object=this.selectedObject) {
+        const speed=this.factory.isFleet(object)?object.totalSpeed:object && object.speed;
+        return this.canEditCourse(object) && speed>0;
+    }
+
+    toggleCallIn(object=this.selectedObject) {
+        if(!this.canToggleCallIn(object))return false;
+        object.userCallIn=!object.userCallIn;
+        return true;
+    }
+
+    canTogglePatrol(object=this.selectedObject) {
+        return this.canEditCourse(object) && !!object.star;
+    }
+
     togglePatrol(object = this.selectedObject) {
-        if (!object || !this.canHumanControl(object) || !object.setPatrol) {
-            return false;
-        }
-        const objectType = this.getObjectType(object);
-        if (objectType !== Common.ObjectType.SHIP && objectType !== Common.ObjectType.FLEET) {
-            return false;
-        }
+        if(!this.canTogglePatrol(object))return false;
         const newPatrol = !(object.isOnPatrol && object.isOnPatrol());
         object.setPatrol(newPatrol);
-        if (newPatrol && object.setDestination) {
-            object.setDestination(null);
+        if(newPatrol) {
+            object.setScrap(false);
+            object.course.clear();
+            if(this.courseWindowObject===object) {this.courseSelection=null;this.coursePage=0;}
         }
         this.recordEvent(
             I18n.getString(604, 'Orders'),
@@ -1497,27 +2848,73 @@ class Game {
         return true;
     }
     
-    handleMouseClick(x, y) {
+    beginMapSelection(x,y,mode,force=false) {
+        if(this.mapSelectionPicker)return true;
+        const candidates=this.findObjectsAtPosition(x,y,force);
+        if(!candidates.length || !force && candidates.length<2)return false;
+        this.mapSelectionPicker={candidates,x,y,mode,page:0,previousWindow:this.uiWindow};
+        this.uiWindow='mapPick';return true;
+    }
+
+    getMapSelectionRows() {
+        if(!this.mapSelectionPicker)return [];
+        const picker=this.mapSelectionPicker;
+        if(picker.mode==='transfer') {
+            if(this.selectedObject!==picker.sourceFleet || picker.transferShip.fleet!==picker.sourceFleet)return [];
+            return picker.candidates.filter(target=>this.canTransferShipToFleet(picker.transferShip,target));
+        }
+        const live=new Set(this.getMapObjects());
+        return this.mapSelectionPicker.candidates.filter(object=>live.has(object) && this.display.getMapMarker(object));
+    }
+
+    cancelMapSelection() {
+        const picker=this.mapSelectionPicker;
+        if(!picker)return false;
+        this.mapSelectionPicker=null;this.uiWindow=picker.previousWindow;return true;
+    }
+
+    chooseMapSelection(object) {
+        if(!this.getMapSelectionRows().includes(object))return false;
+        const picker=this.mapSelectionPicker;this.cancelMapSelection();
+        if(picker.mode==='transfer')return this.transferShipToFleet(picker.transferShip,object);
+        const options={resolved:true,target:object};
+        if(picker.mode==='order')return this.handleMouseRightClick(picker.x,picker.y,options);
+        return this.handleMouseClick(picker.x,picker.y,options);
+    }
+
+    handleMouseClick(x, y, options={}) {
+        if(!options.resolved && this.beginMapSelection(x,y,'select',!!options.forcePicker))return true;
         if (this.pendingRendezvousPlacement) {
-            return this.finishRendezvousPlacementAt(x, y);
+            return this.finishRendezvousPlacementAt(x, y, options.target);
         }
 
         if (this.pendingMapOrderObject) {
-            const orderObject = this.pendingMapOrderObject;
-            this.pendingMapOrderObject = null;
+            const orderObject=this.pendingMapOrderObject, edit=this.pendingCourseEdit;
+            this.pendingMapOrderObject=null;this.pendingCourseEdit=null;
             this.setSelectedObject(orderObject);
-            return this.handleMouseRightClick(x, y);
+            if (edit) {
+                if (this.canEditCourse(orderObject) && edit.revision===orderObject.course.revision) {
+                    const target=options.target || this.findObjectAtPosition(x,y) || {x:this.display.toGalacticX(x),y:this.display.toGalacticY(y)};
+                    this.issuePlayerWaypoint(orderObject,target,edit.index,edit.replace);
+                }
+                this.uiWindow='course';return true;
+            }
+            return this.handleMouseRightClick(x,y,options);
         }
 
         // Left click - select object to view information
-        var clickedObject = this.findObjectAtPosition(x, y);
+        var clickedObject = options.target || this.findObjectAtPosition(x, y);
         
         // Allow selecting any object to view information
         this.setSelectedObject(clickedObject);
         return true;
     }
     
-    handleMouseRightClick(x, y) {
+    handleMouseRightClick(x, y, options={}) {
+        if(WindowBehavior.isSystem(this.uiWindow)){if(this.sound)this.sound.play(1012);return true;}
+        if(this.uiWindow==='mapPick')return true;
+        if(this.pendingMapOrderObject || this.pendingRendezvousPlacement)return this.handleMouseClick(x,y,options);
+        if(!options.resolved && this.beginMapSelection(x,y,'order'))return true;
         this.pendingMapOrderObject = null;
 
         // Right click - give orders to selected ship or set default destination for selected star
@@ -1537,7 +2934,7 @@ class Game {
             }
             
             // Find what was right-clicked on
-            var clickedObject = this.findObjectAtPosition(x, y);
+            var clickedObject = options.target || this.findObjectAtPosition(x, y);
             
             // Set default destination - either to an object or to coordinates
             if (clickedObject) {
@@ -1563,11 +2960,11 @@ class Game {
             }
             
             // Find what was right-clicked on
-            var clickedObject = this.findObjectAtPosition(x, y);
+            var clickedObject = options.target || this.findObjectAtPosition(x, y);
             
             // Set destination - either to an object or to coordinates
             if (clickedObject) {
-                this.selectedObject.setDestination(clickedObject);
+                this.issuePlayerWaypoint(this.selectedObject,clickedObject);
                 const clickedObjectType = this.getObjectType(clickedObject);
                 let destinationName;
                 destinationName = this.getObjectDisplayName(clickedObject);
@@ -1575,7 +2972,7 @@ class Game {
                 console.log(`Set destination of ${selectedObjectName} to ${destinationName}`);
             } else {
                 // Right-clicking on empty space - give ship/fleet a destination (in galactic coordinates)
-                this.selectedObject.setDestination({x: galacticX, y: galacticY});
+                this.issuePlayerWaypoint(this.selectedObject,{x:galacticX,y:galacticY});
                 const selectedObjectName = this.getObjectDisplayName(this.selectedObject);
                 console.log(`Set destination of ${selectedObjectName} to galactic (${galacticX.toFixed(0)}, ${galacticY.toFixed(0)})`);
             }
@@ -1586,102 +2983,67 @@ class Game {
         return true;
     }
     
-    findObjectAtPosition(x, y) {
-        // Helper method to find what object is at a given screen position
-        var clickedObject = null;
-        
-        // Check for ship clicks (using screen-space radius for consistent UI feel)
-        const shipRadiusSquared = Common.ShipRadius * Common.ShipRadius;
-        for (const ship of this.allShips) {
-            // Convert ship position to screen for distance check
-            const shipScreenX = this.display.toScreenX(ship.x);
-            const shipScreenY = this.display.toScreenY(ship.y);
-            
-            let dx = x - shipScreenX;
-            let dy = y - shipScreenY;
-            if (ship.star) {
-                // adjust for parking orbit around star
-                dx -= 10;
-                dy += 6;
-            }
-            const distSquared = dx * dx + dy * dy;
-            
-            if (distSquared <= shipRadiusSquared) {
-                clickedObject = ship;
-                console.log(`Clicked on ship: ${ship.type}`);
-             }
-        }
-
-        // Check for fleet clicks (using screen-space radius for consistent UI feel)
-        const fleetRadiusSquared = Common.ShipRadius * Common.ShipRadius * 2.25; // Fleet hexagons are larger than ships
-        for (const fleet of this.allFleets) {
-            // Convert fleet position to screen for distance check
-            let fleetScreenX = this.display.toScreenX(fleet.x);
-            let fleetScreenY = this.display.toScreenY(fleet.y);
-            
-            // Adjust for fleet offset when at star (same as ships)
-            const fleetAtStar = this.stars.find(star => 
-                Math.abs(star.x - fleet.x) < 5 && Math.abs(star.y - fleet.y) < 5
-            );
-            if (fleetAtStar) {
-                fleetScreenX += this.display.scaledStarRadius * 1.25;
-                fleetScreenY -= this.display.scaledStarRadius * 0.75;
-            }
-            
-            const dx = x - fleetScreenX;
-            const dy = y - fleetScreenY;
-            const distSquared = dx * dx + dy * dy;
-            
-            if (distSquared <= fleetRadiusSquared) {
-                clickedObject = fleet;
-                console.log(`Clicked on fleet: ${fleet.getSize()} ships`);
-                break; // Fleet takes priority over ships/stars
-            }
-        }
-
-        // Check for rendezvous clicks. Player-owned rendezvous points are private
-        // planning markers; in omniscient/debug mode this also supports inspection.
-        const rendezvousRadiusSquared = 8 * 8;
-        const humanPlayer = this.getCurrentHumanPlayer() || 1;
-        for (const rendezvous of this.allRendezvous || []) {
-            if (rendezvous.owner !== humanPlayer && !(this.config && this.config.omniscient)) {
-                continue;
-            }
-            const rendezvousScreenX = this.display.toScreenX(rendezvous.x);
-            const rendezvousScreenY = this.display.toScreenY(rendezvous.y);
-            const dx = x - rendezvousScreenX;
-            const dy = y - rendezvousScreenY;
-            const distSquared = dx * dx + dy * dy;
-            if (distSquared <= rendezvousRadiusSquared) {
-                clickedObject = rendezvous;
-                console.log(`Clicked on rendezvous: ${rendezvous.name}`);
-                break;
-            }
-        }
-
-        // Check for star clicks (using screen-space radius for consistent UI feel)
-        const starRadiusSquared = Common.StarRadius * Common.StarRadius;
-        for (const star of this.stars) {
-            // Convert star position to screen for distance check
-            const starScreenX = this.display.toScreenX(star.x);
-            const starScreenY = this.display.toScreenY(star.y);
-            
-            const dx = x - starScreenX;
-            const dy = y - starScreenY;
-            const distSquared = dx * dx + dy * dy;
-            
-            if (distSquared <= starRadiusSquared && !clickedObject) {
-                clickedObject = star;
-                console.log(`Clicked on star: ${star.name}`);
-            }
-        }
-        
-        return clickedObject;
+    getMapObjects() {
+        // Match marker drawing order; topmost/last-drawn candidates come first.
+        return [...this.stars,...this.allShips,...this.allRendezvous || [],...this.allFleets].reverse();
     }
-    
+
+    findObjectsAtPosition(x,y,nearby=false) {
+        if(!this.display || !this.display.getMapMarker)return [];
+        this.display.updateMapRenderingCalculations();
+        return this.getMapObjects().filter(object=>{
+            const marker=this.display.getMapMarker(object);
+            if(!marker)return false;
+            if(nearby && object.isOnPatrol && object.isOnPatrol())return false;
+            return Math.abs(x-marker.x)<=Math.max(marker.radius,nearby?10:0) &&
+                Math.abs(y-marker.y)<=Math.max(marker.height,nearby?10:0);
+        });
+    }
+
+    findObjectAtPosition(x,y) {
+        return this.findObjectsAtPosition(x,y)[0] || null;
+    }
+
     handleKeyPress(key) {
+        if(key===pdg.key_Help)return this.executeUIAction({type:'openManual'});
+        if(this.display && this.display.clearControlHelp)this.display.clearControlHelp();
+        if(this.overlay && this.uiWindow!=='endTurnConfirm' && ['outcome','report','stardock','lab'].includes(this.overlay.type)) {
+            if(['outcome','report'].includes(this.overlay.type) && (key===pdg.key_LeftArrow || key===pdg.key_RightArrow)) {
+                const layout=this.display && (this.overlay.type==='report'?this.display.getReportLayout(this.overlay):this.display.getOutcomeLayout(this.overlay));
+                if(layout)this.overlay.page=Math.max(0,Math.min(layout.pages-1,layout.page+(key===pdg.key_LeftArrow?-1:1)));
+            } else if(key===13 || key===10 || key===32 || key===pdg.key_Escape ||
+                    ['stardock','lab'].includes(this.overlay.type) && key!==pdg.key_Tab){
+                if(!this.abortAutomaticNotices())this.dismissEventPresentation();
+            }
+            return true;
+        }
+
+        if(['comparison','systemComparison'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
+        if(key === pdg.key_F6)return this.executeUIAction({type:'toggleScannerRanges'});
+        if(key === pdg.key_F4)return this.executeUIAction({type:'toggleAllCourses'});
+        if(key === pdg.key_F5)return this.executeUIAction({type:'toggleCourierCourses'});
+        if(key === pdg.key_F1)return this.executeUIAction({type:'toggleShips'});
+        if(key === pdg.key_F2)return this.executeUIAction({type:'toggleMapNames'});
+        if(key === pdg.key_F3)return this.executeUIAction({type:'toggleGrid'});
+        if(['mapPick','games','fleetExchange','fleets','newGameDefaults'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
+        if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && key===pdg.key_Tab) return true;
+        if (['settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && (key===13 || key===3)) return true;
+        if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}
+        if ((key===13 || key===3) && !['rename','colonyDefaults','settings','systemComparison','events','endTurnConfirm'].includes(this.uiWindow)) {this.requestEndTurn();return true;}
         if (key === pdg.key_Tab) {
-            this.endTurn();
+            if(!this.pendingMapOrderObject && !this.pendingRendezvousPlacement && !this.uiSliderDrag && !this.uiMapScrollDrag && !this.hasEventPresentation())this.attention.next();
+            return true;
+        }
+
+        if (key === pdg.key_Escape && this.uiMapScrollDrag) {this.endMapScrollDrag();return true;}
+        if (key === pdg.key_Escape && this.uiSliderDrag) {
+            this.endUISliderDrag();
+            return true;
+        }
+
+        if (key === pdg.key_Escape && this.pendingMapOrderObject) {
+            this.pendingMapOrderObject=null;
+            if (this.pendingCourseEdit) { this.pendingCourseEdit=null;this.uiWindow='course'; }
             return true;
         }
 
@@ -1691,26 +3053,34 @@ class Game {
         }
 
         // Dismiss overlay on any key press
-        if (this.overlay) {
+        if (this.overlay && this.uiWindow!=='endTurnConfirm') {
             this.dismissEventPresentation();
             return true;
+        }
+        if(this.uiWindow==='systemShips' && this.display?.getSystemShipWindowLayout().compact && [pdg.key_PageUp,pdg.key_PageDown,pdg.key_LeftArrow,pdg.key_RightArrow].includes(key))return this.handleCommandWindowKey(key,this.getKeyChar(key));
+        if(!this.uiWindow && [pdg.key_PageUp,pdg.key_PageDown].includes(key) && (this.scrollStarInspector(key===pdg.key_PageUp?-80:80) || this.scrollShipInspector(key===pdg.key_PageUp?-80:80) || this.scrollFleetInspector(key===pdg.key_PageUp?-80:80)))return true;
+        if(key===pdg.key_LeftArrow && (!this.uiWindow || this.uiWindow==='systemShips')){
+            this.selectContainingObject();return true;
         }
         const char = this.getKeyChar(key);
         if (this.handleCommandWindowKey(key, char)) {
             return true;
         }
+        if (key === 13 || key === 3) {
+            this.requestEndTurn();return true;
+        }
         if (key === pdg.key_Escape) {
-            this.selectedObject = null;
-            this.display.setSelectedObject(null);
-        } else if (key === 61 || key === 43) { // = or + key
+            this.setSelectedObject(null);
+        } else if (key===61 && !this.uiWindow && this.canHumanControl(this.getSelectedStar())) {
+            return this.resetSelectedStarAllocations();
+        } else if (key === 61 || key === 43) { // + zooms; = also zooms when no owned system is selected
             // Zoom in with + or = key (zoom to center of screen)
             this.display.zoomIn();
         } else if (key === 45) { // - key
             // Zoom out with - key (zoom to center of screen)
             this.display.zoomOut();
-        } else if (key === 48) { // 0 key
-            // Reset view with 0 key
-            this.display.resetView();
+        } else if (key === 48 || key === 42) { // v3 zero and keypad * fit the map
+            this.display.zoomToFit();
         //} else if (key === 99 || key === 67) { // c or C key
         //    // Center on selected object with C key
         //    if (this.selectedObject) {
@@ -1723,9 +3093,10 @@ class Game {
         } else if (key === 102 || key === 70) { // f or F key
             // Zoom to fit entire map with F key
             this.display.zoomToFit();
-        } else if (key === 104 || key === 72) { // h or H key
-            // Select player's home star with H key
+        } else if (key === pdg.key_Home) {
             this.selectHomeStar();
+        } else if (key === 104 || key === 72) {
+            return this.executeUIAction({type:'toggleCourseHunt',object:this.selectedObject});
         } else if (this.handleTopLevelCommandKey(key, char)) {
             return true;
         } else if (this.selectedObject) {
@@ -1781,6 +3152,8 @@ class Game {
         }
         
         switch (String.fromCharCode(key)) {
+            case 'n':
+                return this.beginRenameObject(star);
             case 's':
                 star.startBuildingShip('scout');
                 break;
@@ -1801,6 +3174,10 @@ class Game {
 
     handleShipKeyPress(ship, key) {
         switch (String.fromCharCode(key).toLowerCase()) {
+            case 'g': return this.showCourse(ship);
+            case 'a': this.showCourse(ship);return this.beginCourseEdit();
+            case 'n':
+                return this.beginRenameObject(ship);
             case 'o':
                 return this.beginMapOrder(ship);
             case 'x':
@@ -1814,6 +3191,8 @@ class Game {
 
     handleFleetKeyPress(fleet, key) {
         switch (String.fromCharCode(key).toLowerCase()) {
+            case 'g': return this.showCourse(fleet);
+            case 'a': this.showCourse(fleet);return this.beginCourseEdit();
             case 'o':
                 return this.beginMapOrder(fleet);
             case 'x':
@@ -1840,24 +3219,117 @@ class Game {
         }
     }
     
-    endTurn() {
-        if (this.isGameOver) {
-            console.log(`Game already complete on turn ${this.victoryTurn}`);
-            return this.getGameResult();
-        }
+    canToggleScrap(object) {
+        if(!object || !this.canHumanControl(object))return false;
+        const fleet=this.factory.isFleet(object);
+        if(fleet ? !this.allFleets.includes(object) || object.isEmpty()
+            : !this.allShips.includes(object) || object.isDead() || object.underConstruction())return false;
+        const container=object.fleet || object.star;
+        return !!container && container.owner===this.getCurrentHumanPlayer();
+    }
 
+    toggleScrap(object=this.selectedObject) {
+        if(!this.canToggleScrap(object))return false;
+        object.setScrap(!object.isToBeScrapped());
+        if(object.isToBeScrapped()) {
+            this.attention.attend(object);
+            if(this.factory.isFleet(object))for(const ship of object.ships)this.attention.attend(ship);
+        }
+        return true;
+    }
+
+    scrapShip(ship) {
+        if(!this.allShips.includes(ship) || !ship.isToBeScrapped() || ship.isDead() || ship.underConstruction())return false;
+        const fleet=ship.fleet,star=fleet?fleet.getDockedStar():ship.star;
+        const amount=this.rules.getShipScrapValue(ship),name=this.getObjectDisplayName(ship);
+        if(star && this.stars.includes(star) && Number.isFinite(amount))star.addScrapProduction(amount);
+        const event=this.recordEvent(I18n.getString(754,'Scrap'),star
+            ? I18n.formatString(757,'{0} scrapped; {1} production recovered at {2}',name,I18n.formatDecimal(amount,3),this.getObjectDisplayName(star))
+            : I18n.formatString(758,'{0} scrapped',name),{type:'scrap',subject:ship,recipient:ship.owner});
+        this.detachShipFromContainers(ship);this.entityRemoved(ship);
+        if(fleet && fleet.isEmpty())this.entityRemoved(fleet);
+        return !!event;
+    }
+
+    // CShip::EndOfTurn marks the actor before allowing its destination to
+    // move. Marking before recursion handles mutual pursuit and longer cycles.
+    moveAllShips() {
+        const previous=this.movementTurn;
+        const actors=[...this.allShips,...this.allFleets];
+        this.movementTurn={moved:new Set(),actors:new Set(actors)};
+        try { actors.forEach(actor=>this.moveActorForTurn(actor)); }
+        finally { this.movementTurn=previous; }
+    }
+
+    moveActorForTurn(actor) {
+        const turn=this.movementTurn;
+        if(!turn || !turn.actors.has(actor) || turn.moved.has(actor))return false;
+        const type=this.getObjectType(actor);
+        if(type===Common.ObjectType.SHIP && !this.allShips.includes(actor) ||
+            type===Common.ObjectType.FLEET && !this.allFleets.includes(actor))return false;
+        turn.moved.add(actor);
+        if(type===Common.ObjectType.SHIP && actor.isToBeScrapped())return this.scrapShip(actor);
+        // Contained ships travel with their fleet, never independently.
+        if(type===Common.ObjectType.SHIP && actor.fleet)return false;
+        if(type===Common.ObjectType.FLEET) {
+            // Process contained scrap orders before departure, even when pursued.
+            for(const ship of [...actor.ships])this.moveActorForTurn(ship);
+            if(!this.allFleets.includes(actor) || actor.fleet && !actor.destination)return false;
+        }
+        actor.move();
+        return true;
+    }
+
+    movePursuedTargetFirst(actor) {
+        const turn=this.movementTurn;
+        if(!turn)return;
+        const target=actor.destination;
+        const eligible=object=>object && turn.actors.has(object) &&
+            !turn.moved.has(object) && object.destination &&
+            [Common.ObjectType.SHIP,Common.ObjectType.FLEET].includes(this.getObjectType(object));
+        // v3 tests the actual target first, then its highest container.
+        if(eligible(target)) { this.moveActorForTurn(target);return; }
+        let top=target;
+        const seen=new Set();
+        while(top && !seen.has(top)) {
+            seen.add(top);
+            const container=top.fleet || top.star;
+            if(!container)break;
+            top=container;
+        }
+        if(eligible(top))this.moveActorForTurn(top);
+    }
+
+    canAdvanceTurns() {
+        if(!this.isGameOver)return true;
+        if(this.clientPlayerNum || this.clientAdministrator)return this.canContinue===true;
+        return this.config.numHumans>0;
+    }
+
+    endTurn() {
+        if(this.clientAdministrator)return false;
+        // Client turns are resolved by the host after order submission.
+        if(this.clientPlayerNum)return this.networkCommands?this.networkCommands.post():false;
+        // Synthetic no-human autoplay remains finite. Human documents retain
+        // the recorded result and can keep playing, as v3 state_PostGame does.
+        if (!this.canAdvanceTurns()) return this.getGameResult();
+        if (this.isGameOver) this.postGame=true;
+
+        this.turnAttentionPending=false;
+        this.turnPreviousSelection=this.selectedObject;
+        if (this.tutorialSimulation) this.tutorialSimulation.beforeEndTurn(this);
         this.closeEventWindowsForTurnAdvance();
 
         console.log(`=== End of Turn ${this.turn} ===`);
         this.refreshRendezvousFleetReferences();
         
         // Log ships under construction status
-        const shipsUnderConstruction = this.allShips.filter(ship => ship.underConstruction());
+        const shipsUnderConstruction = this.stars.filter(star => star.currentShip).map(star => ({ ...star.currentShip, star, owner: star.owner }));
         if (shipsUnderConstruction.length > 0) {
             console.log(`🔍 SHIPS UNDER CONSTRUCTION (${shipsUnderConstruction.length}):`);
             for (const ship of shipsUnderConstruction) {
                 const starName = ship.star ? ship.star.name : 'UNKNOWN';
-                console.log(`  - ${ship.type} (ID: ${ship.id}) at ${starName} - Owner: ${ship.owner}, Progress: ${ship.progress.toFixed(1)}%, Visible: ${ship.isVisibleTo(1)}`);
+                console.log(`  - ${ship.type} at ${starName} - Owner: ${ship.owner}, Progress: ${ship.progress.toFixed(1)}%`);
             }
         } else {
             console.log(`🔍 NO SHIPS UNDER CONSTRUCTION`);
@@ -1868,38 +3340,30 @@ class Game {
             this.aiManager.processAITurns();
         }
         
-        // Update all ships
-        for (const ship of [...this.allShips]) {
-            if (this.allShips.includes(ship)) {
-                ship.move();
-            }
-        }
-        // Update all fleets
-        for (const fleet of [...this.allFleets]) {
-            if (this.allFleets.includes(fleet)) {
-                fleet.move();
-            }
-        }
+        this.attention.beginTurn();
+        this.moveAllShips();
         this.refreshRendezvousFleetReferences();
-        // Update all stars
-        for (const star of [...this.stars]) {
-            if (this.stars.includes(star)) {
-                star.update();
+        // Observer presentations must wait for the post-update visibility pass.
+        this.updatingStars=true;
+        try {
+            for (const star of [...this.stars]) {
+                if (this.stars.includes(star))star.update();
             }
-        }
+        } finally {this.updatingStars=false;}
         
+        this.attention.finishTurn();
+
         // Update visibility after all movements and changes
         this.visibilityCalculator.updateAllVisibility();
+        this.queueObserverReports();
         
         // Update player piece counts and check for defeats
         this.updatePlayerPieceCounts();
 
-        if (this.isGameOver) {
-            console.log(`=== Game ended on turn ${this.victoryTurn} ===`);
-            return this.getGameResult();
-        }
-
+        // v3 starts the next turn even when this turn first records victory.
+        // updateVictoryState keeps the original result without announcing it again.
         this.turn++;
+        this.turnAttentionPending=this.shouldShowEventWindows() && !!this.getCurrentHumanPlayer();
         console.log(`=== Start of Turn ${this.turn} ===`);
         return this.getGameResult();
     }
@@ -1979,9 +3443,10 @@ class Game {
         this.victoryTurn = this.turn;
 
         const playerName = player && player.name ? player.name : `${I18n.getString(18, 'Player')} ${playerNum}`;
-        const message = I18n.formatString(644, '{0} wins on turn {1}', playerName, this.victoryTurn);
+        const message = I18n.formatString(644, '{0}: Victory on turn {1}', playerName, this.victoryTurn);
         console.log(message);
-        this.recordEvent(I18n.getString(614, 'Victory'), message, { type: Common.EventType.GAME_WON });
+        const event=this.recordEvent(I18n.getString(614, 'Victory'), message, { type: Common.EventType.GAME_WON });
+        this.queueOutcome(event,'win',playerNum);
         return true;
     }
 
@@ -1996,7 +3461,8 @@ class Game {
 
         const message = I18n.formatString(652, 'No players remain on turn {0}', this.victoryTurn);
         console.log(message);
-        this.recordEvent(I18n.getString(615, 'Stalemate'), message, { type: Common.EventType.GAME_DRAW });
+        const event=this.recordEvent(I18n.getString(615, 'Stalemate'), message, { type: Common.EventType.GAME_DRAW });
+        this.queueOutcome(event,'draw');
         return true;
     }
 
@@ -2045,6 +3511,7 @@ class Game {
             return;
         }
 
+        const oldFleet=ship.fleet;
         if (ship.fleet && typeof ship.fleet.removeShip === 'function') {
             ship.fleet.removeShip(ship);
         }
@@ -2073,6 +3540,28 @@ class Game {
         }
 
         ship.star = null;
+        if(oldFleet && oldFleet.fleet && oldFleet.isEmpty())this.entityRemoved(oldFleet);
+    }
+
+    recordDestructionReports(subject, opponentOwner, position, location) {
+        if (!subject || !subject.owner || !opponentOwner || subject.owner === opponentOwner) return [];
+        const kind = this.getObjectType(subject) === Common.ObjectType.FLEET ? 'fleet' : 'ship';
+        const playerName = owner => this.players[owner] && this.players[owner].name ||
+            `${I18n.getString(18, 'Player')} ${owner}`;
+        const snapshot = {kind, name: String(subject.name || this.getObjectDisplayName(subject)).replace(/\t/g, ' '),
+            owner: subject.owner, opponentOwner, ownerName: playerName(subject.owner),
+            opponentName: playerName(opponentOwner), location: location ||
+                `(${I18n.formatDecimal(position.x / 65536, 2)}, ${I18n.formatDecimal(position.y / 65536, 2)})`};
+        return [opponentOwner, subject.owner].map(recipient => {
+            const won = recipient === opponentOwner;
+            const event = this.recordEvent(I18n.getString(607, 'Combat'),
+                I18n.formatString(kind === 'fleet' ? (won ? 935 : 936) : (won ? 933 : 934), '',
+                    snapshot.name, won ? snapshot.ownerName : snapshot.opponentName, snapshot.location),
+                {type: kind === 'fleet' ? Common.EventType.FLEET_DESTROYED : Common.EventType.SHIP_DESTROYED,
+                    subject, recipient, position});
+            event.destruction = {...snapshot, side: won ? 'winner' : 'loser'};
+            return event;
+        });
     }
 
     removeDestroyedShip(ship, attackerOwner, sendEvent = true) {
@@ -2082,12 +3571,14 @@ class Game {
 
         const wasTracked = this.allShips.includes(ship);
         const where = { x: ship.x, y: ship.y };
+        const notify = sendEvent && !ship.fleet && (!ship.star || ship.star.owner !== ship.owner);
+        const location = ship.star && ship.star.name;
         this.detachShipFromContainers(ship);
 
         if (wasTracked) {
             this.entityRemoved(ship);
-            if (sendEvent) {
-                this.noteworthyEvent(ship, Common.EventType.SHIP_DESTROYED, where, null, Common.EventWhy.COMBAT, attackerOwner);
+            if (notify) {
+                for (const event of this.recordDestructionReports(ship, attackerOwner, where, location)) this.queueReport(event);
             }
         }
 
@@ -2114,20 +3605,166 @@ class Game {
     }
 
     colonizeStar(star, colonyShip, previousOwner = 0) {
-        if (!star || !colonyShip || colonyShip.isDead() || star.owner !== 0) {
+        if (!star || !colonyShip || colonyShip.type!=='colony' || colonyShip.underConstruction() || colonyShip.isDead() || star.owner !== 0) {
             return false;
         }
 
-        star.population = Math.max(1, star.population || 0);
+        if (!previousOwner) star.population = (star.population || 0)+1;
         star.techLevel = Math.max(star.techLevel || 0, colonyShip.techLevel || 0);
         star.owner = colonyShip.owner;
         star.setScannerRange(this.rules.getScanRangeForTechLevel(star.techLevel));
         this.applyNewColonyDefaults(star, previousOwner);
 
-        const eventType = previousOwner ? Common.EventType.STAR_CAPTURED : Common.EventType.STAR_COLONIZED;
-        this.noteworthyEvent(colonyShip, eventType, star);
-        this.removeDestroyedShip(colonyShip, colonyShip.owner, false);
+        if(previousOwner)this.recordOccupationReports(star, colonyShip.owner, previousOwner, 'capture');
+        else this.recordColonizationReports(star);
+        if(!previousOwner)this.requestColonySetup(star);
+        // V3 retains the surviving colony ship for further colonization/orders.
         return true;
+    }
+
+    recordColonizationReports(star) {
+        const owner=star.owner,ownerName=this.players[owner] && this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
+        return Object.keys(this.players).map(Number).filter(recipient=>recipient>0 && this.players[recipient]).map(recipient=>{
+            const observer=recipient!==owner;
+            const event=this.recordEvent(I18n.getString(612,'Colonization'),observer?
+                I18n.formatString(953,'{0} colonized the uninhabited star system {1}.',ownerName,star.name):
+                I18n.formatString(952,'You have colonized the uninhabited star system {0}!',star.name),
+                {type:Common.EventType.STAR_COLONIZED,subject:star,position:star,recipient});
+            event.colonization={owner,ownerName,starName:star.name};event.observer=observer;
+            this.attention.requestEvent(event);
+            if(!observer || this.showEnemyEvents && !this.movementTurn)this.queueReport(event);
+            return event;
+        });
+    }
+
+    recordSystemDefenseLosses(star, attackerOwner, defenderOwner, shipsLost) {
+        if (!star || !attackerOwner || !defenderOwner || attackerOwner===defenderOwner || !(shipsLost>0)) return [];
+        const playerName=owner=>this.players[owner] && this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
+        const snapshot={starName:star.name,attackerOwner,defenderOwner,shipsLost,
+            attackerName:playerName(attackerOwner),defenderName:playerName(defenderOwner)};
+        return Object.keys(this.players).map(Number).filter(owner=>owner>0 && this.players[owner]).map(recipient=>{
+            const side=recipient===defenderOwner?'defender':recipient===attackerOwner?'attacker':'observer';
+            const event=this.recordEvent(I18n.getString(607,'Combat'),
+                I18n.formatPluralString(side==='defender'?940:side==='attacker'?941:942,'',shipsLost,snapshot.starName,
+                    I18n.formatInteger(shipsLost),snapshot.defenderName,snapshot.attackerName),
+                {type:Common.EventType.SYSTEM_DEFENSE_LOSSES,subject:star,recipient,position:star});
+            event.systemDefense={...snapshot,side};
+            if(side==='observer') {
+                event.observer=true;
+                if(this.showEnemyEvents && !this.movementTurn)this.queueReport(event);
+            } else {this.queueReport(event);this.attention.requestEvent(event);}
+            return event;
+        });
+    }
+
+    recordOccupationReports(star, attackerOwner, previousOwner, kind) {
+        if (!star || !previousOwner || attackerOwner===previousOwner || !['capture','defendersLost'].includes(kind)) return [];
+        const playerName=owner=>this.players[owner] && this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
+        const snapshot={kind,starName:star.name,attackerOwner,previousOwner,
+            attackerName:playerName(attackerOwner),defenderName:playerName(previousOwner)};
+        const recipients=[attackerOwner,previousOwner];
+        if(kind==='capture')recipients.push(...Object.keys(this.players).map(Number).filter(owner=>
+            owner>0 && this.players[owner] && !recipients.includes(owner)));
+        return recipients.map(recipient=>{
+            const winner=recipient===attackerOwner, observer=recipient!==attackerOwner && recipient!==previousOwner;
+            const id=observer?937:kind==='capture'?(winner?929:930):(winner?931:932);
+            const event=this.recordEvent(I18n.getString(607,'Combat'),
+                I18n.formatString(id, '',snapshot.starName,observer?snapshot.attackerName:winner?snapshot.defenderName:snapshot.attackerName,
+                    snapshot.defenderName),
+                {type:kind==='capture'?Common.EventType.STAR_CAPTURED:Common.EventType.DEFENDERS_LOST,
+                    subject:star,recipient,position:star});
+            event.occupation={...snapshot,side:observer?'observer':winner?'attacker':'defender'};
+            if(observer) {
+                event.observer=true;
+                if(this.showEnemyEvents && !this.movementTurn)this.queueReport(event);
+            }
+            else {this.queueReport(event);this.attention.requestEvent(event);}
+            return event;
+        });
+    }
+
+    requestColonySetup(star) {
+        const player=this.players[star.owner];
+        if(!player || player.isComputer)return false;
+        const event=this.recordEvent(I18n.getString(612,'Colonization'),
+            I18n.getString(856,'Please name your new colony and set its production levels.'),
+            {type:Common.EventType.RENAME_COLONY,subject:star,recipient:star.owner});
+        this.attention.requestEvent(event);
+        return event;
+    }
+
+    getColonySetupReport(star) {
+        return this.eventLog.find(event=>event.id===this.eventSelection && event.subject===star &&
+            event.type===Common.EventType.RENAME_COLONY && this.isEventAccessible(event)) || null;
+    }
+
+    recordRepairCompletion(ship, star) {
+        const player=star && this.players[star.owner];
+        if(!player || player.isComputer || !ship || ship.damage!==0)return null;
+        const fleet=this.factory.isFleet(ship),name=this.getObjectDisplayName(ship);
+        const event=this.recordEvent(I18n.getString(947,'Repairs'),
+            fleet?I18n.formatString(949,'All ships in your fleet {0} have been completely repaired.',name):
+                I18n.formatString(948,'Your ship {0} has been completely repaired.',name),
+            {type:fleet?Common.EventType.FLEET_REPAIRED:Common.EventType.SHIP_REPAIRED,
+                subject:ship,position:star,recipient:star.owner});
+        event.repair={name,fleet};event.automatic=false;
+        this.attention.requestEvent(event);
+        return event;
+    }
+
+    recordDiscoveryReports(star,classIndex) {
+        const owner=star.owner;
+        if(!this.stars.includes(star) || !this.players[owner])return [];
+        const ownerName=this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
+        const snapshot={owner,ownerName,starName:star.name,techLevel:star.techLevel,classIndex};
+        return Object.keys(this.players).map(Number).filter(recipient=>recipient>0 && this.players[recipient]).map(recipient=>{
+            const observer=recipient!==owner;
+            const message=observer?I18n.formatString(959,'Scientists on {0}, working for {1}, have discovered a new tech level {2} starship drive.',
+                star.name,ownerName,I18n.formatInteger(star.techLevel)):
+                I18n.formatString(958,'Your scientists on {0} have discovered a new tech level {1} starship drive.',
+                    star.name,I18n.formatInteger(star.techLevel));
+            const event=this.recordEvent(I18n.getString(610,'Research'),message,
+                {type:Common.EventType.NEW_TECH_DISCOVERY,subject:star,position:star,recipient});
+            event.discovery={...snapshot};event.observer=observer;
+            this.attention.requestEvent(event);
+            if(!observer) {
+                if(owner===this.getCurrentHumanPlayer())this.queueEventOverlay({type:'lab',classIndex,eventId:event.id});
+            } else if(this.showEnemyEvents && !this.movementTurn && !this.updatingStars)this.queueReport(event);
+            return event;
+        });
+    }
+
+    recordCommissioningReports(ship,classIndex) {
+        const star=ship.star,owner=ship.owner;
+        if(!star || !this.stars.includes(star) || !this.players[owner])return [];
+        const ownerName=this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
+        const name=ship.type==='battleship'?ship.name.split('\t')[0]:I18n.getShipTypeName(ship.type,{capitalized:true});
+        const snapshot={owner,ownerName,name,shipType:ship.type,classIndex,techLevel:ship.techLevel,starName:star.name};
+        return Object.keys(this.players).map(Number).filter(recipient=>recipient>0 && this.players[recipient]).map(recipient=>{
+            const observer=recipient!==owner;
+            const message=observer?I18n.formatString(957,'{0} commissioned a new {1} class starship, tech level {2}, at {3}.',
+                ownerName,name,I18n.formatInteger(ship.techLevel),star.name):
+                I18n.formatString(925,'First {0} commissioned at {1}, tech level {2}.',name,star.name,I18n.formatInteger(ship.techLevel))+'\n\n'+
+                    I18n.getString({defense:921,scout:922,colony:923,battleship:924}[ship.type]);
+            const event=this.recordEvent(I18n.getString(611,'Stardock'),message,
+                {type:Common.EventType.NEW_SHIP_CLASS,subject:star,position:star,recipient});
+            event.commissioning={...snapshot};event.observer=observer;
+            this.attention.requestEvent(event);
+            if(!observer) {
+                if(owner===this.getCurrentHumanPlayer())this.queueEventOverlay({type:'stardock',classIndex,
+                    shipType:ship.type,ship,origin:star,eventId:event.id});
+            } else if(this.showEnemyEvents && !this.movementTurn && !this.updatingStars)this.queueReport(event);
+            return event;
+        });
+    }
+
+    recordBuiltShipReport(ship, star) {
+        const name=this.getObjectDisplayName(ship).replace(/\t/g,' · '),starName=star.name;
+        const event=this.recordEvent(I18n.getString(608,'Build'),
+            I18n.formatString(1004,'',name,starName),{type:Common.EventType.SHIP_BUILT,subject:ship,recipient:ship.owner,position:star});
+        event.builtShip={name,starName,shipType:ship.type,techLevel:ship.techLevel};event.automatic=false;
+        this.attention.requestEvent(event);
+        return event;
     }
 
     noteworthyEvent(who, what, where, how, why, other) {
@@ -2169,10 +3806,7 @@ class Game {
                 console.log(eventMessage); // who = Ship, where = position or Star or Ship
                 break;
             case Common.EventType.SHIP_BUILT:
-                eventTitle = I18n.getString(608, 'Build');
-                eventMessage = I18n.formatString(628, '{0} built a {1} ship', where.name, shipTypeName);
-                console.log(eventMessage); // who = Ship, where = Star
-                break;
+                return this.recordBuiltShipReport(who,where);
             case Common.EventType.SHIP_DEPARTED:
                 eventTitle = I18n.getString(609, 'Departure');
                 eventMessage = I18n.formatString(629, '{0} ship departed from {1}', shipTypeName, where.name);
@@ -2200,21 +3834,11 @@ class Game {
                 eventMessage = I18n.formatString(632, '{0} reached tech level {1}', who.name, who.techLevel);
                 console.log(eventMessage); // who = Star, where = Tech Level
                 break;
-            case Common.EventType.NEW_TECH_DISCOVERY: {
-                const classIndex = where || Math.floor(who.techLevel / 5);
-                this.queueEventOverlay({ type: 'lab', classIndex });
-                eventTitle = I18n.getString(610, 'Research');
-                eventMessage = I18n.formatString(633, 'New drive class discovered: {0}', classIndex);
-                console.log(`🧪 ${eventMessage}`);
-                break;
-            }
+            case Common.EventType.NEW_TECH_DISCOVERY:
+                return this.recordDiscoveryReports(who,where || Math.floor(who.techLevel/5));
             case Common.EventType.NEW_SHIP_CLASS: {
                 const classIndex = where || (who.classIndex || 1);
-                this.queueEventOverlay({ type: 'stardock', classIndex, ship: who });
-                eventTitle = I18n.getString(611, 'Stardock');
-                eventMessage = I18n.formatString(634, 'New ship class commissioned: {0}', classIndex);
-                console.log(`🏭 ${eventMessage}`);
-                break;
+                return this.recordCommissioningReports(who,classIndex);
             }
             case Common.EventType.STAR_COLONIZED:
                 eventTitle = I18n.getString(612, 'Colonization');
@@ -2228,7 +3852,7 @@ class Game {
                 break;
             case Common.EventType.PLAYER_DIED:
                 eventTitle = I18n.getString(613, 'Defeat');
-                eventMessage = I18n.formatString(637, '{0} has been defeated', who.name || `${I18n.getString(18, 'Player')} ${who.playerNum}`);
+                eventMessage = I18n.formatString(637, '{0}: Defeat', who.name || `${I18n.getString(18, 'Player')} ${who.playerNum}`);
                 console.log(eventMessage);
                 break;
             default:
@@ -2238,7 +3862,13 @@ class Game {
         }
 
         if (eventMessage) {
-            this.recordEvent(eventTitle, eventMessage, { type: what });
+            const subject=what===Common.EventType.NEW_SHIP_CLASS && who.star?who.star:
+                [Common.EventType.STAR_COLONIZED,Common.EventType.STAR_CAPTURED].includes(what)?where:
+                who && [Common.ObjectType.STAR,Common.ObjectType.SHIP,Common.ObjectType.FLEET].includes(this.getObjectType(who))?who:null;
+            const event=this.recordEvent(eventTitle,eventMessage,{type:what,subject,
+                recipient:subject?subject.owner:undefined,position:what===Common.EventType.SHIP_DESTROYED?where:subject});
+            if(what===Common.EventType.PLAYER_DIED)this.queueOutcome(event,'defeat',who.playerNum);
+            if(what===Common.EventType.STAR_CAPTURED)this.attention.requestEvent(event);
         }
     }
     
@@ -2256,9 +3886,111 @@ class Game {
         return this.visibilityCalculator.getVisibilityStats();
     }
     
-    /**
-     * Handle automatic fleet formation when friendly ships intercept
-     */
+    // Navigation can name a member, but v3 resolves arrival against its
+    // highest container (CShip::Arriving / AGalacticThingy::GetTopContainer).
+    getArrivalTopContainer(destination) {
+        const seen = new Set();
+        let container = destination;
+        while (container && !seen.has(container)) {
+            seen.add(container);
+            const type = this.getObjectType(container);
+            const parent = type === Common.ObjectType.RENDEZVOUS ? container.anchor :
+                type === Common.ObjectType.SHIP || type === Common.ObjectType.FLEET ? container.fleet || container.star : null;
+            if (!parent) return container;
+            container = parent;
+        }
+        return null;
+    }
+
+    isArrivalObjectAlive(entity) {
+        switch (this.getObjectType(entity)) {
+            case Common.ObjectType.STAR: return this.stars.includes(entity);
+            case Common.ObjectType.SHIP: return this.allShips.includes(entity) && !entity.isDead();
+            case Common.ObjectType.FLEET: return this.allFleets.includes(entity) && !entity.isEmpty();
+            case Common.ObjectType.RENDEZVOUS: return this.allRendezvous.includes(entity);
+            default: return false;
+        }
+    }
+
+    handleMobileArrival(entity) {
+        const navigation = entity.destination;
+        if (!navigation) return;
+        const revision = entity.course.revision;
+        const type = this.getObjectType(entity);
+        const navType = this.getObjectType(navigation);
+        const top = this.getArrivalTopContainer(navigation);
+        if (entity.star) entity.star.shipDeparted(entity);
+        entity.star = null;
+        entity.x = navigation.x;
+        entity.y = navigation.y;
+        if (entity.syncShipPositions) entity.syncShipPositions();
+        if (entity.updateSpatialLocation) entity.updateSpatialLocation();
+
+        if (navType === Common.ObjectType.STAR && type === Common.ObjectType.SHIP) {
+            this.noteworthyEvent(entity, Common.EventType.SHIP_ARRIVED, navigation);
+        }
+        if (top && this.shouldResolveCombat(entity, top)) this.resolveCombat(entity, top);
+        if (!this.isArrivalObjectAlive(entity)) return;
+        const topType = this.getObjectType(top);
+        if (topType === Common.ObjectType.STAR && top.owner === 0) {
+            const colony = type === Common.ObjectType.SHIP ? (entity.type === 'colony' ? entity : null) :
+                entity.getShipsOfType('colony')[0];
+            if (colony) this.colonizeStar(top, colony, 0);
+            if (!this.isArrivalObjectAlive(entity)) {
+                if (type === Common.ObjectType.FLEET && entity.isEmpty()) this.removeDestroyedFleet(entity, entity.owner);
+                return;
+            }
+        }
+        if (topType === Common.ObjectType.STAR) this.applyTechnologyTransferToStar(entity, top);
+
+        const accepts = container => this.isArrivalObjectAlive(container) &&
+            (container.owner === 0 || this.isOwnerAlliedWith(entity.owner, container.owner));
+        let placement = null;
+        if (accepts(top) && this.isArrivalObjectAlive(navigation)) {
+            if (navType === Common.ObjectType.RENDEZVOUS && navigation.owner === entity.owner &&
+                    (type === Common.ObjectType.FLEET || entity.canFormFleet())) {
+                placement = this.handleRendezvousArrival(entity, navigation);
+            } else if (navType === Common.ObjectType.FLEET && accepts(navigation) &&
+                    (type === Common.ObjectType.FLEET || entity.canFormFleet())) {
+                navigation.addShip(entity);
+                placement = navigation;
+            } else if (navType === Common.ObjectType.SHIP && navigation.owner === entity.owner &&
+                    navigation.canFormFleet() && (type === Common.ObjectType.FLEET || entity.canFormFleet())) {
+                if (navigation.fleet) {
+                    navigation.fleet.addShip(entity);
+                    placement = navigation.fleet;
+                } else {
+                    placement = this.handleFleetFormation(entity, navigation);
+                }
+                if (type === Common.ObjectType.SHIP) {
+                    // Formation is already complete; emit the existing localized report.
+                    this.noteworthyEvent(entity, Common.EventType.SHIP_INTERCEPT, navigation);
+                }
+            }
+        }
+        if (!placement && accepts(top)) {
+            if (topType === Common.ObjectType.FLEET) {
+                top.addShip(entity);
+                placement = top;
+            } else if (topType === Common.ObjectType.STAR) placement = entity;
+        }
+        // Register only the outermost docked group in the system contents.
+        if (placement && topType === Common.ObjectType.STAR && accepts(top)) {
+            while (placement.fleet) placement = placement.fleet;
+            if (placement.star && placement.star !== top) placement.star.shipDeparted(placement);
+            placement.star = top;
+            top.shipArrived(placement);
+            if (placement.type === 'defense') top.addDefenseSatellite(placement);
+            if (placement.syncShipPositions) placement.syncShipPositions();
+            if (placement.updateSpatialLocation) placement.updateSpatialLocation();
+        }
+        if (!entity.fleet && this.isArrivalObjectAlive(entity)) entity.course.advance(revision);
+        if (type === Common.ObjectType.FLEET) entity.progress = 0;
+        if (type === Common.ObjectType.SHIP && !placement && navType !== Common.ObjectType.STAR) {
+            this.noteworthyEvent(entity, Common.EventType.SHIP_STOPPED, navigation);
+        }
+    }
+
     handleRendezvousArrival(entity, rendezvous) {
         if (!entity || !rendezvous || this.getObjectType(rendezvous) !== Common.ObjectType.RENDEZVOUS) {
             return null;
@@ -2281,7 +4013,7 @@ class Game {
             }
 
             if (assemblyFleet && assemblyFleet !== entity) {
-                assemblyFleet = this.mergeFleets(assemblyFleet, entity);
+                assemblyFleet.addShip(entity);
             } else {
                 assemblyFleet = entity;
             }
@@ -2293,7 +4025,7 @@ class Game {
             this.recordEvent(
                 I18n.getString(567, 'Rendezvous'),
                 I18n.formatString(668, '{0} assigned to {1}', this.getObjectDisplayName(assemblyFleet), this.getObjectDisplayName(rendezvous)),
-                { type: Common.EventType.FLEET_FORMED }
+                { type: Common.EventType.FLEET_FORMED, subject:assemblyFleet, recipient:entity.owner }
             );
             return assemblyFleet;
         }
@@ -2302,14 +4034,10 @@ class Game {
             return null;
         }
 
-        if (!assemblyFleet || (assemblyFleet.isEmpty && assemblyFleet.isEmpty())) {
+        const newFleet=!assemblyFleet || (assemblyFleet.isEmpty && assemblyFleet.isEmpty());
+        if (newFleet) {
             assemblyFleet = this.factory.createFleet(rendezvous.x, rendezvous.y, entity.owner, rendezvous.name);
             rendezvous.setFleet(assemblyFleet);
-            this.recordEvent(
-                I18n.getString(567, 'Rendezvous'),
-                I18n.formatString(669, '{0} formed at {1}', this.getObjectDisplayName(assemblyFleet), this.getObjectDisplayName(rendezvous)),
-                { type: Common.EventType.FLEET_FORMED }
-            );
         }
 
         assemblyFleet.x = rendezvous.x;
@@ -2319,12 +4047,28 @@ class Game {
         assemblyFleet.syncShipPositions();
         rendezvous.setFleet(assemblyFleet);
 
-        this.recordEvent(
+        if(newFleet)this.recordRendezvousFleetFormation(assemblyFleet,rendezvous);
+        else this.recordEvent(
             I18n.getString(567, 'Rendezvous'),
             I18n.formatString(670, '{0} joined {1}', this.getObjectDisplayName(entity), this.getObjectDisplayName(assemblyFleet)),
-            { type: Common.EventType.FLEET_FORMED }
+            { type: Common.EventType.FLEET_FORMED, subject:assemblyFleet, recipient:entity.owner }
         );
         return assemblyFleet;
+    }
+
+    recordRendezvousFleetFormation(fleet, rendezvous) {
+        const owner=fleet.owner,ownerName=this.players[owner] && this.players[owner].name || `${I18n.getString(18,'Player')} ${owner}`;
+        const location=I18n.formatString(656,'({0}, {1})',I18n.formatDecimal(rendezvous.x/65536,2),I18n.formatDecimal(rendezvous.y/65536,2));
+        return Object.keys(this.players).map(Number).filter(recipient=>recipient>0 && this.players[recipient]).map(recipient=>{
+            const observer=recipient!==owner;
+            const event=this.recordEvent(I18n.getString(566,'Fleets'),observer?
+                I18n.formatString(951,'{0} has begun forming a new fleet at {1}.',ownerName,location):
+                I18n.formatString(950,'Your new fleet has begun to form at {0}. Please name it.',location),
+                {type:Common.EventType.FLEET_FORMED,subject:fleet,position:rendezvous,recipient});
+            event.rendezvousFormation={owner,ownerName,location};event.observer=observer;event.automatic=false;
+            this.attention.requestEvent(event);
+            return event;
+        });
     }
 
     getFriendlyFleetsAtLocation(owner, x, y, excludeFleet = null) {
@@ -2339,10 +4083,47 @@ class Game {
     }
 
     getFleetTransferTargets(fleet) {
-        if (!fleet || !this.canHumanControl(fleet)) {
-            return [];
-        }
+        if (!fleet || !this.allFleets.includes(fleet) || !this.canHumanControl(fleet)) return [];
         return this.getFriendlyFleetsAtLocation(fleet.owner, fleet.x, fleet.y, fleet);
+    }
+
+    createFleetGroup(fleet,member) {
+        if(this.selectedObject!==fleet || !this.allFleets.includes(fleet) || !fleet.ships.includes(member) ||
+            member.fleet!==fleet || !this.canHumanControl(fleet) || !this.canHumanControl(member) ||
+            member.owner!==fleet.owner || member.isDead() || member.underConstruction() || this.mapSelectionPicker)return false;
+        const group=this.factory.createFleet(fleet.x,fleet.y,fleet.owner);
+        group.name=I18n.formatString(797,'Group {0}',group.id);
+        fleet.removeShip(member);
+        group.addShip(member);
+        fleet.addShip(group);
+        this.setSelectedObject(group);
+        this.recordEvent(I18n.getString(566,'Fleets'),I18n.formatString(669,'{0} formed at {1}',
+            this.getObjectDisplayName(group),this.getObjectDisplayName(fleet)),{type:Common.EventType.FLEET_FORMED});
+        this.notifyClientCreation(group);
+        return group;
+    }
+
+    canTransferShipToFleet(ship,targetFleet) {
+        if(!ship || !targetFleet || !(this.factory.isFleet(ship)?this.allFleets:this.allShips).includes(ship) || !this.allFleets.includes(targetFleet) ||
+            !this.canHumanControl(ship) || !this.canHumanControl(targetFleet) || ship.owner!==targetFleet.owner ||
+            ship===targetFleet || ship.fleet===targetFleet || ship.contains && ship.contains(targetFleet) || ship.isDead() || ship.underConstruction() || targetFleet.isEmpty())return false;
+        const source=ship.fleet || ship;
+        if(ship.fleet && (!this.allFleets.includes(source) || !source.ships.includes(ship) || !this.canHumanControl(source)))return false;
+        return Number.isFinite(source.x) && Number.isFinite(source.y) &&
+            Math.abs(source.x-targetFleet.x)<5 && Math.abs(source.y-targetFleet.y)<5;
+    }
+
+    beginFleetTransfer(ship) {
+        const sourceFleet=ship && ship.fleet;
+        if(!sourceFleet || this.selectedObject!==sourceFleet || !this.display || this.mapSelectionPicker ||
+            this.pendingMapOrderObject || this.pendingCourseEdit || this.pendingRendezvousPlacement)return false;
+        const candidates=this.getFleetTransferTargets(sourceFleet).filter(target=>this.canTransferShipToFleet(ship,target));
+        if(!candidates.length)return false;
+        if(candidates.length===1)return this.transferShipToFleet(ship,candidates[0]);
+        const position=this.display.getObjectScreenPosition(sourceFleet);
+        this.mapSelectionPicker={candidates,x:position.x,y:position.y,mode:'transfer',transferShip:ship,sourceFleet,
+            page:0,previousWindow:this.uiWindow};
+        this.uiWindow='mapPick';return true;
     }
 
     separateShipFromFleet(fleet, ship) {
@@ -2351,7 +4132,7 @@ class Game {
         }
 
         const fleetName = this.getObjectDisplayName(fleet);
-        const dockedStar = fleet.star || this.stars.find(star =>
+        const dockedStar = fleet.getDockedStar() || this.stars.find(star =>
             star.owner === fleet.owner &&
             Math.abs(star.x - fleet.x) < 5 &&
             Math.abs(star.y - fleet.y) < 5
@@ -2370,7 +4151,7 @@ class Game {
             ship.x = dockedStar.x;
             ship.y = dockedStar.y;
             ship.star = dockedStar;
-            dockedStar.shipArrived(ship);
+            if(!this.factory.isFleet(ship))dockedStar.shipArrived(ship);
         }
         if (ship.updateSpatialLocation) {
             ship.updateSpatialLocation();
@@ -2392,15 +4173,13 @@ class Game {
     }
 
     transferShipToFleet(ship, targetFleet) {
-        if (!ship || !targetFleet || !this.canHumanControl(targetFleet) || ship.owner !== targetFleet.owner) {
-            return false;
-        }
+        if(!this.canTransferShipToFleet(ship,targetFleet))return false;
         const oldFleet = ship.fleet;
         if (oldFleet === targetFleet) {
             return false;
         }
 
-        targetFleet.addShip(ship);
+        if(!targetFleet.addShip(ship))return false;
         targetFleet.calculateFleetStats();
         targetFleet.syncShipPositions();
 
@@ -2461,13 +4240,18 @@ class Game {
             } else {
                 // Neither ship is in a fleet, create a new fleet
                 const fleet = this.factory.createFleet(entity1.x, entity1.y, entity1.owner);
+                // CShip::Arriving preserves the destination ship's orders before
+                // AddContent clears the independent courses of its new members.
+                fleet.course.copyFrom(entity2.course);
                 fleet.addShip(entity1);
                 fleet.addShip(entity2);
+                fleet.calculateMovement();
                 this.recordEvent(
                     I18n.getString(566, 'Fleets'),
                     I18n.formatString(669, '{0} formed at {1}', this.getObjectDisplayName(fleet), I18n.formatString(656, '({0}, {1})', Math.round(fleet.x / 1024), Math.round(fleet.y / 1024))),
                     { type: Common.EventType.FLEET_FORMED }
                 );
+                this.notifyClientCreation(fleet);
                 return fleet;
             }
         }
@@ -2482,6 +4266,7 @@ class Game {
         if (!fleet1 || !fleet2 || fleet1 === fleet2) {
             return fleet1 || fleet2 || null;
         }
+        if(fleet1.contains(fleet2) || fleet2.contains(fleet1))return null;
         // Add all ships from fleet2 to fleet1
         const shipsToMove = [...fleet2.ships]; // Create a copy to avoid modification during iteration
         for (const ship of shipsToMove) {
