@@ -98,7 +98,7 @@ module.exports=function(){test.describe('V3 human call-ins and attention',()=>{
         g.pendingMapOrderObject=null;g.uiSliderDrag={};g.handleKeyPress(pdg.key_Tab);test.assertEqual(g.attention.pending().length,1);
     });
     test.it('confirms End Turn with unattended items, and review visits rather than advances',()=>{
-        const {g,ship}=fixture();g.uiWindow=null;g.attention.request(ship);const turn=g.turn;g.handleKeyPress(13);
+        const {g,ship}=fixture();g.uiWindow=null;g.attention.request(ship);const turn=g.turn;g.requestEndTurn();
         test.assertEqual(g.uiWindow,'endTurnConfirm');test.assertEqual(g.turn,turn);g.executeUIAction({type:'reviewAttention'});
         test.assertEqual(g.turn,turn);test.assertEqual(g.uiWindow,null);test.assertEqual(g.attention.pending().length,0);
         g.executeUIAction({type:'endTurn'});test.assertEqual(g.turn,turn+1);
@@ -243,13 +243,14 @@ module.exports=function(){test.describe('V3 human call-ins and attention',()=>{
         const {g,ship}=fixture();g.uiWindow=null;const turn=g.turn;g.pendingMapOrderObject=ship;g.handleKeyPress(13);
         test.assertEqual(g.turn,turn);g.pendingMapOrderObject=null;g.uiSliderDrag={};test.assertFalse(g.requestEndTurn());test.assertEqual(g.turn,turn);
     });
-    test.it('honors the End Turn hotkey from event lists and course panels',()=>{
-        const {g}=fixture();g.uiWindow='events';g.handleKeyPress(13);test.assertEqual(g.turn,2);test.assertEqual(g.uiWindow,null);
-        g.uiWindow='course';g.handleKeyPress(13);test.assertEqual(g.turn,3);
+    test.it('never ends a turn with bare Enter on the map, event list or course panel',()=>{
+        const {g}=fixture();const turn=g.turn;
+        for(const panel of [null,'events','course']){g.uiWindow=panel;g.handleKeyPress(13);test.assertEqual(g.turn,turn);}
+        g.uiWindow=null;g.requestEndTurn();test.assertEqual(g.turn,turn+1);
     });
     test.it('confirms queued presentations even if none is currently visible, and Review shows one',()=>{
         const {g}=fixture();g.overlay=null;g.overlayQueue=[{type:'lab',classIndex:1}];g.uiWindow=null;const turn=g.turn;
-        g.handleKeyPress(13);test.assertEqual(g.uiWindow,'endTurnConfirm');test.assertEqual(g.turn,turn);
+        g.requestEndTurn();test.assertEqual(g.uiWindow,'endTurnConfirm');test.assertEqual(g.turn,turn);
         g.executeUIAction({type:'reviewAttention'});test.assertNotNull(g.overlay);test.assertEqual(g.turn,turn);test.assertEqual(g.uiWindow,null);
     });
     test.it('shares End Turn menu/map availability for map targets, posting and disconnected clients',()=>{
@@ -270,7 +271,7 @@ module.exports=function(){test.describe('V3 human call-ins and attention',()=>{
             pdg.res.setLanguage(lang);const {g,home}=fixture();g.uiWindow='menu';g.toggleHoldGameReports();g.recordDiscoveryReports(home,1);
             g.sessionCommands={};g.fileCommands={};g.manualCommands={};g.chatCommands={};g.fullscreen={supported:true,error:'failure',active:()=>false};
             for(const height of [600,480]){g.port.getDrawingArea=()=>new pdg.Rect(800,height);g.scrollCommandMenu(99999);const rows=g.display.getCommandActionRegions(),end=rows.find(row=>row.action.type==='endTurn');
-                test.assertEqual(end.label,pdg.res.getString(563));test.assertEqual(end.key,'Enter');test.assertTrue(end.active);test.assertFalse(end.disabled);
+                test.assertEqual(end.label,pdg.res.getString(563));test.assertEqual(end.key,require('../src/js/input.js').endTurnLabel());test.assertTrue(end.active);test.assertFalse(end.disabled);
                 test.assertTrue(g.display.getMapButtonRegions().find(row=>row.action.type==='endTurn').active);
                 test.assertTrue(end.rect.y+end.rect.height<=height);for(let i=1;i<rows.length;i++)test.assertTrue(rows[i].rect.y>=rows[i-1].rect.y+rows[i-1].rect.height);
             }

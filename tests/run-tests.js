@@ -4,6 +4,7 @@
 // Uses PDG's built-in pdg.srand() and pdg.rand() for deterministic testing
 
 const test = require('./test-framework.js');
+require('./input.test.js')();
 const runMapGridTests=require('./map-grid.test.js');
 require('./postgame.test.js')();
 require('./network-postgame.test.js')();

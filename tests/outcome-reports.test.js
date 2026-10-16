@@ -62,10 +62,10 @@ module.exports=()=>test.describe('Victory and defeat reports',()=>{
   const {game}=fixture({numHumans:0,numComputers:2,autoplay:{enabled:true,showEventWindows:false}});ownStar(game,1);game.updatePlayerPieceCounts();
   test.assertNull(game.overlay);test.assertEqual(game.overlayQueue.length,0);test.assertTrue(game.eventLog.some(e=>e.outcome && e.outcome.kind==='win'));
  });
- test.it('acknowledges reports without advancing turns and blocks map commands, shortcuts and slider capture',()=>{
+ test.it('acknowledges reports without advancing turns and keeps map controls available outside the report',()=>{
   const {game,display}=fixture();const star=ownStar(game,1);game.setSelectedObject(star);game.uiWindow='endTurnConfirm';game.markGameWon(1);test.assertNull(game.uiWindow);const event=game.eventLog.find(e=>e.outcome && e.outcome.kind==='win'),turn=game.turn;
-  game.handleKeyPress(pdg.key_F4);test.assertTrue(game.showAllCourses);test.assertNotNull(game.overlay);test.assertEqual(display.getUIActionAt(1,1).type,'consume');
-  const slider=display.getStarAllocationSliderRegions(star)[0];test.assertFalse(game.beginUISliderDrag(slider.trackRect.x+10,slider.trackRect.y+4));
+  game.handleKeyPress(pdg.key_F4);test.assertTrue(game.showAllCourses);test.assertNotNull(game.overlay);test.assertNull(display.getUIActionAt(1,1));
+  const slider=display.getStarAllocationSliderRegions(star)[0];const covered=display.containsPoint(display.getOutcomeLayout(game.overlay).rect,slider.trackRect.x+10,slider.trackRect.y+4);test.assertEqual(game.beginUISliderDrag(slider.trackRect.x+10,slider.trackRect.y+4),!covered);game.endUISliderDrag();
   const button=display.getOutcomeLayout(game.overlay).buttons.find(b=>b.action.type==='dismissOutcome');test.assertTrue(game.handleUIClick(button.rect.x+2,button.rect.y+2));test.assertNull(game.overlay);test.assertTrue(event.handled);test.assertEqual(game.turn,turn);
   game.replayOutcome(event);game.handleKeyPress(13);test.assertNull(game.overlay);test.assertEqual(game.turn,turn);
  });
@@ -90,14 +90,14 @@ module.exports=()=>test.describe('Victory and defeat reports',()=>{
   game.dismissEventPresentation();let heading;display.drawWindowPanel=(rect,title)=>{heading=title;};display.drawTextLine=()=>{};display.drawDivider=()=>{};display.drawRoundedRect=()=>{};display.drawUIButton=()=>{};display.drawEventWindow();test.assertTrue(heading.endsWith('6–7'));
   game.turn=8;display.drawEventWindow();test.assertTrue(heading.endsWith('7'));test.assertTrue(game.getEventRows().includes(result));game.turn=9;test.assertFalse(game.getEventRows().includes(result));
  });
- test.it('automatically presents only the local battle report and blocks underlying controls until acknowledgement',()=>{
+ test.it('automatically presents only the local battle report and retains the report while allowing outside map input',()=>{
   const {game,display}=fixture(),home=ownStar(game,1),enemy=ownStar(game,2);home.techLevel=20;enemy.techLevel=1;
   const attacker=game.factory.createShip(home.x,home.y,'battleship',home,true),defender=game.factory.createShip(enemy.x,enemy.y,'battleship',enemy,true);
   pdg.srand(42);game.combatSystem.resolveCombat(attacker,defender);
   test.assertEqual(game.overlay.type,'report');const event=game.eventLog.find(e=>e.id===game.overlay.eventId);
   test.assertEqual(event.recipient,1);test.assertFalse(game.overlayQueue.some(o=>o.type==='report'));
   const turn=game.turn,names=game.showMapNames;game.handleKeyPress(pdg.key_F2);test.assertEqual(game.showMapNames,names);test.assertEqual(game.overlay.type,'report');
-  test.assertEqual(display.getUIActionAt(1,1).type,'consume');const r=display.getReportLayout(game.overlay).buttons.find(b=>b.action.type==='dismissReport').rect;
+  test.assertNull(display.getUIActionAt(1,1));const r=display.getReportLayout(game.overlay).buttons.find(b=>b.action.type==='dismissReport').rect;
   test.assertTrue(game.handleUIClick(r.x+2,r.y+2));test.assertEqual(game.overlay,null);test.assertTrue(event.handled);test.assertTrue(game.selectedObject===attacker);test.assertEqual(game.turn,turn);
  });
  test.it('reopens a retained combat message from Events without duplicating reports or advancing the turn',()=>{

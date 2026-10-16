@@ -1,6 +1,6 @@
 # Application window behavior
 
-Game-wide windows (commands, open games, Compare Players, your systems, fleets, settings, view, map display, colony defaults and turn confirmation) are modal. Their own controls may focus or zoom the map. Outside mouse clicks play the existing NoMore clunk (sound 1012), subject to the sound setting, and do not select objects, issue orders, pan, or advance turns. Map wheel zoom is blocked while these windows are open.
+Decision dialogs and forms (commands, open games, settings, view, map display, colony defaults, turn confirmation, rename, overlap selection and fleet exchange) are modal. Their own controls may focus or zoom the map. Outside input is consumed. Inspectors, production, course, comparisons, rosters, Events and report/outcome windows are informational and remain interactive alongside the map. Clicking outside an informational panel focuses the map and performs the clicked action; selecting another object preserves the panel. Production follows the selected system; Course keeps its original actor.
 
 These windows and startup/file dialogs use a nearly white to light grey surface, black text and controls, and a gold border with bright upper/left and shaded lower reflection accents. Object inspectors retain their owner tint. Events retains its neutral dark surface and is non-modal: map input outside it remains available.
 
@@ -41,7 +41,7 @@ manual-error dialogs retain foreground priority. Tutorial launch and full guided
 [TUTORIAL_CONTROLLER.md](TUTORIAL_CONTROLLER.md) and the main parity checklist.
 
 
-Modal report narratives and outcome dialogs now use the same neutral system
+Report narratives and outcome windows use the same neutral system
 surface as Settings and Compare Players: nearly white at the top, light gray
 at the bottom, black text/buttons, and gold reflective edging. Victory/defeat
 art keeps its recovered image and placement, with a 55% white overlay for black
@@ -49,14 +49,12 @@ text legibility. Lab/Stardock illustrated presentations keep their separate
 source artwork composition. Events remains non-modal and retains its existing
 darker surface.
 
-Clicks outside report/outcome windows clunk for left, right and middle buttons
-and do not select, order, drag the map or dismiss the dialog. Blank space inside
-is inert. Automatic no-dialog playback keeps its interruption behavior. Title
+Clicks outside report/outcome windows reach the map without dismissing the report. Blank space inside is inert. Automatic no-dialog playback keeps its interruption behavior. Title
 dragging constrains reports and outcomes to the viewport and remembers their
 positions in configuration. Continue buttons show Esc in the existing small
 shortcut style; sizing includes both label and hint in every supported language.
 
-Both full native suites pass 1,725 tests. Muted real-browser before/after checks
+Historical validation of the earlier modal report styling: both native suites passed 1,725 tests. Muted real-browser before/after checks
 pass for all six languages, covering three-button outside clicks, actual title
 drags, bounds, position persistence, manual outcomes, victory/defeat artwork,
 compact narrative paging and non-modal Events isolation. Of 84 paired screenshots,
@@ -498,3 +496,15 @@ and language/comparison montages. No PDG source or public-engine checkout change
 Window chrome remains Partial pending remaining busy/error variants and the
 compact gameplay minimum-viewport audit. Overall parity and Map Generation work
 remains active.
+
+## PDG 1.3 input ownership
+
+Keyboard, pointer and wheel commands enter named PDG input contexts. The foreground blocking dialog or text editor owns local input; Help and Quit remain application commands. Repeated presses are accepted for navigation and increments, while toggles and consequential actions require a fresh press.
+
+Tab selects the next attention item, including when an informational panel has focus. It is consumed during text entry, blocking dialogs, dragging and explicit targeting. It does not traverse controls. Enter acts only on a focused control or dialog. End Turn uses Cmd+Enter on macOS and Ctrl+Enter elsewhere and requires map focus. Application New/Open/Save/Save As/Close/Quit use Cmd on macOS and Ctrl elsewhere, preserving document confirmation flows.
+
+Help accepts F1, a dedicated Help key and macOS Cmd+?. Display toggles use F2–F7. Mnemonics use typed Unicode letters; arrows navigate. Production retains Q/A, W/S and E/D adjustment pairs and = equalization; elsewhere +, - and = zoom.
+
+Wheel input belongs to the panel under the pointer, even at its scroll boundary; outside panels it zooms around the pointer. Middle-button or Alt+left dragging pans, including during targeting. Right-click cancels explicit targeting; otherwise it issues orders. Escape ends the innermost drag while retaining its current value or position, then cancels targeting or closes the focused window. Drag rollback remains a possible later option.
+
+Text fields support Unicode selection, caret movement and standard copy/cut/paste. Browser clipboard events use the active editor; native clipboard utilities receive text directly without a shell. Binding customization and a broader multi-window redesign remain separate work.

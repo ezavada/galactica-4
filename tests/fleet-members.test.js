@@ -28,10 +28,10 @@ module.exports=()=>test.describe('Complete fleet member inspector',()=>{
         let l=display.getFleetDetailsLayout(fleet);test.assertEqual(l.visibleShips.length,2);test.assertFalse(l.records.some(r=>r.nameLines.join(' ').includes('Member')));test.assertTrue(l.records.every(r=>r.controls.length===0));test.assertFalse(l.commands.some(b=>['beginRename','beginOrders','toggleScrap','togglePatrol'].includes(b.action.type)));test.assertEqual(fleet.ships[0].getVisibilityTo(1),Common.VisibilityLevel.NONE);
         fleet.setVisibilityTo(1,Common.VisibilityLevel.TECH);l=display.getFleetDetailsLayout(fleet);test.assertEqual(l.records.length,0);
     });
-    test.it('does not scroll a hidden compact inspector during map targeting or a modal report',()=>{
+    test.it('blocks inspector scrolling during targeting and dialogs but permits informational reports',()=>{
         const {game,display,fleet}=fixture(4);game.port.getDrawingArea=()=>new pdg.Rect(320,240);test.assertTrue(game.scrollFleetInspector(80));const scroll=game.fleetInspectorScroll;
         test.assertTrue(game.beginMapOrder(fleet));test.assertFalse(game.scrollFleetInspector(80));test.assertEqual(game.fleetInspectorScroll,scroll);game.handleKeyPress(pdg.key_Escape);
-        game.overlay={type:'report',manual:true};test.assertFalse(game.scrollFleetInspector(80));test.assertEqual(game.fleetInspectorScroll,scroll);game.overlay=null;test.assertTrue(game.scrollFleetInspector(80));game.uiWindow='events';test.assertTrue(game.scrollFleetInspector(80));game.uiWindow='settings';test.assertFalse(game.scrollFleetInspector(80));
+        game.overlay={type:'report',manual:true};test.assertTrue(game.scrollFleetInspector(80));test.assertTrue(game.fleetInspectorScroll>=scroll);game.overlay=null;test.assertTrue(game.scrollFleetInspector(80));game.uiWindow='events';test.assertTrue(game.scrollFleetInspector(80));game.uiWindow='settings';test.assertFalse(game.scrollFleetInspector(80));
     });
     test.it('reaches every member with real paged UI hit testing',()=>{
         const {game,display,fleet}=fixture(),seen=[];

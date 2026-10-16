@@ -76,7 +76,7 @@ module.exports=()=>test.describe('System window modality and title dragging',()=
  });
  test.it('clunks outside system windows without changing the map, while Events allows map input',()=>{
   const {game,display}=fixture(),cues=[];game.sound={play:id=>cues.push(id)};
-  for(const name of ['settings','comparison','menu','games','view','mapDisplay','colonyDefaults','fleets','systemComparison']){
+  for(const name of ['settings','menu','games','view','mapDisplay','colonyDefaults']){
    game.uiWindow=name;const turn=game.turn;test.assertTrue(game.handleUIClick(1,1));test.assertEqual(cues.pop(),1012);test.assertEqual(game.turn,turn);
    game.handleMouseRightClick(1,1);test.assertEqual(cues.pop(),1012);
   }
@@ -101,12 +101,12 @@ module.exports=()=>test.describe('System window modality and title dragging',()=
   game.uiWindow='view';const button=display.getViewActionRegions().find(b=>b.action.type==='zoomIn'),zoom=display.camera.zoom;
   game.handleUIClick(button.rect.x+5,button.rect.y+5);test.assertTrue(display.camera.zoom>zoom);
  });
- test.it('blocks outside report/outcome clicks with a clunk and keeps inside blank space inert',()=>{
+ test.it('allows outside report/outcome map clicks and keeps inside blank space inert',()=>{
   const {game,display}=fixture();game.port.getTextWidth=(text,size=11)=>Array.from(String(text)).length*size/2;const cues=[];game.sound={play:id=>cues.push(id)};game.uiWindow=null;
   for(const type of ['report','outcome']){
    game.overlay={type,eventId:null,kind:'defeat',playerNum:1,name:'Player',turn:1};
    const rect=(type==='report'?display.getReportLayout(game.overlay):display.getOutcomeLayout(game.overlay)).rect;
-   test.assertTrue(game.handleUIClick(1,1));test.assertEqual(cues.pop(),1012);test.assertEqual(game.overlay.type,type);
+   test.assertFalse(game.handleUIClick(1,1));test.assertEqual(cues.length,0);test.assertEqual(game.overlay.type,type);
    game.handleUIClick(rect.x+5,rect.y+40);test.assertEqual(cues.length,0);
   }
  });

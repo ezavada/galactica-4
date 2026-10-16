@@ -162,7 +162,7 @@ module.exports = function() {
             layout=display.getSystemComparisonLayout();test.assertEqual(layout.rect.x,10);test.assertEqual(layout.rect.y,10);
             game.systemComparisonPage=999;test.assertEqual(display.getSystemComparisonLayout().page,0);test.assertEqual(game.systemComparisonPage,0);
         });
-        test.it('saves on Escape, close, switching windows and Enter inspection while consuming map shortcuts',()=>{
+        test.it('saves on Escape, close, switching windows and Enter inspection while allowing attention and map shortcuts',()=>{
             const {game,star,display}=fixture(),writes=[];game.systemComparisonPreferences={writeGeometry:rect=>writes.push(rect)};
             for(const close of ['escape','button','switch','enter']) {
                 game.uiWindow='systemComparison';game.systemComparisonGeometry=null;
@@ -173,7 +173,7 @@ module.exports = function() {
                 test.assertTrue(game.uiWindow!=='systemComparison');test.assertTrue(writes.length>0);
             }
             game.uiWindow='systemComparison';let advances=0;game.attention.next=()=>advances++;game.handleKeyPress(pdg.key_Tab);
-            test.assertEqual(advances,0);const shown=game.showShips;game.handleKeyPress(pdg.key_F1);test.assertEqual(game.showShips,shown);test.assertEqual(display.getUIActionAt(1,1).type,'consume');test.assertTrue(game.handleMouseRightClick(1,1));
+            test.assertEqual(advances,1);const shown=game.showShips;game.handleKeyPress(pdg.key_F2);test.assertEqual(game.showShips,!shown);test.assertNull(display.getUIActionAt(1,1));test.assertTrue(game.handleMouseRightClick(1,1));
         });
         test.it('stops stale captures on Escape, window and viewport changes and rejects invalid input',()=>{
             const {game,display}=fixture();game.uiWindow='systemComparison';const region=display.getTableWindowDragRegions()[0].rect;

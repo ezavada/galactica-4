@@ -13,7 +13,7 @@
 7	Ninguno
 8	Haz clic en las estrellas para gestionarlas
 9	Haz clic en las naves para dar órdenes
-10	TAB: siguiente; Enter: terminar turno
+10	TAB: siguiente; Cmd/Ctrl+Enter: terminar turno
 11	Casco de Nave
 12	Nave
 13	Nivel Tecnológico:
@@ -101,7 +101,7 @@
 527	<F> juego rápido   <O> niebla/todo visible   <R> valores iniciales
 528	<Enter> Iniciar
 529	Menú de comandos
-530	Los atajos de teclado siguen activos.
+530	Los comandos de teclado siguen la ventana activa.
 531	<Esc> Cerrar
 532	Deslizadores de producción
 533	Selecciona una de tus estrellas para ajustar la producción.

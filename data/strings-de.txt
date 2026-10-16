@@ -13,7 +13,7 @@
 7	Keine
 8	Klicken Sie auf Sterne, um sie zu verwalten
 9	Klicken Sie auf Schiffe, um Befehle zu erteilen
-10	TAB: nächstes Objekt; Enter: Runde beenden
+10	TAB: nächstes Objekt; Cmd/Ctrl+Enter: Runde beenden
 11	Schiffsrumpf
 12	Schiff
 13	Technologiestufe:
@@ -101,7 +101,7 @@
 527	<F> schnelles Spiel   <O> Nebel/alles sichtbar   <R> Standardwerte
 528	<Enter> Starten
 529	Befehlsmenü
-530	Tastenkürzel bleiben aktiv.
+530	Tastaturbefehle gelten für das aktive Fenster.
 531	<Esc> Schließen
 532	Produktionsregler
 533	Wählen Sie einen Ihrer Sterne, um die Produktion anzupassen.

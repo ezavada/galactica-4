@@ -19,7 +19,7 @@ module.exports=()=>test.describe('Application new-game defaults',()=>{
   window.key(13);window.key(pdg.key_Tab);window.key('n'.charCodeAt(0));test.assertEqual(model.turn,1);test.assertEqual(model.uiWindow,'settings');
   window.mouse({eventType:pdg.eventType_MouseDown,buttonNumber:0,mousePos:{x:0,y:0}});test.assertEqual(sounds.at(-1),1012);
   model.executeUIAction({type:'openNewGameDefaults'});model.executeUIAction({type:'openNewGameDefaultChoice',field:'density'});model.executeUIAction({type:'setNewGameDefault',field:'density',value:10});window.key(13);test.assertEqual(preferences.read().density,10);test.assertEqual(model.uiWindow,'settings');
-  window.key(pdg.key_F3);test.assertFalse(drawingPreferences.readGrid());window.key(pdg.key_Escape);test.assertFalse(window.active);
+  window.key(pdg.key_F4);test.assertFalse(drawingPreferences.readGrid());window.key(pdg.key_Escape);test.assertFalse(window.active);
   test.assertEqual(JSON.stringify(pending),setupBefore);test.assertEqual(Save.serialize(game),before);
   window.open();test.assertEqual(window.model,model);test.assertFalse(model.showGrid);model.executeUIAction({type:'openNewGameDefaults'});model.executeUIAction({type:'cycleNewGameDefault',field:'fastGame'});window.key(pdg.key_Escape);window.key(pdg.key_Escape);test.assertTrue(preferences.read().fastGame);
  });

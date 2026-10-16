@@ -1509,7 +1509,7 @@ class Display {
             { key: 'L', label: this.STR.fleets, window: 'fleets', action: { type: 'toggleWindow', window: 'fleets' } },
             { key: 'U', label: this.STR.rendezvous, action: { type: 'beginRendezvousPlacement' } },
             { key: 'Tab', label: I18n.getString(743,'Next item')+` (${this.game.attention.manualPending().length})`, action: { type: 'nextAttention' } },
-            { key: 'Enter', label: this.game.networkCommands && this.game.networkCommands.status()?I18n.getString(this.game.networkCommands.status()):this.STR.endTurn, action: { type: 'endTurn' }, active:this.game.getUnreviewedItemCount()>0, disabled:!this.game.canRequestEndTurn() },
+            { key: require('./input.js').endTurnLabel(), label: this.game.networkCommands && this.game.networkCommands.status()?I18n.getString(this.game.networkCommands.status()):this.STR.endTurn, action: { type: 'endTurn' }, active:this.game.getUnreviewedItemCount()>0, disabled:!this.game.canRequestEndTurn() },
             { key: '-',icon:'zoom-out',label:I18n.getString(788,'Zoom out'),action:{type:'zoomOut'} },
             { key: '+',icon:'zoom-in',label:I18n.getString(787,'Zoom in'),action:{type:'zoomIn'} },
             { key: 'Home', icon:'home', label: this.STR.home, action: { type: 'selectHomeStar' } },
@@ -2024,7 +2024,7 @@ class Display {
             {rect:{x:rect.x+14,y:rect.y+182,width:rect.width-28,height:28},
             label:I18n.getString(743,'Next item')+` (${this.game.attention.manualPending().length})`,key:'Tab',active:this.game.attention.manualPending().length>0,action:{type:'nextAttention'}},
             settings,mapDisplay,view,...documents,...file,...fullscreen,...manual,...tutorial,...chat,...reports,
-            {rect:{x:rect.x+14,y:reportsY+68,width:rect.width-28,height:28},label:this.game.networkCommands && this.game.networkCommands.status()?I18n.getString(this.game.networkCommands.status()):this.STR.endTurn,key:'Enter',active:this.game.getUnreviewedItemCount()>0,disabled:!this.game.canRequestEndTurn(),action:{type:'endTurn'}}]);
+            {rect:{x:rect.x+14,y:reportsY+68,width:rect.width-28,height:28},label:this.game.networkCommands && this.game.networkCommands.status()?I18n.getString(this.game.networkCommands.status()):this.STR.endTurn,key:require('./input.js').endTurnLabel(),active:this.game.getUnreviewedItemCount()>0,disabled:!this.game.canRequestEndTurn(),action:{type:'endTurn'}}]);
     }
 
     getCommandMenuLayout() {
@@ -2214,17 +2214,17 @@ class Display {
             label:language.name,active:LanguageSettings.current()===language.code,
             action:{type:'setLanguage',language:language.code}
         })).concat([{rect:{x:rect.x+14,y:rect.y+284,width:rect.width-28,height:28},
-            label:I18n.getString(765,'Show grid'),key:'F3',active:this.game.showGrid,action:{type:'toggleGrid'}},
+            label:I18n.getString(765,'Show grid'),key:'F4',active:this.game.showGrid,action:{type:'toggleGrid'}},
             {rect:{x:rect.x+14,y:rect.y+316,width:rect.width-28,height:28},
-            label:I18n.getString(766,'Show map names'),key:'F2',active:this.game.showMapNames,action:{type:'toggleMapNames'}},
+            label:I18n.getString(766,'Show map names'),key:'F3',active:this.game.showMapNames,action:{type:'toggleMapNames'}},
             {rect:{x:rect.x+14,y:rect.y+348,width:rect.width-28,height:28},
-            label:I18n.getString(767,'Show ships'),key:'F1',active:this.game.showShips,action:{type:'toggleShips'}},
+            label:I18n.getString(767,'Show ships'),key:'F2',active:this.game.showShips,action:{type:'toggleShips'}},
             {rect:{x:rect.x+14,y:rect.y+380,width:rect.width-28,height:28},
-            label:I18n.getString(768,'Show all courses'),key:'F4',active:this.game.showAllCourses,action:{type:'toggleAllCourses'}},
+            label:I18n.getString(768,'Show all courses'),key:'F5',active:this.game.showAllCourses,action:{type:'toggleAllCourses'}},
             {rect:{x:rect.x+14,y:rect.y+412,width:rect.width-28,height:28},
-            label:I18n.getString(769,'Show courier courses'),key:'F5',active:this.game.showCourierCourses,action:{type:'toggleCourierCourses'}},
+            label:I18n.getString(769,'Show courier courses'),key:'F6',active:this.game.showCourierCourses,action:{type:'toggleCourierCourses'}},
             {rect:{x:rect.x+14,y:rect.y+444,width:rect.width-28,height:28},
-            label:I18n.getString(770,'Show scanner ranges'),key:'F6',active:this.game.showScannerRanges,action:{type:'toggleScannerRanges'}},
+            label:I18n.getString(770,'Show scanner ranges'),key:'F7',active:this.game.showScannerRanges,action:{type:'toggleScannerRanges'}},
             {rect:{x:rect.x+14,y:rect.y+476,width:rect.width-28,height:28},
             label:I18n.getString(785,'Show nebula background'),active:this.game.showNebula,action:{type:'toggleNebula'}},
             {rect:{x:rect.x+14,y:rect.y+508,width:rect.width-28,height:28},
@@ -2587,12 +2587,8 @@ class Display {
 
     getRenameTextLayout() {
         const rect=this.getRenameWindowRect(),editor=this.game.renameEditor;
-        const characters=Array.from(this.game.renameText || ''),caret=editor?Math.min(editor.caret,characters.length):characters.length;
-        const measure=text=>this.port.getTextWidth(text,rect.size),available=rect.width-12;
-        let start=0,end=characters.length;
-        while(start<caret && measure(characters.slice(start,caret).join(''))>available)start++;
-        while(end>caret && measure(characters.slice(start,end).join(''))>available)end--;
-        return {rect,start,end,text:characters.slice(start,end).join(''),caret:measure(characters.slice(start,caret).join(''))};
+        const visible=require('./player-name.js').visibleText(editor || require('./player-name.js').createEditor(this.game.renameText || ''),rect.width-12,text=>this.port.getTextWidth(text,rect.size));
+        return {rect,...visible};
     }
 
     getCourseTargetPromptLayout() {
@@ -2901,10 +2897,11 @@ class Display {
             if(this.game.overlay.animationOnly || this.getDestructionEffect(this.game.overlay))return {type:'consume'};
             const layout=this.game.overlay.type==='report'?this.getReportLayout(this.game.overlay):this.getOutcomeLayout(this.game.overlay);
             const control=layout.buttons.find(button=>this.containsPoint(button.rect,x,y));
-            return control?control.action:{type:'consume',blocked:!this.containsPoint(layout.rect,x,y)};
+            if(control)return control.action;
+            if(this.containsPoint(layout.rect,x,y))return {type:'consume'};
         }
 
-        if(WindowBehavior.isSystem(this.game.uiWindow))return this.getActiveWindowActionAt(x,y) || {type:'consume',blocked:true};
+        if(WindowBehavior.isModal(this.game.uiWindow))return this.getActiveWindowActionAt(x,y) || {type:'consume',blocked:true};
         if(this.game.uiWindow==='mapPick')return this.getActiveWindowActionAt(x,y) || {type:'consume'};
         if(this.game.isAwaitingMapTarget()) {
             const windowAction=this.getActiveWindowActionAt(x,y);
@@ -2919,7 +2916,7 @@ class Display {
         const windowAction = this.getActiveWindowActionAt(x, y);
         if (windowAction) return windowAction;
         // Rename is modal: map controls cannot change its target mid-edit.
-        if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick','endTurnConfirm','fleetExchange','fleets','systemComparison','comparison'].includes(this.game.uiWindow)) return { type: 'consume' };
+        if (WindowBehavior.isModal(this.game.uiWindow)) return { type: 'consume' };
         const scrollAction=this.getMapScrollActionAt(x,y);
         if(scrollAction)return scrollAction;
         const contextButton = this.getContextButtonRegions().find(button => this.containsPoint(button.rect, x, y));
@@ -3770,12 +3767,12 @@ class Display {
     }
 
     drawRenameWindow() {
-        const {rect,text,caret}=this.getRenameTextLayout(),editor=this.game.renameEditor;
+        const {rect,text,caret,selectionStart,selectionWidth}=this.getRenameTextLayout(),editor=this.game.renameEditor;
         this.drawRoundedRect(rect,1,this.getFillAttributes('white'));
-        if(editor && editor.selected && text)this.drawRoundedRect({x:rect.x+6,y:rect.y+4,
-            width:Math.min(rect.width-12,this.port.getTextWidth(text,rect.size)),height:rect.height-8},0,this.renameSelectionStyle || (this.renameSelectionStyle=this.createAttributes({fillColor:new pdg.Color(.7,.82,1)})));
+        if(selectionWidth)this.drawRoundedRect({x:rect.x+6+selectionStart,y:rect.y+4,
+            width:selectionWidth,height:rect.height-8},0,this.renameSelectionStyle || (this.renameSelectionStyle=this.createAttributes({fillColor:new pdg.Color(.7,.82,1)})));
         this.drawTextLine(text,rect.x+6,rect.y+rect.height-5,'black',rect.size);
-        if(!editor || !editor.selected){
+        if(!selectionWidth){
             if(Math.floor(this.getVisualTime()/500)%2===0)this.port.drawLine(
                 new pdg.Point(rect.x+6+caret,rect.y+4),new pdg.Point(rect.x+6+caret,rect.y+rect.height-4),this.getLineAttributes('black'));
         }

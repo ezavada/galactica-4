@@ -95,14 +95,13 @@ module.exports=()=>test.describe('Map selection and overlap chooser',()=>{
         game.beginRendezvousPlacement();game.handleMouseClick(point.x,point.y);game.chooseMapSelection(second);
         test.assertEqual(game.allRendezvous.length,1);test.assertTrue(game.allRendezvous[0].anchor===second);
     });
-    test.it('uses right-click as the pending waypoint or rendezvous target instead of replacing the active command',()=>{
+    test.it('cancels pending waypoint and rendezvous targeting on right-click without issuing an order',()=>{
         const {game,display,ship,second}=fixture();game.issuePlayerWaypoint(ship,{x:700000,y:700000});
         game.showCourse(ship);game.courseSelection=1;game.beginCourseEdit(true);
         const point=display.getMapMarker(second);game.handleMouseRightClick(point.x,point.y);
-        test.assertNotNull(game.mapSelectionPicker);test.assertNotNull(game.pendingCourseEdit);
-        game.chooseMapSelection(second);test.assertTrue(ship.course.waypoints[1].target===second);test.assertEqual(game.pendingCourseEdit,null);
-        game.beginRendezvousPlacement();game.handleMouseRightClick(point.x,point.y);game.chooseMapSelection(second);
-        test.assertEqual(game.allRendezvous.length,1);test.assertTrue(game.allRendezvous[0].anchor===second);
+        test.assertNull(game.pendingMapOrderObject);test.assertNull(game.pendingCourseEdit);test.assertNull(game.mapSelectionPicker);test.assertEqual(game.uiWindow,'course');
+        game.beginRendezvousPlacement();game.handleMouseRightClick(point.x,point.y);
+        test.assertNull(game.pendingRendezvousPlacement);test.assertNull(game.mapSelectionPicker);
     });
     test.it('rejects removed or newly hidden candidates and keeps invisible objects out of the chooser',()=>{
         const {game,display,ship,second}=fixture();ship.owner=2;ship.setVisibilityTo(1,0);

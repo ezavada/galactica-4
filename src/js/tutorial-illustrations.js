@@ -26,7 +26,7 @@ class Illustrations {
                 star(14,16);star(r.width-14,36);text('Galactica-4',32,33,r.width-64,24);break;
             }
             case 7001:case 8001:button(I18n.getString(836,'New Game…'),'N');break;
-            case 7003:button(I18n.getString(563,'End Turn'),'Enter');break;
+            case 7003:button(I18n.getString(563,'End Turn'),require('./input.js').endTurnLabel());break;
             case 7004:button(I18n.getString(555,'Orders'),'O');break;
             case 7006:button(I18n.getString(451,'Defense'),'D');break;
             case 7008:button('=','=');break;

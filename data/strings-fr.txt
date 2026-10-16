@@ -13,7 +13,7 @@
 7	Aucun
 8	Cliquez sur les étoiles pour les gérer
 9	Cliquez sur les vaisseaux pour donner des ordres
-10	TAB : suivant ; Entrée : fin du tour
+10	TAB : suivant ; Cmd/Ctrl+Enter : fin du tour
 11	Coque de Vaisseau
 12	Vaisseau
 13	Niveau Technologique:
@@ -101,7 +101,7 @@
 527	<F> jeu rapide   <O> brouillard/tout visible   <R> valeurs par défaut
 528	<Enter> Commencer
 529	Menu des commandes
-530	Les raccourcis clavier restent actifs.
+530	Les commandes clavier suivent la fenêtre active.
 531	<Esc> Fermer
 532	Curseurs de production
 533	Sélectionnez une de vos étoiles pour régler la production.

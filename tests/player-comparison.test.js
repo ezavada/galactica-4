@@ -97,10 +97,10 @@ module.exports=()=>test.describe('Compare Players v3 summary',()=>{
    game.playerComparisonPage=0;test.assertEqual(display.getPlayerComparisonLayout().bodyScroll,0);
   }}finally{pdg.res.setLanguage(old);}test.assertTrue(overflow>0,'Tall-name fixture never exercised scrolling');
  });
- test.it('routes close/paging and consumes map clicks, function keys, Tab and Enter behind the comparison',()=>{
+ test.it('routes close/paging while allowing map input and attention without bare-Enter turn advancement',()=>{
   const {game,display}=fixture();game.uiWindow='comparison';let advance=0;game.attention.next=()=>advance++;const shown=game.showShips,turn=game.turn;
-  game.handleKeyPress(pdg.key_F1);game.handleKeyPress(pdg.key_Tab);game.handleKeyPress(13);test.assertEqual(game.showShips,shown);test.assertEqual(advance,0);test.assertEqual(game.turn,turn);
-  test.assertEqual(display.getUIActionAt(1,1).type,'consume');test.assertTrue(game.handleMouseRightClick(1,1));
+  game.handleKeyPress(pdg.key_F2);game.handleKeyPress(pdg.key_Tab);game.handleKeyPress(13);test.assertEqual(game.showShips,!shown);test.assertEqual(advance,1);test.assertEqual(game.turn,turn);
+  test.assertNull(display.getUIActionAt(1,1));test.assertTrue(game.handleMouseRightClick(1,1));
   const close=display.getPlayerComparisonActionRegions().find(r=>r.action.type==='closePlayerComparison').rect;
   game.handleUIClick(close.x+5,close.y+5);test.assertNull(game.uiWindow);game.uiWindow='comparison';game.handleKeyPress(pdg.key_Escape);test.assertNull(game.uiWindow);
  });

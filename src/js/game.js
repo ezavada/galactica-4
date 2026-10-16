@@ -1545,7 +1545,7 @@ class Game {
         if(this.uiWindow==='events') {
             if(key===13 || key===3) {
                 const event=this.getEventRows().find(event=>event.id===this.eventSelection);
-                if(event && event.outcome)this.replayOutcome(event);else if(this.hasReplayableReport(event))this.replayReport(event);else if(event)this.focusEvent(event,true);else this.requestEndTurn();
+                if(event && event.outcome)this.replayOutcome(event);else if(this.hasReplayableReport(event))this.replayReport(event);else if(event)this.focusEvent(event,true);
                 return true;
             }
         }
@@ -2026,6 +2026,10 @@ class Game {
     }
 
     executeUIAction(action) {
+        if(action && this.inputCommands && !this.dispatchingInputAction){
+            this.dispatchingInputAction=true;
+            try{return this.inputCommands(action,()=>this.executeUIAction(action));}finally{this.dispatchingInputAction=false;}
+        }
         if (!action) {
             return false;
         }
@@ -2456,7 +2460,7 @@ class Game {
                 if(!this.renameEditor)this.renameEditor=NameEditor.createEditor(this.renameText);
                 let caret=layout.start;
                 while(caret<layout.end && action.x-layout.rect.x-6>this.display.port.getTextWidth(chars.slice(layout.start,caret+1).join(''),layout.rect.size))caret++;
-                this.renameEditor.caret=caret;this.renameEditor.selected=false;return true;
+                this.renameEditor.caret=caret;this.renameEditor.anchor=caret;this.renameEditor.selected=false;return true;
             }
             case 'commitRename':
                 return this.commitRename();
@@ -2682,18 +2686,18 @@ class Game {
     }
 
     scrollStarInspector(delta) {
-        const star=this.getSelectedStar();if(!star || this.uiWindow && this.uiWindow!=='events' || this.overlay || this.isAwaitingMapTarget() || this.uiSliderDrag || !this.display || !Number.isFinite(delta))return false;
+        const star=this.getSelectedStar();if(!star || WindowBehavior.isModal(this.uiWindow) || this.isAwaitingMapTarget() || this.uiSliderDrag || !this.display || !Number.isFinite(delta))return false;
         const l=this.display.getStarDetailsLayout(star);if(!l.compact)return false;this.starInspectorScroll=Math.max(0,Math.min(l.scrollLimit,l.bodyScroll+delta));return true;
     }
 
     scrollShipInspector(delta) {
-        const ship=this.selectedObject;if(!this.factory.isShip(ship) || this.uiWindow && this.uiWindow!=='events' || this.overlay || this.isAwaitingMapTarget() || !this.display || !Number.isFinite(delta))return false;
+        const ship=this.selectedObject;if(!this.factory.isShip(ship) || WindowBehavior.isModal(this.uiWindow) || this.isAwaitingMapTarget() || !this.display || !Number.isFinite(delta))return false;
         const screen=this.display.getScreenSize();if(screen.width>=600 && screen.height>=360)return false;
         const l=this.display.getShipDetailsLayout(ship);this.shipInspectorScroll=Math.max(0,Math.min(l.scrollLimit,l.bodyScroll+delta));return true;
     }
 
     scrollFleetInspector(delta) {
-        const fleet=this.getSelectedFleet();if(this.uiWindow && this.uiWindow!=='events' || this.overlay || this.isAwaitingMapTarget() || !fleet || !this.display || !Number.isFinite(delta))return false;
+        const fleet=this.getSelectedFleet();if(WindowBehavior.isModal(this.uiWindow) || this.isAwaitingMapTarget() || !fleet || !this.display || !Number.isFinite(delta))return false;
         const l=this.display.getFleetDetailsLayout(fleet);if(!l.compact)return false;
         this.fleetInspectorScroll=Math.max(0,Math.min(l.scrollLimit,l.bodyScroll+delta));return true;
     }
@@ -2911,9 +2915,9 @@ class Game {
     }
     
     handleMouseRightClick(x, y, options={}) {
-        if(WindowBehavior.isSystem(this.uiWindow)){if(this.sound)this.sound.play(1012);return true;}
+        if(WindowBehavior.isModal(this.uiWindow)){if(this.sound)this.sound.play(1012);return true;}
         if(this.uiWindow==='mapPick')return true;
-        if(this.pendingMapOrderObject || this.pendingRendezvousPlacement)return this.handleMouseClick(x,y,options);
+        if(this.pendingMapOrderObject || this.pendingRendezvousPlacement){this.cancelInput();return true;}
         if(!options.resolved && this.beginMapSelection(x,y,'order'))return true;
         this.pendingMapOrderObject = null;
 
@@ -3004,9 +3008,33 @@ class Game {
         return this.findObjectsAtPosition(x,y)[0] || null;
     }
 
+    cancelInput() {
+        if(this.uiWindowDrag){this.endUIWindowDrag();return true;}
+        if(this.uiSliderDrag){this.endUISliderDrag();return true;}
+        if(this.uiMapScrollDrag){this.endMapScrollDrag();return true;}
+        if(this.mapSelectionPicker)return this.cancelMapSelection();
+        if(this.pendingMapOrderObject){this.pendingMapOrderObject=null;if(this.pendingCourseEdit){this.pendingCourseEdit=null;this.uiWindow='course';}return true;}
+        if(this.pendingRendezvousPlacement){this.pendingRendezvousPlacement=null;return true;}
+        return false;
+    }
+
     handleKeyPress(key) {
-        if(key===pdg.key_Help)return this.executeUIAction({type:'openManual'});
+        if(key===pdg.key_Help || key===pdg.key_F1)return this.executeUIAction({type:'openManual'});
         if(this.display && this.display.clearControlHelp)this.display.clearControlHelp();
+        if(key===pdg.key_Escape && this.cancelInput())return true;
+        if(key===pdg.key_Tab){if(!WindowBehavior.isModal(this.uiWindow) && !this.isAwaitingMapTarget() && !this.uiWindowDrag && !this.uiSliderDrag && !this.uiMapScrollDrag)this.attention.next();return true;}
+        if(!WindowBehavior.isModal(this.uiWindow) || this.uiWindow==='settings'){
+        if(key === pdg.key_F7)return this.executeUIAction({type:'toggleScannerRanges'});
+        if(key === pdg.key_F5)return this.executeUIAction({type:'toggleAllCourses'});
+        if(key === pdg.key_F6)return this.executeUIAction({type:'toggleCourierCourses'});
+        if(key === pdg.key_F2)return this.executeUIAction({type:'toggleShips'});
+        if(key === pdg.key_F3)return this.executeUIAction({type:'toggleMapNames'});
+        if(key === pdg.key_F4)return this.executeUIAction({type:'toggleGrid'});
+        }
+        if(this.overlay && ['report','outcome'].includes(this.overlay.type) && this.inputFocus==='map' && key!==pdg.key_Escape){
+            const report=this.overlay;this.overlay=null;
+            try{return this.handleKeyPress(key);}finally{if(!this.overlay)this.overlay=report;}
+        }
         if(this.overlay && this.uiWindow!=='endTurnConfirm' && ['outcome','report','stardock','lab'].includes(this.overlay.type)) {
             if(['outcome','report'].includes(this.overlay.type) && (key===pdg.key_LeftArrow || key===pdg.key_RightArrow)) {
                 const layout=this.display && (this.overlay.type==='report'?this.display.getReportLayout(this.overlay):this.display.getOutcomeLayout(this.overlay));
@@ -3018,23 +3046,11 @@ class Game {
             return true;
         }
 
-        if(['comparison','systemComparison'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
-        if(key === pdg.key_F6)return this.executeUIAction({type:'toggleScannerRanges'});
-        if(key === pdg.key_F4)return this.executeUIAction({type:'toggleAllCourses'});
-        if(key === pdg.key_F5)return this.executeUIAction({type:'toggleCourierCourses'});
-        if(key === pdg.key_F1)return this.executeUIAction({type:'toggleShips'});
-        if(key === pdg.key_F2)return this.executeUIAction({type:'toggleMapNames'});
-        if(key === pdg.key_F3)return this.executeUIAction({type:'toggleGrid'});
+        if(WindowBehavior.isModal(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
         if(['mapPick','games','fleetExchange','fleets','newGameDefaults'].includes(this.uiWindow))return this.handleCommandWindowKey(key,this.getKeyChar(key));
         if (['rename','colonyDefaults','settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && key===pdg.key_Tab) return true;
         if (['settings','mapDisplay','view','mapPick'].includes(this.uiWindow) && (key===13 || key===3)) return true;
-        if ((key===13 || key===3) && this.hasEventPresentation() && this.uiWindow==='events') {this.requestEndTurn();return true;}
-        if ((key===13 || key===3) && !['rename','colonyDefaults','settings','systemComparison','events','endTurnConfirm'].includes(this.uiWindow)) {this.requestEndTurn();return true;}
-        if (key === pdg.key_Tab) {
-            if(!this.pendingMapOrderObject && !this.pendingRendezvousPlacement && !this.uiSliderDrag && !this.uiMapScrollDrag && !this.hasEventPresentation())this.attention.next();
-            return true;
-        }
-
+        if([13,10,3].includes(key) && !this.uiWindow)return true;
         if (key === pdg.key_Escape && this.uiMapScrollDrag) {this.endMapScrollDrag();return true;}
         if (key === pdg.key_Escape && this.uiSliderDrag) {
             this.endUISliderDrag();
@@ -3063,12 +3079,14 @@ class Game {
             this.selectContainingObject();return true;
         }
         const char = this.getKeyChar(key);
+        if(this.uiWindow && !WindowBehavior.isModal(this.uiWindow) && this.inputFocus==='map'){
+            const panel=this.uiWindow;this.uiWindow=null;
+            try{return this.handleKeyPress(key);}finally{if(!this.uiWindow)this.uiWindow=panel;}
+        }
         if (this.handleCommandWindowKey(key, char)) {
             return true;
         }
-        if (key === 13 || key === 3) {
-            this.requestEndTurn();return true;
-        }
+        if (key === 13 || key === 3) return true;
         if (key === pdg.key_Escape) {
             this.setSelectedObject(null);
         } else if (key===61 && !this.uiWindow && this.canHumanControl(this.getSelectedStar())) {
@@ -3151,7 +3169,7 @@ class Game {
             return;
         }
         
-        switch (String.fromCharCode(key)) {
+        switch (String.fromCodePoint(key).toLowerCase()) {
             case 'n':
                 return this.beginRenameObject(star);
             case 's':
@@ -3173,7 +3191,7 @@ class Game {
     }
 
     handleShipKeyPress(ship, key) {
-        switch (String.fromCharCode(key).toLowerCase()) {
+        switch (String.fromCodePoint(key).toLowerCase()) {
             case 'g': return this.showCourse(ship);
             case 'a': this.showCourse(ship);return this.beginCourseEdit();
             case 'n':
@@ -3190,7 +3208,7 @@ class Game {
     }
 
     handleFleetKeyPress(fleet, key) {
-        switch (String.fromCharCode(key).toLowerCase()) {
+        switch (String.fromCodePoint(key).toLowerCase()) {
             case 'g': return this.showCourse(fleet);
             case 'a': this.showCourse(fleet);return this.beginCourseEdit();
             case 'o':
@@ -3207,7 +3225,7 @@ class Game {
     }
 
     handleRendezvousKeyPress(rendezvous, key) {
-        switch (String.fromCharCode(key).toLowerCase()) {
+        switch (String.fromCodePoint(key).toLowerCase()) {
             case 'm':
                 return this.beginRendezvousPlacement(rendezvous);
             case 'n':

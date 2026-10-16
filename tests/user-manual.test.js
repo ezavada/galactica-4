@@ -24,7 +24,7 @@ module.exports=()=>test.describe('Bundled manual opening',()=>{
   const game=new Game(new Factory(),new Rules(false),new Config({skipMapGeneration:true,numHumans:1,numComputers:1}));game.port={getDrawingArea:()=>new pdg.Rect(800,600)};const display=new Display(game);let calls=0;
   game.manualCommands={open:language=>{calls++;test.assertEqual(language,pdg.res.getLanguage());return false;}};game.uiWindow='menu';
   const button=display.getCommandActionRegions().find(r=>r.action.type==='openManual');test.assertNotNull(button);test.assertTrue(game.handleUIClick(button.rect.x+5,button.rect.y+5));test.assertEqual(calls,1);test.assertEqual(game.turn,1);test.assertEqual(game.uiWindow,'menu');
-  game.handleKeyPress(72);test.assertEqual(calls,2);game.handleKeyPress(pdg.key_Help);test.assertEqual(calls,3);const before=game.showShips;game.handleKeyPress(pdg.key_F1);test.assertEqual(game.showShips,!before);test.assertEqual(calls,3);
+  game.handleKeyPress(72);test.assertEqual(calls,2);game.handleKeyPress(pdg.key_Help);test.assertEqual(calls,3);const before=game.showShips;game.handleKeyPress(pdg.key_F1);test.assertEqual(game.showShips,before);test.assertEqual(calls,4);game.uiWindow=null;game.handleKeyPress(pdg.key_F2);test.assertEqual(game.showShips,!before);
   for(const size of [[800,600],[640,480],[320,340]]){const regions=Setup.helpRegions(...size,game.config),manual=regions.find(r=>r.action.type==='openManual'),start=regions.find(r=>r.action.type==='startGame');test.assertTrue(manual.rect.x>=start.rect.x+start.rect.width);test.assertTrue(manual.rect.x+manual.rect.width<=size[0]);test.assertTrue(manual.rect.y+manual.rect.height<=size[1]);}
  });
  test.it('wraps translated failure messages above their acknowledgment button in all six languages',()=>{
@@ -46,7 +46,7 @@ module.exports=()=>test.describe('Bundled manual opening',()=>{
    }
    for(const code of Manual.languages)test.assertContains(html,'href="'+code+'.html" lang="'+code+'"');
    test.assertContains(html,'href="'+language+'.html" lang="'+language+'" aria-current="page"');
-   test.assertContains(html,'F1');test.assertContains(html,'F6');test.assertContains(html,'.gad4.json');test.assertContains(html,'100');
+   test.assertContains(html,'F1');test.assertContains(html,'F7');test.assertContains(html,'.gad4.json');test.assertContains(html,'100');
   }
  });
  test.it('rejects traversal as a language and safely falls back to the English page',()=>{

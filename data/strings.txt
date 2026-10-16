@@ -12,7 +12,7 @@
 7	None
 8	Click stars to manage them
 9	Click ships to give orders
-10	TAB: next item; Enter: end turn
+10	TAB: next item; Cmd/Ctrl+Enter: end turn
 11	Ship Hull
 12	Ship
 13	Tech Level:
@@ -100,7 +100,7 @@
 527	<F> fast game   <O> fog/all visible   <R> defaults
 528	<Enter> Start
 529	Command Menu
-530	Keyboard shortcuts remain active.
+530	Keyboard commands follow the active window.
 531	<Esc> Close
 532	Production Sliders
 533	Select one of your stars to tune production.

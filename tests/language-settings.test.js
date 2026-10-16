@@ -25,14 +25,14 @@ module.exports=()=>test.describe('Language settings',()=>{
         test.assertTrue(native.readNebula());native.writeNebula(false);test.assertEqual(namespace,'Galactica');test.assertFalse(native.readNebula());native.writeNebula(true);test.assertTrue(native.readNebula());
         const denied=Drawing.createPreferences({window:{get localStorage(){throw Error('denied');}}});test.assertTrue(denied.readNebula());denied.writeNebula(false);
     });
-    test.it('toggles grid drawing from settings and F3 without changing simulation state',()=>{
+    test.it('toggles grid drawing from settings and F4 without changing simulation state',()=>{
         const {game,display}=fixture();game.uiWindow='settings';let saved;
         game.drawingPreferences={writeGrid:value=>saved=value};
         const row=display.getSettingsActionRegions().find(row=>row.action.type==='toggleGrid');
         test.assertTrue(row.active);const turn=game.turn;
         test.assertTrue(game.handleUIClick(row.rect.x+5,row.rect.y+5));test.assertFalse(game.showGrid);test.assertFalse(saved);
         display.camera.centerOn(0,0);let lines=0;display.port.drawLine=()=>lines++;display.drawGrid();test.assertEqual(lines,0);
-        test.assertTrue(game.handleKeyPress(pdg.key_F3));test.assertTrue(game.showGrid);test.assertTrue(saved);
+        test.assertTrue(game.handleKeyPress(pdg.key_F4));test.assertTrue(game.showGrid);test.assertTrue(saved);
         display.drawGrid();test.assertTrue(lines>0);test.assertEqual(game.turn,turn);test.assertEqual(game.uiWindow,'settings');
     });
     test.it('persists grid choices in browser and native preferences with safe defaults',()=>{
@@ -43,23 +43,23 @@ module.exports=()=>test.describe('Language settings',()=>{
         native.writeGrid(false);test.assertFalse(native.readGrid());test.assertEqual(namespace,'Galactica');
         const denied=Drawing.createPreferences({window:{get localStorage(){throw Error('denied');}}});test.assertTrue(denied.readGrid());denied.writeGrid(false);
     });
-    test.it('toggles star names through settings and F2 and keeps preferences separate from grid',()=>{
+    test.it('toggles star names through settings and F3 and keeps preferences separate from grid',()=>{
         const {game,display}=fixture();game.uiWindow='settings';
         const Drawing=require('../src/js/drawing-preferences.js'),values=new Map();
         game.drawingPreferences=Drawing.createPreferences({window:{localStorage:{getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)}}});
         const row=display.getSettingsActionRegions().find(row=>row.action.type==='toggleMapNames');test.assertTrue(row.active);
         game.handleUIClick(row.rect.x+5,row.rect.y+5);test.assertFalse(game.showMapNames);test.assertTrue(game.showGrid);
         test.assertFalse(game.drawingPreferences.readMapNames());test.assertTrue(game.drawingPreferences.readGrid());
-        test.assertTrue(game.handleKeyPress(pdg.key_F2));test.assertTrue(game.showMapNames);test.assertTrue(game.drawingPreferences.readMapNames());
+        test.assertTrue(game.handleKeyPress(pdg.key_F3));test.assertTrue(game.showMapNames);test.assertTrue(game.drawingPreferences.readMapNames());
         let key,value;const native=Drawing.createPreferences({pdg:{cfg:{useConfig:()=>{},getConfigString:()=>value,setConfigString:(k,v)=>{key=k;value=v;}}}});
         native.writeMapNames(false);test.assertEqual(key,'showMapNames');test.assertFalse(native.readMapNames());
     });
-    test.it('toggles ships from settings and F1 with independent persisted state',()=>{
+    test.it('toggles ships from settings and F2 with independent persisted state',()=>{
         const {game,display}=fixture();game.uiWindow='settings';const values=new Map();
         game.drawingPreferences=require('../src/js/drawing-preferences.js').createPreferences({window:{localStorage:{getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)}}});
         const row=display.getSettingsActionRegions().find(row=>row.action.type==='toggleShips');test.assertTrue(row.active);
         game.handleUIClick(row.rect.x+5,row.rect.y+5);test.assertFalse(game.showShips);test.assertFalse(game.drawingPreferences.readShips());
-        test.assertTrue(game.showGrid);test.assertTrue(game.showMapNames);test.assertTrue(game.handleKeyPress(pdg.key_F1));test.assertTrue(game.showShips);test.assertTrue(game.drawingPreferences.readShips());
+        test.assertTrue(game.showGrid);test.assertTrue(game.showMapNames);test.assertTrue(game.handleKeyPress(pdg.key_F2));test.assertTrue(game.showShips);test.assertTrue(game.drawingPreferences.readShips());
     });
     test.it('keeps selected visible mobile objects on the map while ships are hidden, with fog and patrol restrictions',()=>{
         const {game,display}=fixture(),home=game.factory.createStar(1000,1000,'Home');home.owner=1;
@@ -81,22 +81,22 @@ module.exports=()=>test.describe('Language settings',()=>{
         game.setSelectedObject(fleet);display.drawFleets(game.allFleets);test.assertEqual(fleets,1);test.assertTrue(game.findObjectAtPosition(400,200)===fleet);
         game.showShips=true;test.assertTrue(game.findObjectAtPosition(200,200)===ship);test.assertEqual(game.allShips.length,2);test.assertEqual(game.allFleets.length,1);
     });
-    test.it('toggles ordinary and courier courses through settings and F4/F5 with independent preferences',()=>{
+    test.it('toggles ordinary and courier courses through settings and F5/F6 with independent preferences',()=>{
         const {game,display}=fixture();game.uiWindow='settings';const values=new Map();
         game.drawingPreferences=require('../src/js/drawing-preferences.js').createPreferences({window:{localStorage:{getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)}}});
-        for(const [type,property,read,key] of [['toggleAllCourses','showAllCourses','readAllCourses',pdg.key_F4],['toggleCourierCourses','showCourierCourses','readCourierCourses',pdg.key_F5]]) {
+        for(const [type,property,read,key] of [['toggleAllCourses','showAllCourses','readAllCourses',pdg.key_F5],['toggleCourierCourses','showCourierCourses','readCourierCourses',pdg.key_F6]]) {
             const row=display.getSettingsActionRegions().find(row=>row.action.type===type);test.assertTrue(row.active);
             game.handleUIClick(row.rect.x+5,row.rect.y+5);test.assertFalse(game[property]);test.assertFalse(game.drawingPreferences[read]());
             game.handleKeyPress(key);test.assertTrue(game[property]);test.assertTrue(game.drawingPreferences[read]());
         }
         test.assertTrue(game.showShips);test.assertTrue(game.showGrid);test.assertTrue(game.showMapNames);
     });
-    test.it('offers persistent scanner-range visibility and the F6 shortcut',()=>{
+    test.it('offers persistent scanner-range visibility and the F7 shortcut',()=>{
         const {game,display}=fixture();game.uiWindow='settings';const values=new Map();
         game.drawingPreferences=require('../src/js/drawing-preferences.js').createPreferences({window:{localStorage:{getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)}}});
         const row=display.getSettingsActionRegions().find(row=>row.action.type==='toggleScannerRanges');test.assertTrue(row.active);
         game.handleUIClick(row.rect.x+5,row.rect.y+5);test.assertFalse(game.showScannerRanges);test.assertFalse(game.drawingPreferences.readScannerRanges());
-        game.handleKeyPress(pdg.key_F6);test.assertTrue(game.showScannerRanges);test.assertTrue(game.drawingPreferences.readScannerRanges());
+        game.handleKeyPress(pdg.key_F7);test.assertTrue(game.showScannerRanges);test.assertTrue(game.drawingPreferences.readScannerRanges());
     });
     test.it('shows selected scanner rings independently of the switch and excludes private enemy ranges',()=>{
         const {game,display}=fixture(),home=game.factory.createStar(0,0,'Home');home.owner=1;home.setScannerRange(32768);

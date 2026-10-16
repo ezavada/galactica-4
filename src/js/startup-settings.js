@@ -57,6 +57,6 @@ class StartupSettings {
     }
 }
 const modelKeys={};
-for(const [key,type] of [['key_F1','toggleShips'],['key_F2','toggleMapNames'],['key_F3','toggleGrid'],
-    ['key_F4','toggleAllCourses'],['key_F5','toggleCourierCourses'],['key_F6','toggleScannerRanges']])modelKeys[pdg[key]]=type;
+for(const [key,type] of [['key_F2','toggleShips'],['key_F3','toggleMapNames'],['key_F4','toggleGrid'],
+    ['key_F5','toggleAllCourses'],['key_F6','toggleCourierCourses'],['key_F7','toggleScannerRanges']])modelKeys[pdg[key]]=type;
 module.exports=StartupSettings;

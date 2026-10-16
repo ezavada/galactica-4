@@ -1,6 +1,37 @@
 const test=require('./test-framework.js'),Name=require('../src/js/player-name.js'),Config=require('../src/js/game-config.js');
 const Game=require('../src/js/game.js'),Factory=require('../src/js/factory.js'),Rules=require('../src/js/rules.js'),I18n=require('../src/js/i18n.js');
 module.exports=()=>test.describe('New game player name',()=>{
+ test.it('passes clipboard text directly to native utilities and falls back on Linux',()=>{
+  const calls=[],text='星😀 $HOME `literal`',execute=(file,args,options)=>{calls.push({file,args,options});if(file==='wl-paste' || file==='wl-copy')throw Error('Wayland unavailable');return text;};
+  const {createClipboard}=require('../src/js/clipboard.js');
+  for(const platform of ['darwin','win32','linux']){const clipboard=createClipboard(platform,execute);clipboard.write(text);test.assertEqual(clipboard.read(),text);}
+  test.assertEqual(calls[0].file,'/usr/bin/pbcopy');test.assertEqual(calls[0].options.input,text);
+  test.assertEqual(calls[2].file,'powershell.exe');test.assertEqual(calls[2].options.input,text);
+  test.assertEqual(calls[5].file,'xclip');test.assertEqual(calls[5].options.input,text);
+  test.assertEqual(calls[7].file,'xclip');test.assertEqual(calls[7].args.join(','),'-selection,clipboard,-o');
+ });
+ test.it('supports partial Unicode selection, native clipboard commands and bounded paste',()=>{
+  const editor=Name.createEditor('A星😀Z',6);editor.selected=false;editor.caret=4;
+  Name.edit(editor,pdg.key_LeftArrow,pdg,{shift:true});Name.edit(editor,pdg.key_LeftArrow,pdg,{shift:true});
+  test.assertEqual(Name.selectedText(editor),'😀Z');
+  let copied='';const clipboard={read:()=>copied,write:value=>copied=value};
+  Name.edit(editor,67,pdg,{meta:true,clipboard});test.assertEqual(copied,'😀Z');
+  Name.edit(editor,88,pdg,{meta:true,clipboard});test.assertEqual(editor.text,'A星');
+  copied='界界界界界';Name.edit(editor,86,pdg,{meta:true,clipboard});test.assertEqual(editor.text,'A星界界界界');
+  Name.edit(editor,65,pdg,{ctrl:true});Name.edit(editor,'Ю');test.assertEqual(editor.text,'Ю');
+ });
+ test.it('keeps Tab inert in text fields and accepts Option-generated Unicode',()=>{
+  const editor=Name.createEditor('abc');editor.selected=false;editor.caret=2;
+  Name.edit(editor,pdg.key_Tab);test.assertFalse(editor.selected);test.assertEqual(editor.caret,2);
+  Name.edit(editor,'π',pdg,{alt:true});test.assertEqual(editor.text,'abπc');
+ });
+ test.it('uses synchronous browser clipboard events against the currently active editor',()=>{
+  const handlers={},editor=Name.createEditor('Old'),next=Name.createEditor('Next');let active=editor;
+  Name.installClipboard(()=>active,{addEventListener:(type,callback)=>handlers[type]=callback});
+  const event={clipboardData:{getData:()=> '星😀\n',setData:(type,text)=>test.assertEqual(text,'星😀')},preventDefault:()=>{}};
+  handlers.paste(event);test.assertEqual(editor.text,'星😀');editor.selected=true;handlers.copy(event);
+  active=next;handlers.paste(event);test.assertEqual(next.text,'星😀');test.assertEqual(editor.text,'星😀');
+ });
  test.it('selects the existing name and replaces it without activating setup shortcuts',()=>{
   const editor=Name.createEditor('Previous');Name.edit(editor,67);Name.edit(editor,65);Name.edit(editor,82);
   test.assertEqual(editor.text,'CAR');test.assertFalse(editor.selected);test.assertEqual(editor.caret,3);Name.edit(editor,32);Name.edit(editor,67);test.assertEqual(editor.text,'CAR C');

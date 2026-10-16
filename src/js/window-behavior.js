@@ -1,5 +1,7 @@
 // Application windows share modality, palette and persistent viewport positions.
 const systemWindows=new Set(['report','outcome','presentation','menu','games','comparison','systemComparison','fleets','settings','newGameDefaults','view','mapDisplay','colonyDefaults','endTurnConfirm']);
+const modalWindows=new Set(['lab','stardock','presentation','menu','games','settings','newGameDefaults','view','mapDisplay','colonyDefaults','endTurnConfirm','rename','mapPick','fleetExchange']);
+function isModal(name){return modalWindows.has(name);}
 function isSystem(name){return systemWindows.has(name);}
 function constrain(rect,screen){
     const width=Math.min(rect.width,Math.max(1,screen.width-20));
@@ -8,4 +10,4 @@ function constrain(rect,screen){
         y:Math.max(10,Math.min(screen.height-height-10,rect.y))};
 }
 function validPosition(value){return value && Number.isFinite(value.x) && Number.isFinite(value.y)?{x:value.x,y:value.y}:null;}
-module.exports={isSystem,constrain,validPosition};
+module.exports={isSystem,isModal,constrain,validPosition};
