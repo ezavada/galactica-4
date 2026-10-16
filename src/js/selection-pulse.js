@@ -9,6 +9,11 @@ class SelectionPulse {
             defined = true;
         }
         this.target = new pdg.Animated();
+        // Display supplies the time samples; automatic Scene updates would
+        // advance the pulse a second time between draws.
+        this.scene = new pdg.Scene();
+        this.scene.setManual(true);
+        this.scene.addAnimated(this.target);
         this.lastTime = null;
     }
 
@@ -21,9 +26,20 @@ class SelectionPulse {
         }
         // Entire cycles have no visible effect. Skip them so returning to a
         // selection after a long idle period does not replay hours of steps.
-        this.target.animate(((milliseconds - this.lastTime) % 500) / 1000);
+        let remaining = ((milliseconds - this.lastTime) % 500) / 1000;
+        // Scene.advance admits at most 250 ms per call. Keep the entire
+        // fractional cycle when sampling after a slower frame.
+        do {
+            const seconds = Math.min(remaining, 0.25);
+            this.scene.advance(seconds);
+            remaining -= seconds;
+        } while (remaining > 0);
         this.lastTime = milliseconds;
         return this.target.getLocation().x;
+    }
+
+    dispose() {
+        this.scene.dispose();
     }
 }
 module.exports = SelectionPulse;

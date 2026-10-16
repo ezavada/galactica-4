@@ -117,6 +117,12 @@ module.exports = function() {
             for (let i = 0; i < 4; i++) test.assertApproximately(pulse.sample(125), .25, .0001);
             test.assertApproximately(pulse.sample(375), .75, .0001);
         });
+        test.it('preserves phase across slow frames longer than the Scene advance limit', () => {
+            const pulse = new SelectionPulse();
+            for (const milliseconds of [375, 750, 1249, 1748, 36002123]) {
+                test.assertApproximately(pulse.sample(milliseconds), (milliseconds % 500) / 500, 0.0001);
+            }
+        });
         test.it('keeps the phase after a long gap between selections', () => {
             const pulse = new SelectionPulse();
             pulse.sample(125);
@@ -126,6 +132,19 @@ module.exports = function() {
             const pulse = new SelectionPulse();
             test.assertApproximately(pulse.sample(1000125), .25, .0001);
             test.assertApproximately(pulse.sample(125), .25, .0001);
+        });
+        test.it('keeps separate displays on their own sampled clocks and releases their Scenes', () => {
+            const first = new SelectionPulse(), second = new SelectionPulse();
+            try {
+                test.assertApproximately(first.sample(125), .25, .0001);
+                test.assertApproximately(second.sample(375), .75, .0001);
+                test.assertApproximately(first.sample(125), .25, .0001);
+                first.dispose();
+                test.assertTrue(first.scene.isDisposed());
+                test.assertApproximately(second.sample(625), .25, .0001);
+            } finally {
+                first.dispose(); second.dispose();
+            }
         });
     });
 };

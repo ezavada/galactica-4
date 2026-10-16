@@ -3952,6 +3952,7 @@ class Display {
     }
 
     dispose() {
+        this.selectionPulse.dispose();
         if(this.mapCursor)this.mapCursor.dispose();
         for(const attrs of [this.targetPreviewStyle,this.renameSelectionStyle])if(attrs && attrs.delete)attrs.delete();
         for(const effect of [this.destructionGlow,this.destructionStreak])if(effect && typeof effect.delete==='function')effect.delete();
