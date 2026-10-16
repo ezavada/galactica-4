@@ -38,8 +38,22 @@ if ($AppArguments.Count -gt 0 -and $AppArguments[0] -eq "--") {
     $AppArguments = @($AppArguments | Select-Object -Skip 1)
 }
 
+$pdgSource = if ($env:PDG_SOURCE) { $env:PDG_SOURCE } else { "release" }
+if ($pdgSource -cnotin @("release", "devel")) { throw "PDG_SOURCE must be release or devel" }
+if ($pdgSource -eq "devel" -and $RefreshPdg) { throw "-RefreshPdg requires PDG_SOURCE=release" }
+
 if ($env:PDG_EXECUTABLE) {
     & $env:PDG_EXECUTABLE $appScript @AppArguments
+    exit $LASTEXITCODE
+}
+
+if ($pdgSource -eq "devel") {
+    $develDir = if ($env:PDG_DEVEL_DIR) { $env:PDG_DEVEL_DIR } else { Join-Path $rootDir "..\pdg-devel" }
+    $localPdg = Join-Path $develDir "pdg.exe"
+    if (-not (Test-Path $localPdg -PathType Leaf)) {
+        throw "Development PDG executable not found: $localPdg. Build pdg-devel with make.ps1 pdg or set PDG_EXECUTABLE."
+    }
+    & $localPdg $appScript @AppArguments
     exit $LASTEXITCODE
 }
 

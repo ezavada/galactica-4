@@ -39,12 +39,48 @@ You can also press **T** or click the triangle in the introduction/About window,
 **Close tutorial** cancels practice and restores your previous game; **Finish**
 keeps the practice game open for further play.
 
+### Selecting a development PDG runtime
+
+Desktop launchers and browser builds use the pinned public release by default.
+To use an already built sibling `../pdg-devel` checkout:
+
+```bash
+PDG_SOURCE=devel ./gad4
+PDG_SOURCE=devel ./tools/build-web.sh
+
+# Optional checkout location (paths containing spaces are supported).
+PDG_SOURCE=devel PDG_DEVEL_DIR="/path/to/pdg-devel" ./gad4
+```
+
+In Windows PowerShell:
+
+```powershell
+$env:PDG_SOURCE = "devel"
+# Optional; defaults to the sibling pdg-devel checkout.
+$env:PDG_DEVEL_DIR = "C:\work\pdg-devel"
+.\gad4.ps1
+# Return to the pinned release:
+$env:PDG_SOURCE = "release"
+```
+
+Build PDG first: native launchers expect `pdg` (`pdg.exe` on Windows) in the
+checkout root; web builds expect `libpdg.js` and `libpdg.wasm` under
+`build/wasm/wasm32/release`. Development selection never builds automatically
+or falls back to a release when those files are missing.
+
+`PDG_EXECUTABLE` (desktop) and `PDG_WASM_DIR` (web) take precedence over the
+selected source. `PDG_DEVEL_DIR` alone does not enable development mode.
+Use `PDG_SOURCE=release` or unset `PDG_SOURCE` to return to the pinned release.
+`--refresh-pdg` (`-RefreshPdg` in PowerShell) refreshes the release cache and
+is rejected in development mode. Runtime selection does not change vendored
+JavaScript framework sources.
+
 ## Running in a Browser
 
 Galactica-4 can also run against PDG's Emscripten/WebAssembly build.
 
 ```bash
-# Uses ../pdg/build/wasm by default; override with PDG_WASM_DIR if needed.
+# Downloads and verifies the pinned WASM release; override with PDG_WASM_DIR if needed.
 ./tools/build-web.sh
 python3 -m http.server --bind 127.0.0.1 --directory dist 8080
 ```
