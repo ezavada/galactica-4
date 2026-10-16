@@ -1094,7 +1094,6 @@ if (launchOptions.aiAutoplay) {
 
 // Create event handlers using the correct PDG syntax
 const drawHandler = new pdg.IEventHandler(function(event) {
-    sound.update();
     refreshNetworkSessions();
     for(const session of sessions.sessions){const client=session.network;if(!client?.chat || !client.session || tutorialSession)continue;networkChat.register(client.chat);
         if(!client.nextChatRefresh || Date.now()>=client.nextChatRefresh){client.nextChatRefresh=Date.now()+1000;client.chat.refresh().catch(()=>{});client.chat.acknowledge(session.game.eventLog.filter(e=>e.playerMessage && e.handled).map(e=>e.id)).catch(()=>{});}

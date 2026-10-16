@@ -1,4 +1,4 @@
-// PDG v1.2 camera adapter for Galactica-4
+// PDG camera adapter for Galactica-4
 // Manages view transformation (zoom + pan) for the map display
 
 class Camera {
@@ -12,6 +12,11 @@ class Camera {
         this.zoom = 1.0;           // Zoom level (1.0 = normal, >1.0 = zoomed in)
         this.panX = 0;             // Pan offset in galactic coordinates
         this.panY = 0;             // Pan offset in galactic coordinates
+        this.panClock = new pdg.Scene();
+        this.panClock.setManual(true);
+        this.panClock.addAnimated(this.view);
+        this.view.registerAnimatedValue('panX',this,'panX');
+        this.view.registerAnimatedValue('panY',this,'panY');
         this.offsetX = 0;          // Screen offset for centering
         this.offsetY = 0;          // Screen offset for centering
         this.scale = 1.0;          // Base scale factor for aspect ratio
@@ -210,20 +215,28 @@ class Camera {
         const toX=this.panX,toY=this.panY;
         if(fromX===toX && fromY===toY)return;
         this.panX=fromX;this.panY=fromY;
-        this.whipPan={fromX,fromY,toX,toY,start:time,duration:240};
+        this.view.animateValueTo('panX',toX,.24,pdg.easeInOutQuint)
+            .animateValueTo('panY',toY,.24,pdg.easeInOutQuint);
+        // Native animated values are floats; retain the exact starting pose.
+        this.panX=fromX;this.panY=fromY;
+        this.whipPan={toX,toY,start:time,elapsed:0};
     }
 
     update(time=pdg.tm.getMilliseconds()) {
         const motion=this.whipPan;if(!motion)return;
-        const t=Math.max(0,Math.min(1,(time-motion.start)/motion.duration));
-        const eased=t<.5?16*t**5:1-((-2*t+2)**5)/2;
-        this.panX=motion.fromX+(motion.toX-motion.fromX)*eased;
-        this.panY=motion.fromY+(motion.toY-motion.fromY)*eased;
-        if(t===1){this.panX=motion.toX;this.panY=motion.toY;this.whipPan=null;}
+        const elapsed=Math.max(motion.elapsed,Math.min(240,time-motion.start));
+        this.panClock.advance((elapsed-motion.elapsed)/1000);
+        motion.elapsed=elapsed;
+        if(elapsed===240){this.panX=motion.toX;this.panY=motion.toY;this.whipPan=null;}
     }
 
     stopWhipPan() {
-        this.update();this.whipPan=null;
+        this.update();this.view.cancelSchedule();this.whipPan=null;
+    }
+
+    dispose() {
+        this.view.cancelSchedule().unregisterAnimatedValue('panX').unregisterAnimatedValue('panY');
+        this.panClock.dispose();
     }
 
     // Reset to default view (show entire map)

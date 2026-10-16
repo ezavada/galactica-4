@@ -39,6 +39,24 @@ module.exports = function() {
             }
             camera.update(340);test.assertApproximately(camera.toScreenX(100000),400,.01);test.assertApproximately(camera.toScreenY(200000),300,.01);test.assertNull(camera.whipPan);
         });
+        test.it('uses the same quintic curve, preserves fractional endpoints, and completes after a long frame gap',()=>{
+            const camera=create();
+            try{
+                camera.setPan(10000.125,20000.375);
+                const fromX=camera.panX,fromY=camera.panY;
+                camera.whipPanTo(300000.125,400000.375,100);
+                const {toX,toY}=camera.whipPan;
+                test.assertEqual(camera.panX,fromX);test.assertEqual(camera.panY,fromY);
+                camera.update(160);
+                test.assertApproximately(camera.panX,fromX+(toX-fromX)/64,.25);
+                test.assertApproximately(camera.panY,fromY+(toY-fromY)/64,.25);
+                camera.update(220);
+                test.assertApproximately(camera.panX,(fromX+toX)/2,.25);
+                camera.update(10000);
+                test.assertEqual(camera.panX,toX);test.assertEqual(camera.panY,toY);test.assertNull(camera.whipPan);
+                camera.dispose();test.assertTrue(camera.panClock.isDisposed());
+            }finally{camera.dispose();}
+        });
         test.it('retargets a running jump from its sampled position without a discontinuity',()=>{
             const camera=create();camera.whipPanTo(100000,200000,100);camera.update(220);
             const x=camera.panX,y=camera.panY;camera.whipPanTo(4000000,3000000,220);

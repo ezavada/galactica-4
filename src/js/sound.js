@@ -25,49 +25,36 @@ function eventCue(event,viewer=event && event.recipient) {
     // Fleet formation, tech levels and draw notices have no shipped audible sample.
     return null;
 }
-function createSound(resourceManager,preferences,now=()=>pdg.tm.getMilliseconds(),schedule={start:callback=>setInterval(callback,50),stop:timer=>clearInterval(timer)}) {
+function createSound(resourceManager,preferences) {
     let enabled=preferences.readSound(),musicEnabled=preferences.readMusic?preferences.readMusic():true;
     const cache=new Map(),presentations=new WeakMap();
     const stop=()=>{for(const sound of cache.values())try{sound.stop();}catch(error){/* Backend may be unavailable. */}};
     // Presentation music has its own handle: event cues and document changes
     // must not interrupt its dismissal fade.
-    let music=null,musicRequested=false,musicPlaying=false,fadeStarted=null,fadeTimer=null;
+    let music=null,musicRequested=false,musicFading=false;
+    const musicActive=()=>music && [pdg.soundState_Starting,pdg.soundState_Playing,pdg.soundState_Paused].includes(music.getPlaybackState());
     const stopMusic=()=>{
-        if(fadeTimer!==null){schedule.stop(fadeTimer);fadeTimer=null;}
         try{if(music)music.stop();}catch(error){/* Backend may be unavailable. */}
-        musicPlaying=false;fadeStarted=null;
+        musicFading=false;
     };
     const startMusic=()=>{
         musicRequested=true;
         if(!enabled || !musicEnabled)return false;
-        // Credits can reopen while the opening track is still fading. Keep
-        // that playback rather than stopping/restarting a native audio queue.
-        if(musicPlaying && music){
-            if(fadeTimer!==null){schedule.stop(fadeTimer);fadeTimer=null;}
-            fadeStarted=null;
-            try{music.setVolume(1);return true;}catch(error){stopMusic();return false;}
-        }
-        stopMusic();
         try{
+            // Setting volume cancels a pending fade and its terminal stop.
+            // Reuse active playback when Credits reopens during dismissal.
+            if(musicActive()){music.setVolume(1);musicFading=false;return true;}
+            stopMusic();
             if(!music)music=resourceManager.getSound('sounds/startup.wav');
             if(!music)return false;
-            music.setLooping(true);music.setVolume(1);music.start();musicPlaying=true;return true;
+            music.setLooping(true);music.setVolume(1);music.start();return true;
         }catch(error){stopMusic();return false;}
     };
     const endMusic=()=>{
         musicRequested=false;
-        if(!musicPlaying || fadeStarted!==null)return false;
-        fadeStarted=now();fadeTimer=schedule.start(update);
-        if(fadeTimer && typeof fadeTimer.unref==='function')fadeTimer.unref();
-        return true;
-    };
-    const update=()=>{
-        if(fadeStarted===null)return false;
-        const elapsed=Math.max(0,now()-fadeStarted);
         try{
-            music.setVolume(Math.max(0,1-elapsed/5000));
-            if(elapsed>=5000)stopMusic();
-            return true;
+            if(!musicActive() || musicFading)return false;
+            music.fadeOut(5);musicFading=true;return true;
         }catch(error){stopMusic();return false;}
     };
     const play=id=>{
@@ -94,7 +81,7 @@ function createSound(resourceManager,preferences,now=()=>pdg.tm.getMilliseconds(
             if(!enabled){stop();stopMusic();}else if(changed && musicRequested)startMusic();
             return enabled;
         },
-        stop,play,startMusic,endMusic,update,
+        stop,play,startMusic,endMusic,
         isPending:overlay=>enabled && presentations.has(overlay) && !presentations.get(overlay).cue,
         noMore(game){
             if(!game.shouldShowEventWindows() || game.hasEventPresentation() || game.pendingMapOrderObject ||
